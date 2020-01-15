@@ -534,6 +534,7 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 
 		prepackagedMarketplace := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				IconData: prepackaged.IconData,
 				Manifest: prepackaged.Manifest,
 			},
 		}
@@ -587,6 +588,14 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 			continue
 		}
 
+		iconData := ""
+		if plugin.Manifest.IconPath != "" {
+			iconData, err = getIcon(filepath.Join(plugin.Path, plugin.Manifest.IconPath))
+			if err != nil {
+				mlog.Warn("Error loading local plugin icon", mlog.String("plugin", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
+			}
+		}
+
 		var labels []model.MarketplaceLabel
 		if *a.Config().PluginSettings.EnableRemoteMarketplace {
 			// Labels should not (yet) be localized as the labels sent by the Marketplace are not (yet) localizable.
@@ -598,6 +607,7 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 
 		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				IconData: iconData,
 				Labels:   labels,
 				Manifest: plugin.Manifest,
 			},
@@ -812,7 +822,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 	}
 
 	if manifest.IconPath != "" {
-		iconData, err := getIcon(manifest.IconPath)
+		iconData, err := getIcon(filepath.Join(pluginDir, manifest.IconPath))
 		if err != nil {
 			return nil, "", errors.Wrapf(err, "Failed to read icon at %s", manifest.IconPath)
 		}
