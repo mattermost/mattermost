@@ -4467,6 +4467,10 @@
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
   {
+    "id": "model.channel.is_valid.channel.types.app_error",
+    "translation": "Invalid ChannelTypes"
+  },
+  {
     "id": "model.channel.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4500,10 +4504,6 @@
   },
   {
     "id": "model.channel.is_valid.user.ids.app_error",
-    "translation": "Invalid UserIds"
-  },
-  {
-    "id": "model.channel.is_valid.channel.types.app_error",
     "translation": "Invalid UserIds"
   },
   {
