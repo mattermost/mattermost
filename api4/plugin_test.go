@@ -909,8 +909,14 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
+		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		require.NoError(t, err)
+		require.True(t, svg.Is(testIcon))
+		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				IconData: testIconData,
 				Manifest: manifest,
 			},
 			InstalledVersion: manifest.Version,
@@ -942,9 +948,15 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
+		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		require.NoError(t, err)
+		require.True(t, svg.Is(testIcon))
+		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				Manifest: manifest,
+				IconData: testIconData,
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
 					Description: "This plugin is not listed in the marketplace",
