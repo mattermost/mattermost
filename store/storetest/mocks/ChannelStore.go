@@ -1173,6 +1173,16 @@ func (_m *ChannelStore) InvalidateMemberCount(channelId string) {
 	_m.Called(channelId)
 }
 
+// InvalidateMembersForAllUsers provides a mock function with given fields:
+func (_m *ChannelStore) InvalidateMembersForAllUsers() {
+	_m.Called()
+}
+
+// InvalidateMembersForUser provides a mock function with given fields: userId
+func (_m *ChannelStore) InvalidateMembersForUser(userId string) {
+	_m.Called(userId)
+}
+
 // InvalidatePinnedPostCount provides a mock function with given fields: channelId
 func (_m *ChannelStore) InvalidatePinnedPostCount(channelId string) {
 	_m.Called(channelId)
@@ -1705,6 +1715,22 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.Channe
 	}
 
 	return r0, r1
+}
+
+// UpdateMembersRole provides a mock function with given fields: channelID, userIDs
+func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	ret := _m.Called(channelID, userIDs)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(channelID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds

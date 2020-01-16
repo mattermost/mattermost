@@ -12,6 +12,7 @@ package lru
 
 import (
 	"container/list"
+	"strings"
 	"sync"
 	"time"
 
@@ -184,6 +185,24 @@ func (c *Cache) Remove(key interface{}) {
 
 	if ent, ok := c.items[key]; ok {
 		c.removeElement(ent)
+	}
+}
+
+// RemoveByPrefix deletes all keys containing the given prefix string.
+func (c *Cache) RemoveByPrefix(prefix string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	for ent := c.evictList.Back(); ent != nil; ent = ent.Prev() {
+		e := ent.Value.(*entry)
+		if e.generation == c.currentGeneration {
+			keyString := e.key.(string)
+			if strings.HasPrefix(keyString, prefix) {
+				if ent, ok := c.items[e.key]; ok {
+					c.removeElement(ent)
+				}
+			}
+		}
 	}
 }
 
