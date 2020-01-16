@@ -56,6 +56,13 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("ChannelMembersMinusGroupMembers", func(t *testing.T) { testChannelMembersMinusGroupMembers(t, ss) })
 
 	t.Run("GetMemberCount", func(t *testing.T) { groupTestGetMemberCount(t, ss) })
+
+	t.Run("AdminRoleGroupsForSyncableMember_Channel", func(t *testing.T) { groupTestAdminRoleGroupsForSyncableMemberChannel(t, ss) })
+	t.Run("AdminRoleGroupsForSyncableMember_Team", func(t *testing.T) { groupTestAdminRoleGroupsForSyncableMemberTeam(t, ss) })
+	t.Run("PermittedSyncableAdmins_Team", func(t *testing.T) { groupTestPermittedSyncableAdminsTeam(t, ss) })
+	t.Run("PermittedSyncableAdmins_Channel", func(t *testing.T) { groupTestPermittedSyncableAdminsChannel(t, ss) })
+	t.Run("UpdateMembersRole_Team", func(t *testing.T) { groupTestpUpdateMembersRoleTeam(t, ss) })
+	t.Run("UpdateMembersRole_Channel", func(t *testing.T) { groupTestpUpdateMembersRoleChannel(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -916,7 +923,9 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 
 		// create groupteam
 		var groupTeam *model.GroupSyncable
-		groupTeam, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		gt := model.NewGroupTeam(group.Id, team.Id, false)
+		gt.SchemeAdmin = true
+		groupTeam, err = ss.Group().CreateGroupSyncable(gt)
 		require.Nil(t, err)
 		groupTeams = append(groupTeams, groupTeam)
 	}
@@ -929,6 +938,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		present := false
 		for _, dbGroupTeam := range d1 {
 			if dbGroupTeam.GroupId == expectedGroupTeam.GroupId && dbGroupTeam.SyncableId == expectedGroupTeam.SyncableId {
+				require.True(t, dbGroupTeam.SchemeAdmin)
 				present = true
 				break
 			}
@@ -1720,6 +1730,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1728,6 +1739,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1758,6 +1770,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
+		// SchemeAdmin: model.NewBool(false),
 	})
 	require.Nil(t, err)
 
@@ -1801,12 +1814,16 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
+	group1WSA := &model.GroupWithSchemeAdmin{Group: *group1, SchemeAdmin: model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{Group: *group2, SchemeAdmin: model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{Group: *group3, SchemeAdmin: model.NewBool(false)}
+
 	testCases := []struct {
 		Name       string
 		ChannelId  string
 		Page       int
 		PerPage    int
-		Result     []*model.Group
+		Result     []*model.GroupWithSchemeAdmin
 		Opts       model.GroupSearchOpts
 		TotalCount *int64
 	}{
@@ -1816,7 +1833,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -1825,7 +1842,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   1,
-			Result:    []*model.Group{group1},
+			Result:    []*model.GroupWithSchemeAdmin{group1WSA},
 		},
 		{
 			Name:      "Get second Group for Channel1 with page 1 with 1 element",
@@ -1833,7 +1850,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      1,
 			PerPage:   1,
-			Result:    []*model.Group{group2},
+			Result:    []*model.GroupWithSchemeAdmin{group2WSA},
 		},
 		{
 			Name:      "Get third Group for Channel2",
@@ -1841,7 +1858,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   60,
-			Result:    []*model.Group{group3},
+			Result:    []*model.GroupWithSchemeAdmin{group3WSA},
 		},
 		{
 			Name:       "Get empty Groups for a fake id",
@@ -1849,7 +1866,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{},
+			Result:     []*model.GroupWithSchemeAdmin{},
 			TotalCount: model.NewInt64(0),
 		},
 		{
@@ -1858,7 +1875,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -1867,7 +1884,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -1876,7 +1893,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "roUp-"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -1885,7 +1902,10 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			Opts:      model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:      0,
 			PerPage:   2,
-			Result:    []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+			Result: []*model.GroupWithSchemeAdmin{
+				{Group: group1WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
+			},
 		},
 	}
 
@@ -2015,13 +2035,17 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group2WithMemberCount := *group2
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
+	group1WSA := &model.GroupWithSchemeAdmin{Group: *group1, SchemeAdmin: model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{Group: *group2, SchemeAdmin: model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{Group: *group3, SchemeAdmin: model.NewBool(false)}
+
 	testCases := []struct {
 		Name       string
 		TeamId     string
 		Page       int
 		PerPage    int
 		Opts       model.GroupSearchOpts
-		Result     []*model.Group
+		Result     []*model.GroupWithSchemeAdmin
 		TotalCount *int64
 	}{
 		{
@@ -2030,7 +2054,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -2039,7 +2063,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 1,
-			Result:  []*model.Group{group1},
+			Result:  []*model.GroupWithSchemeAdmin{group1WSA},
 		},
 		{
 			Name:    "Get second Group for Team1 with page 1 with 1 element",
@@ -2047,7 +2071,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{},
 			Page:    1,
 			PerPage: 1,
-			Result:  []*model.Group{group2},
+			Result:  []*model.GroupWithSchemeAdmin{group2WSA},
 		},
 		{
 			Name:       "Get third Group for Team2",
@@ -2055,7 +2079,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{group3},
+			Result:     []*model.GroupWithSchemeAdmin{group3WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2064,7 +2088,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{},
 			Page:       0,
 			PerPage:    60,
-			Result:     []*model.Group{},
+			Result:     []*model.GroupWithSchemeAdmin{},
 			TotalCount: model.NewInt64(0),
 		},
 		{
@@ -2073,7 +2097,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2082,7 +2106,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
 			TotalCount: model.NewInt64(1),
 		},
 		{
@@ -2091,7 +2115,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:       model.GroupSearchOpts{Q: "roUp-"},
 			Page:       0,
 			PerPage:    100,
-			Result:     []*model.Group{group1, group2},
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA, group2WSA},
 			TotalCount: model.NewInt64(2),
 		},
 		{
@@ -2100,7 +2124,10 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:    0,
 			PerPage: 2,
-			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+			Result: []*model.GroupWithSchemeAdmin{
+				{Group: group1WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
+			},
 		},
 	}
 
@@ -2759,4 +2786,624 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	count, err = ss.Group().GetMemberCount(group.Id)
 	require.Nil(t, err)
 	require.Equal(t, int64(1), count)
+}
+
+func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Store) {
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user, err := ss.User().Save(user)
+	require.Nil(t, err)
+
+	group1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group1, err = ss.Group().Create(group1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user.Id)
+	require.Nil(t, err)
+
+	group2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group2, err = ss.Group().Create(group2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group2.Id, user.Id)
+	require.Nil(t, err)
+
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
+
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  channel.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		GroupId:     group1.Id,
+		SchemeAdmin: true,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group2.Id,
+	})
+	require.Nil(t, err)
+
+	// User is a member of both groups but only one is SchmeAdmin: true
+	actualGroupIDs, err := ss.Group().AdminRoleGroupsForSyncableMember(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group1.Id}, actualGroupIDs)
+
+	// Update the second group syncable to be SchemeAdmin: true and both groups should be returned
+	groupSyncable2.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group1.Id, group2.Id}, actualGroupIDs)
+
+	// Deleting membership from group should stop the group from being returned
+	_, err = ss.Group().DeleteMember(group1.Id, user.Id)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group2.Id}, actualGroupIDs)
+
+	// Deleting group syncable should stop it being returned
+	_, err = ss.Group().DeleteGroupSyncable(group2.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{}, actualGroupIDs)
+}
+
+func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store) {
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user, err := ss.User().Save(user)
+	require.Nil(t, err)
+
+	group1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group1, err = ss.Group().Create(group1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user.Id)
+	require.Nil(t, err)
+
+	group2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group2, err = ss.Group().Create(group2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group2.Id, user.Id)
+	require.Nil(t, err)
+
+	team := &model.Team{
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  team.Id,
+		Type:        model.GroupSyncableTypeTeam,
+		GroupId:     group1.Id,
+		SchemeAdmin: true,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group2.Id,
+	})
+	require.Nil(t, err)
+
+	// User is a member of both groups but only one is SchmeAdmin: true
+	actualGroupIDs, err := ss.Group().AdminRoleGroupsForSyncableMember(user.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group1.Id}, actualGroupIDs)
+
+	// Update the second group syncable to be SchemeAdmin: true and both groups should be returned
+	groupSyncable2.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group1.Id, group2.Id}, actualGroupIDs)
+
+	// Deleting membership from group should stop the group from being returned
+	_, err = ss.Group().DeleteMember(group1.Id, user.Id)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{group2.Id}, actualGroupIDs)
+
+	// Deleting group syncable should stop it being returned
+	_, err = ss.Group().DeleteGroupSyncable(group2.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	actualGroupIDs, err = ss.Group().AdminRoleGroupsForSyncableMember(user.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{}, actualGroupIDs)
+}
+
+func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err := ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	group1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group1, err = ss.Group().Create(group1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	group2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group2, err = ss.Group().Create(group2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group2.Id, user3.Id)
+	require.Nil(t, err)
+
+	team := &model.Team{
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  team.Id,
+		Type:        model.GroupSyncableTypeTeam,
+		GroupId:     group1.Id,
+		SchemeAdmin: true,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  team.Id,
+		Type:        model.GroupSyncableTypeTeam,
+		GroupId:     group2.Id,
+		SchemeAdmin: false,
+	})
+	require.Nil(t, err)
+
+	// group 1's users are returned because groupsyncable 2 has SchemeAdmin false.
+	actualUserIDs, err := ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user2.Id}, actualUserIDs)
+
+	// update groupsyncable 2 to be SchemeAdmin true
+	groupSyncable2.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+
+	// group 2's users are now included in return value
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user2.Id, user3.Id}, actualUserIDs)
+
+	// deleted group member should not be included
+	ss.Group().DeleteMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user3.Id}, actualUserIDs)
+
+	// deleted group syncable no longer includes group members
+	_, err = ss.Group().DeleteGroupSyncable(group1.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
+}
+
+func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err := ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	group1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group1, err = ss.Group().Create(group1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	group2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		Description: model.NewId(),
+		RemoteId:    model.NewId(),
+	}
+	group2, err = ss.Group().Create(group2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group2.Id, user3.Id)
+	require.Nil(t, err)
+
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel, err = ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
+
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  channel.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		GroupId:     group1.Id,
+		SchemeAdmin: true,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  channel.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		GroupId:     group2.Id,
+		SchemeAdmin: false,
+	})
+	require.Nil(t, err)
+
+	// group 1's users are returned because groupsyncable 2 has SchemeAdmin false.
+	actualUserIDs, err := ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user2.Id}, actualUserIDs)
+
+	// update groupsyncable 2 to be SchemeAdmin true
+	groupSyncable2.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+
+	// group 2's users are now included in return value
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user2.Id, user3.Id}, actualUserIDs)
+
+	// deleted group member should not be included
+	ss.Group().DeleteMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user1.Id, user3.Id}, actualUserIDs)
+
+	// deleted group syncable no longer includes group members
+	_, err = ss.Group().DeleteGroupSyncable(group1.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
+}
+
+func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
+	team := &model.Team{
+		DisplayName:     "Name",
+		Description:     "Some description",
+		CompanyName:     "Some company name",
+		AllowOpenInvite: false,
+		InviteId:        "inviteid0",
+		Name:            "z-z-" + model.NewId() + "a",
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
+
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	user4 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user4, err = ss.User().Save(user4)
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2, user3} {
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
+		require.Nil(t, err)
+	}
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user4.Id, SchemeGuest: true}, 9999)
+	require.Nil(t, err)
+
+	tests := []struct {
+		testName               string
+		inUserIDs              []string
+		targetSchemeAdminValue bool
+	}{
+		{
+			"Given users are admins",
+			[]string{user1.Id, user2.Id},
+			true,
+		},
+		{
+			"Given users are members",
+			[]string{user2.Id},
+			false,
+		},
+		{
+			"Non-given users are admins",
+			[]string{user2.Id},
+			false,
+		},
+		{
+			"Non-given users are members",
+			[]string{user2.Id},
+			false,
+		},
+	}
+
+	includes := func(list []string, item string) bool {
+		for _, it := range list {
+			if it == item {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs)
+			require.Nil(t, err)
+
+			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
+			require.Nil(t, err)
+			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
+
+			for _, member := range members {
+				if includes(tt.inUserIDs, member.UserId) {
+					require.True(t, member.SchemeAdmin)
+				} else {
+					require.False(t, member.SchemeAdmin)
+				}
+
+				// Ensure guest account never changes.
+				if member.UserId == user4.Id {
+					require.False(t, member.SchemeUser)
+					require.False(t, member.SchemeAdmin)
+					require.True(t, member.SchemeGuest)
+				}
+			}
+		})
+	}
+}
+
+func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "A Name",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+	}
+	channel, err := ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
+
+	user1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err = ss.User().Save(user1)
+	require.Nil(t, err)
+
+	user2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err = ss.User().Save(user2)
+	require.Nil(t, err)
+
+	user3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err = ss.User().Save(user3)
+	require.Nil(t, err)
+
+	user4 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user4, err = ss.User().Save(user4)
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2, user3} {
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+	}
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.Nil(t, err)
+
+	tests := []struct {
+		testName               string
+		inUserIDs              []string
+		targetSchemeAdminValue bool
+	}{
+		{
+			"Given users are admins",
+			[]string{user1.Id, user2.Id},
+			true,
+		},
+		{
+			"Given users are members",
+			[]string{user2.Id},
+			false,
+		},
+		{
+			"Non-given users are admins",
+			[]string{user2.Id},
+			false,
+		},
+		{
+			"Non-given users are members",
+			[]string{user2.Id},
+			false,
+		},
+	}
+
+	includes := func(list []string, item string) bool {
+		for _, it := range list {
+			if it == item {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs)
+			require.Nil(t, err)
+
+			members, err := ss.Channel().GetMembers(channel.Id, 0, 100)
+			require.Nil(t, err)
+
+			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
+
+			for _, member := range *members {
+				if includes(tt.inUserIDs, member.UserId) {
+					require.True(t, member.SchemeAdmin)
+				} else {
+					require.False(t, member.SchemeAdmin)
+				}
+
+				// Ensure guest account never changes.
+				if member.UserId == user4.Id {
+					require.False(t, member.SchemeUser)
+					require.False(t, member.SchemeAdmin)
+					require.True(t, member.SchemeGuest)
+				}
+			}
+		})
+	}
 }
