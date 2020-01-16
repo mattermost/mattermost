@@ -4115,6 +4115,10 @@
     "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Invalid AD/LDAP Admin Filter"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
   },
@@ -4875,6 +4879,10 @@
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'"
   },
   {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
+  },
+  {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
     "translation": "Service Provider Login URL must be a valid URL and start with http:// or https://."
   },
@@ -4925,10 +4933,6 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Unable to enable email batching when SiteURL isn't set."
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",

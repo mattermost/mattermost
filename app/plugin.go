@@ -587,8 +587,18 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 			continue
 		}
 
+		var labels []model.MarketplaceLabel
+		if *a.Config().PluginSettings.EnableRemoteMarketplace {
+			// Labels should not (yet) be localized as the labels sent by the Marketplace are not (yet) localizable.
+			labels = append(labels, model.MarketplaceLabel{
+				Name:        "Local",
+				Description: "This plugin is not listed in the marketplace",
+			})
+		}
+
 		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Labels:   labels,
 				Manifest: plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,
