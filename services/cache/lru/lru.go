@@ -23,7 +23,7 @@ import (
 type Cache struct {
 	size                   int
 	evictList              *list.List
-	items                  map[interface{}]*list.Element
+	items                  map[string]*list.Element
 	lock                   sync.RWMutex
 	name                   string
 	defaultExpiry          int64
@@ -68,7 +68,7 @@ func New(size int) *Cache {
 	return &Cache{
 		size:      size,
 		evictList: list.New(),
-		items:     make(map[interface{}]*list.Element, size),
+		items:     make(map[string]*list.Element, size),
 	}
 }
 
@@ -196,8 +196,7 @@ func (c *Cache) RemoveByPrefix(prefix string) {
 	for ent := c.evictList.Back(); ent != nil; ent = ent.Prev() {
 		e := ent.Value.(*entry)
 		if e.generation == c.currentGeneration {
-			keyString := e.key
-			if strings.HasPrefix(keyString, prefix) {
+			if strings.HasPrefix(e.key, prefix) {
 				if ent, ok := c.items[e.key]; ok {
 					c.removeElement(ent)
 				}
