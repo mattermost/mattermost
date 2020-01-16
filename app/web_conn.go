@@ -305,7 +305,12 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 
 	switch msg.EventType() {
 	case model.WEBSOCKET_EVENT_USER_UPDATED:
-		userId = msg.GetData()["user"].(*model.User).Id
+		user, ok := msg.GetData()["user"].(*model.User)
+		if !ok {
+			mlog.Error("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
+			return false
+		}
+		userId = user.Id
 	case model.WEBSOCKET_EVENT_NEW_USER:
 		userId = msg.GetData()["user_id"].(string)
 	default:

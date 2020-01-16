@@ -525,6 +525,41 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	}
 }
 
+func TestCreatePostCheckOnlineStatus(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+
+	handler := api.ApiHandler(createPost)
+	resp := httptest.NewRecorder()
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "some message",
+	}
+
+	req := httptest.NewRequest("POST", "/api/v4/posts?set_online=false", strings.NewReader(post.ToJson()))
+	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusCreated, resp.Code)
+
+	_, err := th.App.GetStatus(th.BasicUser.Id)
+	require.NotNil(t, err)
+	assert.Equal(t, "store.sql_status.get.missing.app_error", err.Id)
+
+	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
+	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusCreated, resp.Code)
+
+	st, err := th.App.GetStatus(th.BasicUser.Id)
+	require.Nil(t, err)
+	assert.Equal(t, "online", st.Status)
+}
+
 func TestUpdatePost(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

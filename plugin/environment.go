@@ -36,17 +36,27 @@ type registeredPlugin struct {
 	supervisor     *supervisor
 }
 
+// PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
+type PrepackagedPlugin struct {
+	Path      string
+	IconData  string
+	Manifest  *model.Manifest
+	Signature []byte
+}
+
 // Environment represents the execution environment of active plugins.
 //
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	registeredPlugins    sync.Map
-	pluginHealthCheckJob *PluginHealthCheckJob
-	logger               *mlog.Logger
-	newAPIImpl           apiImplCreatorFunc
-	pluginDir            string
-	webappPluginDir      string
+	registeredPlugins      sync.Map
+	pluginHealthCheckJob   *PluginHealthCheckJob
+	logger                 *mlog.Logger
+	newAPIImpl             apiImplCreatorFunc
+	pluginDir              string
+	webappPluginDir        string
+	prepackagedPlugins     []*PrepackagedPlugin
+	prepackagedPluginsLock sync.RWMutex
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -85,6 +95,15 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 // Returns a list of all plugins within the environment.
 func (env *Environment) Available() ([]*model.BundleInfo, error) {
 	return scanSearchPath(env.pluginDir)
+}
+
+// Returns a list of prepackaged plugins available in the local prepackaged_plugins folder.
+// The list content is immutable and should not be modified.
+func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
+	env.prepackagedPluginsLock.RLock()
+	defer env.prepackagedPluginsLock.RUnlock()
+
+	return env.prepackagedPlugins
 }
 
 // Returns a list of all currently active plugins within the environment.
@@ -437,6 +456,13 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 		return true
 	})
+}
+
+// SetPrepackagedPlugins saves prepackaged plugins in the environment.
+func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
+	env.prepackagedPluginsLock.Lock()
+	env.prepackagedPlugins = plugins
+	env.prepackagedPluginsLock.Unlock()
 }
 
 func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
