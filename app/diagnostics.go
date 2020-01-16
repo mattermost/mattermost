@@ -108,6 +108,15 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 	return state.Enable
 }
 
+func pluginVersion(pluginsAvailable []*model.BundleInfo, pluginId string) string {
+	for _, plugin := range pluginsAvailable {
+		if plugin.Manifest != nil && plugin.Manifest.Id == pluginId {
+			return plugin.Manifest.Version
+		}
+	}
+	return ""
+}
+
 func (a *App) trackActivity() {
 	var userCount int64
 	var botAccountsCount int64
@@ -471,6 +480,7 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
 		"enable":                                 *cfg.LdapSettings.Enable,
 		"enable_sync":                            *cfg.LdapSettings.EnableSync,
+		"enable_admin_filter":                    *cfg.LdapSettings.EnableAdminFilter,
 		"connection_security":                    *cfg.LdapSettings.ConnectionSecurity,
 		"skip_certificate_verification":          *cfg.LdapSettings.SkipCertificateVerification,
 		"sync_interval_minutes":                  *cfg.LdapSettings.SyncIntervalMinutes,
@@ -492,6 +502,7 @@ func (a *App) trackConfig() {
 		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
 		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
 		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
+		"isempty_admin_filter":                   isDefault(*cfg.LdapSettings.AdminFilter, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -509,6 +520,7 @@ func (a *App) trackConfig() {
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
+		"enable_admin_attribute":              *cfg.SamlSettings.EnableAdminAttribute,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
 		"sign_request":                        *cfg.SamlSettings.SignRequest,
@@ -518,6 +530,7 @@ func (a *App) trackConfig() {
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
 		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
 		"isdefault_guest_attribute":           isDefault(*cfg.SamlSettings.GuestAttribute, model.SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE),
+		"isdefault_admin_attribute":           isDefault(*cfg.SamlSettings.AdminAttribute, model.SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE),
 		"isdefault_first_name_attribute":      isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
 		"isdefault_last_name_attribute":       isDefault(*cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
 		"isdefault_email_attribute":           isDefault(*cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
@@ -558,6 +571,7 @@ func (a *App) trackConfig() {
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
+		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -593,7 +607,7 @@ func (a *App) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
+	pluginConfigData := map[string]interface{}{
 		"enable_antivirus":              pluginActivated(cfg.PluginSettings.PluginStates, "antivirus"),
 		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
 		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
@@ -603,18 +617,39 @@ func (a *App) trackConfig() {
 		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
 		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
 		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
+		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
-	})
+	}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	plugins, appErr := pluginsEnvironment.Available()
+	if appErr != nil {
+		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
+		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
+		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
+		pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
+		pluginConfigData["version_github"] = pluginVersion(plugins, "github")
+		pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
+		pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
+		pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
+		pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
+		pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
+		pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
+		pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+	}
+
+	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -701,6 +736,7 @@ func (a *App) trackPlugins() {
 				brokenManifestCount += 1
 				continue
 			}
+
 			if state, ok := pluginStates[plugin.Manifest.Id]; ok && state.Enable {
 				totalEnabledCount += 1
 				if plugin.Manifest.HasServer() {
