@@ -63,25 +63,18 @@ endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
-	@# Download prepackaged plugins
-	mkdir -p tmpprepackaged
-	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
-	done
-
 	@# Import Mattermost plugin public key
-	gpg --import build/plugin_publickey.asc
+	gpg --import build/plugin-production-public-key.gpg
 
-	@# Prepare prepackage plugins
+	@# Download prepackaged plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		cp tmpprepackaged/$$plugin_package.tar.gz $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
-		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig; \
-		VERIFY_SIGNATURE_RESULT=`gpg --status-fd 1 --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz 2>/dev/null | grep GOODSIG`; \
-		if [ "$${VERIFY_SIGNATURE_RESULT}" = "" ]; then \
-            echo "Failed to verify" $$plugin_package.tar.gz"|"$$plugin_package.tar.gz.sig; \
+		curl -f -o $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -f -o $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify" $$plugin_package.tar.gz"|"$$plugin_package.tar.gz.sig; \
 			exit 1; \
-        fi; \
+		fi; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
