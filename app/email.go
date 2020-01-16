@@ -170,10 +170,6 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 }
 
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
-	if !*a.Config().EmailSettings.RequireEmailVerification {
-		return nil
-	}
-
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -196,7 +192,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["AppDownloadLink"] = *a.Config().NativeAppSettings.AppDownloadLink
 	}
 
-	if !verified {
+	if !verified && *a.Config().EmailSettings.RequireEmailVerification {
 		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
