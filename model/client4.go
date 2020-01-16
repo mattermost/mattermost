@@ -1861,6 +1861,22 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 	return TeamMembersFromJson(r.Body), BuildResponse(r)
 }
 
+// AddTeamMembers adds a number of users to a team and returns the team members.
+func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*TeamMemberWithError, *Response) {
+	var members []*TeamMember
+	for _, userId := range userIds {
+		member := &TeamMember{TeamId: teamId, UserId: userId}
+		members = append(members, member)
+	}
+
+	r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+"/batch?graceful=true", TeamMembersToJson(members))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamMembersWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
 // RemoveTeamMember will remove a user from a team.
 func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId))
@@ -4826,4 +4842,13 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 	defer closeBody(r)
 	ugc := UsersWithGroupsAndCountFromJson(r.Body)
 	return ugc.Users, ugc.Count, BuildResponse(r)
+}
+
+func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
+	r, err := c.DoApiPut(c.GetConfigRoute()+"/patch", config.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ConfigFromJson(r.Body), BuildResponse(r)
 }

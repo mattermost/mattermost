@@ -420,3 +420,19 @@ func (a *App) IsESAutocompletionEnabled() bool {
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
 }
+
+func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
+	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
+	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
+	// directly and not through the System Console UI.
+	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
+		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+			// When the feature is toggled on, use the current timestamp as the start time for future exports.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
+		} else if !*cfg.MessageExportSettings.EnableExport {
+			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
+			// the feature is re-enabled from the System Console in future.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
+		}
+	}
+}
