@@ -170,6 +170,10 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 }
 
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+	if !*a.Config().EmailSettings.RequireEmailVerification {
+		return nil
+	}
+
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
