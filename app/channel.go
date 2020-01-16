@@ -613,6 +613,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
 		return nil, err
 	}
+	channel.DeleteAt = 0
 	a.InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
