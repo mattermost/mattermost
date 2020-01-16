@@ -335,15 +335,15 @@ func (m *Manifest) IsValid() error {
 		return errors.Wrap(err, "failed to parse Version")
 	}
 
-	_, err = semver.Parse(m.MinServerVersion)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse MinServerVersion")
+	_, err2 := semver.Parse(m.MinServerVersion)
+	if err2 != nil {
+		return errors.Wrap(err2, "failed to parse MinServerVersion")
 	}
 
 	if m.SettingsSchema != nil {
-		err = m.SettingsSchema.isValidSchema()
-		if err != nil {
-			return err
+		err3 := m.SettingsSchema.isValidSchema()
+		if err3 != nil {
+			return err3
 		}
 	}
 
