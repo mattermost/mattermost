@@ -389,7 +389,7 @@ func TestGetCommand(t *testing.T) {
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
 		_, resp := Client.GetCommandById(newCmd.Id)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("NoMember", func(t *testing.T) {
@@ -398,7 +398,7 @@ func TestGetCommand(t *testing.T) {
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		Client.Login(user.Email, user.Password)
 		_, resp := Client.GetCommandById(newCmd.Id)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
