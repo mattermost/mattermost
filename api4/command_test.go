@@ -370,16 +370,8 @@ func TestGetCommand(t *testing.T) {
 	newCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNoError(t, resp)
 
-	altTeam := &model.Team{
-		Name:        GenerateTestUsername(),
-		DisplayName: "Some Team",
-		Type:        model.TEAM_OPEN,
-	}
-	altTeam, resp = th.SystemAdminClient.CreateTeam(altTeam)
-	CheckNoError(t, resp)
-
 	t.Run("ValidId", func(t *testing.T) {
-		cmd, resp := th.SystemAdminClient.GetCommandById(newCmd.Id, newCmd.TeamId)
+		cmd, resp := th.SystemAdminClient.GetCommandById(newCmd.Id)
 		CheckNoError(t, resp)
 
 		require.Equal(t, newCmd.Id, cmd.Id)
@@ -391,17 +383,12 @@ func TestGetCommand(t *testing.T) {
 	})
 
 	t.Run("InvalidId", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.GetCommandById(strings.Repeat("z", len(newCmd.Id)), newCmd.TeamId)
-		CheckNotFoundStatus(t, resp)
-	})
-
-	t.Run("TeamId mismatch", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.GetCommandById(strings.Repeat("z", len(newCmd.Id)), altTeam.Id)
-		CheckNotFoundStatus(t, resp)
+		_, resp := th.SystemAdminClient.GetCommandById(strings.Repeat("z", len(newCmd.Id)))
+		require.Error(t, resp.Error)
 	})
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
-		_, resp := Client.GetCommandById(newCmd.Id, newCmd.TeamId)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckForbiddenStatus(t, resp)
 	})
 
@@ -410,13 +397,13 @@ func TestGetCommand(t *testing.T) {
 		user := th.CreateUser()
 		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
 		Client.Login(user.Email, user.Password)
-		_, resp := Client.GetCommandById(newCmd.Id, newCmd.TeamId)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("NotLoggedIn", func(t *testing.T) {
 		Client.Logout()
-		_, resp := Client.GetCommandById(newCmd.Id, newCmd.TeamId)
+		_, resp := Client.GetCommandById(newCmd.Id)
 		CheckUnauthorizedStatus(t, resp)
 	})
 }

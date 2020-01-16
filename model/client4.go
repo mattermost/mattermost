@@ -3987,9 +3987,9 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	return CommandListFromJson(r.Body), BuildResponse(r)
 }
 
-// GetCommandById will retrieve a command by id and team.
-func (c *Client4) GetCommandById(cmdId string, teamId string) (*Command, *Response) {
-	url := fmt.Sprintf("%s/%s?team_id=%s", c.GetCommandsRoute(), cmdId, teamId)
+// GetCommandById will retrieve a command by id.
+func (c *Client4) GetCommandById(cmdId string) (*Command, *Response) {
+	url := fmt.Sprintf("%s/%s", c.GetCommandsRoute(), cmdId)
 	r, err := c.DoApiGet(url, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
