@@ -340,21 +340,18 @@ func (m *Manifest) IsValid() error {
 		return errors.Wrap(err, "failed to parse MinServerVersion")
 	}
 
-	err = isValidSettingsSchema(m.SettingsSchema)
-	if err != nil {
-		return err
+	if m.SettingsSchema != nil {
+		err = m.SettingsSchema.isValidSchema()
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
-func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
-	if settingsSchema == nil {
-		return nil
-	}
-
-	settings := settingsSchema.Settings
-
-	for _, setting := range settings {
+func (s *PluginSettingsSchema) isValidSchema() error {
+	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {
 			return err
@@ -365,10 +362,6 @@ func isValidSettingsSchema(settingsSchema *PluginSettingsSchema) error {
 }
 
 func (s *PluginSetting) isValid() error {
-	if s == nil {
-		return nil
-	}
-
 	pluginSettingType, err := convertTypeToPluginSettingType(s.Type)
 	if err != nil {
 		return err
@@ -393,6 +386,7 @@ func (s *PluginSetting) isValid() error {
 			}
 		}
 	}
+
 	return nil
 }
 

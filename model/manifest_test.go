@@ -86,14 +86,13 @@ func TestIsValidSettingsSchema(t *testing.T) {
 		settingsSchema *PluginSettingsSchema
 		ExpectError    bool
 	}{
-		{"Nil Schema", nil, false},
 		{"Invalid Setting", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "invalid"}}}, true},
 		{"Happy case", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "text"}}}, false},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Title, func(t *testing.T) {
-			err := isValidSettingsSchema(tc.settingsSchema)
+			err := tc.settingsSchema.isValidSchema()
 			if tc.ExpectError {
 				assert.Error(t, err)
 			} else {
