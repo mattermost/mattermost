@@ -6451,6 +6451,14 @@
     "translation": "We encountered an error updating the app"
   },
   {
+    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
+    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
+    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
+    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
     "id": "store.sql_plugin_store.delete.app_error",
     "translation": "Could not delete plugin key value"
   },
