@@ -1099,7 +1099,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	adminMessage.Add("user", &adminCopyOfUser)
+	adminMessage.Add("user", adminCopyOfUser)
 	adminMessage.Broadcast.ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
