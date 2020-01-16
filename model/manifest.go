@@ -343,7 +343,7 @@ func (m *Manifest) IsValid() error {
 	if m.SettingsSchema != nil {
 		err3 := m.SettingsSchema.isValidSchema()
 		if err3 != nil {
-			return err3
+			return errors.Wrap(err3, "invalid settings schema")
 		}
 	}
 
