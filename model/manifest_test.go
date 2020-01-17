@@ -108,7 +108,6 @@ func TestSettingIsValid(t *testing.T) {
 		setting     *PluginSetting
 		ExpectError bool
 	}{
-		{"Nil setting", nil, false},
 		{"Invalid setting type", &PluginSetting{Type: "invalid"}, true},
 		{"RegenerateHelpText error", &PluginSetting{Type: "text", RegenerateHelpText: "some text"}, true},
 		{"Placeholder error", &PluginSetting{Type: "bool", Placeholder: "some text"}, true},
