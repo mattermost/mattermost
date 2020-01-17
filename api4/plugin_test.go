@@ -611,7 +611,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 
 		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
+				HomepageURL: "https://example.com/homepage",
 				IconData:    testIconData,
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
@@ -751,7 +751,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		plugin1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
+				HomepageURL: "https://example.com/homepage",
 				IconData:    testIconData,
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
@@ -769,8 +769,8 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		plugin2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "",
 				IconData:    testIconData,
+				HomepageURL: "https://example.com/homepage",
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
@@ -916,8 +916,9 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				IconData: testIconData,
-				Manifest: manifest,
+				IconData:    testIconData,
+				HomepageURL: "https://example.com/homepage",
+				Manifest:    manifest,
 			},
 			InstalledVersion: manifest.Version,
 		}
@@ -955,8 +956,9 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				Manifest: manifest,
-				IconData: testIconData,
+				Manifest:    manifest,
+				IconData:    testIconData,
+				HomepageURL: "https://example.com/homepage",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
 					Description: "This plugin is not listed in the marketplace",
