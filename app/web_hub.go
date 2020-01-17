@@ -164,7 +164,7 @@ func (a *App) HubUnregister(webConn *WebConn) {
 
 func (a *App) Publish(message *model.WebSocketEvent) {
 	if metrics := a.Metrics; metrics != nil {
-		metrics.IncrementWebsocketEvent(message.Event)
+		metrics.IncrementWebsocketEvent(message.EventType())
 	}
 
 	a.PublishSkipClusterSend(message)
@@ -176,11 +176,11 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			Data:     message.ToJson(),
 		}
 
-		if message.Event == model.WEBSOCKET_EVENT_POSTED ||
-			message.Event == model.WEBSOCKET_EVENT_POST_EDITED ||
-			message.Event == model.WEBSOCKET_EVENT_DIRECT_ADDED ||
-			message.Event == model.WEBSOCKET_EVENT_GROUP_ADDED ||
-			message.Event == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
+		if message.EventType() == model.WEBSOCKET_EVENT_POSTED ||
+			message.EventType() == model.WEBSOCKET_EVENT_POST_EDITED ||
+			message.EventType() == model.WEBSOCKET_EVENT_DIRECT_ADDED ||
+			message.EventType() == model.WEBSOCKET_EVENT_GROUP_ADDED ||
+			message.EventType() == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
@@ -189,8 +189,8 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 }
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.Broadcast.UserId != "" {
-		hub := a.GetHubForUserId(message.Broadcast.UserId)
+	if message.GetBroadcast().UserId != "" {
+		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
 		if hub != nil {
 			hub.Broadcast(message)
 		}
@@ -202,18 +202,10 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 }
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
-	a.InvalidateCacheForChannelSkipClusterSend(channel.Id)
+	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
 	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channel.Id,
-		}
-
-		a.Cluster.SendClusterMessage(msg)
-
 		nameMsg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -231,24 +223,7 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	}
 }
 
-func (a *App) InvalidateCacheForChannelSkipClusterSend(channelId string) {
-	a.Srv.Store.Channel().InvalidateChannel(channelId)
-}
-
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
-	a.InvalidateCacheForChannelMembersSkipClusterSend(channelId)
-
-	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelId,
-		}
-		a.Cluster.SendClusterMessage(msg)
-	}
-}
-
-func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
 	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
 	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
 	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
@@ -280,25 +255,15 @@ func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string
 }
 
 func (a *App) InvalidateCacheForChannelPosts(channelId string) {
-	a.InvalidateCacheForChannelPostsSkipClusterSend(channelId)
-
-	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     channelId,
-		}
-		a.Cluster.SendClusterMessage(msg)
-	}
-}
-
-func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
-	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 	a.Srv.Store.Channel().InvalidatePinnedPostCount(channelId)
+	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
 func (a *App) InvalidateCacheForUser(userId string) {
 	a.InvalidateCacheForUserSkipClusterSend(userId)
+
+	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
+	a.Srv.Store.User().InvalidateProfileCacheForUser(userId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
@@ -312,6 +277,7 @@ func (a *App) InvalidateCacheForUser(userId string) {
 
 func (a *App) InvalidateCacheForUserTeams(userId string) {
 	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
+	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
@@ -325,8 +291,6 @@ func (a *App) InvalidateCacheForUserTeams(userId string) {
 
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
-	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
@@ -335,8 +299,6 @@ func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 }
 
 func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
-	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
-
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
 		hub.InvalidateUser(userId)
@@ -344,19 +306,6 @@ func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
 }
 
 func (a *App) InvalidateCacheForWebhook(webhookId string) {
-	a.InvalidateCacheForWebhookSkipClusterSend(webhookId)
-
-	if a.Cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOK,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     webhookId,
-		}
-		a.Cluster.SendClusterMessage(msg)
-	}
-}
-
-func (a *App) InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
 	a.Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
 }
 
@@ -485,10 +434,10 @@ func (h *Hub) Start() {
 				}
 			case msg := <-h.broadcast:
 				candidates := connections.All()
-				if msg.Broadcast.UserId != "" {
-					candidates = connections.ForUser(msg.Broadcast.UserId)
+				if msg.GetBroadcast().UserId != "" {
+					candidates = connections.ForUser(msg.GetBroadcast().UserId)
 				}
-				msg.PrecomputeJSON()
+				msg = msg.PrecomputeJSON()
 				for _, webCon := range candidates {
 					if webCon.ShouldSendEvent(msg) {
 						select {
