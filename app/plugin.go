@@ -598,8 +598,9 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 
 		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				Labels:   labels,
-				Manifest: plugin.Manifest,
+				HomepageURL: plugin.Manifest.HomepageURL,
+				Labels:      labels,
+				Manifest:    plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,
 		}
