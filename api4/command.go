@@ -107,21 +107,21 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	newTeamId, iderr := model.TeamIdFromJson(r.Body)
-	if iderr != nil {
+	newTeamId, err := model.TeamIdFromJson(r.Body)
+	if err != nil {
 		c.SetInvalidParam("team_id")
 		return
 	}
 
-	newTeam, err := c.App.GetTeam(newTeamId)
-	if err != nil {
-		c.Err = err
+	newTeam, appErr := c.App.GetTeam(newTeamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	cmd, err := c.App.GetCommand(c.Params.CommandId)
-	if err != nil {
-		c.Err = err
+	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -137,9 +137,8 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.MoveCommand(newTeam, cmd)
-	if err != nil {
-		c.Err = err
+	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
