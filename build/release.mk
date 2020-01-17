@@ -67,6 +67,7 @@ endif
 	mkdir -p tmpprepackaged
 	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -83,6 +84,7 @@ endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
 	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
@@ -103,6 +105,7 @@ endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*darwin*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
 	done
 	@# Package
 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
@@ -123,6 +126,7 @@ endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*darwin*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
 	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost

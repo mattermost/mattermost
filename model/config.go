@@ -132,6 +132,7 @@ const (
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
+	SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE      = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -1705,9 +1706,11 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter  *string
-	GroupFilter *string
-	GuestFilter *string
+	UserFilter        *string
+	GroupFilter       *string
+	GuestFilter       *string
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1751,6 +1754,10 @@ func (s *LdapSettings) SetDefaults() {
 		s.EnableSync = NewBool(*s.Enable)
 	}
 
+	if s.EnableAdminFilter == nil {
+		s.EnableAdminFilter = NewBool(false)
+	}
+
 	if s.LdapServer == nil {
 		s.LdapServer = NewString("")
 	}
@@ -1781,6 +1788,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GuestFilter == nil {
 		s.GuestFilter = NewString("")
+	}
+
+	if s.AdminFilter == nil {
+		s.AdminFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -1918,6 +1929,7 @@ type SamlSettings struct {
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
+	IdpMetadataUrl              *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -1931,15 +1943,17 @@ type SamlSettings struct {
 	PrivateKeyFile        *string
 
 	// User Mapping
-	IdAttribute        *string
-	GuestAttribute     *string
-	FirstNameAttribute *string
-	LastNameAttribute  *string
-	EmailAttribute     *string
-	UsernameAttribute  *string
-	NicknameAttribute  *string
-	LocaleAttribute    *string
-	PositionAttribute  *string
+	IdAttribute          *string
+	GuestAttribute       *string
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
+	FirstNameAttribute   *string
+	LastNameAttribute    *string
+	EmailAttribute       *string
+	UsernameAttribute    *string
+	NicknameAttribute    *string
+	LocaleAttribute      *string
+	PositionAttribute    *string
 
 	LoginButtonText *string
 
@@ -1959,6 +1973,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.EnableAdminAttribute == nil {
+		s.EnableAdminAttribute = NewBool(false)
 	}
 
 	if s.Verify == nil {
@@ -1987,6 +2005,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.IdpMetadataUrl == nil {
+		s.IdpMetadataUrl = NewString("")
 	}
 
 	if s.IdpCertificateFile == nil {
@@ -2023,6 +2045,9 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.GuestAttribute == nil {
 		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
+	if s.AdminAttribute == nil {
+		s.AdminAttribute = NewString(SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE)
 	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
@@ -2245,18 +2270,20 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                   *bool
-	EnableUploads            *bool   `restricted:"true"`
-	AllowInsecureDownloadUrl *bool   `restricted:"true"`
-	EnableHealthCheck        *bool   `restricted:"true"`
-	Directory                *string `restricted:"true"`
-	ClientDirectory          *string `restricted:"true"`
-	Plugins                  map[string]map[string]interface{}
-	PluginStates             map[string]*PluginState
-	EnableMarketplace        *bool
-	RequirePluginSignature   *bool
-	MarketplaceUrl           *string
-	SignaturePublicKeyFiles  []string
+	Enable                      *bool
+	EnableUploads               *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl    *bool   `restricted:"true"`
+	EnableHealthCheck           *bool   `restricted:"true"`
+	Directory                   *string `restricted:"true"`
+	ClientDirectory             *string `restricted:"true"`
+	Plugins                     map[string]map[string]interface{}
+	PluginStates                map[string]*PluginState
+	EnableMarketplace           *bool
+	EnableRemoteMarketplace     *bool
+	AutomaticPrepackagedPlugins *bool
+	RequirePluginSignature      *bool
+	MarketplaceUrl              *string
+	SignaturePublicKeyFiles     []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2299,6 +2326,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.EnableRemoteMarketplace == nil {
+		s.EnableRemoteMarketplace = NewBool(true)
+	}
+
+	if s.AutomaticPrepackagedPlugins == nil {
+		s.AutomaticPrepackagedPlugins = NewBool(true)
 	}
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
@@ -2676,10 +2711,6 @@ func (s *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.SiteName) == 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if len(*s.SiteName) > SITENAME_MAX_LENGTH {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "", http.StatusBadRequest)
 	}
@@ -2820,6 +2851,12 @@ func (s *LdapSettings) isValid() *AppError {
 				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
+
+		if *s.AdminFilter != "" {
+			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2880,6 +2917,15 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 			if len(strings.Split(*s.GuestAttribute, "=")) != 2 {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if len(*s.AdminAttribute) > 0 {
+			if !(strings.Contains(*s.AdminAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*s.AdminAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
