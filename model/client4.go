@@ -3972,7 +3972,7 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 
 // MoveCommand moves a command to a different team.
 func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response) {
-	cmr := CommandMoveRquest{TeamId: teamId}
+	cmr := CommandMoveRequest{TeamId: teamId}
 	r, err := c.DoApiPut(c.GetCommandMoveRoute(commandId), cmr.ToJson())
 	if err != nil {
 		return false, BuildErrorResponse(r, err)

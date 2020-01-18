@@ -8,13 +8,13 @@ import (
 	"io"
 )
 
-type CommandMoveRquest struct {
+type CommandMoveRequest struct {
 	TeamId string `json:"team_id"`
 }
 
 func TeamIdFromCommandMoveRequestJson(data io.Reader) (string, error) {
 	decoder := json.NewDecoder(data)
-	var cmr CommandMoveRquest
+	var cmr CommandMoveRequest
 	err := decoder.Decode(&cmr)
 	if err != nil {
 		return "", err
@@ -22,7 +22,7 @@ func TeamIdFromCommandMoveRequestJson(data io.Reader) (string, error) {
 	return cmr.TeamId, nil
 }
 
-func (cmr *CommandMoveRquest) ToJson() string {
+func (cmr *CommandMoveRequest) ToJson() string {
 	b, err := json.Marshal(cmr)
 	if err != nil {
 		return ""
