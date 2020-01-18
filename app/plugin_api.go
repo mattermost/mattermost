@@ -43,13 +43,12 @@ func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface
 		}
 	}
 
-	for configName, configValue := range pluginConfig {
-		if configValue == "" {
-			if initialValue, exist := initialConfig[configName]; exist {
-				pluginConfig[configName] = initialValue
-			}
+	for configKey, configValue := range initialConfig {
+		if pluginValue, exist := pluginConfig[configKey]; exist && pluginValue == "" {
+			pluginConfig[configKey] = configValue
 		}
 	}
+
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
@@ -101,9 +100,8 @@ func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppEr
 func (api *PluginAPI) GetConfig() *model.Config {
 	cfg := api.app.GetSanitizedConfig()
 
-	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
-		api.applyDefaultConfigValues(pluginConfig)
-	}
+	pluginConfig := cfg.PluginSettings.Plugins[api.manifest.Id]
+	api.applyDefaultConfigValues(pluginConfig)
 
 	return cfg
 }
@@ -112,9 +110,9 @@ func (api *PluginAPI) GetConfig() *model.Config {
 func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 	cfg := api.app.Config().Clone()
 
-	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
-		api.applyDefaultConfigValues(pluginConfig)
-	}
+	pluginConfig := cfg.PluginSettings.Plugins[api.manifest.Id]
+	api.applyDefaultConfigValues(pluginConfig)
+
 
 	return cfg
 }

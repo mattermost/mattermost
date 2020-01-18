@@ -398,12 +398,12 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 				SettingsSchema: &model.PluginSettingsSchema{
 					Settings: []*model.PluginSetting{
 						{Key: "MyStringSetting", Type: "text"},
-						{Key: "MyBoolSetting", Type: "bool"},
+						{Key: "MyBoolSetting", Type: "bool", Default:false},
 					},
 				},
 			},
-			pluginConfigJsonString:         `{"mystringsetting": "str", "myboolsetting": true}`,
-			expectedPluginConfigJsonString: `{"mystringsetting": "str", "myboolsetting": true}`,
+			pluginConfigJsonString:         `{"mystringsetting": "str", "myboolsetting": ""}`,
+			expectedPluginConfigJsonString: `{"mystringsetting": "str", "myboolsetting": false}`,
 		},
 		{
 			name: "Plugin settings with default value provided in manifest",
@@ -411,7 +411,7 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 				Id: "pluginid",
 				SettingsSchema: &model.PluginSettingsSchema{
 					Settings: []*model.PluginSetting{
-						{Key: "MyStringSetting", Type: "text", Default:"defaultValue"},
+						{Key: "MyStringSetting", Type: "text", Default: "defaultValue"},
 						{Key: "MyDefaultSetting", Type: "generated", Default: "defaultValue"},
 					},
 				},
@@ -439,7 +439,7 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 				Id: "pluginid",
 				SettingsSchema: &model.PluginSettingsSchema{
 					Settings: []*model.PluginSetting{
-						{Key: "MyStringSetting", Type: "text", Default:"defaultSettings"},
+						{Key: "MyStringSetting", Type: "text", Default: "defaultSettings"},
 					},
 				},
 			},
@@ -851,7 +851,7 @@ func TestInstallPlugin(t *testing.T) {
 
 		import (
 			"net/http"
-			
+
 			"github.com/pkg/errors"
 
 			"github.com/mattermost/mattermost-server/v5/plugin"
@@ -860,7 +860,7 @@ func TestInstallPlugin(t *testing.T) {
 		type configuration struct {
 			DownloadURL string
 		}
-		
+
 		type Plugin struct {
 			plugin.MattermostPlugin
 
@@ -873,7 +873,7 @@ func TestInstallPlugin(t *testing.T) {
 			}
 			return nil
 		}
-		
+
 		func (p *Plugin) OnActivate() error {
 			resp, err := http.Get(p.configuration.DownloadURL)
 			if err != nil {
@@ -890,7 +890,7 @@ func TestInstallPlugin(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&Plugin{})
 		}
-		
+
 	`,
 		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
