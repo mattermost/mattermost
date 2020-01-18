@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,6 +24,19 @@ type PluginOption struct {
 	// The string value for the option.
 	Value string `json:"value" yaml:"value"`
 }
+
+type PluginSettingType int
+
+const (
+	Bool PluginSettingType = iota
+	Dropdown
+	Generated
+	Radio
+	Text
+	LongText
+	Username
+	Custom
+)
 
 type PluginSetting struct {
 	// The key that the setting will be assigned to in the configuration file.
@@ -302,6 +315,103 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (m *Manifest) IsValid() error {
+	if !IsValidPluginId(m.Id) {
+		return errors.New("invalid plugin ID")
+	}
+
+	if m.HomepageURL == "" || !IsValidHttpUrl(m.HomepageURL) {
+		return errors.New("invalid HomepageURL")
+	}
+
+	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+		return errors.New("invalid SupportURL")
+	}
+
+	_, err := semver.Parse(m.Version)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Version")
+	}
+
+	_, err2 := semver.Parse(m.MinServerVersion)
+	if err2 != nil {
+		return errors.Wrap(err2, "failed to parse MinServerVersion")
+	}
+
+	if m.SettingsSchema != nil {
+		err3 := m.SettingsSchema.isValidSchema()
+		if err3 != nil {
+			return errors.Wrap(err3, "invalid settings schema")
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSettingsSchema) isValidSchema() error {
+	for _, setting := range s.Settings {
+		err := setting.isValid()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSetting) isValid() error {
+	pluginSettingType, err := convertTypeToPluginSettingType(s.Type)
+	if err != nil {
+		return err
+	}
+
+	if s.RegenerateHelpText != "" && pluginSettingType != Generated {
+		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
+	}
+
+	if s.Placeholder != "" && !(pluginSettingType == Text || pluginSettingType == Generated || pluginSettingType == Username) {
+		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+	}
+
+	if s.Options != nil {
+		if pluginSettingType != Radio && pluginSettingType != Dropdown {
+			return errors.New("should not set Options for setting type not in radio or dropdown")
+		}
+
+		for _, option := range s.Options {
+			if option.DisplayName == "" || option.Value == "" {
+				return errors.New("should not have empty Displayname or Value for any option")
+			}
+		}
+	}
+
+	return nil
+}
+
+func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
+	var settingType PluginSettingType
+	switch t {
+	case "bool":
+		return Bool, nil
+	case "dropdown":
+		return Dropdown, nil
+	case "generated":
+		return Generated, nil
+	case "radio":
+		return Radio, nil
+	case "text":
+		return Text, nil
+	case "longtext":
+		return LongText, nil
+	case "username":
+		return Username, nil
+	case "custom":
+		return Custom, nil
+	default:
+		return settingType, errors.New("invalid setting type: " + t)
+	}
 }
 
 // FindManifest will find and parse the manifest in a given directory.

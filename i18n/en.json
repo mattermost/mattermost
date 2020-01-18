@@ -1573,18 +1573,6 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
-    "id": "api.plugin.install.insecure_url.app_error",
-    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
-  },
-  {
-    "id": "api.plugin.install.invalid_url.app_error",
-    "translation": "An invalid url was given to download the plugin."
-  },
-  {
-    "id": "api.plugin.install.reading_stream_failed.app_error",
-    "translation": "An error ocurred reading the plugin file stream."
-  },
-  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
@@ -3584,7 +3572,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "An error occurred extracting the plugin bundle."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3623,6 +3611,10 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
   },
   {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Failed to install marketplace plugin."
+  },
+  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
   },
@@ -3639,6 +3631,10 @@
     "translation": "Failed to create marketplace client."
   },
   {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
     "id": "app.plugin.marketplace_disabled.app_error",
     "translation": "Marketplace has been disabled. Please check your logs for details."
   },
@@ -3647,12 +3643,12 @@
     "translation": "Failed to decode the marketplace plugin request."
   },
   {
-    "id": "app.plugin.marketplace_plugins.app_error",
-    "translation": "Failed to get plugins from the marketplace server."
-  },
-  {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
     "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin signature."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -6300,7 +6296,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group members with UserID \"{{.UserId}}\""
+    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6453,6 +6449,14 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app"
+  },
+  {
+    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
+    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
+    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
+    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
