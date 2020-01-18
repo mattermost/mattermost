@@ -420,6 +420,19 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 			expectedPluginConfigJsonString: `{"mystringsetting": "defaultValue", "mydefaultsetting": "defaultValue"}`,
 		},
 		{
+			name: "Plugin settings with empty json as a plugin config",
+			manifest: &model.Manifest{
+				Id: "pluginid",
+				SettingsSchema: &model.PluginSettingsSchema{
+					Settings: []*model.PluginSetting{
+						{Key: "MyStringSetting", Type: "text", Default: "defaultValue"},
+					},
+				},
+			},
+			pluginConfigJsonString:         `{}`,
+			expectedPluginConfigJsonString: `{"mystringsetting": "defaultValue"}`,
+		},
+		{
 			name: "Plugin settings with default value provided in manifest",
 			manifest: &model.Manifest{
 				Id: "pluginid",

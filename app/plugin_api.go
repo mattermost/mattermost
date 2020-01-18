@@ -42,7 +42,16 @@ func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface
 			initialConfig[strings.ToLower(settings.Key)] = settings.Default
 		}
 	}
-
+	// checking if plugin config was specified by user,
+	// if not just apply default values from the initial config settings and return
+	if len(pluginConfig) == 0 {
+		for key, value := range initialConfig {
+			pluginConfig[key] = value
+		}
+		return
+	}
+	// if plugin config was specified by user we check the values from plugin config and if there is not value for
+	// the key, we apply default value from the initial plugin settings
 	for configKey, configValue := range initialConfig {
 		if pluginValue, exist := pluginConfig[configKey]; exist && pluginValue == "" {
 			pluginConfig[configKey] = configValue
