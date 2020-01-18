@@ -522,6 +522,8 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	graceful := r.URL.Query().Get("graceful") != ""
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -587,7 +589,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err = c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId)
+	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
 
 	if err != nil {
 		c.Err = err
@@ -595,7 +597,14 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(model.TeamMembersToJson(members)))
+
+	if graceful {
+		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
+		w.Write([]byte(model.TeamMembersWithErrorToJson(membersWithErrors)))
+	} else {
+		w.Write([]byte(model.TeamMembersToJson(model.TeamMembersWithErrorToTeamMembers(membersWithErrors))))
+	}
+
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -968,7 +977,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.License() == nil {
+	if c.App.License() == nil || !*c.App.License().Features.GuestAccounts {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}

@@ -87,6 +87,7 @@ type User struct {
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
@@ -397,24 +398,24 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
 }
 
-func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
+func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	for _, key := range user.GetMentionKeys() {
+	for _, key := range u.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
 	}
 
-	user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = user.Username + ",@" + user.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
 	if len(nonUsernameKeys) > 0 {
-		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
-func (user *User) GetMentionKeys() []string {
+func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -487,7 +488,7 @@ func (u *UserAuth) ToJson() string {
 
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
-	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail)
+	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
 }
 
 // Remove any private data from the user object
@@ -630,6 +631,10 @@ func IsValidUserRoles(userRoles string) bool {
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
+}
+
+func (u *User) IsSystemAdmin() bool {
+	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

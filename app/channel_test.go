@@ -502,7 +502,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -743,6 +743,7 @@ func TestRenameChannel(t *testing.T) {
 		Name                string
 		Channel             *model.Channel
 		ExpectError         bool
+		ChannelName         string
 		ExpectedName        string
 		ExpectedDisplayName string
 	}{
@@ -751,19 +752,30 @@ func TestRenameChannel(t *testing.T) {
 			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
 			false,
 			"newchannelname",
+			"newchannelname",
 			"New Display Name",
+		},
+		{
+			"Fail on rename open channel with bad name",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			true,
+			"6zii9a9g6pruzj451x3esok54h__wr4j4g8zqtnhmkw771pfpynqwo",
+			"",
+			"",
 		},
 		{
 			"Fail on rename direct message channel",
 			th.CreateDmChannel(th.BasicUser2),
 			true,
+			"newchannelname",
 			"",
 			"",
 		},
 		{
-			"Fail on rename direct message channel",
+			"Fail on rename group message channel",
 			th.CreateGroupChannel(th.BasicUser2, th.CreateUser()),
 			true,
+			"newchannelname",
 			"",
 			"",
 		},
@@ -771,7 +783,7 @@ func TestRenameChannel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			channel, err := th.App.RenameChannel(tc.Channel, "newchannelname", "New Display Name")
+			channel, err := th.App.RenameChannel(tc.Channel, tc.ChannelName, "New Display Name")
 			if tc.ExpectError {
 				assert.NotNil(t, err)
 			} else {
@@ -1148,4 +1160,56 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, response)
 	})
+}
+
+func TestAddUserToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser1, _ := th.App.CreateUser(&user1)
+	defer th.App.PermanentDeleteUser(&user1)
+	th.App.AddTeamMember(th.BasicTeam.Id, ruser1.Id)
+
+	group := th.CreateGroup()
+
+	_, err := th.App.UpsertGroupMember(group.Id, user1.Id)
+	require.Nil(t, err)
+
+	gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  th.BasicChannel.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		GroupId:     group.Id,
+		SchemeAdmin: false,
+	})
+	require.Nil(t, err)
+
+	err = th.App.JoinChannel(th.BasicChannel, ruser1.Id)
+	require.Nil(t, err)
+
+	// verify user was added as a non-admin
+	cm1, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser1.Id)
+	require.Nil(t, err)
+	require.False(t, cm1.SchemeAdmin)
+
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser2, _ := th.App.CreateUser(&user2)
+	defer th.App.PermanentDeleteUser(&user2)
+	th.App.AddTeamMember(th.BasicTeam.Id, ruser2.Id)
+
+	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	require.Nil(t, err)
+
+	gs.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(gs)
+	require.Nil(t, err)
+
+	err = th.App.JoinChannel(th.BasicChannel, ruser2.Id)
+	require.Nil(t, err)
+
+	// verify user was added as an admin
+	cm2, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser2.Id)
+	require.Nil(t, err)
+	require.True(t, cm2.SchemeAdmin)
 }
