@@ -42,16 +42,16 @@ func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface
 			initialConfig[strings.ToLower(settings.Key)] = settings.Default
 		}
 	}
-	// checking if plugin config was specified by user,
-	// if not just apply default values from the initial config settings and return
+	// Checking if plugin config was specified by user,
+	// if not we just apply default values from the initial config settings and return
 	if len(pluginConfig) == 0 {
 		for key, value := range initialConfig {
 			pluginConfig[key] = value
 		}
 		return
 	}
-	// if plugin config was specified by user we check the values from plugin config and if there is not value for
-	// the key, we apply default value from the initial plugin settings
+	// If plugin config was specified by user we check the values from plugin config and if there is not value for
+	// the key, we will apply default value from the initial plugin settings
 	for configKey, configValue := range initialConfig {
 		if pluginValue, exist := pluginConfig[configKey]; exist && pluginValue == "" {
 			pluginConfig[configKey] = configValue
@@ -116,6 +116,7 @@ func (api *PluginAPI) GetConfig() *model.Config {
 }
 
 // GetUnsanitizedConfig gets the configuration for a system admin without removing secrets.
+// Also it set the defaults in active config if values in provided config are not specifying there
 func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 	cfg := api.app.Config().Clone()
 
@@ -130,6 +131,7 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+// Get plugin config with set the defaults for the active plugin
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 	cfg := api.app.GetSanitizedConfig()
 	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
