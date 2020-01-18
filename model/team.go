@@ -58,10 +58,6 @@ type TeamForExport struct {
 	SchemeName *string
 }
 
-type TeamId struct {
-	Id string `json:"team_id"`
-}
-
 type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }
@@ -323,22 +319,4 @@ func TeamPatchFromJson(data io.Reader) *TeamPatch {
 	}
 
 	return &team
-}
-
-func TeamIdFromJson(data io.Reader) (string, error) {
-	decoder := json.NewDecoder(data)
-	var tid TeamId
-	err := decoder.Decode(&tid)
-	if err != nil {
-		return "", err
-	}
-	return tid.Id, nil
-}
-
-func (tid *TeamId) ToJson() string {
-	b, err := json.Marshal(tid)
-	if err != nil {
-		return ""
-	}
-	return string(b)
 }

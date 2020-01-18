@@ -107,7 +107,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	newTeamId, err := model.TeamIdFromJson(r.Body)
+	newTeamId, err := model.TeamIdFromCommandMoveRequestJson(r.Body)
 	if err != nil {
 		c.SetInvalidParam("team_id")
 		return
