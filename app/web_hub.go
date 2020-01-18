@@ -203,7 +203,6 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
-	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if a.Cluster != nil {
 		nameMsg := &model.ClusterMessage{
@@ -221,6 +220,14 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 
 		a.Cluster.SendClusterMessage(nameMsg)
 	}
+}
+
+func (a *App) InvalidateCacheForChannelByName(teamId, name string) {
+	if teamId == "" {
+		teamId = "dm"
+	}
+
+	a.Srv.Store.Channel().InvalidateChannelByName(teamId, name)
 }
 
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
@@ -244,14 +251,6 @@ func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 
 func (a *App) InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
 	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
-}
-
-func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
-	if teamId == "" {
-		teamId = "dm"
-	}
-
-	a.Srv.Store.Channel().InvalidateChannelByName(teamId, name)
 }
 
 func (a *App) InvalidateCacheForChannelPosts(channelId string) {
