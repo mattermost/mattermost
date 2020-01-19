@@ -77,69 +77,56 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
-		var wg sync.WaitGroup
 		// Deactivate any plugins that have been disabled.
 		for _, plugin := range availablePlugins {
-			wg.Add(1)
-			go func(plugin *model.BundleInfo) {
-				defer wg.Done()
-				// Determine if plugin is enabled
-				pluginId := plugin.Manifest.Id
-				pluginEnabled := false
-				if state, ok := config.PluginStates[pluginId]; ok {
-					pluginEnabled = state.Enable
-				}
+			// Determine if plugin is enabled
+			pluginId := plugin.Manifest.Id
+			pluginEnabled := false
+			if state, ok := config.PluginStates[pluginId]; ok {
+				pluginEnabled = state.Enable
+			}
 
-				// If it's not enabled we need to deactivate it
-				if !pluginEnabled {
-					deactivated := pluginsEnvironment.Deactivate(pluginId)
-					if deactivated && plugin.Manifest.HasClient() {
-						message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
-						message.Add("manifest", plugin.Manifest.ClientManifest())
-						a.Publish(message)
-					}
+			// If it's not enabled we need to deactivate it
+			if !pluginEnabled {
+				deactivated := pluginsEnvironment.Deactivate(pluginId)
+				if deactivated && plugin.Manifest.HasClient() {
+					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+					message.Add("manifest", plugin.Manifest.ClientManifest())
+					a.Publish(message)
 				}
-			}(plugin)
-
+			}
 		}
-		wg.Wait()
 
 		// Activate any plugins that have been enabled
 		for _, plugin := range availablePlugins {
-			wg.Add(1)
-			go func(plugin *model.BundleInfo) {
-				defer wg.Done()
-				if plugin.Manifest == nil {
-					plugin.WrapLogger(a.Log).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-					return
+			if plugin.Manifest == nil {
+				plugin.WrapLogger(a.Log).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
+				continue
+			}
+
+			// Determine if plugin is enabled
+			pluginId := plugin.Manifest.Id
+			pluginEnabled := false
+			if state, ok := config.PluginStates[pluginId]; ok {
+				pluginEnabled = state.Enable
+			}
+
+			// Activate plugin if enabled
+			if pluginEnabled {
+				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
+				if err != nil {
+					plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
+					continue
 				}
 
-				// Determine if plugin is enabled
-				pluginId := plugin.Manifest.Id
-				pluginEnabled := false
-				if state, ok := config.PluginStates[pluginId]; ok {
-					pluginEnabled = state.Enable
-				}
-
-				// Activate plugin if enabled
-				if pluginEnabled {
-					updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
-					if err != nil {
-						plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
-						return
-					}
-
-					if activated {
-						// Notify all cluster clients if ready
-						if err := a.notifyPluginEnabled(updatedManifest); err != nil {
-							a.Log.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
-						}
+				if activated {
+					// Notify all cluster clients if ready
+					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
+						a.Log.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
-			}(plugin)
+			}
 		}
-
-		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
@@ -243,8 +230,6 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 		}(plugin)
 	}
-
-	wg.Wait()
 
 	// Install plugins from the file store.
 	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
@@ -751,7 +736,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	fileStorePaths := []string{}
+	var fileStorePaths []string
 	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 		fileStorePaths = append(fileStorePaths, walkPath)
 		return nil
@@ -763,56 +748,63 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+	prepackagedPlugins := make(chan plugin.PrepackagedPluginResult)
 	for _, pluginPaths := range pluginSignaturePathMap {
-		plugin, err := a.processPrepackagedPlugin(pluginPaths)
-		if err != nil {
-			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
+		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins)
+	}
+
+	for i := 0; i < len(prepackagedPlugins); i++ {
+		result := <-prepackagedPlugins
+		if result.Err != nil {
+			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", result.Path), mlog.Err(err))
 			continue
 		}
 
-		plugins = append(plugins, plugin)
+		plugins = append(plugins, result.P)
 	}
-
 	return plugins
 }
 
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
-func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
-	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
+func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan plugin.PrepackagedPluginResult) {
+	mlog.Debug("Processing prepackaged p", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged p %s", pluginPath.path, ), Path: pluginPath.path}
+		return
 	}
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrap(err, "Failed to create temp dir plugintmp"), Path: pluginPath.path}
+		return
 	}
 	defer os.RemoveAll(tmpDir)
 
-	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	p, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to get prepackaged p %s", pluginPath.path), Path: pluginPath.path}
+		return
 	}
 
-	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
+	// Skip installing the p at all if automatic prepackaged plugins is disabled
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
-		return plugin, nil
+		c <- plugin.PrepackagedPluginResult{P: p}
+		return
 	}
 
-	// Skip installing if the plugin is has not been previously enabled.
-	pluginState := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
+	// Skip installing if the p is has not been previously enabled.
+	pluginState := a.Config().PluginSettings.PluginStates[p.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
-		return plugin, nil
+		c <- plugin.PrepackagedPluginResult{P: p}
+		return
 	}
 
-	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
-	if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
-		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
+	mlog.Debug("Installing prepackaged p", mlog.String("path", pluginPath.path))
+	if _, err := a.installExtractedPlugin(p.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to install extracted prepackaged p %s", pluginPath.path), Path: pluginPath.path}
 	}
-
-	return plugin, nil
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
