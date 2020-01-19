@@ -338,7 +338,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	fileInfo1, err := th.App.DoUploadFile(
-		time.Date(2020, 1, 1, 1, 1, 1, 1, time.Local),
+		time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
 		th.BasicUser.Id,
@@ -352,7 +352,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	}()
 
 	fileInfo2, err := th.App.DoUploadFile(
-		time.Date(2020, 1, 1, 1, 1, 1, 2, time.Local),
+		time.Date(2020, 1, 2, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
 		th.BasicUser2.Id,
@@ -366,7 +366,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	}()
 
 	fileInfo3, err := th.App.DoUploadFile(
-		time.Date(2020, 1, 1, 1, 1, 1, 3, time.Local),
+		time.Date(2020, 1, 3, 1, 1, 1, 1, time.UTC),
 		th.BasicTeam.Id,
 		th.BasicChannel.Id,
 		th.BasicUser.Id,
