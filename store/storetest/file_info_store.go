@@ -20,6 +20,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
 	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, ss) })
+	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, ss) })
 	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, ss) })
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
@@ -254,6 +255,182 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	userPosts, err = ss.FileInfo().GetForUser(userId2)
 	require.Nil(t, err)
 	assert.Len(t, userPosts, 1)
+}
+
+func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	makeUser := func(username string) model.User {
+		user := model.User{
+			Email:    MakeEmail(),
+			Username: username,
+		}
+		_, err := ss.User().Save(&user)
+		require.Nil(t, err)
+		return user
+	}
+
+	makeChannel := func(prefix string) model.Channel {
+		channel := model.Channel{
+			DisplayName: prefix + "channel",
+			Name:        prefix + "channel",
+			TeamId:      teamId,
+			Type:        model.CHANNEL_GROUP,
+		}
+		_, err := ss.Channel().Save(&channel, -1)
+		require.Nil(t, err)
+		return channel
+	}
+
+	addUsersToChannel := func(ch model.Channel, users ...string) {
+		for _, user := range users {
+			m := model.ChannelMember{}
+			m.ChannelId = ch.Id
+			m.UserId = user
+			m.NotifyProps = model.GetDefaultChannelNotifyProps()
+			_, err := ss.Channel().SaveMember(&m)
+			require.Nil(t, err)
+		}
+	}
+
+	makePost := func(ch model.Channel, user string) model.Post {
+		post := model.Post{}
+		post.ChannelId = ch.Id
+		post.UserId = user
+		_, err := ss.Post().Save(&post)
+		require.Nil(t, err)
+		return post
+	}
+
+	makeFile := func(post model.Post, user string) model.FileInfo {
+		fileInfo := model.FileInfo{
+			CreatorId: user,
+			Path:      "file.txt",
+		}
+		if post.Id != "" {
+			fileInfo.PostId = post.Id
+		}
+		_, err := ss.FileInfo().Save(&fileInfo)
+		require.Nil(t, err)
+		return fileInfo
+	}
+
+	user1 := makeUser("user1")
+	user2 := makeUser("user2")
+
+	channel1 := makeChannel("ch-for-user1")
+	channel2 := makeChannel("ch-for-user2")
+	channel1and2 := makeChannel("ch-for-user1-and-user2")
+
+	addUsersToChannel(channel1, user1.Id)
+	addUsersToChannel(channel2, user2.Id)
+	addUsersToChannel(channel1and2, user1.Id, user2.Id)
+
+	post1_1 := makePost(channel1, user1.Id)     // post 1 by user 1
+	post1_2 := makePost(channel1and2, user1.Id) // post 2 by user 1
+	post2_1 := makePost(channel2, user2.Id)
+	post2_2 := makePost(channel1and2, user2.Id)
+
+	file1_1 := makeFile(post1_1, user1.Id)      // file 1 by user 1
+	file1_2 := makeFile(post1_2, user1.Id)      // file 2 by user 1
+	file1_3 := makeFile(model.Post{}, user1.Id) // file that is not attached to a post
+	file2_1 := makeFile(post2_1, user2.Id)      // file 2 by user 1
+	file2_2 := makeFile(post2_2, user2.Id)
+
+	// delete a file
+	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		Name              string
+		Opt               *model.GetFilesOptions
+		ExpectedFileCount int
+		ExpectedFileIds   []string
+	}{
+		{
+			Name:              "Get files with nil option",
+			Opt:               nil,
+			ExpectedFileCount: 4,
+		},
+		{
+			Name:              "Get files including deleted",
+			Opt:               &model.GetFilesOptions{IncludeDeleted: true},
+			ExpectedFileCount: 5,
+		},
+		{
+			Name: "Get files including deleted filtered by channel",
+			Opt: &model.GetFilesOptions{
+				IncludeDeleted: true,
+				ChannelIds:     []string{channel1and2.Id},
+			},
+			ExpectedFileCount: 2,
+		},
+		{
+			Name: "Get files including deleted sorted by created at",
+			Opt: &model.GetFilesOptions{
+				IncludeDeleted: true,
+				SortBy:         model.FILE_SORT_BY_CREATED,
+			},
+			ExpectedFileCount: 5,
+			ExpectedFileIds:   []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
+		},
+		{
+			Name: "Get files filtered by user ordered by created at descending",
+			Opt: &model.GetFilesOptions{
+				UserIds:       []string{user1.Id},
+				SortBy:        model.FILE_SORT_BY_CREATED,
+				SortDirection: model.FILE_SORT_ORDER_DESCENDING,
+			},
+			ExpectedFileCount: 3,
+			ExpectedFileIds:   []string{file1_3.Id, file1_2.Id, file1_1.Id},
+		},
+		{
+			Name: "Get all files including deleted filtered by channel id and sorted by channel name",
+			Opt: &model.GetFilesOptions{
+				ChannelIds:     []string{channel1.Id, channel2.Id},
+				IncludeDeleted: true,
+				SortBy:         model.FILE_SORT_BY_CHANNEL_NAME,
+			},
+			ExpectedFileCount: 2,
+			ExpectedFileIds:   []string{file1_1.Id, file2_1.Id},
+		},
+		{
+			Name: "Get all files including deleted filtered by channel id and sorted by username descending",
+			Opt: &model.GetFilesOptions{
+				ChannelIds:     []string{channel1and2.Id},
+				IncludeDeleted: true,
+				SortBy:         model.FILE_SORT_BY_USERNAME,
+				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
+			},
+			ExpectedFileCount: 2,
+			ExpectedFileIds:   []string{file2_2.Id, file1_2.Id},
+		},
+		{
+			Name: "Get all files including deleted paginated",
+			Opt: &model.GetFilesOptions{
+				Page:           2,
+				PerPage:        3,
+				IncludeDeleted: true,
+				SortBy:         model.FILE_SORT_BY_CREATED,
+				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
+			},
+			ExpectedFileCount: 2,
+			ExpectedFileIds:   []string{file1_2.Id, file1_1.Id},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Opt)
+			require.Nil(t, err)
+			assert.Len(t, fileInfos, tc.ExpectedFileCount)
+			if len(tc.ExpectedFileIds) > 0 {
+				for i, _ := range tc.ExpectedFileIds {
+					assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
+				}
+			}
+		})
+	}
 }
 
 type byFileInfoId []*model.FileInfo

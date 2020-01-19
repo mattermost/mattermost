@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -93,6 +94,72 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 		return nil, model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return info, nil
+}
+
+func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+	if opt == nil {
+		opt = &model.GetFilesOptions{}
+	}
+
+	query := fs.getQueryBuilder().
+		Select("FileInfo.*").
+		From("FileInfo").
+		LeftJoin("Posts ON FileInfo.PostId = Posts.Id") // Left join to get files that aren't attached to a post
+
+	if len(opt.ChannelIds) > 0 {
+		query = query.Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
+	}
+
+	if len(opt.UserIds) > 0 {
+		query = query.Where(sq.Eq{"FileInfo.CreatorId": opt.UserIds})
+	}
+
+	if opt.Since > 0 {
+		query = query.Where(sq.Gt{"FileInfo.CreateAt": opt.Since})
+	}
+
+	if !opt.IncludeDeleted {
+		query = query.Where("FileInfo.DeleteAt = 0")
+	}
+
+	sortDirection := model.FILE_SORT_ORDER_ASCENDING
+	if opt.SortDirection != "" {
+		sortDirection = opt.SortDirection
+	}
+	if opt.SortBy != "" {
+		switch opt.SortBy {
+		case model.FILE_SORT_BY_CREATED, model.FILE_SORT_BY_SIZE:
+			query = query.OrderBy(fmt.Sprintf("FileInfo.%s %s", opt.SortBy, sortDirection))
+		case model.FILE_SORT_BY_USERNAME:
+			query = query.Join("Users on FileInfo.CreatorId = Users.Id").
+				OrderBy(fmt.Sprintf("Users.%s %s", opt.SortBy, sortDirection))
+		case model.FILE_SORT_BY_CHANNEL_NAME:
+			query = query.Join("Channels on Posts.ChannelId = Channels.Id").
+				OrderBy(fmt.Sprintf("Channels.%s %s", opt.SortBy, sortDirection))
+		default:
+			return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+				"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
+		}
+	}
+
+	if opt.PerPage > 0 {
+		query = query.Limit(uint64(opt.PerPage))
+		if opt.Page > 0 {
+			query = query.Offset(uint64(opt.PerPage * (opt.Page - 1)))
+		}
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var infos []*model.FileInfo
+	if _, err := fs.GetReplica().Select(&infos, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return infos, nil
 }
 
 func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
