@@ -75,6 +75,29 @@ func TestCreateCommandPost(t *testing.T) {
 	}
 }
 
+func TestExecuteCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	args := &model.CommandArgs{
+		Command: "/code happy path",
+	}
+
+	resp, err := th.App.ExecuteCommand(args)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp.Text, "happy path")
+
+	args = &model.CommandArgs{
+		Command: "/code\nnewline path",
+	}
+
+	resp, err = th.App.ExecuteCommand(args)
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp.Text, "newline path")
+}
+
 func TestHandleCommandResponsePost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
