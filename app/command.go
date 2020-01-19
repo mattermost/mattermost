@@ -155,10 +155,17 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 }
 
 func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	parts := strings.Split(args.Command, " ")
-	trigger := parts[0][1:]
+	message := ""
+	trigger := ""
+	if strings.ContainsAny(args.Command, " \n\t\v\r\f") {
+		index := strings.IndexAny("args.Command", " \n\t\v\r\f")
+		trigger = args.Command[:index]
+		message = args.Command[index+1:]
+	} else {
+		trigger = args.Command
+	}
+	trigger = trigger[1:] // remove '/' char
 	trigger = strings.ToLower(trigger)
-	message := strings.Join(parts[1:], " ")
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
