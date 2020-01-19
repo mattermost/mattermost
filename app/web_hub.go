@@ -203,23 +203,6 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
-
-	if a.Cluster != nil {
-		nameMsg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Props:    make(map[string]string),
-		}
-
-		nameMsg.Props["name"] = channel.Name
-		if channel.TeamId == "" {
-			nameMsg.Props["id"] = "dm"
-		} else {
-			nameMsg.Props["id"] = channel.TeamId
-		}
-
-		a.Cluster.SendClusterMessage(nameMsg)
-	}
 }
 
 func (a *App) InvalidateCacheForChannelByName(teamId, name string) {
