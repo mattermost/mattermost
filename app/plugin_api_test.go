@@ -474,7 +474,7 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 		})
 
 		testCase.actualConfig = testCase.api.GetPluginConfig()
-		assert.Equal(t, testCase.expectedConfig, testCase.actualConfig)
+		assert.Equal(t, testCase.expectedConfig, testCase.actualConfig, testCase.name)
 	}
 }
 
