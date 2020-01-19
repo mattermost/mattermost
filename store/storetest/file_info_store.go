@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -302,10 +303,11 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		return post
 	}
 
-	makeFile := func(post model.Post, user string) model.FileInfo {
+	makeFile := func(post model.Post, user string, createAt int64) model.FileInfo {
 		fileInfo := model.FileInfo{
 			CreatorId: user,
 			Path:      "file.txt",
+			CreateAt:  createAt,
 		}
 		if post.Id != "" {
 			fileInfo.PostId = post.Id
@@ -331,11 +333,12 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	post2_1 := makePost(channel2, user2.Id)
 	post2_2 := makePost(channel1and2, user2.Id)
 
-	file1_1 := makeFile(post1_1, user1.Id)      // file 1 by user 1
-	file1_2 := makeFile(post1_2, user1.Id)      // file 2 by user 1
-	file1_3 := makeFile(model.Post{}, user1.Id) // file that is not attached to a post
-	file2_1 := makeFile(post2_1, user2.Id)      // file 2 by user 1
-	file2_2 := makeFile(post2_2, user2.Id)
+	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
+	file1_1 := makeFile(post1_1, user1.Id, epoch.AddDate(0, 0, 1).Unix())      // file 1 by user 1
+	file1_2 := makeFile(post1_2, user1.Id, epoch.AddDate(0, 0, 2).Unix())      // file 2 by user 1
+	file1_3 := makeFile(model.Post{}, user1.Id, epoch.AddDate(0, 0, 3).Unix()) // file that is not attached to a post
+	file2_1 := makeFile(post2_1, user2.Id, epoch.AddDate(0, 0, 4).Unix())      // file 2 by user 1
+	file2_2 := makeFile(post2_2, user2.Id, epoch.AddDate(0, 0, 5).Unix())
 
 	// delete a file
 	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
