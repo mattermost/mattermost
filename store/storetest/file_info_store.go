@@ -425,7 +425,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			require.Nil(t, err)
 			assert.Len(t, fileInfos, tc.ExpectedFileCount)
 			if len(tc.ExpectedFileIds) > 0 {
-				for i, _ := range tc.ExpectedFileIds {
+				for i := range tc.ExpectedFileIds {
 					assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
 				}
 			}
