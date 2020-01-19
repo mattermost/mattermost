@@ -123,7 +123,6 @@ func (api *PluginAPI) GetUnsanitizedConfig() *model.Config {
 	pluginConfig := cfg.PluginSettings.Plugins[api.manifest.Id]
 	api.applyDefaultConfigValues(pluginConfig)
 
-
 	return cfg
 }
 

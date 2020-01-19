@@ -398,7 +398,7 @@ func TestPluginApiGetPluginConfig(t *testing.T) {
 				SettingsSchema: &model.PluginSettingsSchema{
 					Settings: []*model.PluginSetting{
 						{Key: "MyStringSetting", Type: "text"},
-						{Key: "MyBoolSetting", Type: "bool", Default:false},
+						{Key: "MyBoolSetting", Type: "bool", Default: false},
 					},
 				},
 			},
