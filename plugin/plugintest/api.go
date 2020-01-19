@@ -1000,6 +1000,31 @@ func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return r0, r1
 }
 
+// GetFileInfos provides a mock function with given fields: _a0
+func (_m *API) GetFileInfos(_a0 *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+	ret := _m.Called(_a0)
+
+	var r0 []*model.FileInfo
+	if rf, ok := ret.Get(0).(func(*model.GetFilesOptions) []*model.FileInfo); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileInfo)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.GetFilesOptions) *model.AppError); ok {
+		r1 = rf(_a0)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetFileLink provides a mock function with given fields: fileId
 func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
 	ret := _m.Called(fileId)

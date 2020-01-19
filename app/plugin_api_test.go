@@ -332,6 +332,94 @@ func TestPluginAPIGetFile(t *testing.T) {
 	require.Nil(t, data)
 }
 
+func TestPluginAPIGetFileInfos(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	fileInfo1, err := th.App.DoUploadFile(
+		time.Date(2020, 1, 1, 1, 1, 1, 1, time.Local),
+		th.BasicTeam.Id,
+		th.BasicChannel.Id,
+		th.BasicUser.Id,
+		"testFile1",
+		[]byte("testfile1 Content"),
+	)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.RemoveFile(fileInfo1.Path)
+	}()
+
+	fileInfo2, err := th.App.DoUploadFile(
+		time.Date(2020, 1, 1, 1, 1, 1, 2, time.Local),
+		th.BasicTeam.Id,
+		th.BasicChannel.Id,
+		th.BasicUser2.Id,
+		"testFile2",
+		[]byte("testfile2 Content"),
+	)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.RemoveFile(fileInfo2.Path)
+	}()
+
+	fileInfo3, err := th.App.DoUploadFile(
+		time.Date(2020, 1, 1, 1, 1, 1, 3, time.Local),
+		th.BasicTeam.Id,
+		th.BasicChannel.Id,
+		th.BasicUser.Id,
+		"testFile3",
+		[]byte("testfile3 Content"),
+	)
+	require.Nil(t, err)
+	defer func() {
+		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.RemoveFile(fileInfo3.Path)
+	}()
+
+	_, err = api.CreatePost(&model.Post{
+		Message:   "testFile1",
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		FileIds:   model.StringArray{fileInfo1.Id},
+	})
+	require.Nil(t, err)
+
+	_, err = api.CreatePost(&model.Post{
+		Message:   "testFile2",
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		FileIds:   model.StringArray{fileInfo2.Id},
+	})
+	require.Nil(t, err)
+
+	t.Run("get file infos with no options", func(t *testing.T) {
+		fileInfos, err := api.GetFileInfos(nil)
+		require.Nil(t, err)
+		require.Len(t, fileInfos, 3)
+	})
+	t.Run("get file infos filtered by user", func(t *testing.T) {
+		fileInfos, err := api.GetFileInfos(&model.GetFilesOptions{
+			UserIds: []string{th.BasicUser.Id},
+		})
+		require.Nil(t, err)
+		require.Len(t, fileInfos, 2)
+	})
+	t.Run("get file infos filtered by channel ordered by created at descending", func(t *testing.T) {
+		fileInfos, err := api.GetFileInfos(&model.GetFilesOptions{
+			ChannelIds:    []string{th.BasicChannel.Id},
+			SortBy:        model.FILE_SORT_BY_CREATED,
+			SortDirection: model.FILE_SORT_ORDER_DESCENDING,
+		})
+		require.Nil(t, err)
+		require.Len(t, fileInfos, 2)
+		require.Equal(t, fileInfos[0].Id, fileInfo2.Id)
+		require.Equal(t, fileInfos[1].Id, fileInfo1.Id)
+	})
+}
+
 func TestPluginAPISavePluginConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
