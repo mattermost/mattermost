@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -904,11 +905,14 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-
+	includeDeleted := false
+	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
+		includeDeleted = iD
+	}
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
-		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+		IncludeDeleted:         includeDeleted,
 		Page:                   props.Page,
 		PerPage:                props.PerPage,
 	}
@@ -977,7 +981,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	includeDeleted := false
+	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
+		includeDeleted = iD
+	}
 
 	channel, err := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
 	if err != nil {
@@ -1012,7 +1019,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	includeDeleted := false
+	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
+		includeDeleted = iD
+	}
 
 	channel, err := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
 	if err != nil {

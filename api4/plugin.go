@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -99,7 +100,11 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	force := r.URL.Query().Get("force") == "true"
+	force := false
+	if f, err := strconv.ParseBool(r.URL.Query().Get("force")); err == nil {
+		force = f
+	}
+
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
 	pluginFile, err := downloadFromUrl(c, downloadUrl)

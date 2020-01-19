@@ -100,7 +100,10 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	includeDeleted := false
+	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
+		includeDeleted = iD
+	}
 
 	bot, err := c.App.GetBot(botUserId, includeDeleted)
 	if err != nil {
@@ -133,8 +136,14 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-	onlyOrphaned := r.URL.Query().Get("only_orphaned") == "true"
+	includeDeleted := false
+	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
+		includeDeleted = iD
+	}
+	onlyOrphaned := false
+	if oO, err := strconv.ParseBool(r.URL.Query().Get("only_orphaned")); err == nil {
+		onlyOrphaned = oO
+	}
 
 	var OwnerId string
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {

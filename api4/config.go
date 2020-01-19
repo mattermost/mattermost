@@ -69,7 +69,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
 			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 				restricted := structField.Tag.Get("restricted") == "true"
-
 				return !restricted
 			},
 		})
