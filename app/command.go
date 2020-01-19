@@ -164,7 +164,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	} else {
 		trigger = args.Command
 	}
-	trigger = trigger[1:] // remove '/' char
+	trigger = trigger[1:] // remove '/'
 	trigger = strings.ToLower(trigger)
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
