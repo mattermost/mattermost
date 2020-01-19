@@ -22,6 +22,36 @@ type FileUploadResponse struct {
 	ClientIds []string    `json:"client_ids"`
 }
 
+const (
+	FILE_SORT_BY_CREATED      = "CreateAt"
+	FILE_SORT_BY_SIZE         = "Size"
+	FILE_SORT_BY_USERNAME     = "Username"
+	FILE_SORT_BY_CHANNEL_NAME = "Name"
+
+	FILE_SORT_ORDER_ASCENDING  = "ASC"
+	FILE_SORT_ORDER_DESCENDING = "DESC"
+)
+
+// GetFilesOptions contains options for getting files
+type GetFilesOptions struct {
+	// UserIds optionally limits the files to those created by the given users.
+	UserIds []string
+	// ChannelIds optionally limits the files to those created in the given channels.
+	ChannelIds []string
+	// Since optionally limits files to those created after a specified time as Unix time in milliseconds.
+	Since int64
+	// IncludeDeleted includes deleted files if set.
+	IncludeDeleted bool
+	// Page optionally limits to the requested page of results.
+	Page int
+	// PerPage optionally limits the number of results to fetch per page.
+	PerPage int
+	// SortBy optionally sorts the files by this field.
+	SortBy string
+	// SortDirection sorts the files in a particular order, default is ASCENDING if SortBy is provided.
+	SortDirection string
+}
+
 func FileUploadResponseFromJson(data io.Reader) *FileUploadResponse {
 	var o *FileUploadResponse
 	json.NewDecoder(data).Decode(&o)
