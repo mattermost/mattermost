@@ -203,6 +203,7 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
+	a.Srv.Store.Channel().InvalidateChannelByName(channel.TeamId, channel.Name)
 }
 
 func (a *App) InvalidateCacheForChannelByName(teamId, name string) {
