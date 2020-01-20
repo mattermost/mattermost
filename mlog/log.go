@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"os"
@@ -52,6 +53,7 @@ type Logger struct {
 	zap          *zap.Logger
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
+	buffer       *bytes.Buffer
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -186,4 +188,11 @@ func (l *Logger) Error(message string, fields ...Field) {
 
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
+}
+
+func (l *Logger) SetBuffer(buffer *bytes.Buffer) {
+	l.buffer = buffer
+}
+func (l *Logger) GetBuffer() *bytes.Buffer {
+	return l.buffer
 }
