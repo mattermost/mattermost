@@ -221,7 +221,11 @@ func TestHandleCommandResponsePost(t *testing.T) {
 			Text: "<!here>",
 		},
 	}
+
+	// set and unset SkipSlackParsing here seems the nicest way as no separate response objects are created for every testcase.
+	resp.SkipSlackParsing = true
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	resp.SkipSlackParsing = false
 
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")

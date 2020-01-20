@@ -525,7 +525,7 @@ func TestConfigMigrate(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
