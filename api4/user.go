@@ -605,11 +605,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else {
-		etag = c.App.GetUsersEtag(restrictions.Hash())
-		if c.HandleEtag(etag, "Get Users", w, r) {
-			return
-		}
-
 		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
 		if err != nil {
 			c.Err = err
