@@ -1173,16 +1173,6 @@ func (_m *ChannelStore) InvalidateMemberCount(channelId string) {
 	_m.Called(channelId)
 }
 
-// InvalidateMembersForAllUsers provides a mock function with given fields:
-func (_m *ChannelStore) InvalidateMembersForAllUsers() {
-	_m.Called()
-}
-
-// InvalidateMembersForUser provides a mock function with given fields: userId
-func (_m *ChannelStore) InvalidateMembersForUser(userId string) {
-	_m.Called(userId)
-}
-
 // InvalidatePinnedPostCount provides a mock function with given fields: channelId
 func (_m *ChannelStore) InvalidatePinnedPostCount(channelId string) {
 	_m.Called(channelId)

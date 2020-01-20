@@ -2261,3 +2261,31 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 
 	return nil
 }
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		channelMembers, err := a.Srv.Store.Channel().GetMembers(channelID, page, perPage)
+		if err != nil {
+			a.Log.Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+			break
+		}
+
+		for _, channelMember := range *channelMembers {
+			a.ClearSessionCacheForUser(channelMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+			message.Add("channelMember", channelMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(*(channelMembers))
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
+}
