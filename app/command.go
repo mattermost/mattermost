@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -155,10 +156,10 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 }
 
 func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	message := ""
 	trigger := ""
-	if strings.ContainsAny(args.Command, " \n\t\v\r\f") {
-		index := strings.IndexAny(args.Command, " \n\t\v\r\f")
+	message := ""
+	index := strings.IndexFunc(args.Command, unicode.IsSpace)
+	if index != -1 {
 		trigger = args.Command[:index]
 		message = args.Command[index+1:]
 	} else {
