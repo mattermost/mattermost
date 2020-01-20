@@ -158,7 +158,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	message := ""
 	trigger := ""
 	if strings.ContainsAny(args.Command, " \n\t\v\r\f") {
-		index := strings.IndexAny("args.Command", " \n\t\v\r\f")
+		index := strings.IndexAny(args.Command, " \n\t\v\r\f")
 		trigger = args.Command[:index]
 		message = args.Command[index+1:]
 	} else {
