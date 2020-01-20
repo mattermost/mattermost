@@ -309,12 +309,18 @@ jobs:
       - run:
           name: Trigger enterprise
           command: |
-            curl \
-              --request POST \
-              --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
-              --user ${CIRCLECI_TOKEN} \
-              --data parameters[external_branch]=$CIRCLE_BRANCH \
-              --data parameters[external_sha]=$CIRCLE_SHA1
+            if [[ $(expr length "${CIRCLE_PULL_REQUEST}") == 0 || $(expr length "${CIRCLECI_TOKEN}") == 0 ]]
+            then
+              echo "Please create a PR and retrigger the pipeline with an empty commit, like e.g. `git add . && git commit --allow-empty -m "Trigger ci" && git push`. "
+              exit 1
+            else
+              curl \
+                --request POST \
+                --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
+                --user ${CIRCLECI_TOKEN} \
+                --data parameters[external_branch]=$CIRCLE_BRANCH \
+                --data parameters[external_sha]=$CIRCLE_SHA1
+            fi
 
 workflows:
   version: 2
