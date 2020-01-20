@@ -320,8 +320,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -492,8 +493,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -538,8 +539,8 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,

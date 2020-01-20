@@ -4,6 +4,10 @@
 package app
 
 import (
+	"encoding/base64"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,8 +20,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+
+	"github.com/blang/semver"
+	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 )
+
+const prepackagedPluginsDir = "prepackaged_plugins"
 
 type pluginSignaturePath struct {
 	pluginId      string
@@ -163,32 +172,9 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
 	}
 
-	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
-	if found {
-		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
-			if !strings.HasSuffix(walkPath, ".tar.gz") {
-				return nil
-			}
-
-			fileReader, err := os.Open(walkPath)
-			if err != nil {
-				mlog.Error("Failed to open prepackaged plugin", mlog.Err(err), mlog.String("path", walkPath))
-				return nil
-			}
-			defer fileReader.Close()
-
-			mlog.Debug("Installing prepackaged plugin", mlog.String("path", walkPath))
-
-			_, appErr := a.installPluginLocally(fileReader, nil, installPluginLocallyOnlyIfNewOrUpgrade)
-			if appErr != nil {
-				mlog.Error("Failed to unpack prepackaged plugin", mlog.Err(appErr), mlog.String("path", walkPath))
-			}
-
-			return nil
-		}); err != nil {
-			mlog.Error("Failed to complete unpacking prepackaged plugins", mlog.Err(err))
-		}
-	}
+	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
+	pluginsEnvironment = a.GetPluginsEnvironment()
+	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
 	// Sync plugin active state when config changes. Also notify plugins.
 	a.Srv.PluginsLock.Lock()
@@ -319,7 +305,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := pluginsEnvironment.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -327,7 +313,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 	id = strings.ToLower(id)
 
 	var manifest *model.Manifest
-	for _, p := range plugins {
+	for _, p := range availablePlugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
 			break
@@ -361,7 +347,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := pluginsEnvironment.Available()
+	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -369,7 +355,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	id = strings.ToLower(id)
 
 	var manifest *model.Manifest
-	for _, p := range plugins {
+	for _, p := range availablePlugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
 			break
@@ -423,89 +409,35 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	return resp, nil
 }
 
-// GetMarketplacePlugin returns plugin from marketplace-server
-func (a *App) GetMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.BaseMarketplacePlugin, *model.AppError) {
-	marketplaceClient, err := marketplace.NewClient(
-		*a.Config().PluginSettings.MarketplaceUrl,
-		a.HTTPService,
-	)
-	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	filter := &model.MarketplacePluginFilter{Filter: request.Id, ServerVersion: model.CurrentVersion}
-	plugin, err := marketplaceClient.GetPlugin(filter, request.Version)
-	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return plugin, nil
-}
-
 // GetMarketplacePlugins returns a list of plugins from the marketplace-server,
 // and plugins that are installed locally.
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+	plugins := map[string]*model.MarketplacePlugin{}
+
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
+		p, appErr := a.getRemotePlugins(filter)
+		if appErr != nil {
+			return nil, appErr
+		}
+		plugins = p
+	}
+
+	appErr := a.mergePrepackagedPlugins(plugins)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	appErr = a.mergeLocalPlugins(plugins)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Filter plugins.
 	var result []*model.MarketplacePlugin
-	pluginSet := map[string]bool{}
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	marketplaceClient, err := marketplace.NewClient(
-		*a.Config().PluginSettings.MarketplaceUrl,
-		a.HTTPService,
-	)
-	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
-		PerPage:       -1,
-		ServerVersion: model.CurrentVersion,
-	})
-	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.marketplace_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	for _, p := range marketplacePlugins {
-		if p.Manifest == nil || !pluginMatchesFilter(p.Manifest, filter.Filter) {
-			continue
+	for _, p := range plugins {
+		if pluginMatchesFilter(p.Manifest, filter.Filter) {
+			result = append(result, p)
 		}
-
-		marketplacePlugin := &model.MarketplacePlugin{
-			BaseMarketplacePlugin: p,
-		}
-
-		var manifest *model.Manifest
-		if manifest, err = pluginsEnvironment.GetManifest(p.Manifest.Id); err != nil && err != plugin.ErrNotFound {
-			return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if err == nil {
-			// Plugin is installed.
-			marketplacePlugin.InstalledVersion = manifest.Version
-		}
-
-		pluginSet[p.Manifest.Id] = true
-		result = append(result, marketplacePlugin)
-	}
-
-	// Include all other installed plugins.
-	plugins, err := pluginsEnvironment.Available()
-	if err != nil {
-		return nil, model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	for _, plugin := range plugins {
-		if plugin.Manifest == nil || pluginSet[plugin.Manifest.Id] || !pluginMatchesFilter(plugin.Manifest, filter.Filter) {
-			continue
-		}
-
-		result = append(result, &model.MarketplacePlugin{
-			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				Manifest: plugin.Manifest,
-			},
-			InstalledVersion: plugin.Manifest.Version,
-		})
 	}
 
 	// Sort result alphabetically.
@@ -514,6 +446,167 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	})
 
 	return result, nil
+}
+
+// getPrepackagedPlugin returns a pre-packaged plugin.
+func (a *App) getPrepackagedPlugin(pluginId, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.config.app_error", nil, "plugin environment is nil", http.StatusInternalServerError)
+	}
+
+	prepackagedPlugins := pluginsEnvironment.PrepackagedPlugins()
+	for _, p := range prepackagedPlugins {
+		if p.Manifest.Id == pluginId && p.Manifest.Version == version {
+			return p, nil
+		}
+	}
+
+	return nil, model.NewAppError("getPrepackagedPlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
+}
+
+// getRemoteMarketplacePlugin returns plugin from marketplace-server.
+func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
+	plugin, err := marketplaceClient.GetPlugin(filter, version)
+	if err != nil {
+		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return plugin, nil
+}
+
+func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+	result := map[string]*model.MarketplacePlugin{}
+
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	marketplaceClient, err := marketplace.NewClient(
+		*a.Config().PluginSettings.MarketplaceUrl,
+		a.HTTPService,
+	)
+	if err != nil {
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Fetch all plugins from marketplace.
+	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	})
+	if err != nil {
+		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, p := range marketplacePlugins {
+		if p.Manifest == nil {
+			continue
+		}
+
+		result[p.Manifest.Id] = &model.MarketplacePlugin{BaseMarketplacePlugin: p}
+	}
+
+	return result, nil
+}
+
+// mergePrepackagedPlugins merges pre-packaged plugins to remote marketplace plugins list.
+func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.NewAppError("mergePrepackagedPlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	for _, prepackaged := range pluginsEnvironment.PrepackagedPlugins() {
+		if prepackaged.Manifest == nil {
+			continue
+		}
+
+		prepackagedMarketplace := &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: prepackaged.Manifest,
+			},
+		}
+
+		// If not available in marketplace, add the prepackaged
+		if remoteMarketplacePlugins[prepackaged.Manifest.Id] == nil {
+			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
+			continue
+		}
+
+		// If available in the markteplace, only overwrite if newer.
+		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
+		if err != nil {
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
+		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
+		if err != nil {
+			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if prepackagedVersion.GT(marketplaceVersion) {
+			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
+		}
+	}
+
+	return nil
+}
+
+// mergeLocalPlugins merges locally installed plugins to remote marketplace plugins list.
+func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.MarketplacePlugin) *model.AppError {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	localPlugins, err := pluginsEnvironment.Available()
+	if err != nil {
+		return model.NewAppError("GetMarketplacePlugins", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, plugin := range localPlugins {
+		if plugin.Manifest == nil {
+			continue
+		}
+
+		if remoteMarketplacePlugins[plugin.Manifest.Id] != nil {
+			// Remote plugin is installed.
+			remoteMarketplacePlugins[plugin.Manifest.Id].InstalledVersion = plugin.Manifest.Version
+			continue
+		}
+
+		var labels []model.MarketplaceLabel
+		if *a.Config().PluginSettings.EnableRemoteMarketplace {
+			// Labels should not (yet) be localized as the labels sent by the Marketplace are not (yet) localizable.
+			labels = append(labels, model.MarketplaceLabel{
+				Name:        "Local",
+				Description: "This plugin is not listed in the marketplace",
+			})
+		}
+
+		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				HomepageURL: plugin.Manifest.HomepageURL,
+				Labels:      labels,
+				Manifest:    plugin.Manifest,
+			},
+			InstalledVersion: plugin.Manifest.Version,
+		}
+	}
+
+	return nil
 }
 
 func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
@@ -595,6 +688,10 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
+	return getPluginsFromFilePaths(fileStorePaths), nil
+}
+
+func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 	for _, path := range fileStorePaths {
 		if strings.HasSuffix(path, ".tar.gz") {
@@ -618,5 +715,121 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		}
 	}
 
-	return pluginSignaturePathMap, nil
+	return pluginSignaturePathMap
+}
+
+func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.PrepackagedPlugin {
+	prepackagedPluginsDir, found := fileutils.FindDir(pluginsDir)
+	if !found {
+		return nil
+	}
+
+	fileStorePaths := []string{}
+	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
+		fileStorePaths = append(fileStorePaths, walkPath)
+		return nil
+	})
+	if err != nil {
+		mlog.Error("Failed to walk prepackaged plugins", mlog.Err(err))
+		return nil
+	}
+
+	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
+	for _, pluginPaths := range pluginSignaturePathMap {
+		plugin, err := a.processPrepackagedPlugin(pluginPaths)
+		if err != nil {
+			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
+			continue
+		}
+
+		plugins = append(plugins, plugin)
+	}
+
+	return plugins
+}
+
+// processPrepackagedPlugin will return the prepackaged plugin metadata and will also
+// install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
+func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
+	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
+
+	fileReader, err := os.Open(pluginPath.path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
+	}
+	tmpDir, err := ioutil.TempDir("", "plugintmp")
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
+	}
+	defer os.RemoveAll(tmpDir)
+
+	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
+	}
+
+	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return plugin, nil
+	}
+
+	// Skip installing if the plugin is has not been previously enabled.
+	pluginState := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
+	if pluginState == nil || !pluginState.Enable {
+		return plugin, nil
+	}
+
+	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
+	if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
+		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
+	}
+
+	return plugin, nil
+}
+
+// getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
+func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSeeker, tmpDir string) (*plugin.PrepackagedPlugin, string, error) {
+	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
+	if appErr != nil {
+		return nil, "", errors.Wrapf(appErr, "Failed to extract plugin with path %s", pluginPath.path)
+	}
+
+	plugin := new(plugin.PrepackagedPlugin)
+	plugin.Manifest = manifest
+	plugin.Path = pluginPath.path
+
+	if pluginPath.signaturePath != "" {
+		sig := pluginPath.signaturePath
+		sigReader, sigErr := os.Open(sig)
+		if sigErr != nil {
+			return nil, "", errors.Wrapf(sigErr, "Failed to open prepackaged plugin signature %s", sig)
+		}
+		bytes, sigErr := ioutil.ReadAll(sigReader)
+		if sigErr != nil {
+			return nil, "", errors.Wrapf(sigErr, "Failed to read prepackaged plugin signature %s", sig)
+		}
+		plugin.Signature = bytes
+	}
+
+	if manifest.IconPath != "" {
+		iconData, err := getIcon(manifest.IconPath)
+		if err != nil {
+			return nil, "", errors.Wrapf(err, "Failed to read icon at %s", manifest.IconPath)
+		}
+		plugin.IconData = iconData
+	}
+
+	return plugin, pluginDir, nil
+}
+
+func getIcon(iconPath string) (string, error) {
+	icon, err := ioutil.ReadFile(iconPath)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
+	}
+	if !svg.Is(icon) {
+		return "", errors.Wrapf(err, "icon is not svg %s", iconPath)
+	}
+	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }

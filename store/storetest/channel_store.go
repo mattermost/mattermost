@@ -3688,7 +3688,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o1.DeleteAt = model.GetMillis()
-	o1.UpdateAt = model.GetMillis()
+	o1.UpdateAt = o1.DeleteAt
 
 	e := ss.Channel().Delete(o1.Id, o1.DeleteAt)
 	require.Nil(t, e, "channel should have been deleted")

@@ -80,15 +80,15 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.2
+PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
@@ -161,7 +161,9 @@ golangci-lint: ## Run golangci-lint on codebase
 	@echo Running golangci-lint
 	golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
+ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	golangci-lint run ./enterprise/...
+endif
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -454,9 +456,11 @@ vet: ## Run mattermost go vet specific checks
 		exit 1; \
 	fi; \
 
-	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging ./...
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
+ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+endif
 endif
 
 todo: ## Display TODO and FIXME items in the source code.
