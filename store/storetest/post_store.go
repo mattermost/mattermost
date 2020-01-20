@@ -127,14 +127,14 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
-	_, err = ss.Post().Get("123")
+	_, err = ss.Post().Get("123", false)
 	require.NotNil(t, err, "Missing id should have failed")
 
-	_, err = ss.Post().Get("")
+	_, err = ss.Post().Get("", false)
 	require.NotNil(t, err, "should fail for blank post ids")
 }
 
@@ -179,15 +179,15 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o1.Id)
+	r2, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -199,7 +199,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o1a, ro1)
 	require.Nil(t, err)
 
-	r1, err = ss.Post().Get(o1.Id)
+	r1, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	ro1a := r1.Posts[o1.Id]
@@ -211,7 +211,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o2a, ro2)
 	require.Nil(t, err)
 
-	r2, err = ss.Post().Get(o1.Id)
+	r2, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -223,7 +223,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o3a, ro3)
 	require.Nil(t, err)
 
-	r3, err = ss.Post().Get(o3.Id)
+	r3, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -239,7 +239,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	r4, err := ss.Post().Get(o4.Id)
+	r4, err := ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -250,7 +250,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o4a, ro4)
 	require.Nil(t, err)
 
-	r4, err = ss.Post().Get(o4.Id)
+	r4, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -271,7 +271,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1, err := ss.Post().Save(o1)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
@@ -284,7 +284,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 
-	r3, err := ss.Post().Get(o1.Id)
+	r3, err := ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Missing id should have failed - PostList %v", r3)
 
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
@@ -311,10 +311,10 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 }
 
@@ -354,16 +354,16 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o4.Id)
+	_, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 }
 
@@ -394,16 +394,16 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	err2 := ss.Post().PermanentDeleteByUser(o2.UserId)
 	require.Nil(t, err2)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err, "Deleted id shouldn't have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
 	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 }
 
@@ -434,13 +434,13 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	err2 := ss.Post().PermanentDeleteByUser(o1.UserId)
 	require.Nil(t, err2)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err, "Deleted id should have failed")
 }
 
@@ -470,7 +470,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	pl, err := ss.Post().Get(o1.Id)
+	pl, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 3, "invalid returned post")
@@ -478,7 +478,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr := ss.Post().Delete(o3.Id, model.GetMillis(), "")
 	require.Nil(t, dErr)
 
-	pl, err = ss.Post().Get(o1.Id)
+	pl, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 2, "invalid returned post")
@@ -486,7 +486,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr = ss.Post().Delete(o2.Id, model.GetMillis(), "")
 	require.Nil(t, dErr)
 
-	pl, err = ss.Post().Get(o1.Id)
+	pl, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 1, "invalid returned post")
@@ -2029,15 +2029,15 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o1.Id)
+	r2, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -2049,7 +2049,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o1a)
 	require.Nil(t, err)
 
-	r1, err = ss.Post().Get(o1.Id)
+	r1, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1a := r1.Posts[o1.Id]
 
@@ -2061,7 +2061,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o2a)
 	require.Nil(t, err)
 
-	r2, err = ss.Post().Get(o1.Id)
+	r2, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -2073,7 +2073,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o3a)
 	require.Nil(t, err)
 
-	r3, err = ss.Post().Get(o3.Id)
+	r3, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -2087,7 +2087,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	r4, err := ss.Post().Get(o4.Id)
+	r4, err := ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -2098,7 +2098,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o4a)
 	require.Nil(t, err)
 
-	r4, err = ss.Post().Get(o4.Id)
+	r4, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -2128,15 +2128,15 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o2.Id)
+	r2, err := ss.Post().Get(o2.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -2243,13 +2243,13 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, err = ss.Post().PermanentDeleteBatch(2000, 1000)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Should have not found post 1 after purge")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Should have not found post 2 after purge")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err, "Should have not found post 3 after purge")
 }
 
