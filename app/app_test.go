@@ -26,19 +26,19 @@ func TestAppRace(t *testing.T) {
 }
 */
 
-func TestUpdateConfig(t *testing.T) {
-	th := Setup(t)
+func TestUnitUpdateConfig(t *testing.T) {
+	th := UnitSetup(t)
 	defer th.TearDown()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
 	th.App.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
-		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.SiteURL = "foo"
+		*cfg.ServiceSettings.SiteURL = "http://foo.com"
 	})
 }
 

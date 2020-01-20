@@ -5,8 +5,10 @@ package app
 
 import (
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +17,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -33,10 +38,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
-	store := mainHelper.GetStore()
-	store.DropAllTables()
-
+func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -54,7 +56,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
-	options = append(options, StoreOverride(mainHelper.Store))
+	options = append(options, StoreOverride(dbStore))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
@@ -77,9 +79,6 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-
-	th.App.Srv.Store.MarkSystemRanUnitTests()
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	// Disable strict password requirements for test
@@ -105,11 +104,82 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, tb)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, true, tb)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, tb)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, tb)
+}
+
+func getMockStore() store.Store {
+	mockStore := mocks.Store{}
+	systemStore := mocks.SystemStore{}
+	systemStore.On("GetByName", "AsymmetricSigningKey").Return(nil, model.NewAppError("FakeError", "fake-error", nil, "", http.StatusInternalServerError))
+	systemStore.On("GetByName", "PostActionCookieSecret").Return(nil, model.NewAppError("FakeError", "fake-error", nil, "", http.StatusInternalServerError))
+	systemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: strconv.FormatInt(model.GetMillis(), 10)}, nil)
+	systemStore.On("GetByName", "AdvancedPermissionsMigrationComplete").Return(&model.System{Name: "AdvancedPermissionsMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "EmojisPermissionsMigrationComplete").Return(&model.System{Name: "EmojisPermissionsMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "GuestRolesCreationMigrationComplete").Return(&model.System{Name: "GuestRolesCreationMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT).Return(&model.System{Name: MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT).Return(&model.System{Name: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS).Return(&model.System{Name: MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER).Return(&model.System{Name: MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_ADD_BOT_PERMISSIONS).Return(&model.System{Name: MIGRATION_KEY_ADD_BOT_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER).Return(&model.System{Name: MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER).Return(&model.System{Name: MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION).Return(&model.System{Name: MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Value: "true"}, nil)
+	systemStore.On("GetByName", MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS).Return(&model.System{Name: MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("Get").Return(make(model.StringMap), nil)
+	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
+
+	userStore := mocks.UserStore{}
+	userStore.On("Count", mock.AnythingOfType("model.UserCountOptions")).Return(int64(1), nil)
+	userStore.On("DeactivateGuests").Return(nil, nil)
+	userStore.On("ClearCaches").Return(nil)
+
+	postStore := mocks.PostStore{}
+	postStore.On("GetMaxPostSize").Return(4000)
+
+	statusStore := mocks.StatusStore{}
+	statusStore.On("ResetAll").Return(nil)
+
+	channelStore := mocks.ChannelStore{}
+	channelStore.On("ClearCaches").Return(nil)
+
+	teamStore := mocks.TeamStore{}
+
+	mockStore.On("System").Return(&systemStore)
+	mockStore.On("User").Return(&userStore)
+	mockStore.On("Post").Return(&postStore)
+	mockStore.On("Status").Return(&statusStore)
+	mockStore.On("Channel").Return(&channelStore)
+	mockStore.On("Team").Return(&teamStore)
+	mockStore.On("Close").Return(nil)
+	return &mockStore
+}
+
+func UnitSetup(tb testing.TB) *TestHelper {
+	mockStore := getMockStore()
+	return setupTestHelper(mockStore, false, tb)
+}
+
+func UnitSetupEnterprise(tb testing.TB) *TestHelper {
+	mockStore := getMockStore()
+	return setupTestHelper(mockStore, true, tb)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
