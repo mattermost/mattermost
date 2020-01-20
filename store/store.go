@@ -106,6 +106,10 @@ type TeamStore interface {
 	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
 }
 
 type ChannelStore interface {
@@ -190,6 +194,10 @@ type ChannelStore interface {
 	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
 }
 
 type ChannelMemberHistoryStore interface {
@@ -202,18 +210,18 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
+	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
+	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
+	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
@@ -261,7 +269,7 @@ type UserStore interface {
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError)
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
-	InvalidatProfileCacheForUser(userId string)
+	InvalidateProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
@@ -599,10 +607,10 @@ type GroupStore interface {
 	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
 	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
@@ -611,6 +619,14 @@ type GroupStore interface {
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
 	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
+
+	// AdminRoleGroupsForSyncableMember returns the IDs of all of the groups that the user is a member of that are
+	// configured as SchemeAdmin: true for the given syncable.
+	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
+	// the admin role for the given syncable.
+	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
 }
 
 type LinkMetadataStore interface {
