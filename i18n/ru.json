@@ -68,6 +68,10 @@
     "translation": "Невозможно сохранить файл сертификата."
   },
   {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Невозможно удалить изображение, не найдено."
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Ошибка чтения лог файла."
   },
@@ -77,7 +81,31 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Возникла ошибка при удалении приложения OAuth2"
+    "translation": "Возникла ошибка при удалении сертификата"
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Failed to obtain metadata from Identity Provider URL."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Невозможно сохранить файл сертификата."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Missing Identity Provider SSO Services node in the XML."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -86,6 +114,18 @@
   {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 не настроен или не поддерживается на этом сервере."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Invalid certificate text."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
   },
   {
     "id": "api.admin.test_email.body",
@@ -128,8 +168,60 @@
     "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Создание бота было отменено."
+  },
+  {
+    "id": "api.bot.delete_bot_icon_image.app_error",
+    "translation": "Не удалось удалить изображение значка"
+  },
+  {
+    "id": "api.bot.get_bot_icon_image.read.app_error",
+    "translation": "Невозможно прочитать файл изображения значка"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.app_error",
+    "translation": "Не удалось загрузить изображение значка"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.array.app_error",
+    "translation": "Пустой массив 'image' в запросе"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.no_file.app_error",
+    "translation": "Нет файла 'image' в запросе"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.open.app_error",
+    "translation": "Не удалось открыть файл"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.parse.app_error",
+    "translation": "Невозможно обработать форму из нескольких частей"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.too_large.app_error",
+    "translation": "Невозможно загрузить изображение профиля. Файл слишком большой."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Пожалуйста, добавьте меня в команды и каналы, c которыми мне нужно взаимодействовать. Это можно сделать в браузере или в приложении Mattermost для ПК."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v добавлен(а) в канал как гость пользователем %v."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v добавлен(а) в канал пользователем %v"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Ошибка при добавлении в команду."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Членство в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -208,6 +300,10 @@
     "translation": "Невозможно удалить прямые или групповые каналы сообщений"
   },
   {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v добавился(-лась) в канал как гость."
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "У вас нет соответствующих прав"
   },
@@ -284,8 +380,20 @@
     "translation": "Не удалось удалить пользователя из канала."
   },
   {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Невозможно удалить пользователя из канала в связи с ограничением группы."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v удален из канала."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Членство в канале запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Невозможно удалить пользователя из этого типа канала"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -296,16 +404,44 @@
     "translation": "Вы не можете переименовать канал групповых сообщений"
   },
   {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Unable to unarchive channel. The channel is not archived."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} unarchived the channel."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Канал был архивирован или удалён"
+  },
+  {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Попытка выполнения недопустимого обновления канала по умолчанию {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Недопустимое обновление участника канала: вы не можете добавлять или удалять гостевую роль вручную"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Недопустимое обновление члена канала: пользователь должен быть гостем или пользователем, но не обоими."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "Выбранная роль управляется схемой и не может быть применена напрямую к участнику канала"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Канал по умолчанию нельзя сделать приватным."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -314,6 +450,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "Невозможно применить схему к каналу, так как данная схема не является схемой канала."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Недопустимое обновление члена команды: вы не можете добавлять или удалять гостевую роль вручную"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -325,7 +465,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Указанный пользователь не является участником указанной группы."
+    "translation": "Указанный пользователь не является участником указанного канала."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -337,11 +477,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Выполнение cmd=%v userId=%v"
+    "translation": "Команда '{{.Trigger}}' не отправила ответ. Пожалуйста, обратитесь к вашему системному администратору."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -621,7 +757,7 @@
   },
   {
     "id": "api.command_groupmsg.hint",
-    "translation": "@[имя_пользователя1],@[имя_пользователя2] 'сообщение' "
+    "translation": "@[имя_пользователя1],@[имя_пользователя2] 'сообщение'"
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -632,11 +768,11 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Максимальное количество получателей групповых сообщений ограничено  {{.MaxUsers}} пользователями."
+    "translation": "Максимальное количество получателей групповых сообщений ограничено {{.MaxUsers}} пользователями."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Максимальное количество получателей групповых сообщений ограничено  {{.MaxUsers}} пользователями."
+    "translation": "Минимальное количество получателей групповых сообщений ограничено {{.MinUsers}} пользователями."
   },
   {
     "id": "api.command_groupmsg.name",
@@ -675,6 +811,10 @@
     "translation": "При подключении к каналу произошла ошибка."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[имя пользователя] ~[канал]"
   },
@@ -705,6 +845,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} уже находится в канале."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} не является участником этого канала."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -879,6 +1023,10 @@
     "translation": "Вы не можете удалить кого-либо из канала прямого сообщения."
   },
   {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Пользователь не может быть удален из канала, поскольку он является членом групп, связанных с этим каналом. Чтобы удалить его из этого канала, он должен быть удален из связанных групп."
+  },
+  {
     "id": "api.command_remove.hint",
     "translation": "@[username]"
   },
@@ -920,7 +1068,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Открыть диалог настроек аккаунта"
+    "translation": "Открыть диалог настроек учётной записи"
   },
   {
     "id": "api.command_settings.name",
@@ -959,6 +1107,10 @@
     "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Ошибка при внедрении переданной конфигурации."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },
@@ -985,6 +1137,10 @@
   {
     "id": "api.context.permissions.app_error",
     "translation": "У вас нет соответствующих прав"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1186,7 +1342,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Не удалось загрузить файл(ы). Есть {{.NumClientIds}} client_id для {{.NumFiles}} файлов."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,31 +1354,31 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "Размер файла {{.Filename}} (({{.Width}} на {{.Height}} пикселей) превышает лимиты"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Не удалось загрузить файл(ы). Несколько конфликтующих channel_ids."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Не удалось загрузить файл(ы). Ошибка в значении {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Невозможно загрузить файл(ы). Ошибка чтения или обработки запрошенных данных."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Не удалось загрузить файл {{.Filename}}. Отказ плагина: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Невозможно загрузить файл. Он слишком большой."
-  },
-  {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Не удалось загрузить файл {{.Filename}}. Превышено максимальное кол-во байт. Лимит {{.Limit}} байт."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1237,6 +1393,10 @@
     "translation": "Произошла ошибка при записи в локальное серверное хранилище"
   },
   {
+    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
+    "translation": "Invalid/Missing channel ID or Team ID."
+  },
+  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Входящие вебхуки отключены системным администратором."
   },
@@ -1246,15 +1406,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "Ошибка ввода/вывода"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "Группа LDAP не найдена"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "ваша лицензия не поддерживает ldap группы"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1294,7 +1454,7 @@
   },
   {
     "id": "api.license.client.old_format.app_error",
-    "translation": "Новый формат пользовательской лицензии пока не поддерживается. Пожалуйста, укажите format=old в строке запроса. "
+    "translation": "Новый формат пользовательской лицензии пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
   },
   {
     "id": "api.marshal_error",
@@ -1405,6 +1565,14 @@
     "translation": "Исходящие вебхуки отключены системным администратором."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Возникла ошибка при удалении сертификата"
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "Произошла ошибка при скачивании плагина."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "Файловый массив пуст в запросе multipart/form"
   },
@@ -1417,12 +1585,24 @@
     "translation": "Отсутствует файл в запросе типа multipart/form"
   },
   {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} и {{.LastUsername}} были упомянуты, но они не получили уведомлений поскольку не состоят в этом канале."
+    "translation": "@{{.Usernames}} и @{{.LastUsername}} не получили уведомления об этом упоминании, поскольку их нет в канале."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} упомянули, но уведомлений не будут получены поскольку пользователи не состоят в этом канале."
+    "translation": "@{{.Username}} не получил уведомления об этом упоминании, потому что их нет в канале."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1450,15 +1630,15 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Не удалось получить оригинальный пост. Клиент создал дублирующий запрос."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Отправка сообщения отклонена, т.к. другой клиент сделал такой же запрос."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Нельзя удалить пост в удаленном канале."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,11 +1680,11 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Нельзя обновить пост в удаленном канале."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "Этот канал доступен только для чтения. Недостаточно прав для отправки сообщений здесь."
+    "translation": "Этот канал доступен только для чтения."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1512,11 +1692,11 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
-    "translation": "прокомментировал ваш пост."
+    "translation": " прокомментировал ваш пост."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-    "translation": "прокомментировал нить с вашим участием."
+    "translation": " прокомментировал нить с вашим участием."
   },
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -1536,7 +1716,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Нельзя обновить пост в удаленном канале."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1569,6 +1749,22 @@
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Невозможно установить настройки пользователя."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push уведомления отключены на этом сервере."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification"
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "Произошла ошибка при отправке сообщения в службу push-уведомлений"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1719,8 +1915,24 @@
     "translation": "Невозможно открыть zip-архив экспортируемых из Slack данных.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Пользователь не найден"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Ошибка при добавлении в команду."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1731,12 +1943,24 @@
     "translation": "Для добавления пользователя в команду требуется указать параметр."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Гостевые учётные записи отключены."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Приглашение недопустимо, так команда не является открытой."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Неверное имя драйвера в настройках файлов. Должно быть 'local' или 'amazons3'"
+    "translation": "Неверное имя драйвера в настройках файлов.  Должно быть 'local' или 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1771,16 +1995,28 @@
     "translation": "Неправильный запрос: отсутствует поле \"filesize\"."
   },
   {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Ошибка аннулирования e-mail приглашений."
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Гостевые учётные записи отключены"
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Приглашения по электронной почте отключены."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "Данный адрес почтового ящика не принадлежит списку разрешенных доменов: {{.Addresses}}. Пожалуйста, обратитесь к Вашему системному администратору за информацией."
-  },
-  {
-    "id": "api.team.invite_members.member",
-    "translation": "участник"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -1792,7 +2028,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "E-mail должен принадлежать реальному домену (например @example.com). Пожалуйста, обратитесь к системному администратору за дополнительной информацией."
+    "translation": "E-mail должен принадлежать определенному домену (например @example.com). Пожалуйста, обратитесь к системному администратору за дополнительной информацией."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -1815,6 +2051,18 @@
     "translation": "Канал перемещен в эту команду из %v."
   },
   {
+    "id": "api.team.promote_guest_to_user.disabled.error",
+    "translation": "Гостевые учётные записи отключены."
+  },
+  {
+    "id": "api.team.promote_guest_to_user.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Невозможно удалить пользователя из канала в связи с ограничением группы."
+  },
+  {
     "id": "api.team.remove_team_icon.get_team.app_error",
     "translation": "Произошла ошибка при подключении Команды"
   },
@@ -1824,7 +2072,15 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": " %v удален из команды."
+    "translation": "%v удален из команды."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -1883,6 +2139,10 @@
     "translation": "Ограничения Команды на домене {{.Domain}} запрещены в настройках системы. Пожалуйста, обратитесь к системному администратору."
   },
   {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Недопустимое обновление члена команды: пользователь должен быть гостем или пользователем, но не обоими."
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "Ваша лицензия не поддерживает изменение схемы команды."
   },
@@ -1896,7 +2156,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Ваш аккаунт был деактивирован на {{ .ServerURL }}"
+    "translation": "Ваша учётная запись была деактивирована на {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -1904,7 +2164,7 @@
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Ваш аккаунт на {{ .ServerURL }} был деактивирован"
+    "translation": "[{{ .SiteName }}] Ваша учётная запись на {{ .ServerURL }} был деактивирована"
   },
   {
     "id": "api.templates.email_change_body.info",
@@ -1952,7 +2212,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Прислал"
+    "translation": "Прислал "
   },
   {
     "id": "api.templates.email_warning",
@@ -1968,11 +2228,19 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Команда {{.SenderStatus}} [[{.SenderName}}]] пригласила вас присоединиться к [[{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
     "translation": "Вы приглашены"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} пригласил вас в команду {{ .TeamDisplayName }}"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2060,7 +2328,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Персональный токен доступа добавлен к вашему аккаунту"
+    "translation": "[{{ .SiteName }}] Персональный токен доступа добавлен к вашей учётной записи"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2120,7 +2388,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA недоступен для данного типа аккаунта"
+    "translation": "Многофакторная аутентификация недоступна для данного типа учётной записи"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2144,7 +2412,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "Received invalid response from OAuth service provider"
+    "translation": "Получен неверный ответ от OAuth сервиса"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
@@ -2157,10 +2425,6 @@
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Неподдерживаемый провайдер OAuth"
-  },
-  {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Некорректный идентификатор Команды"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2188,7 +2452,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Ошибка создания токена для e-mail проверки"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2201,6 +2465,10 @@
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
     "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Невозможно создать токен восстановления пароля"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2223,12 +2491,16 @@
     "translation": "Создание аккаунтов отключено."
   },
   {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Отсутствует Invite Id."
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Гостевые учётные записи отключены"
   },
   {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Отсутствует токен."
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Unable to create the user, invalid invitation."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2247,6 +2519,10 @@
     "translation": "Ссылка для регистрации, похоже, неверна."
   },
   {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Unable to convert the user to guest because is already a guest"
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP недоступен на этом сервере"
   },
@@ -2257,10 +2533,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Неподдерживаемый провайдер OAuth"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Не удалось получить изображение профиля, пользователь не найден."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2280,7 +2552,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Логин Бота запрещен"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2291,12 +2563,32 @@
     "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной enterprise-лицензии"
   },
   {
-    "id": "api.user.login.inactive.app_error",
-    "translation": "Вход не удался, поскольку ваша учетная запись отключена. Пожалуйста, свяжитесь с администратором."
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Гостевые учётные записи отключены"
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "Идентификатор пользователя или пароль неверны."
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
+  },
+  {
+    "id": "api.user.login.inactive.app_error",
+    "translation": "Вход не удался, поскольку ваша учетная запись отключена.  Пожалуйста, свяжитесь с администратором."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Введите действительный адрес электронной почты и/или пароль"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Введите действительный адрес электронной почты или имя пользователя и/или пароль."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Введите действительный адрес электронной почты или имя пользователя и/или пароль или войдите в систему, используя другой метод."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Введите действительное имя пользователя и/или пароль."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2308,7 +2600,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Вход бота запрещен"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2331,8 +2623,8 @@
     "translation": "Передача аутентификации не настроена или недоступна на этом сервере."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Принято неверное значение"
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Unable to convert the guest to regular user because is not a guest"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2355,20 +2647,8 @@
     "translation": "Невозможно сбросить пароль для учетной записи SSO"
   },
   {
-    "id": "api.user.saml.app_error",
-    "translation": "Невозможно обработать SAML запрос на вход."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Недопустимый id расширения"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Расширения не поддерживаются."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "Расширение с extension_id = {{.ExtensionId}} не поддерживается."
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Невозможно проанализировать токен сброса пароля"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2376,7 +2656,7 @@
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
-    "translation": "Не удалось успешно отправить сообщение на электронную почту о деактивации аккаунта "
+    "translation": "Не удалось отправить сообщение на электронную почту о деактивации учётной записи"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2412,7 +2692,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Не удалось  отправить сообщение «Личный доступ по токенам»"
+    "translation": "Не удалось отправить сообщение \"Личный токен доступа добавлен\""
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2423,8 +2703,12 @@
     "translation": "Не удалось отправить приветственное письмо"
   },
   {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
-    "translation": "Вы не можете деактивировать себя самостоятельно, потому что  это функция не включена. Пожалуйста, свяжитесь со своим системным администратором."
+    "translation": "Вы не можете деактивировать себя самостоятельно, потому что эта функция не включена. Пожалуйста, свяжитесь со своим системным администратором."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2457,6 +2741,14 @@
   {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Не удалось обновить пароль, поскольку мы не смогли найти действительную учетную запись"
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Предоставленный вами адрес электронной почты не относится к признанному домену. Пожалуйста, свяжитесь с администратором или зарегистрируйтесь с другим адресом электронной почты."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Предоставленный вами адрес электронной почты не относится к признанному домену. Пожалуйста, свяжитесь с администратором или зарегистрируйтесь с другим адресом электронной почты."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2508,11 +2800,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Ссылка для подтверждения по e-mail не действительна."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Ошибка разбора данных токена из проверки e-mail"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2567,8 +2859,32 @@
     "translation": "Недопустимый параметр {{.Name}}"
   },
   {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Could not read the response received from the Identity Provider."
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Соединение неудачно: {{.Error}}"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2603,12 +2919,16 @@
     "translation": "Не найдена конечная точка API кластера."
   },
   {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Unable to copy custom emoji images"
+  },
+  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Произошла ошибка при записи данных экспорта."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Произошла ошибка при сортировке JSON-данных для экспорта."
+    "translation": "Произошла ошибка при сериализации JSON-данных для экспорта."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2753,6 +3073,10 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Ошибка импорта участия пользователя в каналах. Не удалось сохранить настройки."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Невозможно сохранить настройки темы команды"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -2976,11 +3300,11 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Scheme scope is required."
+    "translation": "Требуется область видимости схемы"
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Unknown scheme scope."
+    "translation": "Неизвестная область видимости схемы"
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
@@ -3047,8 +3371,24 @@
     "translation": "Не правильные роли в «Участие пользователей на каналах»"
   },
   {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Invalid email batching interval setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Invalid markdown preview setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Неверный параметр форматирования записи для пользователя"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Invalid show unread section setting for User"
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "AuthData и пароль являются взаимоисключающими."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3131,6 +3471,10 @@
     "translation": "Неправильные роли в «Участие пользователей в команде»"
   },
   {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Неверная тема команды для пользователя"
+  },
+  {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Пропущено имя команды в «Участие пользователей в команде»"
   },
@@ -3192,7 +3536,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Новое личное сообщение от @{{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Новое личное сообщение от {{.SenderDisplayName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3212,11 +3556,15 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Error saving plugin state in config"
+    "translation": "Ошибка сохранения состояния плагина в конфиге"
   },
   {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Не удалось отключить плагин"
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Возникла ошибка при удалении сертификата"
   },
   {
     "id": "app.plugin.disabled.app_error",
@@ -3224,23 +3572,31 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "An error occurred extracting the plugin bundle."
   },
   {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Возникла ошибка файловой системы"
   },
   {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "Unable to set plugin as managed by the file store."
+  },
+  {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "Unable to get plugin statuses from the cluster."
+    "translation": "Невозможно получить статусы плагинов из кластера."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Не удалось получить активные плагины"
   },
   {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
+  },
+  {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Unable to get plugin statuses"
+    "translation": "Невозможно получить статус плагина"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3248,47 +3604,127 @@
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+    "translation": "Невозможно установить плагин. Плагин с таким же идентификатором уже установлен."
   },
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed and failed to be removed."
+    "translation": "Невозможно установить плагин. Плагин с тем же идентификатором уже установлен и не может быть удален."
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Failed to install marketplace plugin."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
-    "translation": "Plugin Id must be at least {{.Min}} characters, at most {{.Max}} characters and match {{.Regex}}."
+    "translation": "Идентификатор плагина должен содержать не менее {{.Min}} символов, не более {{.Max}} символов и соответствовать {{.Regex}}."
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Plugin version could not be parsed"
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "Невозможно найти манифест для извлеченного плагина"
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Marketplace has been disabled. Please check your logs for details."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin signature."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
+    "translation": "Невозможно переместить плагин из временного каталога в конечный пункт назначения. Возможно другой плагин использует то же имя каталога."
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Plugin is not installed"
+    "translation": "Плагин не установлен"
   },
   {
     "id": "app.plugin.remove.app_error",
     "translation": "Не удалось удалить плагин"
   },
   {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Unable to remove plugin bundle from file store."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "Error reading files from the plugins folder in the file store."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Error reading local plugins folder."
+  },
+  {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Plugins and/or plugin uploads have been disabled."
+    "translation": "Загрузка плагинов отключена."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Во время отключения от канала произошла ошибка."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Во время отключения от канала произошла ошибка."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
-    "translation": "The provided role does not exist"
+    "translation": "Предоставленная роль не существует"
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Произошла ошибка при сохранении конфигурации"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
-    "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+    "translation": "Эта конечная точка API недоступна, поскольку необходимые миграции еще не завершены."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -3296,51 +3732,67 @@
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Failed to parse installation date"
+    "translation": "Не удалось определить дату установки"
+  },
+  {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Невозможно присоединиться к ограниченной группе по приглашению."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Невозможно присоединиться к ограниченной группе по токену."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита учётных записей."
   },
   {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Невозможно переименовать команду, имя уже используется"
+  },
+  {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
+    "translation": "Невозможно совершить вход в SAML с пустым адресом электронной почты."
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
+    "translation": "Токены личного доступа на этом сервере отключены. Пожалуйста, обратитесь к системному администратору для получения подробной информации."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Invalid or missing token"
+    "translation": "Неверный или отсутствующий токен"
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
-    "translation": "Unable to decode the image data."
+    "translation": "Невозможно декодировать данные изображения."
   },
   {
     "id": "brand.save_brand_image.decode_config.app_error",
-    "translation": "Unable to get image metadata."
+    "translation": "Невозможно получить метаданные изображения."
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format. Please try again."
+    "translation": "Невозможно преобразовать изображение в формат PNG. Пожалуйста, попробуйте еще раз."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
-    "translation": "Unable to upload the custom brand image. Make sure the image size is less than 2 MB and try again."
+    "translation": "Невозможно прочитать файл изображения. Убедитесь, что размер изображения не превышает 2 МБ, и повторите попытку."
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Unable to write the image file to your file storage. Please check your connection and try again."
+    "translation": "Невозможно сохранить изображение в хранилище файлов. Пожалуйста, проверьте ваше соединение и попробуйте снова."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
-    "translation": "Unable to read the image file. Make sure the image size is less than 2 MB and try again."
+    "translation": "Невозможно прочитать файл изображения. Убедитесь, что размер изображения не превышает 2 МБ, и повторите попытку."
   },
   {
     "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
+    "translation": "Функция требует обновления до Enterprise Edition и включения лицензионного ключа. Пожалуйста, обратитесь к системному администратору."
+  },
+  {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3360,39 +3812,39 @@
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Unknown output format {{.ExportType}}"
+    "translation": "Неизвестный выходной формат {{.ExportType}}"
   },
   {
     "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
+    "translation": "Невозможно скопировать вложение в zip-файл."
   },
   {
     "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Unable to add attachment to the CSV export."
+    "translation": "Невозможно добавить вложение в экспорт CSV."
   },
   {
     "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Unable to create temporary CSV export file."
+    "translation": "Невозможно создать временный файл экспорта CSV."
   },
   {
     "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Unable to add header to the CSV export."
+    "translation": "Невозможно добавить заголовок в экспорт CSV."
   },
   {
     "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Unable to add metadata file to the zip file."
+    "translation": "Невозможно добавить файл метаданных в zip-файл."
   },
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Unable to convert metadata to json."
+    "translation": "Невозможно преобразовать метаданные в формат json."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Unable to export a post."
+    "translation": "Невозможно экспортировать сообщение."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Unable to create the zip export file."
+    "translation": "Невозможно создать файл экспорта zip."
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
@@ -3400,7 +3852,7 @@
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Unable to open the temporary export file."
+    "translation": "Невозможно открыть временный файл экспорта."
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
@@ -3412,7 +3864,7 @@
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Unable to load export templates. Please try again."
+    "translation": "Невозможно загрузить шаблоны экспорта. Пожалуйста, попробуйте еще раз."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3420,7 +3872,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "Ваша лицензия не поддерживает SAML аутентификацию."
+    "translation": "Ваша лицензия не поддерживает хранение данных."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3443,8 +3895,16 @@
     "translation": "Setting up Elasticsearch Client Failed"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Не удалось создать индекс Elasticsearch"
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for channels"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for posts"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3455,20 +3915,36 @@
     "translation": "Не удалось получить индексы Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Не удалось удалить канал"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить сообщение"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Не удалось удалить пользователя"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Не удалось обновить канал"
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Не удалось проиндексировать запись"
   },
   {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Не удалось обновить пользователя"
+  },
+  {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "translation": "Более старые сообщения не могут быть извлечены из базы данных."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3479,12 +3955,28 @@
     "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Не удалось удалить индекс Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Elasticsearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Поиск не удалось завершить"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Не удалось получить результаты поиска"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3496,11 +3988,19 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Поиск не удалось завершить"
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Не удалось получить результаты поиска"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Поиск не удалось завершить"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Не удалось получить результаты поиска"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -3509,6 +4009,14 @@
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -3533,6 +4041,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3579,6 +4091,10 @@
     "translation": "Пользователь не зарегистрирован на сервере AD/LDAP"
   },
   {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "error deleting team or channel memberships"
+  },
+  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Не удалось получить всех пользователей с помощью AD/LDAP"
   },
@@ -3595,7 +4111,19 @@
     "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Неверный фильтр AD/LDAP"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
+    "translation": "Неверный фильтр AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Неверный фильтр AD/LDAP"
   },
   {
@@ -3620,19 +4148,19 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
+    "translation": "Невозможно добавить вложение в экспорт CSV."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Unable to close the zip file."
+    "translation": "Невозможно закрыть zip-файл."
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Unable to create the eml file."
+    "translation": "Невозможно создать файл eml."
   },
   {
     "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Unable to generate eml file data."
+    "translation": "Невозможно сгенерировать данные файла eml."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
@@ -3688,7 +4216,7 @@
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Username already used by another Mattermost user."
+    "translation": "Имя пользователя уже используется"
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3747,8 +4275,16 @@
     "translation": "SAML 2.0 не настроен или не поддерживается на этом сервере."
   },
   {
+    "id": "groups.unsupported_syncable_type",
+    "translation": "Unsupported syncable type '{{.Value}}'."
+  },
+  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Не удалось декодировать base64 сгенерированный ID триггера для интерактивного диалога."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Не удалось декодировать base64 подпись ID триггера для интерактивного диалога."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3804,11 +4340,11 @@
   },
   {
     "id": "mfa.activate.authenticate.app_error",
-    "translation": "Ошибка при попытке аутентификации маркера MFA"
+    "translation": "Ошибка при попытке аутентификации MFA токена"
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Неверный токен МФА"
+    "translation": "Неверный MFA токен"
   },
   {
     "id": "mfa.activate.save_active.app_error",
@@ -3820,7 +4356,7 @@
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Ошибка очистки MFA секрета"
+    "translation": "Ошибка очистки MFA токена"
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
@@ -3828,19 +4364,19 @@
   },
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Ошибка сохранения секрета MFA"
+    "translation": "Ошибка сохранения MFA токена"
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "На этом сервере требуется многофакторная авторизация."
+    "translation": "Многофакторная аутентификация была отключена на этом сервере."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Ошибка при попытке аутентификации с помощью MFA маркера"
+    "translation": "Неверный MFA маркер."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
+    "translation": "Миграция не удалась из-за ошибки обработки данных."
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
@@ -3904,7 +4440,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Недопустимый идентификатор автора"
+    "translation": "Недопустимое время создания"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3912,19 +4448,19 @@
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Неверное описание"
+    "translation": "Недопустимое описание"
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Недопустимое время обновления"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Неверный идентификатор пользователя."
+    "translation": "Неверный идентификатор пользователя"
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Неверное имя пользователя"
+    "translation": "Недопустимое имя пользователя"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -3995,78 +4531,6 @@
     "translation": "Мы обнаружили ошибку при подключении к серверу"
   },
   {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Не удалось прикрепить данные emoji к запросу"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "Не удалось прикрепить изображение к запросу"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Не удалось записать запрос"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Missing channel parameter"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Missing team parameter"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "Unable to read the team icon from the body response."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "Возникла ошибка при попытке прочесть файл"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "Не удалось записать запрос"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "Нет файла 'image' в запросе"
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Не удалось записать запрос"
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
-  },
-  {
     "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt must be set"
   },
@@ -4100,7 +4564,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Недопустимый тип"
+    "translation": "Недопустимый заголовок"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4144,7 +4608,7 @@
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
+    "translation": "Недопустимые идентификатор команды"
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -4152,7 +4616,7 @@
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
+    "translation": "Недопустимые идентификатор команды"
   },
   {
     "id": "model.command_hook.parent_id.app_error",
@@ -4212,15 +4676,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "Срок хранения файла должен быть один день или дольше."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Срок хранения сообщения должен составлять один день или более."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers and hyphen (-)."
+    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4232,11 +4696,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4252,19 +4720,15 @@
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Неверный размер буфера почтового объединения в настройках почты.  Число должно быть неотрицательным."
+    "translation": "Неверный размер буфера почтового объединения в настройках почты. Число должно быть неотрицательным."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Неверный интервал отправки почтовых объединений в настройках почты.  Должен составлять 30 секунд и более."
+    "translation": "Неверный интервал отправки почтовых объединений в настройках почты. Должен составлять 30 секунд и более."
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
-  },
-  {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Неверная соль приглашения в настройках почты. Должна состоять из 32 и более символов."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -4312,7 +4776,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Неверный тип безопасности соединения в настройках AD/LDAP.  Должно быть '', 'TLS', или 'STARTTLS'"
+    "translation": "Неверный тип безопасности соединения в настройках AD/LDAP. Должно быть '', 'TLS', или 'STARTTLS'"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4419,12 +4883,24 @@
     "translation": "Неверное ограничение личных сообщений. Должно быть 'any', или 'team'"
   },
   {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
+  },
+  {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
     "translation": "URL входа поставщика услуг должен являться корректным URL-адресом и начинаться с http:// или https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Неверное значение атрибута Электронная почта. Должно быть задано."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4447,6 +4923,10 @@
     "translation": "Отсутствует публичный сертификат провайдера. Вы забыли его загрузить?"
   },
   {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
+  },
+  {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Неверное значение атрибута Username. Атрибут должен быть задан."
   },
@@ -4457,10 +4937,6 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Невозможно включить почтовые объединения, если не задан SiteURL."
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4488,7 +4964,7 @@
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Invalid query timeout for SQL settings.  Must be a positive number."
+    "translation": "Неверный тайм-аут запроса SQL. Должно быть положительным числом."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
@@ -4548,7 +5024,7 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
@@ -4560,15 +5036,15 @@
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Недопустимое значение для времени ожидания чтения."
+    "translation": "Недопустимое значение для user_id."
   },
   {
     "id": "model.group.create_at.app_error",
@@ -4627,8 +5103,20 @@
     "translation": "invalid type property for group syncable"
   },
   {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Недопустимый идентификатор канала"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Недопустимый идентификатор канала"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Некорректный адрес эл.почты"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Некорректный адрес эл.почты"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4705,10 +5193,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Link metadata data does not match the given type"
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4839,6 +5323,10 @@
     "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Некорректный идентификатор канала"
   },
@@ -4963,6 +5451,10 @@
     "translation": "Некорректный идентификатор"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Invalid invite id"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Некорректное имя"
   },
@@ -4991,22 +5483,6 @@
     "translation": "Некорректный идентификатор пользователя"
   },
   {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Invalid term of service id."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
     "id": "model.token.is_valid.expiry",
     "translation": "Invalid token expiry"
   },
@@ -5015,8 +5491,52 @@
     "translation": "Неверный токен."
   },
   {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Некорректные данные авторизации"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Некорректные имя пользователя, пароль и данные авторизации."
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Некорректное имя пользователя, данные авторизации должны быть установлены в типе авторизации"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "\"Создано в\" должно быть корректным временем"
+  },
+  {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Некорректный адрес эл.почты"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Некорректное имя пользователя"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Некорректный идентификатор пользователя"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Некорректная фамилия пользователя"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Недопустимая роль"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Некорректное прозвище пользователя"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Неверная позиция: должно быть не более 35 символов."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5083,8 +5603,12 @@
     "translation": "Ваш пароль должен содержать как минимум {{.Min}} символов, включая по крайней мере одну заглавную букву и один спецсимвол (напр., \"~!@#$%^&*()\")."
   },
   {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Значение поля \"Обновить в\" должно являться корректным временем"
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5103,18 +5627,6 @@
     "translation": "Некорректный user id"
   },
   {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Отсутствует необходимое поле для Post: create_at."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "невозможно декодировать"
   },
@@ -5127,8 +5639,16 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Unable to get the users, invalid sorting criteria"
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5157,6 +5677,10 @@
   {
     "id": "store.select_error",
     "translation": "select error"
+  },
+  {
+    "id": "store.sql.build_query.app_error",
+    "translation": "failed to build query"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5231,16 +5755,16 @@
     "translation": "Failed to begin the database transaction"
   },
   {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Не удалось обновить заголовок канала"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
     "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5256,6 +5780,14 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
+    "translation": "Невозможно получить каналы"
+  },
+  {
+    "id": "store.sql_channel.get_all_channels.get.app_error",
+    "translation": "Невозможно получить каналы"
+  },
+  {
+    "id": "store.sql_channel.get_all_direct.app_error",
     "translation": "Невозможно получить каналы"
   },
   {
@@ -5281,6 +5813,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Каналы не найдены"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.app_error",
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5339,12 +5879,12 @@
     "translation": "Невозможно получить каналы"
   },
   {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Невозможно получить каналы"
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Не удалось получить подсчет участников канала"
   },
   {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Не удалось получить участников канала"
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -5361,10 +5901,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
     "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
@@ -5435,18 +5971,6 @@
     "translation": "Невозможно открыть транзакцию"
   },
   {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Невозможно открыть транзакцию"
-  },
-  {
     "id": "store.sql_channel.save.archived_channel.app_error",
     "translation": "Вы не можете редактировать архивный канал."
   },
@@ -5481,10 +6005,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Вы достигли предела количества разрешённых каналов."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Канал с таким URL был создан ранее"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
@@ -5525,6 +6045,10 @@
   {
     "id": "store.sql_channel.search.app_error",
     "translation": "Возникла проблема при поиске канала"
+  },
+  {
+    "id": "store.sql_channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -5575,8 +6099,16 @@
     "translation": "Ну удалось установить время последнего просмотра на"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Возникла ошибка при обновлении участника канала"
+  },
+  {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку команд"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5751,6 +6283,10 @@
     "translation": "Не удалось удалить плагин"
   },
   {
+    "id": "store.sql_group.app_error",
+    "translation": "failed to build query"
+  },
+  {
     "id": "store.sql_group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -5763,8 +6299,8 @@
     "translation": "no rows changed"
   },
   {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -5815,16 +6351,20 @@
     "translation": "Возникла ошибка при сохранении лицензии"
   },
   {
+    "id": "store.sql_link_metadata.get.app_error",
+    "translation": "Unable to get the link metadata"
+  },
+  {
+    "id": "store.sql_link_metadata.save.app_error",
+    "translation": "Unable to save the link metadata"
+  },
+  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Не удалось зафиксировать транзакцию"
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
     "translation": "Невозможно начать транзакцию по удалению приложения OAuth2"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "Невозможно откатить транзакцию по удалению приложения OAuth2"
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -5915,12 +6455,24 @@
     "translation": "Возникла ошибка обновления приложения"
   },
   {
+    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
+    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
+    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
+    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
     "id": "store.sql_plugin_store.delete.app_error",
     "translation": "Could not delete plugin key value"
   },
   {
     "id": "store.sql_plugin_store.get.app_error",
     "translation": "Could not get plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -5951,12 +6503,24 @@
     "translation": "Не удалось получить post"
   },
   {
+    "id": "store.sql_post.get_direct_posts.app_error",
+    "translation": "Не удалось получить post"
+  },
+  {
     "id": "store.sql_post.get_flagged_posts.app_error",
     "translation": "Не удалось добавить участников прямого канала"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Не удалось получить родительский пост для канала"
+  },
+  {
+    "id": "store.sql_post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound"
+  },
+  {
+    "id": "store.sql_post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -6063,10 +6627,6 @@
     "translation": "Unable to save the preference"
   },
   {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Возникла ошибка при поиске настройки пред-релизной функции"
-  },
-  {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
     "translation": "Возникла ошибка при удалении настроек"
   },
@@ -6081,10 +6641,6 @@
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
     "translation": "Невозможно начать транзакцию по сохранению настроек"
-  },
-  {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "Невозможно откатить транзакцию по сохранению настроек"
   },
   {
     "id": "store.sql_preference.save.updating.app_error",
@@ -6147,6 +6703,10 @@
     "translation": "Unable to get a token with this code"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Не удалось удалить плагин"
   },
@@ -6157,6 +6717,10 @@
   {
     "id": "store.sql_role.get.app_error",
     "translation": "Не удалось получить post"
+  },
+  {
+    "id": "store.sql_role.get_all.app_error",
+    "translation": "Невозможно получить каналы"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6279,6 +6843,10 @@
     "translation": "Unable to update the last_activity_at"
   },
   {
+    "id": "store.sql_session.update_props.app_error",
+    "translation": "Unable to update session props"
+  },
+  {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Не удалось удалить плагин"
   },
@@ -6289,18 +6857,6 @@
   {
     "id": "store.sql_status.get.missing.app_error",
     "translation": "Не существует записи для данного статуса"
-  },
-  {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "Возникла проблема при получении всех статусов \"В сети\""
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Возникла ошибка при получении всех статусов \"В сети/Отошёл\""
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Возникла ошибка с получением всех статусов участников команды"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -6347,6 +6903,14 @@
     "translation": "Unable to get the channel count for the scheme."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Не удалось удалить плагин"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Не удалось удалить плагин"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Не удалось удалить плагин"
   },
@@ -6357,10 +6921,6 @@
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
     "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
@@ -6379,7 +6939,15 @@
     "translation": "Возникла ошибка с обнаружением команды"
   },
   {
+    "id": "store.sql_team.get_active_member_count.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
     "id": "store.sql_team.get_all.app_error",
+    "translation": "Не удалось получить все команды"
+  },
+  {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
     "translation": "Не удалось получить все команды"
   },
   {
@@ -6396,6 +6964,10 @@
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
+    "translation": "Не удалось найти действительную команду для обновления"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Не удалось найти действительную команду для обновления"
   },
   {
@@ -6427,16 +6999,16 @@
     "translation": "Не удалось получить список непрочтённых сообщений для команды"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
     "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
@@ -6487,6 +7059,10 @@
     "translation": "Возникла проблема при поиске открытых команд"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Возникла проблема при поиске открытых команд"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Не удалось удалить плагин"
   },
@@ -6503,24 +7079,24 @@
     "translation": "Возникла ошибка обновления команды"
   },
   {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Не удалось удалить плагин"
-  },
-  {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
   },
   {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку команд"
+  },
+  {
     "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "Не удалось созранить условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "Не удалось получить условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "Условия использования не найдены."
   },
   {
     "id": "store.sql_terms_of_service_store.save.existing.app_error",
@@ -6539,10 +7115,6 @@
     "translation": "Unable to get the system admin count"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Unable to get the unique user count"
-  },
-  {
     "id": "store.sql_user.app_error",
     "translation": "Failed to build query"
   },
@@ -6555,15 +7127,35 @@
     "translation": "Failed to begin the database transaction"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions don't make sense"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
     "translation": "Не удалось обновить заголовок канала"
   },
   {
@@ -6595,6 +7187,10 @@
     "translation": "Произошла ошибка при поиске новых пользователей"
   },
   {
+    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Возникла ошибка при поиске пользовательских профилей"
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Возникла ошибка при поиске пользовательских профилей"
   },
@@ -6623,6 +7219,18 @@
     "translation": "Не удалось получить количество непрочитанных сообщений для пользователя и канала"
   },
   {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Unable to get the users batch for indexing"
+  },
+  {
     "id": "store.sql_user.missing_account.const",
     "translation": "Не удалось удалить плагин"
   },
@@ -6631,8 +7239,28 @@
     "translation": "Не удалось найти действительную команду для обновления"
   },
   {
+    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction"
+  },
+  {
+    "id": "store.sql_user.promote_guest.open_transaction.app_error",
+    "translation": "Failed to begin the database transaction"
+  },
+  {
+    "id": "store.sql_user.promote_guest.team_members_update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
+    "id": "store.sql_user.promote_guest.user_update.app_error",
+    "translation": "Не удалось обновить заголовок канала"
+  },
+  {
     "id": "store.sql_user.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить учётную запись."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6652,7 +7280,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита учётных записей."
+    "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6703,20 +7331,28 @@
     "translation": "Это имя пользователя уже занято. Пожалуйста, выберите другое."
   },
   {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Не удалось отключить плагин"
+  },
+  {
     "id": "store.sql_user.update_auth_data.app_error",
     "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Невозможно переключить учетную запись на {{.Service}}. Учетная запись, использующая электронную почту {{.Email}} уже существует."
+    "translation": "Невозможно переключить учетную запись на {{.Service}}. Учетная запись, использующая электронную почту {{.Email}}, уже существует."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts"
+    "translation": "Не удалось обновить failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить updated_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6728,15 +7364,15 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password"
+    "translation": "Не удалось обновить пароль пользователя"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user"
+    "translation": "Не удалось обновить дату последнего изменения данных пользователя"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
-    "translation": "Невозможно обновить поле проверки электронной почты"
+    "translation": "Не удалось обновить поле подтверждения электронной почты"
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
@@ -6748,7 +7384,7 @@
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Не удалось получить персональный токен доступа"
+    "translation": "Не удалось получить все персональные токены доступа"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
@@ -6764,31 +7400,31 @@
   },
   {
     "id": "store.sql_user_access_token.search.app_error",
-    "translation": "Возникла ошибка с обнаружением токена доступа"
+    "translation": "Возникла проблема с поиском пользовательских токенов доступа"
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось отключить токен доступа"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось включить токен доступа"
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
+    "translation": "Не удалось удалить условия использования."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "Не удалось получить условия использования."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "Условия использования не найдены."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "Не удалось созранить условия использования."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6879,34 +7515,6 @@
     "translation": "Система"
   },
   {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: Adding DefaultClientLocale to AvailableLocales."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Ошибка декодирования конфигурационного файла file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Ошибка открытия конфигурации file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "Возникла ошибка при сохранении файла в {{.Filename}}"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
-  },
-  {
     "id": "utils.file.list_directory.local.app_error",
     "translation": "Произошла ошибка при чтении из локального серверного хранилища"
   },
@@ -6983,12 +7591,100 @@
     "translation": "Невозможно разобрать входящие данные"
   },
   {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Get the latest Chrome browser"
   },
   {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Неподдерживаемый Браузер"
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Get the latest Firefox browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Get the latest Safari browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Learn more about supported browsers."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "This browser is no longer supported by Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "This version of your browser is no longer supported by Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Open Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Make default"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "or"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
