@@ -201,13 +201,13 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	// PERMISSION_MANAGE_SLASH_COMMANDS for the team the command belongs to.
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
-		// here we return Not_found install of a permissions error so we don't leak the existence of
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
 		// a command to someone without permissions for the team it belongs to.
 		c.SetCommandNotFoundError()
 		return
 	}
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-		// again, return not_found to ensure di existence does not leak.
+		// again, return not_found to ensure id existence does not leak.
 		c.SetCommandNotFoundError()
 		return
 	}
