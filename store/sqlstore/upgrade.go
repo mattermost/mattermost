@@ -763,3 +763,21 @@ func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 	// 	saveSchemaVersion(sqlStore, VERSION_5_20_0)
 	// }
 }
+
+// asyncMigrations are run in the background after all other upgrades are done
+// and should not block normal application use
+func asyncMigrations(ss *SqlSupplier) (*MigrationRunner, error) {
+	runner := NewMigrationRunner(ss, MigrationOptions{})
+
+	// example async migrations:
+	// err := runner.Add(NewCreateIndex("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// err = runner.Add(NewDropIndex("idx_posts_root_id", "Posts"))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	runner.Run()
+	return runner, nil
+}

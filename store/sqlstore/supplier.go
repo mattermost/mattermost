@@ -111,6 +111,7 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
+	runner         *MigrationRunner
 }
 
 type TraceOnAdapter struct{}
@@ -206,6 +207,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
+	runner, err := asyncMigrations(supplier)
+	if err != nil {
+		mlog.Critical("Async migrations error", mlog.Err(err))
+	} else {
+		supplier.runner = runner
+	}
 	return supplier
 }
 
@@ -914,6 +921,9 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 
 func (ss *SqlSupplier) Close() {
 	mlog.Info("Closing SqlStore")
+	if ss.runner != nil {
+		ss.runner.Cancel()
+	}
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
