@@ -3,6 +3,7 @@ logs
 .DS_Store
 node_modules
 /dist
+/bin
 /webapp/dist
 jobserver
 npm-debug.log
