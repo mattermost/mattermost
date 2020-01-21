@@ -1494,3 +1494,31 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 	}
 	return nil
 }
+
+func (a *App) ClearTeamMembersCache(teamID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		teamMembers, err := a.Srv.Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		if err != nil {
+			a.Log.Warn("error clearing cache for team members", mlog.String("team_id", teamID))
+			break
+		}
+
+		for _, teamMember := range teamMembers {
+			a.ClearSessionCacheForUser(teamMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", teamMember.UserId, nil)
+			message.Add("member", teamMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(teamMembers)
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
+}
