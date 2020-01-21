@@ -119,19 +119,19 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
+	if appErr != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
 		return
