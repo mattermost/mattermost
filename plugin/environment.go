@@ -46,8 +46,8 @@ type PrepackagedPlugin struct {
 
 // PrepackagedPluginResult maintains the result after processing the plugin.
 type PrepackagedPluginResult struct {
-	P   *PrepackagedPlugin
-	Err error
+	P    *PrepackagedPlugin
+	Err  error
 	Path string
 }
 

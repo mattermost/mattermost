@@ -772,7 +772,7 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan p
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged p %s", pluginPath.path, ), Path: pluginPath.path}
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged p %s", pluginPath.path), Path: pluginPath.path}
 		return
 	}
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
