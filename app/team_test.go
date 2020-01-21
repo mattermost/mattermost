@@ -639,7 +639,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser, _ := th.App.CreateUser(&user)
 		defer th.App.PermanentDeleteUser(&user)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -651,7 +652,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		th.App.joinUserToTeam(team, ruser)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.True(t, alreadyAdded, "Should return already added")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -664,7 +666,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		th.App.joinUserToTeam(team, ruser)
 		th.App.LeaveTeam(team, ruser, ruser.Id)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -679,7 +682,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		defer th.App.PermanentDeleteUser(&user2)
 		th.App.joinUserToTeam(team, ruser1)
 
-		_, _, err := th.App.joinUserToTeam(team, ruser2)
+		_, _, err = th.App.joinUserToTeam(team, ruser2)
 		require.NotNil(t, err, "Should fail")
 	})
 
@@ -697,8 +700,49 @@ func TestJoinUserToTeam(t *testing.T) {
 		th.App.LeaveTeam(team, ruser1, ruser1.Id)
 		th.App.joinUserToTeam(team, ruser2)
 
-		_, _, err := th.App.joinUserToTeam(team, ruser1)
+		_, _, err = th.App.joinUserToTeam(team, ruser1)
 		require.NotNil(t, err, "Should fail")
+	})
+
+	t.Run("new join with correct scheme_admin value from group syncable", func(t *testing.T) {
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		defer th.App.PermanentDeleteUser(&user1)
+
+		group := th.CreateGroup()
+
+		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+		require.Nil(t, err)
+
+		gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			AutoAdd:     true,
+			SyncableId:  team.Id,
+			Type:        model.GroupSyncableTypeTeam,
+			GroupId:     group.Id,
+			SchemeAdmin: false,
+		})
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(999) })
+
+		tm1, _, err := th.App.joinUserToTeam(team, ruser1)
+		require.Nil(t, err)
+		require.False(t, tm1.SchemeAdmin)
+
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		defer th.App.PermanentDeleteUser(&user2)
+
+		_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+		require.Nil(t, err)
+
+		gs.SchemeAdmin = true
+		_, err = th.App.UpdateGroupSyncable(gs)
+		require.Nil(t, err)
+
+		tm2, _, err := th.App.joinUserToTeam(team, ruser2)
+		require.Nil(t, err)
+		require.True(t, tm2.SchemeAdmin)
 	})
 }
 

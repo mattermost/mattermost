@@ -91,7 +91,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 			u.FirstName AS DisplayName,
 			b.Description,
 			b.OwnerId,
-			b.LastIconUpdate,
+			COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			b.CreateAt,
 			b.UpdateAt,
 			b.DeleteAt
@@ -148,7 +148,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 			    u.FirstName AS DisplayName,
 			    b.Description,
 			    b.OwnerId,
-				b.LastIconUpdate,
+			    COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt
