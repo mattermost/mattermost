@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -29,8 +30,8 @@ type TestHelper struct {
 	BasicPost    *model.Post
 
 	SystemAdminUser *model.User
-
-	tempWorkspace string
+	LogBuffer       *bytes.Buffer
+	tempWorkspace   string
 }
 
 func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
@@ -52,10 +53,12 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
 
+	buffer := &bytes.Buffer{}
+
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
 	options = append(options, StoreOverride(mainHelper.Store))
-	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
+	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -63,8 +66,9 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:    s.FakeApp(),
-		Server: s,
+		App:       s.FakeApp(),
+		Server:    s,
+		LogBuffer: buffer,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })

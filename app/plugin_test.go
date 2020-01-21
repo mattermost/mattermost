@@ -645,8 +645,8 @@ func TestPluginPanicLogs(t *testing.T) {
 		_, err := th.App.CreatePost(post, th.BasicChannel, false)
 		assert.Nil(t, err)
 
-		buffer := th.App.Log.GetBuffer().String()
-		assert.True(t, strings.Contains(buffer, "some text from panic"))
+		logs := th.LogBuffer.String()
+		assert.True(t, strings.Contains(logs, "some text from panic"))
 	})
 }
 
