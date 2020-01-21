@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package plugin_test
+package model
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
-func TestIsValid(t *testing.T) {
+func TestIsValidPluginId(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]bool{
@@ -29,7 +27,7 @@ func TestIsValid(t *testing.T) {
 
 	for id, valid := range testCases {
 		t.Run(id, func(t *testing.T) {
-			assert.Equal(t, valid, plugin.IsValidId(id))
+			assert.Equal(t, valid, IsValidPluginId(id))
 		})
 	}
 }

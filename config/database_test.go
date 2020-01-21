@@ -27,7 +27,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	cfgData, err := config.MarshalConfig(cfg)
 	require.NoError(t, err)
 
-	db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *mainHelper.GetSqlSettings().DriverName)
+	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
 	err = config.InitializeConfigurationsTable(db)
 	require.NoError(t, err)
 
@@ -64,7 +64,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *mainHelper.GetSqlSettings().DriverName)
+	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
 	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
@@ -93,7 +93,7 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 }
 
 func TestDatabaseStoreNew(t *testing.T) {
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("no existing configuration - initialization required", func(t *testing.T) {
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
@@ -147,7 +147,7 @@ func TestDatabaseStoreGet(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, testConfig, nil)
 	defer tearDown()
 
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 	defer ds.Close()
@@ -173,7 +173,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -196,7 +196,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -219,7 +219,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -242,7 +242,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -265,7 +265,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -291,7 +291,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
+		sqlSettings := mainHelper.GetSQLSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
@@ -312,7 +312,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 }
 
 func TestDatabaseStoreSet(t *testing.T) {
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("set same pointer value", func(t *testing.T) {
 		t.Skip("not yet implemented")
@@ -458,7 +458,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *sqlSettings.DriverName)
+		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *sqlSettings.DriverName)
 		_, err = db.Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
@@ -518,7 +518,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("active configuration no longer exists", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
@@ -703,7 +703,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		cfgData, err := config.MarshalConfig(invalidConfig)
 		require.NoError(t, err)
 
-		db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *sqlSettings.DriverName)
+		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *sqlSettings.DriverName)
 		truncateTables(t)
 		id := model.NewId()
 		_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{
@@ -954,7 +954,7 @@ func TestDatabaseStoreString(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()
 
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 	require.NotNil(t, ds)
