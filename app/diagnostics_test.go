@@ -43,6 +43,26 @@ func TestPluginActivated(t *testing.T) {
 	assert.False(t, pluginActivated(states, "none"))
 }
 
+func TestPluginVersion(t *testing.T) {
+	plugins := []*model.BundleInfo{
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin",
+				Version: "1.2.3",
+			},
+		},
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin2",
+				Version: "4.5.6",
+			},
+		},
+	}
+	assert.Equal(t, "1.2.3", pluginVersion(plugins, "test.plugin"))
+	assert.Equal(t, "4.5.6", pluginVersion(plugins, "test.plugin2"))
+	assert.Empty(t, pluginVersion(plugins, "unknown.plugin"))
+}
+
 func TestDiagnostics(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()

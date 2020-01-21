@@ -1682,6 +1682,37 @@ func (s *apiRPCServer) CreateTeamMembers(args *Z_CreateTeamMembersArgs, returns 
 	return nil
 }
 
+type Z_CreateTeamMembersGracefullyArgs struct {
+	A string
+	B []string
+	C string
+}
+
+type Z_CreateTeamMembersGracefullyReturns struct {
+	A []*model.TeamMemberWithError
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
+	_args := &Z_CreateTeamMembersGracefullyArgs{teamId, userIds, requestorId}
+	_returns := &Z_CreateTeamMembersGracefullyReturns{}
+	if err := g.client.Call("Plugin.CreateTeamMembersGracefully", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateTeamMembersGracefully API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateTeamMembersGracefully(args *Z_CreateTeamMembersGracefullyArgs, returns *Z_CreateTeamMembersGracefullyReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateTeamMembersGracefully(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CreateTeamMembersGracefully called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeleteTeamMemberArgs struct {
 	A string
 	B string
