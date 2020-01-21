@@ -15,7 +15,7 @@ import (
 
 func TestMigrateDatabaseToFile(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
 	defer storetest.CleanupSqlSettings(sqlSettings)
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
@@ -54,7 +54,7 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
 	defer storetest.CleanupSqlSettings(sqlSettings)
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"

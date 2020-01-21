@@ -1847,9 +1847,6 @@ func TestGetUsers(t *testing.T) {
 		CheckUserSanitization(t, u)
 	}
 
-	rusers, resp = th.Client.GetUsers(0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
-
 	rusers, resp = th.Client.GetUsers(0, 1, "")
 	CheckNoError(t, resp)
 	require.Len(t, rusers, 1, "should be 1 per page")
