@@ -39,70 +39,70 @@ func TestExtractTarGz(t *testing.T) {
 		ExpectedFiles []string
 	}{
 		{
-			[]*tar.Header{&tar.Header{Name: "../test/path", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "../test/path", Typeflag: tar.TypeDir}},
 			true,
 			nil,
 		},
 		{
-			[]*tar.Header{&tar.Header{Name: "../../test/path", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "../../test/path", Typeflag: tar.TypeDir}},
 			true,
 			nil,
 		},
 		{
-			[]*tar.Header{&tar.Header{Name: "../../test/../path", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "../../test/../path", Typeflag: tar.TypeDir}},
 			true,
 			nil,
 		},
 		{
-			[]*tar.Header{&tar.Header{Name: "test/../../path", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "test/../../path", Typeflag: tar.TypeDir}},
 			true,
 			nil,
 		},
 		{
-			[]*tar.Header{&tar.Header{Name: "test/path/../..", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "test/path/../..", Typeflag: tar.TypeDir}},
 			false,
 			[]string{""},
 		},
 		{
-			[]*tar.Header{&tar.Header{Name: "test", Typeflag: tar.TypeDir}},
+			[]*tar.Header{{Name: "test", Typeflag: tar.TypeDir}},
 			false,
 			[]string{"", "test"},
 		},
 		{
 			[]*tar.Header{
-				&tar.Header{Name: "test", Typeflag: tar.TypeDir},
-				&tar.Header{Name: "test/path", Typeflag: tar.TypeDir},
+				{Name: "test", Typeflag: tar.TypeDir},
+				{Name: "test/path", Typeflag: tar.TypeDir},
 			},
 			false,
 			[]string{"", "test", "test/path"},
 		},
 		{
 			[]*tar.Header{
-				&tar.Header{Name: "test", Typeflag: tar.TypeDir},
-				&tar.Header{Name: "test/path/", Typeflag: tar.TypeDir},
+				{Name: "test", Typeflag: tar.TypeDir},
+				{Name: "test/path/", Typeflag: tar.TypeDir},
 			},
 			false,
 			[]string{"", "test", "test/path"},
 		},
 		{
 			[]*tar.Header{
-				&tar.Header{Name: "test", Typeflag: tar.TypeDir},
-				&tar.Header{Name: "test/path", Typeflag: tar.TypeDir},
-				&tar.Header{Name: "test/path/file.ext", Typeflag: tar.TypeReg},
+				{Name: "test", Typeflag: tar.TypeDir},
+				{Name: "test/path", Typeflag: tar.TypeDir},
+				{Name: "test/path/file.ext", Typeflag: tar.TypeReg},
 			},
 			false,
 			[]string{"", "test", "test/path", "test/path/file.ext"},
 		},
 		{
 			[]*tar.Header{
-				&tar.Header{Name: "/../../file.ext", Typeflag: tar.TypeReg},
+				{Name: "/../../file.ext", Typeflag: tar.TypeReg},
 			},
 			false,
 			[]string{"", "file.ext"},
 		},
 		{
 			[]*tar.Header{
-				&tar.Header{Name: "/../../link", Typeflag: tar.TypeLink},
+				{Name: "/../../link", Typeflag: tar.TypeLink},
 			},
 			true,
 			nil,
@@ -124,13 +124,13 @@ func TestExtractTarGz(t *testing.T) {
 				if file.Typeflag == tar.TypeReg {
 					contents := []byte(file.Name)
 					file.Size = int64(len(contents))
-					err := archiveWriter.WriteHeader(file)
+					err = archiveWriter.WriteHeader(file)
 					require.NoError(t, err)
 					written, err := archiveWriter.Write(contents)
 					require.NoError(t, err)
 					require.EqualValues(t, len(contents), written)
 				} else {
-					err := archiveWriter.WriteHeader(file)
+					err = archiveWriter.WriteHeader(file)
 					require.NoError(t, err)
 				}
 			}
