@@ -2086,11 +2086,6 @@ func (a *App) FilterNonGroupChannelMembers(userIds []string, channel *model.Chan
 // filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
 // and returns the list of normal users present in userIds but not in groupUsers
 func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([]string, error) {
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(groupUsers) == 0 {
-		return userIds, nil
-	}
-
 	nonMemberIds := []string{}
 	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, false)
 	if err != nil {
@@ -2098,17 +2093,17 @@ func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([
 	}
 
 	for _, user := range users {
-		if user.IsBot {
-			break
-		}
+		userIsMember := user.IsBot
 
 		for _, pu := range groupUsers {
 			if pu.Id == user.Id {
+				userIsMember = true
 				break
 			}
 		}
-
-		nonMemberIds = append(nonMemberIds, user.Id)
+		if !userIsMember {
+			nonMemberIds = append(nonMemberIds, user.Id)
+		}
 	}
 
 	return nonMemberIds, nil
