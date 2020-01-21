@@ -80,7 +80,7 @@ func (h *testHelper) ConfigPath() string {
 
 // SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
-	config.SqlSettings = *mainHelper.GetSqlSettings()
+	config.SqlSettings = *mainHelper.GetSQLSettings()
 
 	// Disable strict password requirements for test
 	*config.PasswordSettings.MinimumLength = 5

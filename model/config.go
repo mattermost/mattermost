@@ -2265,18 +2265,20 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                   *bool
-	EnableUploads            *bool   `restricted:"true"`
-	AllowInsecureDownloadUrl *bool   `restricted:"true"`
-	EnableHealthCheck        *bool   `restricted:"true"`
-	Directory                *string `restricted:"true"`
-	ClientDirectory          *string `restricted:"true"`
-	Plugins                  map[string]map[string]interface{}
-	PluginStates             map[string]*PluginState
-	EnableMarketplace        *bool
-	RequirePluginSignature   *bool
-	MarketplaceUrl           *string
-	SignaturePublicKeyFiles  []string
+	Enable                      *bool
+	EnableUploads               *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl    *bool   `restricted:"true"`
+	EnableHealthCheck           *bool   `restricted:"true"`
+	Directory                   *string `restricted:"true"`
+	ClientDirectory             *string `restricted:"true"`
+	Plugins                     map[string]map[string]interface{}
+	PluginStates                map[string]*PluginState
+	EnableMarketplace           *bool
+	EnableRemoteMarketplace     *bool
+	AutomaticPrepackagedPlugins *bool
+	RequirePluginSignature      *bool
+	MarketplaceUrl              *string
+	SignaturePublicKeyFiles     []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2319,6 +2321,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.EnableRemoteMarketplace == nil {
+		s.EnableRemoteMarketplace = NewBool(true)
+	}
+
+	if s.AutomaticPrepackagedPlugins == nil {
+		s.AutomaticPrepackagedPlugins = NewBool(true)
 	}
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
