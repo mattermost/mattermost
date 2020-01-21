@@ -68,6 +68,10 @@
     "translation": "Nu a putut salva fișierul certificat."
   },
   {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Imposibil de șters imaginea mărcii, nu a fost găsită."
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Eroare la citirea fişierului log."
   },
@@ -77,7 +81,31 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Eroare în timpul ștergerii OAuth2 App"
+    "translation": "A apărut o eroare la ștergerea certificatului."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Failed to obtain metadata from Identity Provider URL."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Nu a putut salva fișierul certificat."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Missing Identity Provider SSO Services node in the XML."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -86,6 +114,18 @@
   {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 nu este configurat sau acceptat pe acest server."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Invalid certificate text."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
   },
   {
     "id": "api.admin.test_email.body",
@@ -128,8 +168,60 @@
     "translation": "Imposibil de încărcat fișierul. Fișierul este prea mare."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Crearea boților a fost dezactivată."
+  },
+  {
+    "id": "api.bot.delete_bot_icon_image.app_error",
+    "translation": "Nu s-a putut șterge imaginea pictogramei"
+  },
+  {
+    "id": "api.bot.get_bot_icon_image.read.app_error",
+    "translation": "Imposibil de citit fișier pictograma imagine"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.app_error",
+    "translation": "Imaginea pictogramei nu a putut fi încărcată"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.array.app_error",
+    "translation": "Galeria goală sub 'imagine' în cerere"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.no_file.app_error",
+    "translation": "Nici un fișier sub 'imagine' în cerere"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.open.app_error",
+    "translation": "Imaginea nu s-a putut deschide"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.parse.app_error",
+    "translation": "Nu s-a putut analiza formularul multipart"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.too_large.app_error",
+    "translation": "Imposibil de încărcat imaginea pictogramei. Fișierul este prea mare."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Adăugați-mă la echipele și canalele pe care doriți să interacționați. Pentru a face acest lucru, utilizați browserul sau aplicația Mattermost Desktop."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v adăugat la canal ca invitat de %v."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v adăugat la canal de %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Eroare la adăugarea membrilor canalului."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Accesul la canal a fost interzis utilizatorilor următori din cauza constrângerilor de grup: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -208,6 +300,10 @@
     "translation": "Nu se pot șterge canalele de mesaje directe sau de grup"
   },
   {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v s-a alăturat canalului ca invitat."
+  },
+  {
     "id": "api.channel.join_channel.permissions.app_error",
     "translation": "Nu aveți permisiunile corespunzătoare"
   },
@@ -284,8 +380,20 @@
     "translation": "Nu se poate elimina utilizatorul dintr-un canal."
   },
   {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Imposibil de eliminat un utilizator dintr-un canal limitat de grup."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v eliminat din canal."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Îndepărtarea abonamentului la canal a fost respinsă următoarelor utilizatori din cauza constrângerilor de grup: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Nu se poate elimina utilizatorul din acest tip de canal"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -296,16 +404,44 @@
     "translation": "Nu puteți redenumi un canal de mesaje de grup"
   },
   {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Unable to unarchive channel. The channel is not archived."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} unarchived the channel."
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Canalul a fost arhivat sau șters"
+  },
+  {
+    "id": "api.channel.update_channel.invalid_character.app_error",
+    "translation": "Numele canalului invalid. ID-urile de utilizator nu sunt permise în numele canalului pentru canalele de mesaje non-directe."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "A încercat să efectueze o actualizare invalidă a canalului implicit {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Tipul de canal nu poate fi actualizat"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Actualizare membru al canalului nevalid: Nu puteți adăuga sau elimina manual rolul de invitat"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Actualizare membru nevalid al unui canal: Un utilizator trebuie să fie un invitat sau un utilizator, dar nu ambii."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "Rolul furnizate este gestionat de un sistem şi, prin urmare, nu se poate aplica direct de către un membru de canal"
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Canalul implicit nu poate fi făcut privat."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -314,6 +450,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "Imposibil de setat regimul la canalul deoarece sistemul furnizat nu este o schemă de canal."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Actualizare nevalidă a membrilor echipei: Nu puteți adăuga sau elimina manual rolul invitat"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -338,10 +478,6 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Comanda '{{.Trigger}}' nu a reușit să publice răspunsul. Contactați administratorul de sistem."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Executez cmd=%v userId=%v"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -389,7 +525,7 @@
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "invită_persoane"
   },
   {
     "id": "api.command.invite_people.no_email",
@@ -405,7 +541,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Seta starea departe"
+    "translation": "Stabiliți-vă starea plecat"
   },
   {
     "id": "api.command_away.name",
@@ -675,6 +811,10 @@
     "translation": "A apărut o eroare la conectarea la canal."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "Acest canal este gestionat de grupuri.  Acest utilizator nu face parte dintr-un grup sincronizat cu acest canal."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[utilizator] ~[canal]"
   },
@@ -705,6 +845,10 @@
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
     "translation": "{{.User}} este deja în canal."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} nu este un membru al acestui canal."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -776,7 +920,7 @@
   },
   {
     "id": "api.command_msg.desc",
-    "translation": "Trimite mesaj Direct pentru un utilizator"
+    "translation": "Trimiteți un Mesaj Direct unui utilizator"
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
@@ -844,7 +988,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Seta starea offline"
+    "translation": "Stabiliți-vă starea deconectat"
   },
   {
     "id": "api.command_offline.name",
@@ -856,7 +1000,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Seta starea online"
+    "translation": "Stabiliți-vă starea online"
   },
   {
     "id": "api.command_online.name",
@@ -877,6 +1021,10 @@
   {
     "id": "api.command_remove.direct_group.app_error",
     "translation": "Imposibil de eliminat cineva la un canal mesaj direct."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Utilizatorul nu poate fi eliminat din canal de către dvs. deoarece este membru al grupurilor conectate la acest canal. Pentru a le elimina din acest canal, acestea trebuie eliminate din grupurile conectate."
   },
   {
     "id": "api.command_remove.hint",
@@ -959,6 +1107,10 @@
     "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Nu a reușit să fuzioneze configuratia primita."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Ne pare rau, nu am putut găsi pagina."
   },
@@ -985,6 +1137,10 @@
   {
     "id": "api.context.permissions.app_error",
     "translation": "Nu aveţi permisiunile corespunzătoare"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1213,12 +1369,12 @@
     "translation": "Imposibil de încărcat fișier(e). Eroare la citirea sau parsarea datelor din solicitare."
   },
   {
-    "id": "api.file.upload_file.storage.app_error",
-    "translation": "Imposibil de încărcat imaginea. Stocarea imaginilor nu este configurată."
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Imposibil de încărcat fișierul {{.Filename}}. Respins de plugin: {{.Reason}}"
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Imposibil de încărcat fișierul. Fila este prea mare."
+    "id": "api.file.upload_file.storage.app_error",
+    "translation": "Imposibil de încărcat imaginea. Stocarea imaginilor nu este configurată."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1235,6 +1391,10 @@
   {
     "id": "api.file.write_file_locally.writing.app_error",
     "translation": "A apărut o eroare la scrierea pe serverul local de stocare"
+  },
+  {
+    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
+    "translation": "ID-ul canalului invalid/lipsește sau ID-ul echipei."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1405,6 +1565,14 @@
     "translation": "Ieşire webhooks au fost dezactivate de sistem admin."
   },
   {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "A apărut o eroare la deschiderea fișierului cu cheie publică."
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "A apărut o eroare la descărcarea pluginului."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "Fişier array este gol în multipart/formular cerere"
   },
@@ -1417,12 +1585,24 @@
     "translation": "Fişier lipsă în multipart/formular cerere"
   },
   {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Nu se poate verifica semnătura pluginului."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} și @{{.LastUsername}} nu au fost notificate prin această mențiune deoarece nu se află în canal. Ele nu pot fi adăugate la canal deoarece nu fac parte din grupurile conectate. Pentru a îi adăuga la acest canal, aceștia trebuie adăugați la grupurile conectate."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Usernames}} nu au fost notificate prin această mențiune deoarece nu se află în canal. El nu pot fi adăugat la canal deoarece nu face parte din grupurile conectate. Pentru a îl adăuga la acest canal, acesta trebuie adăugat la grupurile conectate."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} şi @{{.LastUsername}} au fost menţionate, dar că nu au primit notificări, deoarece acestea nu aparțin de acest canal."
+    "translation": "@{{.Usernames}} și @{{.LastUsername}} nu au fost notificați prin această mențiune deoarece nu se află în canal."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} a fost menţionat, dar că nu au primit notificări, deoarece acestea nu aparțin de acest canal."
+    "translation": "@{{.Username}} nu a fost notificat de această mențiune deoarece nu se află în canal."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1458,7 +1638,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Nu se poate șterge o postare într-un canal șters."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1680,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1532,11 +1712,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "te-a trimis un mesaj."
+    "translation": "ți-a trimis un mesaj."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1571,6 +1751,22 @@
     "translation": "Imposibil de setat preferintele utilizatorului."
   },
   {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Anunțurile push sunt dezactivate pe acest server."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Ați primit un mesaj nou."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "A apărut o eroare la preluarea notificării push încărcată cu ID"
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "A apărut o eroare la expedierea livrării de chitanță serviciului de notificări prin împingere"
+  },
+  {
     "id": "api.reaction.delete.archived_channel.app_error",
     "translation": "Nu puteți sterge o replica intrun canal arhivat."
   },
@@ -1592,7 +1788,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Această acțiune este interzisă unui administrator de sistem restricționat."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1719,8 +1915,24 @@
     "translation": "Imposibil de deschis fişierul zip export moale.\r\n"
   },
   {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} în arhiva zip prea mare pentru a procesa importul Slack\r\n"
+  },
+  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Utilizatorul nu a fost găsit"
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Notificările Push nu sunt configurate sau acceptate pe acest server."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Eroare la adăugarea membrilor echipei."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Această echipă este administrată de grupuri.  Acest utilizator nu face parte dintr-un grup sincronizat cu această echipă."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1731,12 +1943,24 @@
     "translation": "Parametru necesar să adăugaţi utilizator la echipa."
   },
   {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Oaspeții sunt restricționați să se alăture echipei cu un link de invitație. Vă rugăm să solicitați o invitație de e-mail invitat către echipă."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Conturile oaspeților sunt dezactivate."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invitația este invalidă, deoarece aceasta nu este o echipă deschisă."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Numele de driver incorect pentru setările de fişier.  Trebuie să fie 'locale' sau 'amazons3'"
+    "translation": "Numele de driver incorect pentru setările de fişier.  Trebuie să fie 'local' sau 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1756,31 +1980,43 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Incorect: domeniul importFrom nu este prezent."
+    "translation": "Cerere malformată: câmpul importFrom nu este prezent."
   },
   {
     "id": "api.team.import_team.open.app_error",
-    "translation": "Nu s-a putut deschide fișierul"
+    "translation": "Fișierul nu poate fi deschis"
   },
   {
     "id": "api.team.import_team.parse.app_error",
-    "translation": "Nu s-a putut parsa forma multipartidă"
+    "translation": "Nu s-a putut analiza formularul multipart"
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Incorect: câmpul filesize nu este prezent."
+    "translation": "Cerere deformată: câmpul pentru dimensiunea fișierului nu este prezent."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Eroare la invalidarea invitațiilor de e-mail."
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Conturile oaspeților sunt dezactivate"
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "Canalele invitației trebuie să facă parte din echipa invitației."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "E-mail invitațiile sunt dezactivate."
+    "translation": "Invitațiile prin e-mail sunt dezactivate."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "Următoarele adrese de email nu aparțin unui domeniu acceptat: {{.Addresses}}. Pentru detalii, contactaţi administratorul de sistem."
-  },
-  {
-    "id": "api.team.invite_members.member",
-    "translation": "membru"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -1815,6 +2051,18 @@
     "translation": "Acest canal a fost mutat la această echipă din %v."
   },
   {
+    "id": "api.team.promote_guest_to_user.disabled.error",
+    "translation": "Conturile oaspeților sunt dezactivate."
+  },
+  {
+    "id": "api.team.promote_guest_to_user.license.error",
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Nu este posibil să eliminați un utilizator dintr-o echipă cu constrângeri de grup."
+  },
+  {
     "id": "api.team.remove_team_icon.get_team.app_error",
     "translation": "Eroare la obtinerea echipa"
   },
@@ -1825,6 +2073,14 @@
   {
     "id": "api.team.remove_user_from_team.removed",
     "translation": "%v scos din echipa."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Paginarea nu este implementată pentru căutarea în echipă doar privată."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Paginarea nu este implementată pentru căutarea în echipă doar publică."
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
@@ -1881,6 +2137,10 @@
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
     "translation": "Limitarea echipei la {{ .Domain }} nu este permisă de configurarea sistemul. Vă rugăm să contactați administratorul de sistem."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Actualizare nevalidă a unui membru al echipei: Un utilizator trebuie să fie un invitat sau un utilizator, dar nu ambii."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1968,11 +2228,19 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Echipa {{.SenderStatus}} [[{{.SenderName}}]], v-a invitat să vă alăturați [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], te-a invitat să te înscrii la [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
     "translation": "Ați primit o invitație"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]], v-a invitat să vă alăturați echipei [[{{.TeamDisplayName}}]] ca oaspete."
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} v-a invitat să vă alăturați echipei {{.TeamDisplayName}} ca oaspete"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2159,10 +2427,6 @@
     "translation": "Neacceptat OAuth furnizorul"
   },
   {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Id-ul echipei invalid"
-  },
-  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Contul este blocat din cauza prea multe tentative de a eşuat parola. Vă rugăm să resetaţi parola."
   },
@@ -2203,6 +2467,10 @@
     "translation": "{{.Service}} SSO prin OAuth 2.0 nu este disponibil pe acest server"
   },
   {
+    "id": "api.user.create_password_token.error",
+    "translation": "Imposibil de creat token pentru recuperarea parolei"
+  },
+  {
     "id": "api.user.create_profile_image.default_font.app_error",
     "translation": "Imposibil de creat implicit profilul ce font"
   },
@@ -2223,12 +2491,16 @@
     "translation": "Crearea de utilizator este dezactivat."
   },
   {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Lipsesc invita ID-ul."
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Conturile oaspeților sunt dezactivate"
   },
   {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Lipsesc Token."
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Imposibil de creat utilizatorul, invitație nevalidă."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2247,6 +2519,10 @@
     "translation": "Linkul de înscriere nu pare să fie valabil"
   },
   {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Imposibil de convertit utilizatorul în invitat, deoarece este deja invitat"
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP nu sunt disponibile pe acest server"
   },
@@ -2257,10 +2533,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Neacceptat OAuth furnizorul"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Imposibilitatea de a obţine imaginea de profil, utilizatorul nu a fost găsit."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2280,7 +2552,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot login-ul este interzis"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2291,12 +2563,32 @@
     "translation": "Încercaţi să utilizaţi caracteristica experimentale ClientSideCertEnable fara licenta valida enterprise"
   },
   {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Conturile oaspeților sunt dezactivate"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Licența dvs. nu acceptă conturile de invitați"
+  },
+  {
     "id": "api.user.login.inactive.app_error",
     "translation": "Conectare a eşuat deoarece contul a fost dezactivat.  Vă rugăm să contactaţi un administrator."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "ID de utilizator sau parola incorecte."
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Introduceți un e-mail valid și/sau o parolă"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Introduceți un e-mail valid sau nume de utilizator și/sau o parolă."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Introduceți un e-mail valid sau un nume de utilizator și/sau o parolă, sau conectați-vă utilizând altă metodă."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Introduceți un nume de utilizator și/sau o parolă valide."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2308,7 +2600,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot login-ul este interzis"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2331,8 +2623,8 @@
     "translation": "Autentificare Transfer nu configurate sau disponibile pe acest server."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Valoare nepotrivită acceptată"
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Nu se poate converti invitatul în utilizator obișnuit, deoarece nu este invitat"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2355,20 +2647,8 @@
     "translation": "Nu se poate reseta parola pentru conturile de SSO"
   },
   {
-    "id": "api.user.saml.app_error",
-    "translation": "Imposibilitatea de a procesa cererea de conectare SAML."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Extinderea în invalid id"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensiile nu sunt acceptate."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "Prelungire cu id_extensiei={{.ExtensionId}} nu este acceptată."
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Nu s-a putut parsa resetarea parolei"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2423,6 +2703,10 @@
     "translation": "Nu a reuşit să trimite email de bun venit cu succes"
   },
   {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "Nu puteți activa un cont de invitat, deoarece funcția Acces de invitat nu este activată."
+  },
+  {
     "id": "api.user.update_active.not_enable.app_error",
     "translation": "Nu se poate dezactiva-te, deoarece această caracteristică nu este activat. Vă rugăm să contactaţi administratorul de sistem."
   },
@@ -2457,6 +2741,14 @@
   {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Actualizaţi parola nu a reuşit pentru că nu am putut găsi un valid socoteală"
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "E-mailul furnizat nu aparține unui domeniu acceptat. Vă rugăm să contactați administratorul sau să vă înscrieți cu un e-mail diferit."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "E-mailul furnizat nu aparține unui domeniu acceptat pentru conturile de invitați. Vă rugăm să contactați administratorul sau să vă înscrieți cu un e-mail diferit."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2567,8 +2859,32 @@
     "translation": "Parametrul {{.Name}} este invalid"
   },
   {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable"
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Could not read the response received from the Identity Provider."
+  },
+  {
     "id": "app.admin.test_email.failure",
     "translation": "Conectare nereușită: {{.Error}}"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "Aceasta nu este o adresă URL validă"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2601,6 +2917,10 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Clustering API final nu a fost găsit."
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Imposibil de copiat imaginile personalizate emoji"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2753,6 +3073,10 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Eroare importatoare utilizator canal afilieri. Nu a reuşit să salvaţi preferinţele."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Imposibil de salvat preferințele temei echipei"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3047,6 +3371,22 @@
     "translation": "Roluri invalide pentru calitatea de membru al canalului utilizatorului."
   },
   {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Setarea invalidă a intervalelor de e-mail pentru Utilizator"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Setarea de previzualizare nevalidă a marcajului pentru utilizator"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Setarea nevalidă a formatării postului pentru utilizator"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Setarea neecranată a secțiunii invalide pentru utilizator"
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
     "translation": "AuthData de utilizator și parola se exclud reciproc."
   },
@@ -3131,6 +3471,10 @@
     "translation": "Roluri invalidă pentru aderarea la echipa utilizatorului."
   },
   {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Tema echipei invalidă pentru Utilizator"
+  },
+  {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Numele echipei lipsesc de la utilizator de membru de echipa."
   },
@@ -3140,7 +3484,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "Aveţi un nou mesaj Direct la @{{.SenderName}}"
+    "translation": "Aveţi un nou mesaj Direct de la {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3148,7 +3492,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Aveţi un mesaj nou de grupa la @{{.SenderName}}"
+    "translation": "Aveți un nou mesaj de grup de la {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3156,11 +3500,11 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "Ai o noua notificare la @{{.SenderName}}"
+    "translation": "Aveți o notificare nouă de la {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
@@ -3172,7 +3516,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.group_message.generic",
@@ -3184,7 +3528,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full2",
-    "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
@@ -3192,7 +3536,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Mesaj direct nou de la @{{.SenderDisplayName}} pe {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Mesaj direct nou de la {{.SenderDisplayName}} pe {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -3219,16 +3563,24 @@
     "translation": "Imposibil de dezactivat pluginul"
   },
   {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "A apărut o eroare la ștergerea cheii publice."
+  },
+  {
     "id": "app.plugin.disabled.app_error",
     "translation": "S-a dezactivat plugin-uri. Verificați jurnalele pentru detalii."
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Întâlnite eroare extragerea plugin"
+    "translation": "An error occurred extracting the plugin bundle."
   },
   {
     "id": "app.plugin.filesystem.app_error",
     "translation": "Eroare de sistem de fişiere întâlnite"
+  },
+  {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "Nu se poate seta plugin-ul așa cum este gestionat de depozitul de fișiere."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3237,6 +3589,10 @@
   {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Imposibilitatea de a obţine plugin-uri active"
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "A apărut o eroare la preluarea cheii publice din magazin."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3255,12 +3611,52 @@
     "translation": "Nu se poate instala plugin-ul. Un plugin cu același ID-ul este deja instalat și nu a fost eliminate."
   },
   {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+  },
+  {
     "id": "app.plugin.invalid_id.app_error",
     "translation": "Plugin-ul ID-ul trebuie să fie cel puţin {{.Min}} caractere, cel {{.Max}} caractere şi meci {{.Regex}}."
   },
   {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Versiunea pluginului nu a putut fi analizată"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Nu se poate găsi un manifest pentru plugin extras"
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Nu a reușit să creeze clientul de pe piață."
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Eșecul de a primi pluginuri de pe serverul de pe piață."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Piața a fost dezactivată. Vă rugăm să verificați jurnalele pentru detalii."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Nu a reușit să decodeze cererea pluginului de pe piață."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Nu a putut găsi pluginul solicitat pentru piață."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Nu a putut găsi pluginul solicitat pentru piață."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Nu pot modifica fișierele saml."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3275,8 +3671,48 @@
     "translation": "Imposibil de șters plugin"
   },
   {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Imposibil de eliminat pachetul de pluginuri din magazinul de fișiere."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Imposibil de repornit pluginul la actualizare."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Imposibil de decodat semnătura base64."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Imposibil de stocat plugin-ul în depozitul de fișiere configurat."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Nu se poate stoca semnătura pluginului în discul configurat."
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "Eroare la citirea fișierelor din dosarul de pluginuri din depozitul de fișiere."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Eroare la citirea dosarului de pluginuri locale."
+  },
+  {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "S-a dezactivat plugin-uri şi/sau plugin-ul încărcat."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Imposibil să genereze pachetul webapp plugin."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "A apărut o eroare la citirea fișierului."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "A apărut o eroare la salvarea fișierului."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3284,7 +3720,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "A apărut o eroare la salvarea configurației"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3299,8 +3735,20 @@
     "translation": "Nu a putut fi analizată data de instalare"
   },
   {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Nu poți participa la o echipă cu constrângeri de grup prin invitație."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Nu poți participa la o echipă cu constrângeri de grup prin token."
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Această echipă a atins numărul maxim de conturi permise. Contactați administratorul de sistem pentru a seta o limită mai mare."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Imposibil de redenumit echipa, numele este deja folosit"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3341,6 +3789,10 @@
   {
     "id": "cli.license.critical",
     "translation": "Caracteristică necesită un upgrade la Enterprise Edition şi includerea de o cheie de licenţă. Vă rugăm să contactaţi administratorul de sistem."
+  },
+  {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3443,8 +3895,16 @@
     "translation": "Configurarea Elasticsearch Client nu a reușit"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Eroare la crearea indexului Elasticsearch"
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Nu s-a creat șablonul Elasticsearch pentru canale"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Nu s-a creat șablonul Elasticsearch pentru postări"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Nu a reușit să se creeze un șablon Elasticsearch pentru utilizatori"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3455,16 +3915,32 @@
     "translation": "Nu s-au obținut indicii Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Nu sa reușit ștergerea canalului"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Nu sa reușit ștergerea postării"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Nu sa reușit ștergerea utilizatorului"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Căutarea elastică nu este activată pe acest server"
   },
   {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Nu a fost indexat canalul"
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Nu a reuşit să-l indexaţi post"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Nu a reușit să indexeze utilizatorul"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3479,12 +3955,28 @@
     "translation": "Elasticsearch lucrător de indexare nu a analizat ora de începere"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Încercarea de a indexa un lot nou atunci când toate entitățile sunt finalizate."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch nu este pornit"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Nu sa reușit ștergerea indexului Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Căutarea Elasticsearch este dezactivată pe acest server"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Căutarea nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Nu sau putut decoda rezultatele căutării"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3503,12 +3995,28 @@
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
   },
   {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Căutarea nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Nu sa putut decoda rezultatele căutării"
+  },
+  {
     "id": "ent.elasticsearch.start.already_started.app_error",
     "translation": "Elasticsearch este deja pornit"
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Imposibil de creat Elasticsearch bulk procesor"
+  },
+  {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version"
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -3533,6 +4041,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL-ul serverului Elasticsearch sau numele de utilizator a schimbat. Vă rugăm să re-introduceţi parola Elasticsearch pentru a testa conexiunea."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Licența dvs. nu acceptă notificările push Loaded ID."
   },
   {
     "id": "ent.ldap.app_error",
@@ -3579,6 +4091,10 @@
     "translation": "Utilizatorul nu inregistrat pe serverul AD/LDAP"
   },
   {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "eroare la ștergerea membrilor echipei sau a canalelor"
+  },
+  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Imposibilitatea de a obţine toate utilizatori folosind AD/LDAP"
   },
@@ -3595,8 +4111,20 @@
     "translation": "Căutarea utilizatorilor în AD/LDAP nu a reușit. Testaţi dacă serverul Mattermost poate conecta la serverul de anunţuri/LDAP și încercați din nou."
   },
   {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Limita de dimensiune a fost depășită. Încercați să verificați [mărimea paginii maximă] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exterior)."
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Filtrul invitat AD/LDAP invalid"
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "AD/LDAP invalidă filtru"
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Filtrul invitat AD/LDAP invalid"
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -3747,8 +4275,16 @@
     "translation": "SAML 2.0 nu este configurat sau acceptat pe acest server."
   },
   {
+    "id": "groups.unsupported_syncable_type",
+    "translation": "Unsupported syncable type '{{.Value}}'."
+  },
+  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Nu a reușit decodarea bazei 64 pentru ID-ul de declanșare pentru dialogul interactiv."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Nu sa reușit decodarea semnării base64 a ID-ului de declanșare pentru dialogul interactiv."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3780,7 +4316,7 @@
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Putea solicita anularea pentru locuri de muncă care nu este în stare revocabil."
+    "translation": "Nu s-a putut solicita anularea pentru o lucrare care nu se află într-o stare anulată."
   },
   {
     "id": "jobs.set_job_error.update.error",
@@ -3836,7 +4372,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
+    "translation": "Jetonul MFA nevalid."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -3904,7 +4440,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Crearea invalidă la"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3916,7 +4452,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Actualizare invalidă la"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -3993,78 +4529,6 @@
   {
     "id": "model.client.connecting.app_error",
     "translation": "Am întâmpinat o eroare în timpul conectării la server"
-  },
-  {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Imposibil de atașat datele emoji la cerere"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "Imposibil de atașat imaginea la cerere"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Imposibilitatea de a scrie cerere"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Lipsește parametrul canalului"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Lipsește parametrul echipei"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "Imposibil de citit pictograma echipa din raspunsul organismului."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "Am întâlnit o eroare în timp ce citiţi fişierul"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "Nici un fișier sub 'imaginea' în cerere"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "Imposibilitatea de a scrie cerere"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "Nici un fișier sub 'imaginea' în cerere."
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Imposibilitatea de a scrie cererea."
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Eroare la scrierea identității canalului pentru a expedia formularul"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Eroare la scrierea fişierului pentru a expedia formularul"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Eroare la scrierea fileSize pentru a expedia formularul"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Eroare la scrierea importFrom a expedia formularul"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Eroare închidere scriitor multiplu"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Eroare la crearea SAML certificat expedia formularul cerere"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Imposibilitatea de a construi mai multe pãrþi cerere"
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
@@ -4220,7 +4684,7 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "Schema URL personalizat {{.Scheme}} nu este validă. Personalizat URL scheme trebuie să înceapă cu o scrisoare şi conţine doar litere, numere și cratimă (-)."
+    "translation": "Schema URL personalizată {{.Scheme}} nu este validă. Schemele URL personalizate trebuie să înceapă cu o literă și să conțină doar litere, numere, plus (+), perioadă (.) și cratimă (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4232,11 +4696,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Setarea căutare ConnectionUrl elastice se indică când indexarea căutării elastice este activată."
+    "translation": "Setarea Elasticsearch ConnectionUrl trebuie să fie asigurată atunci când este activată indexarea Elasticsearch."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch IndexingEnabled trebuie setat pe true când Elasticsearch AutocompleteEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elastice setarea căutare IndexingEnabled trebuie setat la adevărat când Elastic Căutaţi SearchEnabled este setată la true."
+    "translation": "Elasticsearch IndexingEnabled trebuie setat pe true când Elasticsearch SearchEnabled este setat pe true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -4261,10 +4729,6 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "E-mail invalidă notificare conţinutul tip pentru setările de e-mail. Trebuie să fie una de 'plin' sau 'generice'."
-  },
-  {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Sare invita incorect pentru setările de e-mail. Trebuie să fie de 32 caractere sau mai mult."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -4419,12 +4883,24 @@
     "translation": "Restricție invalidă mesaj direct. Trebuie să fie 'orice', sau 'team'"
   },
   {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'"
+  },
+  {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
     "translation": "URL serviciu furnizor de autentificare trebuie să fie un URL valid şi începe cu http:// sau https://."
   },
   {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Algoritm canonic nevalid."
+  },
+  {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
     "translation": "Atributul de E-mail invalid. Trebuie setat."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4447,6 +4923,10 @@
     "translation": "Service Provider certificat Public lipsesc. Uitaţi să încărcaţi-l?"
   },
   {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Algoritm de semnătură invalid."
+  },
+  {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Atribut nume de utilizator invalid. Trebuie setat."
   },
@@ -4457,10 +4937,6 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Imposibilitatea de a permite e-mail dozare când SiteURL nu este setată."
-  },
-  {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4627,8 +5103,20 @@
     "translation": "tipul de proprietate invalidă pentru gruparea sincronizabilă"
   },
   {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "tip identificator existent deja: json poate conține atât 'team_id' cat și 'channel_id'"
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Canal invalid"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Canale invalide"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "E-mail invalid"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "E-mailuri invalide"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4705,10 +5193,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Datele metadatelor de legătură nu corespund tipului dat"
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Codul de metadate al legăturii este invalid"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4839,6 +5323,10 @@
     "translation": "Invalid ID plugin-ul, trebuie să fie mai mult {{.Min}} şi un maxim {{.Max}} caractere."
   },
   {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Valoare veche invalidă, nu trebuie setată atunci când operațiunea nu este atomică."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Cod de identificare invalid"
   },
@@ -4963,6 +5451,10 @@
     "translation": "ID Incorect"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "ID de invitație invalid"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Nume invalid"
   },
@@ -4991,22 +5483,6 @@
     "translation": "Utilizator invalid"
   },
   {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Lipsește proprietatea privind termenul de serviciu cerut: create_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Identitatea invalidă a termenilor de utilizare."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Textul pentru termenii și condițiile personalizate este prea lung. Sunt permise maxim {{.MaxLength}} caractere."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Lipsește proprietatea privind condițiile de utilizare: user_id."
-  },
-  {
     "id": "model.token.is_valid.expiry",
     "translation": "Expirarea token valid"
   },
@@ -5015,8 +5491,52 @@
     "translation": "Token invalid."
   },
   {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Datele de autentificare invalide"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Informațiile invalide privind utilizatorul, parola și datele de autentificare nu pot fi setate"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Utilizatorul invalid, datele autentificare trebuie să fie setate cu tipul autentificare"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Creați la trebuie să fie un timp valabil"
+  },
+  {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Te rog introdu o adresa de email valida."
+    "translation": "E-mail invalid"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Nume invalid"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Id utilizator invalid"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Prenume invalid"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Localizare invalidă"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Nume de fișiere invalid"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Imposibil de setat o parolă de peste 72 de caractere datorită limitărilor din bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Poziție invalidă: nu trebuie să depășească 128 de caractere."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5083,8 +5603,12 @@
     "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} caractere alcătuite din cel puțin o literă majusculă și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Actualizați la trebuie să fie un timp valabil"
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Numele de utilizator trebuie să înceapă cu o literă și să conțină între 3 și 22 de caractere, inclusiv numere, litere mici și simbolurile \".\", \"-\", și \"_\"."
+    "translation": "Numele de utilizator trebuie să înceapă cu o literă și să conțină între 3 și 22 de caractere minuscule formate din numere, litere și simbolurile \".\", \"-\" și \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5103,18 +5627,6 @@
     "translation": "Utilizator invalid"
   },
   {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Lipsește proprietatea necesară termenilor de serviciu: create_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Lipsește proprietatea necesară termenilor de serviciu: service_terms_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Lipsește proprietatea necesară termenilor de serviciului: user_id."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "nu a putut decoda"
   },
@@ -5127,8 +5639,16 @@
     "translation": "Termenii și condițiile GitLab au fost actualizați. Te rog du-te la gitlab.com pentru a le accepta și apoi încercați să vă conectați din nou la Mattermost."
   },
   {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Nu se pot obține utilizatorii, criterii de sortare nevalide"
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Nu s-a putut seta starea utilizatorului. Stare utilizator necunoscut."
+    "translation": "Nu s-a putut actualiza starea utilizatorului. Stare utilizator necunoscut."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Utilizatorul Bot nu poate crea utilizator de bot."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5157,6 +5677,10 @@
   {
     "id": "store.select_error",
     "translation": "selectați eroare"
+  },
+  {
+    "id": "store.sql.build_query.app_error",
+    "translation": "nu a reușit să construiască interogarea"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5188,31 +5712,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Nu se poate șterge postarea"
+    "translation": "Imposibil de șters botul"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Nu se poate obține postarea"
+    "translation": "Nu pot să-l conectez la bot"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Botul nu exista"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Nu se pot obține postările"
+    "translation": "Imposibilitatea de a obține roboții"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Imposibil de salvat postarea"
+    "translation": "Nu am putut salva botul"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Imposibil de actualizat Postarea"
+    "translation": "Imposibil de actualizat botul"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Am întâlnit o eroare la actualizarea app"
+    "translation": "Am întâmpinat o eroare la actualizarea botului"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5231,16 +5755,16 @@
     "translation": "Nu a reușit să înceapă tranzacția bazei de date"
   },
   {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Nu s-a reușit returnarea tranzacției bazei de date"
-  },
-  {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Nu a reușit să se recupereze membrii canalului"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
     "translation": "Actualizarea elementului canal a eșuat"
+  },
+  {
+    "id": "store.sql_channel.count_posts_since.app_error",
+    "translation": "Imposibil de numărat mesaje de la data dată"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5257,6 +5781,14 @@
   {
     "id": "store.sql_channel.get_all.app_error",
     "translation": "Nu se pot obține toate canalele"
+  },
+  {
+    "id": "store.sql_channel.get_all_channels.get.app_error",
+    "translation": "Nu se pot obține toate canalele"
+  },
+  {
+    "id": "store.sql_channel.get_all_direct.app_error",
+    "translation": "Nu se pot obține toate canalele directe"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5281,6 +5813,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Nu au fost găsite canale"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.app_error",
+    "translation": "Canalele nu pot fi obținute prin ID-uri"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5339,12 +5879,12 @@
     "translation": "Nu pot fi recuperate canalele"
   },
   {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Nu se pot obține canale publice"
+    "id": "store.sql_channel.get_pinnedpost_count.app_error",
+    "translation": "Imposibil de obținut numărul postării canalului fixat"
   },
   {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Nu am putut obține de la membrii canalului fusuri orare"
+    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "translation": "Nu se pot obține canale publice"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -5361,10 +5901,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
     "translation": "Nu a reuşit să deschidă tranzacţiei date"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Nu a reuşit să se rostogolească înapoi tranzacţiei date"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
@@ -5435,18 +5971,6 @@
     "translation": "Imposibil de deschis tranzacția"
   },
   {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "Nu am putut reseta ultimul post al canalului la data respectivă"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Nu s-a putut efectua tranzacția"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Imposibil de deschis tranzacția"
-  },
-  {
     "id": "store.sql_channel.save.archived_channel.app_error",
     "translation": "Nu puteți modifica un canal arhivat"
   },
@@ -5481,10 +6005,6 @@
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
     "translation": "Aţi atins limita numărului de permise canale."
-  },
-  {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Un canal cu că URL-ul a fost creat anterior"
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
@@ -5525,6 +6045,10 @@
   {
     "id": "store.sql_channel.search.app_error",
     "translation": "Am întâmpinat o eroare în căutarea canalelor"
+  },
+  {
+    "id": "store.sql_channel.search_group_channels.app_error",
+    "translation": "Nu se pot obține canalele de grup pentru utilizatorul și termenul dat"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
@@ -5575,8 +6099,16 @@
     "translation": "Imposibil de actualizat ultimele vizualizate la timp"
   },
   {
+    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+    "translation": "Imposibil de marcat canalul ca necitit"
+  },
+  {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Am întâlnit o eroare la actualizarea membru canal"
+  },
+  {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Nu se poate determina dacă utilizatorul aparține unei liste de canale"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5751,6 +6283,10 @@
     "translation": "Imposibil de salvat informațiile despre fișier"
   },
   {
+    "id": "store.sql_group.app_error",
+    "translation": "nu a reușit să construiască interogarea"
+  },
+  {
     "id": "store.sql_group.group_syncable_already_deleted",
     "translation": "grupul sincronizat a fost deja șters"
   },
@@ -5763,8 +6299,8 @@
     "translation": "nu s-au schimbat rânduri"
   },
   {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "nimic de actualizat pentru sincronizare în grup"
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Imposibil de eliminat membrii grupului cu UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -5815,16 +6351,20 @@
     "translation": "Am întâmpinat o eroare la salvarea licenței"
   },
   {
+    "id": "store.sql_link_metadata.get.app_error",
+    "translation": "Imposibil de obținut metadatele de legătură"
+  },
+  {
+    "id": "store.sql_link_metadata.save.app_error",
+    "translation": "Imposibil de salvat metadatele de legătură"
+  },
+  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Nu s-a putut efectua tranzacția"
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
     "translation": "Imposibil de deschis tranzacția pentru a șterge aplicația OAuth2"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "Imposibil de revocat tranzacția pentru a șterge aplicația OAuth2"
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -5915,12 +6455,24 @@
     "translation": "Am întâlnit o eroare la actualizarea app"
   },
   {
+    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
+    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
+    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
+    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+  },
+  {
     "id": "store.sql_plugin_store.delete.app_error",
     "translation": "Imposibil de șters valoarea cheii plugin"
   },
   {
     "id": "store.sql_plugin_store.get.app_error",
     "translation": "Nu am putut obţine plugin cheie value"
+  },
+  {
+    "id": "store.sql_plugin_store.list.app_error",
+    "translation": "Nu se pot afișa toate tastele pluginului"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -5951,12 +6503,24 @@
     "translation": "Nu se poate obține postarea"
   },
   {
+    "id": "store.sql_post.get_direct_posts.app_error",
+    "translation": "Nu se pot obține postările directe"
+  },
+  {
     "id": "store.sql_post.get_flagged_posts.app_error",
     "translation": "Imposibil de obținut mesajele marcate"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Imposibil de obținut postul părinte pentru canal"
+  },
+  {
+    "id": "store.sql_post.get_post_after_time.app_error",
+    "translation": "Imposibil de a obține post după timp legat"
+  },
+  {
+    "id": "store.sql_post.get_post_id_around.app_error",
+    "translation": "Nu se poate posta în jurul valorii de timp legate"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -6063,10 +6627,6 @@
     "translation": "Imposibil de salvat preferința"
   },
   {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Am întâlnit o eroare în timp ce găsirea o pre presă caracteristică preferinţă"
-  },
-  {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
     "translation": "Am întâmpinat o eroare în timpul ștergerii preferințelor"
   },
@@ -6081,10 +6641,6 @@
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
     "translation": "Imposibil de deschis tranzacţie pentru a salva preferinţele"
-  },
-  {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "Imposibilitatea de a o tranzacţie rollback pentru a salva preferinţele"
   },
   {
     "id": "store.sql_preference.save.updating.app_error",
@@ -6147,6 +6703,10 @@
     "translation": "Imposibilitatea de a obţine un tichet cu acest cod"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Nu se pot elimina toate jetoanele unui tip"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Imposibil de salvat token"
   },
@@ -6157,6 +6717,10 @@
   {
     "id": "store.sql_role.get.app_error",
     "translation": "Imposibilitatea de a obţine rolul"
+  },
+  {
+    "id": "store.sql_role.get_all.app_error",
+    "translation": "Nu pot obține toate rolurile"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6279,6 +6843,10 @@
     "translation": "Imposibil de actualizat ultima_activity_at"
   },
   {
+    "id": "store.sql_session.update_props.app_error",
+    "translation": "Imposibil de actualizat accesorii de sesiune"
+  },
+  {
     "id": "store.sql_session.update_roles.app_error",
     "translation": "Imposibil de actualizat rolurile"
   },
@@ -6289,18 +6857,6 @@
   {
     "id": "store.sql_status.get.missing.app_error",
     "translation": "Nu există nicio intrare pentru acel statut"
-  },
-  {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "A apărut o eroare la preluarea tuturor statusurilor online"
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "A apărut o eroare la preluarea tuturor statusurilor online/deplasare"
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "A apărut o eroare la preluarea tuturor statusurilor de la membrii echipei"
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
@@ -6347,6 +6903,14 @@
     "translation": "Nu am putut obține numărul canalelor pentru schemă."
   },
   {
+    "id": "store.sql_team.analytics_private_team_count.app_error",
+    "translation": "Imposibil de numărat echipele private"
+  },
+  {
+    "id": "store.sql_team.analytics_public_team_count.app_error",
+    "translation": "Imposibil de numărat echipele publice"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "Imposibilitatea de a număra echipele"
   },
@@ -6357,10 +6921,6 @@
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
     "translation": "Nu a reușit să înceapă tranzacția bazei de date"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Nu s-a reușit returnarea tranzacției bazei de date"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
@@ -6379,8 +6939,16 @@
     "translation": "Am intalnit o eroare găsirea echipei"
   },
   {
+    "id": "store.sql_team.get_active_member_count.app_error",
+    "translation": "Imposibilitatea de a număra membrii echipei"
+  },
+  {
     "id": "store.sql_team.get_all.app_error",
     "translation": "Nu am putut obţine toate echipele"
+  },
+  {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Nu am putut obține toate echipele private"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6397,6 +6965,10 @@
   {
     "id": "store.sql_team.get_by_name.app_error",
     "translation": "În imposibilitatea de a găsi echipa existentă"
+  },
+  {
+    "id": "store.sql_team.get_by_name.missing.app_error",
+    "translation": "Imposibil de găsit echipa existentă"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -6427,16 +6999,16 @@
     "translation": "Am putut sa ma echipe mesajele necitite"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Nu se poate obține lista echipelor unui utilizator"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Nu s-a efectuat tranzacția bazei de date"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
     "translation": "Nu a reuşit să deschidă tranzacţiei date"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Nu a reuşit să se rostogolească înapoi tranzacţiei date"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
@@ -6487,6 +7059,10 @@
     "translation": "Am intalnit o eroare căutarea deschis echipe"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Am întâmpinat o eroare în căutarea unor echipe private"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Imposibilitatea de a actualiza echipa"
   },
@@ -6503,12 +7079,12 @@
     "translation": "Am întâlnit o eroare la actualizarea echipa"
   },
   {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Imposibilitatea de a actualiza numele echipei"
-  },
-  {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Imposibil de actualizat data ultimei actualizări a pictogramei echipei"
+  },
+  {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Nu se poate determina dacă utilizatorul aparține unei liste de echipe"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6539,12 +7115,8 @@
     "translation": "Nu se poate conta numărul administratorului sistemului"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Nu s-a putut obține numărul unic de utilizatori"
-  },
-  {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Nu sa reușit construirea interogării"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6555,16 +7127,36 @@
     "translation": "Nu a reușit să înceapă tranzacția bazei de date"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Nu s-a reușit returnarea tranzacției bazei de date"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
     "translation": "A reuşit să regăsească utilizatorilor"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Imposibil de actualizat utilizator"
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions nu are sens"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+    "translation": "Actualizarea canalelor de utilizator nu a reușit"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+    "translation": "Nu a reușit să efectueze tranzacția cu baza de date"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+    "translation": "Nu a reușit să înceapă tranzacția cu baza de date"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+    "translation": "Nu a reușit să actualizeze membrii echipelor de utilizator"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
+    "translation": "Actualizarea utilizatorului a eșuat"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6595,6 +7187,10 @@
     "translation": "Am întâlnit o eroare în timp ce găsirea noii utilizatori"
   },
   {
+    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Am întâmpinat o eroare la identificarea profilurilor utilizatorilor"
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Am întâlnit o eroare în timp ce găsirea profiluri de utilizator"
   },
@@ -6623,12 +7219,44 @@
     "translation": "Nu am putut obţine numărul de mesaj necitit pentru utilizator şi canal"
   },
   {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Nu s-au putut obține membrii canalului pentru lotul utilizatorilor pentru indexare"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Nu s-au putut obține membrii echipei pentru lotul utilizatorilor pentru indexare"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Nu s-a putut obține lotul utilizatorilor pentru indexare"
+  },
+  {
     "id": "store.sql_user.missing_account.const",
     "translation": "Nu am putut găsi utilizatorul."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
     "translation": "Nu se poate șterge contul existent"
+  },
+  {
+    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+    "translation": "Actualizarea canalelor de utilizator nu a reușit"
+  },
+  {
+    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+    "translation": "Nu a reușit să efectueze tranzacția cu baza de date"
+  },
+  {
+    "id": "store.sql_user.promote_guest.open_transaction.app_error",
+    "translation": "Nu a reușit să înceapă tranzacția cu baza de date"
+  },
+  {
+    "id": "store.sql_user.promote_guest.team_members_update.app_error",
+    "translation": "Nu a reușit să actualizeze membrii echipelor de utilizator"
+  },
+  {
+    "id": "store.sql_user.promote_guest.user_update.app_error",
+    "translation": "Actualizarea utilizatorului a eșuat"
   },
   {
     "id": "store.sql_user.save.app_error",
@@ -6701,6 +7329,14 @@
   {
     "id": "store.sql_user.update.username_taken.app_error",
     "translation": "Acest nume de utilizator este deja luat. Alegeți altul."
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Imposibil să obțineți lista cu ID-urile invitaților dezactivați"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Imposibil de dezactivat oaspeții"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
@@ -6879,34 +7515,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "Imposibil de încărcat fișierul de configurare foarte important: Adăugarea DefaultClientLocale la AvailableLocales."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Eroare decodare config file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Eroare la deschiderea fișierului de configuratie={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "A apărut o eroare la salvarea fișierului la {{.Filename}}"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Imposibil de încărcat fişierul de configurare mattermost: AvailableLocales trebuie să cuprindă DefaultClientLocale. Setarea AvailableLocales la toate localizări ca valoare implicită."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Imposibil de încărcat fişierul de configurare mattermost: DefaultClientLocale trebuie să fie unul dintre localizări acceptate. Setarea DefaultClientLocale en ca valoare implicită."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Imposibil de încărcat fişierul de configurare mattermost: DefaultServerLocale trebuie să fie unul dintre localizări acceptate. Setarea DefaultServerLocale en ca valoare implicită."
-  },
-  {
     "id": "utils.file.list_directory.local.app_error",
     "translation": "A apărut o eroare de afișare a directorului din stocarea locală a fișierelor de pe server."
   },
@@ -6983,12 +7591,100 @@
     "translation": "Imposibil de analizat datelor primite"
   },
   {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Browserul curent nu este acceptată. Vă rugăm să faceţi upgrade la unul dintre următoarele browsere:"
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Obțineți cel mai recent browser Chrome"
   },
   {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Browser neacceptat"
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Obțineți cel mai recent browser Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Obțineți cel mai recent browser Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Descărcați Aplicația"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Descărcați aplicația Mattermost sau utilizați un browser acceptat pentru o experiență mai bună."
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Descărcați Aplicația"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Ghid de instalare"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Ghid de instalare"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Aflați mai multe despre browserele acceptate."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Versiunea 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Versiunea 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Versiunea 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Versiunea 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "Acest browser nu mai este suportat de Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Această versiune a browserului nu mai este suportată de Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Deschide Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Face implicit"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "sau"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
