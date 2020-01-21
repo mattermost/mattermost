@@ -28,7 +28,7 @@ type apiImplCreatorFunc func(*model.Manifest) API
 // If an installed plugin is missing from the env.registeredPlugins map, then the
 // plugin is configured as disabled and has not been activated during this server run.
 type registeredPlugin struct {
-	BundleInfo *model.BundleInfo // This should not be modified once accessed outside the registeredPlugins map.
+	BundleInfo *model.BundleInfo
 	State      int
 
 	failTimeStamps []time.Time
@@ -88,6 +88,7 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 }
 
 // Returns a list of all currently active plugins within the environment.
+// The returned list should not be modified.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
