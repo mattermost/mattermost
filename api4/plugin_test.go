@@ -28,7 +28,7 @@ import (
 )
 
 func TestPlugin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
@@ -265,7 +265,7 @@ func TestPlugin(t *testing.T) {
 }
 
 func TestNotifyClusterPluginEvent(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
@@ -378,7 +378,7 @@ func TestDisableOnRemove(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			th := Setup().InitBasic()
+			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -460,7 +460,7 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -577,7 +577,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -633,7 +633,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	})
 
 	t.Run("marketplace client returns installed plugin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -712,7 +712,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("search installed plugin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -805,7 +805,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
@@ -955,7 +955,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	marketplacePlugins := []*model.MarketplacePlugin{
@@ -1062,7 +1062,7 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1270,7 +1270,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
-		th := SetupConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			// Disable auto-installing prepackaged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
@@ -1401,7 +1401,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
-		th := SetupConfig(func(cfg *model.Config) {
+		th := SetupConfig(t, func(cfg *model.Config) {
 			// Disable auto-installing prepackged plugins
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
 		}).InitBasic()
