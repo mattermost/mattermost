@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -194,6 +195,15 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 		return nil
 	}
 	ev.Event = o.Event
+	if u, ok := o.Data["user"]; ok {
+		// We need to convert to and from JSON again
+		// because the user is in the form of a map[string]interface{}.
+		buf, err := json.Marshal(u)
+		if err != nil {
+			return nil
+		}
+		o.Data["user"] = UserFromJson(bytes.NewReader(buf))
+	}
 	ev.Data = o.Data
 	ev.Broadcast = o.Broadcast
 	ev.Sequence = o.Sequence

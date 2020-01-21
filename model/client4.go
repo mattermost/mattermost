@@ -4684,7 +4684,7 @@ func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
 
 // ClearServerBusy will mark the server as not busy.
 func (c *Client4) ClearServerBusy() (bool, *Response) {
-	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
+	r, err := c.DoApiDelete(c.GetServerBusyRoute())
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
