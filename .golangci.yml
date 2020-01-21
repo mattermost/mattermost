@@ -25,7 +25,7 @@ linters:
     - ineffassign
     - structcheck
     - unconvert
-    - unused
+    # - unused Disable until https://github.com/golangci/golangci-lint/issues/885 is fixed
     - varcheck
     # TODO: enable this later
     # - errcheck
