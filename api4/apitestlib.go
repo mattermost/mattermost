@@ -151,7 +151,6 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	UseTestStore(mainHelper.GetStore())
 	testStore.DropAllTables()
 	testStore.MarkSystemRanUnitTests()
 	return setupTestHelper(true, nil)
@@ -161,7 +160,6 @@ func Setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	UseTestStore(mainHelper.GetStore())
 	testStore.DropAllTables()
 	testStore.MarkSystemRanUnitTests()
 	return setupTestHelper(false, nil)
@@ -171,7 +169,6 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	UseTestStore(mainHelper.GetStore())
 	testStore.DropAllTables()
 	testStore.MarkSystemRanUnitTests()
 	return setupTestHelper(false, updateConfig)

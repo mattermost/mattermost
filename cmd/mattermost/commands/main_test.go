@@ -30,7 +30,9 @@ func TestMain(m *testing.M) {
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	api4.UseTestStore(mainHelper.GetStore())
+	if !testing.Short() {
+		api4.UseTestStore(mainHelper.GetStore())
+	}
 
 	mainHelper.Main(m)
 }
