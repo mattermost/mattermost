@@ -127,7 +127,7 @@ func TestUpdateCommand(t *testing.T) {
 	cmd2.TeamId = team.Id
 
 	_, resp = th.Client.UpdateCommand(cmd2)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.UpdateCommand(cmd2)
@@ -185,7 +185,7 @@ func TestMoveCommand(t *testing.T) {
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
 	_, resp = th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.MoveCommand(newTeam.Id, rcmd2.Id)
@@ -242,7 +242,7 @@ func TestDeleteCommand(t *testing.T) {
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
 	_, resp = th.Client.DeleteCommand(rcmd2.Id)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.DeleteCommand(rcmd2.Id)
@@ -433,7 +433,7 @@ func TestRegenToken(t *testing.T) {
 	require.NotEqual(t, createdCmd.Token, token, "should update the token")
 
 	token, resp = Client.RegenCommandToken(createdCmd.Id)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	require.Empty(t, token, "should not return the token")
 }
 

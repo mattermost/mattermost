@@ -67,7 +67,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -78,7 +78,9 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -133,7 +135,9 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -156,13 +160,15 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -315,13 +321,15 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
