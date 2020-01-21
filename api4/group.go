@@ -192,6 +192,10 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
 	w.WriteHeader(http.StatusCreated)
 
 	b, marshalErr := json.Marshal(groupSyncable)
@@ -340,6 +344,10 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
@@ -383,6 +391,10 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
 
 	ReturnStatusOK(w)
 }
