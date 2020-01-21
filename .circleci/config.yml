@@ -10,12 +10,14 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
+    resource_class: "large"
 
 jobs:
   setup:
     working_directory: ~/go/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
+    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -57,6 +59,7 @@ jobs:
   build:
     docker:
       - image: mattermost/mattermost-build-server:oct-18-2019
+    resource_class: xlarge
     working_directory: ~/go/mattermost
     steps:
       - attach_workspace:
@@ -290,6 +293,7 @@ jobs:
     working_directory: ~/
     docker:
       - image: circleci/buildpack-deps:stretch
+    resource_class: xlarge
     steps:
       - attach_workspace:
           at: .
