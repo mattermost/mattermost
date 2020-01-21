@@ -15,6 +15,9 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	tempDir, err := ioutil.TempDir("", "TestNewStore")

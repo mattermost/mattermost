@@ -14,6 +14,9 @@ import (
 )
 
 func TestMigrateDatabaseToFile(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
 	sqlSettings := helper.GetSQLSettings()
 	defer storetest.CleanupSqlSettings(sqlSettings)
@@ -53,6 +56,9 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 }
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
 	sqlSettings := helper.GetSQLSettings()
 	defer storetest.CleanupSqlSettings(sqlSettings)
