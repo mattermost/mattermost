@@ -67,7 +67,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             cd mattermost-server
