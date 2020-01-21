@@ -25,7 +25,8 @@ func TestIsValid(t *testing.T) {
 	}{
 		{"Invalid Id", &Manifest{Id: "some id"}, true},
 		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
-		{"Invalid supportURL", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", ReleaseNotesURL: "some url"}, true},
 		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
 		{"Invalid min version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
 		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
@@ -37,6 +38,7 @@ func TestIsValid(t *testing.T) {
 			Description:      "thedescription",
 			HomepageURL:      "http://someurl.com",
 			SupportURL:       "http://someotherurl.com",
+			ReleaseNotesURL:  "http://someotherurl.com/releases/v0.0.1",
 			Version:          "0.0.1",
 			MinServerVersion: "5.6.0",
 			Server: &ManifestServer{
