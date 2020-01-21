@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -100,9 +101,9 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	includeDeleted := false
-	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
-		includeDeleted = iD
+	includeDeleted, e := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if e != nil {
+		mlog.Warn("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
 	}
 
 	bot, err := c.App.GetBot(botUserId, includeDeleted)
@@ -136,13 +137,14 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	includeDeleted := false
-	if iD, err := strconv.ParseBool(r.URL.Query().Get("include_deleted")); err == nil {
-		includeDeleted = iD
+	includeDeleted, e := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if e != nil {
+		mlog.Warn("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
 	}
-	onlyOrphaned := false
-	if oO, err := strconv.ParseBool(r.URL.Query().Get("only_orphaned")); err == nil {
-		onlyOrphaned = oO
+
+	onlyOrphaned, e := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
+	if e != nil {
+		mlog.Warn("Unexpected value for onlyOrphaned", mlog.String("only_orphaned", r.URL.Query().Get("only_orphaned")))
 	}
 
 	var OwnerId string

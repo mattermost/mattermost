@@ -100,11 +100,10 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	force := false
-	if f, err := strconv.ParseBool(r.URL.Query().Get("force")); err == nil {
-		force = f
+	force, e := strconv.ParseBool(r.URL.Query().Get("force"))
+	if e != nil {
+		mlog.Warn("Unexpected value for force", mlog.String("force", r.URL.Query().Get("force")))
 	}
-
 	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
 	pluginFile, err := downloadFromUrl(c, downloadUrl)
