@@ -358,6 +358,7 @@ workflows:
             - setup
       - trigger-ee-tests:
           context: matterbuild-circleci-token
+          type: approval
           requires:
             - test
             - test-schema
