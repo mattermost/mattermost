@@ -4394,6 +4394,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_guest", eventUser.Roles)
 		})
+		th.App.InvalidateAllCaches()
 	})
 }
 
@@ -4449,5 +4450,6 @@ func TestPromoteGuestToUser(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_user", eventUser.Roles)
 		})
+		th.App.InvalidateAllCaches()
 	})
 }
