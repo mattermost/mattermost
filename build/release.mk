@@ -82,14 +82,14 @@ endif
 	gpg --import build/plugin-production-public-key.gpg
 
 	@# Download prepackaged plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -o $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
-		curl -f -o $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
-		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
-		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify" $$plugin_package.tar.gz"|"$$plugin_package.tar.gz.sig; \
-			exit 1; \
-		fi; \
+	mkdir -p tmpprepackaged
+	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-osx-amd64.tar.gz; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-osx-amd64.tar.gz.sig; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-windows-amd64.tar.gz; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-windows-amd64.tar.gz.sig; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-linux-amd64.tar.gz; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-linux-amd64.tar.gz.sig; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -103,11 +103,23 @@ else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		ARCH="osx-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			exit 1; \
+		fi; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost
 	rm -f $(DIST_PATH)/bin/platform
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make windows package
 	@# Copy binary
@@ -118,11 +130,23 @@ else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		ARCH="windows-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			exit 1; \
+		fi; \
+	done
 	@# Package
 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost.exe
 	rm -f $(DIST_PATH)/bin/platform.exe
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make linux package
 	@# Copy binary
@@ -133,6 +157,17 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		ARCH="linux-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			exit 1; \
+		fi; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
 	@# Don't clean up native package so dev machines will have an unzipped package available
