@@ -12,7 +12,6 @@ services:
         file: docker-compose.common.yml
         service: postgres
     tmpfs: /var/lib/postgresql/data
-    command: postgres -c 'fsync=off' -c 'full_page_writes=off'
   minio:
     extends:
         file: docker-compose.common.yml
