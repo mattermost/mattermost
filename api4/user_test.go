@@ -4404,7 +4404,8 @@ func TestPromoteGuestToUser(t *testing.T) {
 			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
 
-		user := th.BasicUserGuest
+		user := th.BasicUser
+		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
 
 		webSocketClient, err := th.CreateWebSocketClient()
 		assert.Nil(t, err)
