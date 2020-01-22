@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package plugin
+package model
 
 import (
 	"regexp"
@@ -22,11 +22,11 @@ func init() {
 	validId = regexp.MustCompile(ValidIdRegex)
 }
 
-// IsValidId verifies that the plugin id has a minimum length of 3, maximum length of 190, and
+// IsValidPluginId verifies that the plugin id has a minimum length of 3, maximum length of 190, and
 // contains only alphanumeric characters, dashes, underscores and periods.
 //
 // These constraints are necessary since the plugin id is used as part of a filesystem path.
-func IsValidId(id string) bool {
+func IsValidPluginId(id string) bool {
 	if utf8.RuneCountInString(id) < MinIdLength {
 		return false
 	}
