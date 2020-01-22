@@ -40,5 +40,5 @@ func (me *CodeProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	rmsg := "    " + strings.Join(strings.Split(message, "\n"), "\n    ")
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: rmsg, SkipSlackParsing: true}
 }

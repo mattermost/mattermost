@@ -5,17 +5,19 @@ orbs:
 
 executors:
   ubuntu:
-    working_directory: ~/go/mattermost/
+    working_directory: ~/mattermost/
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
+    resource_class: "large"
 
 jobs:
   setup:
-    working_directory: ~/go/mattermost/mattermost-server
+    working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
+    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -33,7 +35,7 @@ jobs:
             npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
           fi
       - persist_to_workspace:
-          root: ~/go/mattermost
+          root: ~/mattermost
           paths:
             - mattermost-webapp
             - mattermost-server
@@ -43,10 +45,10 @@ jobs:
   # check-i18n:
   #   docker:
   #   - image: circleci/golang:1.12
-  #   working_directory: ~/go/mattermost/
+  #   working_directory: ~/mattermost/
   #   steps:
   #     - attach_workspace:
-  #         at: ~/go/mattermost/
+  #         at: ~/mattermost/
   #     - run:
   #         command: |
   #           cd mattermost-server
@@ -57,29 +59,32 @@ jobs:
   build:
     docker:
       - image: mattermost/mattermost-build-server:oct-18-2019
-    working_directory: ~/go/mattermost
+    resource_class: xlarge
+    working_directory: ~/mattermost
     steps:
       - attach_workspace:
-          at: ~/go/mattermost/
+          at: ~/mattermost/
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
             echo "Installing mattermost-govet"
+            export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+            export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
       - store_artifacts:
-          path: ~/go/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
+          path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
-          path: ~/go/mattermost/mattermost-server/dist/mattermost-team-osx-amd64.tar.gz
+          path: ~/mattermost/mattermost-server/dist/mattermost-team-osx-amd64.tar.gz
       - store_artifacts:
-          path: ~/go/mattermost/mattermost-server/dist/mattermost-team-windows-amd64.zip
+          path: ~/mattermost/mattermost-server/dist/mattermost-team-windows-amd64.zip
       - persist_to_workspace:
-          root: ~/go/mattermost
+          root: ~/mattermost
           paths:
             - mattermost-server
             - mattermost-webapp
@@ -89,7 +94,7 @@ jobs:
       name: ubuntu
     steps:
       - attach_workspace:
-          at: ~/go/mattermost
+          at: ~/mattermost
       - run:
           name: Run Docker compose
           command: |
@@ -125,8 +130,9 @@ jobs:
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:/go/mattermost \
-              -w /go/mattermost/mattermost-server \
+              --env GOBIN=/mattermost/mattermost-server/bin \
+              -v ~/mattermost:/mattermost \
+              -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
@@ -142,7 +148,7 @@ jobs:
             docker stats -a --no-stream > logs/docker_stats
             tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
       - store_artifacts:
-          path: ~/go/mattermost/mattermost-server/build/logs
+          path: ~/mattermost/mattermost-server/build/logs
       - run:
           when: always
           command: |
@@ -150,16 +156,16 @@ jobs:
             mkdir -p test-results
             cp report.xml test-results
       - store_test_results:
-          path: ~/go/mattermost/mattermost-server/test-results/
+          path: ~/mattermost/mattermost-server/test-results/
       - store_artifacts:
-          path: ~/go/mattermost/mattermost-server/test-results/
+          path: ~/mattermost/mattermost-server/test-results/
 
   test-schema:
     executor:
       name: ubuntu
     steps:
       - attach_workspace:
-          at: ~/go/mattermost
+          at: ~/mattermost
       - run:
           name: Run Docker compose
           command: |
@@ -198,8 +204,8 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:/go/mattermost \
-              -w /go/mattermost/mattermost-server \
+              -v ~/mattermost:/mattermost \
+              -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
             echo "Generating dump"
@@ -234,8 +240,8 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              -v ~/go/mattermost:/go/mattermost \
-              -w /go/mattermost/mattermost-server \
+              -v ~/mattermost:/mattermost \
+              -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
 
@@ -257,32 +263,32 @@ jobs:
   upload-s3-sha:
     docker:
       - image: 'circleci/python:2.7'
-    working_directory: ~/go/mattermost/enterprise
+    working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
-          at: ~/go/mattermost/
+          at: ~/mattermost/
       - run:
           command: |
-            cd ~/go/mattermost/mattermost-server/dist/
+            cd ~/mattermost/mattermost-server/dist/
             rm -rf mattermost
       - aws-s3/copy:
-          from: ~/go/mattermost/mattermost-server/dist/
+          from: ~/mattermost/mattermost-server/dist/
           to: "s3://pr-builds.mattermost.com/mattermost-server/commit/${CIRCLE_SHA1}/"
           arguments: --acl public-read --cache-control "no-cache" --recursive
 
   upload-s3:
     docker:
     - image: 'circleci/python:2.7'
-    working_directory: ~/go/mattermost/enterprise
+    working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
-          at: ~/go/mattermost/
+          at: ~/mattermost/
       - run:
           command: |
-            cd ~/go/mattermost/mattermost-server/dist/
+            cd ~/mattermost/mattermost-server/dist/
             rm -rf mattermost
       - aws-s3/copy:
-          from: ~/go/mattermost/mattermost-server/dist/
+          from: ~/mattermost/mattermost-server/dist/
           to: s3://pr-builds.mattermost.com/mattermost-server/$(echo "${CIRCLE_BRANCH}" | sed 's/pull\//PR-/g')/
           arguments: --acl public-read --cache-control "no-cache" --recursive
 
@@ -290,6 +296,7 @@ jobs:
     working_directory: ~/
     docker:
       - image: circleci/buildpack-deps:stretch
+    resource_class: xlarge
     steps:
       - attach_workspace:
           at: .
