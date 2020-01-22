@@ -4379,7 +4379,9 @@ func TestDemoteUserToGuest(t *testing.T) {
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 		th.App.SetLicense(model.NewTestLicense())
-		_, respErr := th.SystemAdminClient.DemoteUserToGuest(user.Id)
+		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
 		CheckNoError(t, respErr)
 
 		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
