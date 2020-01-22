@@ -116,8 +116,10 @@ func (h *MainHelper) setupResources() {
 }
 
 func (h *MainHelper) Close() error {
-	if h.Settings != nil {
+	if h.SQLSupplier != nil {
 		h.SQLSupplier.Close()
+	}
+	if h.Settings != nil {
 		storetest.CleanupSqlSettings(h.Settings)
 	}
 	if h.testResourcePath != "" {
