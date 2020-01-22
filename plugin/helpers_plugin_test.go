@@ -112,22 +112,53 @@ func TestGetPluginAssetURL(t *testing.T) {
 
 	p := &plugin.HelpersImpl{API: api}
 
-	t.Run("Valid directory and pluginID provided", func(t *testing.T) {
+	t.Run("Valid asset directory was provided", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := "assets"
 		wantedURL := &url.URL{Scheme: "https", Host: "mattermost.example.com", Path: "/mattermost-1234/assets"}
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
-		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%s, %s) got=%s; want=%v", pluginID, dir, gotURL, wantedURL)
+		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%v", pluginID, dir, gotURL, wantedURL)
 		assert.NoError(t, err)
 	})
 
-	t.Run("Invalid directory and pluginID provided", func(t *testing.T) {
-		pluginID := ""
+	t.Run("Valid pluginID was provided", func(t *testing.T) {
+		pluginID := "mattermost-1234"
+		dir := "assets"
+		wantedURL := &url.URL{Scheme: "https", Host: "mattermost.example.com", Path: "/mattermost-1234/assets"}
+		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
+
+		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%v", pluginID, dir, gotURL, wantedURL)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Invalid asset directory name was provided", func(t *testing.T) {
+		pluginID := "mattermost-1234"
 		dir := ""
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
 		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%s; want=nil", pluginID, dir, gotURL)
+		assert.Error(t, err)
+	})
+
+	t.Run("Invalid pluginID was provided", func(t *testing.T) {
+		pluginID := ""
+		dir := "assets"
+		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
+
+		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=nil", pluginID, dir, gotURL)
+		assert.Error(t, err)
+	})
+
+	siteURL = ""
+	api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: &siteURL}})
+
+	t.Run("Empty SiteURL was provided", func(t *testing.T) {
+		pluginID := "mattermost-1234"
+		dir := "assets"
+		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
+
+		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=nil", pluginID, dir, gotURL)
 		assert.Error(t, err)
 	})
 }

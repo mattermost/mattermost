@@ -57,10 +57,18 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 
 // GetPluginAssetURL builds a URL to the resource from asset directory.
 func (p *HelpersImpl) GetPluginAssetURL(pluginID, asset string) (*url.URL, error) {
-	if len(pluginID) == 0 || len(asset) == 0 {
-		return nil, errors.New("empty pluginID or directory name provided")
+	if len(pluginID) == 0 {
+		return nil, errors.New("empty pluginID provided")
 	}
+
+	if len(asset) == 0 {
+		return nil, errors.New("empty asset name provided")
+	}
+
 	siteURL := *p.API.GetConfig().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return nil, errors.New("No SiteURL found in the service settings")
+	}
 	u, err := url.Parse(siteURL + "/" + pluginID + "/" + asset)
 	if err != nil {
 		return nil, err

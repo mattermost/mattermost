@@ -4,6 +4,8 @@
 package plugin
 
 import (
+	"net/url"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -78,6 +80,11 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.18
 	InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error)
+
+	// GetPluginAssetURL builds a URL to the resource from asset directory.
+	// Plugins may expose custom assets via the assets directory,
+	// but must then combine the SiteURL and their plugin ID to build the resulting path.
+	GetPluginAssetURL(pluginID, asset string) (*url.URL, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
