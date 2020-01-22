@@ -633,37 +633,35 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 	return groupSyncable, nil
 }
 
-// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
-// based on the groups configurations.
-//
-// Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	sql := `
-		SELECT
-			GroupMembers.UserId, GroupTeams.TeamId
-		FROM
-			GroupMembers
-			JOIN GroupTeams
-			ON GroupTeams.GroupId = GroupMembers.GroupId
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-			JOIN Teams ON Teams.Id = GroupTeams.TeamId
-			LEFT OUTER JOIN TeamMembers
-			ON
-				TeamMembers.TeamId = GroupTeams.TeamId
-				AND TeamMembers.UserId = GroupMembers.UserId
-		WHERE
-			TeamMembers.UserId IS NULL
-			AND UserGroups.DeleteAt = 0
-			AND GroupTeams.DeleteAt = 0
-			AND GroupTeams.AutoAdd = true
-			AND GroupMembers.DeleteAt = 0
-			AND Teams.DeleteAt = 0
-			AND (GroupMembers.CreateAt >= :Since
-			OR GroupTeams.UpdateAt >= :Since)`
+func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	query := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupTeams.TeamId").
+		From("GroupMembers").
+		Join("GroupTeams ON GroupTeams.GroupId = GroupMembers.GroupId").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Join("Teams ON Teams.Id = GroupTeams.TeamId").
+		JoinClause("LEFT OUTER JOIN TeamMembers ON TeamMembers.TeamId = GroupTeams.TeamId AND TeamMembers.UserId = GroupMembers.UserId").
+		Where(sq.Eq{
+			"TeamMembers.UserId":    nil,
+			"UserGroups.DeleteAt":   0,
+			"GroupTeams.DeleteAt":   0,
+			"GroupTeams.AutoAdd":    true,
+			"GroupMembers.DeleteAt": 0,
+			"Teams.DeleteAt":        0,
+		}).
+		Where("(GroupMembers.CreateAt >= ? OR GroupTeams.UpdateAt >= ?)", since, since)
+
+	if teamID != nil {
+		query = query.Where(sq.Eq{"Teams.Id": *teamID})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var teamMembers []*model.UserTeamIDPair
 
-	_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
+	_, err = s.GetReplica().Select(&teamMembers, sql, params...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -671,37 +669,36 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, 
 	return teamMembers, nil
 }
 
-// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
-// based on the groups configurations.
-//
-// Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	sql := `
-		SELECT
-			GroupMembers.UserId, GroupChannels.ChannelId
-		FROM
-			GroupMembers
-			JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-			JOIN Channels ON Channels.Id = GroupChannels.ChannelId
-			LEFT OUTER JOIN ChannelMemberHistory
-			ON
-				ChannelMemberHistory.ChannelId = GroupChannels.ChannelId
-				AND ChannelMemberHistory.UserId = GroupMembers.UserId
-		WHERE
-			ChannelMemberHistory.UserId IS NULL
-			AND ChannelMemberHistory.LeaveTime IS NULL
-			AND UserGroups.DeleteAt = 0
-			AND GroupChannels.DeleteAt = 0
-			AND GroupChannels.AutoAdd = true
-			AND GroupMembers.DeleteAt = 0
-			AND Channels.DeleteAt = 0
-			AND (GroupMembers.CreateAt >= :Since
-			OR GroupChannels.UpdateAt >= :Since)`
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	query := s.getQueryBuilder().Select("GroupMembers.UserId", "GroupChannels.ChannelId").
+		From("GroupMembers").
+		Join("GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Join("Channels ON Channels.Id = GroupChannels.ChannelId").
+		JoinClause("LEFT OUTER JOIN ChannelMemberHistory ON ChannelMemberHistory.ChannelId = GroupChannels.ChannelId AND ChannelMemberHistory.UserId = GroupMembers.UserId").
+		Where(sq.Eq{
+			"ChannelMemberHistory.UserId":    nil,
+			"ChannelMemberHistory.LeaveTime": nil,
+			"UserGroups.DeleteAt":            0,
+			"GroupChannels.DeleteAt":         0,
+			"GroupChannels.AutoAdd":          true,
+			"GroupMembers.DeleteAt":          0,
+			"Channels.DeleteAt":              0,
+		}).
+		Where("(GroupMembers.CreateAt >= ? OR GroupChannels.UpdateAt >= ?)", since, since)
+
+	if channelID != nil {
+		query = query.Where(sq.Eq{"Channels.Id": *channelID})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var channelMembers []*model.UserChannelIDPair
 
-	_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
+	_, err = s.GetReplica().Select(&channelMembers, sql, params...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
 	}
@@ -723,48 +720,56 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 	}
 }
 
-// TeamMembersToRemove returns all team members that should be removed based on group constraints.
-func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	sql := `
-		SELECT
-			TeamMembers.TeamId,
-			TeamMembers.UserId,
-			TeamMembers.Roles,
-			TeamMembers.DeleteAt,
-			TeamMembers.SchemeUser,
-			TeamMembers.SchemeAdmin,
-			(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest
-		FROM
-			TeamMembers
-			JOIN Teams ON Teams.Id = TeamMembers.TeamId
-			LEFT JOIN Bots ON Bots.UserId = TeamMembers.UserId
-		WHERE
-			TeamMembers.DeleteAt = 0
-			AND Teams.DeleteAt = 0
-			AND Teams.GroupConstrained = TRUE
-			AND Bots.UserId IS NULL
-			AND (TeamMembers.TeamId, TeamMembers.UserId)
-			NOT IN (
-				SELECT
-					Teams.Id AS TeamId, GroupMembers.UserId
-				FROM
-					Teams
-					JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
-					JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
-					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
-				WHERE
-					Teams.GroupConstrained = TRUE
-					AND GroupTeams.DeleteAt = 0
-					AND UserGroups.DeleteAt = 0
-					AND Teams.DeleteAt = 0
-					AND GroupMembers.DeleteAt = 0
-				GROUP BY
-					Teams.Id,
-					GroupMembers.UserId)`
+func (s *SqlGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	whereStmt := `
+		(TeamMembers.TeamId,
+			TeamMembers.UserId)
+		NOT IN (
+			SELECT
+				Teams.Id AS TeamId,
+				GroupMembers.UserId
+			FROM
+				Teams
+				JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
+				JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
+				JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+			WHERE
+				Teams.GroupConstrained = TRUE
+				AND GroupTeams.DeleteAt = 0
+				AND UserGroups.DeleteAt = 0
+				AND Teams.DeleteAt = 0
+				AND GroupMembers.DeleteAt = 0
+			GROUP BY
+				Teams.Id,
+				GroupMembers.UserId)`
+
+	query := s.getQueryBuilder().Select(
+		"TeamMembers.TeamId",
+		"TeamMembers.UserId",
+		"TeamMembers.Roles",
+		"TeamMembers.DeleteAt",
+		"TeamMembers.SchemeUser",
+		"TeamMembers.SchemeAdmin",
+		"(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) AS SchemeGuest",
+	).
+		From("TeamMembers").
+		Join("Teams ON Teams.Id = TeamMembers.TeamId").
+		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
+		Where(sq.Eq{"TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0, "Teams.GroupConstrained": true, "Bots.UserId": nil}).
+		Where(whereStmt)
+
+	if teamID != nil {
+		query = query.Where(sq.Eq{"TeamMembers.TeamId": *teamID})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var teamMembers []*model.TeamMember
 
-	_, err := s.GetReplica().Select(&teamMembers, sql)
+	_, err = s.GetReplica().Select(&teamMembers, sql, params...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
 	}
@@ -811,51 +816,60 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 	return groups, nil
 }
 
-// ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	sql := `
-		SELECT
-			ChannelMembers.ChannelId,
-			ChannelMembers.UserId,
-			ChannelMembers.LastViewedAt,
-			ChannelMembers.MsgCount,
-			ChannelMembers.MentionCount,
-			ChannelMembers.NotifyProps,
-			ChannelMembers.LastUpdateAt,
-			ChannelMembers.LastUpdateAt,
-			ChannelMembers.SchemeUser,
-			ChannelMembers.SchemeAdmin,
-			(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest
-		FROM
-			ChannelMembers
-			JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
-			LEFT JOIN Bots ON Bots.UserId = ChannelMembers.UserId
-		WHERE
-			Channels.DeleteAt = 0
-			AND Channels.GroupConstrained = TRUE
-			AND Bots.UserId IS NULL
-			AND (ChannelMembers.ChannelId, ChannelMembers.UserId)
-			NOT IN (
-				SELECT
-					Channels.Id AS ChannelId, GroupMembers.UserId
-				FROM
-					Channels
-					JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id
-					JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId
-					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
-				WHERE
-					Channels.GroupConstrained = TRUE
-					AND GroupChannels.DeleteAt = 0
-					AND UserGroups.DeleteAt = 0
-					AND Channels.DeleteAt = 0
-					AND GroupMembers.DeleteAt = 0
-				GROUP BY
-					Channels.Id,
-					GroupMembers.UserId)`
+func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError) {
+	whereStmt := `
+		(ChannelMembers.ChannelId,
+			ChannelMembers.UserId)
+		NOT IN (
+			SELECT
+				Channels.Id AS ChannelId,
+				GroupMembers.UserId
+			FROM
+				Channels
+				JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id
+				JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId
+				JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+			WHERE
+				Channels.GroupConstrained = TRUE
+				AND GroupChannels.DeleteAt = 0
+				AND UserGroups.DeleteAt = 0
+				AND Channels.DeleteAt = 0
+				AND GroupMembers.DeleteAt = 0
+			GROUP BY
+				Channels.Id,
+				GroupMembers.UserId)`
+
+	query := s.getQueryBuilder().Select(
+		"ChannelMembers.ChannelId",
+		"ChannelMembers.UserId",
+		"ChannelMembers.LastViewedAt",
+		"ChannelMembers.MsgCount",
+		"ChannelMembers.MentionCount",
+		"ChannelMembers.NotifyProps",
+		"ChannelMembers.LastUpdateAt",
+		"ChannelMembers.LastUpdateAt",
+		"ChannelMembers.SchemeUser",
+		"ChannelMembers.SchemeAdmin",
+		"(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) AS SchemeGuest",
+	).
+		From("ChannelMembers").
+		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
+		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
+		Where(sq.Eq{"Channels.DeleteAt": 0, "Channels.GroupConstrained": true, "Bots.UserId": nil}).
+		Where(whereStmt)
+
+	if channelID != nil {
+		query = query.Where(sq.Eq{"ChannelMembers.ChannelId": *channelID})
+	}
+
+	sql, params, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var channelMembers []*model.ChannelMember
 
-	_, err := s.GetReplica().Select(&channelMembers, sql)
+	_, err = s.GetReplica().Select(&channelMembers, sql, params...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -973,12 +987,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToTeam) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupTeams ON GroupTeams.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupTeams.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupTeams.TeamId = ?
@@ -989,12 +1003,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	if len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
-				SELECT 
-					Id 
-				FROM 
+				SELECT
+					Id
+				FROM
 					UserGroups
 					JOIN GroupChannels ON GroupChannels.GroupId = UserGroups.Id
-				WHERE 
+				WHERE
 					GroupChannels.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupChannels.ChannelId = ?
@@ -1173,17 +1187,17 @@ func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID stri
 	var groupIds []string
 
 	sql := fmt.Sprintf(`
-		SELECT 
+		SELECT
 			GroupMembers.GroupId
-		FROM 
-			GroupMembers 
-		INNER JOIN 
+		FROM
+			GroupMembers
+		INNER JOIN
 			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
-		WHERE 
-			GroupMembers.UserId = :UserId 
-			AND GroupMembers.DeleteAt = 0 
-			AND %[1]sId = :%[1]sId 
-			AND Group%[1]ss.DeleteAt = 0 
+		WHERE
+			GroupMembers.UserId = :UserId
+			AND GroupMembers.DeleteAt = 0
+			AND %[1]sId = :%[1]sId
+			AND Group%[1]ss.DeleteAt = 0
 			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
 
 	_, err := s.GetReplica().Select(&groupIds, sql, map[string]interface{}{"UserId": userID, fmt.Sprintf("%sId", syncableType): syncableID})

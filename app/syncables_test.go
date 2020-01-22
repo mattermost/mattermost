@@ -396,3 +396,70 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Len(t, (*cmembers), 1)
 	require.Equal(t, th.SystemAdminUser.Id, (*cmembers)[0].UserId)
 }
+
+func TestSyncSyncableRoles(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+
+	channel := th.CreateChannel(team)
+	channel.GroupConstrained = model.NewBool(true)
+	channel, err := th.App.UpdateChannel(channel)
+	require.Nil(t, err)
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	group := th.CreateGroup()
+
+	teamSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group.Id,
+	})
+	require.Nil(t, err)
+
+	channelSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group.Id,
+	})
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2} {
+		_, err = th.App.UpsertGroupMember(group.Id, user.Id)
+		require.Nil(t, err)
+
+		var tm *model.TeamMember
+		tm, err = th.App.AddTeamMember(team.Id, user.Id)
+		require.Nil(t, err)
+		require.False(t, tm.SchemeAdmin)
+
+		cm := th.AddUserToChannel(user, channel)
+		require.False(t, cm.SchemeAdmin)
+	}
+
+	teamSyncable.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(teamSyncable)
+	require.Nil(t, err)
+
+	channelSyncable.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(channelSyncable)
+	require.Nil(t, err)
+
+	err = th.App.SyncSyncableRoles(channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+
+	err = th.App.SyncSyncableRoles(team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+
+	for _, user := range []*model.User{user1, user2} {
+		tm, err := th.App.GetTeamMember(team.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, tm.SchemeAdmin)
+
+		cm, err := th.App.GetChannelMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, cm.SchemeAdmin)
+	}
+}

@@ -105,11 +105,10 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 
 	for _, userId := range userIds {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
-			u := &model.User{}
-			*u = *cacheItem.(*model.User)
+			u := cacheItem.(*model.User)
 
 			if options.Since == 0 || u.UpdateAt > options.Since {
-				users = append(users, u)
+				users = append(users, u.DeepCopy())
 			}
 		} else {
 			remainingUserIds = append(remainingUserIds, userId)
@@ -127,9 +126,8 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		users = append(users, remainingUsers...)
-
 		for _, user := range remainingUsers {
+			users = append(users, user.DeepCopy())
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
 		}
 	}
@@ -147,8 +145,8 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 		if s.rootStore.metrics != nil {
 			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
 		}
-		u := *cacheItem.(*model.User)
-		return &u, nil
+		u := cacheItem.(*model.User)
+		return u.DeepCopy(), nil
 	}
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
@@ -158,5 +156,5 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
-	return user, nil
+	return user.DeepCopy(), nil
 }

@@ -194,25 +194,18 @@ func getMockStore() *mocks.Store {
 	mockChannelStore.On("GetMembersForUser", "teamId", "userId2").Return(&fakeChannelMembers, nil)
 
 	fakePosts := &model.PostList{}
-	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetPosts", fakeOptions, true).Return(fakePosts, nil)
-	mockPostStore.On("GetPosts", fakeOptions, false).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", "123", 0, 30, true).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", "123", 0, 30, false).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
-
-	mockPostStoreOptions := model.GetPostsSinceOptions{
-		ChannelId:        "channelId",
-		Time:             1,
-		SkipFetchThreads: false,
-	}
 
 	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
 	mockPostStore.On("ClearCaches")
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
 	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", "channelId", int64(1), true).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", "channelId", int64(1), false).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
