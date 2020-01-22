@@ -303,7 +303,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 		}
 
 		if *license.Features.Office365OAuth {
-			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
+			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.SSOSettings.Enable)
 		}
 
 		if *license.Features.CustomTermsOfService {

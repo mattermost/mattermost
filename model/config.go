@@ -876,6 +876,15 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	}
 }
 
+type Office365Settings struct {
+	SSOSettings SSOSettings
+	DirectoryId *string
+}
+
+func (s *Office365Settings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+	s.SSOSettings.setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint)
+}
+
 type SqlSettings struct {
 	DriverName                  *string  `restricted:"true"`
 	DataSource                  *string  `restricted:"true"`
@@ -2505,7 +2514,7 @@ type Config struct {
 	ThemeSettings           ThemeSettings
 	GitLabSettings          SSOSettings
 	GoogleSettings          SSOSettings
-	Office365Settings       SSOSettings
+	Office365Settings       Office365Settings
 	LdapSettings            LdapSettings
 	ComplianceSettings      ComplianceSettings
 	LocalizationSettings    LocalizationSettings
@@ -2545,7 +2554,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
-		return &o.Office365Settings
+		return &o.Office365Settings.SSOSettings
 	}
 
 	return nil
@@ -2680,6 +2689,10 @@ func (o *Config) IsValid() *AppError {
 
 	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
+	}
+
+	if *o.Office365Settings.SSOSettings.Enable && len(*o.Office365Settings.DirectoryId) == 0 {
+		return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

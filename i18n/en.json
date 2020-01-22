@@ -5247,6 +5247,10 @@
     "translation": "Update at must be a valid time"
   },
   {
+    "id": "model.oauth.is_valid.directory_id.app_error",
+    "translation": "Invalid directory id"
+  },
+  {
     "id": "model.outgoing_hook.icon_url.app_error",
     "translation": "Invalid icon"
   },
