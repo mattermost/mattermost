@@ -92,8 +92,6 @@ type panicLoggerWriter struct {
 
 func (l *panicLoggerWriter) Write(p []byte) (int, error) {
 	trimmed := string(bytes.TrimSpace(p))
-	if strings.HasPrefix(trimmed, "panic: ") {
-		l.logFunc(trimmed)
-	}
+	l.logFunc(trimmed)
 	return len(p), nil
 }
