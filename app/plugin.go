@@ -765,7 +765,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins)
 	}
 
-	for i := 0; i < len(prepackagedPlugins); i++ {
+	for i := 0; i < len(pluginSignaturePathMap); i++ {
 		result := <-prepackagedPlugins
 		if result.Err != nil {
 			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", result.Path), mlog.Err(err))
@@ -780,11 +780,11 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan plugin.PrepackagedPluginResult) {
-	mlog.Debug("Processing prepackaged p", mlog.String("path", pluginPath.path))
+	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged p %s", pluginPath.path), Path: pluginPath.path}
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
 		return
 	}
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
@@ -796,26 +796,26 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan p
 
 	p, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to get prepackaged p %s", pluginPath.path), Path: pluginPath.path}
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
 		return
 	}
 
-	// Skip installing the p at all if automatic prepackaged plugins is disabled
+	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		c <- plugin.PrepackagedPluginResult{P: p}
 		return
 	}
 
-	// Skip installing if the p is has not been previously enabled.
+	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := a.Config().PluginSettings.PluginStates[p.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
 		c <- plugin.PrepackagedPluginResult{P: p}
 		return
 	}
 
-	mlog.Debug("Installing prepackaged p", mlog.String("path", pluginPath.path))
+	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
 	if _, err := a.installExtractedPlugin(p.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to install extracted prepackaged p %s", pluginPath.path), Path: pluginPath.path}
+		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
 	}
 }
 
