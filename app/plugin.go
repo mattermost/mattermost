@@ -760,7 +760,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-	prepackagedPlugins := make(chan plugin.PrepackagedPluginResult)
+	prepackagedPlugins := make(chan plugin.PrepackagedPluginResult, len(pluginSignaturePathMap))
 	for _, pluginPaths := range pluginSignaturePathMap {
 		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins)
 	}
@@ -817,6 +817,8 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan p
 	if _, err := a.installExtractedPlugin(p.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
 		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
 	}
+
+	c <- plugin.PrepackagedPluginResult{P: p}
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
