@@ -38,6 +38,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	contentType := r.Header.Get("Content-Type")
 	if len(validIncomingHook.WhiteIpList) > 0 {
 		if !(model.IsInWhitelist(model.GetRemoteAddress(r.RemoteAddr), validIncomingHook.WhiteIpList)) {
 			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.invalid_hook_ip.app_error", nil, "Ip is not found in whitelist", http.StatusBadRequest)
@@ -47,6 +48,11 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		payLoad, err := ioutil.ReadAll(r.Body)
 		if err != nil || len(payLoad) == 0 {
 			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.empty_webhook.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		if strings.Split(contentType, ";")[0] != validIncomingHook.ContentType {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.invalid_content_type.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 
@@ -69,11 +75,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(payLoad))
-		// mlog.Info("signing passssssssssssssssssssssssssssssssssssssssssssssssssss")
 	}
 	r.ParseForm()
-
-	contentType := r.Header.Get("Content-Type")
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {

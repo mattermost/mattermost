@@ -2839,6 +2839,10 @@
     "translation": "Your webhook is expired."
   },
   {
+    "id": "api.webhook.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
     "id": "api.webhook.team_mismatch.app_error",
     "translation": "Unable to update webhook across teams"
   },

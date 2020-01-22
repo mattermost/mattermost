@@ -57,6 +57,7 @@ type IncomingWebhook struct {
 	TimestampModel     StringInterface `json:"ts_format"`
 	HmacModel          StringInterface `json:"hmac_format"`
 	SignedContentModel StringArray     `json:"payload_format"`
+	ContentType        string          `json:"content_type"`
 }
 
 type IncomingWebhookRequest struct {

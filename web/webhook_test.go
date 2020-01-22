@@ -254,7 +254,6 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err1)
 		url = ApiClient.Url + "/hooks/" + hook.Id
 		client := &http.Client{Timeout: time.Second * 10}
-		// data := []byte(`"text":"bullfood"}`)
 		data := []byte(`{"text":"bullfood"}`)
 		req, err2 := http.NewRequest("POST", url, bytes.NewBuffer(data))
 		require.Nil(t, err2)
@@ -273,13 +272,26 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err2 = client.Do(req)
 		require.Nil(t, err2)
 		assert.False(t, resp.StatusCode == http.StatusOK)
+		// // Content-Type mismatch
+		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
+			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, HmacAlgorithm: "HMAC-SHA1",
+				HmacModel: model.StringInterface{"HeaderName": "Signature"}, SignedContentModel: model.StringArray{"{payload}"},
+				ContentType: "application/json"})
+		require.Nil(t, err1)
+		url = ApiClient.Url + "/hooks/" + hook.Id
+		req, err2 = http.NewRequest("POST", url, bytes.NewBuffer(data))
+		require.Nil(t, err2)
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		dish, _ := client.Do(req)
+		assert.True(t, dish.StatusCode == http.StatusBadRequest)
+		// verification test
 		// for testing this , uncomment this line in app/webhook.go: hook.SecretToken = "me" // for testing
 		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
 			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, HmacAlgorithm: "HMAC-SHA1",
-				HmacModel: model.StringInterface{"HeaderName": "Signature"}, SignedContentModel: model.StringArray{"{payload}"}})
+				HmacModel: model.StringInterface{"HeaderName": "Signature"}, SignedContentModel: model.StringArray{"{payload}"},
+				ContentType: "application/json"})
 		require.Nil(t, err1)
 		url = ApiClient.Url + "/hooks/" + hook.Id
-		data = []byte(`{"text": "bullfood"}`)
 		req, err2 = http.NewRequest("POST", url, bytes.NewBuffer(data))
 		require.Nil(t, err2)
 		req.Header.Set("Content-Type", "application/json")
