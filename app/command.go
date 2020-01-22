@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -272,7 +271,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		return nil, nil, nil
 	}
 
-	mlog.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
+	mlog.Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)
@@ -435,16 +434,13 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Do not process text if this is a code block
-	skipSlackParsing := command.Trigger == "code"
-
-	// Process Slack text replacements
-	if !skipSlackParsing {
+	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
+	if !response.SkipSlackParsing {
 		response.Text = a.ProcessSlackText(response.Text)
 		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 

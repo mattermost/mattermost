@@ -30,6 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
@@ -86,8 +88,9 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            *utils.Cache
-	seenPendingPostIdsCache *utils.Cache
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -129,18 +132,18 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+
+	CacheProvider cache.Provider
 }
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal:     make(chan struct{}, 1),
-		RootRouter:              rootRouter,
-		licenseListeners:        map[string]func(){},
-		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
-		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
-		clientConfig:            make(map[string]string),
+		goroutineExitSignal: make(chan struct{}, 1),
+		RootRouter:          rootRouter,
+		licenseListeners:    map[string]func(){},
+		clientConfig:        make(map[string]string),
 	}
 	for _, option := range options {
 		if err := option(s); err != nil {
@@ -188,6 +191,16 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
+	// at the moment we only have this implementation
+	// in the future the cache provider will be built based on the loaded config
+	s.CacheProvider = new(lru.CacheProvider)
+
+	s.CacheProvider.Connect()
+
+	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
+	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
+
 	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
@@ -215,8 +228,20 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
-	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
-	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
+	mlog.Info(
+		logCurrentVersion,
+		mlog.String("current_version", model.CurrentVersion),
+		mlog.String("build_number", model.BuildNumber),
+		mlog.String("build_date", model.BuildDate),
+		mlog.String("build_hash", model.BuildHash),
+		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+	)
+	if model.BuildEnterpriseReady == "true" {
+		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+	} else {
+		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
+	}
 
 	pwd, _ := os.Getwd()
 	mlog.Info("Printing current working", mlog.String("directory", pwd))
@@ -382,6 +407,10 @@ func (s *Server) Shutdown() error {
 		s.Store.Close()
 	}
 
+	if s.CacheProvider != nil {
+		s.CacheProvider.Close()
+	}
+
 	mlog.Info("Server stopped")
 	return nil
 }
@@ -505,14 +534,8 @@ func (s *Server) Start() error {
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
-	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
-
-	// Migration from old let's encrypt library
-	if *s.Config().ServiceSettings.UseLetsEncrypt {
-		if stat, err := os.Stat(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
-			os.Remove(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
-		}
-	}
+	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
+	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile),

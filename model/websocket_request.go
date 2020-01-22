@@ -10,11 +10,12 @@ import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
 )
 
+// WebSocketRequest represents a request made to the server through a websocket.
 type WebSocketRequest struct {
 	// Client-provided fields
-	Seq    int64                  `json:"seq"`
-	Action string                 `json:"action"`
-	Data   map[string]interface{} `json:"data"`
+	Seq    int64                  `json:"seq"`    // A counter which is incremented for every request made.
+	Action string                 `json:"action"` // The action to perform for a request. For example: get_statuses, user_typing.
+	Data   map[string]interface{} `json:"data"`   // The metadata for an action.
 
 	// Server-provided fields
 	Session Session              `json:"-"`
