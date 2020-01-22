@@ -36,6 +36,7 @@ type TestHelper struct {
 	Client               *model.Client4
 	BasicUser            *model.User
 	BasicUser2           *model.User
+	BasicUserGuest       *model.User
 	TeamAdminUser        *model.User
 	BasicTeam            *model.Team
 	BasicChannel         *model.Channel
@@ -209,8 +210,12 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	me.BasicUserGuest = me.CreateUser()
+	me.App.UpdateUserRoles(me.BasicUserGuest.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+	me.LinkUserToTeam(me.BasicUserGuest, me.BasicTeam)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel)
+	me.App.AddUserToChannel(me.BasicUserGuest, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
