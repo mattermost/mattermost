@@ -95,7 +95,7 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_MYSQL
+		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
@@ -117,6 +117,7 @@ func (h *MainHelper) setupResources() {
 
 func (h *MainHelper) Close() error {
 	if h.Settings != nil {
+		h.SQLSupplier.Close()
 		storetest.CleanupSqlSettings(h.Settings)
 	}
 	if h.testResourcePath != "" {

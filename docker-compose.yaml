@@ -14,6 +14,7 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
+    command: postgres -c 'fsync=off' -c 'full_page_writes=off'
   minio:
     container_name: mattermost-minio
     ports:
