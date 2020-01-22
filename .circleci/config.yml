@@ -126,7 +126,6 @@ jobs:
               --env CI_INBUCKET_SMTP_PORT=10025 \
               --env CI_LDAP_HOST=openldap \
               --env IS_CI="true" \
-              --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
               --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
