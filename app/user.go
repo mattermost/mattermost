@@ -2064,7 +2064,7 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 }
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
-// associated to the team excluding bots
+// associated to the team excluding bots.
 func (a *App) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
@@ -2084,7 +2084,7 @@ func (a *App) FilterNonGroupChannelMembers(userIds []string, channel *model.Chan
 }
 
 // filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
-// and returns the list of normal users present in userIds but not in groupUsers
+// and returns the list of normal users present in userIds but not in groupUsers.
 func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([]string, error) {
 	nonMemberIds := []string{}
 	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, false)
