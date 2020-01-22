@@ -84,12 +84,10 @@ endif
 	@# Download prepackaged plugins
 	mkdir -p tmpprepackaged
 	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-osx-amd64.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-osx-amd64.tar.gz.sig; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-windows-amd64.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-windows-amd64.tar.gz.sig; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-linux-amd64.tar.gz; \
-		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-linux-amd64.tar.gz.sig; \
+		for ARCH in "osx-amd64" "windows-amd64" "linux-amd64" ; do \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz; \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz.sig; \
+		done; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -108,9 +106,14 @@ endif
 		ARCH="osx-amd64"; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
+			exit 1; \
+		fi; \
 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
 		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
 			exit 1; \
 		fi; \
 	done
@@ -135,9 +138,14 @@ endif
 		ARCH="windows-amd64"; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
+			exit 1; \
+		fi; \
 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
 		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
 			exit 1; \
 		fi; \
 	done
@@ -162,9 +170,14 @@ endif
 		ARCH="linux-amd64"; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
 		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-linux-amd64" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-linux-amd64"; \
+			exit 1; \
+		fi; \
 		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
 		if [ $$? -ne 0 ]; then \
-			echo "Failed to verify" $$plugin_package-$$ARCH.tar.gz"|"$$plugin_package-$$ARCH.tar.gz.sig; \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
 			exit 1; \
 		fi; \
 	done
