@@ -188,10 +188,8 @@ github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0/go.mod h1:vmVJ0l/dxyfGW6Fm
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0 h1:LXpIM/LZ5xGFhOpXAQUIMM1HdyqzVYM13zNdjCEEcA0=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
-github.com/lieut-data/mattermost-server v4.5.0+incompatible h1:LUCNpdSWjTXo1KLPESeWwMD70JOg/WnzOBgtRlSrzFo=
 github.com/lieut-data/mattermost-server/v5 v5.99.99 h1:x+X5TjrtTLI2b0Yp3ydmGU0lhhN4q3Ne81na9yYT/hs=
 github.com/lieut-data/mattermost-server/v5 v5.99.99/go.mod h1:hq/S3zdC99iZALqM90Fq9TKp0x3M24/WVbOpHVb+ukI=
-github.com/lieut-data/mattermost-server/v5 v5.99.100 h1:QJDuPpyKAgtwa6jNVOU2/1upiGrCJJS1tmd/3U1xxes=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.1/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mailru/easyjson v0.7.0/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7ldAVICs=
