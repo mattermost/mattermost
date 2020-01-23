@@ -101,14 +101,14 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	includeDeleted, e := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if e != nil {
-		mlog.Warn("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
+	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if err != nil {
+		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
 	}
 
-	bot, err := c.App.GetBot(botUserId, includeDeleted)
-	if err != nil {
-		c.Err = err
+	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -137,14 +137,14 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	includeDeleted, e := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if e != nil {
-		mlog.Warn("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
+	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	if err != nil {
+		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
 	}
 
-	onlyOrphaned, e := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
-	if e != nil {
-		mlog.Warn("Unexpected value for onlyOrphaned", mlog.String("only_orphaned", r.URL.Query().Get("only_orphaned")))
+	onlyOrphaned, err := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
+	if err != nil {
+		mlog.Debug("Unexpected value for onlyOrphaned", mlog.String("only_orphaned", r.URL.Query().Get("only_orphaned")))
 	}
 
 	var OwnerId string
@@ -159,15 +159,15 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bots, err := c.App.GetBots(&model.BotGetOptions{
+	bots, appErr := c.App.GetBots(&model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 		OwnerId:        OwnerId,
 		IncludeDeleted: includeDeleted,
 		OnlyOrphaned:   onlyOrphaned,
 	})
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
