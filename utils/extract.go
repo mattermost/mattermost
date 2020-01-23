@@ -16,13 +16,27 @@ import (
 )
 
 func sanitize(path string) (string, error) {
-	path = filepath.Clean(path)
+	// Start by trimming redundant trailing slashes.
+	normalizedPath := strings.TrimRight(path, "/")
 
-	if strings.HasPrefix(path, "..") {
-		return "", errors.New("unexpected relative path")
+	// Then anchor at '/' to allow us to leverage filepath.Clean's behaviour of stripping all
+	// instances of '../' for rooted paths. Note that we intentionally avoid filepath.Join
+	// here since it would call Clean prematurely.
+	if !strings.HasPrefix(normalizedPath, "/") {
+		normalizedPath = "/" + normalizedPath
 	}
 
-	return path, nil
+	// Finally call filepath.Clean to resolve all instances of ../, collapsing any at the
+	// start of the path altogether.
+	cleanPath := filepath.Clean(normalizedPath)
+
+	// Compare the (partially) normalized path with the clean path: if there are differences,
+	// then filepath.Clean made changes, and we reject the path altogether.
+	if normalizedPath != cleanPath {
+		return "", errors.Errorf("unexpected relative path %s (%s, %s)", path, normalizedPath, cleanPath)
+	}
+
+	return cleanPath, nil
 }
 
 // ExtractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
@@ -42,6 +56,15 @@ func ExtractTarGz(gzipStream io.Reader, dst string) error {
 			break
 		} else if err != nil {
 			return errors.Wrap(err, "failed to read next file from archive")
+		}
+
+		// Pre-emptively check type flag to avoid reporting a misleading error in
+		// trying to sanitize the header name.
+		switch header.Typeflag {
+		case tar.TypeDir:
+		case tar.TypeReg:
+		default:
+			return fmt.Errorf("unsupported type %v in %v", header.Typeflag, header.Name)
 		}
 
 		headerName, err := sanitize(header.Name)
@@ -71,8 +94,6 @@ func ExtractTarGz(gzipStream io.Reader, dst string) error {
 			if _, err := io.Copy(outFile, tarReader); err != nil {
 				return err
 			}
-		default:
-			return fmt.Errorf("unsupported type %v in %v", header.Typeflag, headerName)
 		}
 	}
 
