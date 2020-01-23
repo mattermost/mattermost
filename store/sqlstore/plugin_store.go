@@ -79,7 +79,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 
 	if oldValue == nil {
 		// Expired entries should be treated as if they don't exist
-		if err := ps.DeleteIfExpired(kv.PluginId, kv.Key); err != nil {
+		if err := ps.deleteIfExpired(kv.PluginId, kv.Key); err != nil {
 			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
@@ -234,7 +234,7 @@ func (ps SqlPluginStore) DeleteAllForPlugin(pluginId string) *model.AppError {
 	return nil
 }
 
-func (ps SqlPluginStore) DeleteIfExpired(pluginId, key string) *model.AppError {
+func (ps SqlPluginStore) deleteIfExpired(pluginId, key string) *model.AppError {
 	currentTime := model.GetMillis()
 	if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND ExpireAt != 0 AND ExpireAt < :CurrentTime",
 		map[string]interface{}{

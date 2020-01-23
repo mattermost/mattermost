@@ -266,7 +266,3 @@ func testPluginDeleteExpired(t *testing.T, ss store.Store) {
 	assert.Equal(t, kv2.Value, received.Value)
 	assert.Equal(t, kv2.ExpireAt, received.ExpireAt)
 }
-
-func testPluginDeleteIfExpired(t *testing.T) {
-	// TODO
-}
