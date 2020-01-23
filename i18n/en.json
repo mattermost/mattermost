@@ -5231,6 +5231,10 @@
     "translation": "Invalid description"
   },
   {
+    "id": "model.oauth.is_valid.directory_id.app_error",
+    "translation": "Invalid directory id"
+  },
+  {
     "id": "model.oauth.is_valid.homepage.app_error",
     "translation": "Homepage must be a valid URL and start with http:// or https://."
   },
@@ -5245,10 +5249,6 @@
   {
     "id": "model.oauth.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time"
-  },
-  {
-    "id": "model.oauth.is_valid.directory_id.app_error",
-    "translation": "Invalid directory id"
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
