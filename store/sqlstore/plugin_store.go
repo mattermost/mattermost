@@ -77,12 +77,12 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 		return ps.CompareAndDelete(kv, oldValue)
 	}
 
-	if oldValue == nil {
-		// Expired entries should be treated as if they don't exist
-		if err := ps.deleteIfExpired(kv.PluginId, kv.Key); err != nil {
-			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	// Expired entries should be treated as if they don't exist
+	if err := ps.deleteIfExpired(kv.PluginId, kv.Key); err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
+	if oldValue == nil {
 		// Insert if oldValue is nil
 		if err := ps.GetMaster().Insert(kv); err != nil {
 			// If the error is from unique constraints violation, it's the result of a
