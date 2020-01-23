@@ -1043,16 +1043,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) prepareInviteNewUsersToTeam(emailList []string, teamId, senderId string) (*model.User, *model.Team, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return nil, nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	if len(emailList) == 0 {
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
-		return nil, nil, err
-	}
-
+func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User, *model.Team, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv.Store.Team().Get(teamId)
@@ -1082,7 +1073,16 @@ func (a *App) prepareInviteNewUsersToTeam(emailList []string, teamId, senderId s
 }
 
 func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
-	user, team, err := a.prepareInviteNewUsersToTeam(emailList, teamId, senderId)
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,10 +1110,6 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 }
 
 func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return nil, nil, nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	if err := guestsInvite.IsValid(); err != nil {
 		return nil, nil, nil, err
 	}
@@ -1164,6 +1160,10 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 }
 
 func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
 	if err != nil {
 		return nil, err
@@ -1193,7 +1193,16 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 }
 
 func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
-	user, team, err := a.prepareInviteNewUsersToTeam(emailList, teamId, senderId)
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
 	if err != nil {
 		return err
 	}
@@ -1219,6 +1228,10 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 }
 
 func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
 	if err != nil {
 		return err

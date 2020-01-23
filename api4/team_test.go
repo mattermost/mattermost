@@ -2470,9 +2470,11 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
 
-		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err)
-		require.Len(t, res, 1)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 
 		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
