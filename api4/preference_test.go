@@ -18,7 +18,10 @@ func TestGetPreferences(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	// recreate basic user (cached has no default preferences)
+	th.BasicUser = th.CreateUser()
 	th.LoginBasic()
+
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -50,6 +53,8 @@ func TestGetPreferences(t *testing.T) {
 		require.Equal(t, preference.UserId, th.BasicUser.Id, "user id does not match")
 	}
 
+	// recreate basic user2
+	th.BasicUser2 = th.CreateUser()
 	th.LoginBasic2()
 
 	prefs, resp = Client.GetPreferences(th.BasicUser2.Id)
