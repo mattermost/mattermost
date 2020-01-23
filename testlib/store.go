@@ -65,5 +65,6 @@ func GetMockStore() store.Store {
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
 	mockStore.On("Close").Return(nil)
+	mockStore.On("DropAllTables").Return()
 	return &mockStore
 }
