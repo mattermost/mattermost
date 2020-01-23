@@ -883,6 +883,10 @@ type Office365Settings struct {
 
 func (s *Office365Settings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	s.SSOSettings.setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint)
+
+	if s.DirectoryId == nil {
+		s.DirectoryId = NewString("")
+	}
 }
 
 type SqlSettings struct {
