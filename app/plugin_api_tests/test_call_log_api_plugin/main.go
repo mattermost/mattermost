@@ -4,6 +4,7 @@
 package main
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
 )
@@ -20,10 +21,10 @@ func main() {
 	plugin.ClientMain(&PluginUsingLogAPI{})
 }
 
-func (p *PluginUsingLogAPI) OnActivate() error {
+func (p *PluginUsingLogAPI) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 	p.API.LogDebug("LogDebug", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
 	p.API.LogInfo("LogInfo", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
 	p.API.LogWarn("LogWarn", "one", 1, "two", "two", "foo", Foo{bar: 3.1416})
 	p.API.LogError("LogError", "error", errors.WithStack(errors.New("boom!")))
-	return nil
+	return nil, "OK"
 }
