@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const LINK_POST_TEXT = `
+const linkPostText = `
 Some Links:
 https://spinpunch.atlassian.net/issues/?filter=10101&jql=resolution%20in%20(Fixed%2C%20%22Won't%20Fix%22%2C%20Duplicate%2C%20%22Cannot%20Reproduce%22)%20AND%20Resolution%20%3D%20Fixed%20AND%20updated%20%3E%3D%20-7d%20ORDER%20BY%20updatedDate%20DESC
 
@@ -23,14 +23,14 @@ https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1
 
 func testAutoLink(env TestEnvironment) *model.AppError {
 	mlog.Info("Manual Auto Link Test")
-	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
+	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamID, env.CreatedUserID)
 	if !err {
 		return model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	post := &model.Post{
 		ChannelId: channelID,
-		Message:   LINK_POST_TEXT}
+		Message:   linkPostText}
 	_, resp := env.Client.CreatePost(post)
 	return resp.Error
 }

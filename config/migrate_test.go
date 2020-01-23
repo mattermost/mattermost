@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,7 +15,8 @@ import (
 
 func TestMigrateDatabaseToFile(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
+	defer storetest.CleanupSqlSettings(sqlSettings)
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 	files := []string{"IdpCertificateFile", "PublicCertificateFile", "PrivateKeyFile"}
@@ -52,7 +54,8 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
+	sqlSettings := helper.GetSQLSettings()
+	defer storetest.CleanupSqlSettings(sqlSettings)
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
