@@ -23,7 +23,7 @@ import (
 type Cache struct {
 	size                   int
 	evictList              *list.List
-	items                  map[interface{}]*list.Element
+	items                  map[string]*list.Element
 	lock                   sync.RWMutex
 	name                   string
 	defaultExpiry          int64
@@ -57,7 +57,7 @@ func (c *CacheProvider) Close() {
 
 // entry is used to hold a value in the evictList.
 type entry struct {
-	key        interface{}
+	key        string
 	value      interface{}
 	expires    time.Time
 	generation int64
@@ -68,7 +68,7 @@ func New(size int) *Cache {
 	return &Cache{
 		size:      size,
 		evictList: list.New(),
-		items:     make(map[interface{}]*list.Element, size),
+		items:     make(map[string]*list.Element, size),
 	}
 }
 
@@ -91,24 +91,24 @@ func (c *Cache) Purge() {
 }
 
 // Add adds the given key and value to the store without an expiry.
-func (c *Cache) Add(key, value interface{}) {
+func (c *Cache) Add(key string, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, 0)
 }
 
 // AddWithDefaultExpires adds the given key and value to the store with the default expiry.
-func (c *Cache) AddWithDefaultExpires(key, value interface{}) {
+func (c *Cache) AddWithDefaultExpires(key string, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
 }
 
 // AddWithExpiresInSecs adds the given key and value to the cache with the given expiry.
-func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) {
+func (c *Cache) AddWithExpiresInSecs(key string, value interface{}, expireAtSecs int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	c.add(key, value, time.Duration(expireAtSecs)*time.Second)
 }
 
-func (c *Cache) add(key, value interface{}, ttl time.Duration) {
+func (c *Cache) add(key string, value interface{}, ttl time.Duration) {
 	var expires time.Time
 	if ttl > 0 {
 		expires = time.Now().Add(ttl)
@@ -139,14 +139,14 @@ func (c *Cache) add(key, value interface{}, ttl time.Duration) {
 }
 
 // Get returns the value stored in the cache for a key, or nil if no value is present. The ok result indicates whether value was found in the cache.
-func (c *Cache) Get(key interface{}) (value interface{}, ok bool) {
+func (c *Cache) Get(key string) (value interface{}, ok bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	return c.getValue(key)
 }
 
-func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
+func (c *Cache) getValue(key string) (value interface{}, ok bool) {
 	if ent, ok := c.items[key]; ok {
 		e := ent.Value.(*entry)
 
@@ -164,7 +164,7 @@ func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
 
 // GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
 // This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
-func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
+func (c *Cache) GetOrAdd(key string, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -179,7 +179,7 @@ func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual inte
 }
 
 // Remove deletes the value for a key.
-func (c *Cache) Remove(key interface{}) {
+func (c *Cache) Remove(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -196,8 +196,7 @@ func (c *Cache) RemoveByPrefix(prefix string) {
 	for ent := c.evictList.Back(); ent != nil; ent = ent.Prev() {
 		e := ent.Value.(*entry)
 		if e.generation == c.currentGeneration {
-			keyString := e.key.(string)
-			if strings.HasPrefix(keyString, prefix) {
+			if strings.HasPrefix(e.key, prefix) {
 				if ent, ok := c.items[e.key]; ok {
 					c.removeElement(ent)
 				}
@@ -207,11 +206,11 @@ func (c *Cache) RemoveByPrefix(prefix string) {
 }
 
 // Keys returns a slice of the keys in the cache, from oldest to newest.
-func (c *Cache) Keys() []interface{} {
+func (c *Cache) Keys() []string {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 
-	keys := make([]interface{}, c.len)
+	keys := make([]string, c.len)
 	i := 0
 	for ent := c.evictList.Back(); ent != nil; ent = ent.Prev() {
 		e := ent.Value.(*entry)
