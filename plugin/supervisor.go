@@ -18,7 +18,7 @@ import (
 )
 
 type supervisor struct {
-	mut         sync.RWMutex
+	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksId]bool
@@ -101,16 +101,16 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 }
 
 func (sup *supervisor) Shutdown() {
-	sup.mut.RLock()
-	defer sup.mut.RUnlock()
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	if sup.client != nil {
 		sup.client.Kill()
 	}
 }
 
 func (sup *supervisor) Hooks() Hooks {
-	sup.mut.RLock()
-	defer sup.mut.RUnlock()
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.hooks
 }
 
@@ -135,8 +135,8 @@ func (sup *supervisor) PerformHealthCheck() error {
 
 // Ping checks that the RPC connection with the plugin is alive and healthy.
 func (sup *supervisor) Ping() error {
-	sup.mut.RLock()
-	defer sup.mut.RUnlock()
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	client, err := sup.client.Client()
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func (sup *supervisor) Ping() error {
 }
 
 func (sup *supervisor) Implements(hookId int) bool {
-	sup.mut.RLock()
-	defer sup.mut.RUnlock()
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
 }
