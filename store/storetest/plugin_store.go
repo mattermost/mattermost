@@ -88,6 +88,37 @@ func testPluginCompareAndSet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		assert.False(t, ok)
 	})
+
+	t.Run("set expired key should fail with non-nil old value", func(t *testing.T) {
+		kvExpired := &model.PluginKeyValue{
+			PluginId: kv.PluginId,
+			Key:      kv.Key,
+			Value:    kv.Value,
+			ExpireAt: model.GetMillis() - 5000,
+		}
+		_, err := ss.Plugin().SaveOrUpdate(kvExpired)
+		require.Nil(t, err)
+
+		ok, err := ss.Plugin().CompareAndSet(kvExpired, kvExpired.Value)
+		require.Nil(t, err)
+		assert.False(t, ok)
+	})
+
+	t.Run("set expired key should succeed with nil old value", func(t *testing.T) {
+		kvExpired := &model.PluginKeyValue{
+			PluginId: kv.PluginId,
+			Key:      kv.Key,
+			Value:    kv.Value,
+			ExpireAt: model.GetMillis() - 5000,
+		}
+		_, err := ss.Plugin().SaveOrUpdate(kvExpired)
+		require.Nil(t, err)
+
+		ok, err := ss.Plugin().CompareAndSet(kvExpired, nil)
+		require.Nil(t, err)
+		assert.True(t, ok)
+	})
+
 }
 
 func testPluginSaveGet(t *testing.T, ss store.Store) {
@@ -234,4 +265,8 @@ func testPluginDeleteExpired(t *testing.T, ss store.Store) {
 	assert.Equal(t, kv2.Key, received.Key)
 	assert.Equal(t, kv2.Value, received.Value)
 	assert.Equal(t, kv2.ExpireAt, received.ExpireAt)
+}
+
+func testPluginDeleteIfExpired(t *testing.T) {
+	// TODO
 }
