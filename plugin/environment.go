@@ -446,7 +446,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	return nil, fmt.Errorf("plugin not found: %v", id)
 }
 
-// RunMultiPluginHook invokes hookRunnerFunc for each plugin that implements the given hookId.
+// RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
