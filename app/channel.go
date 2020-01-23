@@ -620,6 +620,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
 		return nil, err
 	}
+	channel.DeleteAt = 0
 	a.InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
@@ -639,6 +640,9 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
 			Type:      model.POST_CHANNEL_RESTORED,
 			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
@@ -2260,4 +2264,32 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	}
 
 	return nil
+}
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		channelMembers, err := a.Srv.Store.Channel().GetMembers(channelID, page, perPage)
+		if err != nil {
+			a.Log.Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+			break
+		}
+
+		for _, channelMember := range *channelMembers {
+			a.ClearSessionCacheForUser(channelMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+			message.Add("channelMember", channelMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(*(channelMembers))
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
 }
