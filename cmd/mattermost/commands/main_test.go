@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	api4.UseTestStore(mainHelper.GetStore())
+	api4.UseTestStore(mainHelper.GetStore(), mainHelper.GetSQLSupplier())
 
 	mainHelper.Main(m)
 }

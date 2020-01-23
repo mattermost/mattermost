@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -57,9 +58,11 @@ type TestHelper struct {
 // of the api4 test helper by many packages. In the future, this test helper would ideally belong
 // to the testlib altogether.
 var testStore store.Store
+var sqlSupplier *sqlstore.SqlSupplier
 
-func UseTestStore(store store.Store) {
+func UseTestStore(store store.Store, ss *sqlstore.SqlSupplier) {
 	testStore = store
+	sqlSupplier = ss
 }
 
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
@@ -224,7 +227,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	sqlSupplier.GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
 	// restore non hashed password for login
 	me.SystemAdminUser.Password = "Pa$$word11"
 	me.TeamAdminUser.Password = "Pa$$word11"
