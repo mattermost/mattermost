@@ -63,8 +63,8 @@ func TestExtractTarGz(t *testing.T) {
 		},
 		{
 			[]*tar.Header{{Name: "test/path/../..", Typeflag: tar.TypeDir}},
-			false,
-			[]string{""},
+			true,
+			nil,
 		},
 		{
 			[]*tar.Header{{Name: "test", Typeflag: tar.TypeDir}},
@@ -100,8 +100,8 @@ func TestExtractTarGz(t *testing.T) {
 			[]*tar.Header{
 				{Name: "/../../file.ext", Typeflag: tar.TypeReg},
 			},
-			false,
-			[]string{"", "file.ext"},
+			true,
+			nil,
 		},
 		{
 			[]*tar.Header{
@@ -109,6 +109,13 @@ func TestExtractTarGz(t *testing.T) {
 			},
 			true,
 			nil,
+		},
+		{
+			[]*tar.Header{
+				{Name: "..file", Typeflag: tar.TypeReg},
+			},
+			false,
+			[]string{"", "..file"},
 		},
 	}
 
@@ -129,7 +136,9 @@ func TestExtractTarGz(t *testing.T) {
 					file.Size = int64(len(contents))
 					err = archiveWriter.WriteHeader(file)
 					require.NoError(t, err)
-					written, err := archiveWriter.Write(contents)
+
+					var written int
+					written, err = archiveWriter.Write(contents)
 					require.NoError(t, err)
 					require.EqualValues(t, len(contents), written)
 				} else {
