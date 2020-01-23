@@ -320,10 +320,27 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 		if len(configSettings) == 1 {
 			return errors.New("unable to set multiple settings at once")
 		}
-		if value.Len() == 0 {
-			return fmt.Errorf(noSettingsNamed, configSettings[1])
+		simpleMap, ok := res.(map[string]interface{})
+		if ok {
+			return UpdateMap(simpleMap, configSettings[1:], newVal)
 		}
-		return UpdateMap(res.(map[string]interface{}), configSettings[1:], newVal)
+		mapOfTheMap, ok := res.(map[string]map[string]interface{})
+		if ok {
+			convertedMap := make(map[string]interface{})
+			for k, v := range mapOfTheMap {
+				convertedMap[k] = v
+			}
+			return UpdateMap(convertedMap, configSettings[1:], newVal)
+		}
+		pluginStateMap, ok := res.(map[string]*model.PluginState)
+		if ok {
+			convertedMap := make(map[string]interface{})
+			for k, v := range pluginStateMap {
+				convertedMap[k] = v
+			}
+			return UpdateMap(convertedMap, configSettings[1:], newVal)
+		}
+		return fmt.Errorf(noSettingsNamed, configSettings[1])
 
 	case reflect.Int:
 		if len(configSettings) == 1 {
@@ -371,6 +388,18 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 			return nil
 		}
 		return fmt.Errorf(noSettingsNamed, configSettings[0])
+
+	case reflect.Ptr:
+		state, ok := res.(*model.PluginState)
+		if !ok || len(configSettings) != 2 {
+			return errors.New("type not supported yet")
+		}
+		val, err := strconv.ParseBool(newVal[0])
+		if err != nil {
+			return err
+		}
+		state.Enable = val
+		return nil
 
 	default:
 		return errors.New("type not supported yet")
