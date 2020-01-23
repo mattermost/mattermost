@@ -17,23 +17,30 @@ type KVService struct {
 	api plugin.API
 }
 
+type kvSetOptions struct {
+	model.PluginKVSetOptions
+	oldValue interface{}
+}
+
 // KVSetOption is an option passed to Set() operation.
-type KVSetOption func(*model.PluginKVSetOptions)
+type KVSetOption func(*kvSetOptions) error
 
 // SetAtomic guarantees the write will occur only when the current value of matches the given old
 // value. A client is expected to read the old value first, then pass it back to ensure the value
 // has not since been modified.
 func SetAtomic(oldValue interface{}) KVSetOption {
-	return func(o *model.PluginKVSetOptions) {
+	return func(o *kvSetOptions) error {
 		o.Atomic = true
-		o.OldValue = oldValue
+		o.oldValue = oldValue
+		return nil
 	}
 }
 
 // SetExpiry configures a key value to expire after the given duration relative to now.
 func SetExpiry(ttl time.Duration) KVSetOption {
-	return func(o *model.PluginKVSetOptions) {
+	return func(o *kvSetOptions) error {
 		o.ExpireInSeconds = int64(ttl / time.Second)
+		return nil
 	}
 }
 
@@ -50,24 +57,47 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 		return false, errors.New("'mmi_' prefix is not allowed for keys")
 	}
 
-	// Assume JSON encoding, unless explicitly given a byte slice.
-	opts := model.PluginKVSetOptions{
-		EncodeJSON: true,
-	}
+	opts := kvSetOptions{}
 	for _, o := range options {
-		o(&opts)
+		if err := o(&opts); err != nil {
+			return false, err
+		}
 	}
 
-	_, isValueInBytes := value.([]byte)
-	_, isOldValueInBytes := opts.OldValue.([]byte)
-	if isValueInBytes || isOldValueInBytes {
-		opts.EncodeJSON = false
+	var valueBytes []byte
+	if value != nil {
+		// Assume JSON encoding, unless explicitly given a byte slice.
+		var isValueInBytes bool
+		valueBytes, isValueInBytes = value.([]byte)
+		if !isValueInBytes {
+			var err error
+			valueBytes, err = json.Marshal(value)
+			if err != nil {
+				return false, errors.Wrapf(err, "failed to marshal value %v", value)
+			}
+		}
 	}
 
-	// TODO: We should apply EncodeJSON here, since we can't rely on KVSetWithOptions to
-	// serialize an arbitrary interface using gob.
+	downstreamOpts := model.PluginKVSetOptions{
+		Atomic:          opts.Atomic,
+		ExpireInSeconds: opts.ExpireInSeconds,
+	}
 
-	written, appErr := k.api.KVSetWithOptions(key, value, opts)
+	if opts.oldValue != nil {
+		oldValueBytes, isOldValueInBytes := opts.oldValue.([]byte)
+		if isOldValueInBytes {
+			downstreamOpts.OldValue = oldValueBytes
+		} else {
+			data, err := json.Marshal(opts.oldValue)
+			if err != nil {
+				return false, errors.Wrapf(err, "failed to marshal value %v", opts.oldValue)
+			}
+
+			downstreamOpts.OldValue = data
+		}
+	}
+
+	written, appErr := k.api.KVSetWithOptions(key, valueBytes, downstreamOpts)
 	return written, normalizeAppErr(appErr)
 }
 

@@ -26,14 +26,9 @@ import (
 )
 ```
 
-Then update your `go.mod` to point at a custom fork of the `mattermost-server`. This requirement is temporary, as the changes will soon be available upstream:
-```sh
-go mod edit -replace github.com/mattermost/mattermost-server/v5=github.com/lieut-data/mattermost-server/v5@v5.99.99
-```
-
 Finally, add this package as a dependency:
 ```sh
-go get github.com/lieut-data/mattermost-plugin-api@v0.0.3
+go get github.com/lieut-data/mattermost-plugin-api
 ```
 
 ## Migration Guide
