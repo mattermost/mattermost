@@ -211,7 +211,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			}
 		}
 	} else {
-		team, err := a.Srv.Store.Team().Get(args.TeamId)
+		team, err := a.Store.Team().Get(args.TeamId)
 		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
@@ -260,7 +260,7 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
-	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	team, err := a.Store.Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
@@ -287,7 +287,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
-	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	team, err := a.Store.Team().Get(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
@@ -325,7 +325,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 
 	var usernames []string
 	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv.Store.User().GetProfiles(options); err == nil {
+	if profileUsers, err := a.Store.User().GetProfiles(options); err == nil {
 		usernames = make([]string, len(profileUsers))
 		i := 0
 		for _, userprof := range profileUsers {

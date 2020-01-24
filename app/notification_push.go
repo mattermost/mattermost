@@ -194,7 +194,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Store.User().GetUnreadCount(userId)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (a *App) UpdateMobileAppBadgeSync(userId string) *model.AppError {
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Store.User().GetUnreadCount(userId)
 	if err != nil {
 		return err
 	}
@@ -365,7 +365,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	return a.Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
@@ -453,7 +453,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id)
+	unreadCount, err := a.Store.User().GetUnreadCount(user.Id)
 	if err != nil {
 		return nil, err
 	}

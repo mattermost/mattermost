@@ -151,23 +151,23 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
 	a.Srv.sessionCache.Purge()
 	a.Srv.statusCache.Purge()
-	a.Srv.Store.Team().ClearCaches()
-	a.Srv.Store.Channel().ClearCaches()
-	a.Srv.Store.User().ClearCaches()
-	a.Srv.Store.Post().ClearCaches()
-	a.Srv.Store.FileInfo().ClearCaches()
-	a.Srv.Store.Webhook().ClearCaches()
+	a.Store.Team().ClearCaches()
+	a.Store.Channel().ClearCaches()
+	a.Store.User().ClearCaches()
+	a.Store.Post().ClearCaches()
+	a.Store.FileInfo().ClearCaches()
+	a.Store.Webhook().ClearCaches()
 	a.LoadLicense()
 }
 
 func (a *App) RecycleDatabaseConnection() {
-	oldStore := a.Srv.Store
+	oldStore := a.Store
 
 	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv.Store = a.Srv.newStore()
-	a.Srv.Jobs.Store = a.Srv.Store
+	a.Store = a.Srv.newStore()
+	a.Srv.Jobs.Store = a.Store
 
-	if a.Srv.Store != oldStore {
+	if a.Store != oldStore {
 		time.Sleep(20 * time.Second)
 		oldStore.Close()
 	}

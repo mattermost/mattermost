@@ -16,7 +16,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Compliance().GetAll(page*perPage, perPage)
+	return a.Store.Compliance().GetAll(page*perPage, perPage)
 }
 
 func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
@@ -26,7 +26,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 
 	job.Type = model.COMPLIANCE_TYPE_ADHOC
 
-	job, err := a.Srv.Store.Compliance().Save(job)
+	job, err := a.Store.Compliance().Save(job)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Compliance().Get(reportId)
+	return a.Store.Compliance().Get(reportId)
 }
 
 func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {

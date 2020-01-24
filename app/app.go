@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -47,6 +49,9 @@ type App struct {
 	HTTPService httpservice.HTTPService
 	ImageProxy  *imageproxy.ImageProxy
 	Timezones   *timezones.Timezones
+
+	Context context.Context
+	Store   store.Store
 }
 
 func New(options ...AppOption) *App {
@@ -110,7 +115,7 @@ func (a *App) EnsureDiagnosticId() {
 	if a.Srv.diagnosticId != "" {
 		return
 	}
-	props, err := a.Srv.Store.System().Get()
+	props, err := a.Store.System().Get()
 	if err != nil {
 		return
 	}
@@ -119,7 +124,7 @@ func (a *App) EnsureDiagnosticId() {
 	if len(id) == 0 {
 		id = model.NewId()
 		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		a.Srv.Store.System().Save(systemId)
+		a.Store.System().Save(systemId)
 	}
 
 	a.Srv.diagnosticId = id
@@ -146,7 +151,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	systemData, appErr := a.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 	if appErr != nil {
 		return 0, appErr
 	}

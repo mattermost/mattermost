@@ -24,14 +24,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+		props, err := a.Store.User().GetAllProfilesInChannel(channel.Id, true)
 		pchan <- store.StoreResult{Data: props, Err: err}
 		close(pchan)
 	}()
 
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		props, err := a.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 		cmnchan <- store.StoreResult{Data: props, Err: err}
 		close(cmnchan)
 	}()
@@ -40,7 +40,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
-			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
+			fileInfos, err := a.Store.FileInfo().GetForPost(post.Id, true, false, true)
 			fchan <- store.StoreResult{Data: fileInfos, Err: err}
 			close(fchan)
 		}()
@@ -133,7 +133,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
-			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
+			umc <- a.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
@@ -403,7 +403,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		return nil, nil, nil
 	}
 
-	users, err := a.Srv.Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
+	users, err := a.Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -853,7 +853,7 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 		return model.SHOW_USERNAME
 	}
 
-	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	data, err := a.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
 	if err != nil {
 		return *a.Config().TeamSettings.TeammateNameDisplay
 	}

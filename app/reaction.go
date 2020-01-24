@@ -36,7 +36,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	reaction, err = a.Srv.Store.Reaction().Save(reaction)
+	reaction, err = a.Store.Reaction().Save(reaction)
 	if err != nil {
 		return nil, err
 	}
@@ -52,13 +52,13 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	return a.Srv.Store.Reaction().GetForPost(postId, true)
+	return a.Store.Reaction().GetForPost(postId, true)
 }
 
 func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
-	allReactions, err := a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	allReactions, err := a.Store.Reaction().BulkGetForPosts(postIds)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		hasReactions = false
 	}
 
-	if _, err := a.Srv.Store.Reaction().Delete(reaction); err != nil {
+	if _, err := a.Store.Reaction().Delete(reaction); err != nil {
 		return err
 	}
 

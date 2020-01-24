@@ -178,7 +178,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(channelID *string) error 
 // the member's group memberships and the configuration of those groups to the syncable. This method should only
 // be invoked on group-synced (aka group-constrained) syncables.
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	permittedAdmins, err := a.Srv.Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
+	permittedAdmins, err := a.Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
 		return err
 	}
@@ -193,9 +193,9 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		updateFunc = a.Srv.Store.Team().UpdateMembersRole
+		updateFunc = a.Store.Team().UpdateMembersRole
 	case model.GroupSyncableTypeChannel:
-		updateFunc = a.Srv.Store.Channel().UpdateMembersRole
+		updateFunc = a.Store.Channel().UpdateMembersRole
 	default:
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
@@ -213,7 +213,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 func (a *App) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType) {
 	a.SyncSyncableRoles(syncableID, syncableType)
 
-	lastJob, _ := a.Srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)
+	lastJob, _ := a.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, model.JOB_TYPE_LDAP_SYNC)
 	var since int64
 	if lastJob != nil {
 		since = lastJob.StartAt

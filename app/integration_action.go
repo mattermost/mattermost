@@ -67,21 +67,21 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	// Start all queries here for parallel execution
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		post, err := a.Srv.Store.Post().GetSingle(postId)
+		post, err := a.Store.Post().GetSingle(postId)
 		pchan <- store.StoreResult{Data: post, Err: err}
 		close(pchan)
 	}()
 
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv.Store.Channel().GetForPost(postId)
+		channel, err := a.Store.Channel().GetForPost(postId)
 		cchan <- store.StoreResult{Data: channel, Err: err}
 		close(cchan)
 	}()
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv.Store.User().Get(upstreamRequest.UserId)
+		user, err := a.Store.User().Get(upstreamRequest.UserId)
 		userChan <- store.StoreResult{Data: user, Err: err}
 		close(userChan)
 	}()
@@ -99,7 +99,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		channel, err := a.Srv.Store.Channel().Get(cookie.ChannelId, true)
+		channel, err := a.Store.Channel().Get(cookie.ChannelId, true)
 		if err != nil {
 			return "", err
 		}
@@ -168,7 +168,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return
 		}
 
-		team, err := a.Srv.Store.Team().Get(upstreamRequest.TeamId)
+		team, err := a.Store.Team().Get(upstreamRequest.TeamId)
 		teamChan <- store.StoreResult{Data: team, Err: err}
 	}()
 

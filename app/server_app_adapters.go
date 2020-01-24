@@ -171,5 +171,6 @@ func (s *Server) FakeApp() *App {
 	a := New(
 		ServerConnector(s),
 	)
+	a.Store = a.Srv.Store
 	return a
 }
