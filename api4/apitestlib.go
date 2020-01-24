@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -87,6 +88,8 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	options = append(options, app.StoreOverride(testStore))
 
 	s, err := app.NewServer(options...)
+	// Adds the cache layer to the test store
+	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -177,6 +180,8 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
+	// Clean all the caches
+	me.App.InvalidateAllCaches()
 
 	me.ShutdownApp()
 
