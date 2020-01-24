@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// GenerateDefaultConfig writes default config to outputFile.
 func GenerateDefaultConfig(outputFile *os.File) error {
 	defaultCfg := &model.Config{}
 	defaultCfg.SetDefaults()

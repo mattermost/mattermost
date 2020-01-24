@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -63,10 +64,23 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
+	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	if err != nil {
+		panic(err)
+	}
+
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
+
+	config := memoryStore.Get()
+	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	if updateConfig != nil {
+		updateConfig(config)
+	}
+	memoryStore.Set(config)
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
@@ -94,9 +108,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if updateConfig != nil {
-		th.App.UpdateConfig(updateConfig)
-	}
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -130,11 +141,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	th.SystemAdminClient = th.CreateClient()
 
 	if th.tempWorkspace == "" {
-		dir, err := ioutil.TempDir("", "apptest")
-		if err != nil {
-			panic(err)
-		}
-		th.tempWorkspace = dir
+		th.tempWorkspace = tempWorkspace
 	}
 
 	return th
@@ -580,9 +587,7 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	if resp.Error != nil {
-		require.FailNow(t, "Expected no error, got %q", resp.Error.Error())
-	}
+	require.Nil(t, resp.Error, "expected no error")
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {

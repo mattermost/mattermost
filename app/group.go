@@ -152,23 +152,23 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 	return gs, nil
 }
 
-func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToAdd(since)
+func (a *App) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToAdd(since, teamID)
 }
 
-func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToAdd(since)
+func (a *App) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToAdd(since, channelID)
 }
 
-func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToRemove()
+func (a *App) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToRemove(teamID)
 }
 
-func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToRemove()
+func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToRemove(teamID)
 }
 
-func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
 	groups, err := a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
 	if err != nil {
 		return nil, 0, err
@@ -182,7 +182,7 @@ func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) (
 	return groups, int(count), nil
 }
 
-func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
 	groups, err := a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
 	if err != nil {
 		return nil, 0, err
@@ -312,4 +312,19 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 		return nil, 0, err
 	}
 	return users, totalCount, nil
+}
+
+// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
+// admins in the given syncable.
+func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
+	groupIDs, err := a.Srv.Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+	if err != nil {
+		return false, err
+	}
+
+	if len(groupIDs) == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
