@@ -47,6 +47,24 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 		},
 		"different configurations": {
 			SetupAPI: func(api *plugintest.API) *plugintest.API {
+				api.On("GetConfig").Return(&model.Config{
+					ServiceSettings: model.ServiceSettings{
+						EnableCommands: model.NewBool(false),
+					},
+				})
+
+				return api
+			},
+			Input: &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableCommands: model.NewBool(true),
+				},
+			},
+			ShouldReturn: false,
+			ShouldError:  false,
+		},
+		"non-existent configuration": {
+			SetupAPI: func(api *plugintest.API) *plugintest.API {
 				api.On("GetConfig").Return(&model.Config{})
 
 				return api
@@ -69,9 +87,7 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 
 			ok, err := p.CheckRequiredServerConfiguration(test.Input)
 
-			if !ok {
-				assert.False(t, ok)
-			}
+			assert.Equal(t, test.ShouldReturn, ok)
 			if test.ShouldError {
 				assert.NotNil(t, err)
 			} else {
