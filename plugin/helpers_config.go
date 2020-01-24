@@ -4,6 +4,8 @@
 package plugin
 
 import (
+	"reflect"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -28,5 +30,5 @@ func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool,
 		return false, nil
 	}
 
-	return true, nil
+	return reflect.DeepEqual(&mergedCfg, req), nil
 }
