@@ -4015,6 +4015,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	return CommandListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetCommandById will retrieve a command by id.
+func (c *Client4) GetCommandById(cmdId string) (*Command, *Response) {
+	url := fmt.Sprintf("%s/%s", c.GetCommandsRoute(), cmdId)
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CommandFromJson(r.Body), BuildResponse(r)
+}
+
 // ExecuteCommand executes a given slash command.
 func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
 	commandArgs := &CommandArgs{
