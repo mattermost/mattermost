@@ -1398,6 +1398,11 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			require.Nil(t, err)
 			require.False(t, updated)
 
+			// Set expiration on plugin - let it expire
+			err = api.KVSetWithExpiry(expectedKey, expectedValue1, 1)
+			require.Nil(t, err)
+			time.Sleep(time.Second * 2)
+
 			// Attempt to update expired plugin with nil old value
 			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue2)
 			require.Nil(t, err)
