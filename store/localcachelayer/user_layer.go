@@ -153,7 +153,7 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	}
 	user, err := s.UserStore.Get(id)
 	if err != nil {
-		// User nof found in our user store
+		// User not found in our user store should return 404 instead of 500
 		if err.Id == store.MISSING_ACCOUNT_ERROR {
 			return nil, err
 		}
