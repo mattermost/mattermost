@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package utils
+package app
 
 import (
 	"archive/tar"
@@ -68,7 +68,7 @@ func TestExtractTarGz(t *testing.T) {
 
 	t.Run("empty dst", func(t *testing.T) {
 		archive := makeArchive(t, nil)
-		err := ExtractTarGz(&archive, "")
+		err := extractTarGz(&archive, "")
 		require.Error(t, err)
 	})
 
@@ -162,7 +162,7 @@ func TestExtractTarGz(t *testing.T) {
 			defer os.RemoveAll(dst)
 
 			archive := makeArchive(t, testCase.Files)
-			err = ExtractTarGz(&archive, dst)
+			err = extractTarGz(&archive, dst)
 			if testCase.ExpectedError {
 				require.Error(t, err)
 			} else {

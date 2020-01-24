@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package utils
+package app
 
 import (
 	"archive/tar"
@@ -15,9 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ExtractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
+// extractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
 // a destination string to extract to.
-func ExtractTarGz(gzipStream io.Reader, dst string) error {
+func extractTarGz(gzipStream io.Reader, dst string) error {
 	if dst == "" {
 		return errors.New("no destination path provided")
 	}
