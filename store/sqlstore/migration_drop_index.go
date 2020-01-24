@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// DropIndex - asynchronous migration that removes an index
+// DropIndex is an asynchronous migration that removes an index
 type DropIndex struct {
 	name  string
 	table string
@@ -29,38 +29,38 @@ func (m *DropIndex) Name() string {
 }
 
 // GetStatus returns if the migration should be executed or not
-func (m *DropIndex) GetStatus(ss SqlStore) (AsyncMigrationStatus, error) {
+func (m *DropIndex) GetStatus(ss SqlStore) (asyncMigrationStatus, error) {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", m.name)
 		// It should fail if the index does not exist
 		if errExists != nil {
-			return AsyncMigrationStatusSkip, nil
+			return skip, nil
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", m.table, m.name)
 		if err != nil {
-			return AsyncMigrationStatusUnknown, err
+			return unknown, err
 		}
 		if count == 0 {
-			return AsyncMigrationStatusSkip, nil
+			return skip, nil
 		}
 	}
-	return AsyncMigrationStatusRun, nil
+	return run, nil
 }
 
 // Execute runs the migration
 // Explicit connection is passed so that all queries run in a single session
-func (m *DropIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) (AsyncMigrationStatus, error) {
+func (m *DropIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) (asyncMigrationStatus, error) {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := conn.ExecContext(ctx, "DROP INDEX CONCURRENTLY "+m.name)
 		if err != nil {
-			return AsyncMigrationStatusFailed, err
+			return failed, err
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := conn.ExecContext(ctx, "DROP INDEX "+m.name+" ON "+m.table)
 		if err != nil {
-			return AsyncMigrationStatusFailed, err
+			return failed, err
 		}
 	}
-	return AsyncMigrationStatusComplete, nil
+	return complete, nil
 }

@@ -17,8 +17,8 @@ func MigrationTest(t *testing.T, fn func(*testing.T, *MigrationRunner, *SqlSuppl
 	for _, st := range storeTypes {
 		t.Run(st.Name, func(t *testing.T) {
 			opt := MigrationOptions{
-				LockTimeout: 1,
-				BackoffTime: 1,
+				LockTimeoutSecs: 1,
+				BackoffTimeSecs: 1,
 				NumRetries:  2,
 			}
 			runner := NewMigrationRunner(st.SqlSupplier, opt)

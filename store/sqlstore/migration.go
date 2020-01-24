@@ -15,19 +15,19 @@ import (
 )
 
 const (
-	MigrationDefaultLockTimeout = 3
-	MigrationDefaultBackoffTime = 5
-	MigrationDefaultNumRetries  = 3
+	migrationDefaultLockTimeoutSecs = 3
+	migrationDefaultBackoffTimeSecs = 5
+	migrationDefaultNumRetries      = 3
 )
 
-type AsyncMigrationStatus string
+type asyncMigrationStatus string
 
 const (
-	AsyncMigrationStatusUnknown  AsyncMigrationStatus = ""
-	AsyncMigrationStatusRun      AsyncMigrationStatus = "run"      // migration should be run
-	AsyncMigrationStatusSkip     AsyncMigrationStatus = "skip"     // migration should be skipped (not sure if needed?)
-	AsyncMigrationStatusComplete AsyncMigrationStatus = "complete" // migration was already executed
-	AsyncMigrationStatusFailed   AsyncMigrationStatus = "failed"   // migration has failed
+	unknown  asyncMigrationStatus = ""
+	run      asyncMigrationStatus = "run"      // migration should be run
+	skip     asyncMigrationStatus = "skip"     // migration should be skipped (not sure if needed?)
+	complete asyncMigrationStatus = "complete" // migration was already executed
+	failed   asyncMigrationStatus = "failed"   // migration has failed
 )
 
 // AsyncMigration executes a single database migration that allows concurrent DML
@@ -35,9 +35,9 @@ type AsyncMigration interface {
 	// name of migration, must be unique among migrations - used for saving status in database
 	Name() string
 	// returns if migration should be run / was already executed
-	GetStatus(SqlStore) (AsyncMigrationStatus, error)
+	GetStatus(SqlStore) (asyncMigrationStatus, error)
 	// exectutes migration, gets started transaction with lock timeouts set
-	Execute(context.Context, SqlStore, *sql.Conn) (AsyncMigrationStatus, error)
+	Execute(context.Context, SqlStore, *sql.Conn) (asyncMigrationStatus, error)
 }
 
 // MigrationRunner runs queued async migrations
@@ -49,21 +49,23 @@ type MigrationRunner struct {
 	cancelFn   context.CancelFunc
 }
 
+// MigrationOptions describes options for MigrationRunner
 type MigrationOptions struct {
-	LockTimeout int // Lock timeout in seconds
-	BackoffTime int // Time to wait between retries
-	NumRetries  int // Number of retries in case of failed migration
+	LockTimeoutSecs int // Lock timeout in seconds
+	BackoffTimeSecs int // Time to wait between retries
+	NumRetries      int // Number of retries in case of failed migration
 }
 
+// NewMigrationRunner creates a migration runner for the given store
 func NewMigrationRunner(s SqlStore, o MigrationOptions) *MigrationRunner {
-	if o.LockTimeout == 0 {
-		o.LockTimeout = MigrationDefaultLockTimeout
+	if o.LockTimeoutSecs == 0 {
+		o.LockTimeoutSecs = migrationDefaultLockTimeoutSecs
 	}
-	if o.BackoffTime == 0 {
-		o.BackoffTime = MigrationDefaultBackoffTime
+	if o.BackoffTimeSecs == 0 {
+		o.BackoffTimeSecs = migrationDefaultBackoffTimeSecs
 	}
 	if o.NumRetries == 0 {
-		o.NumRetries = MigrationDefaultNumRetries
+		o.NumRetries = migrationDefaultNumRetries
 	}
 	return &MigrationRunner{
 		supplier: s,
@@ -77,7 +79,7 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 	// check status in Systems table
 	currentStatus, appErr := r.supplier.System().GetByName("migration_" + m.Name())
 	if appErr == nil {
-		if currentStatus.Value == string(AsyncMigrationStatusComplete) || currentStatus.Value == string(AsyncMigrationStatusSkip) {
+		if currentStatus.Value == string(complete) || currentStatus.Value == string(skip) {
 			return nil
 		}
 	}
@@ -86,7 +88,7 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 	if err != nil {
 		return err
 	}
-	if status == AsyncMigrationStatusComplete || status == AsyncMigrationStatusSkip {
+	if status == complete || status == skip {
 		return nil
 	}
 	r.migrations = append(r.migrations, m)
@@ -105,7 +107,7 @@ func (r *MigrationRunner) Run() error {
 			// function that will try to execute migration
 			migrate := func() error {
 				var err error
-				conn, err := createConnectionWithLockTimeout(ctx, r.supplier, r.options.LockTimeout)
+				conn, err := createConnectionWithLockTimeout(ctx, r.supplier, r.options.LockTimeoutSecs)
 				if err != nil {
 					mlog.Error("Failed to setup connection", mlog.Err(err))
 					return err
@@ -118,10 +120,10 @@ func (r *MigrationRunner) Run() error {
 					mlog.Error("Failed to execute migration", mlog.Err(err))
 					return err
 				}
-				if status == AsyncMigrationStatusComplete || status == AsyncMigrationStatusSkip {
+				if status == complete || status == skip {
 					// save migration status
 					r.supplier.System().SaveOrUpdate(&model.System{Name: "migration_" + m.Name(), Value: string(status)})
-				} else if status == AsyncMigrationStatusFailed {
+				} else if status == failed {
 					mlog.Error("Failed migration " + m.Name())
 					return errors.New("Failed migration")
 				} else {
@@ -140,7 +142,7 @@ func (r *MigrationRunner) Run() error {
 				case <-ctx.Done():
 					return
 				// wait before trying again
-				case <-time.After(time.Duration(r.options.BackoffTime) * time.Second):
+				case <-time.After(time.Duration(r.options.BackoffTimeSecs) * time.Second):
 				}
 			}
 		}

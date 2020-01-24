@@ -37,34 +37,34 @@ func (m *CreateIndex) Name() string {
 }
 
 // GetStatus returns if the migration should be executed or not
-func (m *CreateIndex) GetStatus(ss SqlStore) (AsyncMigrationStatus, error) {
+func (m *CreateIndex) GetStatus(ss SqlStore) (asyncMigrationStatus, error) {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", m.name)
 		// It should fail if the index does not exist
 		if errExists == nil {
-			return AsyncMigrationStatusSkip, nil
+			return skip, nil
 		}
 		if m.indexType == INDEX_TYPE_FULL_TEXT && len(m.columns) != 1 {
-			return AsyncMigrationStatusFailed, errors.New("Unable to create multi column full text index")
+			return failed, errors.New("Unable to create multi column full text index")
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if m.indexType == INDEX_TYPE_FULL_TEXT {
-			return AsyncMigrationStatusFailed, errors.New("Unable to create full text index concurrently")
+			return failed, errors.New("Unable to create full text index concurrently")
 		}
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", m.table, m.name)
 		if err != nil {
-			return AsyncMigrationStatusUnknown, err
+			return unknown, err
 		}
 		if count > 0 {
-			return AsyncMigrationStatusSkip, nil
+			return skip, nil
 		}
 	}
-	return AsyncMigrationStatusRun, nil
+	return run, nil
 }
 
 // Execute runs the migration
 // Explicit connection is passed so that all queries run in a single session
-func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) (AsyncMigrationStatus, error) {
+func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) (asyncMigrationStatus, error) {
 	uniqueStr := ""
 	if m.unique {
 		uniqueStr = "UNIQUE "
@@ -82,13 +82,13 @@ func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) 
 
 		_, err := conn.ExecContext(ctx, query)
 		if err != nil {
-			return AsyncMigrationStatusFailed, err
+			return failed, err
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := conn.ExecContext(ctx, "CREATE  "+uniqueStr+" INDEX "+m.name+" ON "+m.table+" ("+strings.Join(m.columns, ", ")+")")
 		if err != nil {
-			return AsyncMigrationStatusFailed, err
+			return failed, err
 		}
 	}
-	return AsyncMigrationStatusComplete, nil
+	return complete, nil
 }
