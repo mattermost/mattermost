@@ -4,8 +4,6 @@
 package plugin
 
 import (
-	"reflect"
-
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -20,7 +18,7 @@ func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool,
 
 	cfg := p.API.GetConfig()
 
-	mc, err := utils.Merge(req, cfg, nil)
+	mc, err := utils.Merge(cfg, req, nil)
 	if err != nil {
 		return false, errors.Wrap(err, "could not merge configurations")
 	}
@@ -30,5 +28,5 @@ func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool,
 		return false, nil
 	}
 
-	return reflect.DeepEqual(&mergedCfg, req), nil
+	return true, nil
 }

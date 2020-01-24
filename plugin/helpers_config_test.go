@@ -27,7 +27,28 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 			ShouldReturn: true,
 			ShouldError:  false,
 		},
-		"same configurations": {
+		"contains required configuration": {
+			SetupAPI: func(api *plugintest.API) *plugintest.API {
+				api.On("GetConfig").Return(&model.Config{
+					ServiceSettings: model.ServiceSettings{
+						EnableCommands: model.NewBool(true),
+					},
+					TeamSettings: model.TeamSettings{
+						EnableUserCreation: model.NewBool(true),
+					},
+				})
+
+				return api
+			},
+			Input: &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableCommands: model.NewBool(true),
+				},
+			},
+			ShouldReturn: true,
+			ShouldError:  false,
+		},
+		"does not contain required configuration": {
 			SetupAPI: func(api *plugintest.API) *plugintest.API {
 				api.On("GetConfig").Return(&model.Config{
 					ServiceSettings: model.ServiceSettings{
@@ -41,8 +62,11 @@ func TestCheckRequiredServerConfiguration(t *testing.T) {
 				ServiceSettings: model.ServiceSettings{
 					EnableCommands: model.NewBool(true),
 				},
+				TeamSettings: model.TeamSettings{
+					EnableUserCreation: model.NewBool(true),
+				},
 			},
-			ShouldReturn: true,
+			ShouldReturn: false,
 			ShouldError:  false,
 		},
 		"different configurations": {
