@@ -760,65 +760,70 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-	prepackagedPlugins := make(chan plugin.PrepackagedPluginResult, len(pluginSignaturePathMap))
+	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
+
+	var wg sync.WaitGroup
 	for _, pluginPaths := range pluginSignaturePathMap {
-		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins)
+		wg.Add(1)
+		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins, &wg)
 	}
 
-	for i := 0; i < len(pluginSignaturePathMap); i++ {
-		result := <-prepackagedPlugins
-		if result.Err != nil {
-			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", result.Path), mlog.Err(err))
-			continue
-		}
+	wg.Wait()
+	close(prepackagedPlugins)
 
-		plugins = append(plugins, result.P)
+	for range prepackagedPlugins {
+		plugins = append(plugins, <-prepackagedPlugins)
 	}
+
 	return plugins
 }
 
-// processPrepackagedPlugin will return the prepackaged plugin metadata and will also
+// processPrepackagedPlugin will return the prepackaged plugin metadata via channel and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
-func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan plugin.PrepackagedPluginResult) {
+func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan *plugin.PrepackagedPlugin, wg *sync.WaitGroup) {
+	defer wg.Done()
 	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
+		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)))
 		return
 	}
+	defer fileReader.Close()
+
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrap(err, "Failed to create temp dir plugintmp"), Path: pluginPath.path}
+		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrap(err, "Failed to create temp dir plugintmp")))
 		return
 	}
 	defer os.RemoveAll(tmpDir)
 
 	p, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
+		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)))
 		return
 	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
-		c <- plugin.PrepackagedPluginResult{P: p}
+		c <- p
 		return
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
 	pluginState := a.Config().PluginSettings.PluginStates[p.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
-		c <- plugin.PrepackagedPluginResult{P: p}
+		c <- p
 		return
 	}
 
 	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
 	if _, err := a.installExtractedPlugin(p.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
-		c <- plugin.PrepackagedPluginResult{Err: errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path), Path: pluginPath.path}
+		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)))
+		return
 	}
 
-	c <- plugin.PrepackagedPluginResult{P: p}
+	c <- p
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.

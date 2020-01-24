@@ -44,13 +44,6 @@ type PrepackagedPlugin struct {
 	Signature []byte
 }
 
-// PrepackagedPluginResult maintains the result after processing the plugin.
-type PrepackagedPluginResult struct {
-	P    *PrepackagedPlugin
-	Err  error
-	Path string
-}
-
 // Environment represents the execution environment of active plugins.
 //
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
