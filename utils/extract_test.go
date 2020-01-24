@@ -36,6 +36,42 @@ func assertDirectoryContents(t *testing.T, dir string, expectedFiles []string) {
 }
 
 func TestExtractTarGz(t *testing.T) {
+	makeArchive := func(t *testing.T, files []*tar.Header) bytes.Buffer {
+		// Build an in-memory archive with the specified files, writing the path as each
+		// file's contents when applicable.
+		var archive bytes.Buffer
+		archiveGzWriter := gzip.NewWriter(&archive)
+		archiveWriter := tar.NewWriter(archiveGzWriter)
+		for _, file := range files {
+			if file.Typeflag == tar.TypeReg {
+				contents := []byte(file.Name)
+				file.Size = int64(len(contents))
+				err := archiveWriter.WriteHeader(file)
+				require.NoError(t, err)
+
+				var written int
+				written, err = archiveWriter.Write(contents)
+				require.NoError(t, err)
+				require.EqualValues(t, len(contents), written)
+			} else {
+				err := archiveWriter.WriteHeader(file)
+				require.NoError(t, err)
+			}
+		}
+		err := archiveWriter.Close()
+		require.NoError(t, err)
+		err = archiveGzWriter.Close()
+		require.NoError(t, err)
+
+		return archive
+	}
+
+	t.Run("empty dst", func(t *testing.T) {
+		archive := makeArchive(t, nil)
+		err := ExtractTarGz(&archive, "")
+		require.Error(t, err)
+	})
+
 	testCases := []struct {
 		Files         []*tar.Header
 		ExpectedError bool
@@ -63,8 +99,8 @@ func TestExtractTarGz(t *testing.T) {
 		},
 		{
 			[]*tar.Header{{Name: "test/path/../..", Typeflag: tar.TypeDir}},
-			true,
-			nil,
+			false,
+			[]string{""},
 		},
 		{
 			[]*tar.Header{{Name: "test", Typeflag: tar.TypeDir}},
@@ -125,32 +161,7 @@ func TestExtractTarGz(t *testing.T) {
 			require.NoError(t, err)
 			defer os.RemoveAll(dst)
 
-			// Build an in-memory archive with the specified files, writing the path as each
-			// file's contents when applicable.
-			var archive bytes.Buffer
-			archiveGzWriter := gzip.NewWriter(&archive)
-			archiveWriter := tar.NewWriter(archiveGzWriter)
-			for _, file := range testCase.Files {
-				if file.Typeflag == tar.TypeReg {
-					contents := []byte(file.Name)
-					file.Size = int64(len(contents))
-					err = archiveWriter.WriteHeader(file)
-					require.NoError(t, err)
-
-					var written int
-					written, err = archiveWriter.Write(contents)
-					require.NoError(t, err)
-					require.EqualValues(t, len(contents), written)
-				} else {
-					err = archiveWriter.WriteHeader(file)
-					require.NoError(t, err)
-				}
-			}
-			err = archiveWriter.Close()
-			require.NoError(t, err)
-			err = archiveGzWriter.Close()
-			require.NoError(t, err)
-
+			archive := makeArchive(t, testCase.Files)
 			err = ExtractTarGz(&archive, dst)
 			if testCase.ExpectedError {
 				require.Error(t, err)

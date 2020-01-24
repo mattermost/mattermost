@@ -15,33 +15,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func sanitize(path string) (string, error) {
-	// Start by trimming redundant trailing slashes.
-	normalizedPath := strings.TrimRight(path, "/")
-
-	// Then anchor at '/' to allow us to leverage filepath.Clean's behaviour of stripping all
-	// instances of '../' for rooted paths. Note that we intentionally avoid filepath.Join
-	// here since it would call Clean prematurely.
-	if !strings.HasPrefix(normalizedPath, "/") {
-		normalizedPath = "/" + normalizedPath
-	}
-
-	// Finally call filepath.Clean to resolve all instances of ../, collapsing any at the
-	// start of the path altogether.
-	cleanPath := filepath.Clean(normalizedPath)
-
-	// Compare the (partially) normalized path with the clean path: if there are differences,
-	// then filepath.Clean made changes, and we reject the path altogether.
-	if normalizedPath != cleanPath {
-		return "", errors.Errorf("unexpected relative path %s (%s, %s)", path, normalizedPath, cleanPath)
-	}
-
-	return cleanPath, nil
-}
-
 // ExtractTarGz takes in an io.Reader containing the bytes for a .tar.gz file and
 // a destination string to extract to.
 func ExtractTarGz(gzipStream io.Reader, dst string) error {
+	if dst == "" {
+		return errors.New("no destination path provided")
+	}
+
 	uncompressedStream, err := gzip.NewReader(gzipStream)
 	if err != nil {
 		return errors.Wrap(err, "failed to initialize gzip reader")
@@ -67,12 +47,12 @@ func ExtractTarGz(gzipStream io.Reader, dst string) error {
 			return fmt.Errorf("unsupported type %v in %v", header.Typeflag, header.Name)
 		}
 
-		headerName, err := sanitize(header.Name)
-		if err != nil {
-			return errors.Wrapf(err, "failed to sanitize path %s", header.Name)
+		// filepath.HasPrefix is deprecated, so we just use strings.HasPrefix to ensure
+		// the target path remains rooted at dst and has no `../` escaping outside.
+		path := filepath.Join(dst, header.Name)
+		if !strings.HasPrefix(path, dst) {
+			return errors.Errorf("failed to sanitize path %s", header.Name)
 		}
-
-		path := filepath.Join(dst, headerName)
 
 		switch header.Typeflag {
 		case tar.TypeDir:
