@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -58,6 +59,8 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
+	// Adds the cache layer to the test store
+	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -456,6 +459,8 @@ func (me *TestHelper) ShutdownApp() {
 }
 
 func (me *TestHelper) TearDown() {
+	// Clean all the caches
+	me.App.InvalidateAllCaches()
 	me.ShutdownApp()
 	if err := recover(); err != nil {
 		panic(err)
