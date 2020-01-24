@@ -52,17 +52,11 @@ type TestHelper struct {
 	tempWorkspace     string
 }
 
-// testStore tracks the active test store.
-// This is a bridge between the new testlib ownership of the test store and the existing usage
-// of the api4 test helper by many packages. In the future, this test helper would ideally belong
-// to the testlib altogether.
-var testStore store.Store
-
-func UseTestStore(store store.Store) {
-	testStore = store
-}
-
-func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+	if !testing.Short() {
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+	}
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -83,7 +77,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(testStore))
+	options = append(options, app.StoreOverride(dbStore))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -150,10 +144,8 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	UseTestStore(mainHelper.GetStore())
-	testStore.DropAllTables()
-	testStore.MarkSystemRanUnitTests()
-	return setupTestHelper(true, nil)
+	dbStore := mainHelper.GetStore()
+	return setupTestHelper(dbStore, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -161,10 +153,8 @@ func Setup(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	UseTestStore(mainHelper.GetStore())
-	testStore.DropAllTables()
-	testStore.MarkSystemRanUnitTests()
-	return setupTestHelper(false, nil)
+	dbStore := mainHelper.GetStore()
+	return setupTestHelper(dbStore, false, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -172,25 +162,23 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 		tb.SkipNow()
 	}
 
-	UseTestStore(mainHelper.GetStore())
-	testStore.DropAllTables()
-	testStore.MarkSystemRanUnitTests()
-	return setupTestHelper(false, updateConfig)
+	dbStore := mainHelper.GetStore()
+	return setupTestHelper(dbStore, false, updateConfig)
 }
 
 func UnitSetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	UseTestStore(testlib.GetMockStore())
-	return setupTestHelper(false, updateConfig)
+	dbStore := testlib.GetMockStore()
+	return setupTestHelper(dbStore, false, updateConfig)
 }
 
 func UnitSetup(tb testing.TB) *TestHelper {
-	UseTestStore(testlib.GetMockStore())
-	return setupTestHelper(false, nil)
+	dbStore := testlib.GetMockStore()
+	return setupTestHelper(dbStore, false, nil)
 }
 
 func UnitSetupEnterprise(tb testing.TB) *TestHelper {
-	UseTestStore(testlib.GetMockStore())
-	return setupTestHelper(true, nil)
+	dbStore := testlib.GetMockStore()
+	return setupTestHelper(dbStore, true, nil)
 }
 
 func (me *TestHelper) ShutdownApp() {
