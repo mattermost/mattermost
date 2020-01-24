@@ -21,7 +21,7 @@ func (s *TestStore) Close() {
 	// Don't propagate to the underlying store, since this instance is persistent.
 }
 
-func GetMockStore() store.Store {
+func GetMockStore() *mocks.Store {
 	mockStore := mocks.Store{}
 	systemStore := mocks.SystemStore{}
 	systemStore.On("GetByName", "AsymmetricSigningKey").Return(nil, model.NewAppError("FakeError", "store.sql_system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
