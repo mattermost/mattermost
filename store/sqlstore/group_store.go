@@ -963,16 +963,16 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	var groups []*model.Group
 
-	groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g")
+	groupsQuery := s.getQueryBuilder().Select("g.*")
 
 	if opts.IncludeMemberCount {
 		groupsQuery = s.getQueryBuilder().
 			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
-			From("UserGroups g").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id")
 	}
 
 	groupsQuery = groupsQuery.
+		From("UserGroups g").
 		Where("g.DeleteAt = 0").
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
