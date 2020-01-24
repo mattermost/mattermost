@@ -107,10 +107,11 @@ func (env *Environment) PrepackagedPlugins() []*PrepackagedPlugin {
 }
 
 // Returns a list of all currently active plugins within the environment.
+// The returned list should not be modified.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
-		plugin := value.(*registeredPlugin)
+		plugin := value.(registeredPlugin)
 		if env.IsActive(plugin.BundleInfo.Manifest.Id) {
 			activePlugins = append(activePlugins, plugin.BundleInfo)
 		}
@@ -133,13 +134,15 @@ func (env *Environment) GetPluginState(id string) int {
 		return model.PluginStateNotRunning
 	}
 
-	return rp.(*registeredPlugin).State
+	return rp.(registeredPlugin).State
 }
 
 // SetPluginState sets the current state of a plugin (disabled, running, or error)
 func (env *Environment) SetPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
-		rp.(*registeredPlugin).State = state
+		p := rp.(registeredPlugin)
+		p.State = state
+		env.registeredPlugins.Store(id, p)
 	}
 }
 
@@ -226,13 +229,12 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	value, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		value = newRegisteredPlugin(pluginInfo)
-		env.registeredPlugins.Store(id, value)
 	}
 
-	rp := value.(*registeredPlugin)
-
+	rp := value.(registeredPlugin)
 	// Store latest BundleInfo in case something has changed since last activation
 	rp.BundleInfo = pluginInfo
+	env.registeredPlugins.Store(id, rp)
 
 	defer func() {
 		if reterr == nil {
@@ -270,6 +272,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
 		rp.supervisor = sup
+		env.registeredPlugins.Store(id, rp)
 
 		componentActivated = true
 	}
@@ -302,7 +305,7 @@ func (env *Environment) Deactivate(id string) bool {
 		return false
 	}
 
-	rp := p.(*registeredPlugin)
+	rp := p.(registeredPlugin)
 	if rp.supervisor != nil {
 		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
 			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
@@ -328,7 +331,7 @@ func (env *Environment) Shutdown() {
 
 	var wg sync.WaitGroup
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
-		rp := value.(*registeredPlugin)
+		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil {
 			return true
@@ -430,7 +433,7 @@ func (env *Environment) UnpackWebappBundle(id string) (*model.Manifest, error) {
 // Consider using RunMultiPluginHook instead.
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	if p, ok := env.registeredPlugins.Load(id); ok {
-		rp := p.(*registeredPlugin)
+		rp := p.(registeredPlugin)
 		if rp.supervisor != nil {
 			return rp.supervisor.Hooks(), nil
 		}
@@ -445,7 +448,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
-		rp := value.(*registeredPlugin)
+		rp := value.(registeredPlugin)
 
 		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) {
 			return true
@@ -465,7 +468,7 @@ func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Unlock()
 }
 
-func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
+func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	state := model.PluginStateNotRunning
-	return &registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
+	return registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
 }
