@@ -153,7 +153,7 @@ func TestGetPluginAssetURL(t *testing.T) {
 	siteURL = ""
 	api.On("GetConfig").Return(&model.Config{ServiceSettings: model.ServiceSettings{SiteURL: &siteURL}})
 
-	t.Run("Empty SiteURL was provided", func(t *testing.T) {
+	t.Run("Empty SiteURL was configured", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := "assets"
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)

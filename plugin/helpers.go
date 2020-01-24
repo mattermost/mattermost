@@ -81,9 +81,8 @@ type Helpers interface {
 	// Minimum server version: 5.18
 	InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error)
 
-	// GetPluginAssetURL builds a URL to the resource from asset directory.
-	// Plugins may expose custom assets via the assets directory,
-	// but must then combine the SiteURL and their plugin ID to build the resulting path.
+	// GetPluginAssetURL builds a URL to the given asset in the assets directory.
+	// Use this URL to link to assets from the webapp, or for third-party integrations with your plugin.
 	GetPluginAssetURL(pluginID, asset string) (*url.URL, error)
 }
 
