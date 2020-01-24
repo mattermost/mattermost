@@ -2280,34 +2280,43 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	password := "newpassword1"
 	pass, resp := th.Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	require.True(t, pass)
 
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, password, "")
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, password, "junk")
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.UpdateUserPassword("junk", password, password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, "", password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, "junk", password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, password, th.BasicUser.Password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	th.Client.Logout()
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, password, password)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
@@ -2317,18 +2326,22 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	// Fail twice
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckBadRequestStatus(t, resp)
 
 	// Should fail because account is locked out
 	_, resp = th.Client.UpdateUserPassword(th.BasicUser.Id, th.BasicUser.Password, "newpwd")
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 	CheckUnauthorizedStatus(t, resp)
 
 	// System admin can update another user's password
 	adminSetPassword := "pwdsetbyadmin"
 	pass, resp = th.SystemAdminClient.UpdateUserPassword(th.BasicUser.Id, "", adminSetPassword)
+	th.App.InvalidateCacheForUser(th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	require.True(t, pass)
