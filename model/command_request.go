@@ -12,14 +12,14 @@ type CommandMoveRequest struct {
 	TeamId string `json:"team_id"`
 }
 
-func TeamIdFromCommandMoveRequestJson(data io.Reader) (string, error) {
+func CommandMoveRequestFromJson(data io.Reader) (*CommandMoveRequest, error) {
 	decoder := json.NewDecoder(data)
 	var cmr CommandMoveRequest
 	err := decoder.Decode(&cmr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return cmr.TeamId, nil
+	return &cmr, nil
 }
 
 func (cmr *CommandMoveRequest) ToJson() string {

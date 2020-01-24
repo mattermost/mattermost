@@ -109,13 +109,13 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	newTeamId, err := model.TeamIdFromCommandMoveRequestJson(r.Body)
+	cmr, err := model.CommandMoveRequestFromJson(r.Body)
 	if err != nil {
 		c.SetInvalidParam("team_id")
 		return
 	}
 
-	newTeam, appErr := c.App.GetTeam(newTeamId)
+	newTeam, appErr := c.App.GetTeam(cmr.TeamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
