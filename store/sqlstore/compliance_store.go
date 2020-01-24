@@ -48,12 +48,12 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	return compliance, nil
 }
 
-func (us SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
 
-	if _, err := us.GetMaster().Update(compliance); err != nil {
+	if _, err := s.GetMaster().Update(compliance); err != nil {
 		return nil, model.NewAppError("SqlComplianceStore.Update", "store.sql_compliance.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return compliance, nil
@@ -69,8 +69,8 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, *model
 	return compliances, nil
 }
 
-func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
-	obj, err := us.GetReplica().Get(model.Compliance{}, id)
+func (s SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+	obj, err := s.GetReplica().Get(model.Compliance{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

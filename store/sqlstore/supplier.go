@@ -263,20 +263,20 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	return dbmap
 }
 
-func (s *SqlSupplier) initConnection() {
-	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
+func (ss *SqlSupplier) initConnection() {
+	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
-	if len(s.settings.DataSourceReplicas) > 0 {
-		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
-		for i, replica := range s.settings.DataSourceReplicas {
-			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceReplicas) > 0 {
+		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		for i, replica := range ss.settings.DataSourceReplicas {
+			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) > 0 {
-		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
-		for i, replica := range s.settings.DataSourceSearchReplicas {
-			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceSearchReplicas) > 0 {
+		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		for i, replica := range ss.settings.DataSourceSearchReplicas {
+			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 		}
 	}
 }

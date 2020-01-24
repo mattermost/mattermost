@@ -169,6 +169,10 @@ func (c *Context) SetServerBusyError() {
 	c.Err = NewServerBusyError()
 }
 
+func (c *Context) SetCommandNotFoundError() {
+	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
+}
+
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
 	metrics := c.App.Metrics
 	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
@@ -492,17 +496,6 @@ func (c *Context) RequireJobType() *Context {
 
 	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
 		c.SetInvalidUrlParam("job_type")
-	}
-	return c
-}
-
-func (c *Context) RequireActionId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if len(c.Params.ActionId) != 26 {
-		c.SetInvalidUrlParam("action_id")
 	}
 	return c
 }
