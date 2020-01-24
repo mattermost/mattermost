@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
@@ -17,6 +18,7 @@ import (
 )
 
 type supervisor struct {
+	lock        sync.RWMutex
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksId]bool
@@ -94,17 +96,22 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 }
 
 func (sup *supervisor) Shutdown() {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	if sup.client != nil {
 		sup.client.Kill()
 	}
 }
 
 func (sup *supervisor) Hooks() Hooks {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.hooks
 }
 
 // PerformHealthCheck checks the plugin through an an RPC ping.
 func (sup *supervisor) PerformHealthCheck() error {
+	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {
 		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
 			pingErr = sup.Ping()
@@ -123,8 +130,9 @@ func (sup *supervisor) PerformHealthCheck() error {
 
 // Ping checks that the RPC connection with the plugin is alive and healthy.
 func (sup *supervisor) Ping() error {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	client, err := sup.client.Client()
-
 	if err != nil {
 		return err
 	}
@@ -133,5 +141,7 @@ func (sup *supervisor) Ping() error {
 }
 
 func (sup *supervisor) Implements(hookId int) bool {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
 	return sup.implemented[hookId]
 }
