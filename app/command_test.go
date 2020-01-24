@@ -81,6 +81,7 @@ func TestExecuteCommand(t *testing.T) {
 
 	args := &model.CommandArgs{
 		Command: "/code happy path",
+		T:       func(s string, args ...interface{}) string { return s },
 	}
 
 	resp, err := th.App.ExecuteCommand(args)
@@ -90,6 +91,7 @@ func TestExecuteCommand(t *testing.T) {
 
 	args = &model.CommandArgs{
 		Command: "/code\nnewline path",
+		T:       func(s string, args ...interface{}) string { return s },
 	}
 
 	resp, err = th.App.ExecuteCommand(args)
