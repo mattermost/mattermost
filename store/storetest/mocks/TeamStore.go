@@ -1056,6 +1056,22 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 	return r0, r1
 }
 
+// UpdateMembersRole provides a mock function with given fields: teamID, userIDs
+func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
+	ret := _m.Called(teamID, userIDs)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(teamID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds
 func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, teamIds)

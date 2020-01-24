@@ -543,6 +543,14 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		SchemeUser:  !user.IsGuest(),
 	}
 
+	if !user.IsGuest() {
+		userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+		if err != nil {
+			return nil, false, err
+		}
+		tm.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if team.Email == user.Email {
 		tm.SchemeAdmin = true
 	}
@@ -769,11 +777,18 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string) ([]*model.TeamMember, *model.AppError) {
-	var members []*model.TeamMember
+func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+	var membersWithErrors []*model.TeamMemberWithError
 
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
+			if graceful {
+				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+					UserId: userId,
+					Error:  err,
+				})
+				continue
+			}
 			return nil, err
 		}
 
@@ -781,7 +796,10 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		if err != nil {
 			return nil, err
 		}
-		members = append(members, teamMember)
+		membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+			UserId: userId,
+			Member: teamMember,
+		})
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
 		message.Add("team_id", teamId)
@@ -789,7 +807,7 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		a.Publish(message)
 	}
 
-	return members, nil
+	return membersWithErrors, nil
 }
 
 func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
@@ -1475,4 +1493,32 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
+}
+
+func (a *App) ClearTeamMembersCache(teamID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		teamMembers, err := a.Srv.Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		if err != nil {
+			a.Log.Warn("error clearing cache for team members", mlog.String("team_id", teamID))
+			break
+		}
+
+		for _, teamMember := range teamMembers {
+			a.ClearSessionCacheForUser(teamMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", teamMember.UserId, nil)
+			message.Add("member", teamMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(teamMembers)
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
 }
