@@ -153,6 +153,10 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	}
 	user, err := s.UserStore.Get(id)
 	if err != nil {
+		// User nof found in our user store
+		if err.Id == store.MISSING_ACCOUNT_ERROR {
+			return nil, err
+		}
 		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
