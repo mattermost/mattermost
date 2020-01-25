@@ -17,30 +17,29 @@ type KVService struct {
 	api plugin.API
 }
 
-type kvSetOptions struct {
+// TODO: Should this be un exported?
+type KVSetOptions struct {
 	model.PluginKVSetOptions
 	oldValue interface{}
 }
 
 // KVSetOption is an option passed to Set() operation.
-type KVSetOption func(*kvSetOptions) error
+type KVSetOption func(*KVSetOptions)
 
 // SetAtomic guarantees the write will occur only when the current value of matches the given old
 // value. A client is expected to read the old value first, then pass it back to ensure the value
 // has not since been modified.
 func SetAtomic(oldValue interface{}) KVSetOption {
-	return func(o *kvSetOptions) error {
+	return func(o *KVSetOptions) {
 		o.Atomic = true
 		o.oldValue = oldValue
-		return nil
 	}
 }
 
 // SetExpiry configures a key value to expire after the given duration relative to now.
 func SetExpiry(ttl time.Duration) KVSetOption {
-	return func(o *kvSetOptions) error {
+	return func(o *KVSetOptions) {
 		o.ExpireInSeconds = int64(ttl / time.Second)
-		return nil
 	}
 }
 
@@ -57,11 +56,9 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 		return false, errors.New("'mmi_' prefix is not allowed for keys")
 	}
 
-	opts := kvSetOptions{}
+	opts := KVSetOptions{}
 	for _, o := range options {
-		if err := o(&opts); err != nil {
-			return false, err
-		}
+		o(&opts)
 	}
 
 	var valueBytes []byte

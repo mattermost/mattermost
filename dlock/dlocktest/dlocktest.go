@@ -10,7 +10,6 @@ import (
 	"time"
 
 	pluginapi "github.com/lieut-data/mattermost-plugin-api"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // API implements dlock.API.
@@ -34,21 +33,21 @@ func New() *API {
 }
 
 // Set implements a fake in-memory dlock.API.Set().
-func (s *API) Set(key string, value interface{}, options ...pluginapi.KVSetOption) (bool, error) {
-	s.m.Lock()
-	defer s.m.Unlock()
+func (a *API) Set(key string, value interface{}, options ...pluginapi.KVSetOption) (bool, error) {
+	a.m.Lock()
+	defer a.m.Unlock()
 
-	opts := model.PluginKVSetOptions{}
+	opts := pluginapi.KVSetOptions{}
 	for _, o := range options {
 		o(&opts)
 	}
 
 	if value == nil {
-		delete(s.data, key)
+		delete(a.data, key)
 		return true, nil
 	}
 
-	v, ok := s.data[key]
+	v, ok := a.data[key]
 	if ok && time.Since(v.createdAt) > v.ttl {
 		v.data = nil
 	}
@@ -57,7 +56,7 @@ func (s *API) Set(key string, value interface{}, options ...pluginapi.KVSetOptio
 		return false, nil
 	}
 
-	s.data[key] = Value{
+	a.data[key] = Value{
 		data:      value,
 		ttl:       time.Duration(opts.ExpireInSeconds) * time.Second,
 		createdAt: time.Now(),

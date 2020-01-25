@@ -6,17 +6,17 @@ package dlock
 
 import (
 	"context"
-
 	"sync"
 	"time"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 	"github.com/pkg/errors"
+
+	pluginapi "github.com/lieut-data/mattermost-plugin-api"
 )
 
 const (
 	// storePrefix used to prefix lock related keys in KV store.
-	storePrefix = "dlock:"
+	storePrefix = "dlock_"
 )
 
 const (
@@ -63,7 +63,7 @@ func New(key string, api API) *DLock {
 }
 
 // Lock obtains a new lock.
-// ctx provides a context to locking. when ctx is cancelled, Lock() will stop
+// ctx provides a context to locking. when ctx is canceled, Lock() will stop
 // blocking and retries and return with error.
 // use Lock() exactly like sync.Mutex.Lock(), avoid missuses like deadlocks.
 func (d *DLock) Lock(ctx context.Context) error {
@@ -86,24 +86,26 @@ func (d *DLock) Lock(ctx context.Context) error {
 
 // TryLock tries to obtain the lock immediately.
 // err is only filled on system failure.
-func (d *DLock) TryLock() (isLockObtained bool, err error) {
+func (d *DLock) TryLock() (bool, error) {
 	return d.lock()
 }
 
 // lock obtains a new lock and starts refreshing the lock until a call to
 // Unlock() to not hit lock's TTL.
-func (d *DLock) lock() (isLockObtained bool, err error) {
+func (d *DLock) lock() (bool, error) {
 	setOptions := []pluginapi.KVSetOption{
 		pluginapi.SetAtomic(nil),
 		pluginapi.SetExpiry(lockTTL),
 	}
-	isLockObtained, err = d.api.Set(d.key, true, setOptions...)
+	isLockObtained, err := d.api.Set(d.key, true, setOptions...)
 	if err != nil {
 		return false, errors.Wrap(err, "cannot obtain a lock, Store.Set() returned with an error")
 	}
+
 	if isLockObtained {
 		d.startRefreshLoop()
 	}
+
 	return isLockObtained, nil
 }
 
