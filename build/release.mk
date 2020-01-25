@@ -78,11 +78,16 @@ endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
+	@# Import Mattermost plugin public key
+	gpg --import build/plugin-production-public-key.gpg
+
 	@# Download prepackaged plugins
 	mkdir -p tmpprepackaged
 	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
-		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
+		for ARCH in "osx-amd64" "windows-amd64" "linux-amd64" ; do \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz; \
+			curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package-$$ARCH.tar.gz.sig; \
+		done; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -96,10 +101,21 @@ else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	@# Strip and prepackage plugins
+	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
-		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		ARCH="osx-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-darwin-amd64" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-darwin-amd64"; \
+			exit 1; \
+		fi; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+			exit 1; \
+		fi; \
 	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
@@ -117,10 +133,21 @@ else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	@# Strip and prepackage plugins
+	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*darwin*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
-		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		ARCH="windows-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-windows-amd64.exe" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-windows-amd64.exe"; \
+			exit 1; \
+		fi; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+			exit 1; \
+		fi; \
 	done
 	@# Package
 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
@@ -138,10 +165,21 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	@# Strip and prepackage plugins
+	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*darwin*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
-		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		ARCH="linux-amd64"; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz $(DIST_PATH)/prepackaged_plugins; \
+		cp tmpprepackaged/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
+		HAS_ARCH=`tar -tf $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz | grep -oE "dist/plugin-.*"`; \
+		if [ "$$HAS_ARCH" != "dist/plugin-linux-amd64" ]; then \
+			echo "Contains $$HAS_ARCH in $$plugin_package-$$ARCH.tar.gz but needs dist/plugin-linux-amd64"; \
+			exit 1; \
+		fi; \
+		gpg --verify $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz.sig $(DIST_PATH)/prepackaged_plugins/$$plugin_package-$$ARCH.tar.gz; \
+		if [ $$? -ne 0 ]; then \
+			echo "Failed to verify $$plugin_package-$$ARCH.tar.gz|$$plugin_package-$$ARCH.tar.gz.sig"; \
+			exit 1; \
+		fi; \
 	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
