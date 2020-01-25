@@ -79,25 +79,30 @@ func TestExecuteCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	args := &model.CommandArgs{
-		Command: "/code happy path",
-		T:       func(s string, args ...interface{}) string { return s },
+	// Testing slash command message is correctly parsed
+	TestCases := []string{
+		"/code happy path",
+		"/code\nnewline path",
+		"/code  double space",
+		"/code\ttab",
+		"/code\ttab",
+	}
+	results := []string{
+		"    happy path",
+		"    newline path",
+		"     double space",
+		"    tab",
 	}
 
-	resp, err := th.App.ExecuteCommand(args)
+	for index, TestCase := range TestCases {
+		args := &model.CommandArgs{
+			Command: TestCase,
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		resp, _ := th.App.ExecuteCommand(args)
 
-	assert.Nil(t, err)
-	assert.Equal(t, resp.Text, "happy path")
-
-	args = &model.CommandArgs{
-		Command: "/code\nnewline path",
-		T:       func(s string, args ...interface{}) string { return s },
+		assert.Equal(t, resp.Text, results[index])
 	}
-
-	resp, err = th.App.ExecuteCommand(args)
-
-	assert.Nil(t, err)
-	assert.Equal(t, resp.Text, "newline path")
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {

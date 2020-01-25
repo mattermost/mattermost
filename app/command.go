@@ -165,8 +165,11 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	} else {
 		trigger = args.Command
 	}
-	trigger = trigger[1:] // remove '/'
 	trigger = strings.ToLower(trigger)
+	if trigger[0] != '/' {
+		return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
+	}
+	trigger = trigger[1:] // remove '/'
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
