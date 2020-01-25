@@ -145,10 +145,11 @@ func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, ol
 	data, err := a.ReadFile(path)
 	if err != nil {
 		mlog.Error(
-			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
+			"File not found when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
 			mlog.String("path", path),
+			mlog.Err(err),
 		)
 		return nil
 	}
@@ -289,7 +290,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Srv.Store.Post().Get(post.Id, false)
+	result, err := a.Srv.Store.Post().Get(post.Id)
 	if err != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}

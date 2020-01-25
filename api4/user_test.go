@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -323,11 +324,11 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 			for {
 				select {
 				case ev := <-userWSClient.EventChannel:
-					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+					if ev.EventType() == model.WEBSOCKET_EVENT_NEW_USER {
 						userHasReceived = true
 					}
 				case ev := <-guestWSClient.EventChannel:
-					if ev.Event == model.WEBSOCKET_EVENT_NEW_USER {
+					if ev.EventType() == model.WEBSOCKET_EVENT_NEW_USER {
 						guestHasReceived = true
 					}
 				case <-time.After(2 * time.Second):
@@ -1074,7 +1075,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 		rusers, resp = th.Client.AutocompleteUsersInChannel(teamId, channelId, "", model.USER_SEARCH_DEFAULT_LIMIT, "")
 		CheckNoError(t, resp)
-		assert.Len(t, rusers.OutOfChannel, 0)
+		assert.Empty(t, rusers.OutOfChannel)
 
 		th.App.GetOrCreateDirectChannel(permissionsUser.Id, otherUser.Id)
 
@@ -1675,7 +1676,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 		select {
 		case resp, ok := <-client.EventChannel:
 			require.Truef(t, ok, "channel closed before receiving expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
-			if resp.Event == model.WEBSOCKET_EVENT_USER_UPDATED {
+			if resp.EventType() == model.WEBSOCKET_EVENT_USER_UPDATED {
 				test(resp)
 				return
 			}
@@ -1687,11 +1688,9 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
 	assertExpectedWebsocketEvent(t, client, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
-		eventUser, ok := event.Data["user"].(map[string]interface{})
+		eventUser, ok := event.GetData()["user"].(*model.User)
 		require.True(t, ok, "expected user")
-		userEmail, ok := eventUser["email"].(string)
-		require.Truef(t, ok, "expected email %s, but got nil", email)
-		assert.Equal(t, email, userEmail)
+		assert.Equal(t, email, eventUser.Email)
 	})
 }
 
@@ -1848,9 +1847,6 @@ func TestGetUsers(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-
-	rusers, resp = th.Client.GetUsers(0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
 
 	rusers, resp = th.Client.GetUsers(0, 1, "")
 	CheckNoError(t, resp)
@@ -2025,11 +2021,11 @@ func TestGetUsersNotInTeam(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 1, 1, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersNotInTeam(teamId, 0, 60, "")
@@ -2065,7 +2061,7 @@ func TestGetUsersInChannel(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersInChannel(channelId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersInChannel(channelId, 0, 60, "")
@@ -2101,7 +2097,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	rusers, resp = th.Client.GetUsersNotInChannel(teamId, channelId, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rusers, 0, "should be no users")
+	require.Empty(t, rusers, "should be no users")
 
 	th.Client.Logout()
 	_, resp = th.Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
@@ -3648,7 +3644,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 	rtokens, resp = th.SystemAdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: "not found"})
 	CheckNoError(t, resp)
 
-	require.Len(t, rtokens, 0, "should have 1 tokens")
+	require.Empty(t, rtokens, "should have 1 tokens")
 }
 
 func TestRevokeUserAccessToken(t *testing.T) {
@@ -4282,6 +4278,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.Encrypt = false
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
@@ -4344,4 +4341,115 @@ func TestLoginLockout(t *testing.T) {
 	//Check if lock is active
 	_, resp = th.Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+}
+
+func TestDemoteUserToGuest(t *testing.T) {
+	t.Run("websocket update user event", func(t *testing.T) {
+		th := Setup().InitBasic()
+		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
+			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
+		defer th.TearDown()
+
+		user := th.BasicUser
+
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.Nil(t, err)
+		defer adminWebSocketClient.Close()
+
+		adminWebSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp = <-adminWebSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+			th.App.RemoveLicense()
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.SetLicense(model.NewTestLicense())
+		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
+		CheckNoError(t, respErr)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_guest", eventUser.Roles)
+		})
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_guest", eventUser.Roles)
+		})
+		th.App.InvalidateAllCaches()
+	})
+}
+
+func TestPromoteGuestToUser(t *testing.T) {
+	t.Run("websocket update user event", func(t *testing.T) {
+		th := Setup().InitBasic()
+		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
+			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
+		defer th.TearDown()
+
+		user := th.BasicUser
+		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.Nil(t, err)
+		defer adminWebSocketClient.Close()
+
+		adminWebSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp = <-adminWebSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+			th.App.RemoveLicense()
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.SetLicense(model.NewTestLicense())
+		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)
+		CheckNoError(t, respErr)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_user", eventUser.Roles)
+		})
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_user", eventUser.Roles)
+		})
+		th.App.InvalidateAllCaches()
+	})
 }
