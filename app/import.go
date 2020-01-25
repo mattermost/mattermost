@@ -26,7 +26,7 @@ func stopOnError(err LineImportWorkerError) bool {
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	for line := range lines {
-		if err := a.ImportLine(line.LineImportData, dryRun); err != nil {
+		if err := a.importLine(line.LineImportData, dryRun); err != nil {
 			errors <- LineImportWorkerError{err, line.LineNumber}
 		}
 	}
@@ -134,7 +134,7 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
