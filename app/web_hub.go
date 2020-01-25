@@ -324,7 +324,6 @@ func (a *App) InvalidateCacheForUserTeams(userId string) {
 }
 
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
-	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
