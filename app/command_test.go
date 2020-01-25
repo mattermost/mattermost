@@ -83,13 +83,14 @@ func TestExecuteCommand(t *testing.T) {
 	TestCases := []string{
 		"/code happy path",
 		"/code\nnewline path",
+		"/code\n/nDouble newline path",
 		"/code  double space",
-		"/code\ttab",
 		"/code\ttab",
 	}
 	results := []string{
 		"    happy path",
 		"    newline path",
+		"    /nDouble newline path",
 		"     double space",
 		"    tab",
 	}
