@@ -126,20 +126,22 @@ func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.
 	if opt.SortDirection != "" {
 		sortDirection = opt.SortDirection
 	}
-	if opt.SortBy != "" {
-		switch opt.SortBy {
-		case model.FILE_SORT_BY_CREATED, model.FILE_SORT_BY_SIZE:
-			query = query.OrderBy(fmt.Sprintf("FileInfo.%s %s", opt.SortBy, sortDirection))
-		case model.FILE_SORT_BY_USERNAME:
-			query = query.Join("Users on FileInfo.CreatorId = Users.Id").
-				OrderBy(fmt.Sprintf("Users.%s %s", opt.SortBy, sortDirection))
-		case model.FILE_SORT_BY_CHANNEL_NAME:
-			query = query.Join("Channels on Posts.ChannelId = Channels.Id").
-				OrderBy(fmt.Sprintf("Channels.%s %s", opt.SortBy, sortDirection))
-		default:
-			return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
-				"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
-		}
+	if opt.SortBy == "" {
+		opt.SortBy = model.FILE_SORT_BY_CREATED
+	}
+
+	switch opt.SortBy {
+	case model.FILE_SORT_BY_CREATED, model.FILE_SORT_BY_SIZE:
+		query = query.OrderBy(fmt.Sprintf("FileInfo.%s %s", opt.SortBy, sortDirection))
+	case model.FILE_SORT_BY_USERNAME:
+		query = query.Join("Users on FileInfo.CreatorId = Users.Id").
+			OrderBy(fmt.Sprintf("Users.%s %s", opt.SortBy, sortDirection))
+	case model.FILE_SORT_BY_CHANNEL_NAME:
+		query = query.Join("Channels on Posts.ChannelId = Channels.Id").
+			OrderBy(fmt.Sprintf("Channels.%s %s", opt.SortBy, sortDirection))
+	default:
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
 	}
 
 	if opt.PerPage > 0 {
