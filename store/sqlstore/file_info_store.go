@@ -115,7 +115,7 @@ func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.
 	}
 
 	if opt.Since > 0 {
-		query = query.Where(sq.Gt{"FileInfo.CreateAt": opt.Since})
+		query = query.Where(sq.GtOrEq{"FileInfo.CreateAt": opt.Since})
 	}
 
 	if !opt.IncludeDeleted {
