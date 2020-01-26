@@ -771,8 +771,8 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	wg.Wait()
 	close(prepackagedPlugins)
 
-	for range prepackagedPlugins {
-		plugins = append(plugins, <-prepackagedPlugins)
+	for p := range prepackagedPlugins {
+		plugins = append(plugins, p)
 	}
 
 	return plugins
