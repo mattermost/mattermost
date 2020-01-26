@@ -47,6 +47,8 @@ endif
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
