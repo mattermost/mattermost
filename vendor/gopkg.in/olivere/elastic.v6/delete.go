@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -19,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docs-delete.html
 // for details.
 type DeleteService struct {
-	client              *Client
-	pretty              bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	id                  string
 	index               string
 	typ                 string
@@ -40,6 +47,46 @@ func NewDeleteService(client *Client) *DeleteService {
 	return &DeleteService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *DeleteService) Pretty(pretty bool) *DeleteService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *DeleteService) Human(human bool) *DeleteService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *DeleteService) ErrorTrace(errorTrace bool) *DeleteService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *DeleteService) FilterPath(filterPath ...string) *DeleteService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *DeleteService) Header(name string, value string) *DeleteService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *DeleteService) Headers(headers http.Header) *DeleteService {
+	s.headers = headers
+	return s
 }
 
 // Type is the type of the document.
@@ -123,12 +170,6 @@ func (s *DeleteService) IfPrimaryTerm(primaryTerm int64) *DeleteService {
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *DeleteService) Pretty(pretty bool) *DeleteService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *DeleteService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -143,8 +184,17 @@ func (s *DeleteService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.refresh != "" {
 		params.Set("refresh", s.refresh)
@@ -215,6 +265,7 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 		Path:         path,
 		Params:       params,
 		IgnoreErrors: []int{http.StatusNotFound},
+		Headers:      s.headers,
 	})
 	if err != nil {
 		return nil, err
