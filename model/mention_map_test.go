@@ -10,35 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func requireEqualValuesMaps(t *testing.T, one, two map[string][]string) {
-	if len(one) != len(two) {
-		require.FailNow(t, "Map lengths differ")
-	}
-
-	for oneKey, oneValue := range one {
-		twoValue, ok := two[oneKey]
-		if !ok {
-			require.FailNowf(t, "Key %s is present in %v but not in %v", oneKey, one, two)
-		}
-
-		require.ElementsMatch(t, oneValue, twoValue)
-	}
-}
-func requireEqualMentionMaps(t *testing.T, one, two map[string]string) {
-	if len(one) != len(two) {
-		require.FailNow(t, "Map lengths differ")
-	}
-
-	for oneKey, oneValue := range one {
-		twoValue, ok := two[oneKey]
-		if !ok {
-			require.FailNowf(t, "Key %s is present in %v but not in %v", oneKey, one, two)
-		}
-
-		require.Equal(t, oneValue, twoValue)
-	}
-}
-
 func TestUserMentionMapFromURLValues(t *testing.T) {
 	fixture := []struct {
 		values   url.Values
@@ -47,21 +18,21 @@ func TestUserMentionMapFromURLValues(t *testing.T) {
 	}{
 		{
 			url.Values{},
-			nil,
-			true,
+			UserMentionMap{},
+			false,
 		},
 		{
 			url.Values{
-				UserMentionsKey:    []string{},
-				UserMentionsIdsKey: []string{},
+				userMentionsKey:    []string{},
+				userMentionsIdsKey: []string{},
 			},
 			UserMentionMap{},
 			false,
 		},
 		{
 			url.Values{
-				UserMentionsKey:    []string{"one", "two", "three"},
-				UserMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
+				userMentionsKey:    []string{"one", "two", "three"},
+				userMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
 			},
 			UserMentionMap{
 				"one":   "oneId",
@@ -73,14 +44,14 @@ func TestUserMentionMapFromURLValues(t *testing.T) {
 		{
 			url.Values{
 				"wrongKey":         []string{"one", "two", "three"},
-				UserMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
+				userMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
 			},
 			nil,
 			true,
 		},
 		{
 			url.Values{
-				UserMentionsKey: []string{"one", "two", "three"},
+				userMentionsKey: []string{"one", "two", "three"},
 				"wrongKey":      []string{"oneId", "twoId", "threeId"},
 			},
 			nil,
@@ -88,8 +59,8 @@ func TestUserMentionMapFromURLValues(t *testing.T) {
 		},
 		{
 			url.Values{
-				UserMentionsKey:    []string{"one", "two"},
-				UserMentionsIdsKey: []string{"justone"},
+				userMentionsKey:    []string{"one", "two"},
+				userMentionsIdsKey: []string{"justone"},
 			},
 			nil,
 			true,
@@ -103,12 +74,12 @@ func TestUserMentionMapFromURLValues(t *testing.T) {
 			require.Nil(t, actualMap)
 		} else {
 			require.NoError(t, actualError)
-			requireEqualMentionMaps(t, actualMap, data.expected)
+			require.Equal(t, actualMap, data.expected)
 		}
 	}
 }
 
-func TestUserMentionMapToURLValues(t *testing.T) {
+func TestUserMentionMap_ToURLValues(t *testing.T) {
 	fixture := []struct {
 		mentionMap UserMentionMap
 		expected   url.Values
@@ -120,22 +91,34 @@ func TestUserMentionMapToURLValues(t *testing.T) {
 		{
 			UserMentionMap{"user": "id"},
 			url.Values{
-				UserMentionsKey:    []string{"user"},
-				UserMentionsIdsKey: []string{"id"},
+				userMentionsKey:    []string{"user"},
+				userMentionsIdsKey: []string{"id"},
 			},
 		},
 		{
 			UserMentionMap{"one": "id1", "two": "id2", "three": "id3"},
 			url.Values{
-				UserMentionsKey:    []string{"one", "two", "three"},
-				UserMentionsIdsKey: []string{"id1", "id2", "id3"},
+				userMentionsKey:    []string{"one", "two", "three"},
+				userMentionsIdsKey: []string{"id1", "id2", "id3"},
 			},
 		},
 	}
 
 	for _, data := range fixture {
 		actualValues := data.mentionMap.ToURLValues()
-		requireEqualValuesMaps(t, actualValues, data.expected)
+
+		// require.EqualValues does not work here directly on the url.Values, as
+		// the slices in the map values may be in different order; what we need to
+		// check is that the pairs are preserved, which can be checked converting
+		// back to a map with FromURLValues. We check that the test is well-formed
+		// by converting back the expected url.Values too.
+		require.Equal(t, len(actualValues), len(data.expected))
+
+		actualMentionMap, actualErr := UserMentionMapFromURLValues(actualValues)
+		expectedMentionMap, expectedErr := UserMentionMapFromURLValues(data.expected)
+
+		require.Equal(t, actualErr, expectedErr)
+		require.Equal(t, actualMentionMap, expectedMentionMap)
 	}
 }
 
@@ -147,21 +130,21 @@ func TestChannelMentionMapFromURLValues(t *testing.T) {
 	}{
 		{
 			url.Values{},
-			nil,
-			true,
+			ChannelMentionMap{},
+			false,
 		},
 		{
 			url.Values{
-				ChannelMentionsKey:    []string{},
-				ChannelMentionsIdsKey: []string{},
+				channelMentionsKey:    []string{},
+				channelMentionsIdsKey: []string{},
 			},
 			ChannelMentionMap{},
 			false,
 		},
 		{
 			url.Values{
-				ChannelMentionsKey:    []string{"one", "two", "three"},
-				ChannelMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
+				channelMentionsKey:    []string{"one", "two", "three"},
+				channelMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
 			},
 			ChannelMentionMap{
 				"one":   "oneId",
@@ -173,14 +156,14 @@ func TestChannelMentionMapFromURLValues(t *testing.T) {
 		{
 			url.Values{
 				"wrongKey":            []string{"one", "two", "three"},
-				ChannelMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
+				channelMentionsIdsKey: []string{"oneId", "twoId", "threeId"},
 			},
 			nil,
 			true,
 		},
 		{
 			url.Values{
-				ChannelMentionsKey: []string{"one", "two", "three"},
+				channelMentionsKey: []string{"one", "two", "three"},
 				"wrongKey":         []string{"oneId", "twoId", "threeId"},
 			},
 			nil,
@@ -188,8 +171,8 @@ func TestChannelMentionMapFromURLValues(t *testing.T) {
 		},
 		{
 			url.Values{
-				ChannelMentionsKey:    []string{"one", "two"},
-				ChannelMentionsIdsKey: []string{"justone"},
+				channelMentionsKey:    []string{"one", "two"},
+				channelMentionsIdsKey: []string{"justone"},
 			},
 			nil,
 			true,
@@ -203,12 +186,12 @@ func TestChannelMentionMapFromURLValues(t *testing.T) {
 			require.Nil(t, actualMap)
 		} else {
 			require.NoError(t, actualError)
-			requireEqualMentionMaps(t, actualMap, data.expected)
+			require.Equal(t, actualMap, data.expected)
 		}
 	}
 }
 
-func TestChannelMentionMapToURLValues(t *testing.T) {
+func TestChannelMentionMap_ToURLValues(t *testing.T) {
 	fixture := []struct {
 		mentionMap ChannelMentionMap
 		expected   url.Values
@@ -220,21 +203,33 @@ func TestChannelMentionMapToURLValues(t *testing.T) {
 		{
 			ChannelMentionMap{"user": "id"},
 			url.Values{
-				ChannelMentionsKey:    []string{"user"},
-				ChannelMentionsIdsKey: []string{"id"},
+				channelMentionsKey:    []string{"user"},
+				channelMentionsIdsKey: []string{"id"},
 			},
 		},
 		{
 			ChannelMentionMap{"one": "id1", "two": "id2", "three": "id3"},
 			url.Values{
-				ChannelMentionsKey:    []string{"one", "two", "three"},
-				ChannelMentionsIdsKey: []string{"id1", "id2", "id3"},
+				channelMentionsKey:    []string{"one", "two", "three"},
+				channelMentionsIdsKey: []string{"id1", "id2", "id3"},
 			},
 		},
 	}
 
 	for _, data := range fixture {
 		actualValues := data.mentionMap.ToURLValues()
-		requireEqualValuesMaps(t, actualValues, data.expected)
+
+		// require.EqualValues does not work here directly on the url.Values, as
+		// the slices in the map values may be in different order; what we need to
+		// check is that the pairs are preserved, which can be checked converting
+		// back to a map with FromURLValues. We check that the test is well-formed
+		// by converting back the expected url.Values too.
+		require.Equal(t, len(actualValues), len(data.expected))
+
+		actualMentionMap, actualErr := ChannelMentionMapFromURLValues(actualValues)
+		expectedMentionMap, expectedErr := ChannelMentionMapFromURLValues(data.expected)
+
+		require.Equal(t, actualErr, expectedErr)
+		require.Equal(t, actualMentionMap, expectedMentionMap)
 	}
 }

@@ -12,35 +12,41 @@ type UserMentionMap map[string]string
 type ChannelMentionMap map[string]string
 
 const (
-	UserMentionsKey       = "user_mentions"
-	UserMentionsIdsKey    = "user_mentions_ids"
-	ChannelMentionsKey    = "channel_mentions"
-	ChannelMentionsIdsKey = "channel_mentions_ids"
+	userMentionsKey       = "user_mentions"
+	userMentionsIdsKey    = "user_mentions_ids"
+	channelMentionsKey    = "channel_mentions"
+	channelMentionsIdsKey = "channel_mentions_ids"
 )
 
 func UserMentionMapFromURLValues(values url.Values) (UserMentionMap, error) {
-	return mentionsFromURLValues(values, UserMentionsKey, UserMentionsIdsKey)
+	return mentionsFromURLValues(values, userMentionsKey, userMentionsIdsKey)
 }
 
 func (m UserMentionMap) ToURLValues() url.Values {
-	return mentionsToURLValues(m, UserMentionsKey, UserMentionsIdsKey)
+	return mentionsToURLValues(m, userMentionsKey, userMentionsIdsKey)
 }
+
 func ChannelMentionMapFromURLValues(values url.Values) (ChannelMentionMap, error) {
-	return mentionsFromURLValues(values, ChannelMentionsKey, ChannelMentionsIdsKey)
+	return mentionsFromURLValues(values, channelMentionsKey, channelMentionsIdsKey)
 }
 
 func (m ChannelMentionMap) ToURLValues() url.Values {
-	return mentionsToURLValues(m, ChannelMentionsKey, ChannelMentionsIdsKey)
+	return mentionsToURLValues(m, channelMentionsKey, channelMentionsIdsKey)
 }
 
 func mentionsFromURLValues(values url.Values, mentionKey, idKey string) (map[string]string, error) {
-	mentions, ok := values[mentionKey]
-	if !ok {
+	mentions, mentionsOk := values[mentionKey]
+	ids, idsOk := values[idKey]
+
+	if !mentionsOk && !idsOk {
+		return map[string]string{}, nil
+	}
+
+	if !mentionsOk {
 		return nil, fmt.Errorf("%s key not found", mentionKey)
 	}
 
-	ids, ok := values[idKey]
-	if !ok {
+	if !idsOk {
 		return nil, fmt.Errorf("%s key not found", idKey)
 	}
 
@@ -50,7 +56,13 @@ func mentionsFromURLValues(values url.Values, mentionKey, idKey string) (map[str
 
 	mentionsMap := make(map[string]string)
 	for i, mention := range mentions {
-		mentionsMap[mention] = ids[i]
+		id := ids[i]
+
+		if oldId, ok := mentionsMap[mention]; ok && oldId != id {
+			return nil, fmt.Errorf("key %s has two different values: %s and %s", mention, oldId, id)
+		}
+
+		mentionsMap[mention] = id
 	}
 
 	return mentionsMap, nil

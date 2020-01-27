@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -191,25 +192,38 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-type mentionMapItem struct {
-	Name string
-	Id   string
-}
-
 // mentionsToTeamMembers returns all the @ mentions found in message that
 // belong to users in the specified team, linking them to their users
 func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap {
+	type mentionMapItem struct {
+		Name string
+		Id   string
+	}
+
 	possibleMentions := model.PossibleAtMentions(message)
 	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
 
+	var wg sync.WaitGroup
 	for _, mention := range possibleMentions {
+		wg.Add(1)
 		go func(mention string) {
+			defer wg.Done()
 			user, err := a.Srv.Store.User().GetByUsername(mention)
+
+			if err != nil && err.StatusCode != http.StatusNotFound {
+				return
+			}
+
+			// If it's a http.StatusNotFound error, check for usernames in substrings
+			// without trailing punctuation
 			if err != nil {
-				// Consider trailing punctuation that may be hiding a valid username
 				trimmed, ok := model.TrimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
 					userFromTrimmed, userErr := a.Srv.Store.User().GetByUsername(trimmed)
+					if userErr != nil && err.StatusCode != http.StatusNotFound {
+						return
+					}
+
 					if userErr != nil {
 						continue
 					}
@@ -217,7 +231,6 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 					_, err = a.GetTeamMember(teamId, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
-						mentionChan <- nil
 						return
 					}
 
@@ -225,14 +238,12 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 					return
 				}
 
-				mentionChan <- nil
 				return
 			}
 
 			_, err = a.GetTeamMember(teamId, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
-				mentionChan <- nil
 				return
 			}
 
@@ -241,11 +252,12 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	}
 
 	atMentionMap := make(model.UserMentionMap)
+	wg.Wait()
 
-	for i := 0; i < len(possibleMentions); i++ {
-		if mention := <-mentionChan; mention != nil {
-			atMentionMap[mention.Name] = mention.Id
-		}
+	lengthMentions := len(mentionChan)
+	for i := 0; i < lengthMentions; i++ {
+		mention := <-mentionChan
+		atMentionMap[mention.Name] = mention.Id
 	}
 
 	return atMentionMap
@@ -254,19 +266,25 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 // mentionsToPublicChannels returns all the mentions to public channels,
 // linking them to their channels
 func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
+	type mentionMapItem struct {
+		Name string
+		Id   string
+	}
+
 	channelMentions := model.ChannelMentions(message)
 	mentionChan := make(chan *mentionMapItem, len(channelMentions))
 
+	var wg sync.WaitGroup
 	for _, channelName := range channelMentions {
+		wg.Add(1)
 		go func(channelName string) {
+			defer wg.Done()
 			channel, err := a.GetChannelByName(channelName, teamId, false)
 			if err != nil {
-				mentionChan <- nil
 				return
 			}
 
 			if !channel.IsOpen() {
-				mentionChan <- nil
 				return
 			}
 
@@ -275,11 +293,12 @@ func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMent
 	}
 
 	channelMentionMap := make(model.ChannelMentionMap)
+	wg.Wait()
 
-	for i := 0; i < len(channelMentions); i++ {
-		if mention := <-mentionChan; mention != nil {
-			channelMentionMap[mention.Name] = mention.Id
-		}
+	lengthMentions := len(mentionChan)
+	for i := 0; i < lengthMentions; i++ {
+		mention := <-mentionChan
+		channelMentionMap[mention.Name] = mention.Id
 	}
 
 	return channelMentionMap

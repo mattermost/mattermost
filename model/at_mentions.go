@@ -17,14 +17,16 @@ const usernameSpecialChars = ".-_"
 func PossibleAtMentions(message string) []string {
 	var names []string
 
-	if strings.Contains(message, "@") {
-		alreadyMentioned := make(map[string]bool)
-		for _, match := range atMentionRegexp.FindAllString(message, -1) {
-			name := NormalizeUsername(match[1:])
-			if !alreadyMentioned[name] && IsValidUsername(name) {
-				names = append(names, name)
-				alreadyMentioned[name] = true
-			}
+	if !strings.Contains(message, "@") {
+		return names
+	}
+
+	alreadyMentioned := make(map[string]bool)
+	for _, match := range atMentionRegexp.FindAllString(message, -1) {
+		name := NormalizeUsername(match[1:])
+		if !alreadyMentioned[name] && IsValidUsername(name) {
+			names = append(names, name)
+			alreadyMentioned[name] = true
 		}
 	}
 
