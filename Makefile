@@ -47,7 +47,9 @@ endif
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
-GOBIN ?= $(PWD)/bin
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"

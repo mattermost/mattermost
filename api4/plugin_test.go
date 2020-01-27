@@ -145,6 +145,9 @@ func TestPlugin(t *testing.T) {
 	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckNotImplementedStatus(t, resp)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
 	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
 	CheckForbiddenStatus(t, resp)
