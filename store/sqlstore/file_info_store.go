@@ -102,8 +102,11 @@ func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.
 
 	query := fs.getQueryBuilder().
 		Select("FileInfo.*").
-		From("FileInfo").
-		LeftJoin("Posts ON FileInfo.PostId = Posts.Id") // Left join to get files that aren't attached to a post
+		From("FileInfo")
+
+	if len(opt.ChannelIds) > 0 || opt.SortBy == model.FILE_SORT_BY_CHANNEL_NAME {
+		query = query.Join("Posts ON FileInfo.PostId = Posts.Id")
+	}
 
 	if len(opt.ChannelIds) > 0 {
 		query = query.Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
