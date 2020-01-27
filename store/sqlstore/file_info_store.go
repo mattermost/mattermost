@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -131,14 +130,16 @@ func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.
 	}
 
 	switch opt.SortBy {
-	case model.FILE_SORT_BY_CREATED, model.FILE_SORT_BY_SIZE:
-		query = query.OrderBy(fmt.Sprintf("FileInfo.%s %s", opt.SortBy, sortDirection))
+	case model.FILE_SORT_BY_CREATED:
+		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
+	case model.FILE_SORT_BY_SIZE:
+		query = query.OrderBy("FileInfo.Size " + sortDirection)
 	case model.FILE_SORT_BY_USERNAME:
 		query = query.Join("Users on FileInfo.CreatorId = Users.Id").
-			OrderBy(fmt.Sprintf("Users.%s %s", opt.SortBy, sortDirection))
+			OrderBy("Users.UserName " + sortDirection)
 	case model.FILE_SORT_BY_CHANNEL_NAME:
 		query = query.Join("Channels on Posts.ChannelId = Channels.Id").
-			OrderBy(fmt.Sprintf("Channels.%s %s", opt.SortBy, sortDirection))
+			OrderBy("Channels.Name " + sortDirection)
 	default:
 		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
 			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
