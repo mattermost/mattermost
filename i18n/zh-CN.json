@@ -85,11 +85,11 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "未能从身份提供商网址获取元数据。"
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "解析身份提供商返回的元数据为证书失败。"
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "无效的证书文本。"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "无效的内容类型。"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "缺少内容类型。"
   },
   {
     "id": "api.admin.test_email.body",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "无法取消归档频道。此频道并未归档。"
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}}取消归档了频道。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -3572,7 +3572,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "解压插件包遇到错误。"
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3612,7 +3612,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "封装集市插件失败。"
+    "translation": "安装集市插件失败。"
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3648,7 +3648,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "无法找到请求的集市插件。"
+    "translation": "无法找到请求的集市插件签字。"
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -4012,11 +4012,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "获取 Elasticsearch 服务器版本失败"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "解析 Elasticsearch 服务器版本失败"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4116,7 +4116,7 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "无效的 AD/LDAP 访客筛选器"
+    "translation": "无效的 AD/LDAP 管理筛选器"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",

@@ -4276,7 +4276,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "'{{.Value}}' eşitlenebilir türü desteklenmiyor."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
