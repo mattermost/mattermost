@@ -2599,7 +2599,7 @@
     "translation": "%s 已更新頻道用途為：%s"
   },
   {
-    "id": "app.cluster.404.app_error",
+    "id": "app.Cluster().404.app_error",
     "translation": "找不到叢集 API 端點。"
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
-    "id": "app.plugin.cluster.save_config.app_error",
+    "id": "app.plugin.Cluster().save_config.app_error",
     "translation": "當在啟用叢集且使用 ReadOnlyConfig  時，必須手動更新 config.json 檔案當中的模組設定"
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "無法取得 SAML 使用者"
   },
   {
-    "id": "ent.cluster.config_changed.info",
+    "id": "ent.Cluster().config_changed.info",
     "translation": "叢集設定已改變 id={{ .id }}。此叢集可能不穩定，需要重新啟動。為了確保叢集被正確的設定，您應該馬上進行漸進式重啟。"
   },
   {
-    "id": "ent.cluster.save_config.error",
+    "id": "ent.Cluster().save_config.error",
     "translation": "啟用高可用性時系統控制台將被設定成唯讀模式，在設定檔當中停用 ReadOnlyConfig 以停止此行為。"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
+    "id": "ent.Compliance().bad_export_type.appError",
     "translation": "未知的輸出格式 {{.ExportType}}"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
+    "id": "ent.Compliance().csv.attachment.copy.appError",
     "translation": "無法複製附加檔案至 zip 檔案中。"
   },
   {
-    "id": "ent.compliance.csv.attachment.export.appError",
+    "id": "ent.Compliance().csv.attachment.export.appError",
     "translation": "無法增加附加檔案至 CSV 匯出格式。"
   },
   {
-    "id": "ent.compliance.csv.file.creation.appError",
+    "id": "ent.Compliance().csv.file.creation.appError",
     "translation": "無法建立暫存的 CSV 匯出檔案。"
   },
   {
-    "id": "ent.compliance.csv.header.export.appError",
+    "id": "ent.Compliance().csv.header.export.appError",
     "translation": "無法新增標頭至 CSV 匯出檔案。"
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
+    "id": "ent.Compliance().csv.metadata.export.appError",
     "translation": "無法新增中繼資料至 zip 檔案中。"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
     "translation": "無法轉換中繼資料成 json 格式。"
   },
   {
-    "id": "ent.compliance.csv.post.export.appError",
+    "id": "ent.Compliance().csv.post.export.appError",
     "translation": "無法匯出訊息。"
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
+    "id": "ent.Compliance().csv.zip.creation.appError",
     "translation": "無法建立 zip 匯出檔案。"
   },
   {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "id": "ent.Compliance().global_relay.attachments_removed.appError",
     "translation": "由於大小過大，上傳檔案已從 Global Relay 匯出檔案中被移除。"
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
     "translation": "無法開啟暫存的匯出檔案。"
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
     "translation": "無法重新讀取 Global Relay 匯出暫存檔。"
   },
   {
-    "id": "ent.compliance.licence_disable.app_error",
+    "id": "ent.Compliance().licence_disable.app_error",
     "translation": "目前授權不提供規範功能，請聯繫系統管理員將系統升級為企業版授權。"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
+    "id": "ent.Compliance().run_export.template_watcher.appError",
     "translation": "無法讀取匯出樣板。請重新嘗試。"
   },
   {
-    "id": "ent.compliance.run_failed.error",
+    "id": "ent.Compliance().run_failed.error",
     "translation": "規範匯出作業'{{.JobName}}'失敗。路徑為'{{.FilePath}}'"
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "現有授權不支援資料保留。"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch 彙總工作者新增索引工作時失敗"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
     "translation": "Elasticsearch 彙總工作者刪除索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
     "translation": "Elasticsearch 彙總工作者取得索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
     "translation": "由於索引工作失敗，Elasticsearch 彙總工作者失敗"
   },
   {
-    "id": "ent.elasticsearch.create_client.connect_failed",
+    "id": "ent.Elasticsearch().create_client.connect_failed",
     "translation": "設定 Elasticsearch 用戶端時失敗"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
     "translation": "建立 Elasticsearch 索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
     "translation": "刪除 Elasticsearch 索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
     "translation": "取得 Elasticsearch 索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.delete_post.error",
+    "id": "ent.Elasticsearch().delete_post.error",
     "translation": "刪除訊息時失敗"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
+    "id": "ent.Elasticsearch().generic.disabled",
     "translation": "Elasticsearch 搜尋在此伺服器上為停用"
   },
   {
-    "id": "ent.elasticsearch.index_post.error",
+    "id": "ent.Elasticsearch().index_post.error",
     "translation": "索引訊息時失敗"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
     "translation": "無法從資料庫取得最老的訊息。"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearch 彙總工作者解析中止時間時失敗"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearch 彙總工作者解析開始時間時失敗"
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
+    "id": "ent.Elasticsearch().not_started.error",
     "translation": "Elasticsearch 沒有啟動"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
     "translation": "刪除 Elasticsearch 索引時失敗"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
+    "id": "ent.Elasticsearch().search_posts.disabled",
     "translation": "Elasticsearch 搜尋在此伺服器上為停用"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
     "translation": "無法解析搜尋比對結果"
   },
   {
-    "id": "ent.elasticsearch.search_posts.search_failed",
+    "id": "ent.Elasticsearch().search_posts.search_failed",
     "translation": "無法完成搜尋"
   },
   {
-    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
     "translation": "無法解碼搜尋結果"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
+    "id": "ent.Elasticsearch().start.already_started.app_error",
     "translation": "Elasticsearch 已啟動"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
     "translation": "建立 Elasticsearch 批次處理器時失敗"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
     "translation": "啟動 Elasticsearch 批次處理器時失敗"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
     "translation": "Elasticsearch 已停止"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
+    "id": "ent.Elasticsearch().test_config.connect_failed",
     "translation": "連線至 Elasticsearch 伺服器失敗。"
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },
   {
-    "id": "ent.elasticsearch.test_config.license.error",
+    "id": "ent.Elasticsearch().test_config.license.error",
     "translation": "授權不支援 Elasticsearch。"
   },
   {
-    "id": "ent.elasticsearch.test_config.reenter_password",
+    "id": "ent.Elasticsearch().test_config.reenter_password",
     "translation": "Elasticsearch 伺服器網址或使用者名稱有所變更。請重新輸入 Elasticsearch 密碼以測試連線。"
   },
   {
-    "id": "ent.ldap.app_error",
+    "id": "ent.Ldap().app_error",
     "translation": "LDAP 介面為 nil"
   },
   {
-    "id": "ent.ldap.create_fail",
+    "id": "ent.Ldap().create_fail",
     "translation": "無法建立 LDAP 使用者。"
   },
   {
-    "id": "ent.ldap.disabled.app_error",
+    "id": "ent.Ldap().disabled.app_error",
     "translation": "已停用 AD/LDAP 或授權不支援 AD/LDAP。"
   },
   {
-    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
     "translation": "無法綁定 AD/LDAP 伺服器，請檢查綁定使用者帳號與綁定密碼。"
   },
   {
-    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "id": "ent.Ldap().do_login.invalid_password.app_error",
     "translation": "無效的密碼"
   },
   {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "id": "ent.Ldap().do_login.licence_disable.app_error",
     "translation": "目前的授權無法使用 AD/LDAP 功能。請聯繫系統管理員升級為企業授權。"
   },
   {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
     "translation": "提供的使用者名稱比對到多個使用者"
   },
   {
-    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
     "translation": "搜尋 AD/LDAP 伺服器失敗"
   },
   {
-    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
     "translation": "無法連線到 AD/LDAP 伺服器"
   },
   {
-    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "id": "ent.Ldap().do_login.user_filtered.app_error",
     "translation": "您的 AD/LDAP 帳號沒有使用此 Mattermost 伺服器的權限。請向系統管理員詢問確認 AD/LDAP 使用者過濾條件。"
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "id": "ent.Ldap().do_login.user_not_registered.app_error",
     "translation": "使用者尚未於 AD/LDAP 伺服器註冊"
   },
   {
-    "id": "ent.ldap.syncronize.get_all.app_error",
+    "id": "ent.Ldap().syncronize.get_all.app_error",
     "translation": "無法用 AD/LDAP 取得所有使用者"
   },
   {
-    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
     "translation": "取得群組時錯誤"
   },
   {
-    "id": "ent.ldap.syncronize.populate_syncables",
+    "id": "ent.Ldap().syncronize.populate_syncables",
     "translation": "填入同步資料時錯誤"
   },
   {
-    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "id": "ent.Ldap().syncronize.search_failure.app_error",
     "translation": "無法用 AD/LDAP 搜尋使用者。請測試 Mattermost 是否能連線至 AD/LDAP 伺服器並重新嘗試。"
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
+    "id": "ent.Ldap().validate_filter.app_error",
     "translation": "無效的 AD/LDAP Filter"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "無法建立 multipart 要求"
   },
   {
-    "id": "model.cluster.is_valid.create_at.app_error",
+    "id": "model.Cluster().is_valid.create_at.app_error",
     "translation": "必須設定建立時間"
   },
   {
-    "id": "model.cluster.is_valid.hostname.app_error",
+    "id": "model.Cluster().is_valid.hostname.app_error",
     "translation": "必須設定主機名稱"
   },
   {
-    "id": "model.cluster.is_valid.id.app_error",
+    "id": "model.Cluster().is_valid.id.app_error",
     "translation": "無效的 ID"
   },
   {
-    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "id": "model.Cluster().is_valid.last_ping_at.app_error",
     "translation": "必須設定最後偵測時間"
   },
   {
-    "id": "model.cluster.is_valid.name.app_error",
+    "id": "model.Cluster().is_valid.name.app_error",
     "translation": "必須設定叢集名稱"
   },
   {
-    "id": "model.cluster.is_valid.type.app_error",
+    "id": "model.Cluster().is_valid.type.app_error",
     "translation": "必須設定類型"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "無效的使用者 ID"
   },
   {
-    "id": "model.compliance.is_valid.create_at.app_error",
+    "id": "model.Compliance().is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
   {
-    "id": "model.compliance.is_valid.desc.app_error",
+    "id": "model.Compliance().is_valid.desc.app_error",
     "translation": "無效的敘述"
   },
   {
-    "id": "model.compliance.is_valid.end_at.app_error",
+    "id": "model.Compliance().is_valid.end_at.app_error",
     "translation": "\"到\"必須是一個有效的時間"
   },
   {
-    "id": "model.compliance.is_valid.id.app_error",
+    "id": "model.Compliance().is_valid.id.app_error",
     "translation": "無效的 ID"
   },
   {
-    "id": "model.compliance.is_valid.start_at.app_error",
+    "id": "model.Compliance().is_valid.start_at.app_error",
     "translation": "\"起始\"必須是一個有效的時間"
   },
   {
-    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "id": "model.Compliance().is_valid.start_end_at.app_error",
     "translation": "\"到\"必須大於\"起始\""
   },
   {

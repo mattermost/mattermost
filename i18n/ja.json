@@ -2599,7 +2599,7 @@
     "translation": "%s がチャンネルの目的を %s に更新しました"
   },
   {
-    "id": "app.cluster.404.app_error",
+    "id": "app.Cluster().404.app_error",
     "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.TeamName}}の通知"
   },
   {
-    "id": "app.plugin.cluster.save_config.app_error",
+    "id": "app.plugin.Cluster().save_config.app_error",
     "translation": "クラスター化を有効にするとともにReadOnlyConfigを使用する際は、config.jsonファイルのプラグイン設定は手動で更新する必要があります。"
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "SAMLユーザーを取得できません"
   },
   {
-    "id": "ent.cluster.config_changed.info",
+    "id": "ent.Cluster().config_changed.info",
     "translation": "id={{ .id }} のクラスター設定が変更されました。このクラスターは不安定になる可能性があるため再起動が必要です。このクラスターを正常に設定するため、すぐにローリングリスタートを実施してください。"
   },
   {
-    "id": "ent.cluster.save_config.error",
+    "id": "ent.Cluster().save_config.error",
     "translation": "高可用モードが有効な場合、設定ファイルのReadOnlyConfigが無効でない限りシステムコンソールは読み取り専用になります。"
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
+    "id": "ent.Compliance().bad_export_type.appError",
     "translation": "不明な出力フォーマット {{.ExportType}}"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
+    "id": "ent.Compliance().csv.attachment.copy.appError",
     "translation": "添付ファイルをzipファイルにコピーできません。"
   },
   {
-    "id": "ent.compliance.csv.attachment.export.appError",
+    "id": "ent.Compliance().csv.attachment.export.appError",
     "translation": "添付ファイルをCSVエクスポートに追加できません。"
   },
   {
-    "id": "ent.compliance.csv.file.creation.appError",
+    "id": "ent.Compliance().csv.file.creation.appError",
     "translation": "一時的なCSVエクスポートファイルを作成できません。"
   },
   {
-    "id": "ent.compliance.csv.header.export.appError",
+    "id": "ent.Compliance().csv.header.export.appError",
     "translation": "ヘッダーをCSVエクスポートに追加できません。"
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
+    "id": "ent.Compliance().csv.metadata.export.appError",
     "translation": "メタデータファイルをzipファイルに追加できません。"
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
     "translation": "メタデータをjsonに変換できません。"
   },
   {
-    "id": "ent.compliance.csv.post.export.appError",
+    "id": "ent.Compliance().csv.post.export.appError",
     "translation": "投稿をエクスポートできません。"
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
+    "id": "ent.Compliance().csv.zip.creation.appError",
     "translation": "ZIP形式のエクスポートファイルを作成できません。"
   },
   {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "id": "ent.Compliance().global_relay.attachments_removed.appError",
     "translation": "アップロードされたファイルが大きすぎるため、Global Relayエクスポートから除去されました。"
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
     "translation": "一時的なエクスポートファイルを作成できません。"
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
     "translation": "Global Relay一時エクスポートファイルを再読み込みできませんでした。"
   },
   {
-    "id": "ent.compliance.licence_disable.app_error",
+    "id": "ent.Compliance().licence_disable.app_error",
     "translation": "コンプライアンス機能が現在のライセンスでは無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
+    "id": "ent.Compliance().run_export.template_watcher.appError",
     "translation": "エクスポートテンプレートをロードできません。再度実行してください。"
   },
   {
-    "id": "ent.compliance.run_failed.error",
+    "id": "ent.Compliance().run_failed.error",
     "translation": "コンプライアンスエクスポートが失敗しました。パス='{{.FilePath}}'、ジョブ='{{.JobName}}'"
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "現在のライセンスはデータ保持をサポートしていません。"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理を作成できませんでした"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
     "translation": "Elasticsearch Aggregatorのワーカーがインデックスを削除できませんでした"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
     "translation": "Elasticsearch Aggregatorのワーカーがインデックスを取得できませんでした"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理失敗ために失敗しました"
   },
   {
-    "id": "ent.elasticsearch.create_client.connect_failed",
+    "id": "ent.Elasticsearch().create_client.connect_failed",
     "translation": "Elasticsearchクライアントを設定できませんでした"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
     "translation": "Elasticsearchのインデックスを作成できませんでした"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
     "translation": "Elasticsearchのインデックスを削除できませんでした"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
     "translation": "Elasticsearchのインデックスを取得できませんでした"
   },
   {
-    "id": "ent.elasticsearch.delete_post.error",
+    "id": "ent.Elasticsearch().delete_post.error",
     "translation": "投稿を削除できませんでした"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
+    "id": "ent.Elasticsearch().generic.disabled",
     "translation": "このサーバーではElasticsearchによる検索は有効化されていません"
   },
   {
-    "id": "ent.elasticsearch.index_post.error",
+    "id": "ent.Elasticsearch().index_post.error",
     "translation": "投稿にインデックスを付与できませんでした"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
     "translation": "最も古い投稿をデータベースから取り出せませんでした。"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearchインデックス付与ワーカーが終了時刻を解析できませんでした"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearchインデックス付与ワーカーが開始時刻を解析できませんでした"
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
+    "id": "ent.Elasticsearch().not_started.error",
     "translation": "Elasticsearchが起動されていません"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
     "translation": "Elasticsearchのインデックスを削除できませんでした"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
+    "id": "ent.Elasticsearch().search_posts.disabled",
     "translation": "このサーバーではElasticsearchによる検索は無効です。"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
     "translation": "検索結果の解析に失敗しました"
   },
   {
-    "id": "ent.elasticsearch.search_posts.search_failed",
+    "id": "ent.Elasticsearch().search_posts.search_failed",
     "translation": "検索を完了できませんでした"
   },
   {
-    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
+    "id": "ent.Elasticsearch().start.already_started.app_error",
     "translation": "Elasticsearchは既に起動しています"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
     "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
     "translation": "Elasticsearch Bulk Processorを開始することが出来ませんでした"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
     "translation": "Elasticsearchは既に停止されています"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
+    "id": "ent.Elasticsearch().test_config.connect_failed",
     "translation": "Elasticsearchサーバーへ接続できませんでした"
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
     "translation": "Elasticsearchは無効です。"
   },
   {
-    "id": "ent.elasticsearch.test_config.license.error",
+    "id": "ent.Elasticsearch().test_config.license.error",
     "translation": "現在のライセンスはElasticsearchをサポートしていません。"
   },
   {
-    "id": "ent.elasticsearch.test_config.reenter_password",
+    "id": "ent.Elasticsearch().test_config.reenter_password",
     "translation": "ElasticsearchサーバーのURLかユーザー名が変更されました。接続をテストするためにElasticsearchのパスワードを再度入力してください。"
   },
   {
-    "id": "ent.ldap.app_error",
+    "id": "ent.Ldap().app_error",
     "translation": "LDAPインターフェースがnilでした"
   },
   {
-    "id": "ent.ldap.create_fail",
+    "id": "ent.Ldap().create_fail",
     "translation": "LDAPユーザーを作成できません。"
   },
   {
-    "id": "ent.ldap.disabled.app_error",
+    "id": "ent.Ldap().disabled.app_error",
     "translation": "AD/LDAPが無効化されている、またはライセンスがAD/LDAPをサポートしていません。"
   },
   {
-    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
     "translation": "AD/LDAPサーバーに接続できません。バインドユーザー名とバインドパスワードを確認してください。"
   },
   {
-    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "id": "ent.Ldap().do_login.invalid_password.app_error",
     "translation": "不正なパスワードです"
   },
   {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "id": "ent.Ldap().do_login.licence_disable.app_error",
     "translation": "現在のライセンスではAD/LDAP機能が無効です。エンタープライズライセンスをアップグレードするようにシステム管理者に連絡してください。"
   },
   {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
     "translation": "ユーザー名が複数のユーザーに合致します"
   },
   {
-    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
     "translation": "AD/LDAPサーバーの検索で失敗しました"
   },
   {
-    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
     "translation": "AD/LDAPサーバーに接続できません"
   },
   {
-    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "id": "ent.Ldap().do_login.user_filtered.app_error",
     "translation": "あなたのAD/LDAPアカウントにはMattermostサーバを利用する権限がありません。システム管理者にAD/LDAPのユーザーフィルターをチェックするよう依頼してください。"
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "id": "ent.Ldap().do_login.user_not_registered.app_error",
     "translation": "ユーザーがAD/LDAPサーバーに登録されていません"
   },
   {
-    "id": "ent.ldap.syncronize.get_all.app_error",
+    "id": "ent.Ldap().syncronize.get_all.app_error",
     "translation": "AD/LDAPを使っている全てのユーザーを取得できません"
   },
   {
-    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
     "translation": "グループを抽出できませんでした"
   },
   {
-    "id": "ent.ldap.syncronize.populate_syncables",
+    "id": "ent.Ldap().syncronize.populate_syncables",
     "translation": "同期可能にできませんでした"
   },
   {
-    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "id": "ent.Ldap().syncronize.search_failure.app_error",
     "translation": "AD/LDAPでのユーザー検索に失敗しました。MattermostサーバーがAD/LDAPサーバーに接続できることを確認し、再度実行してください。"
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
+    "id": "ent.Ldap().validate_filter.app_error",
     "translation": "不正なAD/LDAPフィルターです"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "マルチパートリクエストを構築できませんでした"
   },
   {
-    "id": "model.cluster.is_valid.create_at.app_error",
+    "id": "model.Cluster().is_valid.create_at.app_error",
     "translation": "CreateAt が設定されていなければなりません"
   },
   {
-    "id": "model.cluster.is_valid.hostname.app_error",
+    "id": "model.Cluster().is_valid.hostname.app_error",
     "translation": "Hostname が設定されていなければなりません"
   },
   {
-    "id": "model.cluster.is_valid.id.app_error",
+    "id": "model.Cluster().is_valid.id.app_error",
     "translation": "不正なIDです"
   },
   {
-    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "id": "model.Cluster().is_valid.last_ping_at.app_error",
     "translation": "LastPingAt が設定されていなければなりません"
   },
   {
-    "id": "model.cluster.is_valid.name.app_error",
+    "id": "model.Cluster().is_valid.name.app_error",
     "translation": "ClusterName が設定されていなければなりません"
   },
   {
-    "id": "model.cluster.is_valid.type.app_error",
+    "id": "model.Cluster().is_valid.type.app_error",
     "translation": "Type が設定されていなければなりません"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "不正なユーザーIDです"
   },
   {
-    "id": "model.compliance.is_valid.create_at.app_error",
+    "id": "model.Compliance().is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
   },
   {
-    "id": "model.compliance.is_valid.desc.app_error",
+    "id": "model.Compliance().is_valid.desc.app_error",
     "translation": "不正な説明です"
   },
   {
-    "id": "model.compliance.is_valid.end_at.app_error",
+    "id": "model.Compliance().is_valid.end_at.app_error",
     "translation": "有効な時刻にしてください"
   },
   {
-    "id": "model.compliance.is_valid.id.app_error",
+    "id": "model.Compliance().is_valid.id.app_error",
     "translation": "不正なIDです"
   },
   {
-    "id": "model.compliance.is_valid.start_at.app_error",
+    "id": "model.Compliance().is_valid.start_at.app_error",
     "translation": "有効開始は有効な時刻にしてください"
   },
   {
-    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "id": "model.Compliance().is_valid.start_end_at.app_error",
     "translation": "有効終了は有効開始の後でなくてはいけません"
   },
   {

@@ -511,7 +511,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	appErr = a.Srv.Store.Bot().PermanentDelete(user.Id)
+	appErr = a.Srv().Store.Bot().PermanentDelete(user.Id)
 	if appErr != nil {
 		return fmt.Errorf("Unable to delete bot. Error: %s", appErr.Error())
 	}
@@ -621,7 +621,7 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if err := a.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
+	if err := a.Srv().Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
 		return err
 	}
 
@@ -806,7 +806,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	forceFlag, _ := command.Flags().GetBool("force")
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
@@ -862,7 +862,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToSaml(fromAuth, matches, autoFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
@@ -891,7 +891,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := a.Srv.Store.User().VerifyEmail(user.Id, user.Email); err != nil {
+		if _, err := a.Srv().Store.User().VerifyEmail(user.Id, user.Email); err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + err.Error())
 		}
 	}

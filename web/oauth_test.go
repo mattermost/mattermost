@@ -336,7 +336,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	require.Nil(t, err)
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	_, err = th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	_, err = th.App.Srv().Store.OAuth().SaveAuthData(authData)
 	require.Nil(t, err)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
@@ -473,7 +473,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	_, err = th.App.Srv.Store.User().UpdateAuthData(
+	_, err = th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
 	require.Nil(t, err)
 

@@ -10,7 +10,7 @@ import (
 // notifyClusterPluginEvent publishes `event` to other clusters.
 func (a *App) notifyClusterPluginEvent(event string, data model.PluginEventData) {
 	if a.Cluster != nil {
-		a.Cluster.SendClusterMessage(&model.ClusterMessage{
+		a.Cluster().SendClusterMessage(&model.ClusterMessage{
 			Event:            event,
 			SendType:         model.CLUSTER_SEND_RELIABLE,
 			WaitForAllToSend: true,

@@ -59,7 +59,7 @@ func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	}
 
 	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
-		clusterPluginStatuses, err := a.Cluster.GetPluginStatuses()
+		clusterPluginStatuses, err := a.Cluster().GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

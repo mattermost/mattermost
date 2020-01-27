@@ -567,7 +567,7 @@ func TestUploadFiles(t *testing.T) {
 							fmt.Sprintf("Wrong clientId returned, expected %v, got %v", tc.clientIds[i], fileResp.ClientIds[i]))
 					}
 
-					dbInfo, err := th.App.Srv.Store.FileInfo().Get(ri.Id)
+					dbInfo, err := th.App.Srv().Store.FileInfo().Get(ri.Id)
 					require.Nil(t, err)
 					assert.Equal(t, dbInfo.Id, ri.Id, "File id from response should match one stored in database")
 					assert.Equal(t, dbInfo.CreatorId, tc.expectedCreatorId, "F ile should be assigned to user")
@@ -801,7 +801,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
@@ -835,7 +835,7 @@ func TestGetFileLink(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFileLink(fileId)
 	CheckNoError(t, resp)
 
-	fileInfo, err := th.App.Srv.Store.FileInfo().Get(fileId)
+	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
 	th.cleanupTestFile(fileInfo)
 }
@@ -955,10 +955,10 @@ func TestGetPublicFile(t *testing.T) {
 	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
+	err = th.App.Srv().Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
-	info, err := th.App.Srv.Store.FileInfo().Get(fileId)
+	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
 
@@ -991,7 +991,7 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link after salt changed")
 
-	fileInfo, err := th.App.Srv.Store.FileInfo().Get(fileId)
+	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
 	require.Nil(t, th.cleanupTestFile(fileInfo))
 	th.cleanupTestFile(info)

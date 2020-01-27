@@ -2599,7 +2599,7 @@
     "translation": "%s обновил заголовок канала на: %s"
   },
   {
-    "id": "app.cluster.404.app_error",
+    "id": "app.Cluster().404.app_error",
     "translation": "Не найдена конечная точка API кластера."
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{ .SiteName }}] Уведомление в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.cluster.save_config.app_error",
+    "id": "app.plugin.Cluster().save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "Не удалось получить SAML пользователей."
   },
   {
-    "id": "ent.cluster.config_changed.info",
+    "id": "ent.Cluster().config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
-    "id": "ent.cluster.save_config.error",
+    "id": "ent.Cluster().save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
+    "id": "ent.Compliance().bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
+    "id": "ent.Compliance().csv.attachment.copy.appError",
     "translation": "Unable to copy the attachment into the zip file."
   },
   {
-    "id": "ent.compliance.csv.attachment.export.appError",
+    "id": "ent.Compliance().csv.attachment.export.appError",
     "translation": "Unable to add attachment to the CSV export."
   },
   {
-    "id": "ent.compliance.csv.file.creation.appError",
+    "id": "ent.Compliance().csv.file.creation.appError",
     "translation": "Unable to create temporary CSV export file."
   },
   {
-    "id": "ent.compliance.csv.header.export.appError",
+    "id": "ent.Compliance().csv.header.export.appError",
     "translation": "Unable to add header to the CSV export."
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
+    "id": "ent.Compliance().csv.metadata.export.appError",
     "translation": "Unable to add metadata file to the zip file."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
     "translation": "Unable to convert metadata to json."
   },
   {
-    "id": "ent.compliance.csv.post.export.appError",
+    "id": "ent.Compliance().csv.post.export.appError",
     "translation": "Unable to export a post."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
+    "id": "ent.Compliance().csv.zip.creation.appError",
     "translation": "Unable to create the zip export file."
   },
   {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "id": "ent.Compliance().global_relay.attachments_removed.appError",
     "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
     "translation": "Unable to open the temporary export file."
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
     "translation": "Unable to re-read the Global Relay temporary export file."
   },
   {
-    "id": "ent.compliance.licence_disable.app_error",
+    "id": "ent.Compliance().licence_disable.app_error",
     "translation": "Функция комплаенса недоступна при текущей лицензии. Пожалуйста, свяжитесь с системным администратором по поводу улучшения вашей корпоративной лицензии."
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
+    "id": "ent.Compliance().run_export.template_watcher.appError",
     "translation": "Unable to load export templates. Please try again."
   },
   {
-    "id": "ent.compliance.run_failed.error",
+    "id": "ent.Compliance().run_failed.error",
     "translation": "Экспорт комплаенс-листа не удался для задания '{{.JobName}}' в '{{.FilePath}}'"
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "Ваша лицензия не поддерживает SAML аутентификацию."
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
     "translation": "Elasticsearch aggregator worker failed to delete the indexes"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
     "translation": "Elasticsearch aggregator worker failed to get indexes"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
   },
   {
-    "id": "ent.elasticsearch.create_client.connect_failed",
+    "id": "ent.Elasticsearch().create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
     "translation": "Не удалось создать индекс Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
     "translation": "Не удалось удалить индекс Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
     "translation": "Не удалось получить индексы Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.delete_post.error",
+    "id": "ent.Elasticsearch().delete_post.error",
     "translation": "Не удалось удалить плагин"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
+    "id": "ent.Elasticsearch().generic.disabled",
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
-    "id": "ent.elasticsearch.index_post.error",
+    "id": "ent.Elasticsearch().index_post.error",
     "translation": "Не удалось проиндексировать запись"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
     "translation": "The oldest post could not be retrieved from the database."
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearch indexing worker failed to parse the end time"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
+    "id": "ent.Elasticsearch().not_started.error",
     "translation": "Elasticsearch is not started"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
     "translation": "Не удалось удалить индекс Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
+    "id": "ent.Elasticsearch().search_posts.disabled",
     "translation": "Elasticsearch searching is disabled on this server"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
     "translation": "Failed to parse search result matches"
   },
   {
-    "id": "ent.elasticsearch.search_posts.search_failed",
+    "id": "ent.Elasticsearch().search_posts.search_failed",
     "translation": "Search failed to complete"
   },
   {
-    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
+    "id": "ent.Elasticsearch().start.already_started.app_error",
     "translation": "Elasticsearch is already started"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
     "translation": "Failed to start Elasticsearch bulk processor"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
     "translation": "Elasticsearch is already stopped"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
+    "id": "ent.Elasticsearch().test_config.connect_failed",
     "translation": "Connecting to Elasticsearch server failed."
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
     "translation": "Elasticsearch отключён."
   },
   {
-    "id": "ent.elasticsearch.test_config.license.error",
+    "id": "ent.Elasticsearch().test_config.license.error",
     "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
   },
   {
-    "id": "ent.elasticsearch.test_config.reenter_password",
+    "id": "ent.Elasticsearch().test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
-    "id": "ent.ldap.app_error",
+    "id": "ent.Ldap().app_error",
     "translation": "ldap interface was nil"
   },
   {
-    "id": "ent.ldap.create_fail",
+    "id": "ent.Ldap().create_fail",
     "translation": "Невозможно создать пользователя LDAP."
   },
   {
-    "id": "ent.ldap.disabled.app_error",
+    "id": "ent.Ldap().disabled.app_error",
     "translation": "AD/LDAP отключен или лицензия не поддерживает AD/LDAP."
   },
   {
-    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
     "translation": "Невозможно сделать привязку к серверу AD/LDAP. Проверьте имя пользователя BindUsername и пароль BindPassword."
   },
   {
-    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "id": "ent.Ldap().do_login.invalid_password.app_error",
     "translation": "Неверный пароль"
   },
   {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "id": "ent.Ldap().do_login.licence_disable.app_error",
     "translation": "Функции AD/LDAP отключены в виду лицензионных ограничений. Пожалуйста, обратитесь к системному администратору для обновления лицензии."
   },
   {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
     "translation": "Данное имя пользователя соответствует нескольким пользователям"
   },
   {
-    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
     "translation": "Не удалось найти сервер AD/LDAP"
   },
   {
-    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
     "translation": "Невозможно подключиться к серверу AD/LDAP"
   },
   {
-    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "id": "ent.Ldap().do_login.user_filtered.app_error",
     "translation": "Ваша учетная запись AD/LDAP не имеет разрешения на использование этого сервера Mattermost. Пожалуйста, обратитесь к системному администратору, чтобы проверить фильтр пользователей AD/LDAP."
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "id": "ent.Ldap().do_login.user_not_registered.app_error",
     "translation": "Пользователь не зарегистрирован на сервере AD/LDAP"
   },
   {
-    "id": "ent.ldap.syncronize.get_all.app_error",
+    "id": "ent.Ldap().syncronize.get_all.app_error",
     "translation": "Не удалось получить всех пользователей с помощью AD/LDAP"
   },
   {
-    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
     "translation": "error retrieving groups"
   },
   {
-    "id": "ent.ldap.syncronize.populate_syncables",
+    "id": "ent.Ldap().syncronize.populate_syncables",
     "translation": "error populating syncables"
   },
   {
-    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "id": "ent.Ldap().syncronize.search_failure.app_error",
     "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
+    "id": "ent.Ldap().validate_filter.app_error",
     "translation": "Неверный фильтр AD/LDAP"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "Unable to build multipart request"
   },
   {
-    "id": "model.cluster.is_valid.create_at.app_error",
+    "id": "model.Cluster().is_valid.create_at.app_error",
     "translation": "CreateAt must be set"
   },
   {
-    "id": "model.cluster.is_valid.hostname.app_error",
+    "id": "model.Cluster().is_valid.hostname.app_error",
     "translation": "Hostname must be set"
   },
   {
-    "id": "model.cluster.is_valid.id.app_error",
+    "id": "model.Cluster().is_valid.id.app_error",
     "translation": "Недопустимый идентификатор"
   },
   {
-    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "id": "model.Cluster().is_valid.last_ping_at.app_error",
     "translation": "LastPingAt must be set"
   },
   {
-    "id": "model.cluster.is_valid.name.app_error",
+    "id": "model.Cluster().is_valid.name.app_error",
     "translation": "ClusterName must be set"
   },
   {
-    "id": "model.cluster.is_valid.type.app_error",
+    "id": "model.Cluster().is_valid.type.app_error",
     "translation": "Type must be set"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "Некорректный user id"
   },
   {
-    "id": "model.compliance.is_valid.create_at.app_error",
+    "id": "model.Compliance().is_valid.create_at.app_error",
     "translation": "\"Создать в\" должно быть корректным временем"
   },
   {
-    "id": "model.compliance.is_valid.desc.app_error",
+    "id": "model.Compliance().is_valid.desc.app_error",
     "translation": "Недопустимое описание"
   },
   {
-    "id": "model.compliance.is_valid.end_at.app_error",
+    "id": "model.Compliance().is_valid.end_at.app_error",
     "translation": "\"До\" должно быть корректным временем"
   },
   {
-    "id": "model.compliance.is_valid.id.app_error",
+    "id": "model.Compliance().is_valid.id.app_error",
     "translation": "Недопустимый идентификатор"
   },
   {
-    "id": "model.compliance.is_valid.start_at.app_error",
+    "id": "model.Compliance().is_valid.start_at.app_error",
     "translation": "\"С\" должно быть корректным временем"
   },
   {
-    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "id": "model.Compliance().is_valid.start_end_at.app_error",
     "translation": "\"До\" должно быть больше, чем \"С\""
   },
   {

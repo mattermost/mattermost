@@ -84,29 +84,31 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
-	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = requestID
-	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
-	c.App.UserAgent = r.UserAgent()
-	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
+	t, _ := utils.GetTranslationsAndLocale(w, r)
+	c.App.SetT(t)
+	c.App.SetRequestId(requestID)
+	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
+	c.App.SetUserAgent(r.UserAgent())
+	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.Params = ParamsFromRequest(r)
-	c.App.Path = r.URL.Path
-	c.Log = c.App.Log
+	c.App.SetPath(r.URL.Path)
+	c.Log = c.App.Log()
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
-		span.SetTag("request_id", c.App.RequestId)
+		span.SetTag("request_id", c.App.RequestId())
 		span.SetTag("ip_address", c.App.IpAddress)
 		span.SetTag("user_agent", c.App.UserAgent)
 		span.SetTag("url", c.App.Path)
 		defer span.Finish()
-		c.App.Context = ctx
-		c.App.Store = store.NewOpenTracingLayer(c.App.Srv.Store, ctx)
+		c.App.SetContext(ctx)
+		c.App.SetStore(store.NewOpenTracingLayer(c.App.Srv().Store, ctx))
+		c.App = app.NewOpenTracingAppLayer(c.App, ctx)
 	}
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId)
+	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
@@ -145,22 +147,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.App.Session = *session
+			c.App.SetSession(session)
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
+		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.App.Session().UserId, w) {
 			return
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
 	}
 
-	c.Log = c.App.Log.With(
-		mlog.String("path", c.App.Path),
-		mlog.String("request_id", c.App.RequestId),
-		mlog.String("ip_addr", c.App.IpAddress),
-		mlog.String("user_id", c.App.Session.UserId),
+	c.Log = c.App.Log().With(
+		mlog.String("path", c.App.Path()),
+		mlog.String("request_id", c.App.RequestId()),
+		mlog.String("ip_addr", c.App.IpAddress()),
+		mlog.String("user_id", c.App.Session().UserId),
 		mlog.String("method", r.Method),
 	)
 
@@ -172,7 +174,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
-	if c.Err == nil && h.DisableWhenBusy && c.App.Srv.Busy.IsBusy() {
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
 		c.SetServerBusyError()
 	}
 
@@ -183,7 +185,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle errors that have occurred
 	if c.Err != nil {
 		c.Err.Translate(c.App.T)
-		c.Err.RequestId = c.App.RequestId
+		c.Err.RequestId = c.App.RequestId()
 
 		if c.Err.Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
@@ -216,17 +218,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if c.App.Metrics != nil {
-			c.App.Metrics.IncrementHttpError()
+			c.App.Metrics().IncrementHttpError()
 		}
 	}
 
 	if c.App.Metrics != nil {
-		c.App.Metrics.IncrementHttpRequest()
+		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
-			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, elapsed)
+			c.App.Metrics().ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, elapsed)
 		}
 	}
 }
@@ -270,7 +272,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		}
 
 		if !csrfCheckPassed {
-			c.App.Session = model.Session{}
+			c.App.SetSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}

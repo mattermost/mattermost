@@ -1298,7 +1298,7 @@ func TestDeleteChannel2(t *testing.T) {
 	// successful delete by channel admin
 	th.MakeUserChannelAdmin(user, publicChannel6)
 	th.MakeUserChannelAdmin(user, privateChannel7)
-	th.App.Srv.Store.Channel().ClearCaches()
+	th.App.Srv().Store.Channel().ClearCaches()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)

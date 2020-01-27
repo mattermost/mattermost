@@ -14,5 +14,5 @@ func (a *App) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppEr
 		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.DataRetention.GetPolicy()
+	return a.DataRetention().GetPolicy()
 }

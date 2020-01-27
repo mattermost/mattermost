@@ -2842,19 +2842,19 @@ func (s *LdapSettings) isValid() *AppError {
 
 		if *s.UserFilter != "" {
 			if _, err := ldap.CompileFilter(*s.UserFilter); err != nil {
-				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("ValidateFilter", "ent.Ldap().validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 
 		if *s.GuestFilter != "" {
 			if _, err := ldap.CompileFilter(*s.GuestFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.Ldap().validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 
 		if *s.AdminFilter != "" {
 			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
-				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+				return NewAppError("LdapSettings.isValid", "ent.Ldap().validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}

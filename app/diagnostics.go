@@ -66,7 +66,7 @@ func (a *App) SendDailyDiagnostics() {
 
 func (a *App) sendDailyDiagnostics(override bool) {
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		a.Srv.initDiagnostics("")
+		a.Srv().initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
 		a.trackLicense()
@@ -78,7 +78,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	a.Srv.diagnosticClient.Enqueue(analytics.Track{
+	a.Srv().diagnosticClient.Enqueue(analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
@@ -135,78 +135,78 @@ func (a *App) trackActivity() {
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := a.Store().User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := a.Store().User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
-	if count, err := a.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+	if count, err := a.Store().User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
 	}
 
-	if count, err := a.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+	if count, err := a.Store().User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
 		botAccountsCount = count
 	}
 
-	if iucr, err := a.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+	if iucr, err := a.Store().User().AnalyticsGetInactiveUsersCount(); err == nil {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := a.Store.Team().AnalyticsTeamCount(false)
+	teamCount, err := a.Store().Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	if ucc, err := a.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+	if ucc, err := a.Store().Channel().AnalyticsTypeCount("", "O"); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := a.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+	if pcc, err := a.Store().Channel().AnalyticsTypeCount("", "P"); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := a.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+	if dcc, err := a.Store().Channel().AnalyticsTypeCount("", "D"); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := a.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+	if duccr, err := a.Store().Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := a.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+	if dpccr, err := a.Store().Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = a.Store.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = a.Store().Post().AnalyticsPostCount("", false, false)
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
-	postCountsYesterday, _ := a.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postCountsYesterday, _ := a.Store().Post().AnalyticsPostCountsByDay(postCountsOptions)
 	postsCountPreviousDay = 0
 	if len(postCountsYesterday) > 0 {
 		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
 	}
 
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
-	botPostCountsYesterday, _ := a.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostCountsYesterday, _ := a.Store().Post().AnalyticsPostCountsByDay(postCountsOptions)
 	botPostsCountPreviousDay = 0
 	if len(botPostCountsYesterday) > 0 {
 		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
 	}
 
-	slashCommandsCount, _ = a.Store.Command().AnalyticsCommandCount("")
+	slashCommandsCount, _ = a.Store().Command().AnalyticsCommandCount("")
 
-	if c, err := a.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := a.Store().Webhook().AnalyticsIncomingCount(""); err == nil {
 		incomingWebhooksCount = c
 	}
 
-	outgoingWebhooksCount, _ = a.Store.Webhook().AnalyticsOutgoingCount("")
+	outgoingWebhooksCount, _ = a.Store().Webhook().AnalyticsOutgoingCount("")
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.Err == nil {
@@ -783,7 +783,7 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr, err := a.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+	if scr, err := a.Store().User().AnalyticsGetSystemAdminCount(); err == nil {
 		data["system_admins"] = scr
 	}
 
@@ -792,12 +792,12 @@ func (a *App) trackServer() {
 
 func (a *App) trackPermissions() {
 	phase1Complete := false
-	if _, err := a.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := a.Store().System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if _, err := a.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
+	if _, err := a.Store().System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
 		phase2Complete = true
 	}
 
@@ -889,7 +889,7 @@ func (a *App) trackPermissions() {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			count, _ := a.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
+			count, _ := a.Store().Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
 			a.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
@@ -908,8 +908,8 @@ func (a *App) trackPermissions() {
 func (a *App) trackElasticsearch() {
 	data := map[string]interface{}{}
 
-	if a.Elasticsearch != nil && a.Elasticsearch.GetVersion() != 0 {
-		data["elasticsearch_server_version"] = a.Elasticsearch.GetVersion()
+	if a.Elasticsearch != nil && a.Elasticsearch().GetVersion() != 0 {
+		data["elasticsearch_server_version"] = a.Elasticsearch().GetVersion()
 	}
 
 	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)

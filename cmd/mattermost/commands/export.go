@@ -117,7 +117,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 		return errors.New("timeoutSeconds must be a positive integer")
 	}
 
-	if messageExportI := a.MessageExport; messageExportI != nil {
+	if messageExportI := a.MessageExport(); messageExportI != nil {
 		ctx := context.Background()
 		if timeoutSeconds > 0 {
 			var cancel context.CancelFunc
@@ -156,7 +156,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			CommandPrettyPrintln("MessageExport feature not available")
 		}
 
-		err2 := a.MessageExport.RunExport(format, startTime)
+		err2 := a.MessageExport().RunExport(format, startTime)
 		if err2 != nil {
 			return err2
 		}

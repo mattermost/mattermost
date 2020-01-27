@@ -17,13 +17,13 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		return nil, err
 	}
 
-	return a.Store.TermsOfService().Save(termsOfService)
+	return a.Store().TermsOfService().Save(termsOfService)
 }
 
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	return a.Store.TermsOfService().GetLatest(true)
+	return a.Store().TermsOfService().GetLatest(true)
 }
 
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	return a.Store.TermsOfService().Get(id, true)
+	return a.Store().TermsOfService().Get(id, true)
 }

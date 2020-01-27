@@ -376,9 +376,9 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
 		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
 
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})

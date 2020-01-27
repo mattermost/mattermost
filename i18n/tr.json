@@ -2599,7 +2599,7 @@
     "translation": "%s kanal amacını %s olarak güncelledi"
   },
   {
-    "id": "app.cluster.404.app_error",
+    "id": "app.Cluster().404.app_error",
     "translation": "Küme API uç noktası bulunamadı."
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{ .SiteName }}] {{ .TeamName}} takımında {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bildirim"
   },
   {
-    "id": "app.plugin.cluster.save_config.app_error",
+    "id": "app.plugin.Cluster().save_config.app_error",
     "translation": "Küme özelliği kullanılırken ve SaltOkunurYapılandırma seçeneği etkinken config.json dosyasındaki uygulama eki yapılandırması el ile güncellenmelidir."
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "SAML kullanıcıları alınamadı."
   },
   {
-    "id": "ent.cluster.config_changed.info",
+    "id": "ent.Cluster().config_changed.info",
     "translation": "id={{ .id }} için küme yapılandırması değiştirildi. Küme artık kararlı olmayabilir ve bir yeniden başlatma gereklidir. Kümenin doğru olarak yapılandırıldığından emin olmak için hemen yeniden başlatın."
   },
   {
-    "id": "ent.cluster.save_config.error",
+    "id": "ent.Cluster().save_config.error",
     "translation": "Yüksek Erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında ReadOnlyConfig seçeneği devre dışı bırakılmamış ise Sistem Panosu salt okunur olarak ayarlanır."
   },
   {
-    "id": "ent.compliance.bad_export_type.appError",
+    "id": "ent.Compliance().bad_export_type.appError",
     "translation": "{{.ExportType}} çıktı biçimi bilinmiyor"
   },
   {
-    "id": "ent.compliance.csv.attachment.copy.appError",
+    "id": "ent.Compliance().csv.attachment.copy.appError",
     "translation": "Ek dosya zip dosyasına kopyalanamadı."
   },
   {
-    "id": "ent.compliance.csv.attachment.export.appError",
+    "id": "ent.Compliance().csv.attachment.export.appError",
     "translation": "Ek dosya dışa aktarılan CSV dosyasına eklenemedi."
   },
   {
-    "id": "ent.compliance.csv.file.creation.appError",
+    "id": "ent.Compliance().csv.file.creation.appError",
     "translation": "Dışa aktarılan geçici CSV dosyası oluşturulamadı."
   },
   {
-    "id": "ent.compliance.csv.header.export.appError",
+    "id": "ent.Compliance().csv.header.export.appError",
     "translation": "Dışa aktarılan CSV dosyasına üst bilgi eklenemedi."
   },
   {
-    "id": "ent.compliance.csv.metadata.export.appError",
+    "id": "ent.Compliance().csv.metadata.export.appError",
     "translation": "Zip dosyasına üst veri dosyası eklenemedi."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
+    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
     "translation": "Üst veri json biçimine dönüştürülemedi."
   },
   {
-    "id": "ent.compliance.csv.post.export.appError",
+    "id": "ent.Compliance().csv.post.export.appError",
     "translation": "Bir ileti dışa aktarılamadı."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
+    "id": "ent.Compliance().csv.zip.creation.appError",
     "translation": "ZIP dışa aktarma dosyası oluşturulamadı."
   },
   {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
+    "id": "ent.Compliance().global_relay.attachments_removed.appError",
     "translation": "Yüklenen dosya gönderilmek için çok büyük olduğundan Genel Aktarıcı dışa aktarma sırasından çıkarıldı."
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
     "translation": "Geçici dışa aktarma dosyası açılamadı."
   },
   {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
+    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
     "translation": "Genel Aktarıcı geçici dışa aktarma dosyası yeniden okunamadı."
   },
   {
-    "id": "ent.compliance.licence_disable.app_error",
+    "id": "ent.Compliance().licence_disable.app_error",
     "translation": "Geçerli lisansta uygunluk özelliğini bulunmuyor. Lütfen lisansın Enterprise sürümüne yükseltilmesi için sistem yöneticiniz ile görüşün."
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
+    "id": "ent.Compliance().run_export.template_watcher.appError",
     "translation": "Dışa aktarılmış kalıplar yüklenemedi. Lütfen yeniden deneyin."
   },
   {
-    "id": "ent.compliance.run_failed.error",
+    "id": "ent.Compliance().run_failed.error",
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi tamamlanamadı"
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "Lisansınızda Veri Yedekleme özelliği bulunmuyor."
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch toplayıcı işlemi dizin işlemini oluşturamadı"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
     "translation": "Elasticsearch toplayıcı işlemi dizinleri silemedi"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
     "translation": "Elasticsearch toplayıcı işlemi dizinleri alamadı"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
   },
   {
-    "id": "ent.elasticsearch.create_client.connect_failed",
+    "id": "ent.Elasticsearch().create_client.connect_failed",
     "translation": "Elasticsearch İstemcisi Kurulamadı"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
     "translation": "Elasticsearch dizini oluşturulamadı"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
     "translation": "ElasticSearch dizini silinemedi"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
     "translation": "Elasticsearch dizinleri oluşturulamadı"
   },
   {
-    "id": "ent.elasticsearch.delete_post.error",
+    "id": "ent.Elasticsearch().delete_post.error",
     "translation": "İleti silinemedi"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
+    "id": "ent.Elasticsearch().generic.disabled",
     "translation": "Elasticsearch araması bu sunucu üzerinde etkinleştirilmemiş"
   },
   {
-    "id": "ent.elasticsearch.index_post.error",
+    "id": "ent.Elasticsearch().index_post.error",
     "translation": "İleti dizine eklenemedi"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
     "translation": "Veritabanından en eski ileti alınamadı."
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearch toplayıcı işlemi bitiş zamanını işleyemedi"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearch toplayıcı işlemi başlangıç zamanını işleyemedi"
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
+    "id": "ent.Elasticsearch().not_started.error",
     "translation": "Elasticsearch başlatılmamış"
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
     "translation": "ElasticSearch dizini silinemedi"
   },
   {
-    "id": "ent.elasticsearch.search_posts.disabled",
+    "id": "ent.Elasticsearch().search_posts.disabled",
     "translation": "Elasticsearch araması bu sunucu üzerinde devre dışı bırakılmış"
   },
   {
-    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
+    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
     "translation": "Arama sonuçları eşleşmesi işlenemedi"
   },
   {
-    "id": "ent.elasticsearch.search_posts.search_failed",
+    "id": "ent.Elasticsearch().search_posts.search_failed",
     "translation": "Search failed to complete"
   },
   {
-    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
+    "id": "ent.Elasticsearch().start.already_started.app_error",
     "translation": "Elasticsearch zaten başlatılmış"
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
     "translation": "Elasticsearch toplu işlemi oluşturulamadı"
   },
   {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
     "translation": "Elasticsearch toplu işlemi başlatılamadı"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
+    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
     "translation": "Elasticsearch zaten durdurulmuş"
   },
   {
-    "id": "ent.elasticsearch.test_config.connect_failed",
+    "id": "ent.Elasticsearch().test_config.connect_failed",
     "translation": "Elasticsearch sunucusuna bağlanılamadı."
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
     "translation": "Elasticsearch devre dışı."
   },
   {
-    "id": "ent.elasticsearch.test_config.license.error",
+    "id": "ent.Elasticsearch().test_config.license.error",
     "translation": "Lisansınızda Elasticsearch özelliği bulunmuyor."
   },
   {
-    "id": "ent.elasticsearch.test_config.reenter_password",
+    "id": "ent.Elasticsearch().test_config.reenter_password",
     "translation": "Elasticsearch sunucusunun adresi ya da Kullanıcı Adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
   },
   {
-    "id": "ent.ldap.app_error",
+    "id": "ent.Ldap().app_error",
     "translation": "ldap arayüzü nil"
   },
   {
-    "id": "ent.ldap.create_fail",
+    "id": "ent.Ldap().create_fail",
     "translation": "LDAP kullanıcısı eklenemedi."
   },
   {
-    "id": "ent.ldap.disabled.app_error",
+    "id": "ent.Ldap().disabled.app_error",
     "translation": "AD/LDAP devre dışı ya da lisans AD/LDAP özelliğini desteklemiyor."
   },
   {
-    "id": "ent.ldap.do_login.bind_admin_user.app_error",
+    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
     "translation": "AD/LDAP sunucusuna bağlanılamadı. BindUsername ve BindPassword bilgilerini denetleyin."
   },
   {
-    "id": "ent.ldap.do_login.invalid_password.app_error",
+    "id": "ent.Ldap().do_login.invalid_password.app_error",
     "translation": "Parola geçersiz"
   },
   {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
+    "id": "ent.Ldap().do_login.licence_disable.app_error",
     "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen lisansın Enterprise sürüme yükseltilmesi için sistem yöneticiniz ile görüşün."
   },
   {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
+    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
     "translation": "Belirtilen kullanıcı adı birden çok kullanıcı ile eşleşiyor"
   },
   {
-    "id": "ent.ldap.do_login.search_ldap_server.app_error",
+    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
     "translation": "AD/LDAP sunucusunda arama yapılamadı"
   },
   {
-    "id": "ent.ldap.do_login.unable_to_connect.app_error",
+    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
     "translation": "AD/LDAP sunucusuna bağlanılamadı"
   },
   {
-    "id": "ent.ldap.do_login.user_filtered.app_error",
+    "id": "ent.Ldap().do_login.user_filtered.app_error",
     "translation": "AD/LDAP hesabınızın bu Mattermost sunucusunu kullanma izni yok. Lütfen sistem yöneticinizden AD/LDAP kullanıcı süzgecini denetlemesini isteyin."
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
+    "id": "ent.Ldap().do_login.user_not_registered.app_error",
     "translation": "Kullanıcı AD/LDAP üzerinde kayıtlı değil"
   },
   {
-    "id": "ent.ldap.syncronize.get_all.app_error",
+    "id": "ent.Ldap().syncronize.get_all.app_error",
     "translation": "AD/LDAP kullanılarak tüm kullanıcılar alınamadı"
   },
   {
-    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
     "translation": "gruplar alınırken sorun çıktı"
   },
   {
-    "id": "ent.ldap.syncronize.populate_syncables",
+    "id": "ent.Ldap().syncronize.populate_syncables",
     "translation": "eşitlenebilirlik kaydedilirken sorun çıktı"
   },
   {
-    "id": "ent.ldap.syncronize.search_failure.app_error",
+    "id": "ent.Ldap().syncronize.search_failure.app_error",
     "translation": "AD/LDAP üzerinde kullanıcılar aranamadı. Mattermost sunucunuzun AD/LDAP sunucunuza bağlanabildiğinden emin olun."
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
+    "id": "ent.Ldap().validate_filter.app_error",
     "translation": "AD/LDAP süzgeci geçersiz"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "Multipart isteği oluşturulamadı"
   },
   {
-    "id": "model.cluster.is_valid.create_at.app_error",
+    "id": "model.Cluster().is_valid.create_at.app_error",
     "translation": "Oluşturulacak Konum ayarlanmalıdır"
   },
   {
-    "id": "model.cluster.is_valid.hostname.app_error",
+    "id": "model.Cluster().is_valid.hostname.app_error",
     "translation": "Sunucu adı ayarlanmalıdır"
   },
   {
-    "id": "model.cluster.is_valid.id.app_error",
+    "id": "model.Cluster().is_valid.id.app_error",
     "translation": "Kod geçersiz"
   },
   {
-    "id": "model.cluster.is_valid.last_ping_at.app_error",
+    "id": "model.Cluster().is_valid.last_ping_at.app_error",
     "translation": "Son Ping Zamanı ayarlanmalıdır"
   },
   {
-    "id": "model.cluster.is_valid.name.app_error",
+    "id": "model.Cluster().is_valid.name.app_error",
     "translation": "Küme Adı ayarlanmalıdır"
   },
   {
-    "id": "model.cluster.is_valid.type.app_error",
+    "id": "model.Cluster().is_valid.type.app_error",
     "translation": "Tür ayarlanmalıdır"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
-    "id": "model.compliance.is_valid.create_at.app_error",
+    "id": "model.Compliance().is_valid.create_at.app_error",
     "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
   },
   {
-    "id": "model.compliance.is_valid.desc.app_error",
+    "id": "model.Compliance().is_valid.desc.app_error",
     "translation": "Açıklama geçersiz"
   },
   {
-    "id": "model.compliance.is_valid.end_at.app_error",
+    "id": "model.Compliance().is_valid.end_at.app_error",
     "translation": "Bitiş zamanı geçerli bir zaman olmalıdır"
   },
   {
-    "id": "model.compliance.is_valid.id.app_error",
+    "id": "model.Compliance().is_valid.id.app_error",
     "translation": "Kod geçersiz"
   },
   {
-    "id": "model.compliance.is_valid.start_at.app_error",
+    "id": "model.Compliance().is_valid.start_at.app_error",
     "translation": "Başlangıç zamanı geçerli bir zaman olmalıdır"
   },
   {
-    "id": "model.compliance.is_valid.start_end_at.app_error",
+    "id": "model.Compliance().is_valid.start_end_at.app_error",
     "translation": "Bitiş, başlangıç zamanından büyük olmalıdır"
   },
   {

@@ -72,27 +72,27 @@ func (c *Compliance) JobName() string {
 func (c *Compliance) IsValid() *AppError {
 
 	if len(c.Id) != 26 {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if c.CreateAt == 0 {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(c.Desc) > 512 || len(c.Desc) == 0 {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.desc.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if c.StartAt == 0 {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.start_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.start_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if c.EndAt == 0 {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.end_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.end_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if c.EndAt <= c.StartAt {
-		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.start_end_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Compliance.IsValid", "model.Compliance().is_valid.start_end_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

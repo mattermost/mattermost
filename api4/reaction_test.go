@@ -244,7 +244,7 @@ func TestGetReactions(t *testing.T) {
 	var reactions []*model.Reaction
 
 	for _, userReaction := range userReactions {
-		reaction, err := th.App.Srv.Store.Reaction().Save(userReaction)
+		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
 		require.Nil(t, err)
 		reactions = append(reactions, reaction)
 	}
@@ -595,7 +595,7 @@ func TestGetBulkReactions(t *testing.T) {
 
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
-		reaction, err := th.App.Srv.Store.Reaction().Save(userReaction)
+		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
 		require.Nil(t, err)
 		reactions = append(reactions, reaction)
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions
