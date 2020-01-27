@@ -7,9 +7,9 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 type PgLayer struct {

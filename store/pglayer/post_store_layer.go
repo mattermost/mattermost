@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PgPostStore struct {
@@ -50,11 +50,7 @@ func (s *PgPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 
 	time := post.UpdateAt
 
-	if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
-		post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-		post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
-		post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
-		post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
+	if !post.IsJoinLeaveMessage() {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
@@ -68,12 +64,6 @@ func (s *PgPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	if len(post.RootId) > 0 {
 		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
-		}
-	} else {
-		if count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM Posts WHERE RootId = :Id", map[string]interface{}{"Id": post.Id}); err != nil {
-			mlog.Error(fmt.Sprintf("Error fetching post's thread: %v", err.Error()))
-		} else {
-			post.ReplyCount = count
 		}
 	}
 

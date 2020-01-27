@@ -264,7 +264,7 @@ func (db allChannelMembers) ToMapStringString() map[string]string {
 }
 
 // publicChannel is a subset of the metadata corresponding to public channels only.
-type publicChannel struct {
+type PublicChannel struct {
 	Id          string `json:"id"`
 	DeleteAt    int64  `json:"delete_at"`
 	TeamId      string `json:"team_id"`
@@ -315,7 +315,7 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablem.ColMap("Roles").SetMaxSize(64)
 		tablem.ColMap("NotifyProps").SetMaxSize(2000)
 
-		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
+		tablePublicChannels := db.AddTableWithName(PublicChannel{}, "PublicChannels").SetKeys(false, "Id")
 		tablePublicChannels.ColMap("Id").SetMaxSize(26)
 		tablePublicChannels.ColMap("TeamId").SetMaxSize(26)
 		tablePublicChannels.ColMap("DisplayName").SetMaxSize(64)
@@ -378,7 +378,7 @@ func (s SqlChannelStore) MigratePublicChannels() error {
 }
 
 func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, channel *model.Channel) error {
-	publicChannel := &publicChannel{
+	publicChannel := &PublicChannel{
 		Id:          channel.Id,
 		DeleteAt:    channel.DeleteAt,
 		TeamId:      channel.TeamId,

@@ -6,8 +6,8 @@ package pglayer
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 type PgPluginStore struct {

@@ -6,8 +6,8 @@ package pglayer
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 type PgSessionStore struct {

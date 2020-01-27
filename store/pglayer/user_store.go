@@ -10,9 +10,9 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 type PgUserStore struct {
