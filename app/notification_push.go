@@ -78,20 +78,27 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		return err
 	}
 
-	notification, parseError := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
-	if notification == nil || parseError != nil {
-		previousError := ""
-		if parseError != nil {
-			previousError = parseError.Error()
-		}
+	if msg == nil {
 		return model.NewAppError(
 			"pushNotification",
 			"api.push_notifications.message.parse.app_error",
 			nil,
-			previousError,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	notification, parseError := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+	if parseError != nil {
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			parseError.Error(),
 			http.StatusInternalServerError,
 		)
 	}
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
