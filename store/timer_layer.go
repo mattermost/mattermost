@@ -3645,6 +3645,22 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PluginStore.CompareAndDelete(keyVal, oldValue)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.CompareAndDelete", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
 	start := timemodule.Now()
 
@@ -4279,6 +4295,22 @@ func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppErr
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.Save", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PostStore.SaveMultiple(posts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultiple", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

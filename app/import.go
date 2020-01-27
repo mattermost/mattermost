@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -25,10 +26,46 @@ func stopOnError(err LineImportWorkerError) bool {
 }
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+	posts := []*PostImportData{}
+	directPosts := []*DirectPostImportData{}
 	for line := range lines {
-		if err := a.ImportLine(line.LineImportData, dryRun); err != nil {
-			errors <- LineImportWorkerError{err, line.LineNumber}
+		switch {
+		case line.LineImportData.Type == "post":
+			posts = append(posts, line.Post)
+			if line.Post == nil {
+				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+			}
+			if len(posts) >= 1000 {
+				fmt.Println("Importing post", len(posts))
+				a.ImportMultiplePosts(posts, dryRun)
+				posts = []*PostImportData{}
+			}
+		case line.LineImportData.Type == "direct_post":
+			directPosts = append(directPosts, line.DirectPost)
+			if line.DirectPost == nil {
+				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+			}
+			if len(directPosts) >= 1000 {
+				fmt.Println("NOT HERE RIGHT", len(directPosts))
+				fmt.Println("Importing direct post", len(directPosts))
+				a.ImportMultipleDirectPosts(directPosts, dryRun)
+				directPosts = []*DirectPostImportData{}
+			}
+		default:
+			if err := a.ImportLine(line.LineImportData, dryRun); err != nil {
+				errors <- LineImportWorkerError{err, line.LineNumber}
+			}
 		}
+	}
+
+	if len(posts) > 0 {
+		fmt.Println("Importing post", len(posts))
+		a.ImportMultiplePosts(posts, dryRun)
+	}
+	if len(directPosts) > 0 {
+		fmt.Println("HERE!", len(directPosts))
+		fmt.Println("Importing direct post", len(directPosts))
+		a.ImportMultipleDirectPosts(directPosts, dryRun)
 	}
 	wg.Done()
 }
@@ -156,21 +193,11 @@ func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
 		return a.ImportUser(line.User, dryRun)
-	case line.Type == "post":
-		if line.Post == nil {
-			return model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest)
-		}
-		return a.ImportPost(line.Post, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
 		return a.ImportDirectChannel(line.DirectChannel, dryRun)
-	case line.Type == "direct_post":
-		if line.DirectPost == nil {
-			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest)
-		}
-		return a.ImportDirectPost(line.DirectPost, dryRun)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)

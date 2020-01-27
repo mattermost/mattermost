@@ -208,6 +208,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
+	SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)

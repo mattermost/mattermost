@@ -717,6 +717,31 @@ func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// SaveMultiple provides a mock function with given fields: posts
+func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+		r1 = rf(posts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Search provides a mock function with given fields: teamId, userId, params
 func (_m *PostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
 	ret := _m.Called(teamId, userId, params)

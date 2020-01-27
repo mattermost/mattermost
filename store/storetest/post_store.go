@@ -18,6 +18,7 @@ import (
 )
 
 func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
+	t.Run("SaveMultiple", func(t *testing.T) { testPostStoreSaveMultiple(t, ss) })
 	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, ss) })
 	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
@@ -64,6 +65,55 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 
 	_, err = ss.Post().Save(&o1)
 	require.NotNil(t, err, "shouldn't be able to update from save")
+}
+
+func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
+	p1 := model.Post{}
+	p1.ChannelId = model.NewId()
+	p1.UserId = model.NewId()
+	p1.Message = "zz" + model.NewId() + "b"
+
+	p2 := model.Post{}
+	p2.ChannelId = model.NewId()
+	p2.UserId = model.NewId()
+	p2.Message = "zz" + model.NewId() + "b"
+
+	p3 := model.Post{}
+	p3.ChannelId = model.NewId()
+	p3.UserId = model.NewId()
+	p3.Message = "zz" + model.NewId() + "b"
+
+	p4 := model.Post{}
+	p4.ChannelId = model.NewId()
+	p4.UserId = model.NewId()
+	p4.Message = "zz" + model.NewId() + "b"
+
+	t.Run("Save correctly a new set of posts", func(t *testing.T) {
+		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		require.Nil(t, err)
+		for _, post := range newPosts {
+			storedPost, err := ss.Post().GetSingle(post.Id)
+			assert.Nil(t, err)
+			assert.Equal(t, post.ChannelId, storedPost.ChannelId)
+			assert.Equal(t, post.Message, storedPost.Message)
+			assert.Equal(t, post.UserId, storedPost.UserId)
+		}
+	})
+
+	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
+		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		require.NotNil(t, err)
+		require.Nil(t, newPosts)
+		storedPost, err := ss.Post().GetSingle(p3.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, p3.ChannelId, storedPost.ChannelId)
+		assert.Equal(t, p3.Message, storedPost.Message)
+		assert.Equal(t, p3.UserId, storedPost.UserId)
+
+		storedPost, err = ss.Post().GetSingle(p4.Id)
+		assert.NotNil(t, err)
+		assert.Nil(t, storedPost)
+	})
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {

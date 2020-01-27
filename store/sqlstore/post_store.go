@@ -30,6 +30,33 @@ type SqlPostStore struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
+func postSliceColumns() []string {
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+}
+
+func postToSlice(post *model.Post) []interface{} {
+	resultSlice := []interface{}{}
+	resultSlice = append(resultSlice, post.Id)
+	resultSlice = append(resultSlice, post.CreateAt)
+	resultSlice = append(resultSlice, post.UpdateAt)
+	resultSlice = append(resultSlice, post.EditAt)
+	resultSlice = append(resultSlice, post.DeleteAt)
+	resultSlice = append(resultSlice, post.IsPinned)
+	resultSlice = append(resultSlice, post.UserId)
+	resultSlice = append(resultSlice, post.ChannelId)
+	resultSlice = append(resultSlice, post.RootId)
+	resultSlice = append(resultSlice, post.ParentId)
+	resultSlice = append(resultSlice, post.OriginalId)
+	resultSlice = append(resultSlice, post.Message)
+	resultSlice = append(resultSlice, post.Type)
+	resultSlice = append(resultSlice, model.StringInterfaceToJson(post.Props))
+	resultSlice = append(resultSlice, post.Hashtags)
+	resultSlice = append(resultSlice, model.ArrayToJson(post.Filenames))
+	resultSlice = append(resultSlice, model.ArrayToJson(post.FileIds))
+	resultSlice = append(resultSlice, post.HasReactions)
+	return resultSlice
+}
+
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
@@ -72,42 +99,85 @@ func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
-	if len(post.Id) > 0 {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	channelNewPosts := make(map[string]int)
+	maxDateNewPosts := make(map[string]int64)
+	rootIds := make(map[string]int)
+	maxDateRootIds := make(map[string]int64)
+	for _, post := range posts {
+		if len(post.Id) > 0 {
+			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		}
+		post.PreSave()
+		maxPostSize := s.GetMaxPostSize()
+		if err := post.IsValid(maxPostSize); err != nil {
+			return nil, err
+		}
+
+		currentChannelCount, ok := channelNewPosts[post.ChannelId]
+		if !ok {
+			if post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = 0
+			} else {
+				channelNewPosts[post.ChannelId] = 1
+			}
+			maxDateNewPosts[post.ChannelId] = post.CreateAt
+		} else {
+			if !post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = currentChannelCount + 1
+			}
+			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
+				maxDateNewPosts[post.ChannelId] = post.CreateAt
+			}
+		}
+
+		if len(post.RootId) > 0 {
+			currentRootCount, ok := rootIds[post.RootId]
+			if !ok {
+				rootIds[post.RootId] = 1
+				maxDateRootIds[post.RootId] = post.CreateAt
+			} else {
+				rootIds[post.RootId] = currentRootCount + 1
+				if post.CreateAt > maxDateRootIds[post.RootId] {
+					maxDateRootIds[post.RootId] = post.CreateAt
+				}
+			}
+		}
 	}
 
-	maxPostSize := s.GetMaxPostSize()
-
-	post.PreSave()
-	if err := post.IsValid(maxPostSize); err != nil {
-		return nil, err
+	query := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+	for _, post := range posts {
+		query = query.Values(postToSlice(post)...)
+	}
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error2", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := s.GetMaster().Insert(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error3", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	time := post.UpdateAt
-
-	if !post.IsJoinLeaveMessage() {
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
+	for channelId, count := range channelNewPosts {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
-	} else {
-		// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
-			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
-		}
 	}
 
-	if len(post.RootId) > 0 {
-		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
+	for rootId, _ := range rootIds {
+		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
+	return posts, nil
+}
 
-	return post, nil
+func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.SaveMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
