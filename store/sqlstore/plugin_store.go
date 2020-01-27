@@ -42,23 +42,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		return nil, err
 	}
 
-	if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
-		// separate update and insert queries to accomplish our upsert
-		if rowsAffected, err := ps.GetMaster().Update(kv); err != nil {
-			return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if rowsAffected == 0 {
-			// No rows were affected by the update, so let's try an insert
-			if err := ps.GetMaster().Insert(kv); err != nil {
-				// If the error is from unique constraints violation, it's the result of a
-				// valid race and we can report success. Otherwise we have a real error and
-				// need to return it
-				if !IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey"}) {
-					return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				}
-			}
-		}
-	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if _, err := ps.GetMaster().Exec("INSERT INTO PluginKeyValueStore (PluginId, PKey, PValue, ExpireAt) VALUES(:PluginId, :Key, :Value, :ExpireAt) ON DUPLICATE KEY UPDATE PValue = :Value, ExpireAt = :ExpireAt", map[string]interface{}{"PluginId": kv.PluginId, "Key": kv.Key, "Value": kv.Value, "ExpireAt": kv.ExpireAt}); err != nil {
 			return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

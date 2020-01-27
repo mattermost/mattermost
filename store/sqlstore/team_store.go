@@ -387,10 +387,6 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.App
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName"
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName"
-	}
-
 	var data []*model.Team
 	if _, err := s.GetReplica().Select(&data, query); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -401,10 +397,6 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError
 
 func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-	}
 
 	var data []*model.Team
 	if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
@@ -417,10 +409,6 @@ func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mod
 func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-	}
-
 	var data []*model.Team
 	if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -432,10 +420,6 @@ func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mo
 func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName"
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName"
-	}
-
 	var data []*model.Team
 	if _, err := s.GetReplica().Select(&data, query); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -446,10 +430,6 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-	}
 
 	var teams []*model.Team
 	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
@@ -467,12 +447,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 }
 
 func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
-
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 1", map[string]interface{}{})
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		c, err = s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = true", map[string]interface{}{})
-	}
 
 	if err != nil {
 		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsPublicTeamCount", "store.sql_team.analytics_public_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -483,10 +458,6 @@ func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 
 func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 0", map[string]interface{}{})
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		c, err = s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = false", map[string]interface{}{})
-	}
 
 	if err != nil {
 		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsPrivateTeamCount", "store.sql_team.analytics_private_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)

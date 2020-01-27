@@ -36,28 +36,6 @@ func (s PgPreferenceStore) Save(preferences *model.Preferences) *model.AppError 
 	return nil
 }
 
-func (s PgPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
-	if _, err := transaction.Update(preference); err != nil {
-		return model.NewAppError("SqlPreferenceStore.update", "store.sql_preference.update.app_error", nil,
-			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
-func (s PgPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
-	if err := transaction.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
-			return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
-				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusBadRequest)
-		}
-		return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.save.app_error", nil,
-			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
 func (s PgPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
 	preference.PreUpdate()
 
@@ -90,4 +68,26 @@ func (s PgPreferenceStore) save(transaction *gorp.Transaction, preference *model
 		return s.update(transaction, preference)
 	}
 	return s.insert(transaction, preference)
+}
+
+func (s PgPreferenceStore) insert(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+	if err := transaction.Insert(preference); err != nil {
+		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
+			return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
+				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusBadRequest)
+		}
+		return model.NewAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.save.app_error", nil,
+			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s PgPreferenceStore) update(transaction *gorp.Transaction, preference *model.Preference) *model.AppError {
+	if _, err := transaction.Update(preference); err != nil {
+		return model.NewAppError("SqlPreferenceStore.update", "store.sql_preference.update.app_error", nil,
+			"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }

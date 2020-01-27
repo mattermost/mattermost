@@ -160,23 +160,11 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query =
-			`DELETE FROM ChannelMemberHistory
-				 WHERE ctid IN (
-					SELECT ctid FROM ChannelMemberHistory
-					WHERE LeaveTime IS NOT NULL
-					AND LeaveTime <= :EndTime
-					LIMIT :Limit
-				);`
-	} else {
-		query =
-			`DELETE FROM ChannelMemberHistory
-				 WHERE LeaveTime IS NOT NULL
-				 AND LeaveTime <= :EndTime
-				 LIMIT :Limit`
-	}
+	query :=
+		`DELETE FROM ChannelMemberHistory
+				WHERE LeaveTime IS NOT NULL
+				AND LeaveTime <= :EndTime
+				LIMIT :Limit`
 
 	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
 	sqlResult, err := s.GetMaster().Exec(query, params)

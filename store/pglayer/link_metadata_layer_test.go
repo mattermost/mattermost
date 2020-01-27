@@ -9,6 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
-func TestAuditStore(t *testing.T) {
-	StoreTest(t, storetest.TestAuditStore)
+func TestLinkMetadataStore(t *testing.T) {
+	StoreTest(t, storetest.TestLinkMetadataStore)
 }

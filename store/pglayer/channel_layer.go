@@ -134,21 +134,6 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 	}
 }
 
-var spaceFulltextSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	":",
-	"*",
-	"\"",
-	"!",
-	"@",
-}
-
 func (s PgChannelStore) CreateIndexesIfNotExists() {
 	s.rootStore.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
 	s.rootStore.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
@@ -204,7 +189,6 @@ func (s PgChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, chan
 
 // Save writes the (non-direct) channel channel to the database.
 func (s PgChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
-
 	if channel.DeleteAt != 0 {
 		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -333,9 +317,6 @@ func (s PgChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mod
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
-			if dupChannel.DeleteAt > 0 {
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-			}
 			return &dupChannel, model.NewAppError("SqlChannelStore.Save", store.CHANNEL_EXISTS_ERROR, nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
 		}
 		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.save.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -452,19 +433,8 @@ func (s PgChannelStore) saveMemberT(transaction *gorp.Transaction, member *model
 }
 
 func (s PgChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
-	props := make(map[string]interface{})
-
-	updateIdQuery := ""
-	for index, channelId := range channelIds {
-		if len(updateIdQuery) > 0 {
-			updateIdQuery += " OR "
-		}
-
-		props["channelId"+strconv.Itoa(index)] = channelId
-		updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
-	}
-
-	selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+	keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	props["UserId"] = userId
 
 	var lastPostAtTimes []struct {
 		Id            string
@@ -472,52 +442,44 @@ func (s PgChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (
 		TotalMsgCount int64
 	}
 
-	selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
+	query = `WITH c AS ( ` + query + `),
+	updated AS (
+	UPDATE
+		ChannelMembers cm
+	SET
+		MentionCount = 0,
+		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+	FROM c
+		WHERE cm.UserId = :UserId
+		AND c.Id=cm.ChannelId
+)
+	SELECT Id, LastPostAt FROM c`
 
-	if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
-		var extra string
+	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
+	if err != nil || len(lastPostAtTimes) == 0 {
 		status := http.StatusInternalServerError
+		var extra string
 		if err == nil {
 			status = http.StatusBadRequest
 			extra = "No channels found"
 		} else {
 			extra = err.Error()
 		}
-		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
+
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt",
+			"store.sql_channel.update_last_viewed_at.app_error",
+			nil,
+			"channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra,
+			status)
 	}
 
 	times := map[string]int64{}
-	msgCountQuery := ""
-	lastViewedQuery := ""
-	for index, t := range lastPostAtTimes {
+	for _, t := range lastPostAtTimes {
 		times[t.Id] = t.LastPostAt
-
-		props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
-		msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
-
-		props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
-		lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
-
-		props["channelId"+strconv.Itoa(index)] = t.Id
 	}
-
-	updateQuery := `UPDATE
-		ChannelMembers
-	SET
-		MentionCount = 0,
-		MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
-		LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
-		LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
-	WHERE
-			UserId = :UserId
-			AND (` + updateIdQuery + `)`
-
-	props["UserId"] = userId
-
-	if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-	}
-
 	return times, nil
 }
 
@@ -800,15 +762,19 @@ func (s PgChannelStore) channelSearchQuery(term string, opts store.ChannelSearch
 	}
 
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-	if len(likeTerm) > 0 {
-		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
+	if likeTerm != "" {
+		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "?")
 		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
-		query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
+		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "?")
+		query = query.Where(sq.Or{
+			sq.Expr(likeClause, likeTerm, likeTerm, likeTerm), // Keep the number of likeTerms same as the number
+			// of columns (c.Name, c.DisplayName, c.Purpose)
+			sq.Expr(fulltextClause, fulltextTerm),
+		})
 	}
 
 	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
 	if len(opts.NotAssociatedToGroup) > 0 {
@@ -945,7 +911,7 @@ func (s PgChannelStore) performSearch(searchQuery string, term string, parameter
 	return &channels, nil
 }
 
-func (s PgChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) (string, map[string]interface{}) {
+func (s PgChannelStore) getSearchGroupChannelsQuery(userId, term string) (string, map[string]interface{}) {
 	baseLikeClause := "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE %s"
 	query := `
 		SELECT
@@ -1000,7 +966,7 @@ func (s PgChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostg
 }
 
 func (s PgChannelStore) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
-	queryString, args := s.getSearchGroupChannelsQuery(userId, term, true)
+	queryString, args := s.getSearchGroupChannelsQuery(userId, term)
 
 	var groupChannels model.ChannelList
 	if _, err := s.GetReplica().Select(&groupChannels, queryString, args); err != nil {

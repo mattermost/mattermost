@@ -101,25 +101,6 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 			return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		return nil
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
-		count, err := transaction.SelectInt(
-			`SELECT
-				count(0)
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, params)
-		if err != nil {
-			return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		if count == 1 {
-			return s.update(transaction, preference)
-		}
-		return s.insert(transaction, preference)
 	}
 	return model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
 }

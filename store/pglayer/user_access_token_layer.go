@@ -16,7 +16,6 @@ type PgUserAccessTokenStore struct {
 }
 
 func (s PgUserAccessTokenStore) deleteTokensById(transaction *gorp.Transaction, tokenId string) *model.AppError {
-
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
 		return model.NewAppError("SqlUserAccessTokenStore.deleteTokensById", "store.sql_user_access_token.delete.app_error", nil, "", http.StatusInternalServerError)
 	}

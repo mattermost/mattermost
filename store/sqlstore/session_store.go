@@ -239,12 +239,7 @@ func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
 func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	mlog.Debug("Cleaning up session store.")
 
-	var query string
-	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
-	} else {
-		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
-	}
+	query := "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
 
 	var rowsAffected int64 = 1
 

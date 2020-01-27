@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -443,9 +442,6 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-	}
 	var query string
 	var posts []*model.Post
 	// union of IDs and then join to get full posts is faster in mysql
@@ -477,33 +473,6 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt DESC`
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-			(SELECT
-                       *
-               FROM
-                       Posts p1
-               WHERE
-                       (UpdateAt > :Time
-                               AND ChannelId = :ChannelId)
-                       LIMIT 1000)
-               UNION
-                       (SELECT
-                           *
-                       FROM
-                           Posts p2
-                       WHERE
-                           Id
-                       IN
-                           (SELECT * FROM (SELECT
-                               RootId
-                           FROM
-                               Posts
-                           WHERE
-                               UpdateAt > :Time
-                                               AND ChannelId = :ChannelId
-                               LIMIT 1000) temp_tab))
-               ORDER BY CreateAt DESC`
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": channelId, "Time": time})
 
@@ -697,10 +666,6 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) ([]
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		return s.getParentsPostsPostgreSQL(channelId, offset, limit)
-	}
-
 	// query parent Ids first
 	var roots []*struct {
 		RootId string
@@ -748,38 +713,6 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) 
 				AND DeleteAt = 0
 		ORDER BY CreateAt`,
 		params)
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
-	}
-	return posts, nil
-}
-
-func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
-	var posts []*model.Post
-	_, err := s.GetReplica().Select(&posts,
-		`SELECT q2.*
-        FROM
-            Posts q2
-                INNER JOIN
-            (SELECT DISTINCT
-                q3.RootId
-            FROM
-                (SELECT
-                    RootId
-                FROM
-                    Posts
-                WHERE
-                    ChannelId = :ChannelId1
-                        AND DeleteAt = 0
-                ORDER BY CreateAt DESC
-                LIMIT :Limit OFFSET :Offset) q3
-            WHERE q3.RootId != '') q1
-            ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
-        WHERE
-            ChannelId = :ChannelId2
-                AND DeleteAt = 0
-        ORDER BY CreateAt`,
-		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
 	}
@@ -1000,26 +933,6 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// Parse text for wildcards
-		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
-			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
-			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
-		}
-
-		excludeClause := ""
-		if excludedTerms != "" {
-			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
-		}
-
-		if params.OrTerms {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
-		} else {
-			queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
-		}
-
-		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
@@ -1084,24 +997,6 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		ORDER BY Name DESC
 		LIMIT 30`
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query =
-			`SELECT
-				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-			FROM Posts`
-
-		if len(teamId) > 0 {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-			ORDER BY Name DESC
-			LIMIT 30`
-	}
-
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
 
@@ -1117,7 +1012,6 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 }
 
 func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
-
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -1139,29 +1033,6 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
 		ORDER BY Name DESC
 		LIMIT 30`
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query =
-			`SELECT
-				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-			FROM Posts`
-
-		if options.BotsOnly {
-			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
-		}
-
-		if len(options.TeamId) > 0 {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt <= :EndTime
-			            AND Posts.CreateAt >= :StartTime
-			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-			ORDER BY Name DESC
-			LIMIT 30`
-	}
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
@@ -1275,12 +1146,7 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	var query string
-	if s.DriverName() == "postgres" {
-		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
-	} else {
-		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
-	}
+	query := "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {
@@ -1307,21 +1173,7 @@ func (s *SqlPostStore) GetOldest() (*model.Post, *model.AppError) {
 func (s *SqlPostStore) determineMaxPostSize() int {
 	var maxPostSizeBytes int32
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// The Post.Message column in Postgres has historically been VARCHAR(4000), but
-		// may be manually enlarged to support longer posts.
-		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-			SELECT
-				COALESCE(character_maximum_length, 0)
-			FROM
-				information_schema.columns
-			WHERE
-				table_name = 'posts'
-			AND	column_name = 'message'
-		`); err != nil {
-			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
-		}
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
 		// limit of 65535.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `

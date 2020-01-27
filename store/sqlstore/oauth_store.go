@@ -294,11 +294,8 @@ func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string
 }
 
 func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, clientId string) *model.AppError {
-
 	query := ""
-	if as.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
-	} else if as.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if as.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id"
 	}
 

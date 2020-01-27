@@ -17,8 +17,7 @@ type PgSessionStore struct {
 func (me PgSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	mlog.Debug("Cleaning up session store.")
 
-	var query string
-	query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
+	query := "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
 
 	var rowsAffected int64 = 1
 

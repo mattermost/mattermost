@@ -256,12 +256,7 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
 }
 
 func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	var query string
-	if fs.DriverName() == "postgres" {
-		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
-	} else {
-		query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
-	}
+	query := "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
 
 	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {

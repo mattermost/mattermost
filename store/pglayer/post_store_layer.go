@@ -12,24 +12,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PgPostStore struct {
 	sqlstore.SqlPostStore
-}
-
-var specialSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	"@",
-	":",
 }
 
 func (s *PgPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
@@ -118,172 +107,151 @@ func (s *PgPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	return post, nil
 }
 
-func (s *PgPostStore) GetMaxPostSize() int {
-	s.MaxPostSizeOnce.Do(func() {
-		s.MaxPostSizeCached = s.determineMaxPostSize()
-	})
-	return s.MaxPostSizeCached
+func (s *PgPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+	if limit > 1000 {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
+	}
+
+	rpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getRootPosts(channelId, offset, limit)
+		rpc <- store.StoreResult{Data: posts, Err: err}
+		close(rpc)
+	}()
+	cpc := make(chan store.StoreResult, 1)
+	go func() {
+		posts, err := s.getParentsPosts(channelId, offset, limit)
+		cpc <- store.StoreResult{Data: posts, Err: err}
+		close(cpc)
+	}()
+
+	var err *model.AppError
+	list := model.NewPostList()
+
+	rpr := <-rpc
+	if rpr.Err != nil {
+		return nil, rpr.Err
+	}
+
+	cpr := <-cpc
+	if cpr.Err != nil {
+		return nil, cpr.Err
+	}
+
+	posts := rpr.Data.([]*model.Post)
+	parents := cpr.Data.([]*model.Post)
+
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+
+	list.MakeNonNil()
+
+	return list, err
 }
 
-func (s *PgPostStore) determineMaxPostSize() int {
-	var maxPostSizeBytes int32
-
-	// The Post.Message column in Postgres has historically been VARCHAR(4000), but
-	// may be manually enlarged to support longer posts.
-	if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-		SELECT
-			COALESCE(character_maximum_length, 0)
-		FROM
-			information_schema.columns
-		WHERE
-			table_name = 'posts'
-		AND	column_name = 'message'
-	`); err != nil {
-		mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
-	}
-
-	// Assume a worst-case representation of four bytes per rune.
-	maxPostSize := int(maxPostSizeBytes) / 4
-
-	// To maintain backwards compatibility, don't yield a maximum post
-	// size smaller than the previous limit, even though it wasn't
-	// actually possible to store 4000 runes in all cases.
-	if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
-		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
-	}
-
-	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
-
-	return maxPostSize
-}
-
-func (s *PgPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	query := "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
-
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
-	if err != nil {
-		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-	}
-
-	rowsAffected, err := sqlResult.RowsAffected()
-	if err != nil {
-		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-	}
-	return rowsAffected, nil
-}
-
-func (s *PgPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
-	query :=
-		`SELECT
-			TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-		FROM Posts`
-
-	if options.BotsOnly {
-		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
-	}
-
-	if len(options.TeamId) > 0 {
-		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
-	} else {
-		query += " WHERE"
-	}
-
-	query += ` Posts.CreateAt <= :EndTime
-					AND Posts.CreateAt >= :StartTime
-		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-		ORDER BY Name DESC
-		LIMIT 30`
-
-	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
-	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
-	if options.YesterdayOnly {
-		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
-	}
-
-	var rows model.AnalyticsRows
-	_, err := s.GetReplica().Select(
-		&rows,
-		query,
-		map[string]interface{}{"TeamId": options.TeamId, "StartTime": start, "EndTime": end})
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return rows, nil
-}
-
-func (s *PgPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
-	query :=
-		`SELECT
-			TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-		FROM Posts`
-
-	if len(teamId) > 0 {
-		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
-	} else {
-		query += " WHERE"
-	}
-
-	query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-		ORDER BY Name DESC
-		LIMIT 30`
-
-	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
-	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
-
-	var rows model.AnalyticsRows
-	_, err := s.GetReplica().Select(
-		&rows,
-		query,
-		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return rows, nil
-}
-
-func (s *PgPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
-	if len(users) == 0 {
-		return "", queryParams
-	}
-	clauseSlice := []string{}
-	for i, user := range users {
-		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
-		clauseSlice = append(clauseSlice, ":"+paramName)
-		queryParams[paramName] = user
-	}
-	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Username NOT IN (" + clause + ")", queryParams
-	}
-	return "AND Username IN (" + clause + ")", queryParams
-}
-
-func (s *PgPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
-	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
-		return "", queryParams
-	}
-
-	filterQuery := `
-		AND UserId IN (
-			SELECT
-				Id
+func (s *PgPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+	var posts []*model.Post
+	query := `
+		(SELECT
+					*
 			FROM
-				Users,
-				TeamMembers
+					Posts p1
 			WHERE
-				TeamMembers.TeamId = :TeamId
-				AND Users.Id = TeamMembers.UserId
-				FROM_USER_FILTER
-				EXCLUDED_USER_FILTER)`
+					(UpdateAt > :Time
+							AND ChannelId = :ChannelId)
+					LIMIT 1000)
+			UNION
+					(SELECT
+						*
+					FROM
+						Posts p2
+					WHERE
+						Id
+					IN
+						(SELECT * FROM (SELECT
+							RootId
+						FROM
+							Posts
+						WHERE
+							UpdateAt > :Time
+											AND ChannelId = :ChannelId
+							LIMIT 1000) temp_tab))
+			ORDER BY CreateAt DESC`
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": channelId, "Time": time})
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
-	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
 
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
-	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
+	list := model.NewPostList()
 
-	return filterQuery, queryParams
+	for _, p := range posts {
+		list.AddPost(p)
+		if p.UpdateAt > time {
+			list.AddOrder(p.Id)
+		}
+	}
+
+	return list, nil
+}
+
+func (s *PgPostStore) getRootPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
+}
+
+func (s *PgPostStore) getParentsPosts(channelId string, offset int, limit int) ([]*model.Post, *model.AppError) {
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT q2.*
+        FROM
+            Posts q2
+                INNER JOIN
+            (SELECT DISTINCT
+                q3.RootId
+            FROM
+                (SELECT
+                    RootId
+                FROM
+                    Posts
+                WHERE
+                    ChannelId = :ChannelId1
+                        AND DeleteAt = 0
+                ORDER BY CreateAt DESC
+                LIMIT :Limit OFFSET :Offset) q3
+            WHERE q3.RootId != '') q1
+            ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+        WHERE
+            ChannelId = :ChannelId2
+                AND DeleteAt = 0
+        ORDER BY CreateAt`,
+		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+" err="+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
+}
+
+var specialSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	"@",
+	":",
 }
 
 func (s *PgPostStore) buildCreateDateFilterClause(params *model.SearchParams, queryParams map[string]interface{}) (string, map[string]interface{}) {
@@ -358,6 +326,50 @@ func (s *PgPostStore) buildSearchChannelFilterClause(channels []string, paramPre
 	return "AND Name IN (" + clause + ")", queryParams
 }
 
+func (s *PgPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if len(users) == 0 {
+		return "", queryParams
+	}
+	clauseSlice := []string{}
+	for i, user := range users {
+		paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
+		clauseSlice = append(clauseSlice, ":"+paramName)
+		queryParams[paramName] = user
+	}
+	clause := strings.Join(clauseSlice, ", ")
+	if exclusion {
+		return "AND Username NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Username IN (" + clause + ")", queryParams
+}
+
+func (s *PgPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
+		return "", queryParams
+	}
+
+	filterQuery := `
+		AND UserId IN (
+			SELECT
+				Id
+			FROM
+				Users,
+				TeamMembers
+			WHERE
+				TeamMembers.TeamId = :TeamId
+				AND Users.Id = TeamMembers.UserId
+				FROM_USER_FILTER
+				EXCLUDED_USER_FILTER)`
+
+	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
+	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
+
+	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
+	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
+
+	return filterQuery, queryParams
+}
+
 func (s *PgPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
 	queryParams := map[string]interface{}{
 		"TeamId": teamId,
@@ -386,9 +398,9 @@ func (s *PgPostStore) Search(teamId string, userId string, params *model.SearchP
 
 	searchQuery := `
 			SELECT
-				* ,(SELECT COUNT(Posts.Id) FROM Posts WHERE q2.RootId = '' AND Posts.RootId = q2.Id AND Posts.DeleteAt = 0) as ReplyCount
+				*
 			FROM
-				Posts q2
+				Posts
 			WHERE
 				DeleteAt = 0
 				AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
@@ -490,4 +502,128 @@ func (s *PgPostStore) Search(teamId string, userId string, params *model.SearchP
 	}
 	list.MakeNonNil()
 	return list, nil
+}
+
+func (s *PgPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+	query :=
+		`SELECT
+			TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
+		FROM Posts`
+
+	if len(teamId) > 0 {
+		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+	} else {
+		query += " WHERE"
+	}
+
+	query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
+		ORDER BY Name DESC
+		LIMIT 30`
+
+	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+
+	var rows model.AnalyticsRows
+	_, err := s.GetReplica().Select(
+		&rows,
+		query,
+		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return rows, nil
+}
+
+func (s *PgPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
+	query :=
+		`SELECT
+			TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
+		FROM Posts`
+
+	if options.BotsOnly {
+		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+	}
+
+	if len(options.TeamId) > 0 {
+		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
+	} else {
+		query += " WHERE"
+	}
+
+	query += ` Posts.CreateAt <= :EndTime
+					AND Posts.CreateAt >= :StartTime
+		GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
+		ORDER BY Name DESC
+		LIMIT 30`
+
+	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	if options.YesterdayOnly {
+		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
+	}
+
+	var rows model.AnalyticsRows
+	_, err := s.GetReplica().Select(
+		&rows,
+		query,
+		map[string]interface{}{"TeamId": options.TeamId, "StartTime": start, "EndTime": end})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return rows, nil
+}
+
+func (s *PgPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	query := "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
+}
+
+func (s *PgPostStore) determineMaxPostSize() int {
+	var maxPostSizeBytes int32
+
+	// The Post.Message column in Postgres has historically been VARCHAR(4000), but
+	// may be manually enlarged to support longer posts.
+	if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
+		SELECT
+			COALESCE(character_maximum_length, 0)
+		FROM
+			information_schema.columns
+		WHERE
+			table_name = 'posts'
+		AND	column_name = 'message'
+	`); err != nil {
+		mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
+	}
+
+	// Assume a worst-case representation of four bytes per rune.
+	maxPostSize := int(maxPostSizeBytes) / 4
+
+	// To maintain backwards compatibility, don't yield a maximum post
+	// size smaller than the previous limit, even though it wasn't
+	// actually possible to store 4000 runes in all cases.
+	if maxPostSize < model.POST_MESSAGE_MAX_RUNES_V1 {
+		maxPostSize = model.POST_MESSAGE_MAX_RUNES_V1
+	}
+
+	mlog.Info("Post.Message has size restrictions", mlog.Int("max_characters", maxPostSize), mlog.Int32("max_bytes", maxPostSizeBytes))
+
+	return maxPostSize
+}
+
+func (s *PgPostStore) GetMaxPostSize() int {
+	s.MaxPostSizeOnce.Do(func() {
+		s.MaxPostSizeCached = s.determineMaxPostSize()
+	})
+	return s.MaxPostSizeCached
 }

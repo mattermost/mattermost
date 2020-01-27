@@ -20,18 +20,31 @@ type PgUserStore struct {
 	rootStore *PgLayer
 }
 
+var spaceFulltextSearchChar = []string{
+	"<",
+	">",
+	"+",
+	"-",
+	"(",
+	")",
+	"~",
+	":",
+	"*",
+	"\"",
+	"!",
+	"@",
+}
+
 func (us PgUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
-
 	us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
 	us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
 	us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
 	us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
 	us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
-
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(sqlstore.USER_SEARCH_TYPE_ALL, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(sqlstore.USER_SEARCH_TYPE_ALL_NO_FULL_NAME, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(sqlstore.USER_SEARCH_TYPE_NAMES, ", "))
@@ -45,7 +58,7 @@ func (us PgUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.Us
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, true)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -77,7 +90,7 @@ func (us PgUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User,
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, true)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -116,7 +129,7 @@ func (us PgUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, true)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -139,7 +152,7 @@ func (us PgUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*
 	return users, nil
 }
 
-func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
+func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []interface{}{}
@@ -242,16 +255,9 @@ func (us PgUserStore) GetProfileByIds(userIds []string, options *store.UserGetBy
 	}
 
 	users := []*model.User{}
-	remainingUserIds := make([]string, 0)
-	remainingUserIds = userIds
-
-	if len(remainingUserIds) == 0 {
-		return users, nil
-	}
-
 	query := us.UsersQuery.
 		Where(map[string]interface{}{
-			"u.Id": remainingUserIds,
+			"u.Id": userIds,
 		}).
 		OrderBy("u.Username ASC")
 
@@ -585,14 +591,14 @@ func (us PgUserStore) performSearch(query sq.SelectBuilder, term string, options
 		}
 	}
 
-	query = applyRoleFilter(query, options.Role, true)
+	query = applyRoleFilter(query, options.Role)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")
 	}
 
 	if strings.TrimSpace(term) != "" {
-		query = generateSearchQuery(query, strings.Fields(term), searchType, true)
+		query = generateSearchQuery(query, strings.Fields(term), searchType)
 	}
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
@@ -614,10 +620,11 @@ func (us PgUserStore) performSearch(query sq.SelectBuilder, term string, options
 	return users, nil
 }
 
-func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.SelectBuilder {
+func applyRoleFilter(query sq.SelectBuilder, role string) sq.SelectBuilder {
 	if role == "" {
 		return query
 	}
+
 	roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "\\"))
 	return query.Where("u.Roles LIKE LOWER(?)", roleParam)
 }

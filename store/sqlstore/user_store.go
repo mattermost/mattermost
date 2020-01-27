@@ -81,15 +81,6 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
-
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		us.CreateIndexIfNotExists("idx_users_email_lower_textpattern", "Users", "lower(Email) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_username_lower_textpattern", "Users", "lower(Username) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_nickname_lower_textpattern", "Users", "lower(Nickname) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_firstname_lower_textpattern", "Users", "lower(FirstName) text_pattern_ops")
-		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
-	}
-
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL_NO_FULL_NAME, ", "))
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES, ", "))
@@ -386,14 +377,13 @@ func (us SqlUserStore) GetEtagForAllProfiles() string {
 }
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.UsersQuery.
 		OrderBy("u.Username ASC").
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -416,14 +406,9 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 	return users, nil
 }
 
-func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.SelectBuilder {
+func applyRoleFilter(query sq.SelectBuilder, role string) sq.SelectBuilder {
 	if role == "" {
 		return query
-	}
-
-	if isPostgreSQL {
-		roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "\\"))
-		return query.Where("u.Roles LIKE LOWER(?)", roleParam)
 	}
 
 	roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "*"))
@@ -488,7 +473,6 @@ func (us SqlUserStore) GetEtagForProfiles(teamId string) string {
 }
 
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.UsersQuery.
 		Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
 		Where("tm.TeamId = ?", options.InTeamId).
@@ -497,7 +481,7 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -640,7 +624,6 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 }
 
 func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.UsersQuery.
 		Where(`(
 			SELECT
@@ -656,7 +639,7 @@ func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
-	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -1031,10 +1014,6 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
 
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = query.PlaceholderFormat(sq.Dollar)
-	}
-
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return int64(0), model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1190,16 +1169,12 @@ var spaceFulltextSearchChar = []string{
 	"@",
 }
 
-func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool) sq.SelectBuilder {
+func generateSearchQuery(query sq.SelectBuilder, terms []string, fields []string) sq.SelectBuilder {
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []interface{}{}
 		for _, field := range fields {
-			if isPostgreSQL {
-				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(?) escape '*' ", field))
-			} else {
-				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
-			}
+			searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
 			termArgs = append(termArgs, fmt.Sprintf("%s%%", strings.TrimLeft(term, "@")))
 		}
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
@@ -1226,16 +1201,14 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		}
 	}
 
-	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-
-	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyRoleFilter(query, options.Role)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")
 	}
 
 	if strings.TrimSpace(term) != "" {
-		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
+		query = generateSearchQuery(query, strings.Fields(term), searchType)
 	}
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)

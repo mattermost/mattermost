@@ -68,11 +68,8 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) *model.AppError {
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.Transaction, tokenId string) *model.AppError {
-
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
 	}
 
@@ -84,7 +81,6 @@ func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.T
 }
 
 func (s SqlUserAccessTokenStore) deleteTokensById(transaction *gorp.Transaction, tokenId string) *model.AppError {
-
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
 		return model.NewAppError("SqlUserAccessTokenStore.deleteTokensById", "store.sql_user_access_token.delete.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -111,9 +107,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) *model.AppError
 
 func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp.Transaction, userId string) *model.AppError {
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = :UserId"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.UserId = :UserId"
 	}
 
@@ -223,9 +217,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) *model.AppEr
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *gorp.Transaction, tokenId string) *model.AppError {
 	query := ""
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id = :Id"
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN UserAccessTokens o ON o.Token = s.Token WHERE o.Id = :Id"
 	}
 

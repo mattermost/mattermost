@@ -148,12 +148,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppEr
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	var query string
-	if s.DriverName() == "postgres" {
-		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
-	} else {
-		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
-	}
+	query := "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {

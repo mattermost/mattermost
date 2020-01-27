@@ -23,6 +23,7 @@ func (s PgChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit i
 				AND LeaveTime <= :EndTime
 				LIMIT :Limit
 			);`
+
 	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
 	sqlResult, err := s.GetMaster().Exec(query, params)
 	if err != nil {

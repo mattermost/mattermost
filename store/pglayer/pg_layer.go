@@ -14,10 +14,12 @@ import (
 
 type PgLayer struct {
 	sqlstore.SqlSupplier
-	auditStore                PgAuditStore
 	channelMemberHistoryStore PgChannelMemberHistoryStore
 	channelStore              PgChannelStore
+	commandStore              PgCommandStore
 	fileInfoStore             PgFileInfoStore
+	groupStore                PgGroupStore
+	linkMetadataStore         PgLinkMetadataStore
 	oAuthStore                PgOAuthStore
 	pluginStore               PgPluginStore
 	sessionStore              PgSessionStore
@@ -32,10 +34,12 @@ type PgLayer struct {
 func NewPgLayer(baseStore sqlstore.SqlSupplier) *PgLayer {
 	pgLayer := &PgLayer{SqlSupplier: baseStore}
 
-	pgLayer.auditStore = PgAuditStore{SqlAuditStore: *baseStore.Audit().(*sqlstore.SqlAuditStore)}
 	pgLayer.channelMemberHistoryStore = PgChannelMemberHistoryStore{SqlChannelMemberHistoryStore: *baseStore.ChannelMemberHistory().(*sqlstore.SqlChannelMemberHistoryStore)}
 	pgLayer.channelStore = PgChannelStore{SqlChannelStore: *baseStore.Channel().(*sqlstore.SqlChannelStore), rootStore: pgLayer}
+	pgLayer.commandStore = PgCommandStore{SqlCommandStore: *baseStore.Command().(*sqlstore.SqlCommandStore)}
 	pgLayer.fileInfoStore = PgFileInfoStore{SqlFileInfoStore: *baseStore.FileInfo().(*sqlstore.SqlFileInfoStore)}
+	pgLayer.groupStore = PgGroupStore{SqlGroupStore: baseStore.Group().(*sqlstore.SqlGroupStore), rootStore: pgLayer}
+	pgLayer.linkMetadataStore = PgLinkMetadataStore{SqlLinkMetadataStore: *baseStore.LinkMetadata().(*sqlstore.SqlLinkMetadataStore)}
 	pgLayer.oAuthStore = PgOAuthStore{SqlOAuthStore: *baseStore.OAuth().(*sqlstore.SqlOAuthStore)}
 	pgLayer.pluginStore = PgPluginStore{SqlPluginStore: *baseStore.Plugin().(*sqlstore.SqlPluginStore)}
 	pgLayer.sessionStore = PgSessionStore{SqlSessionStore: *baseStore.Session().(*sqlstore.SqlSessionStore)}
@@ -303,10 +307,6 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	return concatenatedColumnNames
 }
 
-func (ss *PgLayer) Audit() store.AuditStore {
-	return ss.auditStore
-}
-
 func (ss *PgLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return ss.channelMemberHistoryStore
 }
@@ -315,8 +315,20 @@ func (ss *PgLayer) Channel() store.ChannelStore {
 	return ss.channelStore
 }
 
+func (ss *PgLayer) Command() store.CommandStore {
+	return ss.commandStore
+}
+
 func (ss *PgLayer) FileInfo() store.FileInfoStore {
 	return ss.fileInfoStore
+}
+
+func (ss *PgLayer) Group() store.GroupStore {
+	return ss.groupStore
+}
+
+func (ss *PgLayer) LinkMetadata() store.LinkMetadataStore {
+	return ss.linkMetadataStore
 }
 
 func (ss *PgLayer) OAuth() store.OAuthStore {

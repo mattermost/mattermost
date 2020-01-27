@@ -43,9 +43,7 @@ func (as PgOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string)
 }
 
 func (as PgOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, clientId string) *model.AppError {
-
-	query := ""
-	query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
+	query := "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
 
 	if _, err := transaction.Exec(query, map[string]interface{}{"Id": clientId}); err != nil {
 		return model.NewAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error(), http.StatusInternalServerError)

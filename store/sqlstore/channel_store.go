@@ -188,7 +188,7 @@ func (db channelMemberWithSchemeRolesList) ToModel() *model.ChannelMembers {
 	return &cms
 }
 
-type allChannelMember struct {
+type AllChannelMember struct {
 	ChannelId                     string
 	Roles                         string
 	SchemeGuest                   sql.NullBool
@@ -202,9 +202,9 @@ type allChannelMember struct {
 	ChannelSchemeDefaultAdminRole sql.NullString
 }
 
-type allChannelMembers []allChannelMember
+type allChannelMembers []AllChannelMember
 
-func (db allChannelMember) Process() (string, string) {
+func (db AllChannelMember) Process() (string, string) {
 	roles := strings.Fields(db.Roles)
 
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
@@ -334,24 +334,12 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
 	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
-	}
-
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
-
 	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
-
 	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
 	s.CreateIndexIfNotExists("idx_publicchannels_name", "PublicChannels", "Name")
 	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
-		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
-	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 }
 
@@ -442,7 +430,6 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 
 // Save writes the (non-direct) channel channel to the database.
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
-
 	if channel.DeleteAt != 0 {
 		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -547,7 +534,6 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	}
 
 	return newChannel, nil
-
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
@@ -1662,23 +1648,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
-	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `WITH c AS ( ` + query + `),
-	updated AS (
-	UPDATE
-		ChannelMembers cm
-	SET
-		MentionCount = 0,
-		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
-		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
-		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
-	FROM c
-		WHERE cm.UserId = :UserId
-		AND c.Id=cm.ChannelId
-)
-	SELECT Id, LastPostAt FROM c`
-	}
+	// TODO: use a CTE for mysql when version 8 becomes the minimum supported version.
 
 	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
 	if err != nil || len(lastPostAtTimes) == 0 {
@@ -1699,12 +1669,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	times := map[string]int64{}
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		for _, t := range lastPostAtTimes {
-			times[t.Id] = t.LastPostAt
-		}
-		return times, nil
-	}
 
 	msgCountQuery := ""
 	lastViewedQuery := ""
@@ -2325,11 +2289,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	// Prepare the LIKE portion of the query.
 	var searchFields []string
 	for _, field := range strings.Split(searchColumns, ", ") {
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
-		} else {
-			searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
-		}
+		searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
 	}
 
 	likeClause = fmt.Sprintf("(%s)", strings.Join(searchFields, " OR "))
@@ -2347,22 +2307,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	}
 
 	// Prepare the FULLTEXT portion of the query.
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		fulltextTerm = strings.Replace(fulltextTerm, "|", "", -1)
-
-		splitTerm := strings.Fields(fulltextTerm)
-		for i, t := range strings.Fields(fulltextTerm) {
-			if i == len(splitTerm)-1 {
-				splitTerm[i] = t + ":*"
-			} else {
-				splitTerm[i] = t + ":* &"
-			}
-		}
-
-		fulltextTerm = strings.Join(splitTerm, " ")
-
-		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery('english', :FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {
 			splitTerm[i] = "+" + t + "*"
@@ -2397,78 +2342,37 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	return &channels, nil
 }
 
-func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) (string, map[string]interface{}) {
-	var query, baseLikeClause string
-	if isPostgreSQL {
-		baseLikeClause = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE %s"
-		query = `
-            SELECT
-                *
-            FROM
-                Channels
-            WHERE
-                Id IN (
-                    SELECT
-                        cc.Id
-                    FROM (
-                        SELECT
-                            c.Id
-                        FROM
-                            Channels c
-                        JOIN
-                            ChannelMembers cm on c.Id = cm.ChannelId
-                        JOIN
-                            Users u on u.Id = cm.UserId
-                        WHERE
-                            c.Type = 'G'
-                        AND
-                            u.Id = :UserId
-                        GROUP BY
-                            c.Id
-                    ) cc
-                    JOIN
-                        ChannelMembers cm on cc.Id = cm.ChannelId
-                    JOIN
-                        Users u on u.Id = cm.UserId
-                    GROUP BY
-                        cc.Id
-                    HAVING
-                        %s
-                    LIMIT
-                        ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT) + `
-                )`
-	} else {
-		baseLikeClause = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
-		query = `
-            SELECT
-                cc.*
-            FROM (
-                SELECT
-                    c.*
-                FROM
-                    Channels c
-                JOIN
-                    ChannelMembers cm on c.Id = cm.ChannelId
-                JOIN
-                    Users u on u.Id = cm.UserId
-                WHERE
-                    c.Type = 'G'
-                AND
-                    u.Id = :UserId
-                GROUP BY
-                    c.Id
-            ) cc
-            JOIN
-                ChannelMembers cm on cc.Id = cm.ChannelId
-            JOIN
-                Users u on u.Id = cm.UserId
-            GROUP BY
-                cc.Id
-            HAVING
-                %s
-            LIMIT
-                ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
-	}
+func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string) (string, map[string]interface{}) {
+	baseLikeClause := "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
+	query := `
+		SELECT
+			cc.*
+		FROM (
+			SELECT
+				c.*
+			FROM
+				Channels c
+			JOIN
+				ChannelMembers cm on c.Id = cm.ChannelId
+			JOIN
+				Users u on u.Id = cm.UserId
+			WHERE
+				c.Type = 'G'
+			AND
+				u.Id = :UserId
+			GROUP BY
+				c.Id
+		) cc
+		JOIN
+			ChannelMembers cm on cc.Id = cm.ChannelId
+		JOIN
+			Users u on u.Id = cm.UserId
+		GROUP BY
+			cc.Id
+		HAVING
+			%s
+		LIMIT
+			` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
 
 	var likeClauses []string
 	args := map[string]interface{}{"UserId": userId}
@@ -2486,8 +2390,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 }
 
 func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
-	isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
-	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
+	queryString, args := s.getSearchGroupChannelsQuery(userId, term)
 
 	var groupChannels model.ChannelList
 	if _, err := s.GetReplica().Select(&groupChannels, queryString, args); err != nil {
