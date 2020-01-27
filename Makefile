@@ -426,7 +426,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -rf logs
 
 	rm -f mattermost.log
-	rm -f mattermost.Log().jsonl
+	rm -f mattermost.log.jsonl
 	rm -f npm-debug.log
 	rm -f .prepare-go
 	rm -f enterprise
