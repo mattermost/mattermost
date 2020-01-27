@@ -209,8 +209,8 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 				// Consider trailing punctuation that may be hiding a valid username
 				trimmed, ok := model.TrimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
-					userFromTrimmed, err := a.Srv.Store.User().GetByUsername(trimmed)
-					if err != nil {
+					userFromTrimmed, userErr := a.Srv.Store.User().GetByUsername(trimmed)
+					if userErr != nil {
 						continue
 					}
 
