@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package localcachelayer
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +22,8 @@ func TestRoleStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		role, err := cachedStore.Role().GetByName("role-name")
 		require.Nil(t, err)
@@ -36,7 +37,8 @@ func TestRoleStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, save, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Role().GetByName("role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -47,7 +49,8 @@ func TestRoleStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, delete, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Role().GetByName("role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -58,7 +61,8 @@ func TestRoleStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, permanent delete all, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Role().GetByName("role-name")
 		mockStore.Role().(*mocks.RoleStore).AssertNumberOfCalls(t, "GetByName", 1)

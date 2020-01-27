@@ -5179,10 +5179,6 @@
     "translation": "これ以上のページを生成できません"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "監査バッチを完全に削除する際にエラーが発生しました"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "監査データを削除する際にエラーが発生しました"
   },

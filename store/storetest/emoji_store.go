@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -168,7 +168,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	t.Run("one nonexistent emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{"ab"})
 		require.Nilf(t, err, "%v, could not get emoji", err)
-		require.Len(t, received, 0, "got incorrect emoji")
+		require.Empty(t, received, "got incorrect emoji")
 	})
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {

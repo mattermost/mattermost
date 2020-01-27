@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -8,13 +8,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandler(loginWithSaml)).Methods("GET")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandlerTrustRequester(completeSaml)).Methods("POST")
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {

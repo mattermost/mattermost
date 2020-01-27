@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,11 +9,11 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
@@ -140,10 +140,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	notification := &PostNotification{
-		post:       post,
-		channel:    channel,
-		profileMap: profileMap,
-		sender:     sender,
+		Post:       post,
+		Channel:    channel,
+		ProfileMap: profileMap,
+		Sender:     sender,
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
@@ -645,7 +645,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 			keywords,
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
-			GetStatusFromCache(profile.Id),
+			a.GetStatusFromCache(profile.Id),
 			allowChannelMentions,
 		)
 	}
@@ -692,22 +692,22 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 
 // Represents either an email or push notification and contains the fields required to send it to any user.
 type PostNotification struct {
-	channel    *model.Channel
-	post       *model.Post
-	profileMap map[string]*model.User
-	sender     *model.User
+	Channel    *model.Channel
+	Post       *model.Post
+	ProfileMap map[string]*model.User
+	Sender     *model.User
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
 // preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
 func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) string {
-	switch n.channel.Type {
+	switch n.Channel.Type {
 	case model.CHANNEL_DIRECT:
-		return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
+		return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 	case model.CHANNEL_GROUP:
 		names := []string{}
-		for _, user := range n.profileMap {
+		for _, user := range n.ProfileMap {
 			if user.Id != excludeId {
 				names = append(names, user.GetDisplayName(userNameFormat))
 			}
@@ -717,52 +717,52 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 
 		return strings.Join(names, ", ")
 	default:
-		return n.channel.DisplayName
+		return n.Channel.DisplayName
 	}
 }
 
 // Returns the name of the sender of this notification, accounting for things like system messages
 // and whether or not the username has been overridden by an integration.
 func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed bool) string {
-	if n.post.IsSystemMessage() {
+	if n.Post.IsSystemMessage() {
 		return utils.T("system.message.name")
 	}
 
-	if overridesAllowed && n.channel.Type != model.CHANNEL_DIRECT {
-		if value, ok := n.post.Props["override_username"]; ok && n.post.Props["from_webhook"] == "true" {
+	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {
+		if value, ok := n.Post.Props["override_username"]; ok && n.Post.Props["from_webhook"] == "true" {
 			return value.(string)
 		}
 	}
 
-	return n.sender.GetDisplayNameWithPrefix(userNameFormat, "@")
+	return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
+func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
 	case "@here":
-		e.HereMentioned = true
+		m.HereMentioned = true
 		mentionType = ChannelMention
 	case "@channel":
-		e.ChannelMentioned = true
+		m.ChannelMentioned = true
 		mentionType = ChannelMention
 	case "@all":
-		e.AllMentioned = true
+		m.AllMentioned = true
 		mentionType = ChannelMention
 	default:
 		mentionType = KeywordMention
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		e.addMentions(ids, mentionType)
+		m.addMentions(ids, mentionType)
 		return true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		e.addMentions(ids, mentionType)
+		m.addMentions(ids, mentionType)
 		return true
 	}
 
@@ -791,7 +791,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 }
 
 // Processes text to filter mentioned users and other potential mentions
-func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
+func (m *ExplicitMentions) processText(text string, keywords map[string][]string) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -805,7 +805,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if e.checkForMention(word, keywords) {
+		if m.checkForMention(word, keywords) {
 			continue
 		}
 
@@ -814,7 +814,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if e.checkForMention(wordWithoutSuffix, keywords) {
+			if m.checkForMention(wordWithoutSuffix, keywords) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -825,7 +825,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			e.OtherPotentialMentions = append(e.OtherPotentialMentions, word[1:])
+			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -833,17 +833,17 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if e.checkForMention(splitWord, keywords) {
+				if m.checkForMention(splitWord, keywords) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					e.OtherPotentialMentions = append(e.OtherPotentialMentions, splitWord[1:])
+					m.OtherPotentialMentions = append(m.OtherPotentialMentions, splitWord[1:])
 				}
 			}
 		}
 
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			e.addMentions(ids, KeywordMention)
+			m.addMentions(ids, KeywordMention)
 		}
 	}
 }

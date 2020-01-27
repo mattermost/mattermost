@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var usage = `Mattermost testing commands to help configure the system
@@ -38,9 +38,6 @@ var usage = `Mattermost testing commands to help configure the system
 
 		Example:
 			/test channels fuzz 5 10
-
-	ThreadedPost - create a large threaded post
-        /test threaded_post
 
 	Posts - Add some random posts with fuzz text to current channel.
 		/test posts [fuzz] <Min Posts> <Max Posts> <Max Images>
@@ -118,6 +115,14 @@ func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		return me.UsersCommand(a, args, message)
 	}
 
+	if strings.HasPrefix(message, "activate_user") {
+		return me.ActivateUserCommand(a, args, message)
+	}
+
+	if strings.HasPrefix(message, "deactivate_user") {
+		return me.DeActivateUserCommand(a, args, message)
+	}
+
 	if strings.HasPrefix(message, "channels") {
 		return me.ChannelsCommand(a, args, message)
 	}
@@ -128,10 +133,6 @@ func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message s
 
 	if strings.HasPrefix(message, "post") {
 		return me.PostCommand(a, args, message)
-	}
-
-	if strings.HasPrefix(message, "threaded_post") {
-		return me.ThreadedPostCommand(a, args, message)
 	}
 
 	if strings.HasPrefix(message, "url") {
@@ -229,6 +230,22 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 	return &model.CommandResponse{Text: "Created environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
+func (me *LoadTestProvider) ActivateUserCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	user_id := strings.TrimSpace(strings.TrimPrefix(message, "activate_user"))
+	if err := a.UpdateUserActive(user_id, true); err != nil {
+		return &model.CommandResponse{Text: "Failed to activate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	return &model.CommandResponse{Text: "Activated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func (me *LoadTestProvider) DeActivateUserCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	user_id := strings.TrimSpace(strings.TrimPrefix(message, "deactivate_user"))
+	if err := a.UpdateUserActive(user_id, false); err != nil {
+		return &model.CommandResponse{Text: "Failed to deactivate user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+	return &model.CommandResponse{Text: "DeActivated user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
 func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	cmd := strings.TrimSpace(strings.TrimPrefix(message, "users"))
 
@@ -282,34 +299,6 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	channelCreator.CreateTestChannels(channelsr)
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-}
-
-func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	var usernames []string
-	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
-	if profileUsers, err := a.Srv.Store.User().GetProfiles(options); err == nil {
-		usernames = make([]string, len(profileUsers))
-		i := 0
-		for _, userprof := range profileUsers {
-			usernames[i] = userprof.Username
-			i++
-		}
-	}
-
-	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
-	testPoster.Fuzzy = true
-	testPoster.Users = usernames
-	rpost, ok := testPoster.CreateRandomPost()
-	if !ok {
-		return &model.CommandResponse{Text: "Cannot create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-	for i := 0; i < 1000; i++ {
-		testPoster.CreateRandomPostNested(rpost.Id, rpost.Id)
-	}
-
-	return &model.CommandResponse{Text: "Added threaded post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {

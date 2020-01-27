@@ -5179,10 +5179,6 @@
     "translation": "分頁已達限制"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "永久批次刪除稽核時遇到錯誤"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "刪除稽核紀錄時遇到錯誤"
   },

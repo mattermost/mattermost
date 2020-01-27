@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
@@ -10,18 +10,18 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
-	SqlSupplier      *sqlstore.SqlSupplier
+	SQLSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -101,9 +101,9 @@ func (h *MainHelper) setupStore() {
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
-		h.SqlSupplier,
+		h.SQLSupplier,
 	}
 }
 
@@ -132,7 +132,7 @@ func (h *MainHelper) Close() error {
 	return nil
 }
 
-func (h *MainHelper) GetSqlSettings() *model.SqlSettings {
+func (h *MainHelper) GetSQLSettings() *model.SqlSettings {
 	if h.Settings == nil {
 		panic("MainHelper not initialized with database access.")
 	}
@@ -148,12 +148,12 @@ func (h *MainHelper) GetStore() store.Store {
 	return h.Store
 }
 
-func (h *MainHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
-	if h.SqlSupplier == nil {
+func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
+	if h.SQLSupplier == nil {
 		panic("MainHelper not initialized with sql supplier.")
 	}
 
-	return h.SqlSupplier
+	return h.SQLSupplier
 }
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {

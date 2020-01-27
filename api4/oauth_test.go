@@ -1,5 +1,5 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -154,6 +154,37 @@ func TestUpdateOAuthApp(t *testing.T) {
 	oapp.Id = "junk"
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckBadRequestStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.LoginBasic()
+
+	userOapp := &model.OAuthApp{
+		Name:         "useroapp",
+		IsTrusted:    false,
+		IconURL:      "https://nowhere.com/img",
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://callback.com"},
+	}
+
+	userOapp, resp = Client.CreateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+
+	userOapp.IsTrusted = true
+	userOapp, resp = Client.UpdateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+	assert.False(t, userOapp.IsTrusted)
+
+	userOapp.IsTrusted = true
+	userOapp, resp = AdminClient.UpdateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+	assert.True(t, userOapp.IsTrusted)
+
+	userOapp.IsTrusted = false
+	userOapp, resp = Client.UpdateOAuthApp(userOapp)
+	CheckNoError(t, resp)
+	assert.True(t, userOapp.IsTrusted)
 }
 
 func TestGetOAuthApps(t *testing.T) {

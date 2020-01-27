@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -12,10 +12,10 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
@@ -77,13 +77,29 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//wrap our ResponseWriter with our no-cache 404-handler
+		w = &notFoundNoCacheResponseWriter{ResponseWriter: w}
+
 		w.Header().Set("Cache-Control", "max-age=31556926, public")
+
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return
 		}
 		handler.ServeHTTP(w, r)
 	})
+}
+
+type notFoundNoCacheResponseWriter struct {
+	http.ResponseWriter
+}
+
+func (w *notFoundNoCacheResponseWriter) WriteHeader(statusCode int) {
+	if statusCode == http.StatusNotFound {
+		// we have a 404, update our cache header first then fall through
+		w.Header().Set("Cache-Control", "no-cache, public")
+	}
+	w.ResponseWriter.WriteHeader(statusCode)
 }
 
 func robotsHandler(w http.ResponseWriter, r *http.Request) {

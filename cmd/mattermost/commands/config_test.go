@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type TestConfig struct {
@@ -71,6 +71,14 @@ type TestNewServiceSettings struct {
 type TestNewTeamSettings struct {
 	SiteName       *string
 	MaxUserPerTeam *int
+}
+
+type TestPluginSettings struct {
+	Enable                  *bool
+	Directory               *string `restricted:"true"`
+	Plugins                 map[string]map[string]interface{}
+	PluginStates            map[string]*model.PluginState
+	SignaturePublicKeyFiles []string
 }
 
 func TestConfigValidate(t *testing.T) {
@@ -518,14 +526,13 @@ func TestUpdateMap(t *testing.T) {
 
 		})
 	}
-
 }
 
 func TestConfigMigrate(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
@@ -573,4 +580,66 @@ func contains(configMap map[string]interface{}, v interface{}, configSettings []
 	default:
 		return value.Interface() == v
 	}
+}
+
+func TestPluginConfigs(t *testing.T) {
+	pluginConfig := TestPluginSettings{
+		Enable:    model.NewBool(true),
+		Directory: model.NewString("dir"),
+		Plugins: map[string]map[string]interface{}{
+			"antivirus": {
+				"clamavhostport":     "localhost:3310",
+				"scantimeoutseconds": 12,
+			},
+			"com.mattermost.demo-plugin": {
+				"channelname":       "demo_plugin",
+				"customsetting":     "7",
+				"enablementionuser": false,
+				"lastname":          "Plugin User",
+				"mentionuser":       "demo_plugin",
+				"randomsecret":      "random secret",
+				"secretmessage":     "Changed value.",
+				"textstyle":         "",
+				"username":          "demo_plugin",
+			},
+			"com.mattermost.webex": {
+				"sitehost": "praptishrestha.my.webex.com",
+			},
+			"jira": {
+				"enablejiraui":                         true,
+				"groupsallowedtoeditjirasubscriptions": "",
+				"rolesallowedtoeditjirasubscriptions":  "system_admin",
+				"secret":                               "some secret",
+			},
+			"mattermost-autolink": {
+				"enableadmincommand": false,
+			},
+		},
+		PluginStates: map[string]*model.PluginState{
+			"antivirus": {
+				Enable: false,
+			},
+			"com.github.manland.mattermost-plugin-gitlab": {
+				Enable: true,
+			},
+		},
+		SignaturePublicKeyFiles: []string{"Hello", "World"},
+	}
+
+	configMap := configToMap(pluginConfig)
+	err := UpdateMap(configMap, []string{"Enable"}, []string{"false"})
+	require.Nil(t, err, "Wasn't expecting an error")
+	assert.Equal(t, false, configMap["Enable"].(bool))
+
+	err = UpdateMap(configMap, []string{"Plugins", "antivirus", "clamavhostport"}, []string{"some text"})
+	require.Nil(t, err, "Wasn't expecting an error")
+	assert.Equal(t, "some text", configMap["Plugins"].(map[string]map[string]interface{})["antivirus"]["clamavhostport"].(string))
+
+	err = UpdateMap(configMap, []string{"Plugins", "mattermost-autolink", "enableadmincommand"}, []string{"true"})
+	require.Nil(t, err, "Wasn't expecting an error")
+	assert.Equal(t, true, configMap["Plugins"].(map[string]map[string]interface{})["mattermost-autolink"]["enableadmincommand"].(bool))
+
+	err = UpdateMap(configMap, []string{"PluginStates", "antivirus", "Enable"}, []string{"true"})
+	require.Nil(t, err, "Wasn't expecting an error")
+	assert.Equal(t, true, configMap["PluginStates"].(map[string]*model.PluginState)["antivirus"].Enable)
 }

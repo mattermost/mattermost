@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestWebSocket(t *testing.T) {
@@ -64,6 +64,17 @@ func TestWebSocket(t *testing.T) {
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
+
+	WebSocketClient.UserTyping(th.BasicChannel.Id, "")
+	time.Sleep(300 * time.Millisecond)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Nil(t, resp.Error)
+
+	WebSocketClient.UserTyping(th.BasicPrivateChannel2.Id, "")
+	time.Sleep(300 * time.Millisecond)
+	resp = <-WebSocketClient.ResponseChannel
+	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
+	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
 }
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -104,7 +115,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING && resp.Data["user_id"].(string) == "somerandomid" {
+				if resp.EventType() == model.WEBSOCKET_EVENT_TYPING && resp.GetData()["user_id"].(string) == "somerandomid" {
 					eventHit = true
 				}
 			case <-stop:
@@ -129,7 +140,7 @@ func TestWebSocketEvent(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_TYPING {
+				if resp.EventType() == model.WEBSOCKET_EVENT_TYPING {
 					eventHit = true
 				}
 			case <-stop:
@@ -169,7 +180,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	wsr := <-WebSocketClient.EventChannel
-	require.Equal(t, wsr.Event, model.WEBSOCKET_EVENT_HELLO, "missing hello")
+	require.Equal(t, wsr.EventType(), model.WEBSOCKET_EVENT_HELLO, "missing hello")
 
 	stop := make(chan bool)
 	count := 0
@@ -178,7 +189,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 		for {
 			select {
 			case wsr := <-WebSocketClient.EventChannel:
-				if wsr != nil && wsr.Event == model.WEBSOCKET_EVENT_DIRECT_ADDED {
+				if wsr != nil && wsr.EventType() == model.WEBSOCKET_EVENT_DIRECT_ADDED {
 					count = count + 1
 				}
 
@@ -265,7 +276,7 @@ func TestWebSocketStatuses(t *testing.T) {
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
@@ -367,8 +378,8 @@ func TestWebSocketStatuses(t *testing.T) {
 		for {
 			select {
 			case resp := <-WebSocketClient.EventChannel:
-				if resp.Event == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.Data["user_id"].(string) == th.BasicUser.Id {
-					status := resp.Data["status"].(string)
+				if resp.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE && resp.GetData()["user_id"].(string) == th.BasicUser.Id {
+					status := resp.GetData()["status"].(string)
 					if status == model.STATUS_ONLINE {
 						onlineHit = true
 					} else if status == model.STATUS_AWAY {

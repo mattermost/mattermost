@@ -14,10 +14,10 @@ import (
 	"io/ioutil"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +56,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
 	if err != nil {
 		a.Log.Error("Access to route for non-existent plugin in inter plugin request",
-			mlog.String("sourse_plugin_id", sourcePluginId),
+			mlog.String("source_plugin_id", sourcePluginId),
 			mlog.String("destination_plugin_id", destinationPluginId),
 			mlog.Err(err),
 		)

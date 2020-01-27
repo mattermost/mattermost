@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	sqltrace "log"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -20,11 +19,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -103,7 +102,7 @@ type SqlSupplierStores struct {
 
 type SqlSupplier struct {
 	// rrCounter and srCounter should be kept first.
-	// See https://github.com/mattermost/mattermost-server/pull/7281
+	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
 	rrCounter      int64
 	srCounter      int64
 	master         *gorp.DbMap
@@ -112,6 +111,16 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
+}
+
+type TraceOnAdapter struct{}
+
+func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
+	originalString := fmt.Sprintf(format, v...)
+	newString := strings.ReplaceAll(originalString, "\n", " ")
+	newString = strings.ReplaceAll(newString, "\t", " ")
+	newString = strings.ReplaceAll(newString, "\"", "")
+	mlog.Debug(newString)
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -123,7 +132,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.stores.team = NewSqlTeamStore(supplier, metrics)
+	supplier.stores.team = NewSqlTeamStore(supplier)
 	supplier.stores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.stores.post = NewSqlPostStore(supplier, metrics)
 	supplier.stores.user = NewSqlUserStore(supplier, metrics)
@@ -248,26 +257,26 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
+		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
 
 	return dbmap
 }
 
-func (s *SqlSupplier) initConnection() {
-	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
+func (ss *SqlSupplier) initConnection() {
+	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
-	if len(s.settings.DataSourceReplicas) > 0 {
-		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
-		for i, replica := range s.settings.DataSourceReplicas {
-			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceReplicas) > 0 {
+		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		for i, replica := range ss.settings.DataSourceReplicas {
+			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) > 0 {
-		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
-		for i, replica := range s.settings.DataSourceSearchReplicas {
-			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceSearchReplicas) > 0 {
+		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		for i, replica := range ss.settings.DataSourceSearchReplicas {
+			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 		}
 	}
 }

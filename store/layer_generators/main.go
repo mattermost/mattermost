@@ -10,11 +10,11 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+	"text/template"
 )
 
 func main() {
@@ -213,8 +213,8 @@ package store
 import (
 	timemodule "time"
 
-    "github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
+    "github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type {{.Name}} struct {
@@ -253,8 +253,12 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("{{$substoreName}}Store.{{$index}}", success, elapsed)
+	{{ with ($element.Results | genResultsVars) -}}
 	}
-	return {{$element.Results | genResultsVars}}
+	return {{ . }}
+	{{- else -}}
+	}
+	{{- end }}
 }
 {{end}}
 {{end}}

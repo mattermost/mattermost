@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package plugin
 
@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -77,7 +77,7 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 	if !ok {
 		return
 	}
-	rp := p.(*registeredPlugin)
+	rp := p.(registeredPlugin)
 
 	sup := rp.supervisor
 	if sup == nil {
@@ -98,14 +98,16 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 	if !ok {
 		return
 	}
-	p := rp.(*registeredPlugin)
+	p := rp.(registeredPlugin)
 
 	// Append current failure before checking for deactivate vs restart action
 	p.failTimeStamps = append(p.failTimeStamps, time.Now())
 	p.lastError = err
+	job.env.registeredPlugins.Store(id, p)
 
 	if shouldDeactivatePlugin(p) {
 		p.failTimeStamps = []time.Time{}
+		job.env.registeredPlugins.Store(id, p)
 		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
 		job.env.SetPluginState(id, model.PluginStateFailedToStayRunning)
@@ -135,7 +137,7 @@ func (job *PluginHealthCheckJob) Cancel() {
 // shouldDeactivatePlugin determines if a plugin needs to be deactivated after certain criteria is met.
 //
 // The criteria is based on if the plugin has consistently failed during the configured number of restarts, within the configured time window.
-func shouldDeactivatePlugin(rp *registeredPlugin) bool {
+func shouldDeactivatePlugin(rp registeredPlugin) bool {
 	if len(rp.failTimeStamps) >= HEALTH_CHECK_RESTART_LIMIT {
 		index := len(rp.failTimeStamps) - HEALTH_CHECK_RESTART_LIMIT
 		t := rp.failTimeStamps[index]

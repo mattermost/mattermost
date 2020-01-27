@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package sqlstore
 
 import (
@@ -27,6 +30,24 @@ func TestMapStringsToQueryParams(t *testing.T) {
 		require.Equal(t, "tomato", params["Vegetable1"], "returned incorrect params", params)
 		require.Equal(t, "potato", params["Vegetable2"], "returned incorrect params", params)
 		require.Equal(t, "(:Vegetable0,:Vegetable1,:Vegetable2)", keys, "returned incorrect query", keys)
+	})
+}
+
+var keys string
+var params map[string]interface{}
+
+func BenchmarkMapStringsToQueryParams(b *testing.B) {
+	b.Run("one item", func(b *testing.B) {
+		input := []string{"apple"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Fruit")
+		}
+	})
+	b.Run("multiple items", func(b *testing.B) {
+		input := []string{"carrot", "tomato", "potato"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Vegetable")
+		}
 	})
 }
 

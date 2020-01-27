@@ -1,14 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -107,7 +107,22 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterface = f
 }
 
+var samlInterfaceNew func(*App) einterfaces.SamlInterface
+
+func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
+	samlInterfaceNew = f
+}
+
+var notificationInterface func(*App) einterfaces.NotificationInterface
+
+func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
+	notificationInterface = f
+}
+
 func (s *Server) initEnterprise() {
+	if metricsInterface != nil {
+		s.Metrics = metricsInterface(s.FakeApp())
+	}
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}
@@ -123,11 +138,17 @@ func (s *Server) initEnterprise() {
 	if messageExportInterface != nil {
 		s.MessageExport = messageExportInterface(s.FakeApp())
 	}
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s.FakeApp())
+	if notificationInterface != nil {
+		s.Notification = notificationInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
-		s.Saml = samlInterface(s.FakeApp())
+		if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+			mlog.Debug("Loading new SAML2 library")
+			s.Saml = samlInterfaceNew(s.FakeApp())
+		} else {
+			mlog.Debug("Loading original SAML library")
+			s.Saml = samlInterface(s.FakeApp())
+		}
 		s.AddConfigListener(func(_, cfg *model.Config) {
 			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))

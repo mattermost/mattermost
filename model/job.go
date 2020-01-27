@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -74,8 +74,8 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
-func (js *Job) ToJson() string {
-	b, _ := json.Marshal(js)
+func (j *Job) ToJson() string {
+	b, _ := json.Marshal(j)
 	return string(b)
 }
 
@@ -102,8 +102,8 @@ func JobsFromJson(data io.Reader) []*Job {
 	}
 }
 
-func (js *Job) DataToJson() string {
-	b, _ := json.Marshal(js.Data)
+func (j *Job) DataToJson() string {
+	b, _ := json.Marshal(j.Data)
 	return string(b)
 }
 

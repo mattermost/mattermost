@@ -1,13 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -519,6 +519,10 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 	}
 
 	user := getUserFromUserArg(a, username)
+	if user == nil {
+		return fmt.Errorf("Unable to find user: '%v'", username)
+	}
+
 	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
 		return errors.Wrapf(err, "Failed to update channel ('%s') privacy", args[0])
 	}

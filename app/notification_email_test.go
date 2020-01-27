@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/timezones"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
@@ -585,4 +585,51 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 
 	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
 	assert.Equal(t, message, outMessage)
+}
+
+func TestLandingLink(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelName := "ChannelName"
+	senderName := "sender"
+	teamName := "select_team"
+	teamURL := "http://localhost:8065/landing#/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+}
+
+func TestLandingLinkPermalink(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	recipient := &model.User{}
+	post := &model.Post{
+		Id:      "Test_id",
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelName := "ChannelName"
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/landing#/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
+	require.Contains(t, body, teamURL+"/pl/"+post.Id, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }

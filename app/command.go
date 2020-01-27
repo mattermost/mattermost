@@ -1,10 +1,9 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,10 +11,10 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type CommandProvider interface {
@@ -272,7 +271,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		return nil, nil, nil
 	}
 
-	mlog.Debug(fmt.Sprintf(utils.T("api.command.execute_command.debug"), trigger, args.UserId))
+	mlog.Debug("Executing command", mlog.String("command", trigger), mlog.String("user_id", args.UserId))
 
 	p := url.Values{}
 	p.Set("token", cmd.Token)
@@ -435,16 +434,13 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		post.AddProp("from_webhook", "true")
 	}
 
-	// Do not process text if this is a code block
-	skipSlackParsing := command.Trigger == "code"
-
-	// Process Slack text replacements
-	if !skipSlackParsing {
+	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
+	if !response.SkipSlackParsing {
 		response.Text = a.ProcessSlackText(response.Text)
 		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response, skipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(post, args.TeamId, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 

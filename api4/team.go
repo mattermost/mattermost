@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -34,7 +34,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateTeamScheme)).Methods("PUT")
-	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchTeams)).Methods("POST")
 	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
 	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
@@ -522,6 +522,8 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	graceful := r.URL.Query().Get("graceful") != ""
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -587,7 +589,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err = c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId)
+	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session.UserId, graceful)
 
 	if err != nil {
 		c.Err = err
@@ -595,7 +597,14 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(model.TeamMembersToJson(members)))
+
+	if graceful {
+		// in 'graceful' mode we allow a different return value, notifying the client which users were not added
+		w.Write([]byte(model.TeamMembersWithErrorToJson(membersWithErrors)))
+	} else {
+		w.Write([]byte(model.TeamMembersToJson(model.TeamMembersWithErrorToTeamMembers(membersWithErrors))))
+	}
+
 }
 
 func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -789,13 +798,22 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var teams []*model.Team
+	var totalCount int64
 	var err *model.AppError
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.SearchAllTeams(props.Term)
+		teams, totalCount, err = c.App.SearchAllTeams(props)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.private_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPrivateTeams(props.Term)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
+		if props.Page != nil || props.PerPage != nil {
+			c.Err = model.NewAppError("searchTeams", "api.team.search_teams.pagination_not_implemented.public_team_search", nil, "", http.StatusNotImplemented)
+			return
+		}
 		teams, err = c.App.SearchPublicTeams(props.Term)
 	} else {
 		teams = []*model.Team{}
@@ -808,7 +826,15 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var payload []byte
+	if props.Page != nil && props.PerPage != nil {
+		twc := &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}
+		payload = model.TeamsWithCountToJson(twc)
+	} else {
+		payload = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(payload)
 }
 
 func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {

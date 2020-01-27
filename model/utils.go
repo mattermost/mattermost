@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -146,6 +146,15 @@ func NewId() string {
 	return b.String()
 }
 
+// NewRandomTeamName is a NewId that will be a valid team name.
+func NewRandomTeamName() string {
+	teamName := NewId()
+	for IsReservedTeamName(teamName) {
+		teamName = NewId()
+	}
+	return teamName
+}
+
 func NewRandomString(length int) string {
 	var b bytes.Buffer
 	str := make([]byte, length+8)
@@ -207,7 +216,7 @@ func MapToJson(objmap map[string]string) string {
 	return string(b)
 }
 
-// MapToJson converts a map to a json string
+// MapBoolToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
@@ -367,6 +376,7 @@ var reservedName = []string{
 	"oauth",
 	"error",
 	"help",
+	"plugins",
 }
 
 func IsValidChannelIdentifier(s string) bool {

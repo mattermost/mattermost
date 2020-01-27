@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mlog
 
@@ -34,6 +34,7 @@ var Uint32 = zap.Uint32
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 

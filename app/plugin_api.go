@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type PluginAPI struct {
@@ -149,7 +149,8 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
-	return api.app.SearchAllTeams(term)
+	teams, _, err := api.app.SearchAllTeams(&model.TeamSearch{Term: term})
+	return teams, err
 }
 
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -173,7 +174,15 @@ func (api *PluginAPI) CreateTeamMember(teamId, userId string) (*model.TeamMember
 }
 
 func (api *PluginAPI) CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError) {
-	return api.app.AddTeamMembers(teamId, userIds, requestorId)
+	members, err := api.app.AddTeamMembers(teamId, userIds, requestorId, false)
+	if err != nil {
+		return nil, err
+	}
+	return model.TeamMembersWithErrorToTeamMembers(members), nil
+}
+
+func (api *PluginAPI) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
+	return api.app.AddTeamMembers(teamId, userIds, requestorId, true)
 }
 
 func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *model.AppError {
@@ -492,7 +501,7 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId, false)
+	return api.app.GetPostThread(postId)
 }
 
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
@@ -500,19 +509,19 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: time})
+	return api.app.GetPostsSince(channelId, time)
 }
 
 func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+	return api.app.GetPostsAfterPost(channelId, postId, page, perPage)
 }
 
 func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
+	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: perPage, PerPage: page})
+	return api.app.GetPostsPage(channelId, page, perPage)
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -696,7 +705,7 @@ func (api *PluginAPI) InstallPlugin(file io.Reader, replace bool) (*model.Manife
 
 // KV Store Section
 
-func (api *PluginAPI) KVSetWithOptions(key string, value interface{}, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (api *PluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	return api.app.SetPluginKeyWithOptions(api.id, key, value, options)
 }
 
@@ -733,11 +742,9 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
-	api.app.Publish(&model.WebSocketEvent{
-		Event:     fmt.Sprintf("custom_%v_%v", api.id, event),
-		Data:      payload,
-		Broadcast: broadcast,
-	})
+	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
+	ev = ev.SetBroadcast(broadcast).SetData(payload)
+	api.app.Publish(ev)
 }
 
 func (api *PluginAPI) HasPermissionTo(userId string, permission *model.Permission) bool {

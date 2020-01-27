@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Listener is a callback function invoked when the configuration changes.
@@ -19,6 +19,10 @@ type Store interface {
 
 	// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 	GetEnvironmentOverrides() map[string]interface{}
+
+	// RemoveEnvironmentOverrides returns a new config without the environment
+	// overrides
+	RemoveEnvironmentOverrides(cfg *model.Config) *model.Config
 
 	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) (*model.Config, error)

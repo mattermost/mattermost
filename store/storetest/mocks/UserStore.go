@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
-	store "github.com/mattermost/mattermost-server/store"
+	model "github.com/mattermost/mattermost-server/v5/model"
+	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -928,8 +928,8 @@ func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
 	return r0, r1
 }
 
-// InvalidatProfileCacheForUser provides a mock function with given fields: userId
-func (_m *UserStore) InvalidatProfileCacheForUser(userId string) {
+// InvalidateProfileCacheForUser provides a mock function with given fields: userId
+func (_m *UserStore) InvalidateProfileCacheForUser(userId string) {
 	_m.Called(userId)
 }
 

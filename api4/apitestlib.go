@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -9,18 +9,19 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 
 	s3 "github.com/minio/minio-go/v6"
 	"github.com/minio/minio-go/v6/pkg/credentials"
@@ -32,17 +33,18 @@ type TestHelper struct {
 	Server      *app.Server
 	ConfigStore config.Store
 
-	Client              *model.Client4
-	BasicUser           *model.User
-	BasicUser2          *model.User
-	TeamAdminUser       *model.User
-	BasicTeam           *model.Team
-	BasicChannel        *model.Channel
-	BasicPrivateChannel *model.Channel
-	BasicDeletedChannel *model.Channel
-	BasicChannel2       *model.Channel
-	BasicPost           *model.Post
-	Group               *model.Group
+	Client               *model.Client4
+	BasicUser            *model.User
+	BasicUser2           *model.User
+	TeamAdminUser        *model.User
+	BasicTeam            *model.Team
+	BasicChannel         *model.Channel
+	BasicPrivateChannel  *model.Channel
+	BasicPrivateChannel2 *model.Channel
+	BasicDeletedChannel  *model.Channel
+	BasicChannel2        *model.Channel
+	BasicPost            *model.Post
+	Group                *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -62,10 +64,23 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
+	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	if err != nil {
+		panic(err)
+	}
+
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
+
+	config := memoryStore.Get()
+	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	if updateConfig != nil {
+		updateConfig(config)
+	}
+	memoryStore.Set(config)
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
@@ -93,9 +108,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if updateConfig != nil {
-		th.App.UpdateConfig(updateConfig)
-	}
 	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
@@ -129,11 +141,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	th.SystemAdminClient = th.CreateClient()
 
 	if th.tempWorkspace == "" {
-		dir, err := ioutil.TempDir("", "apptest")
-		if err != nil {
-			panic(err)
-		}
-		th.tempWorkspace = dir
+		th.tempWorkspace = tempWorkspace
 	}
 
 	return th
@@ -193,6 +201,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
+	me.BasicPrivateChannel2 = me.CreatePrivateChannel()
 	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
@@ -238,6 +247,10 @@ func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.Ap
 
 func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
+}
+
+func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
 }
 
 func (me *TestHelper) CreateUser() *model.User {
@@ -574,9 +587,7 @@ func CheckEtag(t *testing.T, data interface{}, resp *model.Response) {
 func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
-	if resp.Error != nil {
-		require.FailNow(t, "Expected no error, got %q", resp.Error.Error())
-	}
+	require.Nil(t, resp.Error, "expected no error")
 }
 
 func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
@@ -634,6 +645,11 @@ func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
 func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
+}
+
+func CheckServiceUnavailableStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusServiceUnavailable, true)
 }
 
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -42,12 +42,12 @@ func (i *GuestsInvite) IsValid() *AppError {
 
 // GuestsInviteFromJson will decode the input and return a GuestsInvite
 func GuestsInviteFromJson(data io.Reader) *GuestsInvite {
-	var invite *GuestsInvite
-	json.NewDecoder(data).Decode(&invite)
-	return invite
+	var i *GuestsInvite
+	json.NewDecoder(data).Decode(&i)
+	return i
 }
 
-func (invite *GuestsInvite) ToJson() string {
-	b, _ := json.Marshal(invite)
+func (i *GuestsInvite) ToJson() string {
+	b, _ := json.Marshal(i)
 	return string(b)
 }

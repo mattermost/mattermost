@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestPluginSetting(t *testing.T) {
@@ -41,6 +41,26 @@ func TestPluginActivated(t *testing.T) {
 	assert.True(t, pluginActivated(states, "foo"))
 	assert.False(t, pluginActivated(states, "bar"))
 	assert.False(t, pluginActivated(states, "none"))
+}
+
+func TestPluginVersion(t *testing.T) {
+	plugins := []*model.BundleInfo{
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin",
+				Version: "1.2.3",
+			},
+		},
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin2",
+				Version: "4.5.6",
+			},
+		},
+	}
+	assert.Equal(t, "1.2.3", pluginVersion(plugins, "test.plugin"))
+	assert.Equal(t, "4.5.6", pluginVersion(plugins, "test.plugin2"))
+	assert.Empty(t, pluginVersion(plugins, "unknown.plugin"))
 }
 
 func TestDiagnostics(t *testing.T) {
@@ -163,6 +183,7 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_METRICS,
 			TRACK_CONFIG_SUPPORT,
 			TRACK_CONFIG_NATIVEAPP,
+			TRACK_CONFIG_EXPERIMENTAL,
 			TRACK_CONFIG_ANALYTICS,
 			TRACK_CONFIG_PLUGIN,
 			TRACK_ACTIVITY,

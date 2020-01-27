@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -18,10 +18,10 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -170,6 +170,10 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 }
 
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+	if !*a.Config().EmailSettings.SendEmailNotifications && !*a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
+	}
+
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -192,7 +196,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["AppDownloadLink"] = *a.Config().NativeAppSettings.AppDownloadLink
 	}
 
-	if !verified {
+	if !verified && *a.Config().EmailSettings.RequireEmailVerification {
 		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
