@@ -11,6 +11,7 @@ import (
 )
 
 // DropIndex is an asynchronous migration that removes an index
+// can't be used to drop unique index in PostgreSQL
 type DropIndex struct {
 	name  string
 	table string

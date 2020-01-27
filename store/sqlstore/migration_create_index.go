@@ -21,6 +21,7 @@ type CreateIndex struct {
 	unique    bool
 }
 
+// NewCreateIndex creates a migration that adds an index
 func NewCreateIndex(indexName string, tableName string, columnNames []string, indexType string, unique bool) *CreateIndex {
 	return &CreateIndex{
 		name:      indexName,
@@ -36,17 +37,46 @@ func (m *CreateIndex) Name() string {
 	return "add_index_" + m.name
 }
 
+type pgIndexData struct {
+	Name    string `db:"relname"`
+	IsValid bool   `db:"indisvalid"`
+}
+
+func checkPostgreSQLIndex(ss SqlStore, name string) (*pgIndexData, error) {
+	idxData := pgIndexData{}
+	err := ss.GetMaster().SelectOne(&idxData, "SELECT relname, indisvalid FROM pg_class, pg_index WHERE pg_index.indexrelid = pg_class.oid AND pg_class.relname = $1", name)
+	// ErrNoRows means there is no index
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	// other error means something went wrong
+	if err != nil {
+		return nil, err
+	}
+	return &idxData, nil
+}
+
 // GetStatus returns if the migration should be executed or not
 func (m *CreateIndex) GetStatus(ss SqlStore) (asyncMigrationStatus, error) {
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", m.name)
-		// It should fail if the index does not exist
-		if errExists == nil {
-			return skip, nil
-		}
 		if m.indexType == INDEX_TYPE_FULL_TEXT && len(m.columns) != 1 {
 			return failed, errors.New("Unable to create multi column full text index")
 		}
+		idxData, err := checkPostgreSQLIndex(ss, m.name)
+		// other error means something went wrong
+		if err != nil {
+			return unknown, err
+		}
+		// check if the index is invalid, this can happen if create index concurrently was aborted
+		// in that case we have to drop this index and create it again
+		// this may block if there is a long running query on the table
+		if idxData != nil && idxData.IsValid != true {
+			_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + m.name)
+			if err != nil {
+				return unknown, err
+			}
+		}
+		return run, nil
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if m.indexType == INDEX_TYPE_FULL_TEXT {
 			return failed, errors.New("Unable to create full text index concurrently")
@@ -71,6 +101,20 @@ func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) 
 	}
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// because of retries we check for invalid index here too
+		// but I'm not sure if it's really necessary
+		idxData, err := checkPostgreSQLIndex(ss, m.name)
+		if err != nil {
+			return unknown, err
+		}
+		// check if the index is invalid
+		// in that case we have to drop this index and create it again
+		if idxData != nil && idxData.IsValid != true {
+			_, err = conn.ExecContext(ctx, "DROP INDEX "+m.name)
+			if err != nil {
+				return unknown, err
+			}
+		}
 		query := ""
 		if m.indexType == INDEX_TYPE_FULL_TEXT {
 			columnName := m.columns[0]
@@ -80,7 +124,7 @@ func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) 
 			query = "CREATE " + uniqueStr + "INDEX CONCURRENTLY " + m.name + " ON " + m.table + " (" + strings.Join(m.columns, ", ") + ")"
 		}
 
-		_, err := conn.ExecContext(ctx, query)
+		_, err = conn.ExecContext(ctx, query)
 		if err != nil {
 			return failed, err
 		}

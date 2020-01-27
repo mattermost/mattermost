@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"time"
@@ -155,6 +156,15 @@ func (r *MigrationRunner) Wait() {
 	<-r.done
 }
 
+// WaitWithTimeout returns after all migrations are processed or if timeout passes it cancels
+func (r *MigrationRunner) WaitWithTimeout(timeout time.Duration) {
+	select {
+	case <-r.done:
+	case <-time.After(timeout):
+		r.Cancel()
+	}
+}
+
 // Cancel running migrations
 func (r *MigrationRunner) Cancel() {
 	if r.cancelFn != nil {
@@ -168,29 +178,36 @@ func createConnectionWithLockTimeout(ctx context.Context, s SqlStore, timeout in
 	if err != nil {
 		return nil, err
 	}
+	var setTimeoutSQL string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err = conn.ExecContext(ctx, fmt.Sprintf("SET SESSION lock_timeout = '%ds'", timeout))
-		if err != nil {
-			return nil, err
-		}
+		setTimeoutSQL = "SET SESSION lock_timeout = '%ds'"
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		// set timeout for session, we have to revert it later
-		_, err = conn.ExecContext(ctx, fmt.Sprintf("SET SESSION lock_wait_timeout = %d", timeout))
-		if err != nil {
-			return nil, err
-		}
+		setTimeoutSQL = "SET SESSION lock_wait_timeout = %d"
 	} else {
 		return nil, errors.New("Unsupported driver")
+	}
+
+	_, err = conn.ExecContext(ctx, fmt.Sprintf(setTimeoutSQL, timeout))
+	if err != nil {
+		return nil, err
 	}
 	return conn, nil
 }
 
 // releaseConnection reverts session variables to defaults and returns connection to pool
 func releaseConnection(ctx context.Context, s SqlStore, conn *sql.Conn) {
+	var revertTimeoutSQL string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		conn.ExecContext(ctx, "SET SESSION lock_timeout TO DEFAULT")
+		revertTimeoutSQL = "SET SESSION lock_timeout TO DEFAULT"
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		conn.ExecContext(ctx, "SET SESSION lock_wait_timeout = @@GLOBAL.lock_wait_timeout")
+		revertTimeoutSQL = "SET SESSION lock_wait_timeout = @@GLOBAL.lock_wait_timeout"
 	}
-	conn.Close()
+	_, err := conn.ExecContext(ctx, revertTimeoutSQL)
+	if err != nil {
+		// in case of error force discarding of this connection
+		conn.Raw(func(interface{}) error { return driver.ErrBadConn })
+	} else {
+		// release connection
+		conn.Close()
+	}
 }
