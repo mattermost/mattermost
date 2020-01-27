@@ -148,6 +148,8 @@ func (fs SqlFileInfoStore) GetWithOptions(opt *model.GetFilesOptions) ([]*model.
 			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
 	}
 
+	query = query.OrderBy("FileInfo.Id ASC") // secondary sort for sort stability
+
 	if opt.PerPage > 0 {
 		query = query.Limit(uint64(opt.PerPage))
 		if opt.Page > 0 {

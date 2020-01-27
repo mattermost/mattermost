@@ -303,8 +303,11 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		return post
 	}
 
-	makeFile := func(post model.Post, user string, createAt int64) model.FileInfo {
+	makeFile := func(post model.Post, user string, createAt int64, idPrefix string) model.FileInfo {
+		id := model.NewId()
+		id = idPrefix + id[1:] // hacky way to get sortable Ids to confirm secondary Id sort works
 		fileInfo := model.FileInfo{
+			Id:        id,
 			CreatorId: user,
 			Path:      "file.txt",
 			CreateAt:  createAt,
@@ -334,31 +337,30 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	post2_2 := makePost(channel1and2, user2.Id)
 
 	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-	file1_1 := makeFile(post1_1, user1.Id, epoch.AddDate(0, 0, 1).Unix())      // file 1 by user 1
-	file1_2 := makeFile(post1_2, user1.Id, epoch.AddDate(0, 0, 2).Unix())      // file 2 by user 1
-	file1_3 := makeFile(model.Post{}, user1.Id, epoch.AddDate(0, 0, 3).Unix()) // file that is not attached to a post
-	file2_1 := makeFile(post2_1, user2.Id, epoch.AddDate(0, 0, 4).Unix())      // file 2 by user 1
-	file2_2 := makeFile(post2_2, user2.Id, epoch.AddDate(0, 0, 5).Unix())
+	file1_1 := makeFile(post1_1, user1.Id, epoch.AddDate(0, 0, 1).Unix(), "a")      // file 1 by user 1
+	file1_2 := makeFile(post1_2, user1.Id, epoch.AddDate(0, 0, 2).Unix(), "b")      // file 2 by user 1
+	file1_3 := makeFile(model.Post{}, user1.Id, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
+	file2_1 := makeFile(post2_1, user2.Id, epoch.AddDate(0, 0, 4).Unix(), "d")      // file 2 by user 1
+	file2_2 := makeFile(post2_2, user2.Id, epoch.AddDate(0, 0, 5).Unix(), "e")
 
 	// delete a file
 	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
 	require.Nil(t, err)
 
 	testCases := []struct {
-		Name              string
-		Opt               *model.GetFilesOptions
-		ExpectedFileCount int
-		ExpectedFileIds   []string
+		Name            string
+		Opt             *model.GetFilesOptions
+		ExpectedFileIds []string
 	}{
 		{
-			Name:              "Get files with nil option",
-			Opt:               nil,
-			ExpectedFileCount: 4,
+			Name:            "Get files with nil option",
+			Opt:             nil,
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id},
 		},
 		{
-			Name:              "Get files including deleted",
-			Opt:               &model.GetFilesOptions{IncludeDeleted: true},
-			ExpectedFileCount: 5,
+			Name:            "Get files including deleted",
+			Opt:             &model.GetFilesOptions{IncludeDeleted: true},
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
 			Name: "Get files including deleted filtered by channel",
@@ -366,7 +368,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				IncludeDeleted: true,
 				ChannelIds:     []string{channel1and2.Id},
 			},
-			ExpectedFileCount: 2,
+			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
 		},
 		{
 			Name: "Get files including deleted sorted by created at",
@@ -374,8 +376,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				IncludeDeleted: true,
 				SortBy:         model.FILE_SORT_BY_CREATED,
 			},
-			ExpectedFileCount: 5,
-			ExpectedFileIds:   []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
 			Name: "Get files filtered by user ordered by created at descending",
@@ -384,8 +385,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				SortBy:        model.FILE_SORT_BY_CREATED,
 				SortDirection: model.FILE_SORT_ORDER_DESCENDING,
 			},
-			ExpectedFileCount: 3,
-			ExpectedFileIds:   []string{file1_3.Id, file1_2.Id, file1_1.Id},
+			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
 		},
 		{
 			Name: "Get all files including deleted filtered by channel id and sorted by channel name",
@@ -394,8 +394,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				IncludeDeleted: true,
 				SortBy:         model.FILE_SORT_BY_CHANNEL_NAME,
 			},
-			ExpectedFileCount: 2,
-			ExpectedFileIds:   []string{file1_1.Id, file2_1.Id},
+			ExpectedFileIds: []string{file1_1.Id, file2_1.Id},
 		},
 		{
 			Name: "Get all files including deleted filtered by channel id and sorted by username descending",
@@ -405,8 +404,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				SortBy:         model.FILE_SORT_BY_USERNAME,
 				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
 			},
-			ExpectedFileCount: 2,
-			ExpectedFileIds:   []string{file2_2.Id, file1_2.Id},
+			ExpectedFileIds: []string{file2_2.Id, file1_2.Id},
 		},
 		{
 			Name: "Get all files including deleted paginated",
@@ -417,8 +415,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 				SortBy:         model.FILE_SORT_BY_CREATED,
 				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
 			},
-			ExpectedFileCount: 2,
-			ExpectedFileIds:   []string{file1_2.Id, file1_1.Id},
+			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},
 		},
 	}
 
@@ -426,7 +423,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Opt)
 			require.Nil(t, err)
-			assert.Len(t, fileInfos, tc.ExpectedFileCount)
+			assert.Len(t, fileInfos, len(tc.ExpectedFileIds))
 			if len(tc.ExpectedFileIds) > 0 {
 				for i := range tc.ExpectedFileIds {
 					assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
