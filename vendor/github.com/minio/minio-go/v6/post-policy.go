@@ -131,6 +131,27 @@ func (p *PostPolicy) SetBucket(bucketName string) error {
 	return nil
 }
 
+// SetCondition - Sets condition for credentials, date and algorithm
+func (p *PostPolicy) SetCondition(matchType, condition, value string) error {
+	if strings.TrimSpace(value) == "" || value == "" {
+		return ErrInvalidArgument("No value specified for condition")
+	}
+
+	policyCond := policyCondition{
+		matchType: matchType,
+		condition: "$" + condition,
+		value:     value,
+	}
+	if condition == "X-Amz-Credential" || condition == "X-Amz-Date" || condition == "X-Amz-Algorithm" {
+		if err := p.addNewPolicy(policyCond); err != nil {
+			return err
+		}
+		p.formData[condition] = value
+		return nil
+	}
+	return ErrInvalidArgument("Invalid condition in policy")
+}
+
 // SetContentType - Sets content-type of the object for this policy
 // based upload.
 func (p *PostPolicy) SetContentType(contentType string) error {
