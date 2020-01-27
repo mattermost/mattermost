@@ -191,6 +191,101 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
+type mentionMapItem struct {
+	Name string
+	Id   string
+}
+
+// mentionsToTeamMembers returns all the @ mentions found in message that
+// belong to users in the specified team, linking them to their users
+func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap {
+	possibleMentions := model.PossibleAtMentions(message)
+	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
+
+	for _, mention := range possibleMentions {
+		go func(mention string) {
+			user, err := a.Srv.Store.User().GetByUsername(mention)
+			if err != nil {
+				// Consider trailing punctuation that may be hiding a valid username
+				mention, ok := model.TrimUsernameSpecialChar(mention)
+				for ; ok; mention, ok = model.TrimUsernameSpecialChar(mention) {
+					user, err := a.Srv.Store.User().GetByUsername(mention)
+					if err != nil {
+						continue
+					}
+
+					_, err = a.GetTeamMember(teamId, user.Id)
+					if err != nil {
+						// The user is not in the team, so we should ignore it
+						mentionChan <- nil
+						return
+					}
+
+					mentionChan <- &mentionMapItem{mention, user.Id}
+					return
+				}
+
+				mentionChan <- nil
+				return
+			}
+
+			_, err = a.GetTeamMember(teamId, user.Id)
+			if err != nil {
+				// The user is not in the team, so we should ignore it
+				mentionChan <- nil
+				return
+			}
+
+			mentionChan <- &mentionMapItem{mention, user.Id}
+			return
+		}(mention)
+	}
+
+	atMentionMap := make(model.UserMentionMap)
+
+	for i := 0; i < len(possibleMentions); i++ {
+		if mention := <-mentionChan; mention != nil {
+			atMentionMap[mention.Name] = mention.Id
+		}
+	}
+
+	return atMentionMap
+}
+
+// mentionsToPublicChannels returns all the mentions to public channels,
+// linking them to their channels
+func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
+	channelMentions := model.ChannelMentions(message)
+	mentionChan := make(chan *mentionMapItem, len(channelMentions))
+
+	for _, channelName := range channelMentions {
+		go func(channelName string) {
+			channel, err := a.GetChannelByName(channelName, teamId, false)
+			if err != nil {
+				mentionChan <- nil
+				return
+			}
+
+			if !channel.IsOpen() {
+				mentionChan <- nil
+				return
+			}
+
+			mentionChan <- &mentionMapItem{channelName, channel.Id}
+		}(channelName)
+	}
+
+	channelMentionMap := make(model.ChannelMentionMap)
+
+	for i := 0; i < len(channelMentions); i++ {
+		if mention := <-mentionChan; mention != nil {
+			channelMentionMap[mention.Name] = mention.Id
+		}
+	}
+
+	return channelMentionMap
+}
+
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
 // found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
@@ -289,6 +384,16 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	p.Set("text", message)
 
 	p.Set("trigger_id", args.TriggerId)
+
+	userMentionMap := a.mentionsToTeamMembers(message, team.Id)
+	for key, values := range userMentionMap.ToURLValues() {
+		p[key] = values
+	}
+
+	channelMentionMap := a.mentionsToPublicChannels(message, team.Id)
+	for key, values := range channelMentionMap.ToURLValues() {
+		p[key] = values
+	}
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
