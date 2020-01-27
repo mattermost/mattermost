@@ -968,6 +968,10 @@ type PostAndData struct {
 }
 
 func (a *App) ImportMultiplePosts(data []*PostImportData, dryRun bool) *model.AppError {
+	if len(data) == 0 {
+		return nil
+	}
+
 	for _, postData := range data {
 		if err := validatePostImportData(postData, a.MaxPostSize()); err != nil {
 			return err
@@ -997,7 +1001,7 @@ func (a *App) ImportMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		var ok bool
 		team := teams[*postData.Team]
 		if team == nil {
-			return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *postData.Team}, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *postData.Team}, "", http.StatusBadRequest)
 		}
 
 		var channel *model.Channel
@@ -1066,9 +1070,12 @@ func (a *App) ImportMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		postsWithData = append(postsWithData, PostAndData{Post: post, PostData: postData, Team: team})
 	}
 
-	if _, err := a.Srv.Store.Post().SaveMultiple(postsForCreateList); err != nil {
-		return err
+	if len(postsForCreateList) > 0 {
+		if _, err := a.Srv.Store.Post().SaveMultiple(postsForCreateList); err != nil {
+			return err
+		}
 	}
+
 	for _, post := range postsForOverwriteList {
 		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
 			return err
@@ -1221,6 +1228,10 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 }
 
 func (a *App) ImportMultipleDirectPosts(data []*DirectPostImportData, dryRun bool) *model.AppError {
+	if len(data) == 0 {
+		return nil
+	}
+
 	for _, postData := range data {
 		if err := validateDirectPostImportData(postData, a.MaxPostSize()); err != nil {
 			return err
@@ -1251,7 +1262,7 @@ func (a *App) ImportMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		for _, username := range *postData.ChannelMembers {
 			var user *model.User
 			if user, ok = users[username]; !ok {
-				return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, err.Error(), http.StatusBadRequest)
+				return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, "", http.StatusBadRequest)
 			}
 			userIds = append(userIds, user.Id)
 		}
@@ -1328,8 +1339,10 @@ func (a *App) ImportMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		postsWithData = append(postsWithData, PostAndData{Post: post, DirectPostData: postData})
 	}
 
-	if _, err := a.Srv.Store.Post().SaveMultiple(postsForCreateList); err != nil {
-		return err
+	if len(postsForCreateList) > 0 {
+		if _, err := a.Srv.Store.Post().SaveMultiple(postsForCreateList); err != nil {
+			return err
+		}
 	}
 	for _, post := range postsForOverwriteList {
 		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
