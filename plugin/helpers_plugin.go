@@ -69,9 +69,11 @@ func (p *HelpersImpl) GetPluginAssetURL(pluginID, asset string) (*url.URL, error
 	if siteURL == "" {
 		return nil, errors.New("no SiteURL configured by the server")
 	}
+
 	u, err := url.Parse(siteURL + "/" + pluginID + "/" + asset)
 	if err != nil {
 		return nil, err
 	}
+
 	return u, nil
 }
