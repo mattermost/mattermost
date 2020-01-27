@@ -151,11 +151,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error2", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error3", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for channelId, count := range channelNewPosts {

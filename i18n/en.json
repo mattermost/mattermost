@@ -2995,14 +2995,6 @@
     "translation": "Failed to get group channel"
   },
   {
-    "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Error importing direct post. Failed to save preferences."
-  },
-  {
-    "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
-  },
-  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
