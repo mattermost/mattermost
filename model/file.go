@@ -35,17 +35,17 @@ const (
 // GetFilesOptions contains options for getting files
 type GetFilesOptions struct {
 	// UserIds optionally limits the files to those created by the given users.
-	UserIds []string
+	UserIds []string `json:"user_ids"`
 	// ChannelIds optionally limits the files to those created in the given channels.
-	ChannelIds []string
+	ChannelIds []string `json:"channel_ids"`
 	// Since optionally limits files to those created after a specified time as Unix time in milliseconds.
-	Since int64
+	Since int64 `json:"since"`
 	// IncludeDeleted includes deleted files if set.
-	IncludeDeleted bool
+	IncludeDeleted bool `json:"include_deleted"`
 	// SortBy sorts the files by this field. Default is to sort by date created
-	SortBy string
+	SortBy string `json:"sort_by"`
 	// SortDirection sorts the files in a particular order. Default is ASC.
-	SortDirection string
+	SortDirection string `json:"sort_direction"`
 }
 
 func FileUploadResponseFromJson(data io.Reader) *FileUploadResponse {
