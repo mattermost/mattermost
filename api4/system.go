@@ -417,7 +417,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.push_notifications_ack.message.parse.app_error",
 			nil,
 			err.Error(),
-			http.StatusInternalServerError,
+			http.StatusBadRequest,
 		)
 		return
 	}
