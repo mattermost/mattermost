@@ -6,12 +6,12 @@ package app
 import (
 	"archive/tar"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +44,8 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 		case tar.TypeDir:
 		case tar.TypeReg:
 		default:
-			return fmt.Errorf("unsupported type %v in %v", header.Typeflag, header.Name)
+			mlog.Warn("skipping unsupported header type on extracting tar file", mlog.String("header_type", string(header.Typeflag)), mlog.String("header_name", header.Name))
+			continue
 		}
 
 		// filepath.HasPrefix is deprecated, so we just use strings.HasPrefix to ensure

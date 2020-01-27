@@ -143,8 +143,8 @@ func TestExtractTarGz(t *testing.T) {
 			[]*tar.Header{
 				{Name: "/../../link", Typeflag: tar.TypeLink},
 			},
-			true,
-			nil,
+			false,
+			[]string{""},
 		},
 		{
 			[]*tar.Header{
