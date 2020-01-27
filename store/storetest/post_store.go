@@ -55,16 +55,101 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
-	o1 := model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
+	t.Run("Save post", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
 
-	_, err := ss.Post().Save(&o1)
-	require.Nil(t, err, "couldn't save item")
+		_, err := ss.Post().Save(&o1)
+		require.Nil(t, err, "couldn't save item")
+	})
 
-	_, err = ss.Post().Save(&o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	t.Run("Try to save existing post", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
+
+		_, err := ss.Post().Save(&o1)
+		require.Nil(t, err, "couldn't save item")
+
+		_, err = ss.Post().Save(&o1)
+		require.NotNil(t, err, "shouldn't be able to update from save")
+	})
+
+	t.Run("Update reply should update the UpdateAt of the root post", func(t *testing.T) {
+		rootPost := model.Post{}
+		rootPost.ChannelId = model.NewId()
+		rootPost.UserId = model.NewId()
+		rootPost.Message = "zz" + model.NewId() + "b"
+
+		_, err := ss.Post().Save(&rootPost)
+		require.Nil(t, err)
+
+		replyPost := model.Post{}
+		replyPost.ChannelId = rootPost.ChannelId
+		replyPost.UserId = model.NewId()
+		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.RootId = rootPost.Id
+
+		_, err = ss.Post().Save(&replyPost)
+		require.Nil(t, err)
+
+		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
+		require.Nil(t, err)
+		assert.Greater(t, rrootPost.UpdateAt, rootPost.UpdateAt)
+	})
+
+	t.Run("Create a post should update the channel LastPostAt and the total messages count by one", func(t *testing.T) {
+		channel := model.Channel{}
+		channel.Name = "zz" + model.NewId() + "b"
+		channel.DisplayName = "zz" + model.NewId() + "b"
+		channel.Type = model.CHANNEL_OPEN
+
+		_, err := ss.Channel().Save(&channel, 100)
+		require.Nil(t, err)
+
+		post := model.Post{}
+		post.ChannelId = channel.Id
+		post.UserId = model.NewId()
+		post.Message = "zz" + model.NewId() + "b"
+
+		_, err = ss.Post().Save(&post)
+		require.Nil(t, err)
+
+		rchannel, err := ss.Channel().Get(channel.Id, false)
+		require.Nil(t, err)
+		assert.Greater(t, rchannel.LastPostAt, channel.LastPostAt)
+		assert.Equal(t, int64(1), rchannel.TotalMsgCount)
+
+		post = model.Post{}
+		post.ChannelId = channel.Id
+		post.UserId = model.NewId()
+		post.Message = "zz" + model.NewId() + "b"
+		post.CreateAt = 5
+
+		_, err = ss.Post().Save(&post)
+		require.Nil(t, err)
+
+		rchannel2, err := ss.Channel().Get(channel.Id, false)
+		require.Nil(t, err)
+		assert.Equal(t, rchannel.LastPostAt, rchannel2.LastPostAt)
+		assert.Equal(t, int64(2), rchannel2.TotalMsgCount)
+
+		post = model.Post{}
+		post.ChannelId = channel.Id
+		post.UserId = model.NewId()
+		post.Message = "zz" + model.NewId() + "b"
+
+		_, err = ss.Post().Save(&post)
+		require.Nil(t, err)
+
+		rchannel3, err := ss.Channel().Get(channel.Id, false)
+		require.Nil(t, err)
+		assert.Greater(t, rchannel3.LastPostAt, rchannel2.LastPostAt)
+		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
+	})
 }
 
 func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
@@ -113,6 +198,79 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		storedPost, err = ss.Post().GetSingle(p4.Id)
 		assert.NotNil(t, err)
 		assert.Nil(t, storedPost)
+	})
+
+	t.Run("Update reply should update the UpdateAt of the root post", func(t *testing.T) {
+		rootPost := model.Post{}
+		rootPost.ChannelId = model.NewId()
+		rootPost.UserId = model.NewId()
+		rootPost.Message = "zz" + model.NewId() + "b"
+
+		replyPost := model.Post{}
+		replyPost.ChannelId = rootPost.ChannelId
+		replyPost.UserId = model.NewId()
+		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.RootId = rootPost.Id
+
+		_, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		require.Nil(t, err)
+
+		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
+		require.Nil(t, err)
+		assert.Equal(t, rrootPost.UpdateAt, rootPost.UpdateAt)
+
+		replyPost2 := model.Post{}
+		replyPost2.ChannelId = rootPost.ChannelId
+		replyPost2.UserId = model.NewId()
+		replyPost2.Message = "zz" + model.NewId() + "b"
+		replyPost2.RootId = rootPost.Id
+
+		replyPost3 := model.Post{}
+		replyPost3.ChannelId = rootPost.ChannelId
+		replyPost3.UserId = model.NewId()
+		replyPost3.Message = "zz" + model.NewId() + "b"
+		replyPost3.RootId = rootPost.Id
+
+		_, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		require.Nil(t, err)
+
+		rrootPost2, err := ss.Post().GetSingle(rootPost.Id)
+		require.Nil(t, err)
+		assert.Greater(t, rrootPost2.UpdateAt, rrootPost.UpdateAt)
+	})
+
+	t.Run("Create a post should update the channel LastPostAt and the total messages count by one", func(t *testing.T) {
+		channel := model.Channel{}
+		channel.Name = "zz" + model.NewId() + "b"
+		channel.DisplayName = "zz" + model.NewId() + "b"
+		channel.Type = model.CHANNEL_OPEN
+
+		_, err := ss.Channel().Save(&channel, 100)
+		require.Nil(t, err)
+
+		post1 := model.Post{}
+		post1.ChannelId = channel.Id
+		post1.UserId = model.NewId()
+		post1.Message = "zz" + model.NewId() + "b"
+
+		post2 := model.Post{}
+		post2.ChannelId = channel.Id
+		post2.UserId = model.NewId()
+		post2.Message = "zz" + model.NewId() + "b"
+		post2.CreateAt = 5
+
+		post3 := model.Post{}
+		post3.ChannelId = channel.Id
+		post3.UserId = model.NewId()
+		post3.Message = "zz" + model.NewId() + "b"
+
+		_, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		require.Nil(t, err)
+
+		rchannel, err := ss.Channel().Get(channel.Id, false)
+		require.Nil(t, err)
+		assert.Greater(t, rchannel.LastPostAt, channel.LastPostAt)
+		assert.Equal(t, int64(3), rchannel.TotalMsgCount)
 	})
 }
 
