@@ -333,7 +333,7 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid SupportURL")
 	}
 
-	if m.SupportURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
 		return errors.New("invalid SupportURL")
 	}
 
