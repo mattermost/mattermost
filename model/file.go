@@ -46,9 +46,9 @@ type GetFilesOptions struct {
 	Page int
 	// PerPage optionally limits the number of results to fetch per page.
 	PerPage int
-	// SortBy optionally sorts the files by this field.
+	// SortBy sorts the files by this field. Default is to sort by date created
 	SortBy string
-	// SortDirection sorts the files in a particular order, default is ASCENDING if SortBy is provided.
+	// SortDirection sorts the files in a particular order. Default is ASC.
 	SortDirection string
 }
 
