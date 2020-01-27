@@ -662,7 +662,7 @@ type API interface {
 	// GetFileInfos gets File Infos with options
 	//
 	// @tag File
-	// Minimum server version: 5.20
+	// Minimum server version: 5.22
 	GetFileInfos(page, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError)
 
 	// GetFile gets content of a file by it's ID
