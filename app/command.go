@@ -207,21 +207,21 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 			user, err := a.Srv.Store.User().GetByUsername(mention)
 			if err != nil {
 				// Consider trailing punctuation that may be hiding a valid username
-				mention, ok := model.TrimUsernameSpecialChar(mention)
-				for ; ok; mention, ok = model.TrimUsernameSpecialChar(mention) {
-					user, err := a.Srv.Store.User().GetByUsername(mention)
+				trimmed, ok := model.TrimUsernameSpecialChar(mention)
+				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
+					userFromTrimmed, err := a.Srv.Store.User().GetByUsername(trimmed)
 					if err != nil {
 						continue
 					}
 
-					_, err = a.GetTeamMember(teamId, user.Id)
+					_, err = a.GetTeamMember(teamId, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						mentionChan <- nil
 						return
 					}
 
-					mentionChan <- &mentionMapItem{mention, user.Id}
+					mentionChan <- &mentionMapItem{trimmed, userFromTrimmed.Id}
 					return
 				}
 
@@ -237,7 +237,6 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 			}
 
 			mentionChan <- &mentionMapItem{mention, user.Id}
-			return
 		}(mention)
 	}
 
