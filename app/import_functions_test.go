@@ -3020,7 +3020,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user4, err := th.App.GetUserByUsername(username2)
+	user2, err := th.App.GetUserByUsername(username2)
 	require.Nil(t, err, "Failed to get user3 from database.")
 
 	// Create direct post users.
@@ -3038,7 +3038,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 
-	user4, err = th.App.GetUserByUsername(username4)
+	user4, err := th.App.GetUserByUsername(username4)
 	require.Nil(t, err, "Failed to get user3 from database.")
 
 	// Post with attachments
@@ -3051,7 +3051,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	data := &PostImportData{
 		Team:        &teamName,
 		Channel:     &channelName,
-		User:        &username,
+		User:        &username3,
 		Message:     ptrStr("Message with reply"),
 		CreateAt:    &attachmentsPostTime,
 		Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
@@ -3094,13 +3094,13 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		directImportData := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				user3.Username,
-				user4.Username,
+				user2.Username,
 			},
 			User:     &user3.Username,
 			Message:  ptrStr("Message with Replies"),
 			CreateAt: ptrInt64(model.GetMillis()),
 			Replies: &[]ReplyImportData{{
-				User:        &user4.Username,
+				User:        &user2.Username,
 				Message:     ptrStr("Message reply with attachment"),
 				CreateAt:    ptrInt64(model.GetMillis()),
 				Attachments: &[]AttachmentImportData{{Path: &testImage}},
@@ -3110,7 +3110,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		err = th.App.ImportMultipleDirectPosts([]*DirectPostImportData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 
-		attachments := GetAttachments(user4.Id, th, t)
+		attachments := GetAttachments(user2.Id, th, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
