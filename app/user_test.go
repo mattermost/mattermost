@@ -361,6 +361,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		err = th.App.VerifyEmailFromToken(token.Token)
 		assert.Nil(t, err)
 
+		th.App.InvalidateCacheForUser(user2.Id)
 		user2, err = th.App.GetUser(user2.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, newEmail, user2.Email)
