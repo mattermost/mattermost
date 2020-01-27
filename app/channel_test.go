@@ -502,7 +502,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -1160,4 +1160,56 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, response)
 	})
+}
+
+func TestAddUserToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser1, _ := th.App.CreateUser(&user1)
+	defer th.App.PermanentDeleteUser(&user1)
+	th.App.AddTeamMember(th.BasicTeam.Id, ruser1.Id)
+
+	group := th.CreateGroup()
+
+	_, err := th.App.UpsertGroupMember(group.Id, user1.Id)
+	require.Nil(t, err)
+
+	gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:     true,
+		SyncableId:  th.BasicChannel.Id,
+		Type:        model.GroupSyncableTypeChannel,
+		GroupId:     group.Id,
+		SchemeAdmin: false,
+	})
+	require.Nil(t, err)
+
+	err = th.App.JoinChannel(th.BasicChannel, ruser1.Id)
+	require.Nil(t, err)
+
+	// verify user was added as a non-admin
+	cm1, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser1.Id)
+	require.Nil(t, err)
+	require.False(t, cm1.SchemeAdmin)
+
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser2, _ := th.App.CreateUser(&user2)
+	defer th.App.PermanentDeleteUser(&user2)
+	th.App.AddTeamMember(th.BasicTeam.Id, ruser2.Id)
+
+	_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+	require.Nil(t, err)
+
+	gs.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(gs)
+	require.Nil(t, err)
+
+	err = th.App.JoinChannel(th.BasicChannel, ruser2.Id)
+	require.Nil(t, err)
+
+	// verify user was added as an admin
+	cm2, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser2.Id)
+	require.Nil(t, err)
+	require.True(t, cm2.SchemeAdmin)
 }

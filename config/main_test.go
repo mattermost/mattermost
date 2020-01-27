@@ -29,8 +29,8 @@ func TestMain(m *testing.M) {
 // truncateTable clears the given table
 func truncateTable(t *testing.T, table string) {
 	t.Helper()
-	sqlSetting := mainHelper.GetSqlSettings()
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSetting := mainHelper.GetSQLSettings()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 
 	switch *sqlSetting.DriverName {
 	case model.DATABASE_DRIVER_MYSQL:

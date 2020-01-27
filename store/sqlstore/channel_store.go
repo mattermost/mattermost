@@ -2838,3 +2838,25 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 	}
 	return c > 0, nil
 }
+
+func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	sql := fmt.Sprintf(`
+		UPDATE
+			ChannelMembers
+		SET
+			SchemeAdmin = CASE WHEN UserId IN ('%s') THEN
+				TRUE
+			ELSE
+				FALSE
+			END
+		WHERE
+			ChannelId = :ChannelId
+			AND (SchemeGuest = false OR SchemeGuest IS NULL)
+			`, strings.Join(userIDs, "', '"))
+
+	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"ChannelId": channelID}); err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
