@@ -48,7 +48,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
-	us.usersQuery = us.getQueryBuilder().
+	us.UsersQuery = us.getQueryBuilder().
 		Select("u.*", "b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
@@ -582,7 +582,7 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 }
 
 func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
-	query := us.usersQuery.
+	query := us.UsersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
 		Where("u.DeleteAt = 0").
@@ -773,7 +773,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 	}
 
 	users := []*model.User{}
-	query := us.usersQuery.
+	query := us.UsersQuery.
 		Where(map[string]interface{}{
 			"u.Id": userIds,
 		}).

@@ -23,8 +23,8 @@ import (
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
-	maxPostSizeOnce   sync.Once
-	maxPostSizeCached int
+	MaxPostSizeOnce   sync.Once
+	MaxPostSizeCached int
 }
 
 func (s *SqlPostStore) ClearCaches() {
@@ -34,7 +34,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
-		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
+		MaxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
