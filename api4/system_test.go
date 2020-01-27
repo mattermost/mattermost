@@ -640,7 +640,7 @@ func TestPushNotificationAck(t *testing.T) {
 		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
 
 		handler.ServeHTTP(resp, req)
-		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
 		assert.NotNil(t, resp.Body)
 	})
 }
