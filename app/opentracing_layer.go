@@ -9316,107 +9316,107 @@ func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *OpenTracing
 	return &newStore
 }
 
-func (a *OpenTracingAppLayer) Srv() *Server {
-	return a.srv
+func (s *OpenTracingAppLayer) Srv() *Server {
+	return s.srv
 }
-func (a *OpenTracingAppLayer) Log() *mlog.Logger {
-	return a.log
+func (s *OpenTracingAppLayer) Log() *mlog.Logger {
+	return s.log
 }
-func (a *OpenTracingAppLayer) NotificationsLog() *mlog.Logger {
-	return a.notificationsLog
+func (s *OpenTracingAppLayer) NotificationsLog() *mlog.Logger {
+	return s.notificationsLog
 }
-func (a *OpenTracingAppLayer) T(translationID string, args ...interface{}) string {
-	return a.t(translationID, args...)
+func (s *OpenTracingAppLayer) T(translationID string, args ...interface{}) string {
+	return s.t(translationID, args...)
 }
-func (a *OpenTracingAppLayer) Session() *model.Session {
-	return &a.session
+func (s *OpenTracingAppLayer) Session() *model.Session {
+	return &s.session
 }
-func (a *OpenTracingAppLayer) RequestId() string {
-	return a.requestId
+func (s *OpenTracingAppLayer) RequestId() string {
+	return s.requestId
 }
-func (a *OpenTracingAppLayer) IpAddress() string {
-	return a.ipAddress
+func (s *OpenTracingAppLayer) IpAddress() string {
+	return s.ipAddress
 }
-func (a *OpenTracingAppLayer) Path() string {
-	return a.path
+func (s *OpenTracingAppLayer) Path() string {
+	return s.path
 }
-func (a *OpenTracingAppLayer) UserAgent() string {
-	return a.userAgent
+func (s *OpenTracingAppLayer) UserAgent() string {
+	return s.userAgent
 }
-func (a *OpenTracingAppLayer) AcceptLanguage() string {
-	return a.acceptLanguage
+func (s *OpenTracingAppLayer) AcceptLanguage() string {
+	return s.acceptLanguage
 }
-func (a *OpenTracingAppLayer) AccountMigration() einterfaces.AccountMigrationInterface {
-	return a.accountMigration
+func (s *OpenTracingAppLayer) AccountMigration() einterfaces.AccountMigrationInterface {
+	return s.accountMigration
 }
-func (a *OpenTracingAppLayer) Cluster() einterfaces.ClusterInterface {
-	return a.cluster
+func (s *OpenTracingAppLayer) Cluster() einterfaces.ClusterInterface {
+	return s.cluster
 }
-func (a *OpenTracingAppLayer) Compliance() einterfaces.ComplianceInterface {
-	return a.compliance
+func (s *OpenTracingAppLayer) Compliance() einterfaces.ComplianceInterface {
+	return s.compliance
 }
-func (a *OpenTracingAppLayer) DataRetention() einterfaces.DataRetentionInterface {
-	return a.dataRetention
+func (s *OpenTracingAppLayer) DataRetention() einterfaces.DataRetentionInterface {
+	return s.dataRetention
 }
-func (a *OpenTracingAppLayer) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return a.elasticsearch
+func (s *OpenTracingAppLayer) Elasticsearch() einterfaces.ElasticsearchInterface {
+	return s.elasticsearch
 }
-func (a *OpenTracingAppLayer) Ldap() einterfaces.LdapInterface {
-	return a.ldap
+func (s *OpenTracingAppLayer) Ldap() einterfaces.LdapInterface {
+	return s.ldap
 }
-func (a *OpenTracingAppLayer) MessageExport() einterfaces.MessageExportInterface {
-	return a.messageExport
+func (s *OpenTracingAppLayer) MessageExport() einterfaces.MessageExportInterface {
+	return s.messageExport
 }
-func (a *OpenTracingAppLayer) Metrics() einterfaces.MetricsInterface {
-	return a.metrics
+func (s *OpenTracingAppLayer) Metrics() einterfaces.MetricsInterface {
+	return s.metrics
 }
-func (a *OpenTracingAppLayer) Notification() einterfaces.NotificationInterface {
-	return a.notification
+func (s *OpenTracingAppLayer) Notification() einterfaces.NotificationInterface {
+	return s.notification
 }
-func (a *OpenTracingAppLayer) Saml() einterfaces.SamlInterface {
-	return a.saml
+func (s *OpenTracingAppLayer) Saml() einterfaces.SamlInterface {
+	return s.saml
 }
-func (a *OpenTracingAppLayer) HTTPService() httpservice.HTTPService {
-	return a.httpService
+func (s *OpenTracingAppLayer) HTTPService() httpservice.HTTPService {
+	return s.httpService
 }
-func (a *OpenTracingAppLayer) ImageProxy() *imageproxy.ImageProxy {
-	return a.imageProxy
+func (s *OpenTracingAppLayer) ImageProxy() *imageproxy.ImageProxy {
+	return s.imageProxy
 }
-func (a *OpenTracingAppLayer) Timezones() *timezones.Timezones {
-	return a.timezones
+func (s *OpenTracingAppLayer) Timezones() *timezones.Timezones {
+	return s.timezones
 }
-func (a *OpenTracingAppLayer) Context() context.Context {
-	return a.context
+func (s *OpenTracingAppLayer) Context() context.Context {
+	return s.context
 }
-func (a *OpenTracingAppLayer) Store() store.Store {
-	return a.store
-}
-
-func (a *OpenTracingAppLayer) SetSession(s *model.Session) {
-	a.session = *s
-}
-func (a *OpenTracingAppLayer) SetStore(s store.Store) {
-	a.store = s
+func (s *OpenTracingAppLayer) Store() store.Store {
+	return s.store
 }
 
-func (a *OpenTracingAppLayer) SetT(t goi18n.TranslateFunc) {
-	a.t = t
+func (s *OpenTracingAppLayer) SetSession(sess *model.Session) {
+	s.session = *sess
 }
-func (a *OpenTracingAppLayer) SetRequestId(s string) {
-	a.requestId = s
+func (s *OpenTracingAppLayer) SetStore(str store.Store) {
+	s.store = str
 }
-func (a *OpenTracingAppLayer) SetIpAddress(s string) {
-	a.ipAddress = s
+
+func (s *OpenTracingAppLayer) SetT(t goi18n.TranslateFunc) {
+	s.t = t
 }
-func (a *OpenTracingAppLayer) SetUserAgent(s string) {
-	a.userAgent = s
+func (s *OpenTracingAppLayer) SetRequestId(str string) {
+	s.requestId = str
 }
-func (a *OpenTracingAppLayer) SetAcceptLanguage(s string) {
-	a.acceptLanguage = s
+func (s *OpenTracingAppLayer) SetIpAddress(str string) {
+	s.ipAddress = str
 }
-func (a *OpenTracingAppLayer) SetPath(s string) {
-	a.path = s
+func (s *OpenTracingAppLayer) SetUserAgent(str string) {
+	s.userAgent = str
 }
-func (a *OpenTracingAppLayer) SetContext(c context.Context) {
-	a.context = c
+func (s *OpenTracingAppLayer) SetAcceptLanguage(str string) {
+	s.acceptLanguage = str
+}
+func (s *OpenTracingAppLayer) SetPath(str string) {
+	s.path = str
+}
+func (s *OpenTracingAppLayer) SetContext(c context.Context) {
+	s.context = c
 }
