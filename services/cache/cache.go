@@ -13,29 +13,29 @@ type Cache interface {
 	Purge()
 
 	// Add adds the given key and value to the store without an expiry.
-	Add(key, value interface{})
+	Add(key string, value interface{})
 
 	// AddWithDefaultExpires adds the given key and value to the store with the default expiry.
-	AddWithDefaultExpires(key, value interface{})
+	AddWithDefaultExpires(key string, value interface{})
 
 	// AddWithExpiresInSecs adds the given key and value to the cache with the given expiry.
-	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
+	AddWithExpiresInSecs(key string, value interface{}, expireAtSecs int64)
 
 	// Get returns the value stored in the cache for a key, or nil if no value is present. The ok result indicates whether value was found in the cache.
-	Get(key interface{}) (value interface{}, ok bool)
+	Get(key string) (value interface{}, ok bool)
 
 	// GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
 	// This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
-	GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool)
+	GetOrAdd(key string, value interface{}, ttl time.Duration) (actual interface{}, loaded bool)
 
 	// Remove deletes the value for a key.
-	Remove(key interface{})
+	Remove(key string)
 
 	// RemoveByPrefix deletes all keys containing the given prefix string.
 	RemoveByPrefix(prefix string)
 
 	// Keys returns a slice of the keys in the cache.
-	Keys() []interface{}
+	Keys() []string
 
 	// Len returns the number of items in the cache.
 	Len() int

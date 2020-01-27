@@ -34,11 +34,9 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	statusMap := map[string]*model.Status{}
 
 	for _, userId := range userIds {
-		if id, ok := userId.(string); ok {
-			status := a.GetStatusFromCache(id)
-			if status != nil {
-				statusMap[id] = status
-			}
+		status := a.GetStatusFromCache(userId)
+		if status != nil {
+			statusMap[userId] = status
 		}
 	}
 
