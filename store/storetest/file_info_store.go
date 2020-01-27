@@ -349,21 +349,28 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 
 	testCases := []struct {
 		Name            string
+		Page, PerPage   uint
 		Opt             *model.GetFilesOptions
 		ExpectedFileIds []string
 	}{
 		{
 			Name:            "Get files with nil option",
+			Page:            1,
+			PerPage:         10,
 			Opt:             nil,
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id},
 		},
 		{
 			Name:            "Get files including deleted",
+			Page:            1,
+			PerPage:         10,
 			Opt:             &model.GetFilesOptions{IncludeDeleted: true},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
-			Name: "Get files including deleted filtered by channel",
+			Name:    "Get files including deleted filtered by channel",
+			Page:    1,
+			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				IncludeDeleted: true,
 				ChannelIds:     []string{channel1and2.Id},
@@ -371,7 +378,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
 		},
 		{
-			Name: "Get files including deleted sorted by created at",
+			Name:    "Get files including deleted sorted by created at",
+			Page:    1,
+			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				IncludeDeleted: true,
 				SortBy:         model.FILE_SORT_BY_CREATED,
@@ -379,7 +388,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
-			Name: "Get files filtered by user ordered by created at descending",
+			Name:    "Get files filtered by user ordered by created at descending",
+			Page:    1,
+			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				UserIds:       []string{user1.Id},
 				SortBy:        model.FILE_SORT_BY_CREATED,
@@ -388,7 +399,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
 		},
 		{
-			Name: "Get all files including deleted filtered by channel id and sorted by channel name",
+			Name:    "Get all files including deleted filtered by channel id and sorted by channel name",
+			Page:    1,
+			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				ChannelIds:     []string{channel1.Id, channel2.Id},
 				IncludeDeleted: true,
@@ -397,7 +410,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file1_1.Id, file2_1.Id},
 		},
 		{
-			Name: "Get all files including deleted filtered by channel id and sorted by username descending",
+			Name:    "Get all files including deleted filtered by channel id and sorted by username descending",
+			Page:    1,
+			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				ChannelIds:     []string{channel1and2.Id},
 				IncludeDeleted: true,
@@ -407,10 +422,10 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file2_2.Id, file1_2.Id},
 		},
 		{
-			Name: "Get all files including deleted paginated",
+			Name:    "Get all files including deleted ordered by created descending 2nd page of 3 per page ",
+			Page:    2,
+			PerPage: 3,
 			Opt: &model.GetFilesOptions{
-				Page:           2,
-				PerPage:        3,
 				IncludeDeleted: true,
 				SortBy:         model.FILE_SORT_BY_CREATED,
 				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
@@ -421,7 +436,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Opt)
+			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Page, tc.PerPage, tc.Opt)
 			require.Nil(t, err)
 			assert.Len(t, fileInfos, len(tc.ExpectedFileIds))
 			if len(tc.ExpectedFileIds) > 0 {

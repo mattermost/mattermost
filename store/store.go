@@ -488,7 +488,7 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, *model.AppError)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
 	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
-	GetWithOptions(opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError)
+	GetWithOptions(page, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
 	DeleteForPost(postId string) (string, *model.AppError)

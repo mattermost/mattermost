@@ -3321,7 +3321,9 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 }
 
 type Z_GetFileInfosArgs struct {
-	A *model.GetFilesOptions
+	A uint
+	B uint
+	C *model.GetFilesOptions
 }
 
 type Z_GetFileInfosReturns struct {
@@ -3329,8 +3331,8 @@ type Z_GetFileInfosReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetFileInfos(*model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
-	_args := &Z_GetFileInfosArgs{}
+func (g *apiRPCClient) GetFileInfos(page, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+	_args := &Z_GetFileInfosArgs{page, perPage, opt}
 	_returns := &Z_GetFileInfosReturns{}
 	if err := g.client.Call("Plugin.GetFileInfos", _args, _returns); err != nil {
 		log.Printf("RPC call to GetFileInfos API failed: %s", err.Error())
@@ -3340,9 +3342,9 @@ func (g *apiRPCClient) GetFileInfos(*model.GetFilesOptions) ([]*model.FileInfo, 
 
 func (s *apiRPCServer) GetFileInfos(args *Z_GetFileInfosArgs, returns *Z_GetFileInfosReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetFileInfos(*model.GetFilesOptions) ([]*model.FileInfo, *model.AppError)
+		GetFileInfos(page, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetFileInfos(args.A)
+		returns.A, returns.B = hook.GetFileInfos(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetFileInfos called but not implemented."))
 	}

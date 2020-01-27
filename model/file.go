@@ -42,10 +42,6 @@ type GetFilesOptions struct {
 	Since int64
 	// IncludeDeleted includes deleted files if set.
 	IncludeDeleted bool
-	// Page optionally limits to the requested page of results.
-	Page int
-	// PerPage optionally limits the number of results to fetch per page.
-	PerPage int
 	// SortBy sorts the files by this field. Default is to sort by date created
 	SortBy string
 	// SortDirection sorts the files in a particular order. Default is ASC.

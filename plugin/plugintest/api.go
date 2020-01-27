@@ -1000,13 +1000,13 @@ func (_m *API) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return r0, r1
 }
 
-// GetFileInfos provides a mock function with given fields: _a0
-func (_m *API) GetFileInfos(_a0 *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
-	ret := _m.Called(_a0)
+// GetFileInfos provides a mock function with given fields: page, perPage, opt
+func (_m *API) GetFileInfos(page uint, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+	ret := _m.Called(page, perPage, opt)
 
 	var r0 []*model.FileInfo
-	if rf, ok := ret.Get(0).(func(*model.GetFilesOptions) []*model.FileInfo); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(uint, uint, *model.GetFilesOptions) []*model.FileInfo); ok {
+		r0 = rf(page, perPage, opt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.FileInfo)
@@ -1014,8 +1014,8 @@ func (_m *API) GetFileInfos(_a0 *model.GetFilesOptions) ([]*model.FileInfo, *mod
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.GetFilesOptions) *model.AppError); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(uint, uint, *model.GetFilesOptions) *model.AppError); ok {
+		r1 = rf(page, perPage, opt)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
