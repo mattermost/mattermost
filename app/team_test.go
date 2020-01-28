@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -267,6 +268,68 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("invalid add a guest user with a non-granted email domain", func(t *testing.T) {
+		restrictedDomain := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.NotNil(t, err)
+		errRegexp := regexp.MustCompile(`Email must be from a specific domain`)
+		require.Equal(t, "Email must be from a specific domain", errRegexp.FindString(err.Error()))
+	})
+
+	t.Run("add a guest user with a granted email domain", func(t *testing.T) {
+		restrictedDomain := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		guestEmail := rguest.Email
+		rguest.Email = "test@restricted.com"
+		_, err := th.App.Srv.Store.User().Update(rguest, false)
+		require.Nil(t, err)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		rguest.Email = guestEmail
+		_, err = th.App.Srv.Store.User().Update(rguest, false)
+		require.Nil(t, err)
+	})
+
+	t.Run("add a guest user even though there are team and system domain restrictions", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "restricted-team.com"
+		_, err := th.Server.Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
+		restrictedDomain := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		_, err = th.App.Srv.Store.User().Update(rguest, false)
+		require.Nil(t, err)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		th.BasicTeam.AllowedDomains = ""
+		_, err = th.Server.Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
 	})
 
 	t.Run("valid request from guest invite", func(t *testing.T) {
