@@ -97,7 +97,7 @@ type AppOptionCreator func() []AppOption
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
 		a.srv = s
-
+		a.store = s.Store
 		a.log = s.Log
 		a.notificationsLog = s.NotificationsLog
 
