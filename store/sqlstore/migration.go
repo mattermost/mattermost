@@ -107,7 +107,6 @@ func (r *MigrationRunner) Run() error {
 		for _, m := range r.migrations {
 			// function that will try to execute migration
 			migrate := func() error {
-				var err error
 				conn, err := createConnectionWithLockTimeout(ctx, r.supplier, r.options.LockTimeoutSecs)
 				if err != nil {
 					return errors.Wrap(err, "failed to setup connection")
