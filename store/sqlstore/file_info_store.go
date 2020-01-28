@@ -95,14 +95,14 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	if perPage == 0 || page == 0 {
 		return nil, nil
 	}
 
 	// Nil option means sort by create at ascending
 	if opt == nil {
-		opt = &model.GetFilesOptions{}
+		opt = &model.GetFileInfosOptions{}
 	}
 
 	query := fs.getQueryBuilder().
@@ -127,7 +127,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 	}
 
 	if opt.SortBy == "" {
-		opt.SortBy = model.FILE_SORT_BY_CREATED
+		opt.SortBy = model.FILEINFO_SORT_BY_CREATED
 	}
 	sortDirection := "ASC"
 	if opt.SortDescending {
@@ -135,9 +135,9 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 	}
 
 	switch opt.SortBy {
-	case model.FILE_SORT_BY_CREATED:
+	case model.FILEINFO_SORT_BY_CREATED:
 		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
-	case model.FILE_SORT_BY_SIZE:
+	case model.FILEINFO_SORT_BY_SIZE:
 		query = query.OrderBy("FileInfo.Size " + sortDirection)
 	default:
 		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",

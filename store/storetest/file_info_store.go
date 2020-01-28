@@ -312,7 +312,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	testCases := []struct {
 		Name            string
 		Page, PerPage   uint
-		Opt             *model.GetFilesOptions
+		Opt             *model.GetFileInfosOptions
 		ExpectedFileIds []string
 	}{
 		{
@@ -326,14 +326,14 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Name:            "Get files including deleted",
 			Page:            1,
 			PerPage:         10,
-			Opt:             &model.GetFilesOptions{IncludeDeleted: true},
+			Opt:             &model.GetFileInfosOptions{IncludeDeleted: true},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
 			Name:    "Get files including deleted filtered by channel",
 			Page:    1,
 			PerPage: 10,
-			Opt: &model.GetFilesOptions{
+			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
 				ChannelIds:     []string{channelId3},
 			},
@@ -343,9 +343,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Name:    "Get files including deleted sorted by created at",
 			Page:    1,
 			PerPage: 10,
-			Opt: &model.GetFilesOptions{
+			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILE_SORT_BY_CREATED,
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
 			},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
@@ -353,9 +353,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Name:    "Get files filtered by user ordered by created at descending",
 			Page:    1,
 			PerPage: 10,
-			Opt: &model.GetFilesOptions{
+			Opt: &model.GetFileInfosOptions{
 				UserIds:        []string{userId1},
-				SortBy:         model.FILE_SORT_BY_CREATED,
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
@@ -364,9 +364,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Name:    "Get all files including deleted ordered by created descending 2nd page of 3 per page ",
 			Page:    2,
 			PerPage: 3,
-			Opt: &model.GetFilesOptions{
+			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
-				SortBy:         model.FILE_SORT_BY_CREATED,
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
 				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},

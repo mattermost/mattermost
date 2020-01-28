@@ -159,11 +159,11 @@ func (_m *FileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.Ap
 }
 
 // GetWithOptions provides a mock function with given fields: page, perPage, opt
-func (_m *FileInfoStore) GetWithOptions(page uint, perPage uint, opt *model.GetFilesOptions) ([]*model.FileInfo, *model.AppError) {
+func (_m *FileInfoStore) GetWithOptions(page uint, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	ret := _m.Called(page, perPage, opt)
 
 	var r0 []*model.FileInfo
-	if rf, ok := ret.Get(0).(func(uint, uint, *model.GetFilesOptions) []*model.FileInfo); ok {
+	if rf, ok := ret.Get(0).(func(uint, uint, *model.GetFileInfosOptions) []*model.FileInfo); ok {
 		r0 = rf(page, perPage, opt)
 	} else {
 		if ret.Get(0) != nil {
@@ -172,7 +172,7 @@ func (_m *FileInfoStore) GetWithOptions(page uint, perPage uint, opt *model.GetF
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(uint, uint, *model.GetFilesOptions) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(uint, uint, *model.GetFileInfosOptions) *model.AppError); ok {
 		r1 = rf(page, perPage, opt)
 	} else {
 		if ret.Get(1) != nil {

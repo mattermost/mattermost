@@ -419,16 +419,16 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 		require.Len(t, fileInfos, 1)
 	})
 	t.Run("get file infos filtered by user", func(t *testing.T) {
-		fileInfos, err := api.GetFileInfos(1, 5, &model.GetFilesOptions{
+		fileInfos, err := api.GetFileInfos(1, 5, &model.GetFileInfosOptions{
 			UserIds: []string{th.BasicUser.Id},
 		})
 		require.Nil(t, err)
 		require.Len(t, fileInfos, 2)
 	})
 	t.Run("get file infos filtered by channel ordered by created at descending", func(t *testing.T) {
-		fileInfos, err := api.GetFileInfos(1, 5, &model.GetFilesOptions{
+		fileInfos, err := api.GetFileInfos(1, 5, &model.GetFileInfosOptions{
 			ChannelIds:     []string{th.BasicChannel.Id},
-			SortBy:         model.FILE_SORT_BY_CREATED,
+			SortBy:         model.FILEINFO_SORT_BY_CREATED,
 			SortDescending: true,
 		})
 		require.Nil(t, err)
