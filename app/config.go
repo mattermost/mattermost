@@ -410,13 +410,13 @@ func (a *App) IsESIndexingEnabled() bool {
 }
 
 func (a *App) IsESSearchEnabled() bool {
-	esInterface := a.Elasticsearch
+	esInterface := a.Elasticsearch()
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
 }
 
 func (a *App) IsESAutocompletionEnabled() bool {
-	esInterface := a.Elasticsearch
+	esInterface := a.Elasticsearch()
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
 }
