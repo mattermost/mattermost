@@ -24,7 +24,6 @@ import (
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().CreatePushNotificationsHub()
-	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -76,6 +75,7 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
+	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -171,6 +171,8 @@ func (s *Server) FakeApp() *App {
 	a := New(
 		ServerConnector(s),
 	)
-	a.store = a.Srv().Store
+	if a.store == nil {
+		a.store = a.Srv().Store
+	}
 	return a
 }

@@ -26,7 +26,7 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    *app.App
+	App    app.AppIface
 	Server *app.Server
 	Web    *Web
 
