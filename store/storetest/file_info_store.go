@@ -354,9 +354,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Page:    1,
 			PerPage: 10,
 			Opt: &model.GetFilesOptions{
-				UserIds:       []string{userId1},
-				SortBy:        model.FILE_SORT_BY_CREATED,
-				SortDirection: model.FILE_SORT_ORDER_DESCENDING,
+				UserIds:        []string{userId1},
+				SortBy:         model.FILE_SORT_BY_CREATED,
+				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
 		},
@@ -367,7 +367,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Opt: &model.GetFilesOptions{
 				IncludeDeleted: true,
 				SortBy:         model.FILE_SORT_BY_CREATED,
-				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
+				SortDescending: true,
 			},
 			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},
 		},

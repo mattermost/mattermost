@@ -25,9 +25,6 @@ type FileUploadResponse struct {
 const (
 	FILE_SORT_BY_CREATED = "CreateAt"
 	FILE_SORT_BY_SIZE    = "Size"
-
-	FILE_SORT_ORDER_ASCENDING  = "ASC"
-	FILE_SORT_ORDER_DESCENDING = "DESC"
 )
 
 // GetFilesOptions contains options for getting files
@@ -42,8 +39,8 @@ type GetFilesOptions struct {
 	IncludeDeleted bool `json:"include_deleted"`
 	// SortBy sorts the files by this field. Default is to sort by date created
 	SortBy string `json:"sort_by"`
-	// SortDirection sorts the files in a particular order. Default is ASC.
-	SortDirection string `json:"sort_direction"`
+	// SortDescending when set sorts the files in descending order. The default is to sort in ascending order.
+	SortDescending bool `json:"sort_descending"`
 }
 
 func FileUploadResponseFromJson(data io.Reader) *FileUploadResponse {

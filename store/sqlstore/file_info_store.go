@@ -100,6 +100,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 		return nil, nil
 	}
 
+	// Nil option means sort by create at ascending
 	if opt == nil {
 		opt = &model.GetFilesOptions{}
 	}
@@ -125,12 +126,12 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 		query = query.Where("FileInfo.DeleteAt = 0")
 	}
 
-	sortDirection := model.FILE_SORT_ORDER_ASCENDING
-	if opt.SortDirection != "" {
-		sortDirection = opt.SortDirection
-	}
 	if opt.SortBy == "" {
 		opt.SortBy = model.FILE_SORT_BY_CREATED
+	}
+	sortDirection := "ASC"
+	if opt.SortDescending {
+		sortDirection = "DESC"
 	}
 
 	switch opt.SortBy {

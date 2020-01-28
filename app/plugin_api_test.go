@@ -427,9 +427,9 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	})
 	t.Run("get file infos filtered by channel ordered by created at descending", func(t *testing.T) {
 		fileInfos, err := api.GetFileInfos(1, 5, &model.GetFilesOptions{
-			ChannelIds:    []string{th.BasicChannel.Id},
-			SortBy:        model.FILE_SORT_BY_CREATED,
-			SortDirection: model.FILE_SORT_ORDER_DESCENDING,
+			ChannelIds:     []string{th.BasicChannel.Id},
+			SortBy:         model.FILE_SORT_BY_CREATED,
+			SortDescending: true,
 		})
 		require.Nil(t, err)
 		require.Len(t, fileInfos, 2)
