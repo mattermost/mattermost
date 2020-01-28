@@ -918,9 +918,9 @@ func TestHookContext(t *testing.T) {
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", th.App.Session().Id).Return(nil)
 	mockAPI.On("LogInfo", th.App.RequestId()).Return(nil)
-	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
-	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
-	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress()).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage()).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent()).Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{

@@ -96,8 +96,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
 		span.SetTag("request_id", c.App.RequestId())
-		span.SetTag("ip_address", c.App.IpAddress)
-		span.SetTag("user_agent", c.App.UserAgent)
+		span.SetTag("ip_address", c.App.IpAddress())
+		span.SetTag("user_agent", c.App.UserAgent())
 		span.SetTag("url", c.App.Path)
 		defer span.Finish()
 		c.App.SetContext(ctx)
