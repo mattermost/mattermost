@@ -67,18 +67,31 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 	t.Helper()
 
-	var actual struct {
-		ID    string `db:"Id"`
-		Value []byte `db:"Value"`
+	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
+		var actual struct {
+			ID    string `db:"id"`
+			Value []byte `db:"value"`
+		}
+		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		require.NoError(t, err)
+
+		actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
+		require.Nil(t, err)
+		return actual.ID, actualCfg
+	} else {
+		var actual struct {
+			ID    string `db:"Id"`
+			Value []byte `db:"Value"`
+		}
+		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		require.NoError(t, err)
+
+		actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
+		require.Nil(t, err)
+		return actual.ID, actualCfg
 	}
-	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
-	require.NoError(t, err)
-
-	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
-	require.Nil(t, err)
-
-	return actual.ID, actualCfg
 }
 
 // assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
@@ -479,6 +492,9 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("persist failed: too long", func(t *testing.T) {
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
@@ -825,14 +841,20 @@ func TestDatabaseSetFile(t *testing.T) {
 	})
 
 	t.Run("max length", func(t *testing.T) {
-		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength)
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
+		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength)
 
 		err := ds.SetFile("toolong", longFile)
 		require.NoError(t, err)
 	})
 
 	t.Run("too long", func(t *testing.T) {
-		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength+1)
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
+		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength+1)
 
 		err := ds.SetFile("toolong", longFile)
 		if assert.Error(t, err) {
@@ -967,8 +989,15 @@ func TestDatabaseStoreString(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	maskedDSN := ds.String()
-	assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
-	assert.True(t, strings.Contains(maskedDSN, "mmuser"))
-	assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	} else {
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
+		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	}
 }
