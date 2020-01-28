@@ -31,37 +31,7 @@ func TestIsValid(t *testing.T) {
 		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
 			Settings: []*PluginSetting{{Type: "Invalid"}},
 		}}, true},
-		{"Empty homepageURL, supportURL, minServerVersion, version", &Manifest{
-			Id:               "com.company.test",
-			Name:             "thename",
-			Description:      "thedescription",
-			Server: &ManifestServer{
-				Executable: "theexecutable",
-			},
-			Webapp: &ManifestWebapp{
-				BundlePath: "thebundlepath",
-				BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-			},
-			SettingsSchema: &PluginSettingsSchema{
-				Header: "theheadertext",
-				Footer: "thefootertext",
-				Settings: []*PluginSetting{
-					{
-						Key:         "thesetting",
-						DisplayName: "thedisplayname",
-						Type:        "dropdown",
-						HelpText:    "thehelptext",
-						Options: []*PluginOption{
-							{
-								DisplayName: "theoptiondisplayname",
-								Value:       "thevalue",
-							},
-						},
-						Default: "thedefault",
-					},
-				},
-			},
-		}, false},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test"}, false},
 		{"Happy case", &Manifest{
 			Id:               "com.company.test",
 			Name:             "thename",
@@ -75,7 +45,6 @@ func TestIsValid(t *testing.T) {
 			},
 			Webapp: &ManifestWebapp{
 				BundlePath: "thebundlepath",
-				BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 			},
 			SettingsSchema: &PluginSettingsSchema{
 				Header: "theheadertext",
