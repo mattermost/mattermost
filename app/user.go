@@ -2268,7 +2268,8 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
-	err := a.Store().User().PromoteGuestToUser(user.Id)
+	err := a.Srv().Store.User().PromoteGuestToUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2314,7 +2315,6 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 	}
 
-	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 	return nil
 }
@@ -2323,6 +2323,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	err := a.Store().User().DemoteUserToGuest(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2357,7 +2358,6 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 	}
 
-	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	return nil

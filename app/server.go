@@ -287,7 +287,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.joinCluster && s.Cluster != nil {
-		s.FakeApp().RegisterAllClusterMessageHandlers()
+		s.FakeApp().registerAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 

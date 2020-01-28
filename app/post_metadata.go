@@ -512,7 +512,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
-		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)
+		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least
 		// one of these required fields exists before returning the OpenGraph data

@@ -16,6 +16,7 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(listCommands)).Methods("GET")
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")
 
+	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(getCommand)).Methods("GET")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
@@ -142,7 +143,6 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamId := r.URL.Query().Get("team_id")
-
 	if len(teamId) == 0 {
 		c.SetInvalidParam("team_id")
 		return
@@ -183,6 +183,35 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	// check for permissions to view this command; must have perms to view team and
+	// PERMISSION_MANAGE_SLASH_COMMANDS for the team the command belongs to.
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		// again, return not_found to ensure id existence does not leak.
+		c.SetCommandNotFoundError()
+		return
+	}
+	w.Write([]byte(cmd.ToJson()))
 }
 
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {

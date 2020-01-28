@@ -959,3 +959,74 @@ func TestHookContext(t *testing.T) {
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
 	require.Nil(t, err)
 }
+
+func TestActiveHooks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return nil
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				return nil
+			}
+
+			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+				user.Nickname = "plugin-callback-success"
+				p.API.UpdateUser(user)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIds, 1)
+		pluginId := pluginIds[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		user1 := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader1",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		_, appErr := th.App.CreateUser(user1)
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Second)
+		user1, appErr = th.App.GetUser(user1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin-callback-success", user1.Nickname)
+
+		// Disable plugin
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginId)
+		require.Error(t, err)
+		require.Nil(t, hooks)
+
+		// Should fail to find pluginId as it was deleted when deactivated
+		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginId)
+		require.Error(t, err)
+		require.Empty(t, path)
+	})
+}
