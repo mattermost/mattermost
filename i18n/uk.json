@@ -2599,7 +2599,7 @@
     "translation": "%s оновив заголовок каналу на: %s"
   },
   {
-    "id": "app.Cluster().404.app_error",
+    "id": "app.cluster.404.app_error",
     "translation": "Не знайдена кінцева точка API кластера."
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{ .SiteName }}] Повідомлення в {{ .TeamName}} в {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.Cluster().save_config.app_error",
+    "id": "app.plugin.cluster.save_config.app_error",
     "translation": "Конфігурація плагіна у вашому файлі config.json повинна бути оновлена вручну при використанні ReadOnlyConfig з увімкненою кластеризацією."
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "Не вдається отримати повідомлення "
   },
   {
-    "id": "ent.Cluster().config_changed.info",
+    "id": "ent.cluster.config_changed.info",
     "translation": "Конфігурація кластера змінилася для id = {{.id}}. Кластер може стати нестабільним та вимагати перезавантаження. Щоб переконатися, що кластер налаштовано правильно, негайно виконайте перезапуск. "
   },
   {
-    "id": "ent.Cluster().save_config.error",
+    "id": "ent.cluster.save_config.error",
     "translation": "System Console встановлено лише для читання, коли активовано високу доступність, доки ReadOnlyConfig не буде вимкнено у файлі конфігурації. "
   },
   {
-    "id": "ent.Compliance().bad_export_type.appError",
+    "id": "ent.compliance.bad_export_type.appError",
     "translation": "Невідомий вихідний формат {{.ExportType}}"
   },
   {
-    "id": "ent.Compliance().csv.attachment.copy.appError",
+    "id": "ent.compliance.csv.attachment.copy.appError",
     "translation": "Неможливо скопіювати вкладення у файл zip."
   },
   {
-    "id": "ent.Compliance().csv.attachment.export.appError",
+    "id": "ent.compliance.csv.attachment.export.appError",
     "translation": "Неможливо додати вкладення до експорту CSV."
   },
   {
-    "id": "ent.Compliance().csv.file.creation.appError",
+    "id": "ent.compliance.csv.file.creation.appError",
     "translation": "Неможливо створити тимчасовий файл експорту CSV."
   },
   {
-    "id": "ent.Compliance().csv.header.export.appError",
+    "id": "ent.compliance.csv.header.export.appError",
     "translation": "Неможливо додати заголовок до експорту CSV."
   },
   {
-    "id": "ent.Compliance().csv.metadata.export.appError",
+    "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Неможливо додати метадані до архіву."
   },
   {
-    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
     "translation": "Неможливо перетворити метадані в json."
   },
   {
-    "id": "ent.Compliance().csv.post.export.appError",
+    "id": "ent.compliance.csv.post.export.appError",
     "translation": "Неможливо експортувати публікацію."
   },
   {
-    "id": "ent.Compliance().csv.zip.creation.appError",
+    "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Неможливо створити файл експорту ZIP."
   },
   {
-    "id": "ent.Compliance().global_relay.attachments_removed.appError",
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
     "translation": "Завантажений файл був видалений з експорту Global Relay, оскільки він був надто великим для відправлення."
   },
   {
-    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Неможливо створити тимчасовий файл експорту CSV. "
   },
   {
-    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
     "translation": "Неможливо повторно прочитати файл тимчасового експорту Global Relay."
   },
   {
-    "id": "ent.Compliance().licence_disable.app_error",
+    "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функція кластеризації недоступна при поточній ліцензії. Будь ласка, зверніться до системного адміністратора з приводу поліпшення Вашої корпоративної ліцензії. "
   },
   {
-    "id": "ent.Compliance().run_export.template_watcher.appError",
+    "id": "ent.compliance.run_export.template_watcher.appError",
     "translation": "Неможливо завантажити шаблони експорту. Будь ласка спробуйте ще раз."
   },
   {
-    "id": "ent.Compliance().run_failed.error",
+    "id": "ent.compliance.run_failed.error",
     "translation": "Експорт комплаенс-листа не вдався для завдання '{{.JobName}}' в '{{.FilePath}}' "
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "Ліцензія не підтримує збереження даних. "
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Працівник агрегатора Elasticsearch не зміг створити роботу з індексації"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
     "translation": "Працівник агрегатора Elasticsearch не зміг видалити індекси"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
     "translation": "Працівник агрегатора Elasticsearch не зміг отримати індекси"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Робота агрегатора Elasticsearch не виконана через невдалу роботу з індексацією"
   },
   {
-    "id": "ent.Elasticsearch().create_client.connect_failed",
+    "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Налаштування клієнта Elasticsearch не вдалося"
   },
   {
-    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
     "translation": "Не вдалося створити індекс Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
     "translation": "Не вдалося видалити індекс Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
     "translation": "Не вдалося отримати індекси Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().delete_post.error",
+    "id": "ent.elasticsearch.delete_post.error",
     "translation": "Не вдалося видалити публікацію"
   },
   {
-    "id": "ent.Elasticsearch().generic.disabled",
+    "id": "ent.elasticsearch.generic.disabled",
     "translation": "Пошук Elasticsearch не включений на цьому сервері"
   },
   {
-    "id": "ent.Elasticsearch().index_post.error",
+    "id": "ent.elasticsearch.index_post.error",
     "translation": "Не вдалося індексувати публікацію"
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
     "translation": "Найстаріший запис не може бути завантажений з бази даних."
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
     "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Працівник індексації Elasticsearch не зміг розібрати початковий час"
   },
   {
-    "id": "ent.Elasticsearch().not_started.error",
+    "id": "ent.elasticsearch.not_started.error",
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Не вдалося видалити індекс Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.disabled",
+    "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Пошук на сайті Elasticsearch вимкнено на цьому сервері"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
     "translation": "Не вдалося проаналізувати відповідності результатів пошуку"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.search_failed",
+    "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Пошук не вдалося завершити"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Не вдається розшифрувати результати пошуку"
   },
   {
-    "id": "ent.Elasticsearch().start.already_started.app_error",
+    "id": "ent.elasticsearch.start.already_started.app_error",
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Не вдалося створити масовий процесор Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Не вдалося запустити масовий процесор Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Еластичний пошук не запускається"
   },
   {
-    "id": "ent.Elasticsearch().test_config.connect_failed",
+    "id": "ent.elasticsearch.test_config.connect_failed",
     "translation": "Не вдалося підключитися до сервера Elasticsearch."
   },
   {
-    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch відключений."
   },
   {
-    "id": "ent.Elasticsearch().test_config.license.error",
+    "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Редакція не підтримує Elasticsearch. "
   },
   {
-    "id": "ent.Elasticsearch().test_config.reenter_password",
+    "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL-адреса сервера Elasticsearch або ім'я користувача змінено. Будь ласка, повторно введіть пароль Elasticsearch, щоб перевірити з'єднання."
   },
   {
-    "id": "ent.Ldap().app_error",
+    "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil"
   },
   {
-    "id": "ent.Ldap().create_fail",
+    "id": "ent.ldap.create_fail",
     "translation": "Неможливо створити користувача LDAP."
   },
   {
-    "id": "ent.Ldap().disabled.app_error",
+    "id": "ent.ldap.disabled.app_error",
     "translation": "AD / LDAP відключений або ліцензія не підтримує AD / LDAP."
   },
   {
-    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Неможливо зробити прив'язку до сервера AD / LDAP. Перевірте ім'я користувача BindUsername і пароль BindPassword."
   },
   {
-    "id": "ent.Ldap().do_login.invalid_password.app_error",
+    "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Неправильний пароль "
   },
   {
-    "id": "ent.Ldap().do_login.licence_disable.app_error",
+    "id": "ent.ldap.do_login.licence_disable.app_error",
     "translation": "Функція кластеризації недоступна при поточній ліцензії. Будь ласка, зверніться до системного адміністратора з приводу поліпшення Вашої корпоративної ліцензії.  "
   },
   {
-    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
     "translation": "Дане ім'я користувача відповідає кільком користувачам"
   },
   {
-    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
     "translation": "Не вдалося знайти сервер AD / LDAP"
   },
   {
-    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
     "translation": "Неможливо підключитися до сервера AD/LDAP"
   },
   {
-    "id": "ent.Ldap().do_login.user_filtered.app_error",
+    "id": "ent.ldap.do_login.user_filtered.app_error",
     "translation": "Ваш обліковий запис AD/LDAP не має дозволу на використання цього сервера Mattermost. Будь ласка, зверніться до системного адміністратора, щоб перевірити фільтр користувачів AD/LDAP."
   },
   {
-    "id": "ent.Ldap().do_login.user_not_registered.app_error",
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Користувач не зареєстрований на сервері AD/LDAP"
   },
   {
-    "id": "ent.Ldap().syncronize.get_all.app_error",
+    "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Неможливо отримати всіх користувачів, які використовують AD/LDAP"
   },
   {
-    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
     "translation": "error retrieving groups"
   },
   {
-    "id": "ent.Ldap().syncronize.populate_syncables",
+    "id": "ent.ldap.syncronize.populate_syncables",
     "translation": "error populating syncables"
   },
   {
-    "id": "ent.Ldap().syncronize.search_failure.app_error",
+    "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "Не вдалося знайти користувачів в AD/LDAP. Перевірте, чи сервер Mattermost може підключитися до вашого сервера AD/LDAP і повторіть спробу."
   },
   {
-    "id": "ent.Ldap().validate_filter.app_error",
+    "id": "ent.ldap.validate_filter.app_error",
     "translation": "Недійсний фільтр AD/LDAP"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "Неможливо створити багатосторінковий запит"
   },
   {
-    "id": "model.Cluster().is_valid.create_at.app_error",
+    "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt повинен бути встановлений"
   },
   {
-    "id": "model.Cluster().is_valid.hostname.app_error",
+    "id": "model.cluster.is_valid.hostname.app_error",
     "translation": "Ім'я хоста має бути встановлено"
   },
   {
-    "id": "model.Cluster().is_valid.id.app_error",
+    "id": "model.cluster.is_valid.id.app_error",
     "translation": "Недійсний ідентифікатор"
   },
   {
-    "id": "model.Cluster().is_valid.last_ping_at.app_error",
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
     "translation": "LastPingAt повинен бути встановлений"
   },
   {
-    "id": "model.Cluster().is_valid.name.app_error",
+    "id": "model.cluster.is_valid.name.app_error",
     "translation": "ClusterName повинен бути встановлений"
   },
   {
-    "id": "model.Cluster().is_valid.type.app_error",
+    "id": "model.cluster.is_valid.type.app_error",
     "translation": "Тип повинен бути встановлений"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "Невірний ідентифікатор користувача"
   },
   {
-    "id": "model.Compliance().is_valid.create_at.app_error",
+    "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "\"Створити в\" повинно бути коректним часом"
   },
   {
-    "id": "model.Compliance().is_valid.desc.app_error",
+    "id": "model.compliance.is_valid.desc.app_error",
     "translation": "Неприпустимий опис"
   },
   {
-    "id": "model.Compliance().is_valid.end_at.app_error",
+    "id": "model.compliance.is_valid.end_at.app_error",
     "translation": "\"До\" має бути коректним часом"
   },
   {
-    "id": "model.Compliance().is_valid.id.app_error",
+    "id": "model.compliance.is_valid.id.app_error",
     "translation": "Неприпустимий ідентифікатор"
   },
   {
-    "id": "model.Compliance().is_valid.start_at.app_error",
+    "id": "model.compliance.is_valid.start_at.app_error",
     "translation": "\"З\" має бути коректним часом"
   },
   {
-    "id": "model.Compliance().is_valid.start_end_at.app_error",
+    "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "\"До\" має бути більше, ніж \"З\""
   },
   {

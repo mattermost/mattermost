@@ -2599,7 +2599,7 @@
     "translation": "%s zmienił cel kanału na %s"
   },
   {
-    "id": "app.Cluster().404.app_error",
+    "id": "app.cluster.404.app_error",
     "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
   },
   {
@@ -3207,7 +3207,7 @@
     "translation": "[{{ .SiteName }}] Powiadomienia w {{ .TeamName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.Cluster().save_config.app_error",
+    "id": "app.plugin.cluster.save_config.app_error",
     "translation": "Konfiguracja wtyczki w pliku config.json musi zostać zaktualizowana ręcznie podczas korzystania z KonfiguracjiTylkoDoOdczytu z włączoną obsługą klastrowania."
   },
   {
@@ -3351,71 +3351,71 @@
     "translation": "Nie można pobrać użytkowników SAML."
   },
   {
-    "id": "ent.Cluster().config_changed.info",
+    "id": "ent.cluster.config_changed.info",
     "translation": "Konfiguracja klastra została zmieniona dla id={{ .id }}. Klaster może stać się niestabilny i wymagany jest restart. Aby zapewnić poprawne skonfigurowanie klastra, należy natychmiast wykonać ciągły restart."
   },
   {
-    "id": "ent.Cluster().save_config.error",
+    "id": "ent.cluster.save_config.error",
     "translation": "Konsola systemowa jest ustawiona na tylko do odczytu, gdy włączona jest wysoka dostępność, chyba że ReadOnlyConfig jest wyłączone w pliku konfiguracyjnym."
   },
   {
-    "id": "ent.Compliance().bad_export_type.appError",
+    "id": "ent.compliance.bad_export_type.appError",
     "translation": "Nieznany format wyjściowy {{.ExportType}}"
   },
   {
-    "id": "ent.Compliance().csv.attachment.copy.appError",
+    "id": "ent.compliance.csv.attachment.copy.appError",
     "translation": "Nie można skopiować załącznika do pliku zip."
   },
   {
-    "id": "ent.Compliance().csv.attachment.export.appError",
+    "id": "ent.compliance.csv.attachment.export.appError",
     "translation": "Nie można dodać załącznika do eksportu CSV."
   },
   {
-    "id": "ent.Compliance().csv.file.creation.appError",
+    "id": "ent.compliance.csv.file.creation.appError",
     "translation": "Nie można utworzyć tymczasowego pliku eksportu CSV."
   },
   {
-    "id": "ent.Compliance().csv.header.export.appError",
+    "id": "ent.compliance.csv.header.export.appError",
     "translation": "Nie można dodać nagłówka do eksportu CSV."
   },
   {
-    "id": "ent.Compliance().csv.metadata.export.appError",
+    "id": "ent.compliance.csv.metadata.export.appError",
     "translation": "Nie można dodać pliku metadanych do pliku zip."
   },
   {
-    "id": "ent.Compliance().csv.metadata.json.marshalling.appError",
+    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
     "translation": "Nie można konwertować metadanych do json."
   },
   {
-    "id": "ent.Compliance().csv.post.export.appError",
+    "id": "ent.compliance.csv.post.export.appError",
     "translation": "Nie można wyeksportować wiadomości."
   },
   {
-    "id": "ent.Compliance().csv.zip.creation.appError",
+    "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Nie można utworzyć pliku eksportu zip."
   },
   {
-    "id": "ent.Compliance().global_relay.attachments_removed.appError",
+    "id": "ent.compliance.global_relay.attachments_removed.appError",
     "translation": "Przesłany plik został usunięty z eksportu globalnego przekaźnika, ponieważ był zbyt duży, aby go wysłać."
   },
   {
-    "id": "ent.Compliance().global_relay.open_temporary_file.appError",
+    "id": "ent.compliance.global_relay.open_temporary_file.appError",
     "translation": "Nie można otworzyć pliku tymczasowego eksportu."
   },
   {
-    "id": "ent.Compliance().global_relay.rewind_temporary_file.appError",
+    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
     "translation": "Nie można ponownie odczytać tymczasowego pliku eksportu globalnego przekaźnika."
   },
   {
-    "id": "ent.Compliance().licence_disable.app_error",
+    "id": "ent.compliance.licence_disable.app_error",
     "translation": "Funkcjonalność zgodności wymaga licencji typu enterprise. Skontaktuj się z administratorem systemu odnośnie uzyskania licencji typu enterprise."
   },
   {
-    "id": "ent.Compliance().run_export.template_watcher.appError",
+    "id": "ent.compliance.run_export.template_watcher.appError",
     "translation": "Nie można wczytać szablonów eksportu. Proszę spróbuj ponownie."
   },
   {
-    "id": "ent.Compliance().run_failed.error",
+    "id": "ent.compliance.run_failed.error",
     "translation": "Eksport zgodności nie powiódł się dla zadania '{{.JobName}}' w '{{.FilePath}}'"
   },
   {
@@ -3423,179 +3423,179 @@
     "translation": "Twoja licencja nie wspiera Retencji Danych."
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.create_index_job.error",
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Pracownik agregatora Elasticsearch nie utworzył zadania indeksowania"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.delete_indexes.error",
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
     "translation": "Pracownik agregatora Elasticsearch nie usunął indeksów"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.get_indexes.error",
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
     "translation": "Pracownik agregatora Elasticsearch nie uzyskał indeksów"
   },
   {
-    "id": "ent.Elasticsearch().aggregator_worker.index_job_failed.error",
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Uruchomienie agregatora Elasticsearch nie powiodło się z powodu niepowodzenia zadania indeksowania"
   },
   {
-    "id": "ent.Elasticsearch().create_client.connect_failed",
+    "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Konfigurowanie Klienta Elasticsearch Nie Powiodło się"
   },
   {
-    "id": "ent.Elasticsearch().create_index_if_not_exists.index_create_failed",
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
     "translation": "Nie udało się utworzyć indeksu Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().data_retention_delete_indexes.delete_index.error",
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
     "translation": "Nie udało się utworzyć indeksu Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().data_retention_delete_indexes.get_indexes.error",
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
     "translation": "Nie udało się pobrać indeksu ElasticSearch"
   },
   {
-    "id": "ent.Elasticsearch().delete_post.error",
+    "id": "ent.elasticsearch.delete_post.error",
     "translation": "Nie udało się usunąć wiadomości"
   },
   {
-    "id": "ent.Elasticsearch().generic.disabled",
+    "id": "ent.elasticsearch.generic.disabled",
     "translation": "Wyszukiwanie Elasticsearch nie jest włączone na tym serwerze"
   },
   {
-    "id": "ent.Elasticsearch().index_post.error",
+    "id": "ent.elasticsearch.index_post.error",
     "translation": "Nie udało się zindeksować wiadomości"
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.get_oldest_post.error",
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
     "translation": "Najstarszego postu nie można było pobrać z bazy danych."
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.parse_end_time.error",
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu zakończenia"
   },
   {
-    "id": "ent.Elasticsearch().indexer.do_job.parse_start_time.error",
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu rozpoczęcia"
   },
   {
-    "id": "ent.Elasticsearch().not_started.error",
+    "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch nie jest obecnie uruchomiony"
   },
   {
-    "id": "ent.Elasticsearch().purge_indexes.delete_failed",
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Nie można usunąć indeksu Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.disabled",
+    "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
   },
   {
-    "id": "ent.Elasticsearch().search_posts.parse_matches_failed",
+    "id": "ent.elasticsearch.search_posts.parse_matches_failed",
     "translation": "Nie można przeanalizować wyników wyszukiwania"
   },
   {
-    "id": "ent.Elasticsearch().search_posts.search_failed",
+    "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Nie udało się zakończyć wyszukiwania."
   },
   {
-    "id": "ent.Elasticsearch().search_posts.unmarshall_post_failed",
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Błąd w dekodowaniu wyników wyszukiwania."
   },
   {
-    "id": "ent.Elasticsearch().start.already_started.app_error",
+    "id": "ent.elasticsearch.start.already_started.app_error",
     "translation": "Elasticsearch jest obecnie uruchomiony"
   },
   {
-    "id": "ent.Elasticsearch().start.create_bulk_processor_failed.app_error",
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nie udało się utworzyć procesora zbiorczego Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().start.start_bulk_processor_failed.app_error",
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
     "translation": "Nie można uruchomić procesora masowego Elasticsearch"
   },
   {
-    "id": "ent.Elasticsearch().stop.already_stopped.app_error",
+    "id": "ent.elasticsearch.stop.already_stopped.app_error",
     "translation": "Elasticsearch jest aktualnie zatrzymane"
   },
   {
-    "id": "ent.Elasticsearch().test_config.connect_failed",
+    "id": "ent.elasticsearch.test_config.connect_failed",
     "translation": "Nie udało się połączyć z serwerem Elasticsearch."
   },
   {
-    "id": "ent.Elasticsearch().test_config.indexing_disabled.error",
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch jest wyłączony"
   },
   {
-    "id": "ent.Elasticsearch().test_config.license.error",
+    "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Twoja licencja nie wspiera Elasticsearch."
   },
   {
-    "id": "ent.Elasticsearch().test_config.reenter_password",
+    "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "Adres URL lub nazwa serwera Elasticsearch została zmieniona. Ponownie wprowadź hasło Elasticsearch, aby przetestować połączenie."
   },
   {
-    "id": "ent.Ldap().app_error",
+    "id": "ent.ldap.app_error",
     "translation": "intefejs ldap jest pusty"
   },
   {
-    "id": "ent.Ldap().create_fail",
+    "id": "ent.ldap.create_fail",
     "translation": "Nie można utworzyć użytkownika LDAP."
   },
   {
-    "id": "ent.Ldap().disabled.app_error",
+    "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP nieaktywny lub licencja nie wspiera AD/LDAP."
   },
   {
-    "id": "ent.Ldap().do_login.bind_admin_user.app_error",
+    "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Nie udało się zbindować do serwera AD/LDAP. Sprawdź BindUsername i BindPassword."
   },
   {
-    "id": "ent.Ldap().do_login.invalid_password.app_error",
+    "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Nieprawidłowe Hasło"
   },
   {
-    "id": "ent.Ldap().do_login.licence_disable.app_error",
+    "id": "ent.ldap.do_login.licence_disable.app_error",
     "translation": "Funkcjonalność AD/LDAP niedostępna przy aktualnej licencji. Skontaktuj się z administratorem systemu odnośnie uzyskania licencji typu enterprise."
   },
   {
-    "id": "ent.Ldap().do_login.matched_to_many_users.app_error",
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
     "translation": "Nazwa użytkownika odpowiada wielu użytkownikom"
   },
   {
-    "id": "ent.Ldap().do_login.search_ldap_server.app_error",
+    "id": "ent.ldap.do_login.search_ldap_server.app_error",
     "translation": "Nie znaleziono serwera AD/LDAP"
   },
   {
-    "id": "ent.Ldap().do_login.unable_to_connect.app_error",
+    "id": "ent.ldap.do_login.unable_to_connect.app_error",
     "translation": "Nie można połączyć się z serwerem AD/LDAP"
   },
   {
-    "id": "ent.Ldap().do_login.user_filtered.app_error",
+    "id": "ent.ldap.do_login.user_filtered.app_error",
     "translation": "Twoje konto AD/LDAP nie ma uprawnień do korzystania z tego serwera Mattermost. Poproś administratora systemu, żeby sprawdził filtr użytkowników AD/LDAP."
   },
   {
-    "id": "ent.Ldap().do_login.user_not_registered.app_error",
+    "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "Użytkownik nie zarejestrowany na serwerze AD/LDAP."
   },
   {
-    "id": "ent.Ldap().syncronize.get_all.app_error",
+    "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Nie udało się uzyskać wszystkich użytkowników za pomocą protokołu AD/LDAP"
   },
   {
-    "id": "ent.Ldap().syncronize.get_all_groups.app_error",
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
     "translation": "błąd podczas pobierania grup"
   },
   {
-    "id": "ent.Ldap().syncronize.populate_syncables",
+    "id": "ent.ldap.syncronize.populate_syncables",
     "translation": "błąd zapełniania syncables"
   },
   {
-    "id": "ent.Ldap().syncronize.search_failure.app_error",
+    "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "Nie można przeszukać użytkowników w AD/LDAP. Sprawdź, czy serwer Mattermost może połączyć się z serwerem AD/LDAP i spróbuj ponownie."
   },
   {
-    "id": "ent.Ldap().validate_filter.app_error",
+    "id": "ent.ldap.validate_filter.app_error",
     "translation": "Nieprawidłowy filtr AD/LDAP"
   },
   {
@@ -4067,27 +4067,27 @@
     "translation": "Nie można zbudować żądania wieloczęściowego"
   },
   {
-    "id": "model.Cluster().is_valid.create_at.app_error",
+    "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt musi być ustawiony"
   },
   {
-    "id": "model.Cluster().is_valid.hostname.app_error",
+    "id": "model.cluster.is_valid.hostname.app_error",
     "translation": "Nazwa hosta musi być ustawiona"
   },
   {
-    "id": "model.Cluster().is_valid.id.app_error",
+    "id": "model.cluster.is_valid.id.app_error",
     "translation": "Invalid Id"
   },
   {
-    "id": "model.Cluster().is_valid.last_ping_at.app_error",
+    "id": "model.cluster.is_valid.last_ping_at.app_error",
     "translation": "LastPingAt musi być ustawiony"
   },
   {
-    "id": "model.Cluster().is_valid.name.app_error",
+    "id": "model.cluster.is_valid.name.app_error",
     "translation": "ClusterName musi być ustawione"
   },
   {
-    "id": "model.Cluster().is_valid.type.app_error",
+    "id": "model.cluster.is_valid.type.app_error",
     "translation": "Typ musi być ustawiony"
   },
   {
@@ -4167,27 +4167,27 @@
     "translation": "Nieprawidłowy identyfikator użytkownika"
   },
   {
-    "id": "model.Compliance().is_valid.create_at.app_error",
+    "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Utworzono dnia musi być prawidłowym czasem"
   },
   {
-    "id": "model.Compliance().is_valid.desc.app_error",
+    "id": "model.compliance.is_valid.desc.app_error",
     "translation": "Nieprawidłowy opis"
   },
   {
-    "id": "model.Compliance().is_valid.end_at.app_error",
+    "id": "model.compliance.is_valid.end_at.app_error",
     "translation": "Do musi być poprawnym czasem"
   },
   {
-    "id": "model.Compliance().is_valid.id.app_error",
+    "id": "model.compliance.is_valid.id.app_error",
     "translation": "Nieprawidłowy identyfikator"
   },
   {
-    "id": "model.Compliance().is_valid.start_at.app_error",
+    "id": "model.compliance.is_valid.start_at.app_error",
     "translation": "Od musi być poprawnym czasem"
   },
   {
-    "id": "model.Compliance().is_valid.start_end_at.app_error",
+    "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "Do musi być większe niż od"
   },
   {
