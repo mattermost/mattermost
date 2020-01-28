@@ -2046,7 +2046,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	channel1, err := ss.Channel().Save(channel1, 9999)
 	require.Nil(t, err)
 
-	// Create Groups 1 and 2
+	// Create Groups 1, 2 and a deleted group
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
@@ -2063,8 +2063,17 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
+	deletedGroup, err := ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-deleted",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+		DeleteAt:    1,
+	})
+	require.Nil(t, err)
+
 	// And associate them with Channel1
-	for _, g := range []*model.Group{group1, group2} {
+	for _, g := range []*model.Group{group1, group2, deletedGroup} {
 		_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 			AutoAdd:    true,
 			SyncableId: channel1.Id,
@@ -2263,7 +2272,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
 
-	// Create Groups 1 and 2
+	// Create Groups 1, 2 and a deleted group
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
@@ -2280,8 +2289,17 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
+	deletedGroup, err := ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-deleted",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+		DeleteAt:    1,
+	})
+	require.Nil(t, err)
+
 	// And associate them with Team1
-	for _, g := range []*model.Group{group1, group2} {
+	for _, g := range []*model.Group{group1, group2, deletedGroup} {
 		_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 			AutoAdd:    true,
 			SyncableId: team1.Id,
@@ -2346,6 +2364,9 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	user2.DeleteAt = 1
 	_, err = ss.User().Update(user2, true)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
 	require.Nil(t, err)
 
 	group1WithMemberCount := *group1
@@ -2512,8 +2533,17 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
+	deletedGroup, err := ss.Group().Create(&model.Group{
+		Name:        model.NewId() + "-group-deleted",
+		DisplayName: "group-deleted",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+		DeleteAt:    1,
+	})
+	require.Nil(t, err)
+
 	// And associate them with Team1
-	for _, g := range []*model.Group{group1, group2} {
+	for _, g := range []*model.Group{group1, group2, deletedGroup} {
 		_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 			AutoAdd:    true,
 			SyncableId: team1.Id,
@@ -2604,6 +2634,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(deletedGroup.Id, user1.Id)
 	require.Nil(t, err)
 
 	user2.DeleteAt = 1
@@ -2701,6 +2734,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					if g.Id == group1.Id && *g.MemberCount != 1 {
 						return false
 					}
+					if g.DeleteAt != 0 {
+						return false
+					}
 				}
 				return true
 			},
@@ -2718,6 +2754,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					if g.Id == group3.Id {
 						return false
 					}
+					if g.DeleteAt != 0 {
+						return false
+					}
 				}
 				return true
 			},
@@ -2733,6 +2772,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				for _, g := range groups {
 					if g.Id == group1.Id || g.Id == group2.Id {
+						return false
+					}
+					if g.DeleteAt != 0 {
 						return false
 					}
 				}
