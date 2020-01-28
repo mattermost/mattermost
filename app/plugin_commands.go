@@ -121,11 +121,11 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	}
 
 	for username, userId := range a.mentionsToTeamMembers(args.Command, args.TeamId) {
-		args.UserMentions[username] = userId
+		args.AddUserMention(username, userId)
 	}
 
 	for channelName, channelId := range a.mentionsToPublicChannels(args.Command, args.TeamId) {
-		args.ChannelMentions[channelName] = channelId
+		args.AddChannelMention(channelName, channelId)
 	}
 
 	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)

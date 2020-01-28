@@ -35,3 +35,23 @@ func CommandArgsFromJson(data io.Reader) *CommandArgs {
 	json.NewDecoder(data).Decode(&o)
 	return o
 }
+
+// AddUserMention adds or overrides an entry in UserMentions with name username
+// and identifier userId
+func (o *CommandArgs) AddUserMention(username, userId string) {
+	if o.UserMentions == nil {
+		o.UserMentions = make(UserMentionMap)
+	}
+
+	o.UserMentions[username] = userId
+}
+
+// AddChannelMention adds or overrides an entry in ChannelMentions with name
+// channelName and identifier channelId
+func (o *CommandArgs) AddChannelMention(channelName, channelId string) {
+	if o.ChannelMentions == nil {
+		o.ChannelMentions = make(ChannelMentionMap)
+	}
+
+	o.ChannelMentions[channelName] = channelId
+}
