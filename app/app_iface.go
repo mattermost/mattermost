@@ -181,10 +181,6 @@ type AppIface interface {
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
-	UpdateFileInfoWithPostId(post *model.Post)
-	ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError
-	ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError
-	ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError
 	ClearPushNotificationSync(currentSessionId, userId, channelId string) *model.AppError
 	ClearPushNotification(currentSessionId, userId, channelId string)
 	UpdateMobileAppBadgeSync(userId string) *model.AppError
@@ -503,7 +499,6 @@ type AppIface interface {
 	MaxPostSize() int
 	CreateBasicUser(client *model.Client4) *model.AppError
 	BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int)
-	ImportLine(line LineImportData, dryRun bool) *model.AppError
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
@@ -541,7 +536,6 @@ type AppIface interface {
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph
-	ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError)
@@ -646,7 +640,6 @@ type AppIface interface {
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
 	ResetPermissionsSystem() *model.AppError
 	ExportPermissions(w io.Writer) error
-	ImportPermissions(jsonl io.Reader) error
 	DoAdvancedPermissionsMigration()
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
 	DoEmojisPermissionsMigration()

@@ -5112,64 +5112,6 @@ func (s *OpenTracingAppLayer) ImageProxyRemover() func(string) string {
 	return s.app.ImageProxyRemover()
 }
 
-func (s *OpenTracingAppLayer) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportDirectChannel")
-
-	span.SetTag("data", data)
-
-	span.SetTag("dryRun", dryRun)
-
-	defer span.Finish()
-
-	return s.app.ImportDirectChannel(data, dryRun)
-}
-
-func (s *OpenTracingAppLayer) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportDirectPost")
-
-	span.SetTag("data", data)
-
-	span.SetTag("dryRun", dryRun)
-
-	defer span.Finish()
-
-	return s.app.ImportDirectPost(data, dryRun)
-}
-
-func (s *OpenTracingAppLayer) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportEmoji")
-
-	span.SetTag("data", data)
-
-	span.SetTag("dryRun", dryRun)
-
-	defer span.Finish()
-
-	return s.app.ImportEmoji(data, dryRun)
-}
-
-func (s *OpenTracingAppLayer) ImportLine(line LineImportData, dryRun bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportLine")
-
-	span.SetTag("line", line)
-
-	span.SetTag("dryRun", dryRun)
-
-	defer span.Finish()
-
-	return s.app.ImportLine(line, dryRun)
-}
-
-func (s *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportPermissions")
-
-	span.SetTag("jsonl", jsonl)
-
-	defer span.Finish()
-
-	return s.app.ImportPermissions(jsonl)
-}
-
 func (s *OpenTracingAppLayer) InitPlugins(pluginDir string, webappPluginDir string) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InitPlugins")
 
@@ -5908,20 +5850,6 @@ func (s *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
 	defer span.Finish()
 
 	s.app.OverrideIconURLIfEmoji(post)
-}
-
-func (s *OpenTracingAppLayer) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ParseOpenGraphMetadata")
-
-	span.SetTag("requestURL", requestURL)
-
-	span.SetTag("body", body)
-
-	span.SetTag("contentType", contentType)
-
-	defer span.Finish()
-
-	return s.app.ParseOpenGraphMetadata(requestURL, body, contentType)
 }
 
 func (s *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
@@ -8428,16 +8356,6 @@ func (s *OpenTracingAppLayer) UpdateEphemeralPost(userId string, post *model.Pos
 	defer span.Finish()
 
 	return s.app.UpdateEphemeralPost(userId, post)
-}
-
-func (s *OpenTracingAppLayer) UpdateFileInfoWithPostId(post *model.Post) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateFileInfoWithPostId")
-
-	span.SetTag("post", post)
-
-	defer span.Finish()
-
-	s.app.UpdateFileInfoWithPostId(post)
 }
 
 func (s *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
