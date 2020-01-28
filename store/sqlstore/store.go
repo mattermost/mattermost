@@ -71,6 +71,7 @@ type SqlStore interface {
 	UnlockFromMaster()
 	Team() store.TeamStore
 	Channel() store.ChannelStore
+	ChannelMemberHistory() store.ChannelMemberHistoryStore
 	Post() store.PostStore
 	User() store.UserStore
 	Bot() store.BotStore
@@ -99,4 +100,7 @@ type SqlStore interface {
 	UserTermsOfService() store.UserTermsOfServiceStore
 	LinkMetadata() store.LinkMetadataStore
 	getQueryBuilder() sq.StatementBuilderType
+	CheckIntegrity() <-chan store.IntegrityCheckResult
+	DropAllTables()
+	Group() store.GroupStore
 }

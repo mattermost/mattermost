@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/pglayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
@@ -16,7 +17,7 @@ import (
 type storeType struct {
 	Name        string
 	SqlSettings *model.SqlSettings
-	SqlSupplier *sqlstore.SqlSupplier
+	SqlSupplier sqlstore.SqlStore
 	Store       store.Store
 }
 
@@ -70,7 +71,11 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
+			if st.Name == "LocalCache+PostgreSQL" {
+				st.SqlSupplier = pglayer.NewPgLayer(*sqlstore.NewSqlSupplier(*st.SqlSettings, nil))
+			} else {
+				st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
+			}
 			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
