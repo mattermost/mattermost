@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/pglayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
@@ -61,9 +62,9 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
-			var supplier sqlstore.SqlSupplier;
-			if (s.FakeApp().Config().SqlSettings == model.DATABASE_DRIVER_POSTGRES) {
-				supplier = pgLayer.NewPgLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics))
+			var supplier sqlstore.SqlStore
+			if *s.FakeApp().Config().SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+				supplier = pglayer.NewPgLayer(*sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics))
 			} else {
 				supplier = sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics)
 			}
