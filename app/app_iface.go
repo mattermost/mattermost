@@ -784,19 +784,6 @@ type AppIface interface {
 	NewClusterDiscoveryService() *ClusterDiscoveryService
 	IsLeader() bool
 	GetClusterId() string
-	RegisterAllClusterMessageHandlers()
-	ClusterPublishHandler(msg *model.ClusterMessage)
-	ClusterUpdateStatusHandler(msg *model.ClusterMessage)
-	ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage)
-	ClusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage)
-	ClusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage)
-	ClusterInvalidateCacheForUserHandler(msg *model.ClusterMessage)
-	ClusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage)
-	ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage)
-	ClusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage)
-	ClusterInstallPluginHandler(msg *model.ClusterMessage)
-	ClusterRemovePluginHandler(msg *model.ClusterMessage)
-	ClusterBusyStateChgHandler(msg *model.ClusterMessage)
 	LoadLicense()
 	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	License() *model.License
