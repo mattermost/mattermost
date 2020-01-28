@@ -1285,7 +1285,6 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 
 		var user *model.User
 		if user, ok = users[*postData.User]; !ok {
-			var err *model.AppError
 			user, err = a.Srv.Store.User().GetByUsername(*postData.User)
 			if err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *postData.User}, err.Error(), http.StatusBadRequest)
