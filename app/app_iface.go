@@ -181,17 +181,6 @@ type AppIface interface {
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
-	ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError
-	ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError
-	ImportTeam(data *TeamImportData, dryRun bool) *model.AppError
-	ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError
-	ImportUser(data *UserImportData, dryRun bool) *model.AppError
-	ImportUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError
-	ImportUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError
-	ImportReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError
-	ImportReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError
-	ImportAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError)
-	ImportPost(data *PostImportData, dryRun bool) *model.AppError
 	UpdateFileInfoWithPostId(post *model.Post)
 	ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError
 	ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError
