@@ -3,7 +3,6 @@ logs
 .DS_Store
 node_modules
 /dist
-/bin
 /webapp/dist
 jobserver
 npm-debug.log
@@ -27,6 +26,7 @@ imports/imports.go
 .prebuild
 .npminstall
 .yarninstall
+/prepackaged_plugins
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -92,6 +92,7 @@ ecover.out
 cprofile.out
 *.test
 webapp/coverage
+/report.xml
 
 .agignore
 .ctags
