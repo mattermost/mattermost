@@ -88,11 +88,28 @@ func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) boo
 	return true
 }
 
+func (a *App) isGuestEmailAddressAllowed(email string) bool {
+	email = strings.ToLower(email)
+	domains := a.normalizeDomains(*a.Config().GuestAccountsSettings.RestrictCreationToDomains)
+	if len(domains) <= 0 {
+		return true
+	}
+	for _, d := range domains {
+		if strings.HasSuffix(email, "@"+d) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	if user.IsBot {
 		return true
 	}
 	email := strings.ToLower(user.Email)
+	if user.IsGuest() {
+		return a.isGuestEmailAddressAllowed(email)
+	}
 	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
 }
 
