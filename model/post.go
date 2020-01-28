@@ -418,6 +418,15 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+func (o *Post) WillNotifyChannel() bool {
+	for _, word := range strings.Fields(o.Message) {
+		if word == "@all" || word == "@channel" || word == "@here" {
+			return true
+		}
+	}
+	return false
+}
+
 func (o *Post) Attachments() []*SlackAttachment {
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
 		return attachments
