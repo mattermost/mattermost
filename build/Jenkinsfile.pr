@@ -74,6 +74,7 @@ pipeline {
 		stage('Check i18n') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 			}
 
 			steps {
@@ -93,6 +94,7 @@ pipeline {
 		stage('Build') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 			}
 
 			steps {
@@ -101,9 +103,10 @@ pipeline {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
 							echo "Installing golangci-lint"
-							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.21.0 # Keep this in sync with .golangci.yml and .circleci/config.yml
+							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.0 # Keep this in sync with .golangci.yml and .circleci/config.yml
 							echo "Installing mattermost-govet"
 							GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+							export PATH=$PATH:$GOBIN
 							make config-reset
 							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' MM_NO_ENTERPRISE_LINT=true
 							make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
@@ -237,6 +240,7 @@ pipeline {
 		stage('Test') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 				TEST_DATABASE_MYSQL_DSN = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
 				TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 				TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
