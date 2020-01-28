@@ -534,9 +534,10 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 
 		prepackagedMarketplace := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: prepackaged.Manifest.HomepageURL,
-				IconData:    prepackaged.IconData,
-				Manifest:    prepackaged.Manifest,
+				HomepageURL:     prepackaged.Manifest.HomepageURL,
+				IconData:        prepackaged.IconData,
+				ReleaseNotesURL: prepackaged.Manifest.ReleaseNotesURL,
+				Manifest:        prepackaged.Manifest,
 			},
 		}
 
@@ -608,10 +609,11 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 
 		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				IconData:    iconData,
-				HomepageURL: plugin.Manifest.HomepageURL,
-				Labels:      labels,
-				Manifest:    plugin.Manifest,
+				HomepageURL:     plugin.Manifest.HomepageURL,
+				IconData:        iconData,
+				ReleaseNotesURL: plugin.Manifest.ReleaseNotesURL,
+				Labels:          labels,
+				Manifest:        plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,
 		}
