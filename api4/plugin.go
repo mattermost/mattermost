@@ -85,7 +85,9 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || *c.App.Config().PluginSettings.RequirePluginSignature {
+	if !*c.App.Config().PluginSettings.Enable ||
+		*c.App.Config().PluginSettings.RequirePluginSignature ||
+		!*c.App.Config().PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
