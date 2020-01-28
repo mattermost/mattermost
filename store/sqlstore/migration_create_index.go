@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// CreateIndex - asynchronous migration that adds an index to table
+// CreateIndex is an asynchronous migration that adds an index to table
 type CreateIndex struct {
 	name      string
 	table     string
@@ -22,7 +22,7 @@ type CreateIndex struct {
 }
 
 // NewCreateIndex creates a migration that adds an index
-func NewCreateIndex(indexName string, tableName string, columnNames []string, indexType string, unique bool) *CreateIndex {
+func NewCreateIndex(indexName, tableName string, columnNames []string, indexType string, unique bool) *CreateIndex {
 	return &CreateIndex{
 		name:      indexName,
 		table:     tableName,
@@ -70,7 +70,7 @@ func (m *CreateIndex) GetStatus(ss SqlStore) (asyncMigrationStatus, error) {
 		// check if the index is invalid, this can happen if create index concurrently was aborted
 		// in that case we have to drop this index and create it again
 		// this may block if there is a long running query on the table
-		if idxData != nil && idxData.IsValid != true {
+		if idxData != nil && !idxData.IsValid {
 			_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + m.name)
 			if err != nil {
 				return unknown, err
@@ -109,7 +109,7 @@ func (m *CreateIndex) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) 
 		}
 		// check if the index is invalid
 		// in that case we have to drop this index and create it again
-		if idxData != nil && idxData.IsValid != true {
+		if idxData != nil && !idxData.IsValid {
 			_, err = conn.ExecContext(ctx, "DROP INDEX "+m.name)
 			if err != nil {
 				return unknown, err

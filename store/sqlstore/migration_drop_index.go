@@ -17,6 +17,7 @@ type DropIndex struct {
 	table string
 }
 
+// NewDropIndex creates a migration that drops an index
 func NewDropIndex(indexName string, tableName string) *DropIndex {
 	return &DropIndex{
 		name:  indexName,

@@ -19,7 +19,7 @@ func MigrationTest(t *testing.T, fn func(*testing.T, *MigrationRunner, *SqlSuppl
 			opt := MigrationOptions{
 				LockTimeoutSecs: 1,
 				BackoffTimeSecs: 1,
-				NumRetries:  2,
+				NumRetries:      2,
 			}
 			runner := NewMigrationRunner(st.SqlSupplier, opt)
 			fn(t, runner, st.SqlSupplier)
