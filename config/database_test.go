@@ -79,19 +79,18 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
 		require.Nil(t, err)
 		return actual.ID, actualCfg
-	} else {
-		var actual struct {
-			ID    string `db:"Id"`
-			Value []byte `db:"Value"`
-		}
-		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
-		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
-		require.NoError(t, err)
-
-		actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
-		require.Nil(t, err)
-		return actual.ID, actualCfg
 	}
+	var actual struct {
+		ID    string `db:"Id"`
+		Value []byte `db:"Value"`
+	}
+	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+	require.NoError(t, err)
+
+	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
+	require.Nil(t, err)
+	return actual.ID, actualCfg
 }
 
 // assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
