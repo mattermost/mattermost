@@ -7,12 +7,12 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -110,26 +110,24 @@ func (r *MigrationRunner) Run() error {
 				var err error
 				conn, err := createConnectionWithLockTimeout(ctx, r.supplier, r.options.LockTimeoutSecs)
 				if err != nil {
-					mlog.Error("Failed to setup connection", mlog.Err(err))
-					return err
+					return errors.Wrap(err, "failed to setup connection")
 				}
 				defer releaseConnection(ctx, r.supplier, conn)
 
 				// run migration
 				status, err := m.Execute(ctx, r.supplier, conn)
 				if err != nil {
-					mlog.Error("Failed to execute migration", mlog.Err(err))
-					return err
+					return errors.Wrap(err, "failed to execute migration")
 				}
-				if status == complete || status == skip {
+				switch status {
+				case complete, skip:
 					// save migration status
 					r.supplier.System().SaveOrUpdate(&model.System{Name: "migration_" + m.Name(), Value: string(status)})
-				} else if status == failed {
-					mlog.Error("Failed migration " + m.Name())
-					return errors.New("Failed migration")
-				} else {
+				case failed:
+					return errors.New("failed migration " + m.Name())
+				default:
 					// should we return error here to retry?
-					return errors.New("Invalid result from migration")
+					return errors.New("invalid result from migration")
 				}
 				return nil
 			}
@@ -139,6 +137,7 @@ func (r *MigrationRunner) Run() error {
 				if err == nil {
 					break
 				}
+				mlog.Error("Migration error", mlog.Err(err))
 				select {
 				case <-ctx.Done():
 					return
