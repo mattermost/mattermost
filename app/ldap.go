@@ -43,7 +43,7 @@ func (a *App) TestLdap() *model.AppError {
 func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 	var group *model.Group
 
-	if a.Ldap != nil {
+	if a.Ldap() != nil {
 		var err *model.AppError
 		group, err = a.Ldap().GetGroup(ldapGroupID)
 		if err != nil {
@@ -64,7 +64,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	var groups []*model.Group
 	var total int
 
-	if a.Ldap != nil {
+	if a.Ldap() != nil {
 		var err *model.AppError
 		groups, total, err = a.Ldap().GetAllGroupsPage(page, perPage, opts)
 		if err != nil {

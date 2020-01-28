@@ -660,7 +660,7 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 
 	var statuses model.PluginStatuses
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		var err *model.AppError
 		statuses, err = a.Cluster().GetPluginStatuses()
 		if err != nil {

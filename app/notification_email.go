@@ -104,7 +104,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		}
 	})
 
-	if a.Metrics != nil {
+	if a.Metrics() != nil {
 		a.Metrics().IncrementPostSentEmail()
 	}
 

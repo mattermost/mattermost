@@ -217,12 +217,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		}
 
-		if c.App.Metrics != nil {
+		if c.App.Metrics() != nil {
 			c.App.Metrics().IncrementHttpError()
 		}
 	}
 
-	if c.App.Metrics != nil {
+	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {

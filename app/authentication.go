@@ -108,7 +108,7 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 }
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	if a.Ldap == nil || ldapId == nil {
+	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func checkUserNotBot(user *model.User) *model.AppError {
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.License()
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {

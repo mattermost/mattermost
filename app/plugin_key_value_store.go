@@ -122,7 +122,7 @@ func (a *App) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
 }
 
 func (a *App) DeleteAllExpiredPluginKeys() *model.AppError {
-	if a.Srv == nil {
+	if a.Srv() == nil {
 		return nil
 	}
 

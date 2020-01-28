@@ -292,7 +292,7 @@ func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage 
 }
 
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
-	if api.app.Ldap == nil {
+	if api.app.Ldap() == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.Ldap().disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

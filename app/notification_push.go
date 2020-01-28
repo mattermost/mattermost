@@ -113,7 +113,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 			mlog.String("status", model.PUSH_SEND_SUCCESS),
 		)
 
-		if a.Metrics != nil {
+		if a.Metrics() != nil {
 			a.Metrics().IncrementPostSentPush()
 		}
 	}

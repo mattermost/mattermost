@@ -245,24 +245,24 @@ func (a *App) SetStore(s store.Store) {
 	a.store = s
 }
 
-func (a *App) SetT(t goi18n.TranslateFunc){
+func (a *App) SetT(t goi18n.TranslateFunc) {
 	a.t = t
 }
-func (a *App) SetRequestId(s string){
+func (a *App) SetRequestId(s string) {
 	a.requestId = s
 }
-func (a *App) SetIpAddress(s string){
+func (a *App) SetIpAddress(s string) {
 	a.ipAddress = s
 }
-func (a *App) SetUserAgent(s string){
+func (a *App) SetUserAgent(s string) {
 	a.userAgent = s
 }
-func (a *App) SetAcceptLanguage(s string)	{
+func (a *App) SetAcceptLanguage(s string) {
 	a.acceptLanguage = s
 }
-func (a *App) SetPath(s string){
+func (a *App) SetPath(s string) {
 	a.path = s
 }
-func (a *App) SetContext(c context.Context){
+func (a *App) SetContext(c context.Context) {
 	a.context = c
 }

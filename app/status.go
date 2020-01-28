@@ -15,7 +15,7 @@ func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
 func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,

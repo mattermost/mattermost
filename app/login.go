@@ -36,7 +36,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
-		if a.Metrics != nil {
+		if a.Metrics() != nil {
 			if user == nil || err != nil {
 				a.Metrics().IncrementLoginFail()
 			} else {
@@ -98,7 +98,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user with LDAP if enabled
-	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
+	if *a.Config().LdapSettings.Enable && a.Ldap() != nil {
 		if ldapUser, err := a.Ldap().GetUser(loginId); err == nil {
 			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.USER_AUTH_SERVICE_LDAP); err == nil {
 				return user, nil

@@ -932,7 +932,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		})
 	}
 
-	esInterface := a.Elasticsearch
+	esInterface := a.Elasticsearch()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv().Go(func() {
 			if err := a.indexUser(user); err != nil {

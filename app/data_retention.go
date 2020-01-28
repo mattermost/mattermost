@@ -10,7 +10,7 @@ import (
 )
 
 func (a *App) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
-	if a.DataRetention == nil {
+	if a.DataRetention() == nil {
 		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
 	}
 

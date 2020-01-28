@@ -23,7 +23,7 @@ const (
 )
 
 func (a *App) GetSamlMetadata() (string, *model.AppError) {
-	if a.Saml == nil {
+	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
@@ -179,7 +179,7 @@ func (a *App) GetSamlCertificateStatus() *model.SamlCertificateStatus {
 }
 
 func (a *App) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
-	if a.Saml == nil {
+	if a.Saml() == nil {
 		err := model.NewAppError("GetSamlMetadataFromIdp", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}

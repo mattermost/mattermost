@@ -21,7 +21,7 @@ import (
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
+	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, a.Cluster().GetMyClusterInfo().Hostname)
@@ -36,7 +36,7 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
+	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
 		clines, err := a.Cluster().GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -122,7 +122,7 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		infos = a.Cluster().GetClusterInfos()
 	}
 
@@ -133,7 +133,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
 	a.InvalidateAllCachesSkipSend()
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 
 		msg := &model.ClusterMessage{
 			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,

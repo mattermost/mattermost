@@ -386,7 +386,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if a.Metrics != nil {
+	if a.Metrics() != nil {
 		if *a.Config().MetricsSettings.Enable {
 			a.Metrics().StartServer()
 		} else {
@@ -394,7 +394,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 		}
 	}
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		newCfg = a.Srv().configStore.RemoveEnvironmentOverrides(newCfg)
 		err := a.Cluster().ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
@@ -406,7 +406,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 }
 
 func (a *App) IsESIndexingEnabled() bool {
-	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
+	return a.Elasticsearch() != nil && *a.Config().ElasticsearchSettings.EnableIndexing
 }
 
 func (a *App) IsESSearchEnabled() bool {

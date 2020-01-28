@@ -289,7 +289,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	if a.Metrics != nil {
+	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}
 
@@ -298,7 +298,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
-		if a.Metrics != nil {
+		if a.Metrics() != nil {
 			a.Metrics().IncrementPostFileAttachment(len(post.FileIds))
 		}
 	}
