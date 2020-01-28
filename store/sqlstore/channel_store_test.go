@@ -993,7 +993,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 
 func testAllChannelMemberProcess(t *testing.T) {
 	t.Run("Unmigrated_User", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "channel_user",
 			SchemeGuest:                   sql.NullBool{Valid: false, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
@@ -1012,7 +1012,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("Unmigrated_Admin", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "channel_user channel_admin",
 			SchemeGuest:                   sql.NullBool{Valid: false, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
@@ -1031,7 +1031,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("Unmigrated_None", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: false, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
@@ -1050,7 +1050,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("Unmigrated_Custom", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "custom",
 			SchemeGuest:                   sql.NullBool{Valid: false, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: false, Bool: false},
@@ -1069,7 +1069,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedNoScheme_User", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1088,7 +1088,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedNoScheme_Admin", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1107,7 +1107,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedNoScheme_Guest", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: true},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1126,7 +1126,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedNoScheme_None", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1145,7 +1145,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedChannelScheme_User", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1164,7 +1164,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedChannelScheme_Admin", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1183,7 +1183,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedChannelScheme_Guest", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: true},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1202,7 +1202,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedChannelScheme_None", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1221,7 +1221,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamScheme_User", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1240,7 +1240,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamScheme_Admin", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1259,7 +1259,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamScheme_Guest", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: true},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1278,7 +1278,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamScheme_None", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1297,7 +1297,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamAndChannelScheme_User", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1316,7 +1316,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamAndChannelScheme_Admin", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
@@ -1335,7 +1335,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamAndChannelScheme_Guest", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: true},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1354,7 +1354,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("MigratedTeamAndChannelScheme_None", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: false},
@@ -1373,7 +1373,7 @@ func testAllChannelMemberProcess(t *testing.T) {
 	})
 
 	t.Run("DeduplicationCheck", func(t *testing.T) {
-		db := allChannelMember{
+		db := AllChannelMember{
 			Roles:                         "channel_user",
 			SchemeGuest:                   sql.NullBool{Valid: true, Bool: false},
 			SchemeUser:                    sql.NullBool{Valid: true, Bool: true},
