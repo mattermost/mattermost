@@ -82,12 +82,6 @@ func getMockCacheProvider() *mocks.CacheProvider {
 
 	mockCacheProvider.On("NewCacheWithParams",
 		mock.AnythingOfType("int"),
-		"ChannelMembersForUser",
-		mock.AnythingOfType("int64"),
-		mock.AnythingOfType("string")).Return(lru.New(128))
-
-	mockCacheProvider.On("NewCacheWithParams",
-		mock.AnythingOfType("int"),
 		"LastPost",
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(lru.New(128))
@@ -185,13 +179,6 @@ func getMockStore() *mocks.Store {
 	mockPinnedPostsCount := int64(10)
 	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
 	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
-	fakeChannelMembers := model.ChannelMembers([]model.ChannelMember{
-		{
-			UserId: "123",
-		},
-	})
-	mockChannelStore.On("GetMembersForUser", "teamId", "userId1").Return(&fakeChannelMembers, nil)
-	mockChannelStore.On("GetMembersForUser", "teamId", "userId2").Return(&fakeChannelMembers, nil)
 
 	fakePosts := &model.PostList{}
 	mockPostStore := mocks.PostStore{}
