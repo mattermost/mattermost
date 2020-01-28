@@ -1,7 +1,6 @@
 package pglayer
 
 import (
-	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -43,8 +42,6 @@ func initStores() {
 	pgStore.DropAllTables()
 	pgStore.MarkSystemRanUnitTests()
 }
-
-var tearDownStoresOnce sync.Once
 
 func tearDownStores() {
 	pgStore.Close()

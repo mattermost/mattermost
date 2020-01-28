@@ -22,7 +22,7 @@ import (
 type SqlPostStore struct {
 	SqlStore
 	metrics           einterfaces.MetricsInterface
-	MaxPostSizeOnce   sync.Once
+	MaxPostSizeOnce   *sync.Once
 	MaxPostSizeCached int
 }
 
@@ -33,6 +33,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
+		MaxPostSizeOnce:   new(sync.Once),
 		MaxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
