@@ -831,7 +831,7 @@ type AppIface interface {
 	SetAcceptLanguage(string)
 	SetPath(string)
 	SetContext(context.Context)
-
+	SetServer(srv *Server)
 	// getters
 	Srv() *Server
 
@@ -839,6 +839,7 @@ type AppIface interface {
 	NotificationsLog() *mlog.Logger
 
 	T(translationID string, args ...interface{}) string
+	GetT() goi18n.TranslateFunc
 	Session() *model.Session
 	RequestId() string
 	IpAddress() string

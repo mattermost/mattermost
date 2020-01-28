@@ -9313,6 +9313,35 @@ func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *OpenTracing
 		app: childApp,
 		ctx: ctx,
 	}
+
+	newStore.srv = childApp.Srv()
+	newStore.log = childApp.Log()
+	newStore.notificationsLog = childApp.NotificationsLog()
+	newStore.t = childApp.GetT()
+	if childApp.Session() != nil {
+		newStore.session = *childApp.Session()
+	}
+	newStore.requestId = childApp.RequestId()
+	newStore.ipAddress = childApp.IpAddress()
+	newStore.path = childApp.Path()
+	newStore.userAgent = childApp.UserAgent()
+	newStore.acceptLanguage = childApp.AcceptLanguage()
+	newStore.accountMigration = childApp.AccountMigration()
+	newStore.cluster = childApp.Cluster()
+	newStore.compliance = childApp.Compliance()
+	newStore.dataRetention = childApp.DataRetention()
+	newStore.elasticsearch = childApp.Elasticsearch()
+	newStore.ldap = childApp.Ldap()
+	newStore.messageExport = childApp.MessageExport()
+	newStore.metrics = childApp.Metrics()
+	newStore.notification = childApp.Notification()
+	newStore.saml = childApp.Saml()
+	newStore.httpService = childApp.HTTPService()
+	newStore.imageProxy = childApp.ImageProxy()
+	newStore.timezones = childApp.Timezones()
+	newStore.context = childApp.Context()
+	newStore.store = childApp.Store()
+
 	return &newStore
 }
 
@@ -9419,4 +9448,10 @@ func (s *OpenTracingAppLayer) SetPath(str string) {
 }
 func (s *OpenTracingAppLayer) SetContext(c context.Context) {
 	s.context = c
+}
+func (s *OpenTracingAppLayer) SetServer(srv *Server) {
+	s.srv = srv
+}
+func (s *OpenTracingAppLayer) GetT() goi18n.TranslateFunc {
+	return s.t
 }

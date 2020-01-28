@@ -266,3 +266,9 @@ func (a *App) SetPath(s string) {
 func (a *App) SetContext(c context.Context) {
 	a.context = c
 }
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
+}
+func (a *App) GetT() goi18n.TranslateFunc {
+	return a.t
+}
