@@ -152,6 +152,22 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
+// NotificationWillBeSent provides a mock function with given fields: c, post, userList
+func (_m *Hooks) NotificationWillBeSent(c *plugin.Context, post *model.Post, mentions *model.ExplicitMentions) *model.ExplicitMentions {
+	ret := _m.Called(c, post, mentions)
+
+	var r0 *model.ExplicitMentions
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post, *model.ExplicitMentions) *model.ExplicitMentions); ok {
+		r0 = rf(c, post, mentions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ExplicitMentions)
+		}
+	}
+
+	return r0
+}
+
 // OnActivate provides a mock function with given fields:
 func (_m *Hooks) OnActivate() error {
 	ret := _m.Called()

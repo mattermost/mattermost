@@ -662,6 +662,44 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 }
 
+func TestHookNotificationWillBeSent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+		import (
+			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+		func (p *MyPlugin) NotificationWillBeSent(c *plugin.Context, post *model.Post, mentions *model.ExplicitMentions) *model.ExplicitMentions {
+			mentions.RemoveMention("user1")
+			mentions.AddMention("user3", model.NoMention)
+			return mentions
+		}
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+
+	mentions := &model.ExplicitMentions{}
+	mentions.AddMention("user1", model.NoMention)
+	mentions.AddMention("user2", model.NoMention)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIds[0])
+	assert.NoError(t, err)
+	newMentions := hooks.NotificationWillBeSent(nil, nil, mentions)
+	assert.Equal(t, 2, len(newMentions.Mentions))
+	assert.NotContains(t, newMentions.Mentions, "user1")
+	assert.Contains(t, newMentions.Mentions, "user2")
+	assert.Contains(t, newMentions.Mentions, "user3")
+}
+
 func TestUserWillLogIn_Blocked(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

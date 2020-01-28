@@ -475,6 +475,43 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["NotificationWillBeSent"] = NotificationWillBeSentId
+}
+
+type Z_NotificationWillBeSentArgs struct {
+	A *Context
+	B *model.Post
+	C *model.ExplicitMentions
+}
+
+type Z_NotificationWillBeSentReturns struct {
+	A *model.ExplicitMentions
+}
+
+func (g *hooksRPCClient) NotificationWillBeSent(c *Context, post *model.Post, mentions *model.ExplicitMentions) *model.ExplicitMentions {
+	_args := &Z_NotificationWillBeSentArgs{c, post, mentions}
+	_returns := &Z_NotificationWillBeSentReturns{}
+	if g.implemented[NotificationWillBeSentId] {
+		if err := g.client.Call("Plugin.NotificationWillBeSent", _args, _returns); err != nil {
+			g.log.Error("RPC call NotificationWillBeSent to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) NotificationWillBeSent(args *Z_NotificationWillBeSentArgs, returns *Z_NotificationWillBeSentReturns) error {
+	if hook, ok := s.impl.(interface {
+		NotificationWillBeSent(c *Context, post *model.Post, mentions *model.ExplicitMentions) *model.ExplicitMentions
+	}); ok {
+		returns.A = hook.NotificationWillBeSent(args.A, args.B, args.C)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook NotificationWillBeSent called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
