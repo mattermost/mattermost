@@ -91,6 +91,7 @@ func TestGetReplica(t *testing.T) {
 				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
 			}
 			supplier := sqlstore.NewSqlSupplier(settings, nil)
+			supplier.Init()
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -229,6 +230,7 @@ func TestGetAllConns(t *testing.T) {
 				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
 			}
 			supplier := sqlstore.NewSqlSupplier(settings, nil)
+			supplier.Init()
 
 			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
 		})

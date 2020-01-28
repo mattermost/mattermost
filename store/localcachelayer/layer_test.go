@@ -76,6 +76,7 @@ func initStores() {
 			} else {
 				st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
 			}
+			st.SqlSupplier.Init()
 			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()

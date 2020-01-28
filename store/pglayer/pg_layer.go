@@ -11,6 +11,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
@@ -53,6 +54,50 @@ func NewPgLayer(baseStore sqlstore.SqlSupplier) *PgLayer {
 	pgLayer.teamStore = PgTeamStore{SqlTeamStore: *baseStore.Team().(*sqlstore.SqlTeamStore)}
 	pgLayer.userStore = PgUserStore{SqlUserStore: *baseStore.User().(*sqlstore.SqlUserStore), rootStore: pgLayer}
 	return pgLayer
+}
+
+func (ss *PgLayer) Init() {
+	err := ss.GetMaster().CreateTablesIfNotExists()
+	if err != nil {
+		mlog.Critical("Error creating database tables.", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(sqlstore.EXIT_CREATE_TABLE)
+	}
+
+	err = upgradeDatabase(ss, model.CurrentVersion)
+	if err != nil {
+		mlog.Critical("Failed to upgrade database.", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(sqlstore.EXIT_GENERIC_FAILURE)
+	}
+
+	ss.Team().(*PgTeamStore).CreateIndexesIfNotExists()
+	ss.Channel().(PgChannelStore).CreateIndexesIfNotExists()
+	ss.Post().(*PgPostStore).CreateIndexesIfNotExists()
+	ss.User().(*PgUserStore).CreateIndexesIfNotExists()
+	ss.Bot().(*sqlstore.SqlBotStore).CreateIndexesIfNotExists()
+	ss.Audit().(*sqlstore.SqlAuditStore).CreateIndexesIfNotExists()
+	ss.Compliance().(*sqlstore.SqlComplianceStore).CreateIndexesIfNotExists()
+	ss.Session().(PgSessionStore).CreateIndexesIfNotExists()
+	ss.OAuth().(PgOAuthStore).CreateIndexesIfNotExists()
+	ss.System().(*sqlstore.SqlSystemStore).CreateIndexesIfNotExists()
+	ss.Webhook().(*sqlstore.SqlWebhookStore).CreateIndexesIfNotExists()
+	ss.Command().(PgCommandStore).CreateIndexesIfNotExists()
+	ss.CommandWebhook().(*sqlstore.SqlCommandWebhookStore).CreateIndexesIfNotExists()
+	ss.Preference().(*PgPreferenceStore).CreateIndexesIfNotExists()
+	ss.License().(*sqlstore.SqlLicenseStore).CreateIndexesIfNotExists()
+	ss.Token().(*sqlstore.SqlTokenStore).CreateIndexesIfNotExists()
+	ss.Emoji().(*sqlstore.SqlEmojiStore).CreateIndexesIfNotExists()
+	ss.Status().(*sqlstore.SqlStatusStore).CreateIndexesIfNotExists()
+	ss.FileInfo().(PgFileInfoStore).CreateIndexesIfNotExists()
+	ss.Job().(*sqlstore.SqlJobStore).CreateIndexesIfNotExists()
+	ss.UserAccessToken().(*PgUserAccessTokenStore).CreateIndexesIfNotExists()
+	ss.Plugin().(PgPluginStore).CreateIndexesIfNotExists()
+	ss.TermsOfService().(sqlstore.SqlTermsOfServiceStore).CreateIndexesIfNotExists()
+	ss.UserTermsOfService().(sqlstore.SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
+	ss.LinkMetadata().(PgLinkMetadataStore).CreateIndexesIfNotExists()
+	ss.Group().(PgGroupStore).CreateIndexesIfNotExists()
+	ss.Preference().(*PgPreferenceStore).DeleteUnusedFeatures()
 }
 
 func (ss *PgLayer) DoesTableExist(tableName string) bool {

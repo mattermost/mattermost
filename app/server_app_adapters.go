@@ -61,9 +61,16 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
+			var supplier sqlstore.SqlSupplier;
+			if (s.FakeApp().Config().SqlSettings == model.DATABASE_DRIVER_POSTGRES) {
+				supplier = pgLayer.NewPgLayer(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics))
+			} else {
+				supplier = sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics)
+			}
+			supplier.Init()
 			return store.NewTimerLayer(
 				localcachelayer.NewLocalCacheLayer(
-					sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
+					supplier,
 					s.Metrics, s.Cluster, s.CacheProvider),
 				s.Metrics)
 		}

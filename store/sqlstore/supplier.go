@@ -164,49 +164,51 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.scheme = NewSqlSchemeStore(supplier)
 	supplier.stores.group = NewSqlGroupStore(supplier)
 
-	err := supplier.GetMaster().CreateTablesIfNotExists()
+	return supplier
+}
+
+func (ss *SqlSupplier) Init() {
+	err := ss.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
 		mlog.Critical("Error creating database tables.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	err = upgradeDatabase(supplier, model.CurrentVersion)
+	err = upgradeDatabase(ss, model.CurrentVersion)
 	if err != nil {
 		mlog.Critical("Failed to upgrade database.", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
 
-	supplier.stores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
-	supplier.stores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
-	supplier.stores.post.(*SqlPostStore).CreateIndexesIfNotExists()
-	supplier.stores.user.(*SqlUserStore).CreateIndexesIfNotExists()
-	supplier.stores.bot.(*SqlBotStore).CreateIndexesIfNotExists()
-	supplier.stores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
-	supplier.stores.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
-	supplier.stores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
-	supplier.stores.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
-	supplier.stores.system.(*SqlSystemStore).CreateIndexesIfNotExists()
-	supplier.stores.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
-	supplier.stores.command.(*SqlCommandStore).CreateIndexesIfNotExists()
-	supplier.stores.commandWebhook.(*SqlCommandWebhookStore).CreateIndexesIfNotExists()
-	supplier.stores.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
-	supplier.stores.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
-	supplier.stores.token.(*SqlTokenStore).CreateIndexesIfNotExists()
-	supplier.stores.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
-	supplier.stores.status.(*SqlStatusStore).CreateIndexesIfNotExists()
-	supplier.stores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
-	supplier.stores.job.(*SqlJobStore).CreateIndexesIfNotExists()
-	supplier.stores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
-	supplier.stores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
-	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
-	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
-	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
-	supplier.stores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
-	supplier.stores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
-
-	return supplier
+	ss.stores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
+	ss.stores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
+	ss.stores.post.(*SqlPostStore).CreateIndexesIfNotExists()
+	ss.stores.user.(*SqlUserStore).CreateIndexesIfNotExists()
+	ss.stores.bot.(*SqlBotStore).CreateIndexesIfNotExists()
+	ss.stores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
+	ss.stores.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
+	ss.stores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
+	ss.stores.oauth.(*SqlOAuthStore).CreateIndexesIfNotExists()
+	ss.stores.system.(*SqlSystemStore).CreateIndexesIfNotExists()
+	ss.stores.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
+	ss.stores.command.(*SqlCommandStore).CreateIndexesIfNotExists()
+	ss.stores.commandWebhook.(*SqlCommandWebhookStore).CreateIndexesIfNotExists()
+	ss.stores.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
+	ss.stores.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
+	ss.stores.token.(*SqlTokenStore).CreateIndexesIfNotExists()
+	ss.stores.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
+	ss.stores.status.(*SqlStatusStore).CreateIndexesIfNotExists()
+	ss.stores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
+	ss.stores.job.(*SqlJobStore).CreateIndexesIfNotExists()
+	ss.stores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
+	ss.stores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
+	ss.stores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
+	ss.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
+	ss.stores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
+	ss.stores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
+	ss.stores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 }
 
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {

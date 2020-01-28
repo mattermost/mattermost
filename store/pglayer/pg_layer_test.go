@@ -42,6 +42,7 @@ func initStores() {
 		}
 	}()
 	pgStore = NewPgLayer(*sqlstore.NewSqlSupplier(*storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES), nil))
+	pgStore.Init()
 	pgStore.DropAllTables()
 	pgStore.MarkSystemRanUnitTests()
 }

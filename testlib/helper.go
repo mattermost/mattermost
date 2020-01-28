@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/pglayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -21,7 +22,7 @@ import (
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
-	SQLSupplier      *sqlstore.SqlSupplier
+	SQLSupplier      sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -101,7 +102,12 @@ func (h *MainHelper) setupStore() {
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	if driverName == model.DATABASE_DRIVER_POSTGRES {
+		h.SQLSupplier = pglayer.NewPgLayer(*sqlstore.NewSqlSupplier(*h.Settings, nil))
+	} else {
+		h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	}
+	h.SQLSupplier.Init()
 	h.Store = &TestStore{
 		h.SQLSupplier,
 	}
@@ -148,7 +154,7 @@ func (h *MainHelper) GetStore() store.Store {
 	return h.Store
 }
 
-func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
+func (h *MainHelper) GetSQLSupplier() sqlstore.SqlStore {
 	if h.SQLSupplier == nil {
 		panic("MainHelper not initialized with sql supplier.")
 	}

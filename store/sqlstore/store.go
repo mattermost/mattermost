@@ -103,4 +103,5 @@ type SqlStore interface {
 	CheckIntegrity() <-chan store.IntegrityCheckResult
 	DropAllTables()
 	Group() store.GroupStore
+	Init()
 }
