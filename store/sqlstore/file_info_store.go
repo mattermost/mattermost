@@ -108,12 +108,9 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 		Select("FileInfo.*").
 		From("FileInfo")
 
-	if len(opt.ChannelIds) > 0 || opt.SortBy == model.FILE_SORT_BY_CHANNEL_NAME {
-		query = query.Join("Posts ON FileInfo.PostId = Posts.Id")
-	}
-
 	if len(opt.ChannelIds) > 0 {
-		query = query.Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
+		query = query.Join("Posts ON FileInfo.PostId = Posts.Id").
+			Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
 	}
 
 	if len(opt.UserIds) > 0 {
@@ -141,12 +138,6 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
 	case model.FILE_SORT_BY_SIZE:
 		query = query.OrderBy("FileInfo.Size " + sortDirection)
-	case model.FILE_SORT_BY_USERNAME:
-		query = query.Join("Users on FileInfo.CreatorId = Users.Id").
-			OrderBy("Users.UserName " + sortDirection)
-	case model.FILE_SORT_BY_CHANNEL_NAME:
-		query = query.Join("Channels on Posts.ChannelId = Channels.Id").
-			OrderBy("Channels.Name " + sortDirection)
 	default:
 		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
 			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)

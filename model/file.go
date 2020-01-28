@@ -23,10 +23,8 @@ type FileUploadResponse struct {
 }
 
 const (
-	FILE_SORT_BY_CREATED      = "CreateAt"
-	FILE_SORT_BY_SIZE         = "Size"
-	FILE_SORT_BY_USERNAME     = "Username"
-	FILE_SORT_BY_CHANNEL_NAME = "Name"
+	FILE_SORT_BY_CREATED = "CreateAt"
+	FILE_SORT_BY_SIZE    = "Size"
 
 	FILE_SORT_ORDER_ASCENDING  = "ASC"
 	FILE_SORT_ORDER_DESCENDING = "DESC"

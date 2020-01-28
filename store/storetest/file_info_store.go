@@ -259,44 +259,10 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 }
 
 func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
 
-	makeUser := func(username string) model.User {
-		user := model.User{
-			Email:    MakeEmail(),
-			Username: username,
-		}
-		_, err := ss.User().Save(&user)
-		require.Nil(t, err)
-		return user
-	}
-
-	makeChannel := func(prefix string) model.Channel {
-		channel := model.Channel{
-			DisplayName: prefix + "channel",
-			Name:        prefix + "channel",
-			TeamId:      teamId,
-			Type:        model.CHANNEL_GROUP,
-		}
-		_, err := ss.Channel().Save(&channel, -1)
-		require.Nil(t, err)
-		return channel
-	}
-
-	addUsersToChannel := func(ch model.Channel, users ...string) {
-		for _, user := range users {
-			m := model.ChannelMember{}
-			m.ChannelId = ch.Id
-			m.UserId = user
-			m.NotifyProps = model.GetDefaultChannelNotifyProps()
-			_, err := ss.Channel().SaveMember(&m)
-			require.Nil(t, err)
-		}
-	}
-
-	makePost := func(ch model.Channel, user string) model.Post {
+	makePost := func(chId string, user string) model.Post {
 		post := model.Post{}
-		post.ChannelId = ch.Id
+		post.ChannelId = chId
 		post.UserId = user
 		_, err := ss.Post().Save(&post)
 		require.Nil(t, err)
@@ -320,28 +286,24 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		return fileInfo
 	}
 
-	user1 := makeUser("user1")
-	user2 := makeUser("user2")
+	userId1 := model.NewId()
+	userId2 := model.NewId()
 
-	channel1 := makeChannel("ch-for-user1")
-	channel2 := makeChannel("ch-for-user2")
-	channel1and2 := makeChannel("ch-for-user1-and-user2")
+	channelId1 := model.NewId()
+	channelId2 := model.NewId()
+	channelId3 := model.NewId()
 
-	addUsersToChannel(channel1, user1.Id)
-	addUsersToChannel(channel2, user2.Id)
-	addUsersToChannel(channel1and2, user1.Id, user2.Id)
-
-	post1_1 := makePost(channel1, user1.Id)     // post 1 by user 1
-	post1_2 := makePost(channel1and2, user1.Id) // post 2 by user 1
-	post2_1 := makePost(channel2, user2.Id)
-	post2_2 := makePost(channel1and2, user2.Id)
+	post1_1 := makePost(channelId1, userId1) // post 1 by user 1
+	post1_2 := makePost(channelId3, userId1) // post 2 by user 1
+	post2_1 := makePost(channelId2, userId2)
+	post2_2 := makePost(channelId3, userId2)
 
 	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-	file1_1 := makeFile(post1_1, user1.Id, epoch.AddDate(0, 0, 1).Unix(), "a")      // file 1 by user 1
-	file1_2 := makeFile(post1_2, user1.Id, epoch.AddDate(0, 0, 2).Unix(), "b")      // file 2 by user 1
-	file1_3 := makeFile(model.Post{}, user1.Id, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
-	file2_1 := makeFile(post2_1, user2.Id, epoch.AddDate(0, 0, 4).Unix(), "d")      // file 2 by user 1
-	file2_2 := makeFile(post2_2, user2.Id, epoch.AddDate(0, 0, 5).Unix(), "e")
+	file1_1 := makeFile(post1_1, userId1, epoch.AddDate(0, 0, 1).Unix(), "a")      // file 1 by user 1
+	file1_2 := makeFile(post1_2, userId1, epoch.AddDate(0, 0, 2).Unix(), "b")      // file 2 by user 1
+	file1_3 := makeFile(model.Post{}, userId1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
+	file2_1 := makeFile(post2_1, userId2, epoch.AddDate(0, 0, 4).Unix(), "d")      // file 2 by user 1
+	file2_2 := makeFile(post2_2, userId2, epoch.AddDate(0, 0, 5).Unix(), "e")
 
 	// delete a file
 	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
@@ -373,7 +335,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Opt: &model.GetFilesOptions{
 				IncludeDeleted: true,
-				ChannelIds:     []string{channel1and2.Id},
+				ChannelIds:     []string{channelId3},
 			},
 			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
 		},
@@ -392,34 +354,11 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			Page:    1,
 			PerPage: 10,
 			Opt: &model.GetFilesOptions{
-				UserIds:       []string{user1.Id},
+				UserIds:       []string{userId1},
 				SortBy:        model.FILE_SORT_BY_CREATED,
 				SortDirection: model.FILE_SORT_ORDER_DESCENDING,
 			},
 			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
-		},
-		{
-			Name:    "Get all files including deleted filtered by channel id and sorted by channel name",
-			Page:    1,
-			PerPage: 10,
-			Opt: &model.GetFilesOptions{
-				ChannelIds:     []string{channel1.Id, channel2.Id},
-				IncludeDeleted: true,
-				SortBy:         model.FILE_SORT_BY_CHANNEL_NAME,
-			},
-			ExpectedFileIds: []string{file1_1.Id, file2_1.Id},
-		},
-		{
-			Name:    "Get all files including deleted filtered by channel id and sorted by username descending",
-			Page:    1,
-			PerPage: 10,
-			Opt: &model.GetFilesOptions{
-				ChannelIds:     []string{channel1and2.Id},
-				IncludeDeleted: true,
-				SortBy:         model.FILE_SORT_BY_USERNAME,
-				SortDirection:  model.FILE_SORT_ORDER_DESCENDING,
-			},
-			ExpectedFileIds: []string{file2_2.Id, file1_2.Id},
 		},
 		{
 			Name:    "Get all files including deleted ordered by created descending 2nd page of 3 per page ",
@@ -438,11 +377,9 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Page, tc.PerPage, tc.Opt)
 			require.Nil(t, err)
-			assert.Len(t, fileInfos, len(tc.ExpectedFileIds))
-			if len(tc.ExpectedFileIds) > 0 {
-				for i := range tc.ExpectedFileIds {
-					assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
-				}
+			require.Len(t, fileInfos, len(tc.ExpectedFileIds))
+			for i := range tc.ExpectedFileIds {
+				assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
 			}
 		})
 	}
