@@ -960,7 +960,7 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 	return fileInfo, nil
 }
 
-type PostAndData struct {
+type postAndData struct {
 	Post           *model.Post
 	PostData       *PostImportData
 	DirectPostData *DirectPostImportData
@@ -986,7 +986,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 	teams := make(map[string]*model.Team)
 	channels := make(map[string]*model.Channel)
 	users := make(map[string]*model.User)
-	postsWithData := []PostAndData{}
+	postsWithData := []postAndData{}
 	postsForCreateList := []*model.Post{}
 	postsForOverwriteList := []*model.Post{}
 	allTeams, err := a.Srv.Store.Team().GetAll()
@@ -1005,7 +1005,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		}
 
 		var channel *model.Channel
-		if channel, ok = channels[*postData.Channel]; !ok {
+		if channel, ok = channels[*postData.Channel]; !ok || channel == nil {
 			var err *model.AppError
 			channel, err = a.Srv.Store.Channel().GetByName(team.Id, *postData.Channel, true)
 			if err != nil {
@@ -1015,7 +1015,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		}
 
 		var user *model.User
-		if user, ok = users[*postData.User]; !ok {
+		if user, ok = users[*postData.User]; !ok || user == nil {
 			var err *model.AppError
 			user, err = a.Srv.Store.User().GetByUsername(*postData.User)
 			if err != nil {
@@ -1067,7 +1067,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, post)
 		}
-		postsWithData = append(postsWithData, PostAndData{Post: post, PostData: postData, Team: team})
+		postsWithData = append(postsWithData, postAndData{Post: post, PostData: postData, Team: team})
 	}
 
 	if len(postsForCreateList) > 0 {
@@ -1244,7 +1244,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 	}
 
 	users := make(map[string]*model.User)
-	postsWithData := []PostAndData{}
+	postsWithData := []postAndData{}
 	postsForCreateList := []*model.Post{}
 	postsForOverwriteList := []*model.Post{}
 	allUsers, err := a.Srv.Store.User().GetAll()
@@ -1284,7 +1284,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		}
 
 		var user *model.User
-		if user, ok = users[*postData.User]; !ok {
+		if user, ok = users[*postData.User]; !ok || user == nil {
 			user, err = a.Srv.Store.User().GetByUsername(*postData.User)
 			if err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *postData.User}, err.Error(), http.StatusBadRequest)
@@ -1335,7 +1335,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, post)
 		}
-		postsWithData = append(postsWithData, PostAndData{Post: post, DirectPostData: postData})
+		postsWithData = append(postsWithData, postAndData{Post: post, DirectPostData: postData})
 	}
 
 	if len(postsForCreateList) > 0 {

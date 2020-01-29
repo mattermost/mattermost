@@ -6,7 +6,6 @@ package app
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -16,6 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+const postSaveMultipleSize = 1000
 
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
@@ -35,8 +36,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 			if line.Post == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(posts) >= 1000 {
-				fmt.Println("Importing post", len(posts))
+			if len(posts) >= postSaveMultipleSize {
 				a.importMultiplePosts(posts, dryRun)
 				posts = []*PostImportData{}
 			}
@@ -45,9 +45,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 			if line.DirectPost == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(directPosts) >= 1000 {
-				fmt.Println("NOT HERE RIGHT", len(directPosts))
-				fmt.Println("Importing direct post", len(directPosts))
+			if len(directPosts) >= postSaveMultipleSize {
 				a.importMultipleDirectPosts(directPosts, dryRun)
 				directPosts = []*DirectPostImportData{}
 			}
@@ -59,12 +57,9 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 	}
 
 	if len(posts) > 0 {
-		fmt.Println("Importing post", len(posts))
 		a.importMultiplePosts(posts, dryRun)
 	}
 	if len(directPosts) > 0 {
-		fmt.Println("HERE!", len(directPosts))
-		fmt.Println("Importing direct post", len(directPosts))
 		a.importMultipleDirectPosts(directPosts, dryRun)
 	}
 	wg.Done()
