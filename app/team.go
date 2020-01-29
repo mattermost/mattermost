@@ -91,14 +91,17 @@ func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 		return true
 	}
 	email := strings.ToLower(user.Email)
-	var allowedDomains []string
+	allowedDomains := a.getAllowedDomains(user, team)
+	return a.isEmailAddressAllowed(email, allowedDomains)
+}
+
+func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
 	if user.IsGuest() {
-		allowedDomains = []string{*a.Config().GuestAccountsSettings.RestrictCreationToDomains}
+		return []string{*a.Config().GuestAccountsSettings.RestrictCreationToDomains}
 	} else {
 		// First check per team allowedDomains, then app wide restrictions
-		allowedDomains = []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
+		return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 	}
-	return a.isEmailAddressAllowed(email, allowedDomains)
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -1086,8 +1089,9 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	var invalidEmailList []string
 
+	allowedDomains := a.getAllowedDomains(user, team)
 	for _, email := range emailList {
-		if !a.isEmailAddressAllowed(email, []string{team.AllowedDomains}) {
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
