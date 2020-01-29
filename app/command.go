@@ -211,7 +211,7 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 			user, err := a.Srv.Store.User().GetByUsername(mention)
 
 			if err != nil && err.StatusCode != http.StatusNotFound {
-				mlog.Warn("Failed to retrieve user @" + mention, mlog.Err(err))
+				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(err))
 				return
 			}
 
