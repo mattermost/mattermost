@@ -1215,6 +1215,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return err
 	}
 
+	allowedDomains := a.getAllowedDomains(user, team)
 	var invalidEmailList []string
 
 	allowedDomains := a.getAllowedDomains(user, team)
