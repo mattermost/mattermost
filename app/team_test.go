@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -283,8 +282,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.NotNil(t, err)
-		errRegexp := regexp.MustCompile(`Email must be from a specific domain`)
-		require.Equal(t, "Email must be from a specific domain", errRegexp.FindString(err.Error()))
+		require.Equal(t, "api.team.join_user_to_team.allowed_domains.app_error", err.Id)
 	})
 
 	t.Run("add a guest user with a granted email domain", func(t *testing.T) {
@@ -303,7 +301,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
-		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		require.Nil(t, err, "Should add user to the team")
 		rguest.Email = guestEmail
 		_, err = th.App.Srv.Store.User().Update(rguest, false)
 		require.Nil(t, err)
@@ -326,7 +324,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
-		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		require.Nil(t, err, "Should add user to the team")
 		th.BasicTeam.AllowedDomains = ""
 		_, err = th.Server.Store.Team().Update(th.BasicTeam)
 		require.Nil(t, err)

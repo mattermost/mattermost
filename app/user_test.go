@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"image"
 	"image/color"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -685,20 +684,19 @@ func TestCreateUserWithToken(t *testing.T) {
 		newGuest, err := th.App.CreateUserWithToken(&guest, forbiddenDomainToken)
 		require.NotNil(t, err)
 		require.Nil(t, newGuest)
-		errRegexp := regexp.MustCompile(`does not belong to an accepted domain`)
-		require.Equal(t, "does not belong to an accepted domain", errRegexp.FindString(err.Error()))
+		require.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
 
 		newGuest, err = th.App.CreateUserWithToken(&guest, grantedDomainToken)
-		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		require.Nil(t, err, "Should add user to the team")
 		assert.True(t, newGuest.IsGuest())
-		require.Equal(t, grantedInvitationEmail, newGuest.Email, "The user email must be the invitation one")
+		require.Equal(t, grantedInvitationEmail, newGuest.Email)
 		_, err = th.App.Srv.Store.Token().GetByToken(grantedDomainToken.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		require.NotNil(t, err)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
@@ -726,16 +724,16 @@ func TestCreateUserWithToken(t *testing.T) {
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token)
-		require.Nil(t, err, "Should add user to the team. err=%v", err)
+		require.Nil(t, err, "Should add user to the team")
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		require.NotNil(t, err)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
-		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		require.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 
