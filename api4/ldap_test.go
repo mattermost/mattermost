@@ -30,7 +30,7 @@ func TestTestLdap(t *testing.T) {
 	_, resp = th.SystemAdminClient.TestLdap()
 	CheckNotImplementedStatus(t, resp)
 	require.NotNil(t, resp.Error)
-	require.Equal(t, "ent.Ldap().disabled.app_error", resp.Error.Id)
+	require.Equal(t, "ent.ldap.disabled.app_error", resp.Error.Id)
 }
 
 func TestSyncLdap(t *testing.T) {

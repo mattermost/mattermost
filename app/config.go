@@ -381,7 +381,7 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg, err := a.Srv().configStore.Set(newCfg)
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
-		return model.NewAppError("saveConfig", "ent.Cluster().save_config.error", nil, err.Error(), http.StatusForbidden)
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

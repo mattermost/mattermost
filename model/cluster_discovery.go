@@ -90,27 +90,27 @@ func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bo
 
 func (o *ClusterDiscovery) IsValid() *AppError {
 	if len(o.Id) != 26 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ClusterName) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.name.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Type) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.type.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Hostname) == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.hostname.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.LastPingAt == 0 {
-		return NewAppError("ClusterDiscovery.IsValid", "model.Cluster().is_valid.last_ping_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.last_ping_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
