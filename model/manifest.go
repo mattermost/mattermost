@@ -154,6 +154,9 @@ type Manifest struct {
 	// SupportURL is an optional URL where plugin issues can be reported.
 	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
 
+	// ReleaseNotesURL is an optional URL where a changelog for the release can be found.
+	ReleaseNotesURL string `json:"release_notes_url,omitempty" yaml:"release_notes_url,omitempty"`
+
 	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
 	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.
 	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
@@ -327,6 +330,10 @@ func (m *Manifest) IsValid() error {
 	}
 
 	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+		return errors.New("invalid SupportURL")
+	}
+
+	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
 		return errors.New("invalid SupportURL")
 	}
 
