@@ -211,6 +211,7 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 			user, err := a.Srv.Store.User().GetByUsername(mention)
 
 			if err != nil && err.StatusCode != http.StatusNotFound {
+				mlog.Warn("Failed to retrieve user @" + mention, mlog.Err(err))
 				return
 			}
 
@@ -251,12 +252,10 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 		}(mention)
 	}
 
-	atMentionMap := make(model.UserMentionMap)
 	wg.Wait()
 
-	lengthMentions := len(mentionChan)
-	for i := 0; i < lengthMentions; i++ {
-		mention := <-mentionChan
+	atMentionMap := make(model.UserMentionMap)
+	for mention := range mentionChan {
 		atMentionMap[mention.Name] = mention.Id
 	}
 
