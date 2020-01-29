@@ -253,8 +253,8 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	}
 
 	go func() {
-	    wg.Wait()
-	    close(mentionChan)
+		wg.Wait()
+		close(mentionChan)
 	}()
 
 	atMentionMap := make(model.UserMentionMap)
