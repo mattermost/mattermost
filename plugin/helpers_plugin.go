@@ -55,7 +55,7 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 	return nil
 }
 
-// GetPluginAssetURL builds a URL to the given asset in the assets directory.
+// GetPluginAssetURL implements GetPluginAssetURL.
 func (p *HelpersImpl) GetPluginAssetURL(pluginID, asset string) (*url.URL, error) {
 	if len(pluginID) == 0 {
 		return nil, errors.New("empty pluginID provided")
