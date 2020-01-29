@@ -1051,16 +1051,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	if len(emailList) == 0 {
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
+func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User, *model.Team, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv.Store.Team().Get(teamId)
@@ -1077,44 +1068,59 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	result := <-tchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, result.Err
 	}
 	team := result.Data.(*model.Team)
 
 	result = <-uchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, result.Err
 	}
 	user := result.Data.(*model.User)
-
-	var invalidEmailList []string
-
-	allowedDomains := a.getAllowedDomains(user, team)
-	for _, email := range emailList {
-		if !a.isEmailAddressAllowed(email, allowedDomains) {
-			invalidEmailList = append(invalidEmailList, email)
-		}
-	}
-
-	if len(invalidEmailList) > 0 {
-		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
-	}
-
-	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
-
-	return nil
+	return user, team, nil
 }
 
-func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
+	if err != nil {
+		return nil, err
+	}
+	allowedDomains := a.getAllowedDomains(user, team)
+	var inviteListWithErrors []*model.EmailInviteWithError
+	var goodEmails []string
+	for _, email := range emailList {
+		invite := &model.EmailInviteWithError{
+			Email: email,
+			Error: nil,
+		}
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+		} else {
+			goodEmails = append(goodEmails, email)
+		}
+		inviteListWithErrors = append(inviteListWithErrors, invite)
+	}
+
+	if len(goodEmails) > 0 {
+		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+		a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL())
+	}
+
+	return inviteListWithErrors, nil
+}
+
+func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	if err := guestsInvite.IsValid(); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	tchan := make(chan store.StoreResult, 1)
@@ -1138,26 +1144,106 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 
 	result := <-cchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	channels := result.Data.([]*model.Channel)
 
 	result = <-uchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	user := result.Data.(*model.User)
 
 	result = <-tchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	team := result.Data.(*model.Team)
 
 	for _, channel := range channels {
 		if channel.TeamId != teamId {
-			return model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+	return user, team, channels, nil
+}
+
+func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
+	if err != nil {
+		return nil, err
+	}
+
+	var inviteListWithErrors []*model.EmailInviteWithError
+	var goodEmails []string
+	for _, email := range guestsInvite.Emails {
+		invite := &model.EmailInviteWithError{
+			Email: email,
+			Error: nil,
+		}
+		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+		} else {
+			goodEmails = append(goodEmails, email)
+		}
+		inviteListWithErrors = append(inviteListWithErrors, invite)
+	}
+
+	if len(goodEmails) > 0 {
+		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+		a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+	}
+
+	return inviteListWithErrors, nil
+}
+
+func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
+	if err != nil {
+		return err
+	}
+
+	var invalidEmailList []string
+
+	for _, email := range emailList {
+		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+			invalidEmailList = append(invalidEmailList, email)
+		}
+	}
+
+	if len(invalidEmailList) > 0 {
+		s := strings.Join(invalidEmailList, ", ")
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+		return err
+	}
+
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
+
+	return nil
+}
+
+func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
+	if err != nil {
+		return err
 	}
 
 	var invalidEmailList []string
