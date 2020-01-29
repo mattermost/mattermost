@@ -177,20 +177,14 @@ func TestIsValidEmail(t *testing.T) {
 			Input:    "email1@domain.com, email2@domain.com",
 			Expected: false,
 		},
+		{
+			Input:    "emaiL@domain.com",
+			Expected: true,
+		},
 	} {
 		t.Run(testCase.Input, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, IsValidEmail(testCase.Input))
 		})
-	}
-}
-
-func TestValidLower(t *testing.T) {
-	if !IsLower("corey+test@hulen.com") {
-		t.Error("should be valid")
-	}
-
-	if IsLower("Corey+test@hulen.com") {
-		t.Error("should be invalid")
 	}
 }
 
