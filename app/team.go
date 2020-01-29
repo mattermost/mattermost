@@ -65,10 +65,8 @@ func (a *App) normalizeDomains(domains string) []string {
 	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 }
 
-func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
-	email = strings.ToLower(email)
-	// First check per team allowedDomains, then app wide restrictions
-	for _, restriction := range []string{allowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains} {
+func (a *App) isEmailAddressAllowed(email string, allowedDomains []string) bool {
+	for _, restriction := range allowedDomains {
 		domains := a.normalizeDomains(restriction)
 		if len(domains) <= 0 {
 			continue
@@ -88,29 +86,19 @@ func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) boo
 	return true
 }
 
-func (a *App) isGuestEmailAddressAllowed(email string) bool {
-	email = strings.ToLower(email)
-	domains := a.normalizeDomains(*a.Config().GuestAccountsSettings.RestrictCreationToDomains)
-	if len(domains) <= 0 {
-		return true
-	}
-	for _, d := range domains {
-		if strings.HasSuffix(email, "@"+d) {
-			return true
-		}
-	}
-	return false
-}
-
 func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	if user.IsBot {
 		return true
 	}
 	email := strings.ToLower(user.Email)
+	var allowedDomains []string
 	if user.IsGuest() {
-		return a.isGuestEmailAddressAllowed(email)
+		allowedDomains = []string{*a.Config().GuestAccountsSettings.RestrictCreationToDomains}
+	} else {
+		// First check per team allowedDomains, then app wide restrictions
+		allowedDomains = []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 	}
-	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
+	return a.isEmailAddressAllowed(email, allowedDomains)
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -1227,7 +1215,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	var invalidEmailList []string
 
 	for _, email := range emailList {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !a.isEmailAddressAllowed(email, []string{team.AllowedDomains}) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
