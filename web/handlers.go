@@ -214,7 +214,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
-			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, elapsed)
+			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, r.Method, elapsed)
 		}
 	}
 }
@@ -222,7 +222,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
 // a CSRF check occurred and whether or not it succeeded.
 func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
-	csrfCheckNeeded := c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET"
+	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
 	if csrfCheckNeeded {
