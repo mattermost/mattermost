@@ -684,10 +684,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		newGuest, err := th.App.CreateUserWithToken(&guest, forbiddenDomainToken)
 		require.NotNil(t, err)
 		require.Nil(t, newGuest)
-		require.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
+		assert.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
 
 		newGuest, err = th.App.CreateUserWithToken(&guest, grantedDomainToken)
-		require.Nil(t, err, "Should add user to the team")
+		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, grantedInvitationEmail, newGuest.Email)
 		_, err = th.App.Srv.Store.Token().GetByToken(grantedDomainToken.Token)
@@ -696,7 +696,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
-		require.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
@@ -724,16 +724,16 @@ func TestCreateUserWithToken(t *testing.T) {
 			AuthService: "",
 		}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token)
-		require.Nil(t, err, "Should add user to the team")
+		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
-		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
+		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
 		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
-		require.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 
