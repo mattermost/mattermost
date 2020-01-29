@@ -58,11 +58,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if post.WillNotifyChannel() && !c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_CHANNEL_MENTION) {
-		c.SetPermissionError(model.PERMISSION_CHANNEL_MENTION)
-		return
-	}
-
 	if post.CreateAt != 0 && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		post.CreateAt = 0
 	}

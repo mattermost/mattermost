@@ -116,41 +116,6 @@ func TestPostChannelMentions(t *testing.T) {
 	post := Post{Message: "~a ~b ~b ~c/~d."}
 	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())
 }
-func TestPostWillNotifyChannel(t *testing.T) {
-	for name, tc := range map[string]struct {
-		Post     Post
-		Expected bool
-	}{
-		"Will notify if message contains @here": {
-			Post{Message: "hey @here lets meet up"},
-			true,
-		},
-		"Will notify if message contains @channel": {
-			Post{Message: "hey @channel lets meet up"},
-			true,
-		},
-		"Will notify if message contains @all": {
-			Post{Message: "hey @all lets meet up"},
-			true,
-		},
-		"Will not notify if keyword mixed at end of word": {
-			Post{Message: "hey@all lets meet up"},
-			false,
-		},
-		"Will not notify if keyword mixed at beginning of word": {
-			Post{Message: "hey @herelets meet up"},
-			false,
-		},
-		"Will not notify if keyword mixed in the middle of two word": {
-			Post{Message: "hey@channellets meet up"},
-			false,
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, tc.Post.WillNotifyChannel())
-		})
-	}
-}
 
 func TestPostSanitizeProps(t *testing.T) {
 	post1 := &Post{

@@ -24,7 +24,7 @@ const (
 	MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER = "remove_channel_manage_delete_from_team_user"
 	MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION                 = "view_members_new_permission"
 	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
-	MIGRATION_KEY_ADD_CHANNEL_MENTIONS_PERMISSION             = "add_channel_mentions_permission"
+	MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION         = "add_use_channel_mentions_permission"
 
 	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
@@ -57,7 +57,7 @@ const (
 	PERMISSION_INVITE_GUEST                      = "invite_guest"
 	PERMISSION_PROMOTE_GUEST                     = "promote_guest"
 	PERMISSION_DEMOTE_TO_GUEST                   = "demote_to_guest"
-	PERMISSION_CHANNEL_MENTION                   = "channel_mention"
+	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
 	PERMISSION_CREATE_POST                       = "create_post"
 	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
 )
@@ -291,11 +291,11 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 	}
 }
 
-func getAddChannelMentionsPermissionMigration() permissionsMap {
+func getAddUseMentionChannelsPermissionMigration() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
 			On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
-			Add: []string{PERMISSION_CHANNEL_MENTION},
+			Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
 		},
 	}
 }
@@ -315,7 +315,7 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		{Key: MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
 		{Key: MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
 		{Key: MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
-		{Key: MIGRATION_KEY_ADD_CHANNEL_MENTIONS_PERMISSION, Migration: getAddChannelMentionsPermissionMigration},
+		{Key: MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
