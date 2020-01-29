@@ -98,10 +98,9 @@ func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
 	if user.IsGuest() {
 		return []string{*a.Config().GuestAccountsSettings.RestrictCreationToDomains}
-	} else {
-		// First check per team allowedDomains, then app wide restrictions
-		return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 	}
+	// First check per team allowedDomains, then app wide restrictions
+	return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
