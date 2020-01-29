@@ -1216,10 +1216,11 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return err
 	}
 
+	allowedDomains := a.getAllowedDomains(user, team)
 	var invalidEmailList []string
 
 	for _, email := range emailList {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
