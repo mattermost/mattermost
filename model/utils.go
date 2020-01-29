@@ -347,15 +347,7 @@ func GetServerIpAddress(iface string) string {
 	return ""
 }
 
-func IsLower(s string) bool {
-	return strings.ToLower(s) == s
-}
-
 func IsValidEmail(email string) bool {
-	if !IsLower(email) {
-		return false
-	}
-
 	if addr, err := mail.ParseAddress(email); err != nil {
 		return false
 	} else if addr.Name != "" {
