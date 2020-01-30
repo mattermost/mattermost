@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const postSaveMultipleSize = 1000
+const importMultiplePostsThreshold = 1000
 
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
@@ -36,7 +36,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 			if line.Post == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(posts) >= postSaveMultipleSize {
+			if len(posts) >= importMultiplePostsThreshold {
 				a.importMultiplePosts(posts, dryRun)
 				posts = []*PostImportData{}
 			}
@@ -45,7 +45,7 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 			if line.DirectPost == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(directPosts) >= postSaveMultipleSize {
+			if len(directPosts) >= importMultiplePostsThreshold {
 				a.importMultipleDirectPosts(directPosts, dryRun)
 				directPosts = []*DirectPostImportData{}
 			}

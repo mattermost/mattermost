@@ -35,26 +35,26 @@ func postSliceColumns() []string {
 }
 
 func postToSlice(post *model.Post) []interface{} {
-	resultSlice := []interface{}{}
-	resultSlice = append(resultSlice, post.Id)
-	resultSlice = append(resultSlice, post.CreateAt)
-	resultSlice = append(resultSlice, post.UpdateAt)
-	resultSlice = append(resultSlice, post.EditAt)
-	resultSlice = append(resultSlice, post.DeleteAt)
-	resultSlice = append(resultSlice, post.IsPinned)
-	resultSlice = append(resultSlice, post.UserId)
-	resultSlice = append(resultSlice, post.ChannelId)
-	resultSlice = append(resultSlice, post.RootId)
-	resultSlice = append(resultSlice, post.ParentId)
-	resultSlice = append(resultSlice, post.OriginalId)
-	resultSlice = append(resultSlice, post.Message)
-	resultSlice = append(resultSlice, post.Type)
-	resultSlice = append(resultSlice, model.StringInterfaceToJson(post.Props))
-	resultSlice = append(resultSlice, post.Hashtags)
-	resultSlice = append(resultSlice, model.ArrayToJson(post.Filenames))
-	resultSlice = append(resultSlice, model.ArrayToJson(post.FileIds))
-	resultSlice = append(resultSlice, post.HasReactions)
-	return resultSlice
+	return []interface{}{
+		post.Id,
+		post.CreateAt,
+		post.UpdateAt,
+		post.EditAt,
+		post.DeleteAt,
+		post.IsPinned,
+		post.UserId,
+		post.ChannelId,
+		post.RootId,
+		post.ParentId,
+		post.OriginalId,
+		post.Message,
+		post.Type,
+		model.StringInterfaceToJson(post.Props),
+		post.Hashtags,
+		model.ArrayToJson(post.Filenames),
+		model.ArrayToJson(post.FileIds),
+		post.HasReactions,
+	}
 }
 
 func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {

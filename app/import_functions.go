@@ -961,10 +961,10 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 }
 
 type postAndData struct {
-	Post           *model.Post
-	PostData       *PostImportData
-	DirectPostData *DirectPostImportData
-	Team           *model.Team
+	post           *model.Post
+	postData       *PostImportData
+	directPostData *DirectPostImportData
+	team           *model.Team
 }
 
 func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.AppError {
@@ -1067,7 +1067,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, post)
 		}
-		postsWithData = append(postsWithData, postAndData{Post: post, PostData: postData, Team: team})
+		postsWithData = append(postsWithData, postAndData{post: post, postData: postData, team: team})
 	}
 
 	if len(postsForCreateList) > 0 {
@@ -1083,10 +1083,10 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 	}
 
 	for _, postWithData := range postsWithData {
-		if postWithData.PostData.FlaggedBy != nil {
+		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
-			for _, username := range *postWithData.PostData.FlaggedBy {
+			for _, username := range *postWithData.postData.FlaggedBy {
 				user, err := a.Srv.Store.User().GetByUsername(username)
 				if err != nil {
 					return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, err.Error(), http.StatusBadRequest)
@@ -1095,7 +1095,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
 					Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
-					Name:     postWithData.Post.Id,
+					Name:     postWithData.post.Id,
 					Value:    "true",
 				})
 			}
@@ -1107,23 +1107,23 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 			}
 		}
 
-		if postWithData.PostData.Reactions != nil {
-			for _, reaction := range *postWithData.PostData.Reactions {
-				if err := a.importReaction(&reaction, postWithData.Post, dryRun); err != nil {
+		if postWithData.postData.Reactions != nil {
+			for _, reaction := range *postWithData.postData.Reactions {
+				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
 					return err
 				}
 			}
 		}
 
-		if postWithData.PostData.Replies != nil {
-			for _, reply := range *postWithData.PostData.Replies {
-				if err := a.importReply(&reply, postWithData.Post, postWithData.Team.Id, dryRun); err != nil {
+		if postWithData.postData.Replies != nil {
+			for _, reply := range *postWithData.postData.Replies {
+				if err := a.importReply(&reply, postWithData.post, postWithData.team.Id, dryRun); err != nil {
 					return err
 				}
 			}
 		}
 
-		a.updateFileInfoWithPostId(postWithData.Post)
+		a.updateFileInfoWithPostId(postWithData.post)
 	}
 	return nil
 }
@@ -1335,7 +1335,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, post)
 		}
-		postsWithData = append(postsWithData, postAndData{Post: post, DirectPostData: postData})
+		postsWithData = append(postsWithData, postAndData{post: post, directPostData: postData})
 	}
 
 	if len(postsForCreateList) > 0 {
@@ -1350,10 +1350,10 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 	}
 
 	for _, postWithData := range postsWithData {
-		if postWithData.DirectPostData.FlaggedBy != nil {
+		if postWithData.directPostData.FlaggedBy != nil {
 			var preferences model.Preferences
 
-			for _, username := range *postWithData.DirectPostData.FlaggedBy {
+			for _, username := range *postWithData.directPostData.FlaggedBy {
 				user, err := a.Srv.Store.User().GetByUsername(username)
 				if err != nil {
 					return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, err.Error(), http.StatusBadRequest)
@@ -1362,7 +1362,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
 					Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
-					Name:     postWithData.Post.Id,
+					Name:     postWithData.post.Id,
 					Value:    "true",
 				})
 			}
@@ -1374,23 +1374,23 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 			}
 		}
 
-		if postWithData.DirectPostData.Reactions != nil {
-			for _, reaction := range *postWithData.DirectPostData.Reactions {
-				if err := a.importReaction(&reaction, postWithData.Post, dryRun); err != nil {
+		if postWithData.directPostData.Reactions != nil {
+			for _, reaction := range *postWithData.directPostData.Reactions {
+				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
 					return err
 				}
 			}
 		}
 
-		if postWithData.DirectPostData.Replies != nil {
-			for _, reply := range *postWithData.DirectPostData.Replies {
-				if err := a.importReply(&reply, postWithData.Post, "noteam", dryRun); err != nil {
+		if postWithData.directPostData.Replies != nil {
+			for _, reply := range *postWithData.directPostData.Replies {
+				if err := a.importReply(&reply, postWithData.post, "noteam", dryRun); err != nil {
 					return err
 				}
 			}
 		}
 
-		a.updateFileInfoWithPostId(postWithData.Post)
+		a.updateFileInfoWithPostId(postWithData.post)
 	}
 	return nil
 }
