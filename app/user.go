@@ -1682,10 +1682,11 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 }
 
 func (a *App) VerifyUserEmail(userId, email string) *model.AppError {
-	_, err := a.Srv.Store.User().VerifyEmail(userId, email)
-	if err != nil {
+	if _, err := a.Srv.Store.User().VerifyEmail(userId, email); err != nil {
 		return err
 	}
+
+	a.InvalidateCacheForUser(userId)
 
 	user, err := a.GetUser(userId)
 
