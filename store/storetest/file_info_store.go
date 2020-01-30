@@ -317,21 +317,21 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	}{
 		{
 			Name:            "Get files with nil option",
-			Page:            1,
+			Page:            0,
 			PerPage:         10,
 			Opt:             nil,
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id},
 		},
 		{
 			Name:            "Get files including deleted",
-			Page:            1,
+			Page:            0,
 			PerPage:         10,
 			Opt:             &model.GetFileInfosOptions{IncludeDeleted: true},
 			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
 		},
 		{
 			Name:    "Get files including deleted filtered by channel",
-			Page:    1,
+			Page:    0,
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
@@ -341,7 +341,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		},
 		{
 			Name:    "Get files including deleted sorted by created at",
-			Page:    1,
+			Page:    0,
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,
@@ -351,7 +351,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		},
 		{
 			Name:    "Get files filtered by user ordered by created at descending",
-			Page:    1,
+			Page:    0,
 			PerPage: 10,
 			Opt: &model.GetFileInfosOptions{
 				UserIds:        []string{userId1},
@@ -362,7 +362,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		},
 		{
 			Name:    "Get all files including deleted ordered by created descending 2nd page of 3 per page ",
-			Page:    2,
+			Page:    1,
 			PerPage: 3,
 			Opt: &model.GetFileInfosOptions{
 				IncludeDeleted: true,

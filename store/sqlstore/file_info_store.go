@@ -96,7 +96,7 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 }
 
 func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	if perPage == 0 || page == 0 {
+	if perPage == 0 {
 		return nil, nil
 	}
 
@@ -145,7 +145,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 
 	query = query.OrderBy("FileInfo.Id ASC") // secondary sort for sort stability
 
-	query = query.Limit(uint64(perPage)).Offset(uint64(perPage * (page - 1)))
+	query = query.Limit(uint64(perPage)).Offset(uint64(perPage * page))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
