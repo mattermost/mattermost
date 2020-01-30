@@ -2091,7 +2091,7 @@ func TestImportImportPost(t *testing.T) {
 		data := &PostImportData{
 			Team:     &teamName,
 			Channel:  &channelName,
-			User:     &username,
+			User:     &username2,
 			Message:  ptrStr("Message"),
 			CreateAt: &time,
 		}
@@ -2106,7 +2106,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
 		post := posts[0]
-		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user2.Id
 		require.False(t, postBool, "Post properties not as expected")
 	})
 
