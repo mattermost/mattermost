@@ -1279,6 +1279,8 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	a.InvalidateCacheForUser(user.Id)
+
 	return nil
 }
 
