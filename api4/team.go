@@ -626,7 +626,13 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) && !user.IsBot {
 		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
