@@ -7,6 +7,8 @@ import (
 	"hash/fnv"
 	"net/http"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -24,9 +26,15 @@ const NOTIFICATION_TYPE_UPDATE_BADGE NotificationType = "update_badge"
 
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
+const workerMaxIdleTime = 60 * time.Second
 
 type PushNotificationsHub struct {
-	Channels []chan PushNotification
+	Channels  []chan PushNotification
+	closeChan chan struct{}
+	// function to start a worker, takes worker index as param
+	startWorkerFn func(idx int)
+	// worker status: 0 = stopped, 1 = running
+	workerStatus []*int32
 }
 
 type PushNotification struct {
@@ -44,11 +52,27 @@ type PushNotification struct {
 	replyToThreadType  string
 }
 
-func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan PushNotification {
+func (hub *PushNotificationsHub) SendNotificationForUserToWorker(userId string, notification PushNotification) {
 	h := fnv.New32a()
 	h.Write([]byte(userId))
 	chanIdx := h.Sum32() % PUSH_NOTIFICATION_HUB_WORKERS
-	return hub.Channels[chanIdx]
+	hub.Channels[chanIdx] <- notification
+
+	// start the goroutine if it is not running
+	hub.StartWorker(int(chanIdx))
+}
+
+// StartWorker starts goroutine for specified worker if it's not running
+func (hub *PushNotificationsHub) StartWorker(idx int) {
+	notRunning := atomic.CompareAndSwapInt32(hub.workerStatus[idx], 0, 1)
+	if notRunning {
+		hub.startWorkerFn(idx)
+	}
+}
+
+// StopWorker stops goroutine for specified worker if it's running
+func (hub *PushNotificationsHub) StopWorker(idx int) bool {
+	return atomic.CompareAndSwapInt32(hub.workerStatus[idx], 1, 0)
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -153,8 +177,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
-	c <- PushNotification{
+	pushNotification := PushNotification{
 		notificationType:   NOTIFICATION_TYPE_MESSAGE,
 		post:               post,
 		user:               user,
@@ -165,6 +188,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
 	}
+	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(user.Id, pushNotification)
 }
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention, hasFiles bool,
@@ -227,13 +251,13 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 }
 
 func (a *App) ClearPushNotification(currentSessionId, userId, channelId string) {
-	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
-	channel <- PushNotification{
+	pushNotification := PushNotification{
 		notificationType: NOTIFICATION_TYPE_CLEAR,
 		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
 	}
+	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
 }
 
 func (a *App) UpdateMobileAppBadgeSync(userId string) *model.AppError {
@@ -255,64 +279,83 @@ func (a *App) UpdateMobileAppBadgeSync(userId string) *model.AppError {
 }
 
 func (a *App) UpdateMobileAppBadge(userId string) {
-	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
-	channel <- PushNotification{
+	pushNotification := PushNotification{
 		notificationType: NOTIFICATION_TYPE_UPDATE_BADGE,
 		userId:           userId,
 	}
+	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
 }
 
 func (a *App) CreatePushNotificationsHub() {
+	closeChan := make(chan struct{})
+	workerFn := func(idx int) {
+		channel := a.Srv.PushNotificationsHub.Channels[idx]
+		a.Srv.Go(func() { a.pushNotificationWorker(channel, closeChan, idx) })
+	}
 	hub := PushNotificationsHub{
-		Channels: []chan PushNotification{},
+		Channels:      []chan PushNotification{},
+		closeChan:     closeChan,
+		workerStatus:  make([]*int32, PUSH_NOTIFICATION_HUB_WORKERS),
+		startWorkerFn: workerFn,
 	}
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
+		hub.workerStatus[x] = new(int32)
 	}
 	a.Srv.PushNotificationsHub = hub
 }
 
-func (a *App) pushNotificationWorker(notifications chan PushNotification) {
-	for notification := range notifications {
-		var err *model.AppError
+func (a *App) pushNotificationWorker(notifications chan PushNotification, closeChan chan struct{}, idx int) {
+	for {
+		select {
+		case notification := <-notifications:
+			var err *model.AppError
 
-		switch notification.notificationType {
-		case NOTIFICATION_TYPE_CLEAR:
-			err = a.ClearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
-		case NOTIFICATION_TYPE_MESSAGE:
-			err = a.sendPushNotificationSync(
-				notification.post,
-				notification.user,
-				notification.channel,
-				notification.channelName,
-				notification.senderName,
-				notification.explicitMention,
-				notification.channelWideMention,
-				notification.replyToThreadType,
-			)
-		case NOTIFICATION_TYPE_UPDATE_BADGE:
-			err = a.UpdateMobileAppBadgeSync(notification.userId)
-		default:
-			mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
-		}
+			switch notification.notificationType {
+			case NOTIFICATION_TYPE_CLEAR:
+				err = a.ClearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
+			case NOTIFICATION_TYPE_MESSAGE:
+				err = a.sendPushNotificationSync(
+					notification.post,
+					notification.user,
+					notification.channel,
+					notification.channelName,
+					notification.senderName,
+					notification.explicitMention,
+					notification.channelWideMention,
+					notification.replyToThreadType,
+				)
+			case NOTIFICATION_TYPE_UPDATE_BADGE:
+				err = a.UpdateMobileAppBadgeSync(notification.userId)
+			default:
+				mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+			}
 
-		if err != nil {
-			mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+			if err != nil {
+				mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+			}
+		case <-closeChan:
+			return
+		case <-time.After(workerMaxIdleTime):
+			// I wonder if there is possible one in a 10^20 race:
+			// 1. here: len(notifications) == 0 is true
+			// 2. else: SendNotificationForUserToWorker sends to this channel and runs StartWorker
+			// 3. here: StopWorker runs
+			if len(notifications) == 0 && a.Srv.PushNotificationsHub.StopWorker(idx) {
+				return
+			}
 		}
 	}
 }
 
 func (a *App) StartPushNotificationsHubWorkers() {
-	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
-		channel := a.Srv.PushNotificationsHub.Channels[x]
-		a.Srv.Go(func() { a.pushNotificationWorker(channel) })
-	}
 }
 
 func (a *App) StopPushNotificationsHubWorkers() {
 	for _, channel := range a.Srv.PushNotificationsHub.Channels {
 		close(channel)
 	}
+	close(a.Srv.PushNotificationsHub.closeChan)
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
