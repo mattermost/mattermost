@@ -340,6 +340,17 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
 		},
 		{
+			Name:    "Get files including deleted filtered by channel and user",
+			Page:    0,
+			PerPage: 10,
+			Opt: &model.GetFileInfosOptions{
+				IncludeDeleted: true,
+				UserIds:        []string{userId1},
+				ChannelIds:     []string{channelId3},
+			},
+			ExpectedFileIds: []string{file1_2.Id},
+		},
+		{
 			Name:    "Get files including deleted sorted by created at",
 			Page:    0,
 			PerPage: 10,
