@@ -63,6 +63,7 @@ type TeamStore interface {
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
+	GetByNames(name []string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
 	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)

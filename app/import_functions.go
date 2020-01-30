@@ -967,6 +967,53 @@ type postAndData struct {
 	team           *model.Team
 }
 
+func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *model.AppError) {
+	uniqueUsernames := utils.RemoveDuplicatesFromStringArray(usernames)
+	allUsers, err := a.Srv.Store.User().GetProfilesByUsernames(uniqueUsernames, nil)
+	if err != nil {
+		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if len(allUsers) != len(uniqueUsernames) {
+		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, "", http.StatusBadRequest)
+	}
+
+	users := make(map[string]*model.User)
+	for _, user := range allUsers {
+		users[user.Username] = user
+	}
+	return users, nil
+}
+
+func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.AppError) {
+	allTeams, err := a.Srv.Store.Team().GetByNames(names)
+	if err != nil {
+		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	teams := make(map[string]*model.Team)
+	for _, team := range allTeams {
+		teams[team.Name] = team
+	}
+	return teams, nil
+}
+
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]*model.Channel, *model.AppError) {
+	channels := make(map[string]*model.Channel)
+	for _, postData := range data {
+		team := teams[*postData.Team]
+		if channel, ok := channels[*postData.Channel]; !ok || channel == nil {
+			var err *model.AppError
+			channel, err = a.Srv.Store.Channel().GetByName(team.Id, *postData.Channel, true)
+			if err != nil {
+				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
+			}
+			channels[*postData.Channel] = channel
+		}
+	}
+	return channels, nil
+}
+
 func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.AppError {
 	if len(data) == 0 {
 		return nil
@@ -983,46 +1030,35 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		return nil
 	}
 
-	teams := make(map[string]*model.Team)
-	channels := make(map[string]*model.Channel)
-	users := make(map[string]*model.User)
+	usernames := []string{}
+	teamNames := []string{}
+	for _, postData := range data {
+		usernames = append(usernames, *postData.User)
+		teamNames = append(teamNames, *postData.Team)
+	}
+
+	users, err := a.getUsersByUsernames(usernames)
+	if err != nil {
+		return err
+	}
+
+	teams, err := a.getTeamsByNames(teamNames)
+	if err != nil {
+		return err
+	}
+
+	channels, err := a.getChannelsForPosts(teams, data)
+	if err != nil {
+		return err
+	}
 	postsWithData := []postAndData{}
 	postsForCreateList := []*model.Post{}
 	postsForOverwriteList := []*model.Post{}
-	allTeams, err := a.Srv.Store.Team().GetAll()
-	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": "ALL TEAMS"}, err.Error(), http.StatusBadRequest)
-	}
-	for _, team := range allTeams {
-		teams[team.Name] = team
-	}
 
 	for _, postData := range data {
-		var ok bool
 		team := teams[*postData.Team]
-		if team == nil {
-			return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *postData.Team}, "", http.StatusBadRequest)
-		}
-
-		var channel *model.Channel
-		if channel, ok = channels[*postData.Channel]; !ok || channel == nil {
-			var err *model.AppError
-			channel, err = a.Srv.Store.Channel().GetByName(team.Id, *postData.Channel, true)
-			if err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
-			}
-			channels[*postData.Channel] = channel
-		}
-
-		var user *model.User
-		if user, ok = users[*postData.User]; !ok || user == nil {
-			var err *model.AppError
-			user, err = a.Srv.Store.User().GetByUsername(*postData.User)
-			if err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *postData.User}, err.Error(), http.StatusBadRequest)
-			}
-			users[*postData.User] = user
-		}
+		channel := channels[*postData.Channel]
+		user := users[*postData.User]
 
 		// Check if this post already exists.
 		posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *postData.CreateAt)
@@ -1243,27 +1279,26 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		return nil
 	}
 
-	users := make(map[string]*model.User)
+	usernames := []string{}
+	for _, postData := range data {
+		usernames = append(usernames, *postData.User)
+		usernames = append(usernames, *postData.ChannelMembers...)
+	}
+
+	users, err := a.getUsersByUsernames(usernames)
+	if err != nil {
+		return err
+	}
+
 	postsWithData := []postAndData{}
 	postsForCreateList := []*model.Post{}
 	postsForOverwriteList := []*model.Post{}
-	allUsers, err := a.Srv.Store.User().GetAll()
-	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, err.Error(), http.StatusBadRequest)
-	}
-	for _, user := range allUsers {
-		users[user.Username] = user
-	}
 
 	for _, postData := range data {
 		var userIds []string
-		var ok bool
 		var err *model.AppError
 		for _, username := range *postData.ChannelMembers {
-			var user *model.User
-			if user, ok = users[username]; !ok {
-				return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, "", http.StatusBadRequest)
-			}
+			user := users[username]
 			userIds = append(userIds, user.Id)
 		}
 
@@ -1283,14 +1318,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 			channel = ch
 		}
 
-		var user *model.User
-		if user, ok = users[*postData.User]; !ok || user == nil {
-			user, err = a.Srv.Store.User().GetByUsername(*postData.User)
-			if err != nil {
-				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *postData.User}, err.Error(), http.StatusBadRequest)
-			}
-			users[*postData.User] = user
-		}
+		user := users[*postData.User]
 
 		// Check if this post already exists.
 		posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *postData.CreateAt)
