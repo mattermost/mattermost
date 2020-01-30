@@ -643,6 +643,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
+		OrderBy("UserId").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 

@@ -56,7 +56,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
 	if err != nil {
 		a.Log.Error("Access to route for non-existent plugin in inter plugin request",
-			mlog.String("sourse_plugin_id", sourcePluginId),
+			mlog.String("source_plugin_id", sourcePluginId),
 			mlog.String("destination_plugin_id", destinationPluginId),
 			mlog.Err(err),
 		)
