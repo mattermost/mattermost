@@ -1093,6 +1093,7 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 	if err != nil {
 		return nil, err
 	}
+	allowedDomains := a.getAllowedDomains(user, team)
 	var inviteListWithErrors []*model.EmailInviteWithError
 	var goodEmails []string
 	for _, email := range emailList {
@@ -1100,7 +1101,7 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 			Email: email,
 			Error: nil,
 		}
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
