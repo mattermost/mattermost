@@ -26,13 +26,13 @@ type GetFileInfosOptions struct {
 	UserIds []string `json:"user_ids"`
 	// ChannelIds optionally limits the FileInfos to those created in the given channels.
 	ChannelIds []string `json:"channel_ids"`
-	// Since optionally limits FileInfos to those created after the given time, specified as Unix time in milliseconds.
+	// Since optionally limits FileInfos to those created at or after the given time, specified as Unix time in milliseconds.
 	Since int64 `json:"since"`
 	// IncludeDeleted if set includes deleted FileInfos.
 	IncludeDeleted bool `json:"include_deleted"`
 	// SortBy sorts the FileInfos by this field. The default is to sort by date created.
 	SortBy string `json:"sort_by"`
-	// SortDescending if set sorts the FileInfos in descending order. The default is to sort in ascending order.
+	// SortDescending changes the sort direction to descending order when true.
 	SortDescending bool `json:"sort_descending"`
 }
 

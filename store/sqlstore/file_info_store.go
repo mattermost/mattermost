@@ -100,7 +100,6 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFile
 		return nil, nil
 	}
 
-	// Nil option means sort by create at ascending
 	if opt == nil {
 		opt = &model.GetFileInfosOptions{}
 	}
