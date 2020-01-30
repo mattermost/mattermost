@@ -1217,7 +1217,6 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	allowedDomains := a.getAllowedDomains(user, team)
 	var invalidEmailList []string
 
-	allowedDomains := a.getAllowedDomains(user, team)
 	for _, email := range emailList {
 		if !a.isEmailAddressAllowed(email, allowedDomains) {
 			invalidEmailList = append(invalidEmailList, email)
