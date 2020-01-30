@@ -1721,6 +1721,11 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
+
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
@@ -1813,6 +1818,10 @@ func TestAddTeamMembers(t *testing.T) {
 	_, resp = Client.AddTeamMembers(team.Id, userList)
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
+	// Ensure that a group synced team can still add bots
+	_, resp = Client.AddTeamMembers(team.Id, []string{bot.UserId})
+	CheckNoError(t, resp)
+
 	// Associate group to team
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
@@ -1833,6 +1842,11 @@ func TestRemoveTeamMember(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
 
 	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
@@ -1860,12 +1874,19 @@ func TestRemoveTeamMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
 
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, bot.UserId)
+	CheckNoError(t, resp)
+
 	// If the team is group-constrained the user cannot be removed
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	_, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err)
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+
+	// Can remove a bot even if team is group-constrained
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
+	CheckNoError(t, resp)
 
 	// Can remove self even if team is group-constrained
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
@@ -2343,6 +2364,13 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
 		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.NotNil(t, res[1].Error)
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
@@ -2363,6 +2391,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNilf(t, err, "%v, Should not invite user", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"test@invalid.com", "test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 	})
 }
 
@@ -2456,6 +2490,12 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 
 		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
