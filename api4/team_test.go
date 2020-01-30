@@ -2343,6 +2343,13 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
 		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.NotNil(t, res[1].Error)
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
@@ -2363,6 +2370,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNilf(t, err, "%v, Should not invite user", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"test@invalid.com", "test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 	})
 }
 
@@ -2456,6 +2469,12 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 
 		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")
