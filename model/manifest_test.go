@@ -32,6 +32,7 @@ func TestIsValid(t *testing.T) {
 		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
 			Settings: []*PluginSetting{{Type: "Invalid"}},
 		}}, true},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test"}, false},
 		{"Happy case", &Manifest{
 			Id:               "com.company.test",
 			Name:             "thename",
@@ -46,7 +47,6 @@ func TestIsValid(t *testing.T) {
 			},
 			Webapp: &ManifestWebapp{
 				BundlePath: "thebundlepath",
-				BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 			},
 			SettingsSchema: &PluginSettingsSchema{
 				Header: "theheadertext",
@@ -94,7 +94,7 @@ func TestIsValidSettingsSchema(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Title, func(t *testing.T) {
-			err := tc.settingsSchema.isValidSchema()
+			err := tc.settingsSchema.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
 			} else {
