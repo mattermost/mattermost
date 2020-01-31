@@ -42,6 +42,16 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		return nil, err
 	}
 
+	if kv.Value == nil {
+		// Setting a key to nil is the same as removing it
+		err := ps.Delete(kv.PluginId, kv.Key)
+		if err != nil {
+			return nil, err
+		}
+
+		return kv, nil
+	}
+
 	if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
 		// separate update and insert queries to accomplish our upsert
