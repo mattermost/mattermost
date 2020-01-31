@@ -34,7 +34,7 @@ type PushNotificationsHub struct {
 	// function to start a worker, takes worker index as param
 	startWorkerFn func(idx int)
 	// worker status: 0 = stopped, 1 = running
-	workerStatus []*int32
+	workerStatus []int32
 }
 
 type PushNotification struct {
@@ -64,7 +64,7 @@ func (hub *PushNotificationsHub) SendNotificationForUserToWorker(userId string, 
 
 // StartWorker starts goroutine for specified worker if it's not running
 func (hub *PushNotificationsHub) StartWorker(idx int) {
-	notRunning := atomic.CompareAndSwapInt32(hub.workerStatus[idx], 0, 1)
+	notRunning := atomic.CompareAndSwapInt32(&hub.workerStatus[idx], 0, 1)
 	if notRunning {
 		hub.startWorkerFn(idx)
 	}
@@ -72,7 +72,7 @@ func (hub *PushNotificationsHub) StartWorker(idx int) {
 
 // StopWorker stops goroutine for specified worker if it's running
 func (hub *PushNotificationsHub) StopWorker(idx int) bool {
-	return atomic.CompareAndSwapInt32(hub.workerStatus[idx], 1, 0)
+	return atomic.CompareAndSwapInt32(&hub.workerStatus[idx], 1, 0)
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -295,12 +295,11 @@ func (a *App) CreatePushNotificationsHub() {
 	hub := PushNotificationsHub{
 		Channels:      []chan PushNotification{},
 		closeChan:     closeChan,
-		workerStatus:  make([]*int32, PUSH_NOTIFICATION_HUB_WORKERS),
+		workerStatus:  make([]int32, PUSH_NOTIFICATION_HUB_WORKERS),
 		startWorkerFn: workerFn,
 	}
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
-		hub.workerStatus[x] = new(int32)
 	}
 	a.Srv.PushNotificationsHub = hub
 }
@@ -337,11 +336,12 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification, closeC
 		case <-closeChan:
 			return
 		case <-time.After(workerMaxIdleTime):
-			// I wonder if there is possible one in a 10^20 race:
-			// 1. here: len(notifications) == 0 is true
-			// 2. else: SendNotificationForUserToWorker sends to this channel and runs StartWorker
-			// 3. here: StopWorker runs
-			if len(notifications) == 0 && a.Srv.PushNotificationsHub.StopWorker(idx) {
+			if a.Srv.PushNotificationsHub.StopWorker(idx) {
+				// we have to return now but try to start a new goroutine if channel is not empty
+				// because it may have not been started by SendNotificationForUserToWorker
+				if len(notifications) > 0 {
+					a.Srv.PushNotificationsHub.StartWorker(idx)
+				}
 				return
 			}
 		}
