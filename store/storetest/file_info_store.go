@@ -259,7 +259,6 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 }
 
 func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
-
 	makePost := func(chId string, user string) model.Post {
 		post := model.Post{}
 		post.ChannelId = chId
