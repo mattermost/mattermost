@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -95,7 +96,11 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetWithOptions(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	if perPage < 0 || page < 0 {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, fmt.Sprintf("page=%d and perPage=%d must be non-negative", page, perPage), http.StatusBadRequest)
+	}
 	if perPage == 0 {
 		return nil, nil
 	}

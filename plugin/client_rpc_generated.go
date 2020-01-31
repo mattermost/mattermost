@@ -3321,8 +3321,8 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 }
 
 type Z_GetFileInfosArgs struct {
-	A uint
-	B uint
+	A int
+	B int
 	C *model.GetFileInfosOptions
 }
 
@@ -3331,7 +3331,7 @@ type Z_GetFileInfosReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetFileInfos(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (g *apiRPCClient) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	_args := &Z_GetFileInfosArgs{page, perPage, opt}
 	_returns := &Z_GetFileInfosReturns{}
 	if err := g.client.Call("Plugin.GetFileInfos", _args, _returns); err != nil {
@@ -3342,7 +3342,7 @@ func (g *apiRPCClient) GetFileInfos(page, perPage uint, opt *model.GetFileInfosO
 
 func (s *apiRPCServer) GetFileInfos(args *Z_GetFileInfosArgs, returns *Z_GetFileInfosReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetFileInfos(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+		GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetFileInfos(args.A, args.B, args.C)
 	} else {

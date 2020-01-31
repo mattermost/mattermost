@@ -310,7 +310,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 
 	testCases := []struct {
 		Name            string
-		Page, PerPage   uint
+		Page, PerPage   int
 		Opt             *model.GetFileInfosOptions
 		ExpectedFileIds []string
 	}{

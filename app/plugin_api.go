@@ -567,7 +567,7 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 	return api.app.GetFileInfo(fileId)
 }
 
-func (api *PluginAPI) GetFileInfos(page, perPage uint, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }
 
