@@ -108,6 +108,7 @@ type PluginSettingsSchema struct {
 //      "description": "This is my plugin",
 //      "homepage_url": "https://example.com",
 //      "support_url": "https://example.com/support",
+//		"release_notes_url": "https://example.com/releases/v0.0.1",
 //      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
