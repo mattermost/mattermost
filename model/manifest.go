@@ -34,6 +34,7 @@ const (
 	Radio
 	Text
 	LongText
+	Number
 	Username
 	Custom
 )
@@ -61,6 +62,8 @@ type PluginSetting struct {
 	// "text" will result in a string setting that can be typed in manually.
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
+	//
+	// "number" will result in in integer setting that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
@@ -108,6 +111,7 @@ type PluginSettingsSchema struct {
 //      "description": "This is my plugin",
 //      "homepage_url": "https://example.com",
 //      "support_url": "https://example.com/support",
+//      "release_notes_url": "https://example.com/releases/v0.0.1",
 //      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
@@ -414,6 +418,8 @@ func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 		return Radio, nil
 	case "text":
 		return Text, nil
+	case "number":
+		return Number, nil
 	case "longtext":
 		return LongText, nil
 	case "username":
