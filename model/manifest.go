@@ -325,39 +325,43 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid plugin ID")
 	}
 
-	if m.HomepageURL == "" || !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
 	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
-		return errors.New("invalid SupportURL")
+		return errors.New("invalid ReleaseNotesURL")
 	}
 
-	_, err := semver.Parse(m.Version)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse Version")
+	if m.Version != "" {
+		_, err := semver.Parse(m.Version)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse Version")
+		}
 	}
 
-	_, err2 := semver.Parse(m.MinServerVersion)
-	if err2 != nil {
-		return errors.Wrap(err2, "failed to parse MinServerVersion")
+	if m.MinServerVersion != "" {
+		_, err := semver.Parse(m.MinServerVersion)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse MinServerVersion")
+		}
 	}
 
 	if m.SettingsSchema != nil {
-		err3 := m.SettingsSchema.isValidSchema()
-		if err3 != nil {
-			return errors.Wrap(err3, "invalid settings schema")
+		err := m.SettingsSchema.isValid()
+		if err != nil {
+			return errors.Wrap(err, "invalid settings schema")
 		}
 	}
 
 	return nil
 }
 
-func (s *PluginSettingsSchema) isValidSchema() error {
+func (s *PluginSettingsSchema) isValid() error {
 	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {
