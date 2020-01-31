@@ -418,7 +418,14 @@ func (h *Hub) Start() {
 						model.BuildNumber,
 						webCon.App.ClientConfigHash(),
 						webCon.App.License() != nil))
-					webCon.Send <- msg
+					select {
+					case webCon.Send <- msg:
+					default:
+						mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
+						close(webCon.Send)
+						webCon.SetClosed()
+						connections.Remove(webCon)
+					}
 				}
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
