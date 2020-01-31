@@ -955,3 +955,22 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 		})
 	}
 }
+
+func TestSendPushNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.App.CreateSession(&model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "test",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	defer th.TearDown()
+
+	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
+		err := th.App.sendPushNotificationToAllSessions(nil, th.BasicUser.Id, "")
+		assert.NotNil(t, err)
+		assert.Equal(t, "pushNotification: An error occurred building the push notification message, ", err.Error())
+		// Errors derived of using an empty object are handled internally through the notifications log
+		err = th.App.sendPushNotificationToAllSessions(&model.PushNotification{}, th.BasicUser.Id, "")
+		assert.Nil(t, err)
+	})
+}
