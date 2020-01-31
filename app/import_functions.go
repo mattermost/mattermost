@@ -850,67 +850,89 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun 
 	return nil
 }
 
-func (a *App) importReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
+func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
 	var err *model.AppError
-	if err = validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
-		return err
-	}
-
-	var user *model.User
-	user, err = a.Srv.Store.User().GetByUsername(*data.User)
-	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, err.Error(), http.StatusBadRequest)
-	}
-
-	// Check if this post already exists.
-	replies, err := a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *data.CreateAt)
-	if err != nil {
-		return err
-	}
-
-	var reply *model.Post
-	for _, r := range replies {
-		if r.Message == *data.Message && r.RootId == post.Id {
-			reply = r
-			break
-		}
-	}
-
-	if reply == nil {
-		reply = &model.Post{}
-	}
-	reply.UserId = user.Id
-	reply.ChannelId = post.ChannelId
-	reply.ParentId = post.Id
-	reply.RootId = post.Id
-	reply.Message = *data.Message
-	reply.CreateAt = *data.CreateAt
-
-	fileIds, err := a.uploadAttachments(data.Attachments, reply, teamId, dryRun)
-	if err != nil {
-		return err
-	}
-	for _, fileID := range reply.FileIds {
-		if _, ok := fileIds[fileID]; !ok {
-			a.Srv.Store.FileInfo().PermanentDelete(fileID)
-		}
-	}
-	reply.FileIds = make([]string, 0)
-	for fileID := range fileIds {
-		reply.FileIds = append(reply.FileIds, fileID)
-	}
-
-	if reply.Id == "" {
-		if _, err := a.Srv.Store.Post().Save(reply); err != nil {
+	usernames := []string{}
+	for _, replyData := range data {
+		if err = validateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
-	} else {
-		if _, err := a.Srv.Store.Post().Overwrite(reply); err != nil {
+		usernames = append(usernames, *replyData.User)
+	}
+
+	users, err := a.getUsersByUsernames(usernames)
+	if err != nil {
+		return err
+	}
+
+	postsWithData := []postAndData{}
+	postsForCreateList := []*model.Post{}
+	postsForOverwriteList := []*model.Post{}
+
+	for _, replyData := range data {
+		user := users[*replyData.User]
+
+		// Check if this post already exists.
+		replies, err := a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
+		if err != nil {
+			return err
+		}
+
+		var reply *model.Post
+		for _, r := range replies {
+			if r.Message == *replyData.Message && r.RootId == post.Id {
+				reply = r
+				break
+			}
+		}
+
+		if reply == nil {
+			reply = &model.Post{}
+		}
+		reply.UserId = user.Id
+		reply.ChannelId = post.ChannelId
+		reply.ParentId = post.Id
+		reply.RootId = post.Id
+		reply.Message = *replyData.Message
+		reply.CreateAt = *replyData.CreateAt
+
+		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamId, dryRun)
+		if err != nil {
+			return err
+		}
+		for _, fileID := range reply.FileIds {
+			if _, ok := fileIds[fileID]; !ok {
+				a.Srv.Store.FileInfo().PermanentDelete(fileID)
+			}
+		}
+		reply.FileIds = make([]string, 0)
+		for fileID := range fileIds {
+			reply.FileIds = append(reply.FileIds, fileID)
+		}
+
+		if len(reply.Id) == 0 {
+			postsForCreateList = append(postsForCreateList, reply)
+		} else {
+			postsForOverwriteList = append(postsForOverwriteList, reply)
+		}
+		postsWithData = append(postsWithData, postAndData{post: post, replyData: &replyData})
+	}
+
+	if len(postsForCreateList) > 0 {
+		if _, err := a.Srv.Store.Post().SaveMultiple(postsForCreateList); err != nil {
 			return err
 		}
 	}
 
-	a.updateFileInfoWithPostId(reply)
+	for _, post := range postsForOverwriteList {
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
+		}
+	}
+
+	for _, postWithData := range postsWithData {
+		a.updateFileInfoWithPostId(postWithData.post)
+	}
 
 	return nil
 }
@@ -964,6 +986,7 @@ type postAndData struct {
 	post           *model.Post
 	postData       *PostImportData
 	directPostData *DirectPostImportData
+	replyData      *ReplyImportData
 	team           *model.Team
 }
 
@@ -1034,6 +1057,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 	teamNames := []string{}
 	for _, postData := range data {
 		usernames = append(usernames, *postData.User)
+		usernames = append(usernames, *postData.FlaggedBy...)
 		teamNames = append(teamNames, *postData.Team)
 	}
 
@@ -1118,15 +1142,14 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		}
 	}
 
+	var lastPostWithData *postAndData
+	repliesBulk := []ReplyImportData{}
 	for _, postWithData := range postsWithData {
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
 			for _, username := range *postWithData.postData.FlaggedBy {
-				user, err := a.Srv.Store.User().GetByUsername(username)
-				if err != nil {
-					return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, err.Error(), http.StatusBadRequest)
-				}
+				user := users[username]
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -1152,15 +1175,26 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		}
 
 		if postWithData.postData.Replies != nil {
-			for _, reply := range *postWithData.postData.Replies {
-				if err := a.importReply(&reply, postWithData.post, postWithData.team.Id, dryRun); err != nil {
+			repliesBulk = append(repliesBulk, *postWithData.postData.Replies...)
+			if len(repliesBulk) >= importMultiplePostsThreshold {
+				err := a.importReplies(repliesBulk, postWithData.post, postWithData.team.Id, dryRun)
+				if err != nil {
 					return err
 				}
+				repliesBulk = []ReplyImportData{}
 			}
 		}
-
 		a.updateFileInfoWithPostId(postWithData.post)
+		lastPostWithData = &postWithData
 	}
+
+	if len(repliesBulk) >= importMultiplePostsThreshold && lastPostWithData != nil {
+		err := a.importReplies(repliesBulk, lastPostWithData.post, lastPostWithData.team.Id, dryRun)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -1199,15 +1233,12 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	}
 
 	var userIds []string
-	userMap := make(map[string]string)
-	for _, username := range *data.Members {
-		var user *model.User
-		user, err = a.Srv.Store.User().GetByUsername(username)
-		if err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, err.Error(), http.StatusBadRequest)
-		}
-		userIds = append(userIds, user.Id)
-		userMap[username] = user.Id
+	userMap, err := a.getUsersByUsernames(*data.Members)
+	if err != nil {
+		return err
+	}
+	for _, user := range *data.Members {
+		userIds = append(userIds, userMap[user].Id)
 	}
 
 	var channel *model.Channel
@@ -1240,7 +1271,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	if data.FavoritedBy != nil {
 		for _, favoriter := range *data.FavoritedBy {
 			preferences = append(preferences, model.Preference{
-				UserId:   userMap[favoriter],
+				UserId:   userMap[favoriter].Id,
 				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 				Name:     channel.Id,
 				Value:    "true",
@@ -1282,6 +1313,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 	usernames := []string{}
 	for _, postData := range data {
 		usernames = append(usernames, *postData.User)
+		usernames = append(usernames, *postData.FlaggedBy...)
 		usernames = append(usernames, *postData.ChannelMembers...)
 	}
 
@@ -1382,10 +1414,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 			var preferences model.Preferences
 
 			for _, username := range *postWithData.directPostData.FlaggedBy {
-				user, err := a.Srv.Store.User().GetByUsername(username)
-				if err != nil {
-					return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, err.Error(), http.StatusBadRequest)
-				}
+				user := users[username]
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -1411,10 +1440,8 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			for _, reply := range *postWithData.directPostData.Replies {
-				if err := a.importReply(&reply, postWithData.post, "noteam", dryRun); err != nil {
-					return err
-				}
+			if err := a.importReplies(*postWithData.directPostData.Replies, postWithData.post, "noteam", dryRun); err != nil {
+				return err
 			}
 		}
 
