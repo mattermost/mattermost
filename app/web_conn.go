@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -27,10 +26,14 @@ const (
 )
 
 type WebConn struct {
-	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	App                       *App
-	WebSocket                 *websocket.Conn
-	Send                      chan model.WebSocketMessage
+	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	App              *App
+	WebSocket        *websocket.Conn
+	Send             chan model.WebSocketMessage
+	// An atomic variable which tracks whether the send channel is closed or not.
+	// This is needed because the web_hub has multiple points from where to send to the channel
+	// and we cannot exit from the goroutine once we close the channel.
+	sendClosed                int32
 	sessionToken              atomic.Value
 	session                   atomic.Value
 	LastUserActivityAt        int64
@@ -56,6 +59,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	wc := &WebConn{
 		App:                a,
 		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		sendClosed:         0,
 		WebSocket:          ws,
 		LastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
@@ -78,6 +82,16 @@ func (wc *WebConn) Close() {
 		close(wc.endWritePump)
 	})
 	<-wc.pumpFinished
+}
+
+// IsSendClosed reports whether the send channel is closed or not.
+func (wc *WebConn) IsClosed() bool {
+	return atomic.LoadInt32(&wc.sendClosed) == 1
+}
+
+// SetClosed marks the send channel as closed.
+func (wc *WebConn) SetClosed() {
+	atomic.StoreInt32(&wc.sendClosed, 1)
 }
 
 func (wc *WebConn) GetSessionExpiresAt() int64 {
@@ -289,12 +303,6 @@ func (wc *WebConn) IsAuthenticated() bool {
 	}
 
 	return true
-}
-
-func (wc *WebConn) SendHello() {
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.License() != nil))
-	wc.Send <- msg
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
