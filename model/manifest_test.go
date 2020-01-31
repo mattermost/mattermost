@@ -131,6 +131,14 @@ func TestSettingIsValid(t *testing.T) {
 				Value:       "value",
 			},
 		}}, false},
+		{
+			"Valid number setting",
+			&PluginSetting{
+				Type:    "number",
+				Default: 10,
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

@@ -34,6 +34,7 @@ const (
 	Radio
 	Text
 	LongText
+	Number
 	Username
 	Custom
 )
@@ -61,6 +62,8 @@ type PluginSetting struct {
 	// "text" will result in a string setting that can be typed in manually.
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
+	//
+	// "number" will result in in integer setting that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
@@ -411,6 +414,8 @@ func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 		return Radio, nil
 	case "text":
 		return Text, nil
+	case "number":
+		return Number, nil
 	case "longtext":
 		return LongText, nil
 	case "username":
