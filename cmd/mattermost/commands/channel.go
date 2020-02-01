@@ -482,6 +482,11 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	suffix := ""
+	if len(channels) > 1 {
+		suffix = "s"
+	}
+	CommandPrintln("Successfully restored channel" + suffix)
 	return nil
 }
 
