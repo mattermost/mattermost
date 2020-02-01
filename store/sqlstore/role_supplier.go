@@ -31,6 +31,15 @@ type Role struct {
 	BuiltIn       bool
 }
 
+type channelRolesPermissions struct {
+	GuestRoleName                string
+	UserRoleName                 string
+	AdminRoleName                string
+	HigherScopedGuestPermissions string
+	HigherScopedUserPermissions  string
+	HigherScopedAdminPermissions string
+}
+
 func NewRoleFromModel(role *model.Role) *Role {
 	permissionsMap := make(map[string]bool)
 	permissions := ""
@@ -239,4 +248,70 @@ func (s *SqlRoleStore) PermanentDeleteAll() *model.AppError {
 	}
 
 	return nil
+}
+
+func (s *SqlRoleStore) higherScopedPermissionsQuery(roleNames []string) string {
+	sqlTmpl := `
+		SELECT
+			RoleSchemes.DefaultChannelGuestRole AS GuestRoleName,
+			RoleSchemes.DefaultChannelUserRole AS UserRoleName,
+			RoleSchemes.DefaultChannelAdminRole AS AdminRoleName,
+			GuestRoles.Permissions AS HigherScopedGuestPermissions,
+			UserRoles.Permissions AS HigherScopedUserPermissions,
+			AdminRoles.Permissions AS HigherScopedAdminPermissions
+		FROM
+			Schemes AS RoleSchemes
+			JOIN Channels ON Channels.SchemeId = RoleSchemes.Id
+			JOIN Teams ON Teams.Id = Channels.TeamId
+			JOIN Schemes ON Schemes.Id = Teams.SchemeId
+			JOIN Roles AS GuestRoles ON GuestRoles.Name = Schemes.DefaultChannelGuestRole
+			JOIN Roles AS UserRoles ON UserRoles.Name = Schemes.DefaultChannelUserRole
+			JOIN Roles AS AdminRoles ON AdminRoles.Name = Schemes.DefaultChannelAdminRole
+		WHERE
+			RoleSchemes.DefaultChannelGuestRole IN ('%[1]s')
+			OR RoleSchemes.DefaultChannelUserRole IN ('%[1]s')
+			OR RoleSchemes.DefaultChannelAdminRole IN ('%[1]s')
+		UNION
+		SELECT
+			Schemes.DefaultChannelGuestRole AS GuestRoleName,
+			Schemes.DefaultChannelUserRole AS UserRoleName,
+			Schemes.DefaultChannelAdminRole AS AdminRoleName,
+			GuestRoles.Permissions AS HigherScopedGuestPermissions,
+			UserRoles.Permissions AS HigherScopedUserPermissions,
+			AdminRoles.Permissions AS HigherScopedAdminPermissions
+		FROM
+			Schemes
+			JOIN Channels ON Channels.SchemeId = Schemes.Id
+			JOIN Teams ON Teams.Id = Channels.TeamId
+			JOIN Roles AS GuestRoles ON GuestRoles.Name = 'channel_guest'
+			JOIN Roles AS UserRoles ON UserRoles.Name = 'channel_user'
+			JOIN Roles AS AdminRoles ON AdminRoles.Name = 'channel_admin'
+		WHERE
+			(Schemes.DefaultChannelGuestRole IN ('%[1]s')
+			OR Schemes.DefaultChannelUserRole IN ('%[1]s')
+			OR Schemes.DefaultChannelAdminRole IN ('%[1]s'))
+		AND (Teams.SchemeId = ''
+			OR Teams.SchemeId IS NULL)
+	`
+
+	return fmt.Sprintf(sqlTmpl, strings.Join(roleNames, "', '"))
+}
+
+func (s *SqlRoleStore) HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+	sql := s.higherScopedPermissionsQuery(roleNames)
+
+	var rolesPermissions []*channelRolesPermissions
+	if _, err := s.GetReplica().Select(&rolesPermissions, sql); err != nil {
+		return nil, model.NewAppError("SqlRoleStore.HigherScopedPermissions", "store.sql_role.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	roleNameHigherScopedPermissions := map[string]*model.RolePermissions{}
+
+	for _, rp := range rolesPermissions {
+		roleNameHigherScopedPermissions[rp.GuestRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_GUEST_ROLE_ID, Permissions: strings.Split(rp.HigherScopedGuestPermissions, " ")}
+		roleNameHigherScopedPermissions[rp.UserRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_USER_ROLE_ID, Permissions: strings.Split(rp.HigherScopedUserPermissions, " ")}
+		roleNameHigherScopedPermissions[rp.AdminRoleName] = &model.RolePermissions{RoleID: model.CHANNEL_ADMIN_ROLE_ID, Permissions: strings.Split(rp.HigherScopedAdminPermissions, " ")}
+	}
+
+	return roleNameHigherScopedPermissions, nil
 }

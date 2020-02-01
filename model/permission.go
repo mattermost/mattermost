@@ -9,6 +9,8 @@ const (
 	PERMISSION_SCOPE_CHANNEL = "channel_scope"
 )
 
+var ModeratedPermissions map[string]bool
+
 type Permission struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
@@ -636,4 +638,12 @@ func initializePermissions() {
 
 func init() {
 	initializePermissions()
+	ModeratedPermissions = map[string]bool{
+		PERMISSION_ADD_REACTION.Id:                   true,
+		PERMISSION_REMOVE_REACTION.Id:                true,
+		PERMISSION_CREATE_POST.Id:                    true,
+		PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id:  true,
+		PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id: true,
+		// PERMISSION_USE_CHANNEL_MENTIONS:              true,
+	}
 }

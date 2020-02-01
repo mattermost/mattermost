@@ -558,8 +558,9 @@ type RoleStore interface {
 	GetAll() ([]*model.Role, *model.AppError)
 	GetByName(name string) (*model.Role, *model.AppError)
 	GetByNames(names []string) ([]*model.Role, *model.AppError)
-	Delete(roldId string) (*model.Role, *model.AppError)
+	Delete(roleId string) (*model.Role, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+	HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError)
 }
 
 type SchemeStore interface {

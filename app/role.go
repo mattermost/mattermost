@@ -20,11 +20,64 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetByName(name)
+	role, err := a.Srv.Store.Role().GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.updateChannelRolesPermissions([]*model.Role{role})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetByNames(names)
+	roles, err := a.Srv.Store.Role().GetByNames(names)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.updateChannelRolesPermissions(roles)
+	if err != nil {
+		return nil, err
+	}
+
+	return roles, nil
+}
+
+// updateChannelRolesPermissions updates the permissions based on the role type, whether the permission is
+// moderated, and the value of the permission on the higher-scoped scheme.
+func (a *App) updateChannelRolesPermissions(roles []*model.Role) *model.AppError {
+	var higherScopeNamesToQuery []string
+
+	for _, role := range roles {
+		if !role.BuiltIn && role.SchemeManaged {
+			higherScopeNamesToQuery = append(higherScopeNamesToQuery, role.Name)
+		}
+	}
+
+	if len(higherScopeNamesToQuery) == 0 {
+		return nil
+	}
+
+	higherScopedPermissionsMap, err := a.Srv.Store.Role().HigherScopedPermissions(higherScopeNamesToQuery)
+	if err != nil {
+		return err
+	}
+
+	// Note: If we start shipping with builtin channel schemes we need to include builtin roles in this branching
+	// statement.
+	for _, role := range roles {
+		if !role.BuiltIn && role.SchemeManaged {
+			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
+				role.MergeHigherScopedPermissions(higherScopedPermissions)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {

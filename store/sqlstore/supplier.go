@@ -204,6 +204,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
+	supplier.stores.scheme.(*SqlSchemeStore).CreateIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	return supplier

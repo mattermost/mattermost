@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/utils/slices"
 )
 
 const (
@@ -49,6 +51,11 @@ type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }
 
+type RolePermissions struct {
+	RoleID      string
+	Permissions []string
+}
+
 func (r *Role) ToJson() string {
 	b, _ := json.Marshal(r)
 	return string(b)
@@ -86,6 +93,36 @@ func (r *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		r.Permissions = *patch.Permissions
 	}
+}
+
+// MergeHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
+// channel role's permissions.
+func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
+	mergedPermissions := []string{}
+
+	for _, cp := range ALL_PERMISSIONS {
+		if cp.Scope != PERMISSION_SCOPE_CHANNEL {
+			continue
+		}
+
+		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+			mergedPermissions = append(mergedPermissions, cp.Id)
+			continue
+		}
+
+		if _, ok := ModeratedPermissions[cp.Id]; ok {
+			if slices.IncludesString(r.Permissions, cp.Id) && slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+				mergedPermissions = append(mergedPermissions, cp.Id)
+			}
+			continue
+		}
+
+		if slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+			mergedPermissions = append(mergedPermissions, cp.Id)
+		}
+	}
+
+	r.Permissions = mergedPermissions
 }
 
 // Returns an array of permissions that are in either role.Permissions

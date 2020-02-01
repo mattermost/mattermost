@@ -41,6 +41,9 @@ func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 }
 
 func (s SqlSchemeStore) CreateIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
