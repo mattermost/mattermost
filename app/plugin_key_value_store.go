@@ -100,7 +100,7 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 func (a *App) ModifyKey(pluginId string, key string, f func(value []byte) ([]byte, error)) *model.AppError {
 	kv, err := a.Srv.Store.Plugin().Get(pluginId, key)
 	if err != nil {
-		if err.StatusCode != http.StatusNotFound{
+		if err.StatusCode != http.StatusNotFound {
 			mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 			return err
 		}

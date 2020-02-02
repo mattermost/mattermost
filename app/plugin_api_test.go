@@ -948,7 +948,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			require.Equal(t, expectedValue2, value)
 
 			// Update old value with some modifications
-			modificationFunc := func ([]byte) ([]byte,error){return nil, nil}
+			modificationFunc := func([]byte) ([]byte, error) { return nil, nil }
 			err = api.KVAtomicModify(expectedKey, modificationFunc)
 			require.Nil(t, err)
 
@@ -960,31 +960,31 @@ func TestPluginAPIKVAtomicModify(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
-	testCases := []struct{
-		description string
-		key string
-		actualValue []byte
-		expectedValue []byte
-		modificationFunc func([]byte)([]byte, error)
+	testCases := []struct {
+		description      string
+		key              string
+		actualValue      []byte
+		expectedValue    []byte
+		modificationFunc func([]byte) ([]byte, error)
 	}{
 		{
-				description: "Test actual data modification without error from modification func",
-				key:         "key1",
-				actualValue: []byte("THIS IS A TEST VALUE"),
-				modificationFunc: func(b []byte) ([]byte, error) {
-					return []byte(strings.ToLower(string(b))), nil
-				},
-				expectedValue: []byte(strings.ToLower("THIS IS A TEST VALUE")),
+			description: "Test actual data modification without error from modification func",
+			key:         "key1",
+			actualValue: []byte("THIS IS A TEST VALUE"),
+			modificationFunc: func(b []byte) ([]byte, error) {
+				return []byte(strings.ToLower(string(b))), nil
+			},
+			expectedValue: []byte(strings.ToLower("THIS IS A TEST VALUE")),
 		},
 	}
-	for _, tt := range testCases{
+	for _, tt := range testCases {
 		{
 			// set an actual value to the kv store
 			err := api.KVSet(tt.key, tt.actualValue)
 			require.Nil(t, err)
 
 			// check that this value is exists in kv store as in that representation in what we pass it there
-			valueWePassed , err := api.KVGet(tt.key)
+			valueWePassed, err := api.KVGet(tt.key)
 			require.Nil(t, err)
 			require.Equal(t, valueWePassed, tt.actualValue)
 
