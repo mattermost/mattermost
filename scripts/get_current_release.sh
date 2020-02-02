@@ -11,6 +11,4 @@ get_latest_release() {
 # $ get_latest_release "creationix/nvm"
 # v0.31.4
 # Assume we are in a git dir
-BRANCH=$(git rev-parse --abbrev-ref HEAD) # | sed '/d/release-'
-echo $BRANCH
-#get_latest_release $1
+get_latest_release $1
