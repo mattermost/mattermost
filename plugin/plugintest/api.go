@@ -2190,7 +2190,7 @@ func (_m *API) KVAtomicModify(key string, f func(initialValue []byte) ([]byte, e
 		}
 	}
 
-	return  r1
+	return r1
 }
 
 // KVList provides a mock function with given fields: page, perPage
