@@ -35,29 +35,23 @@ func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 }
 
 func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface{}) {
-	initialConfig := make(map[string]interface{})
 
-	if api.manifest.SettingsSchema != nil {
-		for _, settings := range api.manifest.SettingsSchema.Settings {
-			initialConfig[strings.ToLower(settings.Key)] = settings.Default
-		}
+	if api.manifest.SettingsSchema == nil {
+		return
 	}
-	// Checking if plugin config was specified by user,
-	// if not we just apply default values from the initial config settings and return
-	if len(pluginConfig) == 0 {
-		for key, value := range initialConfig {
-			pluginConfig[key] = value
+
+	if len(pluginConfig) != 0 {
+		for _, pluginSetting := range api.manifest.SettingsSchema.Settings {
+			if pluginValue, exist := pluginConfig[strings.ToLower(pluginSetting.Key)]; exist && pluginValue == "" {
+				pluginConfig[strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+			}
 		}
 		return
 	}
-	// If plugin config was specified by user we check the values from plugin config and if there is not value for
-	// the key, we will apply default value from the initial plugin settings
-	for configKey, configValue := range initialConfig {
-		if pluginValue, exist := pluginConfig[configKey]; exist && pluginValue == "" {
-			pluginConfig[configKey] = configValue
-		}
-	}
 
+	for _, settings := range api.manifest.SettingsSchema.Settings {
+		pluginConfig[strings.ToLower(settings.Key)] = settings.Default
+	}
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
