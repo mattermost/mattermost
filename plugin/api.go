@@ -802,6 +802,12 @@ type API interface {
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
 
+	//KVAtomicModify atomically modifies data for a particular key
+	//
+	//@tag KeyValueStore
+	// Minimum server version: 5.2
+	KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError
+
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
 	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.

@@ -97,6 +97,30 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 	return nil, nil
 }
 
+func (a *App) ModifyKey(pluginId string, key string, f func(value []byte) ([]byte, error)) *model.AppError {
+	kv, err := a.Srv.Store.Plugin().Get(pluginId, key)
+	if err != nil {
+		if err.StatusCode != http.StatusNotFound{
+			mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+			return err
+		}
+	}
+
+	modifiedValue, modifyingErr := f(kv.Value)
+
+	if err != nil {
+		mlog.Error("Failed to modify value with given func", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return model.NewAppError("App.AtomicModifyKey", "app.plugin_key_value_store.app_error", nil, modifyingErr.Error(), http.StatusInternalServerError)
+	}
+
+	kv.Value = modifiedValue
+	if _, err := a.Srv.Store.Plugin().SaveOrUpdate(kv); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 	if err := a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); err != nil {
 		mlog.Error("Failed to delete plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
