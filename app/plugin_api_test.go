@@ -948,7 +948,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			require.Equal(t, expectedValue2, value)
 
 			// Update old value with some modifications
-			modificationFunc := func ([]byte) ([]byte,error){return nil, nil}
+			modificationFunc := func([]byte) ([]byte, error) { return nil, nil }
 			err = api.KVAtomicModify(expectedKey, modificationFunc)
 			require.Nil(t, err)
 
