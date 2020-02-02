@@ -25,18 +25,21 @@ func TestIsValid(t *testing.T) {
 	}{
 		{"Invalid Id", &Manifest{Id: "some id"}, true},
 		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
-		{"Invalid supportURL", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", ReleaseNotesURL: "some url"}, true},
 		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
 		{"Invalid min version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
 		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
 			Settings: []*PluginSetting{{Type: "Invalid"}},
 		}}, true},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test"}, false},
 		{"Happy case", &Manifest{
 			Id:               "com.company.test",
 			Name:             "thename",
 			Description:      "thedescription",
 			HomepageURL:      "http://someurl.com",
 			SupportURL:       "http://someotherurl.com",
+			ReleaseNotesURL:  "http://someotherurl.com/releases/v0.0.1",
 			Version:          "0.0.1",
 			MinServerVersion: "5.6.0",
 			Server: &ManifestServer{
@@ -44,7 +47,6 @@ func TestIsValid(t *testing.T) {
 			},
 			Webapp: &ManifestWebapp{
 				BundlePath: "thebundlepath",
-				BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 			},
 			SettingsSchema: &PluginSettingsSchema{
 				Header: "theheadertext",
@@ -92,7 +94,7 @@ func TestIsValidSettingsSchema(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Title, func(t *testing.T) {
-			err := tc.settingsSchema.isValidSchema()
+			err := tc.settingsSchema.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
 			} else {
@@ -129,6 +131,14 @@ func TestSettingIsValid(t *testing.T) {
 				Value:       "value",
 			},
 		}}, false},
+		{
+			"Valid number setting",
+			&PluginSetting{
+				Type:    "number",
+				Default: 10,
+			},
+			false,
+		},
 	}
 
 	for _, tc := range testCases {

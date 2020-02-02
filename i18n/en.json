@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -1763,8 +1763,16 @@
     "translation": "An error occurred fetching the ID-loaded push notification"
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1932,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",

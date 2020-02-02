@@ -2064,69 +2064,49 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 }
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
-// associated to the team.
-func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+// associated to the team excluding bots.
+func (a *App) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
 	}
-
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(teamGroupUsers) == 0 {
-		return userIDs, nil
-	}
-
-	nonMemberIDs := []string{}
-
-	for _, userID := range userIDs {
-		userIsMember := false
-
-		for _, pu := range teamGroupUsers {
-			if pu.Id == userID {
-				userIsMember = true
-				break
-			}
-		}
-
-		if !userIsMember {
-			nonMemberIDs = append(nonMemberIDs, userID)
-		}
-	}
-
-	return nonMemberIDs, nil
+	return a.filterNonGroupUsers(userIds, teamGroupUsers)
 }
 
 // FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
-// associated to the channel.
-func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+// associated to the channel excluding bots
+func (a *App) FilterNonGroupChannelMembers(userIds []string, channel *model.Channel) ([]string, error) {
 	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
 	}
+	return a.filterNonGroupUsers(userIds, channelGroupUsers)
+}
 
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(channelGroupUsers) == 0 {
-		return userIDs, nil
+// filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
+// and returns the list of normal users present in userIds but not in groupUsers.
+func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([]string, error) {
+	nonMemberIds := []string{}
+	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, false)
+	if err != nil {
+		return nil, err
 	}
 
-	nonMemberIDs := []string{}
+	for _, user := range users {
+		userIsMember := user.IsBot
 
-	for _, userID := range userIDs {
-		userIsMember := false
-
-		for _, pu := range channelGroupUsers {
-			if pu.Id == userID {
+		for _, pu := range groupUsers {
+			if pu.Id == user.Id {
 				userIsMember = true
 				break
 			}
 		}
-
 		if !userIsMember {
-			nonMemberIDs = append(nonMemberIDs, userID)
+			nonMemberIds = append(nonMemberIds, user.Id)
 		}
 	}
 
-	return nonMemberIDs, nil
+	return nonMemberIds, nil
 }
 
 func (a *App) RestrictUsersSearchByPermissions(userId string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
@@ -2269,6 +2249,7 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
 	err := a.Srv.Store.User().PromoteGuestToUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2314,7 +2295,6 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 	}
 
-	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 	return nil
 }
@@ -2323,6 +2303,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	err := a.Srv.Store.User().DemoteUserToGuest(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2357,7 +2338,6 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 	}
 
-	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	return nil
