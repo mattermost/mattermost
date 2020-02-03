@@ -1763,8 +1763,16 @@
     "translation": "Kod ile yüklenen anında bildirim alınırken bir sorun çıktı"
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Anında bildirim hizmetine alındı bilgisi gönderilirken bir sorun çıktı"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -4276,7 +4284,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "'{{.Value}}' eşitlenebilir türü desteklenmiyor."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
