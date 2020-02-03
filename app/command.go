@@ -292,12 +292,11 @@ func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMent
 		}(channelName)
 	}
 
-	channelMentionMap := make(model.ChannelMentionMap)
 	wg.Wait()
+	close(mentionChan)
 
-	lengthMentions := len(mentionChan)
-	for i := 0; i < lengthMentions; i++ {
-		mention := <-mentionChan
+	channelMentionMap := make(model.ChannelMentionMap)
+	for mention := range mentionChan {
 		channelMentionMap[mention.Name] = mention.Id
 	}
 
