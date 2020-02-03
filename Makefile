@@ -452,7 +452,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	$(GO) get -u
+	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
