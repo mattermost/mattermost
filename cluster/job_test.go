@@ -140,6 +140,7 @@ func TestSchedule(t *testing.T) {
 				require.NoError(t, err)
 			}()
 		}
+		wg.Wait()
 
 		time.Sleep(1 * time.Second)
 
