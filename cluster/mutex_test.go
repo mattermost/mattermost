@@ -62,7 +62,7 @@ func (pluginAPI *MockMutexPluginAPI) KVSetWithOptions(key string, value []byte, 
 	}
 
 	if options.Atomic {
-		if value := pluginAPI.keyValues[key]; !bytes.Equal(value, options.OldValue) {
+		if actualValue := pluginAPI.keyValues[key]; !bytes.Equal(actualValue, options.OldValue) {
 			return false, nil
 		}
 	}
