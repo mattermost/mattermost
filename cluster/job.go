@@ -51,7 +51,7 @@ type jobMetadata struct {
 }
 
 // Schedule creates a scheduled job.
-func Schedule(key string, config JobConfig, callback func(), pluginAPI JobPluginAPI) (*Job, error) {
+func Schedule(pluginAPI JobPluginAPI, key string, config JobConfig, callback func()) (*Job, error) {
 	if config.Interval == 0 {
 		return nil, errors.Errorf("must specify non-zero job config interval")
 	}
@@ -61,7 +61,7 @@ func Schedule(key string, config JobConfig, callback func(), pluginAPI JobPlugin
 	job := &Job{
 		pluginAPI: pluginAPI,
 		key:       key,
-		mutex:     NewMutex(key, pluginAPI),
+		mutex:     NewMutex(pluginAPI, key),
 		config:    config,
 		callback:  callback,
 		stop:      make(chan bool),

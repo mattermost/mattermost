@@ -129,7 +129,7 @@ func TestMutex(t *testing.T) {
 	t.Run("successful lock/unlock cycle", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m := NewMutex("key", mockPluginAPI)
+		m := NewMutex(mockPluginAPI, "key")
 		lock(t, m)
 		unlock(t, m, false)
 		lock(t, m)
@@ -139,14 +139,14 @@ func TestMutex(t *testing.T) {
 	t.Run("unlock when not locked", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m := NewMutex("key", mockPluginAPI)
+		m := NewMutex(mockPluginAPI, "key")
 		unlock(t, m, true)
 	})
 
 	t.Run("blocking lock", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m := NewMutex("key", mockPluginAPI)
+		m := NewMutex(mockPluginAPI, "key")
 		lock(t, m)
 
 		done := make(chan bool)
@@ -173,7 +173,7 @@ func TestMutex(t *testing.T) {
 	t.Run("failed lock", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m := NewMutex("key", mockPluginAPI)
+		m := NewMutex(mockPluginAPI, "key")
 
 		mockPluginAPI.setFailing(true)
 
@@ -201,7 +201,7 @@ func TestMutex(t *testing.T) {
 	t.Run("failed unlock", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m := NewMutex("key", mockPluginAPI)
+		m := NewMutex(mockPluginAPI, "key")
 		lock(t, m)
 
 		mockPluginAPI.setFailing(true)
@@ -218,13 +218,13 @@ func TestMutex(t *testing.T) {
 	t.Run("discrete keys", func(t *testing.T) {
 		mockPluginAPI := NewMockMutexPluginAPI(t)
 
-		m1 := NewMutex("key1", mockPluginAPI)
+		m1 := NewMutex(mockPluginAPI, "key1")
 		lock(t, m1)
 
-		m2 := NewMutex("key2", mockPluginAPI)
+		m2 := NewMutex(mockPluginAPI, "key2")
 		lock(t, m2)
 
-		m3 := NewMutex("key3", mockPluginAPI)
+		m3 := NewMutex(mockPluginAPI, "key3")
 		lock(t, m3)
 
 		unlock(t, m1, false)

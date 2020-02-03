@@ -10,7 +10,7 @@ func ExampleSchedule() {
 		// periodic work to do
 	}
 
-	job, err := Schedule("key", JobConfig{Interval: 5 * time.Minute}, callback, pluginAPI)
+	job, err := Schedule(pluginAPI, "key", JobConfig{Interval: 5 * time.Minute}, callback)
 	if err != nil {
 		panic("failed to schedule job")
 	}

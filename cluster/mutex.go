@@ -61,7 +61,7 @@ type Mutex struct {
 }
 
 // NewMutex creates a mutex with the given name.
-func NewMutex(key string, pluginAPI MutexPluginAPI) *Mutex {
+func NewMutex(pluginAPI MutexPluginAPI, key string) *Mutex {
 	key = mutexPrefix + key
 
 	return &Mutex{
