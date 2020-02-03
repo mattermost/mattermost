@@ -377,7 +377,7 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isScheme
 }
 
 func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", "", nil)
 	message.Add("member", member.ToJson())
 	a.Publish(message)
 }
