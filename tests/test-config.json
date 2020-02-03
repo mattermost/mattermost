@@ -237,15 +237,13 @@
         "UserApiEndpoint": "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
     },
     "Office365Settings": {
-        "SSOSettings": {
-            "Enable": false,
-            "Secret": "",
-            "Id": "",
-            "Scope": "User.Read",
-            "AuthEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-            "TokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-            "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me"
-        },
+        "Enable": false,
+        "Secret": "",
+        "Id": "",
+        "Scope": "User.Read",
+        "AuthEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "TokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me",
         "DirectoryId": ""
     },
     "LdapSettings": {

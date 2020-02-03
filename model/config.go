@@ -877,16 +877,60 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 }
 
 type Office365Settings struct {
-	SSOSettings SSOSettings
-	DirectoryId *string
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
+	DirectoryId     *string
 }
 
 func (s *Office365Settings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
-	s.SSOSettings.setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint)
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
+	}
+
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Scope == nil {
+		s.Scope = NewString(scope)
+	}
+
+	if s.AuthEndpoint == nil {
+		s.AuthEndpoint = NewString(authEndpoint)
+	}
+
+	if s.TokenEndpoint == nil {
+		s.TokenEndpoint = NewString(tokenEndpoint)
+	}
+
+	if s.UserApiEndpoint == nil {
+		s.UserApiEndpoint = NewString(userApiEndpoint)
+	}
 
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewString("")
 	}
+}
+
+func (s *Office365Settings) SSOSettings() *SSOSettings {
+	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	return &ssoSettings
 }
 
 type SqlSettings struct {
@@ -2558,7 +2602,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
-		return &o.Office365Settings.SSOSettings
+		return o.Office365Settings.SSOSettings()
 	}
 
 	return nil
@@ -2695,7 +2739,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if *o.Office365Settings.SSOSettings.Enable && len(*o.Office365Settings.DirectoryId) == 0 {
+	if *o.Office365Settings.Enable && len(*o.Office365Settings.DirectoryId) == 0 {
 		return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
