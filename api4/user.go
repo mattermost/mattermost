@@ -1327,21 +1327,21 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		office365Enabled := *config.GetSSOService("office365").Enable
 
 		if samlEnabled || gitlabEnabled || googleEnabled || office365Enabled {
-			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_sso", nil, "", http.StatusUnauthorized)
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_sso", nil, c.Err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if enableUsername && !enableEmail {
-			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_username", nil, "", http.StatusUnauthorized)
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_username", nil, c.Err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if !enableUsername && enableEmail {
-			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email", nil, "", http.StatusUnauthorized)
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email", nil, c.Err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
+		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, c.Err.Error(), http.StatusUnauthorized)
 	}()
 
 	props := model.MapFromJson(r.Body)
