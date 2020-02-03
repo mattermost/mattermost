@@ -119,7 +119,19 @@ func TestCreatePost(t *testing.T) {
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
-		post.Message = "@channel"
+		post.Message = "a post with @channel"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @all"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @here"
 		_, resp = Client.CreatePost(post)
 		CheckNoError(t, resp)
 	})
