@@ -34,6 +34,7 @@ const (
 	Radio
 	Text
 	LongText
+	Number
 	Username
 	Custom
 )
@@ -61,6 +62,8 @@ type PluginSetting struct {
 	// "text" will result in a string setting that can be typed in manually.
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
+	//
+	// "number" will result in in integer setting that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
@@ -108,6 +111,7 @@ type PluginSettingsSchema struct {
 //      "description": "This is my plugin",
 //      "homepage_url": "https://example.com",
 //      "support_url": "https://example.com/support",
+//      "release_notes_url": "https://example.com/releases/v0.0.1",
 //      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
@@ -325,39 +329,43 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid plugin ID")
 	}
 
-	if m.HomepageURL == "" || !IsValidHttpUrl(m.HomepageURL) {
+	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
 	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
-		return errors.New("invalid SupportURL")
+		return errors.New("invalid ReleaseNotesURL")
 	}
 
-	_, err := semver.Parse(m.Version)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse Version")
+	if m.Version != "" {
+		_, err := semver.Parse(m.Version)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse Version")
+		}
 	}
 
-	_, err2 := semver.Parse(m.MinServerVersion)
-	if err2 != nil {
-		return errors.Wrap(err2, "failed to parse MinServerVersion")
+	if m.MinServerVersion != "" {
+		_, err := semver.Parse(m.MinServerVersion)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse MinServerVersion")
+		}
 	}
 
 	if m.SettingsSchema != nil {
-		err3 := m.SettingsSchema.isValidSchema()
-		if err3 != nil {
-			return errors.Wrap(err3, "invalid settings schema")
+		err := m.SettingsSchema.isValid()
+		if err != nil {
+			return errors.Wrap(err, "invalid settings schema")
 		}
 	}
 
 	return nil
 }
 
-func (s *PluginSettingsSchema) isValidSchema() error {
+func (s *PluginSettingsSchema) isValid() error {
 	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {
@@ -410,6 +418,8 @@ func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 		return Radio, nil
 	case "text":
 		return Text, nil
+	case "number":
+		return Number, nil
 	case "longtext":
 		return LongText, nil
 	case "username":
