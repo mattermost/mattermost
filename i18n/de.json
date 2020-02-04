@@ -417,7 +417,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Bezeichnungen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt. "
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -1763,8 +1763,16 @@
     "translation": "Es ist ein Fehler beim Abrufen der ID-geladenen Push-Benachrichtigung aufgetreten."
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Es ist ein Fehler beim Senden der Quittungslieferung an den Push-Benachrichtigungsdienst aufgetreten."
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",

@@ -1763,8 +1763,16 @@
     "translation": "Une erreur s'est produite lors de la récupération de la notification push sur base de son identifiant."
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "Une erreur s'est produite lors de l'envoi de l'accusé de réception au serveur de notification push"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",

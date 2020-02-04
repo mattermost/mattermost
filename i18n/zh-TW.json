@@ -85,11 +85,11 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "無法從身分識別提供者網址取得中繼資料"
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "解析來自身分識別提供者的中繼資料時發生錯誤。"
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -97,15 +97,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "XML 中找不到身分識別提供者 SSO 描述節點。"
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "XML 中找不到身分識別提供者鍵值描述節點。"
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "XML 中找不到身分識別提供者 SSO 服務節點。"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "無效的簽章文字"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "無效的內容類型。"
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "缺少內容類型。"
   },
   {
     "id": "api.admin.test_email.body",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "無法解除頻道封存。該頻道未被封存。"
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} 將頻道解除封存。"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "伺服器忙碌中，非必要服務將暫時無法使用"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1763,8 +1763,16 @@
     "translation": "擷取 ID Loaded Push Notification 時發生錯誤"
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "建立推播通知訊息時發生錯誤"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "傳送訊息至推播服務時發生錯誤"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "建立推播通知確認訊息時發生錯誤"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2860,19 +2868,19 @@
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "伺服器忙碌中，非必要服務將暫時無法使用"
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "無法解碼來自身分識別提供者的 XML 中繼資料。"
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "讀取身分識別提供者的回應時發生錯誤。"
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "無法讀取身分識別提供者的回應。"
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2884,7 +2892,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} 已被停用。下列由他們管理的機器人帳號已被停用。{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號已被停用，包括：{{.BotNames}}{{end}}可以在 **外部整合 > 機器人帳號** 對個別啟用以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號還在運作，包括：{{.BotNames}}{{end}}在此強烈建議前往 **外部整合 > 機器人帳號** 重新啟用各個機器人以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).如果想要在停用使用者帳號同時自動停用機器人帳號，請前往 **系統主控台 > 外部整合 > 機器人帳號** 啟用 \"停用使用者時停用機器人帳號\"。{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3572,7 +3580,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "抽取模組時發生錯誤。"
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3612,7 +3620,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "無法封送處理市集模組。"
+    "translation": "無法安裝市集模組。"
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "找不到請求的市集模組。"
+    "translation": "找不到請求的市集模組簽名。"
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3792,7 +3800,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+    "translation": "該外寄 Webhook 已被刪除，但建立新的 Webhook 時發生錯誤。"
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -4012,11 +4020,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "無法取得 Elasticsearch 伺服器版本"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "無法解析 Elasticsearch 伺服器版本"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4116,7 +4124,7 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "無效的 AD/LDAP 訪客過濾條件"
+    "translation": "無效的 AD/LDAP 管理者過濾條件"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4276,7 +4284,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "不支援的同步資料類別 '{{.Value}}'。"
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -4884,7 +4892,7 @@
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "無效的訪客屬性。必須為此格式：'欄位=值'"
+    "translation": "無效的管理者屬性。必須為格式：'欄位=值'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -6300,7 +6308,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "無法移除群組成員 \"{{.UserId}}\""
+    "translation": "無法移除使用者 ID 為 \"{{.UserId}}\" 的群組成員"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6456,11 +6464,11 @@
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "在用沒有改變的值執行 KVCompareAndSet 後，向 MySQL 查詢現存的資料列失敗。"
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "在用沒有改變的值執行 KVCompareAndSet 後，在 MySQL 找到不只一筆資料列。"
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",

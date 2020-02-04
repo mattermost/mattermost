@@ -1763,8 +1763,16 @@
     "translation": "ID가 로드된 푸시 알림을 가져오는 중 오류가 발생함"
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "푸시 알림 서비스에 수신 내용을 전달 하던 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
