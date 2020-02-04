@@ -18,10 +18,7 @@
 package minio
 
 import (
-	"net"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -83,40 +80,6 @@ func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duratio
 		}
 	}()
 	return attemptCh
-}
-
-// isHTTPReqErrorRetryable - is http requests error retryable, such
-// as i/o timeout, connection broken etc..
-func isHTTPReqErrorRetryable(err error) bool {
-	if err == nil {
-		return false
-	}
-	switch e := err.(type) {
-	case *url.Error:
-		switch e.Err.(type) {
-		case *net.DNSError, *net.OpError, net.UnknownNetworkError:
-			return true
-		}
-		if strings.Contains(err.Error(), "Connection closed by foreign host") {
-			return true
-		} else if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
-			// If error is - tlsHandshakeTimeoutError, retry.
-			return true
-		} else if strings.Contains(err.Error(), "i/o timeout") {
-			// If error is - tcp timeoutError, retry.
-			return true
-		} else if strings.Contains(err.Error(), "connection timed out") {
-			// If err is a net.Dial timeout, retry.
-			return true
-		} else if strings.Contains(err.Error(), "net/http: HTTP/1.x transport connection broken") {
-			// If error is transport connection broken, retry.
-			return true
-		} else if strings.Contains(err.Error(), "net/http: timeout awaiting response headers") {
-			// Retry errors due to server not sending the response before timeout
-			return true
-		}
-	}
-	return false
 }
 
 // List of AWS S3 error codes which are retryable.
