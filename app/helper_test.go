@@ -194,6 +194,28 @@ func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	return user
 }
 
+func (me *TestHelper) CreateBot() *model.Bot {
+	id := model.NewId()
+
+	bot := &model.Bot{
+		Username:    "bot" + id,
+		DisplayName: "a bot",
+		Description: "bot",
+		OwnerId:     me.BasicUser.Id,
+	}
+
+	me.App.Log.SetConsoleLevel(mlog.LevelError)
+	bot, err := me.App.CreateBot(bot)
+	if err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	me.App.Log.SetConsoleLevel(mlog.LevelDebug)
+	return bot
+}
+
 func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
 	return me.createChannel(team, model.CHANNEL_OPEN)
 }
