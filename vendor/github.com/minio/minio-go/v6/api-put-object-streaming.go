@@ -67,12 +67,12 @@ type uploadedPartRes struct {
 	Error   error // Any error encountered while uploading the part.
 	PartNum int   // Number of the part uploaded.
 	Size    int64 // Size of the part uploaded.
-	Part    *ObjectPart
+	Part    ObjectPart
 }
 
 type uploadPartReq struct {
-	PartNum int         // Number of the part uploaded.
-	Part    *ObjectPart // Size of the part uploaded.
+	PartNum int        // Number of the part uploaded.
+	Part    ObjectPart // Size of the part uploaded.
 }
 
 // putObjectMultipartFromReadAt - Uploads files bigger than 128MiB.
@@ -139,7 +139,7 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 
 	// Send each part number to the channel to be processed.
 	for p := 1; p <= totalPartsCount; p++ {
-		uploadPartsCh <- uploadPartReq{PartNum: p, Part: nil}
+		uploadPartsCh <- uploadPartReq{PartNum: p}
 	}
 	close(uploadPartsCh)
 	// Receive each part number from the channel allowing three parallel uploads.
@@ -164,13 +164,11 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 				sectionReader := newHook(io.NewSectionReader(reader, readOffset, partSize), opts.Progress)
 
 				// Proceed to upload the part.
-				var objPart ObjectPart
-				objPart, err = c.uploadPart(ctx, bucketName, objectName, uploadID,
+				objPart, err := c.uploadPart(ctx, bucketName, objectName, uploadID,
 					sectionReader, uploadReq.PartNum,
 					"", "", partSize, opts.ServerSideEncryption)
 				if err != nil {
 					uploadedPartsCh <- uploadedPartRes{
-						Size:  0,
 						Error: err,
 					}
 					// Exit the goroutine.
@@ -178,14 +176,13 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 				}
 
 				// Save successfully uploaded part metadata.
-				uploadReq.Part = &objPart
+				uploadReq.Part = objPart
 
 				// Send successful part info through the channel.
 				uploadedPartsCh <- uploadedPartRes{
 					Size:    objPart.Size,
 					PartNum: uploadReq.PartNum,
 					Part:    uploadReq.Part,
-					Error:   nil,
 				}
 			}
 		}(partSize)
@@ -198,18 +195,12 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 		if uploadRes.Error != nil {
 			return totalUploadedSize, uploadRes.Error
 		}
-		// Retrieve each uploaded part and store it to be completed.
-		// part, ok := partsInfo[uploadRes.PartNum]
-		part := uploadRes.Part
-		if part == nil {
-			return 0, ErrInvalidArgument(fmt.Sprintf("Missing part number %d", uploadRes.PartNum))
-		}
 		// Update the totalUploadedSize.
 		totalUploadedSize += uploadRes.Size
 		// Store the parts to be completed in order.
 		complMultipartUpload.Parts = append(complMultipartUpload.Parts, CompletePart{
-			ETag:       part.ETag,
-			PartNumber: part.PartNumber,
+			ETag:       uploadRes.Part.ETag,
+			PartNumber: uploadRes.Part.PartNumber,
 		})
 	}
 
@@ -277,12 +268,11 @@ func (c Client) putObjectMultipartStreamNoChecksum(ctx context.Context, bucketNa
 		if partNumber == totalPartsCount {
 			partSize = lastPartSize
 		}
-		var objPart ObjectPart
-		objPart, err = c.uploadPart(ctx, bucketName, objectName, uploadID,
+		objPart, uerr := c.uploadPart(ctx, bucketName, objectName, uploadID,
 			io.LimitReader(hookReader, partSize),
 			partNumber, "", "", partSize, opts.ServerSideEncryption)
-		if err != nil {
-			return totalUploadedSize, err
+		if uerr != nil {
+			return totalUploadedSize, uerr
 		}
 
 		// Save successfully uploaded part metadata.
@@ -407,8 +397,7 @@ func (c Client) putObjectDo(ctx context.Context, bucketName, objectName string, 
 
 	var objInfo ObjectInfo
 	// Trim off the odd double quotes from ETag in the beginning and end.
-	objInfo.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	objInfo.ETag = strings.TrimSuffix(objInfo.ETag, "\"")
+	objInfo.ETag = trimEtag(resp.Header.Get("ETag"))
 	// A success here means data was written to server successfully.
 	objInfo.Size = size
 
