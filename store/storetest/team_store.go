@@ -45,6 +45,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("TeamPublicCount", func(t *testing.T) { testPublicTeamCount(t, ss) })
 	t.Run("TeamPrivateCount", func(t *testing.T) { testPrivateTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
+	t.Run("GetMembersOrder", func(t *testing.T) { testGetMembersOrder(t, ss) })
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, ss) })
 	t.Run("GetTeamMembersByIds", func(t *testing.T) { testGetTeamMembersByIds(t, ss) })
@@ -801,6 +802,40 @@ func testTeamCount(t *testing.T, ss store.Store) {
 
 	// count including deleted should be one greater than not including deleted
 	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
+}
+
+func testGetMembersOrder(t *testing.T, ss store.Store) {
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
+	m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
+	m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
+	m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
+	m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
+
+	_, err := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m4, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m5, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m6, -1)
+	require.Nil(t, err)
+
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
+	assert.Len(t, ms, 5)
+	assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
+	assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
+	assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
+	assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
+	assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {

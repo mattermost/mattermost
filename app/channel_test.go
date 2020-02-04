@@ -1169,7 +1169,12 @@ func TestAddUserToChannel(t *testing.T) {
 	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser1, _ := th.App.CreateUser(&user1)
 	defer th.App.PermanentDeleteUser(&user1)
+	bot := th.CreateBot()
+	botUser, _ := th.App.GetUser(bot.UserId)
+	defer th.App.PermanentDeleteBot(botUser.Id)
+
 	th.App.AddTeamMember(th.BasicTeam.Id, ruser1.Id)
+	th.App.AddTeamMember(th.BasicTeam.Id, bot.UserId)
 
 	group := th.CreateGroup()
 
@@ -1208,8 +1213,82 @@ func TestAddUserToChannel(t *testing.T) {
 	err = th.App.JoinChannel(th.BasicChannel, ruser2.Id)
 	require.Nil(t, err)
 
+	// Should allow a bot to be added to a public group synced channel
+	_, err = th.App.AddUserToChannel(botUser, th.BasicChannel)
+	require.Nil(t, err)
+
 	// verify user was added as an admin
 	cm2, err := th.App.GetChannelMember(th.BasicChannel.Id, ruser2.Id)
 	require.Nil(t, err)
 	require.True(t, cm2.SchemeAdmin)
+
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, err = th.App.UpdateChannel(privateChannel)
+	require.Nil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: privateChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, err)
+
+	// Should allow a group synced user to be added to a group synced private channel
+	_, err = th.App.AddUserToChannel(ruser1, privateChannel)
+	require.Nil(t, err)
+
+	// Should allow a bot to be added to a private group synced channel
+	_, err = th.App.AddUserToChannel(botUser, privateChannel)
+	require.Nil(t, err)
+}
+
+func TestRemoveUserFromChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	ruser, _ := th.App.CreateUser(&user)
+	defer th.App.PermanentDeleteUser(ruser)
+
+	bot := th.CreateBot()
+	botUser, _ := th.App.GetUser(bot.UserId)
+	defer th.App.PermanentDeleteBot(botUser.Id)
+
+	th.App.AddTeamMember(th.BasicTeam.Id, ruser.Id)
+	th.App.AddTeamMember(th.BasicTeam.Id, bot.UserId)
+
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+
+	_, err := th.App.AddUserToChannel(ruser, privateChannel)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(botUser, privateChannel)
+	require.Nil(t, err)
+
+	group := th.CreateGroup()
+	_, err = th.App.UpsertGroupMember(group.Id, ruser.Id)
+	require.Nil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: privateChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, err)
+
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, err = th.App.UpdateChannel(privateChannel)
+	require.Nil(t, err)
+
+	// Should not allow a group synced user to be removed from channel
+	err = th.App.RemoveUserFromChannel(ruser.Id, th.SystemAdminUser.Id, privateChannel)
+	assert.Equal(t, err.Id, "api.channel.remove_members.denied")
+
+	// Should allow a user to remove themselves from group synced channel
+	err = th.App.RemoveUserFromChannel(ruser.Id, ruser.Id, privateChannel)
+	require.Nil(t, err)
+
+	// Should allow a bot to be removed from a group synced channel
+	err = th.App.RemoveUserFromChannel(botUser.Id, th.SystemAdminUser.Id, privateChannel)
+	require.Nil(t, err)
 }

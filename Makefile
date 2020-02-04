@@ -1,6 +1,12 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM := Windows
+else
+	PLATFORM := $(shell uname)
+endif
 
 IS_CI ?= false
 MM_NO_DOCKER ?= false
@@ -47,7 +53,9 @@ endif
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
-GOBIN ?= $(PWD)/bin
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
@@ -92,6 +100,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
+
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
@@ -111,8 +120,12 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-
 all: run ## Alias for 'run'.
+
+# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
+# The second sed will look for v<NUM>.<NUM>* and if its not found replace it with the word latest
+LATEST_RELEASE_MMCTL = $(shell scripts/get_latest_release.sh 'mattermost/mmctl')
+REL_TO_DOWNLOAD = $(shell git rev-parse --abbrev-ref HEAD | sed 's/release-/v/' | sed '/v\([0-9]\)\./! s/\(.*\)/$(LATEST_RELEASE_MMCTL)/')
 
 include build/*.mk
 
@@ -158,6 +171,23 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
 		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
+
+prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+# Externally built binaries
+ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+	@echo mmctl installed
+else ifeq ($(PLATFORM),Darwin)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(GOBIN) && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Linux)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(GOBIN) && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Windows)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
+else
+	@echo "mmctl error: can't detect OS"
+endif
 
 golangci-lint: ## Run golangci-lint on codebase
 # https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
@@ -309,7 +339,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		exit 1; \
 	fi
 
-run-server: validate-go-version start-docker ## Starts the server.
+run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -450,7 +480,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	$(GO) get -u
+	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
