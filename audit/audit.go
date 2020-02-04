@@ -5,15 +5,8 @@ package audit
 
 import "github.com/wiggin77/logr"
 
-// APILayer represents the application layer emitting an audit record.
-type APILayer string
-
 const (
-	Rest APILayer = "rest"
-	App  APILayer = "app"
-
 	KeyID        = "id"
-	KeyAPILayer  = "api_layer"
 	KeyAPIPath   = "api_path"
 	KeyEvent     = "event"
 	KeyUserID    = "user_id"
@@ -25,7 +18,7 @@ const (
 var (
 	// IDGenerator creates a new unique id for audit records.
 	// Reassign to generate custom ids.
-	IDGenerator func() string = newId
+	IDGenerator func() string = newID
 )
 
 // Meta represents metadata that can be added to a audit record as name/value pairs.
@@ -34,7 +27,6 @@ type Meta map[string]interface{}
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
 	ID        string
-	APILayer  APILayer
 	APIPath   string
 	Event     string
 	UserID    string
@@ -45,10 +37,9 @@ type Record struct {
 }
 
 // Log emits an audit record with complete info.
-func LogRecord(rec Record) {
+func LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
 	flds[KeyID] = rec.ID
-	flds[KeyAPILayer] = rec.APILayer
 	flds[KeyAPIPath] = rec.APIPath
 	flds[KeyEvent] = rec.Event
 	flds[KeyUserID] = rec.UserID
@@ -61,14 +52,13 @@ func LogRecord(rec Record) {
 	}
 
 	l := logger.WithFields(flds)
-	l.Info()
+	l.Log(logr.Level(level))
 }
 
 // Log emits an audit record based on minimum required info.
-func Log(layer APILayer, path string, evt string, userID string, sessionID string, meta Meta) {
-	LogRecord(Record{
+func Log(level Level, path string, evt string, userID string, sessionID string, meta Meta) {
+	LogRecord(level, Record{
 		ID:        IDGenerator(),
-		APILayer:  layer,
 		APIPath:   path,
 		Event:     evt,
 		UserID:    userID,

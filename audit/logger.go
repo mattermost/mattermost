@@ -12,15 +12,22 @@ import (
 	"github.com/wiggin77/logrus4logr"
 )
 
+type Level logr.Level
+
 const (
 	MaxQueueSize = 1000
-	AuditLevelID = 240
+
+	RestLevelID  = 240
+	AppLevelID   = 241
+	ModelLevelID = 242
 )
 
 var (
 	lgr         = &logr.Logr{MaxQueueSize: MaxQueueSize}
 	logger      = lgr.NewLogger()
-	AuditLevel  = logr.Level{ID: AuditLevelID, Name: "audit", Stacktrace: false}
+	RestLevel   = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
+	AppLevel    = Level{ID: AppLevelID, Name: "audit-app", Stacktrace: false}
+	ModelLevel  = Level{ID: ModelLevelID, Name: "audit-model", Stacktrace: false}
 	AuditFilter = &logr.CustomFilter{}
 
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
@@ -31,14 +38,14 @@ var (
 	OnError func(err error)
 
 	// DefaultFormatter is a formatter that can be used when creating targets.
-	DefaultFormatter = &format.JSON{DisableStacktrace: true, DisableLevel: true, KeyTimestamp: "CreateAt"}
+	DefaultFormatter = &format.JSON{DisableStacktrace: true, KeyTimestamp: "CreateAt"}
 )
 
 func init() {
 	lgr.OnQueueFull = onQueueFull
 	lgr.OnTargetQueueFull = onTargetQueueFull
 	lgr.OnLoggerError = onLoggerError
-	AuditFilter.Add(AuditLevel)
+	AuditFilter.Add(logr.Level(RestLevel), logr.Level(AppLevel))
 }
 
 func onQueueFull(rec *logr.LogRec, maxQueueSize int) bool {
