@@ -178,10 +178,10 @@ ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(GOBIN) && rm $$MMCTL_FILE
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Linux)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(GOBIN) && rm $$MMCTL_FILE
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Windows)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
 	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
