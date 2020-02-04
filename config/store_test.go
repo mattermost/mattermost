@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
-	sqlSettings := mainHelper.GetSqlSettings()
+	sqlSettings := mainHelper.GetSQLSettings()
 
 	tempDir, err := ioutil.TempDir("", "TestNewStore")
 	require.NoError(t, err)

@@ -107,6 +107,12 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterface = f
 }
 
+var samlInterfaceNew func(*App) einterfaces.SamlInterface
+
+func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
+	samlInterfaceNew = f
+}
+
 var notificationInterface func(*App) einterfaces.NotificationInterface
 
 func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
@@ -114,6 +120,9 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 }
 
 func (s *Server) initEnterprise() {
+	if metricsInterface != nil {
+		s.Metrics = metricsInterface(s.FakeApp())
+	}
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}
@@ -129,14 +138,17 @@ func (s *Server) initEnterprise() {
 	if messageExportInterface != nil {
 		s.MessageExport = messageExportInterface(s.FakeApp())
 	}
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s.FakeApp())
-	}
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
-		s.Saml = samlInterface(s.FakeApp())
+		if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+			mlog.Debug("Loading new SAML2 library")
+			s.Saml = samlInterfaceNew(s.FakeApp())
+		} else {
+			mlog.Debug("Loading original SAML library")
+			s.Saml = samlInterface(s.FakeApp())
+		}
 		s.AddConfigListener(func(_, cfg *model.Config) {
 			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))

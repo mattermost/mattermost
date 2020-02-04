@@ -890,12 +890,12 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
 	CheckNoError(t, resp)
@@ -910,7 +910,7 @@ func TestSearchAllTeams(t *testing.T) {
 	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
 	CheckNoError(t, resp)
 
-	require.Len(t, rteams, 0, "should have not returned team")
+	require.Empty(t, rteams, "should have not returned team")
 
 	Client.Logout()
 
@@ -1252,7 +1252,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
-	require.Len(t, rmembers, 0, "should be no member")
+	require.Empty(t, rmembers, "should be no member")
 
 	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
 	CheckNoError(t, resp)
@@ -1546,7 +1546,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -1651,6 +1651,66 @@ func TestAddTeamMemberMyself(t *testing.T) {
 
 }
 
+func TestAddTeamMembersDomainConstrained(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	client := th.SystemAdminClient
+	team := th.BasicTeam
+	team.AllowedDomains = "domain1.com, domain2.com"
+	_, response := client.UpdateTeam(team)
+	require.Nil(t, response.Error)
+
+	// create two users on allowed domains
+	user1, response := client.CreateUser(&model.User{
+		Email:    "user@domain1.com",
+		Password: "Pa$$word11",
+		Username: GenerateTestUsername(),
+	})
+	require.Nil(t, response.Error)
+	user2, response := client.CreateUser(&model.User{
+		Email:    "user@domain2.com",
+		Password: "Pa$$word11",
+		Username: GenerateTestUsername(),
+	})
+	require.Nil(t, response.Error)
+
+	userList := []string{
+		user1.Id,
+		user2.Id,
+	}
+
+	// validate that they can be added
+	tm, response := client.AddTeamMembers(team.Id, userList)
+	require.Nil(t, response.Error)
+	require.Len(t, tm, 2)
+
+	// cleanup
+	_, response = client.RemoveTeamMember(team.Id, user1.Id)
+	require.Nil(t, response.Error)
+	_, response = client.RemoveTeamMember(team.Id, user2.Id)
+	require.Nil(t, response.Error)
+
+	// disable one of the allowed domains
+	team.AllowedDomains = "domain1.com"
+	_, response = client.UpdateTeam(team)
+	require.Nil(t, response.Error)
+
+	// validate that they cannot be added
+	_, response = client.AddTeamMembers(team.Id, userList)
+	require.NotNil(t, response.Error)
+
+	// validate that one user can be added gracefully
+	members, response := client.AddTeamMembersGracefully(team.Id, userList)
+	require.Nil(t, response.Error)
+	require.Len(t, members, 2)
+	require.NotNil(t, members[0].Member)
+	require.NotNil(t, members[1].Error)
+	require.Equal(t, members[0].UserId, user1.Id)
+	require.Equal(t, members[1].UserId, user2.Id)
+	require.Nil(t, members[0].Error)
+	require.Nil(t, members[1].Member)
+}
+
 func TestAddTeamMembers(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -1660,6 +1720,11 @@ func TestAddTeamMembers(t *testing.T) {
 	userList := []string{
 		otherUser.Id,
 	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
 
 	err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
@@ -1753,8 +1818,12 @@ func TestAddTeamMembers(t *testing.T) {
 	_, resp = Client.AddTeamMembers(team.Id, userList)
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
 
+	// Ensure that a group synced team can still add bots
+	_, resp = Client.AddTeamMembers(team.Id, []string{bot.UserId})
+	CheckNoError(t, resp)
+
 	// Associate group to team
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		GroupId:    th.Group.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -1773,6 +1842,11 @@ func TestRemoveTeamMember(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
 
 	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
@@ -1800,12 +1874,19 @@ func TestRemoveTeamMember(t *testing.T) {
 	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
 
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, bot.UserId)
+	CheckNoError(t, resp)
+
 	// If the team is group-constrained the user cannot be removed
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	_, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err)
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+
+	// Can remove a bot even if team is group-constrained
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
+	CheckNoError(t, resp)
 
 	// Can remove self even if team is group-constrained
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
@@ -2050,7 +2131,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 	teams, resp = Client.GetTeamsUnreadForUser(user.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
-	require.Len(t, teams, 0, "should not have results")
+	require.Empty(t, teams, "should not have results")
 
 	_, resp = Client.GetTeamsUnreadForUser("fail", "")
 	CheckBadRequestStatus(t, resp)
@@ -2283,6 +2364,13 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
 		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.NotNil(t, res[1].Error)
 	})
 
 	t.Run("override restricted domains", func(t *testing.T) {
@@ -2303,6 +2391,12 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.NotNilf(t, err, "%v, Should not invite user", err)
+
+		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"test@invalid.com", "test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 	})
 }
 
@@ -2396,6 +2490,12 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 		err := th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.NotNil(t, err, "guest user invites should be affected by the guest domain restrictions")
+
+		res, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@invalid.com", "guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, res, 2)
+		require.NotNil(t, res[0].Error)
+		require.Nil(t, res[1].Error)
 
 		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, &model.GuestsInvite{Emails: []string{"guest1@guest.com"}, Channels: []string{th.BasicChannel.Id}, Message: "test message"}, th.BasicUser.Id)
 		require.Nil(t, err, "whitelisted guest user email should be allowed by the guest domain restrictions")

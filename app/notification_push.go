@@ -78,13 +78,35 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		return err
 	}
 
+	if msg == nil {
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	notification, parseError := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+	if parseError != nil {
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			parseError.Error(),
+			http.StatusInternalServerError,
+		)
+	}
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
 			continue
 		}
 
-		tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		// We made a copy to avoid decoding and parsing all the time
+		tmpMessage := notification
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 
@@ -453,11 +475,11 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	badge, err := a.getPushNotificationBadge(user, channel)
+	unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id)
 	if err != nil {
 		return nil, err
 	}
-	msg.Badge = badge
+	msg.Badge = int(unreadCount)
 
 	return msg, nil
 }
@@ -518,17 +540,4 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	msg.Message = a.getPushNotificationMessage(contentsConfig, post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	return msg
-}
-
-func (a *App) getPushNotificationBadge(user *model.User, channel *model.Channel) (int, *model.AppError) {
-	var unreadCount int64
-	var err *model.AppError
-
-	if user.NotifyProps["push"] == "all" {
-		unreadCount, err = a.Srv.Store.User().GetAnyUnreadPostCountForChannel(user.Id, channel.Id)
-	} else {
-		unreadCount, err = a.Srv.Store.User().GetUnreadCount(user.Id)
-	}
-
-	return int(unreadCount), err
 }

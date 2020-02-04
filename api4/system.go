@@ -13,8 +13,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -48,7 +48,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/server_busy/clear", api.ApiSessionRequired(clearServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -411,14 +411,23 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
-	ack := model.PushNotificationAckFromJson(r.Body)
+	ack, err := model.PushNotificationAckFromJson(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("pushNotificationAck",
+			"api.push_notifications_ack.message.parse.app_error",
+			nil,
+			err.Error(),
+			http.StatusBadRequest,
+		)
+		return
+	}
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	err := c.App.SendAckToPushProxy(ack)
+	err = c.App.SendAckToPushProxy(ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			// Log the error only, then continue to fetch notification message
