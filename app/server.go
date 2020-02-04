@@ -24,6 +24,7 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/jobs"
@@ -388,6 +389,8 @@ func (s *Server) Shutdown() error {
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
 
+	audit.Shutdown()
+
 	s.configStore.Close()
 
 	if s.Cluster != nil {
@@ -468,6 +471,9 @@ func stripPort(hostport string) string {
 
 func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
+
+	// configure auditing first
+	configureAudit(s)
 
 	var handler http.Handler = s.RootRouter
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
