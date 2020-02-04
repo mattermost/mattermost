@@ -56,7 +56,7 @@ func (s LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId strin
 		if cacheItem, ok := s.rootStore.profilesInChannelCache.Get(key); ok {
 			userMap := cacheItem.(map[string]*model.User)
 			if _, userInCache := userMap[userId]; userInCache {
-				s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key.(string))
+				s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key)
 				if s.rootStore.metrics != nil {
 					s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
 				}
