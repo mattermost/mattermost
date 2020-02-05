@@ -99,6 +99,8 @@ var PERMISSION_MANAGE_SYSTEM *Permission
 
 var ALL_PERMISSIONS []*Permission
 
+var CHANNEL_MODERATED_PERMISSIONS map[string]string
+
 func initializePermissions() {
 	PERMISSION_INVITE_USER = &Permission{
 		"invite_user",
@@ -640,6 +642,15 @@ func initializePermissions() {
 		PERMISSION_PROMOTE_GUEST,
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_USE_CHANNEL_MENTIONS,
+	}
+
+	CHANNEL_MODERATED_PERMISSIONS = map[string]string{
+		PERMISSION_CREATE_POST.Id:                    PERMISSION_CREATE_POST.Id,
+		PERMISSION_USE_CHANNEL_MENTIONS.Id:           PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		PERMISSION_ADD_REACTION.Id:                   "create_reactions",
+		PERMISSION_REMOVE_REACTION.Id:                "create_reactions",
+		PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id:  "manage_members",
+		PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id: "manage_members",
 	}
 }
 

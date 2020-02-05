@@ -300,6 +300,10 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Your license does not support channel moderation"
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },

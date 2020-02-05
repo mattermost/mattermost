@@ -915,3 +915,25 @@ func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	utils.EnableDebugLogForTest()
 }
+
+func (me *TestHelper) SetupTeamScheme() *model.Scheme {
+	return me.SetupScheme(model.SCHEME_SCOPE_TEAM)
+}
+
+func (me *TestHelper) SetupChannelScheme() *model.Scheme {
+	return me.SetupScheme(model.SCHEME_SCOPE_CHANNEL)
+}
+
+func (me *TestHelper) SetupScheme(scope string) *model.Scheme {
+	scheme := model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       scope,
+	}
+
+	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
+		return scheme
+	} else {
+		panic(err)
+	}
+}

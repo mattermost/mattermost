@@ -4903,3 +4903,12 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
