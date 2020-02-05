@@ -19,8 +19,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-field-caps.html
 // for details
 type FieldCapsService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index             []string
 	allowNoIndices    *bool
 	expandWildcards   string
@@ -35,6 +41,46 @@ func NewFieldCapsService(client *Client) *FieldCapsService {
 	return &FieldCapsService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *FieldCapsService) Pretty(pretty bool) *FieldCapsService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *FieldCapsService) Human(human bool) *FieldCapsService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *FieldCapsService) ErrorTrace(errorTrace bool) *FieldCapsService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *FieldCapsService) FilterPath(filterPath ...string) *FieldCapsService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *FieldCapsService) Header(name string, value string) *FieldCapsService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *FieldCapsService) Headers(headers http.Header) *FieldCapsService {
+	s.headers = headers
+	return s
 }
 
 // Index is a list of index names; use `_all` or empty string to perform
@@ -71,12 +117,6 @@ func (s *FieldCapsService) IgnoreUnavailable(ignoreUnavailable bool) *FieldCapsS
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *FieldCapsService) Pretty(pretty bool) *FieldCapsService {
-	s.pretty = pretty
-	return s
-}
-
 // BodyJson is documented as: Field json objects containing the name and optionally a range to filter out indices result, that have results outside the defined bounds.
 func (s *FieldCapsService) BodyJson(body interface{}) *FieldCapsService {
 	s.bodyJson = body
@@ -107,8 +147,17 @@ func (s *FieldCapsService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -158,6 +207,7 @@ func (s *FieldCapsService) Do(ctx context.Context) (*FieldCapsResponse, error) {
 		Params:       params,
 		Body:         body,
 		IgnoreErrors: []int{http.StatusNotFound},
+		Headers:      s.headers,
 	})
 	if err != nil {
 		return nil, err
