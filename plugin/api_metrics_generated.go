@@ -889,25 +889,25 @@ func (api *apiMetricsWrapper) HasPermissionToChannel(userId, channelId string, p
 
 func (api *apiMetricsWrapper) LogDebug(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogDebug(msg, keyValuePairs)
+	api.apiImpl.LogDebug(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogDebug")
 }
 
 func (api *apiMetricsWrapper) LogInfo(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogInfo(msg, keyValuePairs)
+	api.apiImpl.LogInfo(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogInfo")
 }
 
 func (api *apiMetricsWrapper) LogError(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogError(msg, keyValuePairs)
+	api.apiImpl.LogError(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogError")
 }
 
 func (api *apiMetricsWrapper) LogWarn(msg string, keyValuePairs ...interface{}) {
 	startTime := timePkg.Now()
-	api.apiImpl.LogWarn(msg, keyValuePairs)
+	api.apiImpl.LogWarn(msg, keyValuePairs...)
 	api.recordTime(startTime, "LogWarn")
 }
 

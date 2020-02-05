@@ -55,14 +55,18 @@ func FieldListToFuncList(fieldList *ast.FieldList, fileset *token.FileSet) strin
 	return "(" + strings.Join(result, ", ") + ")"
 }
 
-func FieldListToNames(fieldList *ast.FieldList, fileset *token.FileSet) string {
+func FieldListToNames(fieldList *ast.FieldList, fileset *token.FileSet, variadicForm bool) string {
 	result := []string{}
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return ""
 	}
 	for _, field := range fieldList.List {
 		for _, name := range field.Names {
-			result = append(result, name.Name)
+			paramName := name.Name
+			if _, ok := field.Type.(*ast.Ellipsis); ok && variadicForm {
+				paramName = fmt.Sprintf("%s...", paramName)
+			}
+			result = append(result, paramName)
 		}
 	}
 
@@ -413,7 +417,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]interface{}{
 		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
 		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet) },
+		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet, false) },
 		"encodeErrors": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListToEncodedErrors(structPrefix, fields, info.FileSet)
 		},
@@ -466,7 +470,7 @@ func generatePluginMetricsWrapper(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]interface{}{
 		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
 		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet) },
+		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet, true) },
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
