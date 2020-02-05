@@ -2387,6 +2387,12 @@ func TestRemoveChannelMember(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
+	th.App.AddUserToTeam(team.Id, bot.UserId, "")
+
 	pass, resp := Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
 	require.True(t, pass, "should have passed")
@@ -2536,6 +2542,8 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckNoError(t, resp)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, bot.UserId)
+	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckForbiddenStatus(t, resp)
@@ -2562,6 +2570,10 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	// Test on preventing removal of user from a direct channel
 	directChannel, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// If the channel is group-constrained a user can remove a bot
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, bot.UserId)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user1.Id)
