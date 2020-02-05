@@ -1248,7 +1248,6 @@ func TestApiMetrics(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		metricsMock := &mocks.MetricsInterface{}
 
-		// th.App, th.App.NewPluginAPI, metricsMock
 		pluginDir, err := ioutil.TempDir("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := ioutil.TempDir("", "")
