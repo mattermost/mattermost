@@ -48,4 +48,9 @@ type MetricsInterface interface {
 	IncrementPostIndexCounter()
 	IncrementUserIndexCounter()
 	IncrementChannelIndexCounter()
+
+	ObservePluginHookDuration(pluginID, hookName string, elapsed float64)
+	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
+	ObservePluginMultiHookDuration(elapsed float64)
+	ObservePluginApiDuration(pluginID, apiName string, elapsed float64)
 }

@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -726,6 +727,7 @@ func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds 
 }
 
 func (api *PluginAPI) KVGet(key string) ([]byte, *model.AppError) {
+	time.Sleep(5 * time.Second)
 	return api.app.GetPluginKey(api.id, key)
 }
 
