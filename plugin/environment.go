@@ -466,11 +466,11 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 			return true
 		}
 
-		startTime := time.Now()
+		hookStartTime := time.Now()
 		result := hookRunnerFunc(rp.supervisor.Hooks())
 
 		if env.metrics != nil {
-			elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
 			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
 		}
 
