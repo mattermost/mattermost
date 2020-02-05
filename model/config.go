@@ -93,6 +93,7 @@ const (
 	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE       = ""
 	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT       = 300
 	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT      = 300
+	SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT       = 60
 	SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS = 10
 	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM    = ""
 	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
@@ -256,6 +257,7 @@ type ServiceSettings struct {
 	TrustedProxyIPHeader                              []string `restricted:"true"`
 	ReadTimeout                                       *int     `restricted:"true"`
 	WriteTimeout                                      *int     `restricted:"true"`
+	IdleTimeout                                       *int     `restricted:"true"`
 	MaximumLoginAttempts                              *int     `restricted:"true"`
 	GoroutineHealthThreshold                          *int     `restricted:"true"`
 	GoogleDeveloperKey                                *string  `restricted:"true"`
@@ -457,6 +459,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.WriteTimeout == nil {
 		s.WriteTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT)
+	}
+
+	if s.IdleTimeout == nil {
+		s.IdleTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT)
 	}
 
 	if s.MaximumLoginAttempts == nil {

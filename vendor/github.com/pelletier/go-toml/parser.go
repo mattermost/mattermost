@@ -313,7 +313,41 @@ func (p *tomlParser) parseRvalue() interface{} {
 		}
 		return val
 	case tokenDate:
-		val, err := time.ParseInLocation(time.RFC3339Nano, tok.val, time.UTC)
+		layout := time.RFC3339Nano
+		if !strings.Contains(tok.val, "T") {
+			layout = strings.Replace(layout, "T", " ", 1)
+		}
+		val, err := time.ParseInLocation(layout, tok.val, time.UTC)
+		if err != nil {
+			p.raiseError(tok, "%s", err)
+		}
+		return val
+	case tokenLocalDate:
+		v := strings.Replace(tok.val, " ", "T", -1)
+		isDateTime := false
+		isTime := false
+		for _, c := range v {
+			if c == 'T' || c == 't' {
+				isDateTime = true
+				break
+			}
+			if c == ':' {
+				isTime = true
+				break
+			}
+		}
+
+		var val interface{}
+		var err error
+
+		if isDateTime {
+			val, err = ParseLocalDateTime(v)
+		} else if isTime {
+			val, err = ParseLocalTime(v)
+		} else {
+			val, err = ParseLocalDate(v)
+		}
+
 		if err != nil {
 			p.raiseError(tok, "%s", err)
 		}
@@ -356,12 +390,15 @@ Loop:
 			}
 			key := p.getToken()
 			p.assume(tokenEqual)
-			value := p.parseRvalue()
-			tree.Set(key.val, value)
-		case tokenComma:
-			if previous == nil {
-				p.raiseError(follow, "inline table cannot start with a comma")
+
+			parsedKey, err := parseKey(key.val)
+			if err != nil {
+				p.raiseError(key, "invalid key: %s", err)
 			}
+
+			value := p.parseRvalue()
+			tree.SetPath(parsedKey, value)
+		case tokenComma:
 			if tokenIsComma(previous) {
 				p.raiseError(follow, "need field between two commas in inline table")
 			}
