@@ -21,7 +21,6 @@ type FunctionScoreQuery struct {
 	filters    []Query
 	scoreFuncs []ScoreFunction
 	minScore   *float64
-	weight     *float64
 }
 
 // NewFunctionScoreQuery creates and initializes a new function score query.

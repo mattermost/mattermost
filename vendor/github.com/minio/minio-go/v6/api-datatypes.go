@@ -18,6 +18,8 @@
 package minio
 
 import (
+	"encoding/xml"
+	"io"
 	"net/http"
 	"time"
 )
@@ -28,6 +30,36 @@ type BucketInfo struct {
 	Name string `json:"name"`
 	// Date the bucket was created.
 	CreationDate time.Time `json:"creationDate"`
+}
+
+// StringMap represents map with custom UnmarshalXML
+type StringMap map[string]string
+
+// UnmarshalXML unmarshals the XML into a map of string to strings,
+// creating a key in the map for each tag and setting it's value to the
+// tags contents.
+//
+// The fact this function is on the pointer of Map is important, so that
+// if m is nil it can be initialized, which is often the case if m is
+// nested in another xml structurel. This is also why the first thing done
+// on the first line is initialize it.
+func (m *StringMap) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	*m = StringMap{}
+	type xmlMapEntry struct {
+		XMLName xml.Name
+		Value   string `xml:",chardata"`
+	}
+	for {
+		var e xmlMapEntry
+		err := d.Decode(&e)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		(*m)[e.XMLName.Local] = e.Value
+	}
+	return nil
 }
 
 // ObjectInfo container for object metadata.
@@ -47,11 +79,24 @@ type ObjectInfo struct {
 	// eg: x-amz-meta-*, content-encoding etc.
 	Metadata http.Header `json:"metadata" xml:"-"`
 
+	// x-amz-meta-* headers stripped "x-amz-meta-" prefix containing the first value.
+	UserMetadata StringMap `json:"userMetadata"`
+
 	// Owner name.
 	Owner struct {
 		DisplayName string `json:"name"`
 		ID          string `json:"id"`
 	} `json:"owner"`
+
+	// ACL grant.
+	Grant []struct {
+		Grantee struct {
+			ID          string `xml:"ID"`
+			DisplayName string `xml:"DisplayName"`
+			URI         string `xml:"URI"`
+		} `xml:"Grantee"`
+		Permission string `xml:"Permission"`
+	} `xml:"Grant"`
 
 	// The class of storage used to store the object.
 	StorageClass string `json:"storageClass"`

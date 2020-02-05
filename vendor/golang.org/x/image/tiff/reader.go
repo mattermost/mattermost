@@ -404,6 +404,9 @@ func newDecoder(r io.Reader) (*decoder, error) {
 
 	p := make([]byte, 8)
 	if _, err := d.r.ReadAt(p, 0); err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
 		return nil, err
 	}
 	switch string(p[0:4]) {
