@@ -25,8 +25,27 @@ type Context struct {
 }
 
 // LogAuditExMeta logs an audit record.
-func (c *Context) LogAuditEx(rec *audit.Record) {
+func (c *Context) LogAuditRec(rec *audit.Record) {
+	if c.Err != nil {
+		rec.AddMeta("err", c.Err.Id)
+		rec.AddMeta("code", c.Err.StatusCode)
+	}
 	audit.LogRecord(audit.RestLevel, *rec)
+}
+
+// LogAuditMeta creates an audit record and logs it.
+func (c *Context) LogAuditEx(event string, status string) {
+	rec := c.MakeAuditRecord(event, status)
+	c.LogAuditRec(rec)
+}
+
+// LogAuditMeta creates an audit record with metadata and logs it.
+func (c *Context) LogAuditMeta(event string, status string, meta audit.Meta) {
+	rec := c.MakeAuditRecord(event, status)
+	if meta != nil {
+		rec.Meta = meta
+	}
+	c.LogAuditRec(rec)
 }
 
 // MakeAuditRecord creates a audit record pre-populated with data from this context.

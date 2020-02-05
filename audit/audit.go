@@ -41,6 +41,24 @@ type Record struct {
 	Meta      Meta
 }
 
+// Success marks the audit record status as successful.
+func (rec *Record) Success() {
+	rec.Status = Success
+}
+
+// Success marks the audit record status as failed.
+func (rec *Record) Fail() {
+	rec.Status = Fail
+}
+
+// AddMeta adds a single name/value pair to this audit record's metadata.
+func (rec *Record) AddMeta(name string, val interface{}) {
+	if rec.Meta == nil {
+		rec.Meta = Meta{}
+	}
+	rec.Meta[name] = val
+}
+
 // Log emits an audit record with complete info.
 func LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
