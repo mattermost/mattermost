@@ -253,6 +253,26 @@ func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*m
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
 }
 
+func (me *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
+	return me.CreateBotWithClient((me.SystemAdminClient))
+}
+
+func (me *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	utils.DisableDebugLogForTest()
+	rbot, resp := client.CreateBot(bot)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+	return rbot
+}
+
 func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }

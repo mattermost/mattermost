@@ -5,7 +5,7 @@
 
 
 
-durafmt is a tiny Go library that formats `time.Duration` strings into a human readable format.
+durafmt is a tiny Go library that formats `time.Duration` strings (and types) into a human readable format.
 
 ```
 go get github.com/hako/durafmt
@@ -34,6 +34,7 @@ package main
 
 import (
 	"fmt"
+	
 	"github.com/hako/durafmt"
 )
 
@@ -56,6 +57,7 @@ package main
 
 import (
 	"fmt"
+	
 	"github.com/hako/durafmt"
 )
 
@@ -77,6 +79,7 @@ package main
 import (
 	"fmt"
 	"time"
+	
 	"github.com/hako/durafmt"
 )
 
@@ -87,9 +90,9 @@ func main() {
 }
 ```
 
-### durafmt.ParseShort()
+#### LimitFirstN()
 
-Version of `durafmt.Parse()` that only returns the first part of the duration string.
+Like `durafmt.ParseStringShort()` but for limiting the first N parts of the duration string.
 
 ```go
 package main
@@ -97,25 +100,26 @@ package main
 import (
 	"fmt"
 	"time"
+	
 	"github.com/hako/durafmt"
 )
 
 func main() {
 	timeduration := (354 * time.Hour) + (22 * time.Minute) + (3 * time.Second)
-	duration := durafmt.ParseShort(timeduration).String()
-	fmt.Println(duration) // 2 weeks
+	duration := durafmt.Parse(timeduration).LimitFirstN(2) // // limit first two parts.
+	fmt.Println(duration) // 2 weeks 18 hours
 }
 ```
 
 # Contributing
 
-Contributions are welcome! Fork this repo and add your changes and submit a PR.
+Contributions are welcome! Fork this repo, add your changes and submit a PR.
 
 If you would like to fix a bug, add a feature or provide feedback you can do so in the issues section.
 
-You can run tests by runnning `go test`. Running `go test; go vet; golint` is recommended.
+durafmt is tested against `golangci-lint` and you can run tests with `go test`. 
 
-durafmt is also tested against `gometalinter`.
+When contributing, running `go test; go vet; golint` or `golangci-lint` is recommended.
 
 # License
 
