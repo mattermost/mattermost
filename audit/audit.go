@@ -9,10 +9,15 @@ const (
 	KeyID        = "id"
 	KeyAPIPath   = "api_path"
 	KeyEvent     = "event"
+	KeyStatus    = "status"
 	KeyUserID    = "user_id"
 	KeySessionID = "session_id"
 	KeyClient    = "client"
 	KeyIPAddress = "ip_address"
+
+	Success = "success"
+	Attempt = "attempt"
+	Fail    = "fail"
 )
 
 var (
@@ -26,9 +31,9 @@ type Meta map[string]interface{}
 
 // Record provides a consistent set of fields used for all audit logging.
 type Record struct {
-	ID        string
 	APIPath   string
 	Event     string
+	Status    string
 	UserID    string
 	SessionID string
 	Client    string
@@ -39,9 +44,10 @@ type Record struct {
 // Log emits an audit record with complete info.
 func LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
-	flds[KeyID] = rec.ID
+	flds[KeyID] = IDGenerator()
 	flds[KeyAPIPath] = rec.APIPath
 	flds[KeyEvent] = rec.Event
+	flds[KeyStatus] = rec.Status
 	flds[KeyUserID] = rec.UserID
 	flds[KeySessionID] = rec.SessionID
 	flds[KeyClient] = rec.Client
@@ -56,11 +62,11 @@ func LogRecord(level Level, rec Record) {
 }
 
 // Log emits an audit record based on minimum required info.
-func Log(level Level, path string, evt string, userID string, sessionID string, meta Meta) {
+func Log(level Level, path string, evt string, status string, userID string, sessionID string, meta Meta) {
 	LogRecord(level, Record{
-		ID:        IDGenerator(),
 		APIPath:   path,
 		Event:     evt,
+		Status:    status,
 		UserID:    userID,
 		SessionID: sessionID,
 		Meta:      meta,

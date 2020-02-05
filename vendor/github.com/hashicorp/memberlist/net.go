@@ -669,7 +669,8 @@ func (m *Memberlist) rawSendMsgPacket(addr string, node *Node, msg []byte) error
 		}
 	}
 
-	// Try to look up the destination node
+	// Try to look up the destination node. Note this will only work if the
+	// bare ip address is used as the node name, which is not guaranteed.
 	if node == nil {
 		toAddr, _, err := net.SplitHostPort(addr)
 		if err != nil {

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -21,6 +22,25 @@ type Context struct {
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
+}
+
+// LogAuditExMeta logs an audit record.
+func (c *Context) LogAuditEx(rec *audit.Record) {
+	audit.LogRecord(audit.RestLevel, *rec)
+}
+
+// MakeAuditRecord creates a audit record pre-populated with data from this context.
+func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+	return &audit.Record{
+		APIPath:   c.App.Path,
+		Event:     event,
+		Status:    initialStatus,
+		UserID:    c.App.Session.UserId,
+		SessionID: c.App.Session.Id,
+		Client:    c.App.UserAgent,
+		IPAddress: c.App.IpAddress,
+		Meta:      audit.Meta{},
+	}
 }
 
 func (c *Context) LogAudit(extraInfo string) {

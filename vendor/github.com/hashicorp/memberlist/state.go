@@ -19,6 +19,7 @@ const (
 	stateAlive nodeStateType = iota
 	stateSuspect
 	stateDead
+	stateLeft
 )
 
 // Node represents a node in the cluster.
@@ -58,6 +59,10 @@ type nodeState struct {
 // with a transport.
 func (n *nodeState) Address() string {
 	return n.Node.Address()
+}
+
+func (n *nodeState) DeadOrLeft() bool {
+	return n.State == stateDead || n.State == stateLeft
 }
 
 // ackHandler is used to register handlers for incoming acks and nacks.
@@ -218,7 +223,7 @@ START:
 	node = *m.nodes[m.probeIndex]
 	if node.Name == m.config.Name {
 		skip = true
-	} else if node.State == stateDead {
+	} else if node.DeadOrLeft() {
 		skip = true
 	}
 
@@ -963,8 +968,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 				time.Since(state.StateChange) > m.config.DeadNodeReclaimTime)
 
 			// Allow the address to be updated if a dead node is being replaced.
-			if state.State == stateDead && canReclaim {
-				m.logger.Printf("[INFO] memberlist: Updating address for failed node %s from %v:%d to %v:%d",
+			if state.State == stateLeft || (state.State == stateDead && canReclaim) {
+				m.logger.Printf("[INFO] memberlist: Updating address for left or failed node %s from %v:%d to %v:%d",
 					state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port)
 				updatesNode = true
 			} else {
@@ -1059,8 +1064,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 
 	// Notify the delegate of any relevant updates
 	if m.config.Events != nil {
-		if oldState == stateDead {
-			// if Dead -> Alive, notify of join
+		if oldState == stateDead || oldState == stateLeft {
+			// if Dead/Left -> Alive, notify of join
 			m.config.Events.NotifyJoin(&state.Node)
 
 		} else if !bytes.Equal(oldMeta, state.Meta) {
@@ -1179,7 +1184,7 @@ func (m *Memberlist) deadNode(d *dead) {
 	delete(m.nodeTimers, d.Node)
 
 	// Ignore if node is already dead
-	if state.State == stateDead {
+	if state.DeadOrLeft() {
 		return
 	}
 
@@ -1203,7 +1208,14 @@ func (m *Memberlist) deadNode(d *dead) {
 
 	// Update the state
 	state.Incarnation = d.Incarnation
-	state.State = stateDead
+
+	// If the dead message was send by the node itself, mark it is left
+	// instead of dead.
+	if d.Node == d.From {
+		state.State = stateLeft
+	} else {
+		state.State = stateDead
+	}
 	state.StateChange = time.Now()
 
 	// Notify of death
@@ -1228,6 +1240,9 @@ func (m *Memberlist) mergeState(remote []pushNodeState) {
 			}
 			m.aliveNode(&a, nil, false)
 
+		case stateLeft:
+			d := dead{Incarnation: r.Incarnation, Node: r.Name, From: r.Name}
+			m.deadNode(&d)
 		case stateDead:
 			// If the remote node believes a node is dead, we prefer to
 			// suspect that node instead of declaring it dead instantly

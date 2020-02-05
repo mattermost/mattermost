@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -32,7 +33,8 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
+	rec := c.MakeAuditRecord("createCommand", audit.Fail)
+	defer c.LogAuditEx(rec)
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
@@ -47,7 +49,9 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success")
+	rec.Status = audit.Success
+	rec.Meta["command_id"] = rcmd.Id
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rcmd.ToJson()))
 }
@@ -64,7 +68,8 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
+	rec := c.MakeAuditRecord("updateCommand", audit.Fail)
+	defer c.LogAuditEx(rec)
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
@@ -97,7 +102,8 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success")
+	rec.Status = audit.Success
+	rec.Meta["command_id"] = rcmd.Id
 
 	w.Write([]byte(rcmd.ToJson()))
 }

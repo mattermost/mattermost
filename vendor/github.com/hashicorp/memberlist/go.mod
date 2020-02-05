@@ -1,5 +1,7 @@
 module github.com/hashicorp/memberlist
 
+go 1.12
+
 require (
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da
 	github.com/davecgh/go-spew v1.1.1 // indirect

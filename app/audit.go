@@ -26,7 +26,7 @@ func configureAudit(s *Server) {
 	ast := NewAuditStoreTarget(audit.AuditFilter, audit.DefaultFormatter, s, audit.MaxQueueSize)
 	audit.AddTarget(ast)
 
-	// Audit to a file
+	// Audit to a file via config
 	// TODO
 }
 
