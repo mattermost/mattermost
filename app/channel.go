@@ -685,6 +685,7 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, nil
 }
 
+// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
 	channel, err := a.GetChannel(channelId)
 	if err != nil {
@@ -700,7 +701,12 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string
 		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
 	}
 
-	team, err := a.GetTeam(channel.TeamId)
+	return a.GetTeamSchemeRolesForChannel(channel.TeamId)
+}
+
+// GetTeamSchemeRolesForChannel Checks if a team has an override scheme and returns the scheme channel roles or default channel roles.
+func (a *App) GetTeamSchemeRolesForChannel(teamId string) (string, string, string, *model.AppError) {
+	team, err := a.GetTeam(teamId)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -714,6 +720,73 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string
 	}
 
 	return model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+}
+
+func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.ChannelModeration, *model.AppError) {
+	channel, err := a.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	memberRole, err := a.GetRoleByName(memberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	guestRole, err := a.GetRoleByName(guestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	memberPermissions := GetChannelModeratedPermissions(memberRole)
+	guestPermissions := GetChannelModeratedPermissions(guestRole)
+
+	inhertedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	inhertedGuestRole, err := a.GetRoleByName(inhertedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+	inheritedMemberPermissions := GetChannelModeratedPermissions(inheritedMemberRole)
+	inheritedGuestPermissions := GetChannelModeratedPermissions(inhertedGuestRole)
+
+	var channelModerations []*model.ChannelModeration
+	existingModerations := make(map[string]bool)
+	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
+		// Certain moderations have more than one associated permissions skip any extra permissions as they are assumed to all have the same value.
+		if existingModerations[permissionKey] {
+			continue
+		}
+
+		roles := make(map[string]map[string]bool)
+
+		roles["members"] = map[string]bool{
+			"value":   memberPermissions[permissionKey],
+			"enabled": inheritedMemberPermissions[permissionKey],
+		}
+
+		if permissionKey != "manage_members" {
+			roles["guests"] = map[string]bool{
+				"value":   guestPermissions[permissionKey],
+				"enabled": inheritedGuestPermissions[permissionKey],
+			}
+		}
+
+		moderation := &model.ChannelModeration{
+			Name:  permissionKey,
+			Roles: roles,
+		}
+
+		channelModerations = append(channelModerations, moderation)
+		existingModerations[permissionKey] = true
+	}
+
+	return channelModerations, nil
 }
 
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {

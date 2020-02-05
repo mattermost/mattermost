@@ -2990,3 +2990,113 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 		})
 	}
 }
+
+func TestGetChannelModerations(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	team := th.BasicTeam
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Equal(t, "api.channel.get_channel_moderations.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Errors as a non sysadmin", func(t *testing.T) {
+		_, res := th.Client.GetChannelModerations(channel.Id, "")
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Returns default moderations with default roles", func(t *testing.T) {
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles["guests"])
+			} else {
+				require.Equal(t, moderation.Roles["guests"]["value"], true)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+			}
+
+			require.Equal(t, moderation.Roles["members"]["value"], true)
+			require.Equal(t, moderation.Roles["members"]["enabled"], true)
+		}
+	})
+
+	t.Run("Returns value false and enabled false for permissions that are not present in inherited scheme when no channel scheme present", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles["members"]["value"], true)
+				require.Equal(t, moderation.Roles["members"]["enabled"], true)
+				require.Equal(t, moderation.Roles["guests"]["value"], false)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], false)
+			}
+		}
+	})
+
+	t.Run("Returns value false and enabled true for permissions that are not present in channel scheme but present in team scheme", func(t *testing.T) {
+		scheme := th.SetupChannelScheme()
+		channel.SchemeId = &scheme.Id
+		_, err := th.App.UpdateChannelScheme(channel)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles["members"]["value"], true)
+				require.Equal(t, moderation.Roles["members"]["enabled"], true)
+				require.Equal(t, moderation.Roles["guests"]["value"], false)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+			}
+		}
+	})
+
+	t.Run("Returns value false and enabled false for permissions that are not present in channel & team scheme", func(t *testing.T) {
+		teamScheme := th.SetupTeamScheme()
+		team.SchemeId = &teamScheme.Id
+		th.App.UpdateTeamScheme(team)
+
+		scheme := th.SetupChannelScheme()
+		channel.SchemeId = &scheme.Id
+		th.App.UpdateChannelScheme(channel)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
+
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles["members"]["value"], true)
+				require.Equal(t, moderation.Roles["members"]["enabled"], true)
+				require.Equal(t, moderation.Roles["guests"]["value"], false)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], false)
+			}
+		}
+	})
+}

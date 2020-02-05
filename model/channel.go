@@ -84,6 +84,11 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+type ChannelModeration struct {
+	Name  string                     `json:"name"`
+	Roles map[string]map[string]bool `json:"roles"`
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
@@ -140,6 +145,12 @@ func ChannelFromJson(data io.Reader) *Channel {
 
 func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
 	var o *ChannelPatch
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelModerationsFromJson(data io.Reader) []*ChannelModeration {
+	var o []*ChannelModeration
 	json.NewDecoder(data).Decode(&o)
 	return o
 }
