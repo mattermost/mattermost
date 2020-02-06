@@ -2090,28 +2090,28 @@ func (s *OpenTracingAppLayer) FillInPostProps(post *model.Post, channel *model.C
 	return s.app.FillInPostProps(post, channel)
 }
 
-func (s *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+func (s *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIds []string, channel *model.Channel) ([]string, error) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FilterNonGroupChannelMembers")
 
-	span.SetTag("userIDs", userIDs)
+	span.SetTag("userIds", userIds)
 
 	span.SetTag("channel", channel)
 
 	defer span.Finish()
 
-	return s.app.FilterNonGroupChannelMembers(userIDs, channel)
+	return s.app.FilterNonGroupChannelMembers(userIds, channel)
 }
 
-func (s *OpenTracingAppLayer) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+func (s *OpenTracingAppLayer) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FilterNonGroupTeamMembers")
 
-	span.SetTag("userIDs", userIDs)
+	span.SetTag("userIds", userIds)
 
 	span.SetTag("team", team)
 
 	defer span.Finish()
 
-	return s.app.FilterNonGroupTeamMembers(userIDs, team)
+	return s.app.FilterNonGroupTeamMembers(userIds, team)
 }
 
 func (s *OpenTracingAppLayer) FindTeamByName(name string) bool {
@@ -3726,14 +3726,16 @@ func (s *OpenTracingAppLayer) GetPostIdBeforeTime(channelId string, time int64) 
 	return s.app.GetPostIdBeforeTime(channelId, time)
 }
 
-func (s *OpenTracingAppLayer) GetPostThread(postId string) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostThread")
 
 	span.SetTag("postId", postId)
 
+	span.SetTag("skipFetchThreads", skipFetchThreads)
+
 	defer span.Finish()
 
-	return s.app.GetPostThread(postId)
+	return s.app.GetPostThread(postId, skipFetchThreads)
 }
 
 func (s *OpenTracingAppLayer) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -3750,54 +3752,36 @@ func (s *OpenTracingAppLayer) GetPosts(channelId string, offset int, limit int) 
 	return s.app.GetPosts(channelId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetPostsAfterPost(channelId string, postId string, page int, perPage int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsAfterPost")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.app.GetPostsAfterPost(channelId, postId, page, perPage)
+	return s.app.GetPostsAfterPost(options)
 }
 
-func (s *OpenTracingAppLayer) GetPostsAroundPost(postId string, channelId string, offset int, limit int, before bool) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsAroundPost")
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("offset", offset)
-
-	span.SetTag("limit", limit)
 
 	span.SetTag("before", before)
 
+	span.SetTag("options", options)
+
 	defer span.Finish()
 
-	return s.app.GetPostsAroundPost(postId, channelId, offset, limit, before)
+	return s.app.GetPostsAroundPost(before, options)
 }
 
-func (s *OpenTracingAppLayer) GetPostsBeforePost(channelId string, postId string, page int, perPage int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsBeforePost")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.app.GetPostsBeforePost(channelId, postId, page, perPage)
+	return s.app.GetPostsBeforePost(options)
 }
 
 func (s *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
@@ -3810,7 +3794,7 @@ func (s *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
 	return s.app.GetPostsEtag(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsForChannelAroundLastUnread")
 
 	span.SetTag("channelId", channelId)
@@ -3821,35 +3805,31 @@ func (s *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId strin
 
 	span.SetTag("limitAfter", limitAfter)
 
+	span.SetTag("skipFetchThreads", skipFetchThreads)
+
 	defer span.Finish()
 
-	return s.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter)
+	return s.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter, skipFetchThreads)
 }
 
-func (s *OpenTracingAppLayer) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsPage")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.app.GetPostsPage(channelId, page, perPage)
+	return s.app.GetPostsPage(options)
 }
 
-func (s *OpenTracingAppLayer) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+func (s *OpenTracingAppLayer) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsSince")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("time", time)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.app.GetPostsSince(channelId, time)
+	return s.app.GetPostsSince(options)
 }
 
 func (s *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
@@ -5344,6 +5324,20 @@ func (s *OpenTracingAppLayer) InviteGuestsToChannels(teamId string, guestsInvite
 	return s.app.InviteGuestsToChannels(teamId, guestsInvite, senderId)
 }
 
+func (s *OpenTracingAppLayer) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteGuestsToChannelsGracefully")
+
+	span.SetTag("teamId", teamId)
+
+	span.SetTag("guestsInvite", guestsInvite)
+
+	span.SetTag("senderId", senderId)
+
+	defer span.Finish()
+
+	return s.app.InviteGuestsToChannelsGracefully(teamId, guestsInvite, senderId)
+}
+
 func (s *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamId string, senderId string) *model.AppError {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteNewUsersToTeam")
 
@@ -5356,6 +5350,20 @@ func (s *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamId st
 	defer span.Finish()
 
 	return s.app.InviteNewUsersToTeam(emailList, teamId, senderId)
+}
+
+func (s *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string, teamId string, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteNewUsersToTeamGracefully")
+
+	span.SetTag("emailList", emailList)
+
+	span.SetTag("teamId", teamId)
+
+	span.SetTag("senderId", senderId)
+
+	defer span.Finish()
+
+	return s.app.InviteNewUsersToTeamGracefully(emailList, teamId, senderId)
 }
 
 func (s *OpenTracingAppLayer) IsESAutocompletionEnabled() bool {
