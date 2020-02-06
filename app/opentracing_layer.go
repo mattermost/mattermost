@@ -20,21 +20,19 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/utils"
-
+	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type OpenTracingAppLayer struct {
@@ -3292,7 +3290,7 @@ func (s *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePlu
 	return s.app.GetMarketplacePlugins(filter)
 }
 
-func (s *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc goi18n.TranslateFunc) string {
+func (s *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetMessageForNotification")
 
 	span.SetTag("post", post)
@@ -5110,6 +5108,16 @@ func (s *OpenTracingAppLayer) ImageProxyRemover() func(string) string {
 	defer span.Finish()
 
 	return s.app.ImageProxyRemover()
+}
+
+func (s *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
+	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportPermissions")
+
+	span.SetTag("jsonl", jsonl)
+
+	defer span.Finish()
+
+	return s.app.ImportPermissions(jsonl)
 }
 
 func (s *OpenTracingAppLayer) InitPlugins(pluginDir string, webappPluginDir string) {

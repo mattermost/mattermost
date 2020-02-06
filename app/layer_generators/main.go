@@ -7,9 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/format"
-
-	// "go/format"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -17,6 +14,8 @@ import (
 	"path"
 	"strings"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 var reserved = []string{"AcceptLanguage", "AccountMigration", "Cluster", "Compliance", "Context", "DataRetention", "Elasticsearch", "HTTPService", "ImageProxy", "IpAddress", "Ldap", "Log", "MessageExport", "Metrics", "Notification", "NotificationsLog", "Path", "RequestId", "Saml", "Session", "SetIpAddress", "SetRequestId", "SetSession", "SetStore", "SetT", "Srv", "Store", "T", "Timezones", "UserAgent", "SetUserAgent", "SetAcceptLanguage", "SetPath", "SetContext", "SetServer", "GetT"}
@@ -27,12 +26,13 @@ func main() {
 
 func BuildOpenTracingAppLayer() {
 	code := GenerateLayer("OpenTracingAppLayer", "opentracing_layer.go.tmpl")
-	formatedCode, err := format.Source([]byte(code))
+	outputFile := path.Join("..", "opentracing_layer.go")
+	formattedCode, err := imports.Process(outputFile, []byte(code), &imports.Options{Comments: true})
 	if err != nil {
 		panic(err)
 	}
 
-	err = ioutil.WriteFile(path.Join("..", "opentracing_layer.go"), formatedCode, 0644)
+	err = ioutil.WriteFile(outputFile, formattedCode, 0644)
 	if err != nil {
 		panic(err)
 	}

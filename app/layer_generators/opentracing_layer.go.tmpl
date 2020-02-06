@@ -6,42 +6,11 @@
 
 package app
 
-import (
-	"archive/zip"
-	"bytes"
-	"context"
-	"crypto/ecdsa"
-	"html/template"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"net/url"
-	"time"
-
-	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/utils"
-
-	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-
-	"github.com/mattermost/mattermost-server/v5/model"
-
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
-	"github.com/mattermost/mattermost-server/v5/services/httpservice"
-	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
-	"github.com/mattermost/mattermost-server/v5/services/timezones"
-	"github.com/mattermost/mattermost-server/v5/services/tracing"
-	"github.com/mattermost/mattermost-server/v5/store"
-
-)
 
 type {{.Name}} struct {
 	app AppIface
 
-		srv *Server
+	srv *Server
 
 	log              *mlog.Logger
 	notificationsLog *mlog.Logger
