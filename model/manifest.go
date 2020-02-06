@@ -76,7 +76,7 @@ type PluginSetting struct {
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
-	// The placeholder to display for "text", "generated" and "username" types when blank.
+	// The placeholder to display for "generated", "text", "longtext", "number" and "username" types when blank.
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
@@ -386,7 +386,11 @@ func (s *PluginSetting) isValid() error {
 		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
 	}
 
-	if s.Placeholder != "" && !(pluginSettingType == Text || pluginSettingType == Generated || pluginSettingType == Username) {
+	if s.Placeholder != "" && !(pluginSettingType == Generated ||
+		pluginSettingType == Text ||
+		pluginSettingType == LongText ||
+		pluginSettingType == Number ||
+		pluginSettingType == Username) {
 		return errors.New("should not set Placeholder for setting type not in text, generated or username")
 	}
 
