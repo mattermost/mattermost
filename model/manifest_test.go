@@ -105,46 +105,90 @@ func TestIsValidSettingsSchema(t *testing.T) {
 }
 
 func TestSettingIsValid(t *testing.T) {
-	testCases := []struct {
-		Title       string
-		setting     *PluginSetting
+	for name, test := range map[string]struct {
+		Setting     PluginSetting
 		ExpectError bool
 	}{
-		{"Invalid setting type", &PluginSetting{Type: "invalid"}, true},
-		{"RegenerateHelpText error", &PluginSetting{Type: "text", RegenerateHelpText: "some text"}, true},
-		{"Placeholder error", &PluginSetting{Type: "bool", Placeholder: "some text"}, true},
-		{"Nil Options", &PluginSetting{Type: "bool"}, false},
-		{"Options error", &PluginSetting{Type: "generated", Options: []*PluginOption{}}, true},
-		{"Options displayName error", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				Value: "some value",
+		"Invalid setting type": {
+			PluginSetting{Type: "invalid"},
+			true,
+		},
+		"RegenerateHelpText error": {
+			PluginSetting{Type: "text", RegenerateHelpText: "some text"},
+			true,
+		},
+		"Placeholder error": {
+			PluginSetting{Type: "bool", Placeholder: "some text"},
+			true,
+		},
+		"Nil Options": {
+			PluginSetting{Type: "bool"},
+			false,
+		},
+		"Options error": {
+			PluginSetting{Type: "generated", Options: []*PluginOption{}},
+			true,
+		},
+		"Options displayName error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					Value: "some value",
+				}},
 			},
-		}}, true},
-		{"Options value error", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				DisplayName: "some name",
+			true,
+		},
+		"Options value error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "some name",
+				}},
 			},
-		}}, true},
-		{"Happy case", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				DisplayName: "Name",
-				Value:       "value",
+			true,
+		},
+		"Happy case": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "Name",
+					Value:       "value",
+				}},
 			},
-		}}, false},
-		{
-			"Valid number setting",
-			&PluginSetting{
+			false,
+		},
+		"Valid number setting": {
+			PluginSetting{
 				Type:    "number",
 				Default: 10,
 			},
 			false,
 		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Title, func(t *testing.T) {
-			err := tc.setting.isValid()
-			if tc.ExpectError {
+		"Placeholder is disallowed for bool settings": {
+			PluginSetting{
+				Type:        "bool",
+				Placeholder: "some Text",
+			},
+			true,
+		},
+		"Placeholder is allowed for text settings": {
+			PluginSetting{
+				Type:        "text",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+		"Placeholder is allowed for long text settings": {
+			PluginSetting{
+				Type:        "longtext",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Setting.isValid()
+			if test.ExpectError {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
