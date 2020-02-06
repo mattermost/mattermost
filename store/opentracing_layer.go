@@ -3091,14 +3091,16 @@ func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID
 
 }
 
-func (s *OpenTracingLayerPostStore) Get(id string) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "PostStore.Get")
 
 	span.SetTag("id", id)
 
+	span.SetTag("skipFetchThreads", skipFetchThreads)
+
 	defer span.Finish()
 
-	return s.PostStore.Get(id)
+	return s.PostStore.Get(id, skipFetchThreads)
 
 }
 
@@ -3247,37 +3249,27 @@ func (s *OpenTracingLayerPostStore) GetPostIdBeforeTime(channelId string, time i
 
 }
 
-func (s *OpenTracingLayerPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "PostStore.GetPosts")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("offset", offset)
-
-	span.SetTag("limit", limit)
+	span.SetTag("options", options)
 
 	span.SetTag("allowFromCache", allowFromCache)
 
 	defer span.Finish()
 
-	return s.PostStore.GetPosts(channelId, offset, limit, allowFromCache)
+	return s.PostStore.GetPosts(options, allowFromCache)
 
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "PostStore.GetPostsAfter")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("numPosts", numPosts)
-
-	span.SetTag("offset", offset)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsAfter(channelId, postId, numPosts, offset)
+	return s.PostStore.GetPostsAfter(options)
 
 }
 
@@ -3296,20 +3288,14 @@ func (s *OpenTracingLayerPostStore) GetPostsBatchForIndexing(startTime int64, en
 
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "PostStore.GetPostsBefore")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("numPosts", numPosts)
-
-	span.SetTag("offset", offset)
+	span.SetTag("options", options)
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsBefore(channelId, postId, numPosts, offset)
+	return s.PostStore.GetPostsBefore(options)
 
 }
 
@@ -3337,18 +3323,16 @@ func (s *OpenTracingLayerPostStore) GetPostsCreatedAt(channelId string, time int
 
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "PostStore.GetPostsSince")
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("time", time)
+	span.SetTag("options", options)
 
 	span.SetTag("allowFromCache", allowFromCache)
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsSince(channelId, time, allowFromCache)
+	return s.PostStore.GetPostsSince(options, allowFromCache)
 
 }
 
