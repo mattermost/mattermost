@@ -411,14 +411,23 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
-	ack := model.PushNotificationAckFromJson(r.Body)
+	ack, err := model.PushNotificationAckFromJson(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("pushNotificationAck",
+			"api.push_notifications_ack.message.parse.app_error",
+			nil,
+			err.Error(),
+			http.StatusBadRequest,
+		)
+		return
+	}
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	err := c.App.SendAckToPushProxy(ack)
+	err = c.App.SendAckToPushProxy(ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			// Log the error only, then continue to fetch notification message

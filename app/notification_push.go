@@ -78,13 +78,35 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		return err
 	}
 
+	if msg == nil {
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	notification, parseError := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+	if parseError != nil {
+		return model.NewAppError(
+			"pushNotification",
+			"api.push_notifications.message.parse.app_error",
+			nil,
+			parseError.Error(),
+			http.StatusInternalServerError,
+		)
+	}
+
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
 			continue
 		}
 
-		tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		// We made a copy to avoid decoding and parsing all the time
+		tmpMessage := notification
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 

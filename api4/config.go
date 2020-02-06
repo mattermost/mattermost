@@ -82,6 +82,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
 
+	// Do not allow certificates to be changed through the API
+	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
 	c.App.HandleMessageExportConfig(cfg, appCfg)
 
 	err := cfg.IsValid()
