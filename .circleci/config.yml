@@ -92,6 +92,9 @@ jobs:
   test:
     executor:
       name: ubuntu
+    parameters:
+      dbdriver:
+        type: string
     steps:
       - attach_workspace:
           at: ~/mattermost
@@ -130,6 +133,7 @@ jobs:
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>>
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
@@ -351,7 +355,12 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
-      - test:
+      - test-mysql:
+          dbdriver: mysql
+          requires:
+            - setup
+      - test-postgres:
+          dbdriver: postgres
           requires:
             - setup
       - test-schema:
