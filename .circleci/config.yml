@@ -356,10 +356,12 @@ workflows:
           requires:
             - upload-s3-sha
       - test:
+          name: test-mysql
           dbdriver: mysql
           requires:
             - setup
       - test:
+          name: test-postgres
           dbdriver: postgres
           requires:
             - setup
@@ -369,8 +371,8 @@ workflows:
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
-            - test
-            - test
+            - test-mysql
+            - test-postgres
             - test-schema
             - upload-s3
             - upload-s3-sha
