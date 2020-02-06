@@ -60,24 +60,15 @@ require (
 	github.com/minio/minio-go/v6 v6.0.45
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
-	github.com/olekukonko/tablewriter v0.0.1 // indirect
-	github.com/olivere/elastic v6.2.23+incompatible // indirect
-	github.com/opentracing/opentracing-go v1.1.0
-	github.com/pborman/uuid v1.2.0
-	github.com/pelletier/go-toml v1.4.0 // indirect
-	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v1.1.0
-	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
-	github.com/prometheus/common v0.7.0 // indirect
-	github.com/prometheus/procfs v0.0.5 // indirect
-	github.com/rjeczalik/interfaces v0.1.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/olivere/elastic v6.2.27+incompatible // indirect
+	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.4.0
+	github.com/rjeczalik/interfaces v0.1.0 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
