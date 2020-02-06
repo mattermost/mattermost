@@ -204,7 +204,7 @@ func (me *TestHelper) CreateBot() *model.Bot {
 		OwnerId:     me.BasicUser.Id,
 	}
 
-	me.App.Log.SetConsoleLevel(mlog.LevelError)
+	me.App.Log().SetConsoleLevel(mlog.LevelError)
 	bot, err := me.App.CreateBot(bot)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -212,7 +212,7 @@ func (me *TestHelper) CreateBot() *model.Bot {
 		time.Sleep(time.Second)
 		panic(err)
 	}
-	me.App.Log.SetConsoleLevel(mlog.LevelDebug)
+	me.App.Log().SetConsoleLevel(mlog.LevelDebug)
 	return bot
 }
 

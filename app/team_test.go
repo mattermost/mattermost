@@ -279,7 +279,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.NotNil(t, err)
 		assert.Equal(t, "api.team.join_user_to_team.allowed_domains.app_error", err.Id)
@@ -297,13 +297,13 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 		guestEmail := rguest.Email
 		rguest.Email = "test@restricted.com"
-		_, err := th.App.Srv.Store.User().Update(rguest, false)
+		_, err := th.App.Srv().Store.User().Update(rguest, false)
 		require.Nil(t, err)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.Nil(t, err)
 		rguest.Email = guestEmail
-		_, err = th.App.Srv.Store.User().Update(rguest, false)
+		_, err = th.App.Srv().Store.User().Update(rguest, false)
 		require.Nil(t, err)
 	})
 
@@ -320,9 +320,9 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		_, err = th.App.Srv.Store.User().Update(rguest, false)
+		_, err = th.App.Srv().Store.User().Update(rguest, false)
 		require.Nil(t, err)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.Nil(t, err)
 		th.BasicTeam.AllowedDomains = ""

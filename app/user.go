@@ -2087,7 +2087,7 @@ func (a *App) FilterNonGroupChannelMembers(userIds []string, channel *model.Chan
 // and returns the list of normal users present in userIds but not in groupUsers.
 func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([]string, error) {
 	nonMemberIds := []string{}
-	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, false)
+	users, err := a.Srv().Store.User().GetProfileByIds(userIds, nil, false)
 	if err != nil {
 		return nil, err
 	}
