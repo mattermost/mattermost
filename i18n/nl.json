@@ -1378,7 +1378,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Fout bij het opladen van bestand {{.Filename}}. {{Length}} bytes overschrijdt de maximum grootte van {{.Limit}} bytes."
+    "translation": "Fout bij het opladen van bestand {{.Filename}}. {{.Length}} bytes overschrijdt de maximum grootte van {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -3500,7 +3500,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "Je hebt een nieuw groepsbericht van .{{SenderName}}"
+    "translation": "Je hebt een nieuw groepsbericht van {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -4284,7 +4284,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Niet-ondersteund synkabeltype '{{.Value'}}."
+    "translation": "Niet-ondersteund synkabeltype '{{.Value}}'."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
