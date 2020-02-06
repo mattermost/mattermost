@@ -355,11 +355,11 @@ workflows:
           context: matterbuild-docker
           requires:
             - upload-s3-sha
-      - test-mysql:
+      - test:
           dbdriver: mysql
           requires:
             - setup
-      - test-postgres:
+      - test:
           dbdriver: postgres
           requires:
             - setup
@@ -369,8 +369,8 @@ workflows:
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
-            - test-mysql
-            - test-postgres
+            - test
+            - test
             - test-schema
             - upload-s3
             - upload-s3-sha
