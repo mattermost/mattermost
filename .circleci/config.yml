@@ -369,7 +369,8 @@ workflows:
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
-            - test
+            - test-mysql
+            - test-postgres
             - test-schema
             - upload-s3
             - upload-s3-sha
