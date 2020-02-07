@@ -5,7 +5,6 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -79,6 +78,13 @@ type TestPluginSettings struct {
 	Plugins                 map[string]map[string]interface{}
 	PluginStates            map[string]*model.PluginState
 	SignaturePublicKeyFiles []string
+}
+
+func getDsn(driver string, source string) string {
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		return driver + "://" + source
+	}
+	return source
 }
 
 func TestConfigValidate(t *testing.T) {
@@ -533,7 +539,7 @@ func TestConfigMigrate(t *testing.T) {
 	defer th.TearDown()
 
 	sqlSettings := mainHelper.GetSQLSettings()
-	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
 	ds, err := config.NewStore(sqlDSN, false)
