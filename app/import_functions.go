@@ -24,7 +24,7 @@ import (
 // still enforced.
 //
 
-func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError {
+func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError {
 	if err := validateSchemeImportData(data); err != nil {
 		return err
 	}
@@ -61,12 +61,12 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
 		data.DefaultTeamAdminRole.Name = &scheme.DefaultTeamAdminRole
-		if err := a.ImportRole(data.DefaultTeamAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultTeamAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultTeamUserRole.Name = &scheme.DefaultTeamUserRole
-		if err := a.ImportRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -76,19 +76,19 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 			}
 		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
-		if err := a.ImportRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
 
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		data.DefaultChannelAdminRole.Name = &scheme.DefaultChannelAdminRole
-		if err := a.ImportRole(data.DefaultChannelAdminRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultChannelAdminRole, dryRun, true); err != nil {
 			return err
 		}
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
-		if err := a.ImportRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
 			return err
 		}
 
@@ -98,7 +98,7 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 			}
 		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
-		if err := a.ImportRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
+		if err := a.importRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
@@ -106,7 +106,7 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 	return nil
 }
 
-func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
+func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
 	if !isSchemeRole {
 		if err := validateRoleImportData(data); err != nil {
 			return err
@@ -152,7 +152,7 @@ func (a *App) ImportRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 	return err
 }
 
-func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
+func (a *App) importTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	if err := validateTeamImportData(data); err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	return nil
 }
 
-func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importChannel(data *ChannelImportData, dryRun bool) *model.AppError {
 	if err := validateChannelImportData(data); err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 	return nil
 }
 
-func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
+func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	if err := validateUserImportData(data); err != nil {
 		return err
 	}
@@ -640,10 +640,10 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
-	return a.ImportUserTeams(savedUser, data.Teams)
+	return a.importUserTeams(savedUser, data.Teams)
 }
 
-func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError {
+func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -714,7 +714,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			return err
 		}
 
-		if err := a.ImportUserChannels(user, team, member, tdata.Channels); err != nil {
+		if err := a.importUserChannels(user, team, member, tdata.Channels); err != nil {
 			return err
 		}
 	}
@@ -728,7 +728,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	return nil
 }
 
-func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -825,7 +825,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 	return nil
 }
 
-func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
+func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
@@ -850,7 +850,7 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 	return nil
 }
 
-func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
+func (a *App) importReply(data *ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = validateReplyImportData(data, post.CreateAt, a.MaxPostSize()); err != nil {
 		return err
@@ -910,12 +910,12 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 		}
 	}
 
-	a.UpdateFileInfoWithPostId(reply)
+	a.updateFileInfoWithPostId(reply)
 
 	return nil
 }
 
-func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
 	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -960,7 +960,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 	return fileInfo, nil
 }
 
-func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
+func (a *App) importPost(data *PostImportData, dryRun bool) *model.AppError {
 	if err := validatePostImportData(data, a.MaxPostSize()); err != nil {
 		return err
 	}
@@ -1062,7 +1062,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			if err := a.ImportReaction(&reaction, post, dryRun); err != nil {
+			if err := a.importReaction(&reaction, post, dryRun); err != nil {
 				return err
 			}
 		}
@@ -1070,13 +1070,13 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, team.Id, dryRun); err != nil {
+			if err := a.importReply(&reply, post, team.Id, dryRun); err != nil {
 				return err
 			}
 		}
 	}
 
-	a.UpdateFileInfoWithPostId(post)
+	a.updateFileInfoWithPostId(post)
 	return nil
 }
 
@@ -1087,7 +1087,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	}
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
-		fileInfo, err := a.ImportAttachment(&attachment, post, teamId, dryRun)
+		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
 			return nil, err
 		}
@@ -1096,14 +1096,14 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	return fileIds, nil
 }
 
-func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
+func (a *App) updateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
 		if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
 			mlog.Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Any("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
 }
-func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = validateDirectChannelImportData(data); err != nil {
 		return err
@@ -1179,7 +1179,7 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	return nil
 }
 
-func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
+func (a *App) importDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
 	var err *model.AppError
 	if err = validateDirectPostImportData(data, a.MaxPostSize()); err != nil {
 		return err
@@ -1298,7 +1298,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			if err := a.ImportReaction(&reaction, post, dryRun); err != nil {
+			if err := a.importReaction(&reaction, post, dryRun); err != nil {
 				return err
 			}
 		}
@@ -1306,17 +1306,17 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, "noteam", dryRun); err != nil {
+			if err := a.importReply(&reply, post, "noteam", dryRun); err != nil {
 				return err
 			}
 		}
 	}
 
-	a.UpdateFileInfoWithPostId(post)
+	a.updateFileInfoWithPostId(post)
 	return nil
 }
 
-func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
+func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	if err := validateEmojiImportData(data); err != nil {
 		return err
 	}

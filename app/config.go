@@ -396,6 +396,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 
 	if a.Cluster != nil {
 		newCfg = a.Srv.configStore.RemoveEnvironmentOverrides(newCfg)
+		oldCfg = a.Srv.configStore.RemoveEnvironmentOverrides(oldCfg)
 		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err

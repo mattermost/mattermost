@@ -22,6 +22,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -53,19 +55,9 @@ type IAM struct {
 const (
 	defaultIAMRoleEndpoint      = "http://169.254.169.254"
 	defaultECSRoleEndpoint      = "http://169.254.170.2"
+	defaultSTSRoleEndpoint      = "https://sts.amazonaws.com"
 	defaultIAMSecurityCredsPath = "/latest/meta-data/iam/security-credentials/"
 )
-
-// https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-func getEndpoint(endpoint string) (string, bool) {
-	if endpoint != "" {
-		return endpoint, os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI") != ""
-	}
-	if ecsURI := os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"); ecsURI != "" {
-		return fmt.Sprintf("%s%s", defaultECSRoleEndpoint, ecsURI), true
-	}
-	return defaultIAMRoleEndpoint, false
-}
 
 // NewIAM returns a pointer to a new Credentials object wrapping the IAM.
 func NewIAM(endpoint string) *Credentials {
@@ -82,14 +74,64 @@ func NewIAM(endpoint string) *Credentials {
 // Error will be returned if the request fails, or unable to extract
 // the desired
 func (m *IAM) Retrieve() (Value, error) {
-	endpoint, isEcsTask := getEndpoint(m.endpoint)
 	var roleCreds ec2RoleCredRespBody
 	var err error
-	if isEcsTask {
+
+	endpoint := m.endpoint
+	switch {
+	case len(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")) > 0:
+		if len(endpoint) == 0 {
+			if len(os.Getenv("AWS_REGION")) > 0 {
+				endpoint = "sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
+			} else {
+				endpoint = defaultSTSRoleEndpoint
+			}
+		}
+
+		creds := &STSWebIdentity{
+			Client:          m.Client,
+			stsEndpoint:     endpoint,
+			roleARN:         os.Getenv("AWS_ROLE_ARN"),
+			roleSessionName: os.Getenv("AWS_ROLE_SESSION_NAME"),
+			getWebIDTokenExpiry: func() (*WebIdentityToken, error) {
+				token, err := ioutil.ReadFile(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
+				if err != nil {
+					return nil, err
+				}
+
+				return &WebIdentityToken{Token: string(token)}, nil
+			},
+		}
+
+		return creds.Retrieve()
+
+	case len(os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI")) > 0:
+		if len(endpoint) == 0 {
+			endpoint = fmt.Sprintf("%s%s", defaultECSRoleEndpoint,
+				os.Getenv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"))
+		}
+
 		roleCreds, err = getEcsTaskCredentials(m.Client, endpoint)
-	} else {
+
+	case len(os.Getenv("AWS_CONTAINER_CREDENTIALS_FULL_URI")) > 0:
+		if len(endpoint) == 0 {
+			endpoint = os.Getenv("AWS_CONTAINER_CREDENTIALS_FULL_URI")
+
+			var ok bool
+			if ok, err = isLoopback(endpoint); !ok {
+				if err == nil {
+					err = fmt.Errorf("uri host is not a loopback address: %s", endpoint)
+				}
+				break
+			}
+		}
+
+		roleCreds, err = getEcsTaskCredentials(m.Client, endpoint)
+
+	default:
 		roleCreds, err = getCredentials(m.Client, endpoint)
 	}
+
 	if err != nil {
 		return Value{}, err
 	}
@@ -247,4 +289,29 @@ func getCredentials(client *http.Client, endpoint string) (ec2RoleCredRespBody, 
 	}
 
 	return respCreds, nil
+}
+
+// isLoopback identifies if a uri's host is on a loopback address
+func isLoopback(uri string) (bool, error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return false, err
+	}
+
+	host := u.Hostname()
+	if len(host) == 0 {
+		return false, fmt.Errorf("can't parse host from uri: %s", uri)
+	}
+
+	ips, err := net.LookupHost(host)
+	if err != nil {
+		return false, err
+	}
+	for _, ip := range ips {
+		if !net.ParseIP(ip).IsLoopback() {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
