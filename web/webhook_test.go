@@ -99,6 +99,14 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
+		assert.Nil(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
+		resp, err = http.Post(url, "application/json", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.Equal(t, 400, resp.StatusCode)
+
 		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
 		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
 		require.Nil(t, err)

@@ -6,6 +6,7 @@ package web
 import (
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -38,7 +39,12 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
+	re, rerr := regexp.Compile(`^application\/x-www-form-urlencoded`)
+	if rerr != nil {
+		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if re.FindStringIndex(contentType) != nil {
 		payload := strings.NewReader(r.FormValue("payload"))
 
 		incomingWebhookPayload, err = decodePayload(payload)
