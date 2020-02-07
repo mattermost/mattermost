@@ -769,15 +769,15 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	var wg sync.WaitGroup
 	for _, pluginPaths := range pluginSignaturePathMap {
 		wg.Add(1)
-		go func() {
+		go func(pluginPath *pluginSignaturePath) {
 			defer wg.Done()
-			p, err := a.processPrepackagedPlugin(pluginPaths)
+			p, err := a.processPrepackagedPlugin(pluginPath)
 			if err != nil {
-				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
+				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(err))
 				return
 			}
 			prepackagedPlugins <- p
-		}()
+		}(pluginPaths)
 	}
 
 	wg.Wait()
