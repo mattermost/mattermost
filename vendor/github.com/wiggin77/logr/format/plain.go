@@ -3,17 +3,8 @@ package format
 import (
 	"bytes"
 	"fmt"
-	"sync"
 
 	"github.com/wiggin77/logr"
-)
-
-var (
-	bufferPool = sync.Pool{
-		New: func() interface{} {
-			return new(bytes.Buffer)
-		},
-	}
 )
 
 // Plain is the simplest formatter, outputting only text with
@@ -40,24 +31,19 @@ type Plain struct {
 }
 
 // Format converts a log record to bytes.
-func (p *Plain) Format(rec *logr.LogRec, stacktrace bool) ([]byte, error) {
+func (p *Plain) Format(rec *logr.LogRec, stacktrace bool, buf *bytes.Buffer) (*bytes.Buffer, error) {
 	delim := p.Delim
 	if delim == "" {
 		delim = " "
+	}
+	if buf == nil {
+		buf = &bytes.Buffer{}
 	}
 
 	timestampFmt := p.TimestampFormat
 	if timestampFmt == "" {
 		timestampFmt = logr.DefTimestampFormat
 	}
-
-	var buf *bytes.Buffer = bufferPool.Get().(*bytes.Buffer)
-	defer func() {
-		if buf.Cap() < rec.Logger().Logr().MaxPooledFormatBuffer {
-			buf.Reset()
-			bufferPool.Put(buf)
-		}
-	}()
 
 	if !p.DisableTimestamp {
 		var arr [128]byte
@@ -85,5 +71,5 @@ func (p *Plain) Format(rec *logr.LogRec, stacktrace bool) ([]byte, error) {
 		}
 	}
 	buf.WriteString("\n")
-	return buf.Bytes(), nil
+	return buf, nil
 }

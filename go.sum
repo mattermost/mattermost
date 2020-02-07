@@ -283,6 +283,7 @@ github.com/mattermost/gosaml2 v0.3.2 h1:kq2dY5qUe6fPPHra171GVlgo+ycBsEog0gZMetxL
 github.com/mattermost/gosaml2 v0.3.2/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d h1:2DV7VIlEv6J5R5o6tUcb3ZMKJYeeZuWZL7Rv1m23TgQ=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
+github.com/mattermost/mattermost-server v5.11.1+incompatible h1:LPzKY0+2Tic/ik67qIg6VrydRCgxNXZQXOeaiJ2rMBY=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4 h1:cMYOz4PhguscGSPxrSokUtib5HrG4gCpiUh27wyA3d0=
@@ -506,8 +507,12 @@ github.com/wiggin77/cfg v1.0.2/go.mod h1:b3gotba2e5bXTqTW48DwIFoLc+4lWKP7WPi/Cdv
 github.com/wiggin77/logr v0.0.0-20191014204114-2df550845cfc/go.mod h1:9sOJ1T4F2YdtgMrMaq9I1PiTV8R6wKModG5qZH+ba/s=
 github.com/wiggin77/logr v0.0.0-20200204023803-f72a2fc65740 h1:hr+KKL9hrC5hAqy+x2okuS90VXxSm6hc0AWqNLU2yrQ=
 github.com/wiggin77/logr v0.0.0-20200204023803-f72a2fc65740/go.mod h1:oIvnsSkyTQojUsr7QO0d4rE2afZbsTj/5WbiikGJu3E=
+github.com/wiggin77/logr v1.0.0 h1:i0hCQjlUpwBYdcu7iqf3hQCNIH9uf9Y2jbwcReNPscc=
+github.com/wiggin77/logr v1.0.0/go.mod h1:oIvnsSkyTQojUsr7QO0d4rE2afZbsTj/5WbiikGJu3E=
 github.com/wiggin77/logrus4logr v0.0.0-20200203171937-7ed5f0841c91 h1:C4EyI8g578runeTumknZnnOa/6wJ/YO9SfHjpvkZ81g=
 github.com/wiggin77/logrus4logr v0.0.0-20200203171937-7ed5f0841c91/go.mod h1:0HH7RiVf7PYiVdfXR+OAwsAk9mPdgzYPDBmyYheBHYg=
+github.com/wiggin77/logrus4logr v1.0.0 h1:USNT89/lNqzOn+DqjgPr8wTfvDCmpcs9mhZwXJIpEXg=
+github.com/wiggin77/logrus4logr v1.0.0/go.mod h1:6iJ9nPH4uuKjCgj6mdNMV9rdEDsED9tyHUlKYznL0vE=
 github.com/wiggin77/merror v1.0.2 h1:V0nH9eFp64ASyaXC+pB5WpvBoCg7NUwvaCSKdzlcHqw=
 github.com/wiggin77/merror v1.0.2/go.mod h1:uQTcIU0Z6jRK4OwqganPYerzQxSFJ4GSHM3aurxxQpg=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=

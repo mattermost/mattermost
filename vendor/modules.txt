@@ -252,10 +252,10 @@ github.com/tylerb/graceful
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v0.0.0-20200204023803-f72a2fc65740
+# github.com/wiggin77/logr v1.0.0
 github.com/wiggin77/logr
 github.com/wiggin77/logr/format
-# github.com/wiggin77/logrus4logr v0.0.0-20200203171937-7ed5f0841c91
+# github.com/wiggin77/logrus4logr v1.0.0
 github.com/wiggin77/logrus4logr
 # github.com/wiggin77/merror v1.0.2
 github.com/wiggin77/merror

@@ -24,7 +24,7 @@ const (
 	// timing out.
 	DefaultFlushTimeout = time.Second * 30
 
-	// DefaultMaxPooledFormatBuffer is the maximum size a pooled format buffer can be.
+	// DefaultMaxPooledBuffer is the maximum size a pooled buffer can be.
 	// Buffers that grow beyond this size are garbage collected.
-	DefaultMaxPooledFormatBuffer = 1024 * 1024
+	DefaultMaxPooledBuffer = 1024 * 1024
 )

@@ -167,9 +167,10 @@ func (rec *LogRec) String() string {
 	}
 
 	f := &DefaultFormatter{}
-	b, _ := f.Format(rec, true)
-	s := string(b)
-	return strings.TrimSpace(s)
+	buf := rec.logger.logr.BorrowBuffer()
+	defer rec.logger.logr.ReleaseBuffer(buf)
+	buf, _ = f.Format(rec, true, buf)
+	return strings.TrimSpace(buf.String())
 }
 
 // getPackageName reduces a fully qualified function name to the package name

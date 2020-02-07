@@ -1,17 +1,18 @@
 package logr
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"runtime"
 	"sort"
-	"strings"
 )
 
 // Formatter turns a LogRec into a formatted string.
 type Formatter interface {
-	// Format converts a log record to bytes.
-	Format(rec *LogRec, stacktrace bool) ([]byte, error)
+	// Format converts a log record to bytes. If buf is not nil then it will be
+	// be filled with the formatted results, otherwise a new buffer will be allocated.
+	Format(rec *LogRec, stacktrace bool, buf *bytes.Buffer) (*bytes.Buffer, error)
 }
 
 const (
@@ -26,30 +27,32 @@ type DefaultFormatter struct {
 }
 
 // Format converts a log record to bytes.
-func (p *DefaultFormatter) Format(rec *LogRec, stacktrace bool) ([]byte, error) {
-	sb := &strings.Builder{}
+func (p *DefaultFormatter) Format(rec *LogRec, stacktrace bool, buf *bytes.Buffer) (*bytes.Buffer, error) {
+	if buf == nil {
+		buf = &bytes.Buffer{}
+	}
 	delim := " "
 	timestampFmt := DefTimestampFormat
 
-	fmt.Fprintf(sb, "%s%s", rec.Time().Format(timestampFmt), delim)
-	fmt.Fprintf(sb, "%v%s", rec.Level(), delim)
-	fmt.Fprint(sb, rec.Msg(), delim)
+	fmt.Fprintf(buf, "%s%s", rec.Time().Format(timestampFmt), delim)
+	fmt.Fprintf(buf, "%v%s", rec.Level(), delim)
+	fmt.Fprint(buf, rec.Msg(), delim)
 
 	ctx := rec.Fields()
 	if len(ctx) > 0 {
-		WriteFields(sb, ctx, " ")
+		WriteFields(buf, ctx, " ")
 	}
 
 	if stacktrace {
 		frames := rec.StackFrames()
 		if len(frames) > 0 {
-			sb.WriteString("\n")
-			WriteStacktrace(sb, rec.StackFrames())
+			buf.WriteString("\n")
+			WriteStacktrace(buf, rec.StackFrames())
 		}
 	}
-	sb.WriteString("\n")
+	buf.WriteString("\n")
 
-	return []byte(sb.String()), nil
+	return buf, nil
 }
 
 // WriteFields writes zero or more name value pairs to the io.Writer.

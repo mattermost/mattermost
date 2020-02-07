@@ -12,8 +12,6 @@ It is very much inspired by [Logrus](https://github.com/sirupsen/logrus) but add
 
 2. Logr provides custom filters which provide more flexibility than Trace, Debug, Info... levels. If you need to temporarily increase verbosity of logging while tracking down a problem you can avoid the fire-hose that typically comes from Debug or Trace by using custom filters.
 
-**Logr is currently in alpha. Feel free to try it, provide feedback, and report issues while we drive toward release.**
-
 ## Concepts
 
 <!-- markdownlint-disable MD033 -->
@@ -130,17 +128,21 @@ func NewWriterTarget(filter logr.Filter, formatter logr.Formatter, out io.Writer
   return w
 }
 
-// Write will always be called by a single goroutine,
-// so no locking needed. Just convert a log record
-// to a []byte using the formatter and output the
+// Write will always be called by a single goroutine, so no locking needed.
+// Just convert a log record to a []byte using the formatter and output the
 // bytes to your sink.
 func (w *Writer) Write(rec *logr.LogRec) error {
   _, stacktrace := w.IsLevelEnabled(rec.Level())
-  data, err := w.formatter.Format(rec, stacktrace)
+
+  // take a buffer from the pool to avoid allocations or just allocate a new one.
+  buf := rec.Logger().Logr().BorrowBuffer()
+  defer rec.Logger().Logr().ReleaseBuffer(buf)
+
+  buf, err := w.Formatter().Format(rec, stacktrace, buf)
   if err != nil {
     return err
   }
-  _, err = w.out.Write(data)
+  _, err = w.out.Write(buf.Bytes())
   return err
 }
 ```
@@ -154,7 +156,7 @@ You can use any [Logrus formatters](https://github.com/sirupsen/logrus#formatter
 You can create your own formatter by implementing the [Formatter](./formatter.go) interface:
 
 ```go
-Format(rec *LogRec, stacktrace bool) ([]byte, error)
+Format(rec *LogRec, stacktrace bool, buf *bytes.Buffer) (*bytes.Buffer, error)
 ```
 
 ## Handlers

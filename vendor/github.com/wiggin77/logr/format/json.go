@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/francoispqt/gojay"
@@ -50,20 +51,20 @@ type JSON struct {
 
 	// KeyStacktrace overrides the stacktrace field key name.
 	KeyStacktrace string
+
+	once sync.Once
 }
 
 // Format converts a log record to bytes in JSON format.
-func (j *JSON) Format(rec *logr.LogRec, stacktrace bool) ([]byte, error) {
-	j.applyDefaultKeyNames()
+func (j *JSON) Format(rec *logr.LogRec, stacktrace bool, buf *bytes.Buffer) (*bytes.Buffer, error) {
+	j.once.Do(j.applyDefaultKeyNames)
 
-	var buf *bytes.Buffer = bufferPool.Get().(*bytes.Buffer)
+	if buf == nil {
+		buf = &bytes.Buffer{}
+	}
 	enc := gojay.BorrowEncoder(buf)
 	defer func() {
 		enc.Release()
-		if buf.Cap() < rec.Logger().Logr().MaxPooledFormatBuffer {
-			buf.Reset()
-			bufferPool.Put(buf)
-		}
 	}()
 
 	jlr := JSONLogRec{
@@ -76,7 +77,7 @@ func (j *JSON) Format(rec *logr.LogRec, stacktrace bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return buf, nil
 }
 
 func (j *JSON) applyDefaultKeyNames() {

@@ -84,8 +84,8 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
-	github.com/wiggin77/logr v0.0.0-20200204023803-f72a2fc65740
-	github.com/wiggin77/logrus4logr v0.0.0-20200203171937-7ed5f0841c91
+	github.com/wiggin77/logr v1.0.0
+	github.com/wiggin77/logrus4logr v1.0.0
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.5.1 // indirect

@@ -1,6 +1,7 @@
 package logr
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +26,8 @@ type Logr struct {
 	once               sync.Once
 	shutdown           bool
 	lvlCache           levelCache
+
+	bufferPool sync.Pool
 
 	// MaxQueueSize is the maximum number of log records that can be queued.
 	// If exceeded, `OnQueueFull` is called which determines if the log
@@ -82,13 +85,16 @@ type Logr struct {
 	// performance with large numbers of cores - benchmark for your use case.
 	UseSyncMapLevelCache bool
 
-	// MaxPooledFormatBuffer determines the maximum size of a format buffer that
-	// can be pooled. To reduce allocations, the buffers needed during formatting
+	// MaxPooledFormatBuffer determines the maximum size of a buffer that can be
+	// pooled. To reduce allocations, the buffers needed during formatting (etc)
 	// are pooled. A very large log item will grow a buffer that could stay in
 	// memory indefinitely. This settings lets you control how big a pooled buffer
 	// can be - anything larger will be garbage collected after use.
 	// Defaults to 1MB.
-	MaxPooledFormatBuffer int
+	MaxPooledBuffer int
+
+	// DisableBufferPool when true disables the buffer pool. See MaxPooledBuffer.
+	DisableBufferPool bool
 }
 
 // Configure adds/removes targets via the supplied `Config`.
@@ -126,8 +132,13 @@ func (logr *Logr) AddTarget(target Target) error {
 		} else {
 			logr.lvlCache = &arrayLevelCache{}
 		}
-		if logr.MaxPooledFormatBuffer == 0 {
-			logr.MaxPooledFormatBuffer = DefaultMaxPooledFormatBuffer
+		if logr.MaxPooledBuffer == 0 {
+			logr.MaxPooledBuffer = DefaultMaxPooledBuffer
+		}
+		logr.bufferPool = sync.Pool{
+			New: func() interface{} {
+				return new(bytes.Buffer)
+			},
 		}
 		logr.lvlCache.setup()
 		go logr.start()
@@ -329,6 +340,23 @@ func (logr *Logr) ReportError(err interface{}) {
 		return
 	}
 	logr.OnLoggerError(fmt.Errorf("%v", err))
+}
+
+// BorrowBuffer borrows a buffer from the pool. Release the buffer to reduce garbage collection.
+func (logr *Logr) BorrowBuffer() *bytes.Buffer {
+	if logr.DisableBufferPool {
+		return &bytes.Buffer{}
+	}
+	return logr.bufferPool.Get().(*bytes.Buffer)
+}
+
+// ReleaseBuffer returns a buffer to the pool to reduce garbage collection. The buffer is only
+// retained if less than MaxPooledBuffer.
+func (logr *Logr) ReleaseBuffer(buf *bytes.Buffer) {
+	if !logr.DisableBufferPool && buf.Cap() < logr.MaxPooledBuffer {
+		buf.Reset()
+		logr.bufferPool.Put(buf)
+	}
 }
 
 // enqueueTimeout returns amount of time a log record can take to be queued.

@@ -21,6 +21,9 @@ dynip
 # IntelliJ config
 .idea
 
+# log files
+*.log
+
 # transient directories
 vendor
 output
