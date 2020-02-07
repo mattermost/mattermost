@@ -765,7 +765,15 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 	var wg sync.WaitGroup
 	for _, pluginPaths := range pluginSignaturePathMap {
 		wg.Add(1)
-		go a.processPrepackagedPlugin(pluginPaths, prepackagedPlugins, &wg)
+		go func() {
+			defer wg.Done()
+			p, err := a.processPrepackagedPlugin(pluginPaths)
+			if err != nil {
+				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
+				return
+			}
+			prepackagedPlugins <- p
+		}()
 	}
 
 	wg.Wait()
@@ -780,50 +788,41 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 
 // processPrepackagedPlugin will return the prepackaged plugin metadata via channel and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
-func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath, c chan *plugin.PrepackagedPlugin, wg *sync.WaitGroup) {
-	defer wg.Done()
+func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
 	mlog.Debug("Processing prepackaged plugin", mlog.String("path", pluginPath.path))
 
 	fileReader, err := os.Open(pluginPath.path)
 	if err != nil {
-		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)))
-		return
+		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
 	}
-	defer fileReader.Close()
-
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrap(err, "Failed to create temp dir plugintmp")))
-		return
+		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
 	}
 	defer os.RemoveAll(tmpDir)
 
-	p, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
+	plugin, pluginDir, err := getPrepackagedPlugin(pluginPath, fileReader, tmpDir)
 	if err != nil {
-		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)))
-		return
+		return nil, errors.Wrapf(err, "Failed to get prepackaged plugin %s", pluginPath.path)
 	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
-		c <- p
-		return
+		return plugin, nil
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
-	pluginState := a.Config().PluginSettings.PluginStates[p.Manifest.Id]
+	pluginState := a.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
-		c <- p
-		return
+		return plugin, nil
 	}
 
 	mlog.Debug("Installing prepackaged plugin", mlog.String("path", pluginPath.path))
-	if _, err := a.installExtractedPlugin(p.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
-		mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPath.path), mlog.Err(errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)))
-		return
+	if _, err := a.installExtractedPlugin(plugin.Manifest, pluginDir, installPluginLocallyOnlyIfNewOrUpgrade); err != nil {
+		return nil, errors.Wrapf(err, "Failed to install extracted prepackaged plugin %s", pluginPath.path)
 	}
 
-	c <- p
+	return plugin, nil
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.
