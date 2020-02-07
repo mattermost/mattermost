@@ -5219,6 +5219,14 @@
     "translation": "Invalid app id"
   },
   {
+    "id": "model.oauth.is_valid.application_id.app_error",
+    "translation": "Invalid application id"
+  },
+  {
+    "id": "model.oauth.is_valid.application_secret.app_error",
+    "translation": "Invalid application secret password"
+  },
+  {
     "id": "model.oauth.is_valid.callback.app_error",
     "translation": "Callback URL must be a valid URL and start with http:// or https://."
   },
@@ -5237,14 +5245,6 @@
   {
     "id": "model.oauth.is_valid.description.app_error",
     "translation": "Invalid description"
-  },
-  {
-    "id": "model.oauth.is_valid.application_id.app_error",
-    "translation": "Invalid application id"
-  },
-  {
-    "id": "model.oauth.is_valid.application_secret.app_error",
-    "translation": "Invalid application secret password"
   },
   {
     "id": "model.oauth.is_valid.directory_id.app_error",
