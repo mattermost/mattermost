@@ -87,6 +87,14 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
+		resp, err = http.Post(url, "application/x-www-form-urlencoded;charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "application/x-www-form-urlencoded; charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
