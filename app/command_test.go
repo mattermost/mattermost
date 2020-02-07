@@ -104,6 +104,14 @@ func TestExecuteCommand(t *testing.T) {
 
 		assert.Equal(t, resp.Text, results[index])
 	}
+	argsMissingSlashCharacter := &model.CommandArgs{
+		Command: "missing leading slash character",
+		T:       func(s string, args ...interface{}) string { return s },
+	}
+	_, error := th.App.ExecuteCommand(argsMissingSlashCharacter)
+	if err == nil || err.Id != "api.command.execute_command.format.app_error" {
+		t.Fatal("should have failed - missing leading slash character")
+	}
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {

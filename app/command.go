@@ -167,7 +167,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	}
 	trigger = strings.ToLower(trigger)
 	if trigger[0] != '/' {
-		return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
+		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusBadRequest)
 	}
 	trigger = trigger[1:] // remove '/'
 
