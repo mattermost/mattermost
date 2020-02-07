@@ -127,14 +127,14 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
-	_, err = ss.Post().Get("123")
+	_, err = ss.Post().Get("123", false)
 	require.NotNil(t, err, "Missing id should have failed")
 
-	_, err = ss.Post().Get("")
+	_, err = ss.Post().Get("", false)
 	require.NotNil(t, err, "should fail for blank post ids")
 }
 
@@ -179,15 +179,15 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o1.Id)
+	r2, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -199,7 +199,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o1a, ro1)
 	require.Nil(t, err)
 
-	r1, err = ss.Post().Get(o1.Id)
+	r1, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	ro1a := r1.Posts[o1.Id]
@@ -211,7 +211,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o2a, ro2)
 	require.Nil(t, err)
 
-	r2, err = ss.Post().Get(o1.Id)
+	r2, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -223,7 +223,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o3a, ro3)
 	require.Nil(t, err)
 
-	r3, err = ss.Post().Get(o3.Id)
+	r3, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -239,7 +239,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	r4, err := ss.Post().Get(o4.Id)
+	r4, err := ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -250,7 +250,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Update(o4a, ro4)
 	require.Nil(t, err)
 
-	r4, err = ss.Post().Get(o4.Id)
+	r4, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -271,7 +271,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1, err := ss.Post().Save(o1)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
@@ -284,7 +284,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 
-	r3, err := ss.Post().Get(o1.Id)
+	r3, err := ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Missing id should have failed - PostList %v", r3)
 
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
@@ -311,10 +311,10 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 }
 
@@ -354,16 +354,16 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	err = ss.Post().Delete(o1.Id, model.GetMillis(), "")
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o4.Id)
+	_, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 }
 
@@ -394,16 +394,16 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	err2 := ss.Post().PermanentDeleteByUser(o2.UserId)
 	require.Nil(t, err2)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err, "Deleted id shouldn't have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
 	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 }
 
@@ -434,13 +434,13 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	err2 := ss.Post().PermanentDeleteByUser(o1.UserId)
 	require.Nil(t, err2)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err, "Deleted id should have failed")
 }
 
@@ -470,7 +470,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	pl, err := ss.Post().Get(o1.Id)
+	pl, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 3, "invalid returned post")
@@ -478,7 +478,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr := ss.Post().Delete(o3.Id, model.GetMillis(), "")
 	require.Nil(t, dErr)
 
-	pl, err = ss.Post().Get(o1.Id)
+	pl, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 2, "invalid returned post")
@@ -486,7 +486,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	dErr = ss.Post().Delete(o2.Id, model.GetMillis(), "")
 	require.Nil(t, dErr)
 
-	pl, err = ss.Post().Get(o1.Id)
+	pl, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 
 	require.Len(t, pl.Posts, 1, "invalid returned post")
@@ -548,7 +548,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5, err = ss.Post().Save(o5)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	r1, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false)
 	require.Nil(t, err)
 
 	require.Equal(t, r1.Order[0], o5.Id, "invalid order")
@@ -561,7 +561,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 
 	require.Equal(t, r1.Posts[o1.Id].Message, o1.Message, "Missing parent")
 
-	r2, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, true)
+	r2, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false)
 	require.Nil(t, err)
 
 	require.Equal(t, r2.Order[0], o5.Id, "invalid order")
@@ -575,7 +575,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	require.Equal(t, r2.Posts[o1.Id].Message, o1.Message, "Missing parent")
 
 	// Run once to fill cache
-	_, err = ss.Post().GetPosts(o1.ChannelId, 0, 30, false)
+	_, err = ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false)
 	require.Nil(t, err)
 
 	o6 := &model.Post{}
@@ -585,7 +585,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(o6)
 	require.Nil(t, err)
 
-	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, false)
+	r3, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false)
 	require.Nil(t, err)
 	assert.Equal(t, 7, len(r3.Order))
 }
@@ -610,7 +610,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		}
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: 0, PerPage: 10})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{}, postList.Order)
@@ -618,7 +618,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should return posts before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: posts[5].Id, Page: 0, PerPage: 10})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
@@ -632,7 +632,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts before", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: posts[5].Id, PerPage: 2})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
@@ -643,7 +643,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should not return anything after the last post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[len(posts)-1].Id, PerPage: 10})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{}, postList.Order)
@@ -651,7 +651,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should return posts after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[5].Id, PerPage: 10})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
@@ -664,7 +664,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts after", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[5].Id, PerPage: 2})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
@@ -674,7 +674,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			}, postList.Posts)
 		})
 	})
-
 	t.Run("with threads", func(t *testing.T) {
 		channelId := model.NewId()
 		userId := model.NewId()
@@ -745,7 +744,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 2})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
@@ -759,13 +758,119 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 2})
 			assert.Nil(t, err)
 
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post2.Id: post2,
 				post4.Id: post4,
+				post5.Id: post5,
+				post6.Id: post6,
+			}, postList.Posts)
+		})
+	})
+	t.Run("with threads (skipFetchThreads)", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
+
+		// This creates a series of posts that looks like:
+		// post1
+		// post2
+		// post3 (in response to post1)
+		// post4 (in response to post2)
+		// post5
+		// post6 (in response to post2)
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "post1",
+		})
+		require.Nil(t, err)
+		post1.ReplyCount = 1
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "post2",
+		})
+		require.Nil(t, err)
+		post2.ReplyCount = 2
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post1.Id,
+			RootId:    post1.Id,
+			Message:   "post3",
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		post4, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			RootId:    post2.Id,
+			ParentId:  post2.Id,
+			Message:   "post4",
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		post5, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "post5",
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		post6, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post2.Id,
+			RootId:    post2.Id,
+			Message:   "post6",
+		})
+		require.Nil(t, err)
+
+		// Adding a post to a thread changes the UpdateAt timestamp of the parent post
+		post1.UpdateAt = post3.UpdateAt
+		post2.UpdateAt = post6.UpdateAt
+
+		t.Run("should return each post and thread before a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true})
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post1.Id: post1,
+				post2.Id: post2,
+				post3.Id: post3,
+			}, postList.Posts)
+		})
+
+		t.Run("should return each post and thread before a post with limit", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 1, SkipFetchThreads: true})
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post3.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post1.Id: post1,
+				post3.Id: post3,
+			}, postList.Posts)
+		})
+
+		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true})
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post2.Id: post2,
 				post5.Id: post5,
 				post6.Id: post6,
 			}, postList.Posts)
@@ -828,7 +933,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
 
-		postList, err := ss.Post().GetPostsSince(channelId, post3.CreateAt, false)
+		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post3.CreateAt}, false)
 		assert.Nil(t, err)
 
 		assert.Equal(t, []string{
@@ -859,7 +964,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
 
-		postList, err := ss.Post().GetPostsSince(channelId, post1.CreateAt, false)
+		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post1.CreateAt}, false)
 		assert.Nil(t, err)
 
 		assert.Equal(t, []string{}, postList.Order)
@@ -881,12 +986,12 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		time.Sleep(time.Millisecond)
 
 		// Make a request that returns no results
-		postList, err := ss.Post().GetPostsSince(channelId, post1.CreateAt, true)
+		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post1.CreateAt}, true)
 		require.Nil(t, err)
 		require.Equal(t, model.NewPostList(), postList)
 
 		// And then ensure that it doesn't cause future requests to also return no results
-		postList, err = ss.Post().GetPostsSince(channelId, post1.CreateAt-1, true)
+		postList, err = ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: post1.CreateAt - 1}, true)
 		assert.Nil(t, err)
 
 		assert.Equal(t, []string{post1.Id}, postList.Order)
@@ -1924,15 +2029,15 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o1.Id)
+	r2, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -1944,7 +2049,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o1a)
 	require.Nil(t, err)
 
-	r1, err = ss.Post().Get(o1.Id)
+	r1, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1a := r1.Posts[o1.Id]
 
@@ -1956,7 +2061,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o2a)
 	require.Nil(t, err)
 
-	r2, err = ss.Post().Get(o1.Id)
+	r2, err = ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -1968,7 +2073,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o3a)
 	require.Nil(t, err)
 
-	r3, err = ss.Post().Get(o3.Id)
+	r3, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -1982,7 +2087,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	r4, err := ss.Post().Get(o4.Id)
+	r4, err := ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -1993,7 +2098,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Overwrite(o4a)
 	require.Nil(t, err)
 
-	r4, err = ss.Post().Get(o4.Id)
+	r4, err = ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -2023,15 +2128,15 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id)
+	r1, err := ss.Post().Get(o1.Id, false)
 	require.Nil(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(o2.Id)
+	r2, err := ss.Post().Get(o2.Id, false)
 	require.Nil(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(o3.Id)
+	r3, err := ss.Post().Get(o3.Id, false)
 	require.Nil(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -2138,13 +2243,13 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	_, err = ss.Post().PermanentDeleteBatch(2000, 1000)
 	require.Nil(t, err)
 
-	_, err = ss.Post().Get(o1.Id)
+	_, err = ss.Post().Get(o1.Id, false)
 	require.NotNil(t, err, "Should have not found post 1 after purge")
 
-	_, err = ss.Post().Get(o2.Id)
+	_, err = ss.Post().Get(o2.Id, false)
 	require.NotNil(t, err, "Should have not found post 2 after purge")
 
-	_, err = ss.Post().Get(o3.Id)
+	_, err = ss.Post().Get(o3.Id, false)
 	require.Nil(t, err, "Should have not found post 3 after purge")
 }
 
