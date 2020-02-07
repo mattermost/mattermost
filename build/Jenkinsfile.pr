@@ -245,6 +245,7 @@ pipeline {
 				TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 				TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
 				MM_SQLSETTINGS_DRIVERNAME = "mysql"
+				MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
 				CI_INBUCKET_HOST = "inbucket"
 				CI_MINIO_HOST = "minio"
 				CI_INBUCKET_PORT = "10080"
@@ -252,7 +253,6 @@ pipeline {
 				CI_INBUCKET_SMTP_PORT = "10025"
 				CI_LDAP_HOST = "openldap"
 				IS_CI = true
-				MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
 				MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
 				MM_EMAILSETTINGS_SMTPPORT = "10025"
 				MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
@@ -413,6 +413,7 @@ pipeline {
 				TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 				TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
 				MM_SQLSETTINGS_DRIVERNAME = "postgres"
+				MM_SQLSETTINGS_DATASOURCE = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 				CI_INBUCKET_HOST = "inbucket"
 				CI_MINIO_HOST = "minio"
 				CI_INBUCKET_PORT = "10080"
@@ -420,7 +421,6 @@ pipeline {
 				CI_INBUCKET_SMTP_PORT = "10025"
 				CI_LDAP_HOST = "openldap"
 				IS_CI = true
-				MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
 				MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
 				MM_EMAILSETTINGS_SMTPPORT = "10025"
 				MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
