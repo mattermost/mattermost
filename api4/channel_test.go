@@ -2609,9 +2609,16 @@ func TestAutocompleteChannels(t *testing.T) {
 		Type:        model.CHANNEL_PRIVATE,
 		TeamId:      th.BasicTeam.Id,
 	})
+	tower, _ := th.Client.CreateChannel(&model.Channel{
+		DisplayName: "Tower",
+		Name:        "tower",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	})
 	utils.EnableDebugLogForTest()
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
+		th.Client.DeleteChannel(tower.Id)
 	}()
 
 	for _, tc := range []struct {
@@ -2626,21 +2633,21 @@ func TestAutocompleteChannels(t *testing.T) {
 			th.BasicTeam.Id,
 			"town",
 			[]string{"town-square"},
-			[]string{"off-topic", "town"},
+			[]string{"off-topic", "town", "tower"},
 		},
 		{
 			"Basic off-topic",
 			th.BasicTeam.Id,
 			"off-to",
 			[]string{"off-topic"},
-			[]string{"town-square", "town"},
+			[]string{"town-square", "town", "tower"},
 		},
 		{
 			"Basic town square and off topic",
 			th.BasicTeam.Id,
-			"to",
-			[]string{"off-topic", "town-square"},
-			[]string{"town"},
+			"tow",
+			[]string{"town-square", "tower"},
+			[]string{"off-topic", "town"},
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2740,11 +2747,11 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 			[]string{"town-square", "town", "townpriv"},
 		},
 		{
-			"Basic town square and off topic",
+			"Basic town square and townpriv",
 			th.BasicTeam.Id,
-			"to",
-			[]string{"off-topic", "town-square", "townpriv"},
-			[]string{"town"},
+			"tow",
+			[]string{"town-square", "townpriv"},
+			[]string{"off-topic", "town"},
 		},
 		{
 			"Direct and group messages",
