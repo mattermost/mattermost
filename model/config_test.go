@@ -1251,10 +1251,24 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 				DirectoryId:     NewString(""),
 			},
 			ExpectError: true,
-		}
+		},
+		{
+			Name: "default directory id",
+			Office365Settings: Office365Settings{
+				Enable:          NewBool(true),
+				Id:              NewString("id"),
+				Secret:          NewString("secret"),
+				Scope:           NewString("scope"),
+				AuthEndpoint:    NewString("authendpoint"),
+				TokenEndpoint:   NewString("tokenendpoint"),
+				UserApiEndpoint: NewString("userapiendpoint"),
+				DirectoryId:     NewString(OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			test.Office365Settings.SetDefaults()
+			test.Office365Settings.setDefaults(false)
 
 			err := test.Office365Settings.isValid()
 			if test.ExpectError {

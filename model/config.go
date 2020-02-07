@@ -211,6 +211,9 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+	OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID    = "{application id}"
+	OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID      = "{directory id}"
+	OFFICE365_SETTINGS_DEFAULT_SECRET            = "{secret}"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -887,38 +890,46 @@ type Office365Settings struct {
 	DirectoryId     *string
 }
 
-func (s *Office365Settings) setDefaults(isUpdate bool, scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *Office365Settings) setDefaults(isUpdate bool) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
 
-	if s.Id == nil {
+	if isUpdate {
+		if s.Id == nil || *s.Id == "" {
+			s.Id = NewString(OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID)
+		}
+	} else {
 		s.Id = NewString("")
 	}
 
-	if s.Secret == nil {
+	if isUpdate {
+		if s.Secret == nil || *s.Secret == "" {
+			s.Secret = NewString(OFFICE365_SETTINGS_DEFAULT_SECRET)
+		}
+	} else {
 		s.Secret = NewString("")
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewString(scope)
+		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString(authEndpoint)
+		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString(tokenEndpoint)
+		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
 	}
 
 	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString(userApiEndpoint)
+		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	}
 
 	if isUpdate {
-		if s.DirectoryId == nil || len(*s.DirectoryId) == 0 {
-			s.DirectoryId = NewString("{directory Id}")
+		if s.DirectoryId == nil || *s.DirectoryId == "" {
+			s.DirectoryId = NewString(OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID)
 		}
 	} else {
 		s.DirectoryId = NewString("")
@@ -2641,7 +2652,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(isUpdate, OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults(isUpdate)
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
@@ -3215,13 +3226,13 @@ func (s *ImageProxySettings) isValid() *AppError {
 
 func (s *Office365Settings) isValid() *AppError {
 	if *s.Enable {
-		if *s.Id == "" {
+		if *s.Id == "" || *s.Id == OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID {
 			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_id.app_error", nil, "", http.StatusBadRequest)
 		}
-		if *s.Secret == "" {
+		if *s.Secret == "" || *s.Secret == OFFICE365_SETTINGS_DEFAULT_SECRET {
 			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_secret.app_error", nil, "", http.StatusBadRequest)
 		}
-		if *s.DirectoryId == "" {
+		if *s.DirectoryId == "" || *s.DirectoryId == OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID {
 			return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
