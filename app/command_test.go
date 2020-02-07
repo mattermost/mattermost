@@ -108,7 +108,7 @@ func TestExecuteCommand(t *testing.T) {
 		Command: "missing leading slash character",
 		T:       func(s string, args ...interface{}) string { return s },
 	}
-	_, error := th.App.ExecuteCommand(argsMissingSlashCharacter)
+	_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
 	if err == nil || err.Id != "api.command.execute_command.format.app_error" {
 		t.Fatal("should have failed - missing leading slash character")
 	}
