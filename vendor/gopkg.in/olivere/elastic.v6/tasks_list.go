@@ -20,17 +20,21 @@ import (
 //
 // It is supported as of Elasticsearch 2.3.0.
 type TasksListService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	taskId            []string
 	actions           []string
 	detailed          *bool
-	human             *bool
 	nodeId            []string
 	parentTaskId      string
 	waitForCompletion *bool
 	groupBy           string
-	headers           http.Header
 }
 
 // NewTasksListService creates a new TasksListService.
@@ -38,6 +42,46 @@ func NewTasksListService(client *Client) *TasksListService {
 	return &TasksListService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *TasksListService) Pretty(pretty bool) *TasksListService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *TasksListService) Human(human bool) *TasksListService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *TasksListService) ErrorTrace(errorTrace bool) *TasksListService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *TasksListService) FilterPath(filterPath ...string) *TasksListService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *TasksListService) Header(name string, value string) *TasksListService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *TasksListService) Headers(headers http.Header) *TasksListService {
+	s.headers = headers
+	return s
 }
 
 // TaskId indicates to returns the task(s) with specified id(s).
@@ -57,12 +101,6 @@ func (s *TasksListService) Actions(actions ...string) *TasksListService {
 // Detailed indicates whether to return detailed task information (default: false).
 func (s *TasksListService) Detailed(detailed bool) *TasksListService {
 	s.detailed = &detailed
-	return s
-}
-
-// Human indicates whether to return time and byte values in human-readable format.
-func (s *TasksListService) Human(human bool) *TasksListService {
-	s.human = &human
 	return s
 }
 
@@ -96,21 +134,6 @@ func (s *TasksListService) GroupBy(groupBy string) *TasksListService {
 	return s
 }
 
-// Header sets headers on the request
-func (s *TasksListService) Header(name string, value string) *TasksListService {
-	if s.headers == nil {
-		s.headers = http.Header{}
-	}
-	s.headers.Add(name, value)
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *TasksListService) Pretty(pretty bool) *TasksListService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *TasksListService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -129,17 +152,23 @@ func (s *TasksListService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if len(s.actions) > 0 {
 		params.Set("actions", strings.Join(s.actions, ","))
 	}
-	if s.detailed != nil {
-		params.Set("detailed", fmt.Sprintf("%v", *s.detailed))
-	}
-	if s.human != nil {
-		params.Set("human", fmt.Sprintf("%v", *s.human))
+	if v := s.detailed; v != nil {
+		params.Set("detailed", fmt.Sprint(*v))
 	}
 	if len(s.nodeId) > 0 {
 		params.Set("node_id", strings.Join(s.nodeId, ","))
@@ -147,8 +176,8 @@ func (s *TasksListService) buildURL() (string, url.Values, error) {
 	if s.parentTaskId != "" {
 		params.Set("parent_task_id", s.parentTaskId)
 	}
-	if s.waitForCompletion != nil {
-		params.Set("wait_for_completion", fmt.Sprintf("%v", *s.waitForCompletion))
+	if v := s.waitForCompletion; v != nil {
+		params.Set("wait_for_completion", fmt.Sprint(*v))
 	}
 	if s.groupBy != "" {
 		params.Set("group_by", s.groupBy)

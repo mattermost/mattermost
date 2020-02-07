@@ -238,7 +238,7 @@ func (hl *Highlight) Source() (interface{}, error) {
 			source["fields"] = fields
 		} else {
 			// Use a map for the fields
-			fields := make(map[string]interface{}, 0)
+			fields := make(map[string]interface{})
 			for _, field := range hl.fields {
 				src, err := field.Source()
 				if err != nil {
