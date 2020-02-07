@@ -892,12 +892,12 @@ func (s *Office365Settings) setDefaults(isUpdate bool, scope, authEndpoint, toke
 		s.Enable = NewBool(false)
 	}
 
-	if s.Secret == nil {
-		s.Secret = NewString("")
-	}
-
 	if s.Id == nil {
 		s.Id = NewString("")
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
 	}
 
 	if s.Scope == nil {
@@ -918,7 +918,7 @@ func (s *Office365Settings) setDefaults(isUpdate bool, scope, authEndpoint, toke
 
 	if isUpdate {
 		if s.DirectoryId == nil || len(*s.DirectoryId) == 0 {
-			s.DirectoryId = NewString("{directoryId}")
+			s.DirectoryId = NewString("{directory Id}")
 		}
 	} else {
 		s.DirectoryId = NewString("")
@@ -2743,10 +2743,9 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if *o.Office365Settings.Enable && len(*o.Office365Settings.DirectoryId) == 0 {
-		return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
+	if err := o.Office365Settings.isValid(); err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -3211,6 +3210,21 @@ func (s *ImageProxySettings) isValid() *AppError {
 		}
 	}
 
+	return nil
+}
+
+func (s *Office365Settings) isValid() *AppError {
+	if *s.Enable {
+		if *s.Id == "" {
+			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if *s.Secret == "" {
+			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_secret.app_error", nil, "", http.StatusBadRequest)
+		}
+		if *s.DirectoryId == "" {
+			return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
 	return nil
 }
 

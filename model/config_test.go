@@ -1197,6 +1197,75 @@ func TestLdapSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestOffice365SettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name              string
+		Office365Settings Office365Settings
+		ExpectError       bool
+	}{
+		{
+			Name: "disabled",
+			Office365Settings: Office365Settings{
+				Enable: NewBool(false),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "missing id",
+			Office365Settings: Office365Settings{
+				Enable:          NewBool(true),
+				Id:              NewString(""),
+				Secret:          NewString("secret"),
+				Scope:           NewString("scope"),
+				AuthEndpoint:    NewString("authendpoint"),
+				TokenEndpoint:   NewString("tokenendpoint"),
+				UserApiEndpoint: NewString("userapiendpoint"),
+				DirectoryId:     NewString("directoryid"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "missing secret",
+			Office365Settings: Office365Settings{
+				Enable:          NewBool(true),
+				Id:              NewString("id"),
+				Secret:          NewString(""),
+				Scope:           NewString("scope"),
+				AuthEndpoint:    NewString("authendpoint"),
+				TokenEndpoint:   NewString("tokenendpoint"),
+				UserApiEndpoint: NewString("userapiendpoint"),
+				DirectoryId:     NewString("directory id"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "missing directory id",
+			Office365Settings: Office365Settings{
+				Enable:          NewBool(true),
+				Id:              NewString("id"),
+				Secret:          NewString("secret"),
+				Scope:           NewString("scope"),
+				AuthEndpoint:    NewString("authendpoint"),
+				TokenEndpoint:   NewString("tokenendpoint"),
+				UserApiEndpoint: NewString("userapiendpoint"),
+				DirectoryId:     NewString(""),
+			},
+			ExpectError: true,
+		}
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			test.Office365Settings.SetDefaults()
+
+			err := test.Office365Settings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
 func TestConfigSanitize(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
