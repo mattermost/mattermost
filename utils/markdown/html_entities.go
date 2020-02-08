@@ -1145,7 +1145,7 @@ var htmlEntities = map[string]string{
 	"in":                              "\u2208",
 	"incare":                          "\u2105",
 	"infin":                           "\u221E",
-	"infinite":                        "\u29DD",
+	"infintie":                        "\u29DD",
 	"inodot":                          "\u0131",
 	"int":                             "\u222B",
 	"intcal":                          "\u22BA",
