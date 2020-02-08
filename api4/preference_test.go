@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetPreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -66,7 +66,7 @@ func TestGetPreferences(t *testing.T) {
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -121,7 +121,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -176,7 +176,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 }
 
 func TestUpdatePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -235,7 +235,7 @@ func TestUpdatePreferences(t *testing.T) {
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -291,7 +291,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 }
 
 func TestDeletePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -338,7 +338,7 @@ func TestDeletePreferences(t *testing.T) {
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	userId := th.BasicUser.Id

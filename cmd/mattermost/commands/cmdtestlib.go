@@ -36,7 +36,7 @@ type testHelper struct {
 }
 
 // Setup creates an instance of testHelper.
-func Setup() *testHelper {
+func Setup(t testing.TB) *testHelper {
 	dir, err := ioutil.TempDir("", "testHelper")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
