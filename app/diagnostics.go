@@ -918,37 +918,37 @@ func (a *App) trackElasticsearch() {
 }
 
 func (a *App) trackGroups() {
-	groupCount, err := a.Srv.Store.Group().GroupCount()
+	groupCount, err := a.Srv().Store.Group().GroupCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupTeamCount, err := a.Srv.Store.Group().GroupTeamCount()
+	groupTeamCount, err := a.Srv().Store.Group().GroupTeamCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupChannelCount, err := a.Srv.Store.Group().GroupChannelCount()
+	groupChannelCount, err := a.Srv().Store.Group().GroupChannelCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedTeamCount, err := a.Srv.Store.Team().GroupSyncedTeamCount()
+	groupSyncedTeamCount, err := a.Srv().Store.Team().GroupSyncedTeamCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedChannelCount, err := a.Srv.Store.Channel().GroupSyncedChannelCount()
+	groupSyncedChannelCount, err := a.Srv().Store.Channel().GroupSyncedChannelCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupMemberCount, err := a.Srv.Store.Group().GroupMemberCount()
+	groupMemberCount, err := a.Srv().Store.Group().GroupMemberCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	distinctGroupMemberCount, err := a.Srv.Store.Group().DistinctGroupMemberCount()
+	distinctGroupMemberCount, err := a.Srv().Store.Group().DistinctGroupMemberCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}

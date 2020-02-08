@@ -1966,7 +1966,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session(), model.PERMISSION_PROMOTE_GUEST) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_PROMOTE_GUEST) {
 		c.SetPermissionError(model.PERMISSION_PROMOTE_GUEST)
 		return
 	}
