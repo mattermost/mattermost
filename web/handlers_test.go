@@ -422,7 +422,7 @@ func TestCheckCSRFToken(t *testing.T) {
 
 		c := &Context{
 			App: th.App,
-			Log: th.App.Log,
+			Log: th.App.Log(),
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -457,7 +457,7 @@ func TestCheckCSRFToken(t *testing.T) {
 
 		c := &Context{
 			App: th.App,
-			Log: th.App.Log,
+			Log: th.App.Log(),
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)

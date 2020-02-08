@@ -112,7 +112,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			sqlStore := th.App.Srv.Store.User().(*sqlstore.SqlUserStore)
+			sqlStore := th.App.Srv().Store.User().(*sqlstore.SqlUserStore)
 			sqlStore.GetMaster().Exec("DELETE FROM Users")
 
 			for _, createAt := range tc.UsersCreationDates {
@@ -122,9 +122,9 @@ func TestEnsureInstallationDate(t *testing.T) {
 			}
 
 			if tc.PrevInstallationDate == nil {
-				th.App.Srv.Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				th.App.Srv().Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 			} else {
-				th.App.Srv.Store.System().SaveOrUpdate(&model.System{
+				th.App.Srv().Store.System().SaveOrUpdate(&model.System{
 					Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
@@ -137,7 +137,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				data, err := th.App.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				data, err := th.App.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 				assert.Nil(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)

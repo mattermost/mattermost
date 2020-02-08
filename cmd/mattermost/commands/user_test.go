@@ -46,7 +46,7 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 
 	th.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
-	user, err := th.App.Srv.Store.User().GetByEmail(email)
+	user, err := th.App.Srv().Store.User().GetByEmail(email)
 	require.Nil(t, err)
 
 	require.Equal(t, email, user.Email)
@@ -81,10 +81,10 @@ func TestChangeUserEmail(t *testing.T) {
 	newEmail := model.NewId() + "@mattermost-test.com"
 
 	th.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
-	_, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email)
+	_, err := th.App.Srv().Store.User().GetByEmail(th.BasicUser.Email)
 	require.NotNil(t, err, "should've updated to the new email")
 
-	user, err := th.App.Srv.Store.User().GetByEmail(newEmail)
+	user, err := th.App.Srv().Store.User().GetByEmail(newEmail)
 	require.Nil(t, err)
 
 	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
@@ -114,7 +114,7 @@ func TestDeleteUserBotUser(t *testing.T) {
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
-	_, err := th.App.Srv.Store.User().Get(th.BasicUser.Id)
+	_, err := th.App.Srv().Store.User().Get(th.BasicUser.Id)
 	require.Error(t, err)
 
 	// Make a bot
@@ -123,16 +123,16 @@ func TestDeleteUserBotUser(t *testing.T) {
 		Description: "Delete me!",
 		OwnerId:     model.NewId(),
 	}
-	user, err := th.App.Srv.Store.User().Save(model.UserFromBot(bot))
+	user, err := th.App.Srv().Store.User().Save(model.UserFromBot(bot))
 	require.Nil(t, err)
 	bot.UserId = user.Id
-	bot, err = th.App.Srv.Store.Bot().Save(bot)
+	bot, err = th.App.Srv().Store.Bot().Save(bot)
 	require.Nil(t, err)
 
 	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
-	_, err = th.App.Srv.Store.User().Get(user.Id)
+	_, err = th.App.Srv().Store.User().Get(user.Id)
 	require.Error(t, err)
-	_, err = th.App.Srv.Store.Bot().Get(user.Id, true)
+	_, err = th.App.Srv().Store.Bot().Get(user.Id, true)
 	require.Error(t, err)
 }
 
@@ -153,7 +153,7 @@ func TestConvertUser(t *testing.T) {
 
 	t.Run("Convert to bot from username", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
-		_, err := th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
 		require.Nil(t, err)
 	})
 
@@ -173,13 +173,13 @@ func TestConvertUser(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
 			"--password", "password")
 		require.Nil(t, err)
-		_, err = th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
 		require.NotNil(t, err)
 	})
 
 	t.Run("Convert to bot from email", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser2.Email, "--bot")
-		_, err := th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
 		require.Nil(t, err)
 	})
 
@@ -195,10 +195,10 @@ func TestConvertUser(t *testing.T) {
 			"--system_admin")
 		require.Nil(t, err)
 
-		_, err = th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
 		require.NotNil(t, err)
 
-		user, appErr := th.App.Srv.Store.User().Get(th.BasicUser2.Id)
+		user, appErr := th.App.Srv().Store.User().Get(th.BasicUser2.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "newusername", user.Username)
 		require.Equal(t, "valid@email.com", user.Email)

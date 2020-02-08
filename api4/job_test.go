@@ -25,7 +25,7 @@ func TestCreateJob(t *testing.T) {
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
 
-	defer th.App.Srv.Store.Job().Delete(received.Id)
+	defer th.App.Srv().Store.Job().Delete(received.Id)
 
 	job = &model.Job{
 		Type: model.NewId(),
@@ -46,10 +46,10 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
 	}
-	_, err := th.App.Srv.Store.Job().Save(job)
+	_, err := th.App.Srv().Store.Job().Save(job)
 	require.Nil(t, err)
 
-	defer th.App.Srv.Store.Job().Delete(job.Id)
+	defer th.App.Srv().Store.Job().Delete(job.Id)
 
 	received, resp := th.SystemAdminClient.GetJob(job.Id)
 	require.Nil(t, resp.Error)
@@ -93,9 +93,9 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	received, resp := th.SystemAdminClient.GetJobs(0, 2)
@@ -144,9 +144,9 @@ func TestGetJobsByType(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	received, resp := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
@@ -195,9 +195,9 @@ func TestCancelJob(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	_, resp := th.Client.CancelJob(jobs[0].Id)
