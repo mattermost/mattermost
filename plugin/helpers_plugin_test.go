@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"path/filepath"
 	"testing"
 
@@ -115,38 +114,50 @@ func TestGetPluginAssetURL(t *testing.T) {
 	t.Run("Valid asset directory was provided", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := "assets"
-		wantedURL := &url.URL{Scheme: "https", Host: "mattermost.example.com", Path: "/mattermost-1234/assets"}
+		wantedURL := "https://mattermost.example.com/mattermost-1234/assets"
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
 		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%v", pluginID, dir, gotURL, wantedURL)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Valid asset directory path was provided", func(t *testing.T) {
+		pluginID := "mattermost-1234"
+		dirPath := "/mattermost/assets"
+		wantedURL := "https://mattermost.example.com/mattermost-1234/mattermost/assets"
+		gotURL, err := p.GetPluginAssetURL(pluginID, dirPath)
+
+		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%q", pluginID, dirPath, gotURL, wantedURL)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Valid pluginID was provided", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := "assets"
-		wantedURL := &url.URL{Scheme: "https", Host: "mattermost.example.com", Path: "/mattermost-1234/assets"}
+		wantedURL := "https://mattermost.example.com/mattermost-1234/assets"
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
-		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%v", pluginID, dir, gotURL, wantedURL)
+		assert.Equalf(t, wantedURL, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%q", pluginID, dir, gotURL, wantedURL)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Invalid asset directory name was provided", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := ""
+		want := ""
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
-		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%s; want=nil", pluginID, dir, gotURL)
+		assert.Emptyf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%s; want=%q", pluginID, dir, gotURL, want)
 		assert.Error(t, err)
 	})
 
 	t.Run("Invalid pluginID was provided", func(t *testing.T) {
 		pluginID := ""
 		dir := "assets"
+		want := ""
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
-		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=nil", pluginID, dir, gotURL)
+		assert.Emptyf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%q", pluginID, dir, gotURL, want)
 		assert.Error(t, err)
 	})
 
@@ -156,9 +167,10 @@ func TestGetPluginAssetURL(t *testing.T) {
 	t.Run("Empty SiteURL was configured", func(t *testing.T) {
 		pluginID := "mattermost-1234"
 		dir := "assets"
+		want := ""
 		gotURL, err := p.GetPluginAssetURL(pluginID, dir)
 
-		assert.Nilf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=nil", pluginID, dir, gotURL)
+		assert.Emptyf(t, gotURL, "GetPluginAssetURL(%q, %q) got=%q; want=%q", pluginID, dir, gotURL, want)
 		assert.Error(t, err)
 	})
 }
