@@ -271,7 +271,7 @@ func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, installa
 
 func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest, string, *model.AppError) {
 	pluginFile.Seek(0, 0)
-	if err := utils.ExtractTarGz(pluginFile, extractDir); err != nil {
+	if err := extractTarGz(pluginFile, extractDir); err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

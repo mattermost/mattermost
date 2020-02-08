@@ -110,6 +110,9 @@ type TeamStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+
+	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
+	GroupSyncedTeamCount() (int64, *model.AppError)
 }
 
 type ChannelStore interface {
@@ -198,6 +201,9 @@ type ChannelStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
+
+	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
+	GroupSyncedChannelCount() (int64, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -210,18 +216,18 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string) (*model.PostList, *model.AppError)
+	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
@@ -639,6 +645,21 @@ type GroupStore interface {
 	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
 	// the admin role for the given syncable.
 	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// GroupCount returns the total count of records in the UserGroups table.
+	GroupCount() (int64, *model.AppError)
+
+	// GroupTeamCount returns the total count of records in the GroupTeams table.
+	GroupTeamCount() (int64, *model.AppError)
+
+	// GroupChannelCount returns the total count of records in the GroupChannels table.
+	GroupChannelCount() (int64, *model.AppError)
+
+	// GroupMemberCount returns the total count of records in the GroupMembers table.
+	GroupMemberCount() (int64, *model.AppError)
+
+	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
+	DistinctGroupMemberCount() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {
