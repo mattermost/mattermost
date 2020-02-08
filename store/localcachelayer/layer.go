@@ -114,7 +114,6 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.channelGuestCountCache = cacheProvider.NewCacheWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
 	localCacheStore.channelByIdCache = cacheProvider.NewCacheWithParams(model.CHANNEL_CACHE_SIZE, "channelById", CHANNEL_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL)
 	localCacheStore.channelByNameCache = cacheProvider.NewCacheWithParams(model.CHANNEL_CACHE_SIZE, "ChannelByName", CHANNEL_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME)
-	localCacheStore.channelMembersForUserCache = cacheProvider.NewCacheWithParams(model.CHANNEL_CACHE_SIZE, "ChannelMembersForUser", CHANNEL_MEMBERS_FOR_USER_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_FOR_USER)
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
 	localCacheStore.postLastPostsCache = cacheProvider.NewCacheWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
