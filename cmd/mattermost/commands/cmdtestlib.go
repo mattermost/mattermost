@@ -42,7 +42,7 @@ func Setup(t testing.TB) *testHelper {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.Setup()
+	api4TestHelper := api4.Setup(t)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
