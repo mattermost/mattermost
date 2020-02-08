@@ -123,7 +123,7 @@ func (a *App) DeleteGroupConstrainedMemberships() error {
 
 // deleteGroupConstrainedTeamMemberships deletes team memberships of users who aren't members of the allowed
 // groups of the given group-constrained team. If a teamID is given then the procedure is scoped to the given team,
-// if teamID is nil then the proceedure affects all teams.
+// if teamID is nil then the procedure affects all teams.
 func (a *App) deleteGroupConstrainedTeamMemberships(teamID *string) error {
 	teamMembers, appErr := a.TeamMembersToRemove(teamID)
 	if appErr != nil {
@@ -147,7 +147,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(teamID *string) error {
 
 // deleteGroupConstrainedChannelMemberships deletes channel memberships of users who aren't members of the allowed
 // groups of the given group-constrained channel. If a channelID is given then the procedure is scoped to the given team,
-// if channelID is nil then the proceedure affects all teams.
+// if channelID is nil then the procedure affects all teams.
 func (a *App) deleteGroupConstrainedChannelMemberships(channelID *string) error {
 	channelMembers, appErr := a.ChannelMembersToRemove(channelID)
 	if appErr != nil {
