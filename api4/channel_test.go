@@ -2387,6 +2387,12 @@ func TestRemoveChannelMember(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+	bot := th.CreateBotWithSystemAdminClient()
+	th.App.AddUserToTeam(team.Id, bot.UserId, "")
+
 	pass, resp := Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser2.Id)
 	CheckNoError(t, resp)
 	require.True(t, pass, "should have passed")
@@ -2536,6 +2542,8 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckNoError(t, resp)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, bot.UserId)
+	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckForbiddenStatus(t, resp)
@@ -2562,6 +2570,10 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	// Test on preventing removal of user from a direct channel
 	directChannel, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	// If the channel is group-constrained a user can remove a bot
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, bot.UserId)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(directChannel.Id, user1.Id)
@@ -2597,9 +2609,16 @@ func TestAutocompleteChannels(t *testing.T) {
 		Type:        model.CHANNEL_PRIVATE,
 		TeamId:      th.BasicTeam.Id,
 	})
+	tower, _ := th.Client.CreateChannel(&model.Channel{
+		DisplayName: "Tower",
+		Name:        "tower",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	})
 	utils.EnableDebugLogForTest()
 	defer func() {
 		th.Client.DeleteChannel(ptown.Id)
+		th.Client.DeleteChannel(tower.Id)
 	}()
 
 	for _, tc := range []struct {
@@ -2614,21 +2633,21 @@ func TestAutocompleteChannels(t *testing.T) {
 			th.BasicTeam.Id,
 			"town",
 			[]string{"town-square"},
-			[]string{"off-topic", "town"},
+			[]string{"off-topic", "town", "tower"},
 		},
 		{
 			"Basic off-topic",
 			th.BasicTeam.Id,
 			"off-to",
 			[]string{"off-topic"},
-			[]string{"town-square", "town"},
+			[]string{"town-square", "town", "tower"},
 		},
 		{
 			"Basic town square and off topic",
 			th.BasicTeam.Id,
-			"to",
-			[]string{"off-topic", "town-square"},
-			[]string{"town"},
+			"tow",
+			[]string{"town-square", "tower"},
+			[]string{"off-topic", "town"},
 		},
 	} {
 		t.Run(tc.description, func(t *testing.T) {
@@ -2728,11 +2747,11 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 			[]string{"town-square", "town", "townpriv"},
 		},
 		{
-			"Basic town square and off topic",
+			"Basic town square and townpriv",
 			th.BasicTeam.Id,
-			"to",
-			[]string{"off-topic", "town-square", "townpriv"},
-			[]string{"town"},
+			"tow",
+			[]string{"town-square", "townpriv"},
+			[]string{"off-topic", "town"},
 		},
 		{
 			"Direct and group messages",

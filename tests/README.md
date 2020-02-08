@@ -34,5 +34,6 @@ Then update the sigantures:
 $ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign testplugin.tar.gz
 $ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign --armor testplugin.tar.gz
 $ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign testplugin2.tar.gz
+$ gpg -u F3FACE45E0DE642C8BD6A8E64C7C6562C192CC1F --verbose --personal-digest-preferences SHA256 --detach-sign --armor testplugin2.tar.gz
 
 Finally, include the updates bundles and signatures in your commit.
