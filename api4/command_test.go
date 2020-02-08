@@ -136,7 +136,7 @@ func TestUpdateCommand(t *testing.T) {
 }
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
@@ -408,7 +408,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 }
 
 func TestGetCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 

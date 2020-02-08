@@ -81,9 +81,6 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
-
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
 
@@ -299,13 +296,13 @@ else
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
 
-unit-test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+unit-test-server: ## Runs unit (quick) tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
-	$(GO) test $(GOFLAGS) $(TESTFLAGS) $(ALL_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
 else
 	@echo Running only TE tests
-	$(GO) test $(GOFLAGS) $(TESTFLAGS) $(TE_PACKAGES)
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
 endif
 
 internal-test-web-client: ## Runs web client tests.

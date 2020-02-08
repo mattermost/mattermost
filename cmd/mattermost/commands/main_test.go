@@ -8,7 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
@@ -29,10 +28,6 @@ func TestMain(m *testing.M) {
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
-
-	if !testing.Short() {
-		api4.UseTestStore(mainHelper.GetStore())
-	}
 
 	mainHelper.Main(m)
 }

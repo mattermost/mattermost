@@ -4345,7 +4345,7 @@ func TestLoginLockout(t *testing.T) {
 
 func TestDemoteUserToGuest(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
 			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
@@ -4400,7 +4400,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 func TestPromoteGuestToUser(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
 			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
