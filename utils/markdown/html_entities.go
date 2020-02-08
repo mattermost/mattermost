@@ -622,7 +622,7 @@ var htmlEntities = map[string]string{
 	"amp":                             "\u0026",
 	"and":                             "\u2227",
 	"andand":                          "\u2A55",
-	"and":                             "\u2A5C",
+	"andd":                            "\u2A5C",
 	"andslope":                        "\u2A58",
 	"andv":                            "\u2A5A",
 	"ang":                             "\u2220",
