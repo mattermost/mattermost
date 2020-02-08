@@ -53,23 +53,12 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 	}
 }
 
-func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersForUser(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
-		s.rootStore.channelMembersForUserCache.Purge()
-		return
-	}
-
-	// Remove keys with prefix msg.Data
-	s.rootStore.channelMembersForUserCache.RemoveByPrefix(msg.Data)
-}
-
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
-	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
