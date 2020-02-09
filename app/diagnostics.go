@@ -633,8 +633,8 @@ func (a *App) trackConfig() {
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	plugins, appErr := pluginsEnvironment.Available()
-	if appErr != nil {
+
+	if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 		mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
 	} else {
 		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
