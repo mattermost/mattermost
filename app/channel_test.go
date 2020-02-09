@@ -1292,3 +1292,337 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	err = th.App.RemoveUserFromChannel(botUser.Id, th.SystemAdminUser.Id, privateChannel)
 	require.Nil(t, err)
 }
+
+func TestPatchChannelModerationsForChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+	channel := th.BasicChannel
+
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_CREATE_POST.Id]
+	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_ADD_REACTION.Id]
+	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_USE_CHANNEL_MENTIONS.Id]
+	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id]
+
+	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
+
+	testCases := []struct {
+		Name                        string
+		ChannelModerationsPatch     []*model.ChannelModerationPatch
+		PermissionsModeratedByPatch map[string]map[string]map[string]bool
+		InheritedMemberPermissions  []string
+		InheritedGuestPermissions   []string
+		ShouldError                 bool
+		ShouldHaveNoChannelScheme   bool
+	}{
+		{
+			Name: "Removing create posts from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: map[string]bool{"members": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				createPosts: {
+					"members": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing create reactions from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: map[string]bool{"members": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				createReactions: {
+					"members": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing channel mentions from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: map[string]bool{"members": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				channelMentions: {
+					"members": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing manage members from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: map[string]bool{"members": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				manageMembers: {
+					"members": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing create posts from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: map[string]bool{"guests": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				createPosts: {
+					"guests": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing create reactions from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: map[string]bool{"guests": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				createReactions: {
+					"guests": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing channel mentions from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: map[string]bool{"guests": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				channelMentions: {
+					"guests": {
+						"value":   false,
+						"enabled": true,
+					},
+				},
+			},
+		},
+		{
+			Name: "Removing manage members from guests role should error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: map[string]bool{"guests": false},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Removing a permission that is not channel moderated should error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &nonChannelModeratedPermission,
+					Roles: map[string]bool{
+						"members": false,
+						"guests":  false,
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Error when adding a permission that is disabled in the parent member role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: map[string]bool{
+						"members": true,
+						"guests":  false,
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			InheritedMemberPermissions:  []string{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Error when adding a permission that is disabled in the parent guest role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: map[string]bool{
+						"members": false,
+						"guests":  true,
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			InheritedGuestPermissions:   []string{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Removing a permission from the member role that is disabled in the parent guest role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: map[string]bool{
+						"members": false,
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+				createPosts: {
+					"members": {
+						"value":   false,
+						"enabled": true,
+					},
+					"guests": {
+						"value":   false,
+						"enabled": false,
+					},
+				},
+				createReactions: {
+					"guests": {
+						"value":   false,
+						"enabled": false,
+					},
+				},
+				channelMentions: {
+					"guests": {
+						"value":   false,
+						"enabled": false,
+					},
+				},
+			},
+			InheritedGuestPermissions: []string{},
+			ShouldError:               false,
+		},
+		{
+			Name: "Channel should have no scheme when all moderated permissions are equivalent to inherited role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: map[string]bool{
+						"members": true,
+						"guests":  true,
+					},
+				},
+				{
+					Name: &createReactions,
+					Roles: map[string]bool{
+						"members": true,
+						"guests":  true,
+					},
+				},
+				{
+					Name: &channelMentions,
+					Roles: map[string]bool{
+						"members": true,
+						"guests":  true,
+					},
+				},
+				{
+					Name: &manageMembers,
+					Roles: map[string]bool{
+						"members": true,
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			ShouldHaveNoChannelScheme:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			inheritedPermissionsOverriden := tc.InheritedMemberPermissions != nil || tc.InheritedGuestPermissions != nil
+			// If the test case restricts inherited permissions.
+			if inheritedPermissionsOverriden {
+				inheritedGuestRoleName, inheritedMemberRoleName, _, _ := th.App.GetTeamSchemeRolesForChannel(channel.TeamId)
+				if tc.InheritedMemberPermissions != nil {
+					inheritedMemberRole, err := th.App.GetRoleByName(inheritedMemberRoleName)
+					require.Nil(t, err)
+					originalPermissions := inheritedMemberRole.Permissions
+
+					th.App.PatchRole(inheritedMemberRole, &model.RolePatch{Permissions: &tc.InheritedMemberPermissions})
+					defer th.App.PatchRole(inheritedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
+				}
+
+				if tc.InheritedGuestPermissions != nil {
+					inheritedGuestRole, err := th.App.GetRoleByName(inheritedGuestRoleName)
+					require.Nil(t, err)
+					originalPermissions := inheritedGuestRole.Permissions
+
+					th.App.PatchRole(inheritedGuestRole, &model.RolePatch{Permissions: &tc.InheritedGuestPermissions})
+					defer th.App.PatchRole(inheritedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
+				}
+			}
+
+			moderations, err := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
+			if tc.ShouldError {
+				require.Error(t, err)
+				return
+			} else {
+				require.Nil(t, err)
+			}
+
+			updatedChannel, _ := th.App.GetChannel(channel.Id)
+			if tc.ShouldHaveNoChannelScheme {
+				require.Nil(t, updatedChannel.SchemeId)
+			} else {
+				require.NotNil(t, updatedChannel.SchemeId)
+			}
+
+			for _, moderation := range moderations {
+				// If the permission is not found in the expected modified permissions table then require it to be true
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]["members"]; found {
+					require.Equal(t, moderation.Roles["members"]["value"], permission["value"])
+					require.Equal(t, moderation.Roles["members"]["enabled"], permission["enabled"])
+				} else {
+					require.Equal(t, moderation.Roles["members"]["value"], true)
+					require.Equal(t, moderation.Roles["members"]["enabled"], true)
+				}
+
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]["guests"]; found {
+					require.Equal(t, moderation.Roles["guests"]["value"], permission["value"])
+					require.Equal(t, moderation.Roles["guests"]["enabled"], permission["enabled"])
+				} else if moderation.Name == manageMembers {
+					require.Empty(t, moderation.Roles["guests"])
+				} else {
+					require.Equal(t, moderation.Roles["guests"]["value"], true)
+					require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+				}
+			}
+		})
+	}
+}

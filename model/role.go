@@ -123,6 +123,87 @@ func PermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 	return result
 }
 
+func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
+	var result []string
+
+	if patch.Permissions == nil {
+		return result
+	}
+
+	roleMap := make(map[string]bool)
+	patchMap := make(map[string]bool)
+
+	for _, permission := range role.Permissions {
+		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS[permission]; found {
+			roleMap[channelModeratedPermissionName] = true
+		}
+	}
+
+	for _, permission := range *patch.Permissions {
+		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS[permission]; found {
+			patchMap[channelModeratedPermissionName] = true
+		}
+	}
+
+	for permissionKey := range roleMap {
+		if !patchMap[permissionKey] {
+			result = append(result, permissionKey)
+		}
+	}
+
+	for permissionKey := range patchMap {
+		if !roleMap[permissionKey] {
+			result = append(result, permissionKey)
+		}
+	}
+
+	return result
+}
+
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs.
+func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
+	permissionsToAddToPatch := make(map[string]bool)
+
+	// Iterate through the list of existing permissions on the role and append permissions that we want to keep.
+	for _, permission := range r.Permissions {
+		// Permission is not moderated so dont add it to the patch and skip the channelModerationsPatch
+		if _, isModerated := CHANNEL_MODERATED_PERMISSIONS[permission]; !isModerated {
+			continue
+		}
+
+		permissionEnabled := true
+		// Check if permission has a matching moderated permission name inside the channel moderation patch
+		for _, channelModerationPatch := range channelModerationsPatch {
+			if *channelModerationPatch.Name == CHANNEL_MODERATED_PERMISSIONS[permission] {
+				if enable, found := channelModerationPatch.Roles[roleName]; !enable && found {
+					// Permission key exists in patch with a value of false so skip over it
+					permissionEnabled = false
+				}
+			}
+		}
+
+		if permissionEnabled {
+			permissionsToAddToPatch[permission] = true
+		}
+	}
+
+	// Iterate through the patch and add any permissions that dont already exist on the role
+	for _, channelModerationPatch := range channelModerationsPatch {
+		for permission, moderatedPermissionName := range CHANNEL_MODERATED_PERMISSIONS {
+			if channelModerationPatch.Roles[roleName] && *channelModerationPatch.Name == moderatedPermissionName {
+				permissionsToAddToPatch[permission] = true
+			}
+		}
+	}
+
+	patchPermissions := make([]string, 0, len(permissionsToAddToPatch))
+	for permission := range permissionsToAddToPatch {
+		patchPermissions = append(patchPermissions, permission)
+	}
+
+	return &RolePatch{Permissions: &patchPermissions}
+}
+
 func (r *Role) IsValid() bool {
 	if len(r.Id) != 26 {
 		return false

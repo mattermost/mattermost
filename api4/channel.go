@@ -60,6 +60,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.ApiSessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.ApiSessionRequired(getChannelModerations)).Methods("GET")
+	api.BaseRoutes.ChannelModerations.Handle("/patch", api.ApiSessionRequired(patchChannelModerations)).Methods("PUT")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1555,7 +1556,13 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channelModerations, err := c.App.GetChannelModerationsForChannel(c.Params.ChannelId)
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelModerations, err := c.App.GetChannelModerationsForChannel(channel)
 	if err != nil {
 		c.Err = err
 		return
@@ -1564,6 +1571,44 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 	b, marshalErr := json.Marshal(channelModerations)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelModerationsPatch := model.ChannelModerationsPatchFromJson(r.Body)
+	channelModerations, err := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(channelModerations)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -332,6 +332,10 @@
     "translation": "%v left the channel."
   },
   {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Your license does not support channel moderation"
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel"
   },

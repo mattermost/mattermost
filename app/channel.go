@@ -722,10 +722,68 @@ func (a *App) GetTeamSchemeRolesForChannel(teamId string) (string, string, strin
 	return model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
 }
 
-func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.ChannelModeration, *model.AppError) {
-	channel, err := a.GetChannel(channelId)
+func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	memberRole, err := a.GetRoleByName(memberRoleName)
 	if err != nil {
 		return nil, err
+	}
+
+	guestRole, err := a.GetRoleByName(guestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	inheritedGuestRole, err := a.GetRoleByName(inheritedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildChannelModerations(memberRole, guestRole, inheritedMemberRole, inheritedGuestRole), nil
+}
+
+func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	inheritedGuestRole, err := a.GetRoleByName(inheritedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	inheritedMemberPermissions := GetChannelModeratedPermissions(inheritedMemberRole.Permissions)
+	inheritedGuestPermissions := GetChannelModeratedPermissions(inheritedGuestRole.Permissions)
+
+	for _, moderationPatch := range channelModerationsPatch {
+		if moderationPatch.Roles["members"] && !inheritedMemberPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+		if moderationPatch.Roles["guests"] && !inheritedGuestPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+	}
+
+	// Channel has no scheme so create one
+	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+		scheme := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		}
+		if scheme, err = a.CreateScheme(scheme); err != nil {
+			return nil, err
+		}
+		channel.SchemeId = &scheme.Id
+		a.UpdateChannelScheme(channel)
 	}
 
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
@@ -739,21 +797,32 @@ func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.Channe
 		return nil, err
 	}
 
-	memberPermissions := GetChannelModeratedPermissions(memberRole)
-	guestPermissions := GetChannelModeratedPermissions(guestRole)
+	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
+	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
 
-	inhertedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
-	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
-	if err != nil {
-		return nil, err
+	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(inheritedMemberRole, memberRolePatch)) == 0
+	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(inheritedGuestRole, guestRolePatch)) == 0
+	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
+		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+			return nil, err
+		}
+		channel.SchemeId = nil
+		a.UpdateChannelScheme(channel)
+		memberRole = inheritedMemberRole
+		guestRole = inheritedGuestRole
+	} else {
+		memberRole.Patch(memberRolePatch)
+		guestRole.Patch(guestRolePatch)
 	}
 
-	inhertedGuestRole, err := a.GetRoleByName(inhertedGuestRoleName)
-	if err != nil {
-		return nil, err
-	}
-	inheritedMemberPermissions := GetChannelModeratedPermissions(inheritedMemberRole)
-	inheritedGuestPermissions := GetChannelModeratedPermissions(inhertedGuestRole)
+	return buildChannelModerations(memberRole, guestRole, inheritedMemberRole, inheritedGuestRole), nil
+}
+
+func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, inheritedMemberRole *model.Role, inheritedGuestRole *model.Role) []*model.ChannelModeration {
+	memberPermissions := GetChannelModeratedPermissions(memberRole.Permissions)
+	guestPermissions := GetChannelModeratedPermissions(guestRole.Permissions)
+	inheritedMemberPermissions := GetChannelModeratedPermissions(inheritedMemberRole.Permissions)
+	inheritedGuestPermissions := GetChannelModeratedPermissions(inheritedGuestRole.Permissions)
 
 	var channelModerations []*model.ChannelModeration
 	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
@@ -781,7 +850,7 @@ func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.Channe
 		channelModerations = append(channelModerations, moderation)
 	}
 
-	return channelModerations, nil
+	return channelModerations
 }
 
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {

@@ -117,10 +117,10 @@ func RemoveRoles(rolesToRemove []string, roles string) string {
 }
 
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
-func GetChannelModeratedPermissions(role *model.Role) map[string]bool {
+func GetChannelModeratedPermissions(permissions []string) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
-	for _, permission := range role.Permissions {
-		for moderated, moderatedPermissionValue := range model.CHANNEL_MODERATED_PERMISSIONS_MAP {
+	for _, permission := range permissions {
+		for moderated, moderatedPermissionValue := range model.CHANNEL_MODERATED_PERMISSIONS {
 			if moderated == permission {
 				moderatedPermissions[moderatedPermissionValue] = true
 			}

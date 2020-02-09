@@ -3100,3 +3100,118 @@ func TestGetChannelModerations(t *testing.T) {
 		}
 	})
 }
+
+func TestPatchChannelModerations(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	// team := th.BasicTeam
+
+	emptyPatch := []*model.ChannelModerationPatch{}
+
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_CREATE_POST.Id]
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Equal(t, "api.channel.patch_channel_moderations.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Errors as a non sysadmin", func(t *testing.T) {
+		_, res := th.Client.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Returns default moderations with empty patch", func(t *testing.T) {
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles["guests"])
+			} else {
+				require.Equal(t, moderation.Roles["guests"]["value"], true)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+			}
+
+			require.Equal(t, moderation.Roles["members"]["value"], true)
+			require.Equal(t, moderation.Roles["members"]["enabled"], true)
+		}
+
+		require.Nil(t, channel.SchemeId)
+	})
+
+	t.Run("Creates a scheme and returns the updated channel moderations when patching an existing permission", func(t *testing.T) {
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: map[string]bool{"members": false},
+			},
+		}
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles["guests"])
+			} else {
+				require.Equal(t, moderation.Roles["guests"]["value"], true)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+			}
+
+			if moderation.Name == createPosts {
+				require.Equal(t, moderation.Roles["members"]["value"], false)
+				require.Equal(t, moderation.Roles["members"]["enabled"], true)
+			} else {
+				require.Equal(t, moderation.Roles["members"]["value"], true)
+				require.Equal(t, moderation.Roles["members"]["enabled"], true)
+			}
+		}
+		channel, _ = th.App.GetChannel(channel.Id)
+		require.NotNil(t, channel.SchemeId)
+	})
+
+	t.Run("Removes the existing scheme when moderated permissions are set back to inherited values", func(t *testing.T) {
+		channel, _ = th.App.GetChannel(channel.Id)
+		schemeId := channel.SchemeId
+
+		scheme, _ := th.App.GetScheme(*schemeId)
+		require.Equal(t, scheme.DeleteAt, int64(0))
+
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: map[string]bool{"members": true},
+			},
+		}
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles["guests"])
+			} else {
+				require.Equal(t, moderation.Roles["guests"]["value"], true)
+				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+			}
+
+			require.Equal(t, moderation.Roles["members"]["value"], true)
+			require.Equal(t, moderation.Roles["members"]["enabled"], true)
+		}
+
+		channel, _ = th.App.GetChannel(channel.Id)
+		require.Nil(t, channel.SchemeId)
+
+		scheme, _ = th.App.GetScheme(*schemeId)
+		require.NotEqual(t, scheme.DeleteAt, int64(0))
+	})
+
+}
