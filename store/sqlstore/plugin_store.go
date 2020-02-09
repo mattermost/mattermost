@@ -268,7 +268,7 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 	}
 
 	var keys []string
-	_, err := ps.GetReplica().Select(&keys, "SELECT PKey FROM PluginKeyValueStore WHERE PluginId = :PluginId order by PKey limit :Limit offset :Offset", map[string]interface{}{"PluginId": pluginId, "Limit": limit, "Offset": offset})
+	_, err := ps.GetReplica().Select(&keys, "SELECT PKey FROM PluginKeyValueStore WHERE PluginId = :PluginId AND (ExpireAt = 0 OR ExpireAt > :CurrentTime) order by PKey limit :Limit offset :Offset", map[string]interface{}{"PluginId": pluginId, "Limit": limit, "Offset": offset, "CurrentTime": model.GetMillis()})
 	if err != nil {
 		return nil, model.NewAppError("SqlPluginStore.List", "store.sql_plugin_store.list.app_error", nil, fmt.Sprintf("plugin_id=%v, err=%v", pluginId, err.Error()), http.StatusInternalServerError)
 	}
