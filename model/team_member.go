@@ -38,6 +38,11 @@ type TeamMemberWithError struct {
 	Error  *AppError   `json:"error"`
 }
 
+type EmailInviteWithError struct {
+	Email string    `json:"email"`
+	Error *AppError `json:"error"`
+}
+
 func (o *TeamMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -58,6 +63,30 @@ func TeamUnreadFromJson(data io.Reader) *TeamUnread {
 	var o *TeamUnread
 	json.NewDecoder(data).Decode(&o)
 	return o
+}
+
+func EmailInviteWithErrorFromJson(data io.Reader) []*EmailInviteWithError {
+	var o []*EmailInviteWithError
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
+	var ret []string
+	for _, o := range o {
+		if o.Error == nil {
+			ret = append(ret, o.Email)
+		}
+	}
+	return ret
+}
+
+func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
 }
 
 func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {

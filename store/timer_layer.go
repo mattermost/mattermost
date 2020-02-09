@@ -3645,6 +3645,22 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PluginStore.CompareAndDelete(keyVal, oldValue)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PluginStore.CompareAndDelete", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
 	start := timemodule.Now()
 
@@ -3852,10 +3868,10 @@ func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Get(id string) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.Get(id)
+	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4044,10 +4060,10 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPosts(channelId, offset, limit, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPosts(options, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4060,10 +4076,10 @@ func (s *TimerLayerPostStore) GetPosts(channelId string, offset int, limit int, 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(channelId, postId, numPosts, offset)
+	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4092,10 +4108,10 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(channelId, postId, numPosts, offset)
+	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4140,10 +4156,10 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.GetPostsSince(channelId, time, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
