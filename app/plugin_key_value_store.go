@@ -115,9 +115,9 @@ func (a *App) ModifyKey(pluginId string, key string, f func(value []byte) ([]byt
 	}
 
 	kv.Value = modifiedValue
-	a.Srv.Store.Plugin().SetWithOptions(pluginId, kv.Key, kv.Value, model.PluginKVSetOptions{})
-	if _, err := a.Srv.Store.Plugin().SaveOrUpdate(kv); err != nil {
-		return err
+	_, setErr := a.Srv.Store.Plugin().SetWithOptions(pluginId, kv.Key, kv.Value, model.PluginKVSetOptions{})
+	if setErr != nil {
+		return setErr
 	}
 
 	return nil
