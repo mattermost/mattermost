@@ -273,7 +273,7 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 	}
 
 	var data []byte
-	row := ds.db.QueryRowx(query, args...)
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&data); err != nil {
 		return nil, errors.Wrapf(err, "failed to scan data from row for %s", name)
 	}
@@ -324,8 +324,8 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 		return false, err
 	}
 
-	var count int
-	row := ds.db.QueryRowx(query, args...)
+	var count int64
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&count); err != nil {
 		return false, errors.Wrapf(err, "failed to scan count of rows for %s", name)
 	}

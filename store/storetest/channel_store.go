@@ -88,6 +88,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
+	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -4220,4 +4221,38 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
 	assert.Nil(t, err)
 	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
+}
+
+func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
+	channel1, err := ss.Channel().Save(&model.Channel{
+		DisplayName:      model.NewId(),
+		Name:             model.NewId(),
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+	}, 999)
+	require.Nil(t, err)
+	require.True(t, channel1.IsGroupConstrained())
+	defer ss.Channel().PermanentDelete(channel1.Id)
+
+	channel2, err := ss.Channel().Save(&model.Channel{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}, 999)
+	require.Nil(t, err)
+	require.False(t, channel2.IsGroupConstrained())
+	defer ss.Channel().PermanentDelete(channel2.Id)
+
+	count, err := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, count, int64(1))
+
+	channel2.GroupConstrained = model.NewBool(true)
+	channel2, err = ss.Channel().Update(channel2)
+	require.Nil(t, err)
+	require.True(t, channel2.IsGroupConstrained())
+
+	countAfter, err := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, countAfter, count+1)
 }

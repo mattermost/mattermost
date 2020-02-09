@@ -18,7 +18,7 @@ pipeline {
   }
 
   options {
-    buildDiscarder(logRotator(numToKeepStr: '3'))
+    buildDiscarder(logRotator(daysToKeepStr: '15'))
     timeout(time: 2, unit: 'HOURS')
   }
 
@@ -51,7 +51,7 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
                 platformStages.platformCleanDockerCompose(rndEE)
@@ -71,7 +71,7 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
                 platformStages.platformCleanDockerCompose(rndTE)
