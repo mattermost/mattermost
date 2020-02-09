@@ -41,9 +41,10 @@ func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface
 	}
 
 	if len(pluginConfig) != 0 {
-		for _, pluginSetting := range api.manifest.SettingsSchema.Settings {
-			if pluginValue, exist := pluginConfig[strings.ToLower(pluginSetting.Key)]; exist && pluginValue == "" {
-				pluginConfig[strings.ToLower(pluginSetting.Key)] = pluginSetting.Default
+		for _, setting := range api.manifest.SettingsSchema.Settings {
+			key := strings.ToLower(setting.Key)
+			if existingValue := pluginConfig[key]; existingValue == "" {
+				pluginConfig[key] = setting.Default
 			}
 		}
 		return
@@ -138,6 +139,7 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	api.applyDefaultConfigValues(pluginConfig)
 	return api.app.SaveConfig(cfg, true)
 }
 
