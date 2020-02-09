@@ -78,51 +78,52 @@ func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache bool) stri
 	return result
 }
 
-func (s LocalCachePostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
-		if lastTime := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId); lastTime != nil && lastTime.(int64) <= time {
+		if lastTime := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, options.ChannelId); lastTime != nil && lastTime.(int64) <= options.Time {
 			list := model.NewPostList()
 			return list, nil
 		}
 	}
 
-	list, err := s.PostStore.GetPostsSince(channelId, time, allowFromCache)
+	list, err := s.PostStore.GetPostsSince(options, allowFromCache)
 
-	latestUpdate := time
+	latestUpdate := options.Time
 	if err == nil {
 		for _, p := range list.ToSlice() {
 			if latestUpdate < p.UpdateAt {
 				latestUpdate = p.UpdateAt
 			}
 		}
-		s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, channelId, latestUpdate)
+		s.rootStore.doStandardAddToCache(s.rootStore.lastPostTimeCache, options.ChannelId, latestUpdate)
 	}
 
 	return list, err
 }
 
-func (s LocalCachePostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
 	if !allowFromCache {
-		return s.PostStore.GetPosts(channelId, offset, limit, allowFromCache)
+		return s.PostStore.GetPosts(options, allowFromCache)
 	}
 
+	offset := options.PerPage * options.Page
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if offset == 0 && (limit == 60 || limit == 30) {
-		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", channelId, limit)); cacheItem != nil {
+	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage)); cacheItem != nil {
 			return cacheItem.(*model.PostList), nil
 		}
 	}
 
-	list, err := s.PostStore.GetPosts(channelId, offset, limit, allowFromCache)
+	list, err := s.PostStore.GetPosts(options, false)
 	if err != nil {
 		return nil, err
 	}
 
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-	if offset == 0 && (limit == 60 || limit == 30) {
-		s.rootStore.doStandardAddToCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", channelId, limit), list)
+	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
+		s.rootStore.doStandardAddToCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage), list)
 	}
 
 	return list, err

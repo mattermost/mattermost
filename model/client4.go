@@ -352,6 +352,10 @@ func (c *Client4) GetCommandRoute(commandId string) string {
 	return fmt.Sprintf(c.GetCommandsRoute()+"/%v", commandId)
 }
 
+func (c *Client4) GetCommandMoveRoute(commandId string) string {
+	return fmt.Sprintf(c.GetCommandsRoute()+"/%v/move", commandId)
+}
+
 func (c *Client4) GetEmojisRoute() string {
 	return fmt.Sprintf("/emoji")
 }
@@ -1983,6 +1987,31 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email?graceful=true", ArrayToJson(userEmails))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
+// InviteGuestsToTeam invite guest by email to some channels in a team.
+func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response) {
+	guestsInvite := GuestsInvite{
+		Emails:   userEmails,
+		Channels: channels,
+		Message:  message,
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful=true", guestsInvite.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
 }
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
@@ -3992,6 +4021,17 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 	}
 	defer closeBody(r)
 	return CommandFromJson(r.Body), BuildResponse(r)
+}
+
+// MoveCommand moves a command to a different team.
+func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response) {
+	cmr := CommandMoveRequest{TeamId: teamId}
+	r, err := c.DoApiPut(c.GetCommandMoveRoute(commandId), cmr.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // DeleteCommand deletes a command based on the provided command id string.
