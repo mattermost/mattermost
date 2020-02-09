@@ -268,6 +268,7 @@ func (a *App) SetContext(c context.Context) {
 }
 func (a *App) SetServer(srv *Server) {
 	a.srv = srv
+	a.store = srv.Store
 }
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
