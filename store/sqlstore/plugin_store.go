@@ -180,11 +180,12 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 	}
 
 	deleteResult, err := ps.GetMaster().Exec(
-		`DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
+		`DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)`,
 		map[string]interface{}{
-			"PluginId": kv.PluginId,
-			"Key":      kv.Key,
-			"Old":      oldValue,
+			"PluginId":    kv.PluginId,
+			"Key":         kv.Key,
+			"Old":         oldValue,
+			"CurrentTime": model.GetMillis(),
 		},
 	)
 	if err != nil {
