@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 
+	svg "github.com/h2non/go-is-svg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -602,10 +604,15 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
+		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		require.NoError(t, err)
+		require.True(t, svg.Is(testIcon))
+		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 		expectedPlugins := append(samplePlugins, &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "https://example.com/homepage",
-				IconData:    "",
+				IconData:    testIconData,
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
@@ -711,6 +718,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 	tarDataV2, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
 	require.NoError(t, err)
 
+	testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+	require.NoError(t, err)
+	require.True(t, svg.Is(testIcon))
+	testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 	t.Run("search installed plugin", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
@@ -740,7 +752,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 		plugin1 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "https://example.com/homepage",
-				IconData:    "",
+				IconData:    testIconData,
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
@@ -754,10 +766,11 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 
 		manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarDataV2))
 		CheckNoError(t, resp)
+
 		plugin2 := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://example.com/homepage2",
-				IconData:    "",
+				IconData:    testIconData,
+				HomepageURL: "https://example.com/homepage",
 				DownloadURL: "",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
@@ -896,8 +909,14 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
+		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		require.NoError(t, err)
+		require.True(t, svg.Is(testIcon))
+		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				IconData:    testIconData,
 				HomepageURL: "https://example.com/homepage",
 				Manifest:    manifest,
 			},
@@ -930,10 +949,16 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 		CheckNoError(t, resp)
 
+		testIcon, err := ioutil.ReadFile(filepath.Join(path, "test.svg"))
+		require.NoError(t, err)
+		require.True(t, svg.Is(testIcon))
+		testIconData := fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(testIcon))
+
 		newPlugin := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://example.com/homepage",
 				Manifest:    manifest,
+				IconData:    testIconData,
+				HomepageURL: "https://example.com/homepage",
 				Labels: []model.MarketplaceLabel{{
 					Name:        "Local",
 					Description: "This plugin is not listed in the marketplace",
