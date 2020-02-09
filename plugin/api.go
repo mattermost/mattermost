@@ -745,6 +745,12 @@ type API interface {
 	// Minimum server version: 5.2
 	KVSet(key string, value []byte) *model.AppError
 
+	// KVAtomicModify atomically modifies data for a particular key
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 5.22
+	KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError
+
 	// KVCompareAndSet updates a key-value pair, unique per plugin, but only if the current value matches the given oldValue.
 	// Inserts a new key if oldValue == nil.
 	// Returns (false, err) if DB error occurred
@@ -801,12 +807,6 @@ type API interface {
 	// @tag KeyValueStore
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
-
-	//KVAtomicModify atomically modifies data for a particular key
-	//
-	//@tag KeyValueStore
-	// Minimum server version: 5.2
-	KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
