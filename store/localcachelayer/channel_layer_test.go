@@ -330,7 +330,7 @@ func TestChannelStoreChannelMembersForUserCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 1)
 
 		// invalidate
-		cachedStore.Channel().(LocalCacheChannelStore).invalidateMembersForUser("userId1")
+		cachedStore.Channel().(LocalCacheChannelStore).InvalidateAllChannelMembersForUser("userId1")
 
 		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
@@ -352,7 +352,8 @@ func TestChannelStoreChannelMembersForUserCache(t *testing.T) {
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 2)
 
 		// invalidate all
-		cachedStore.Channel().(LocalCacheChannelStore).invalidateMembersForAllUsers()
+		cachedStore.Channel().(LocalCacheChannelStore).InvalidateAllChannelMembersForUser("userId1")
+		cachedStore.Channel().(LocalCacheChannelStore).InvalidateAllChannelMembersForUser("userId2")
 
 		_, _ = cachedStore.Channel().GetMembersForUser("teamId", "userId1")
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetMembersForUser", 3)
@@ -369,7 +370,7 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 			},
 		}
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
 			GetAllChannelMembersNotifyPropsForChannel("id", true)
 		require.Nil(t, err)
