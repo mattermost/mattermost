@@ -60,12 +60,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		} else if rowsAffected == 0 {
 			// No rows were affected by the update, so let's try an insert
 			if err := ps.GetMaster().Insert(kv); err != nil {
-				// If the error is from unique constraints violation, it's the result of a
-				// valid race and we can report success. Otherwise we have a real error and
-				// need to return it
-				if !IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey", "pkey"}) {
-					return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				}
+				return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
