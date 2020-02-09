@@ -19,11 +19,12 @@ type SignificantTermsAggregation struct {
 	filter                Query
 	executionHint         string
 	significanceHeuristic SignificanceHeuristic
+	includeExclude        *TermsAggregationIncludeExclude
 }
 
 func NewSignificantTermsAggregation() *SignificantTermsAggregation {
 	return &SignificantTermsAggregation{
-		subAggregations: make(map[string]Aggregation, 0),
+		subAggregations: make(map[string]Aggregation),
 	}
 }
 
@@ -75,6 +76,59 @@ func (a *SignificantTermsAggregation) ExecutionHint(hint string) *SignificantTer
 
 func (a *SignificantTermsAggregation) SignificanceHeuristic(heuristic SignificanceHeuristic) *SignificantTermsAggregation {
 	a.significanceHeuristic = heuristic
+	return a
+}
+
+func (a *SignificantTermsAggregation) Include(regexp string) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Include = regexp
+	return a
+}
+
+func (a *SignificantTermsAggregation) IncludeValues(values ...interface{}) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.IncludeValues = append(a.includeExclude.IncludeValues, values...)
+	return a
+}
+
+func (a *SignificantTermsAggregation) Exclude(regexp string) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Exclude = regexp
+	return a
+}
+
+func (a *SignificantTermsAggregation) ExcludeValues(values ...interface{}) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.ExcludeValues = append(a.includeExclude.ExcludeValues, values...)
+	return a
+}
+
+func (a *SignificantTermsAggregation) Partition(p int) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Partition = p
+	return a
+}
+
+func (a *SignificantTermsAggregation) NumPartitions(n int) *SignificantTermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.NumPartitions = n
+	return a
+}
+
+func (a *SignificantTermsAggregation) IncludeExclude(includeExclude *TermsAggregationIncludeExclude) *SignificantTermsAggregation {
+	a.includeExclude = includeExclude
 	return a
 }
 
@@ -131,6 +185,13 @@ func (a *SignificantTermsAggregation) Source() (interface{}, error) {
 			return nil, err
 		}
 		opts[name] = src
+	}
+
+	// Include/Exclude
+	if ie := a.includeExclude; ie != nil {
+		if err := ie.MergeInto(opts); err != nil {
+			return nil, err
+		}
 	}
 
 	// AggregationBuilder (SubAggregations)

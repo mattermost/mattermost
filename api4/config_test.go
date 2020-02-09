@@ -128,6 +128,22 @@ func TestUpdateConfig(t *testing.T) {
 		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 		assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 	})
+
+	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+
+		cfg.PluginSettings.SignaturePublicKeyFiles = nil
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+	})
 }
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {

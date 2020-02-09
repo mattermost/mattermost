@@ -17,7 +17,6 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS                = "inv_channel_posts"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS = "inv_channel_members_notify_props"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS              = "inv_channel_members"
-	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_FOR_USER     = "inv_channel_members_user"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME              = "inv_channel_name"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL                      = "inv_channel"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT          = "inv_channel_guest_count"
