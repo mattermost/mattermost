@@ -523,10 +523,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	member1.ChannelId = newChannel.Id
 	member2.ChannelId = newChannel.Id
 
-	_, member1SaveErr := s.saveMemberT(transaction, member1, newChannel)
+	_, member1SaveErr := s.saveMemberT(transaction, member1)
 	member2SaveErr := member1SaveErr
 	if member1.UserId != member2.UserId {
-		_, member2SaveErr = s.saveMemberT(transaction, member2, newChannel)
+		_, member2SaveErr = s.saveMemberT(transaction, member2)
 	}
 
 	if member1SaveErr != nil || member2SaveErr != nil {
@@ -1252,19 +1252,13 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	defer s.InvalidateAllChannelMembersForUser(member.UserId)
 
-	// Grab the channel we are saving this member to
-	channel, errCh := s.GetFromMaster(member.ChannelId)
-	if errCh != nil {
-		return nil, errCh
-	}
-
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer finalizeTransaction(transaction)
 
-	newMember, appErr := s.saveMemberT(transaction, member, channel)
+	newMember, appErr := s.saveMemberT(transaction, member)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1276,7 +1270,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	return newMember, nil
 }
 
-func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member.PreSave()
 	if err := member.IsValid(); err != nil {
 		return nil, err
@@ -2841,4 +2835,20 @@ func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *
 	}
 
 	return nil
+}
+
+func (s SqlChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("COUNT(*)").From("Channels").Where(sq.Eq{"GroupConstrained": true, "DeleteAt": 0})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GroupSyncedChannelCount", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(sql, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GroupSyncedChannelCount", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }
