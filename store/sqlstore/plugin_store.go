@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DEFAULT_PLUGIN_KEY_FETCH_LIMIT = 10
+	defaultPluginKeyFetchLimit = 10
 )
 
 type SqlPluginStore struct {
@@ -255,7 +255,7 @@ func (ps SqlPluginStore) DeleteAllExpired() *model.AppError {
 
 func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string, *model.AppError) {
 	if limit <= 0 {
-		limit = DEFAULT_PLUGIN_KEY_FETCH_LIMIT
+		limit = defaultPluginKeyFetchLimit
 	}
 
 	if offset <= 0 {
