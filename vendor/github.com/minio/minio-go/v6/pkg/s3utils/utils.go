@@ -219,6 +219,31 @@ func QueryEncode(v url.Values) string {
 	return buf.String()
 }
 
+// TagEncode - encodes tag values in their URL encoded form. In
+// addition to the percent encoding performed by urlEncodePath() used
+// here, it also percent encodes '/' (forward slash)
+func TagEncode(tags map[string]string) string {
+	if tags == nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	keys := make([]string, 0, len(tags))
+	for k := range tags {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := tags[k]
+		prefix := percentEncodeSlash(EncodePath(k)) + "="
+		if buf.Len() > 0 {
+			buf.WriteByte('&')
+		}
+		buf.WriteString(prefix)
+		buf.WriteString(percentEncodeSlash(EncodePath(v)))
+	}
+	return buf.String()
+}
+
 // if object matches reserved string, no need to encode them
 var reservedObjectNames = regexp.MustCompile("^[a-zA-Z0-9-_.~/]+$")
 
