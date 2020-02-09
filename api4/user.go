@@ -56,6 +56,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/cas_login", api.ApiHandler(casLogin)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
@@ -1425,6 +1426,77 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(map[string]bool{})
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
+	userIsAuthenticated, userName := utils.CheckIfUserIsAuthenticated(w, r)
+	if userIsAuthenticated {
+		if len(userName) > 0 {
+			// try to find user by user name first
+			user, err := c.App.GetUserByUsername(userName)
+
+			fmt.Println("CAS authentication results: ", userIsAuthenticated, userName)
+			// if user not found, create a new one
+			if user == nil {
+				user, err = c.App.CreateCasUser(userName)
+                fmt.Println("Create Cas User: ", user.ToJson(), userName)
+			}
+
+			if err != nil {
+				c.Err = err
+				mlog.Error(err.Error())
+				return
+			}
+
+			if user.IsGuest() {
+				if c.App.License() == nil {
+					c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
+					return
+				}
+				if !*c.App.Config().GuestAccountsSettings.Enable {
+					c.Err = model.NewAppError("login", "api.user.login.guest_accounts.disabled.error", nil, "", http.StatusUnauthorized)
+					return
+				}
+			}
+
+			c.LogAuditWithUserId(user.Id, "authenticated")
+
+			err = c.App.DoLogin(w, r, user, "")
+			if err != nil {
+				c.Err = err
+				return
+			}
+
+			c.LogAuditWithUserId(user.Id, "success")
+
+			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+				c.App.AttachSessionCookies(w, r)
+			}
+
+			userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+			if err != nil && err.StatusCode != http.StatusNotFound {
+				c.Err = err
+				mlog.Error(err.Error())
+				return
+			}
+
+			if userTermsOfService != nil {
+				user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+				user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+			}
+
+			user.Sanitize(map[string]bool{})
+
+            fmt.Println("Return user json: ", user.ToJson())
+			w.Write([]byte(user.ToJson()))
+		} else {
+			// TODO: Handle case when userName is empty
+            fmt.Println("userName < 0")
+		}
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Error: Unauthorized"))
+	}
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
