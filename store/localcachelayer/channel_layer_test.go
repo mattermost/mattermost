@@ -384,7 +384,7 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 		}
 
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		allChannelMembersNotifyPropsForChannel, err := cachedStore.Channel().
 			GetAllChannelMembersNotifyPropsForChannel("id", true)
@@ -402,7 +402,7 @@ func TestAllChannelMembersNotifyPropsForChannel(t *testing.T) {
 	})
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, nil)
 
 		cachedStore.Channel().GetAllChannelMembersNotifyPropsForChannel("id", true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetAllChannelMembersNotifyPropsForChannel", 1)
