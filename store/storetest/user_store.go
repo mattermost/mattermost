@@ -4949,8 +4949,6 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
 
-	ss.User().InvalidateProfileCacheForUser(u1.Id)
-
 	user2, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)
 
