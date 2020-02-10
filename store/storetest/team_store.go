@@ -30,6 +30,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, ss) })
+	t.Run("GetByNames", func(t *testing.T) { testTeamStoreGetByNames(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
 	t.Run("SearchPrivate", func(t *testing.T) { testTeamStoreSearchPrivate(t, ss) })
@@ -120,6 +121,10 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 
 	_, err = ss.Team().Get("")
 	require.NotNil(t, err, "Missing id should have failed")
+}
+
+func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
+	require.Fail(t, "Not implemented yet")
 }
 
 func testTeamStoreGetByName(t *testing.T, ss store.Store) {
