@@ -253,6 +253,7 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	sanitizedTeam.Sanitize()
 
 	message := model.NewWebSocketEvent(event, "", "", "", nil)
+	message.Broadcast.ContainsSensitiveData = true
 	message.Add("team", sanitizedTeam.ToJson())
 	a.Publish(message)
 }
