@@ -1188,7 +1188,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		lastPostWithData = &postWithData
 	}
 
-	if len(repliesBulk) >= importMultiplePostsThreshold && lastPostWithData != nil {
+	if len(repliesBulk) >= 0 && lastPostWithData != nil {
 		err := a.importReplies(repliesBulk, lastPostWithData.post, lastPostWithData.team.Id, dryRun)
 		if err != nil {
 			return err
