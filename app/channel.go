@@ -1696,7 +1696,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 	}
 
-	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)

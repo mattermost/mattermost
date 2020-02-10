@@ -627,3 +627,20 @@ func TestServerBusy503(t *testing.T) {
 		CheckNoError(t, resp)
 	})
 }
+
+func TestPushNotificationAck(t *testing.T) {
+	th := Setup().InitBasic()
+	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	defer th.TearDown()
+	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
+		handler := api.ApiHandler(pushNotificationAck)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.NotNil(t, resp.Body)
+	})
+}

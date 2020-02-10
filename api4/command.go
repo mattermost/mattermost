@@ -18,6 +18,7 @@ func (api *API) InitCommand() {
 
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(getCommand)).Methods("GET")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
+	api.BaseRoutes.Command.Handle("/move", api.ApiSessionRequired(moveCommand)).Methods("PUT")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
@@ -67,7 +68,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -78,7 +79,9 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -99,6 +102,55 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(rcmd.ToJson()))
 }
 
+func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	cmr, err := model.CommandMoveRequestFromJson(r.Body)
+	if err != nil {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	newTeam, appErr := c.App.GetTeam(cmr.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
+	if appErr != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
+}
+
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireCommandId()
 	if c.Err != nil {
@@ -109,13 +161,15 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
@@ -296,13 +350,15 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
