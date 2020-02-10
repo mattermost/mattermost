@@ -31,6 +31,7 @@ type WebSocketClient struct {
 	ResponseChannel    chan *WebSocketResponse // The channel used to receive responses for requests made to the server
 	ListenError        *AppError               // A field that is set if there was an abnormal closure of the WebSocket connection
 	pingTimeoutTimer   *time.Timer
+	closeChannel       chan struct{}
 }
 
 // NewWebSocketClient constructs a new WebSocket client with convenience
@@ -59,6 +60,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 		make(chan *WebSocketResponse, 100),
 		nil,
 		nil,
+		make(chan struct{}),
 	}
 
 	client.configurePingHandling()
@@ -111,6 +113,7 @@ func (wsc *WebSocketClient) Listen() {
 			wsc.Conn.Close()
 			close(wsc.EventChannel)
 			close(wsc.ResponseChannel)
+			close(wsc.closeChannel)
 		}()
 
 		for {
@@ -193,6 +196,9 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 }
 
 func (wsc *WebSocketClient) pingWatchdog() {
-	<-wsc.pingTimeoutTimer.C
-	wsc.PingTimeoutChannel <- true
+	select {
+	case <-wsc.pingTimeoutTimer.C:
+		wsc.PingTimeoutChannel <- true
+	case <-wsc.closeChannel:
+	}
 }
