@@ -924,10 +924,8 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		}
 	}
 
-	for _, post := range postsForOverwriteList {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
-			return err
-		}
+	if _, err := a.Srv.Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+		return err
 	}
 
 	for _, postWithData := range postsWithData {

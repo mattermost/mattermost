@@ -223,19 +223,45 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
-	post.UpdateAt = model.GetMillis()
-
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
-	if appErr := post.IsValid(maxPostSize); appErr != nil {
-		return nil, appErr
+	for _, post := range posts {
+		post.UpdateAt = updateAt
+		if appErr := post.IsValid(maxPostSize); appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	if _, err := s.GetMaster().Update(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		if _, err := tx.Update(post); err != nil {
+			txErr := tx.Rollback()
+			if txErr != nil {
+				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
+			}
+
+			return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return post, nil
+	return posts, nil
+}
+
+func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.OverwriteMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
