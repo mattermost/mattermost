@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
 	if channel.Type != model.CHANNEL_DIRECT {
+		return false, nil
+	}
+
+	if sender.IsBot {
 		return false, nil
 	}
 

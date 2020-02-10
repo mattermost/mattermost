@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,9 +10,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestConfigListener(t *testing.T) {
@@ -51,20 +51,20 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestAsymmetricSigningKey(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
 
 func TestPostActionCookieSecret(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 }
 
 func TestClientConfigWithComputed(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()

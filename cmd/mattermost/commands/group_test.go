@@ -1,17 +1,17 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestChannelGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create public channel
@@ -36,7 +36,7 @@ func TestChannelGroupEnable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -56,7 +56,7 @@ func TestChannelGroupEnable(t *testing.T) {
 }
 
 func TestChannelGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -80,7 +80,7 @@ func TestChannelGroupDisable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -106,7 +106,7 @@ func TestChannelGroupDisable(t *testing.T) {
 }
 
 func TestChannelGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -114,7 +114,7 @@ func TestChannelGroupStatus(t *testing.T) {
 
 	// get status, should be Disabled
 	output := th.CheckCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), "Disabled")
+	require.Contains(t, output, "Disabled")
 
 	// add group and enable
 	id := model.NewId()
@@ -127,7 +127,7 @@ func TestChannelGroupStatus(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -143,14 +143,14 @@ func TestChannelGroupStatus(t *testing.T) {
 
 	// get status, should be enabled
 	output = th.CheckCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), "Enabled")
+	require.Contains(t, output, "Enabled")
 
 	// try to get status of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name+"asdf"))
 }
 
 func TestChannelGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -170,7 +170,7 @@ func TestChannelGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -188,7 +188,7 @@ func TestChannelGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
@@ -204,15 +204,15 @@ func TestChannelGroupList(t *testing.T) {
 
 	// list groups
 	output := th.CheckCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name)
-	require.Contains(t, string(output), g1.DisplayName)
-	require.Contains(t, string(output), g2.DisplayName)
+	require.Contains(t, output, g1.DisplayName)
+	require.Contains(t, output, g2.DisplayName)
 
 	// try to get list of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name+"asdf"))
 }
 
 func TestTeamGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to enable, should fail because team has no groups
@@ -229,7 +229,7 @@ func TestTeamGroupEnable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -249,7 +249,7 @@ func TestTeamGroupEnable(t *testing.T) {
 }
 
 func TestTeamGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to disable, should work
@@ -270,7 +270,7 @@ func TestTeamGroupDisable(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -296,12 +296,12 @@ func TestTeamGroupDisable(t *testing.T) {
 }
 
 func TestTeamGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// get status, should be Disabled
 	output := th.CheckCommand(t, "group", "team", "status", th.BasicTeam.Name)
-	require.Contains(t, string(output), "Disabled")
+	require.Contains(t, output, "Disabled")
 
 	// add group and enable
 	id := model.NewId()
@@ -314,7 +314,7 @@ func TestTeamGroupStatus(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -330,14 +330,14 @@ func TestTeamGroupStatus(t *testing.T) {
 
 	// get status, should be enabled
 	output = th.CheckCommand(t, "group", "team", "status", th.BasicTeam.Name)
-	require.Contains(t, string(output), "Enabled")
+	require.Contains(t, output, "Enabled")
 
 	// try to get status of nonexistent channel, should fail
 	require.Error(t, th.RunCommand(t, "group", "team", "status", th.BasicTeam.Name+"asdf"))
 }
 
 func TestTeamGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// list groups for a team with none, should work
@@ -354,7 +354,7 @@ func TestTeamGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -372,7 +372,7 @@ func TestTeamGroupList(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -388,8 +388,8 @@ func TestTeamGroupList(t *testing.T) {
 
 	// list groups
 	output := th.CheckCommand(t, "group", "team", "list", th.BasicTeam.Name)
-	require.Contains(t, string(output), g1.DisplayName)
-	require.Contains(t, string(output), g2.DisplayName)
+	require.Contains(t, output, g1.DisplayName)
+	require.Contains(t, output, g2.DisplayName)
 
 	// try to get list of nonexistent team, should fail
 	require.Error(t, th.RunCommand(t, "group", "team", "list", th.BasicTeam.Name+"asdf"))

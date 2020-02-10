@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
@@ -10,11 +10,11 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -26,6 +26,8 @@ const (
 	actionCopy = iota
 	actionSymlink
 )
+
+const root = "___mattermost-server"
 
 type testResourceDetails struct {
 	src     string
@@ -50,6 +52,15 @@ func findFile(path string) string {
 }
 
 func findDir(dir string) (string, bool) {
+	if dir == root {
+		srcPath := findFile("go.mod")
+		if srcPath == "" {
+			return "./", false
+		}
+
+		return path.Dir(srcPath), true
+	}
+
 	found := fileutils.FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
 		return fileInfo.IsDir()
 	})
@@ -65,7 +76,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
-		{"mattermost-server", "mattermost-server", resourceTypeFolder, actionSymlink},
+		{root, "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
@@ -84,7 +95,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 			testResourcesToSetup[i].src = srcPath
 		} else if testResource.resType == resourceTypeFolder {
 			srcPath, found = findDir(testResource.src)
-			if found == false {
+			if !found {
 				panic(fmt.Sprintf("Failed to find folder %s", testResource.src))
 			}
 

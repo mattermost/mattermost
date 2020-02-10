@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetBrandImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -27,14 +28,12 @@ func TestGetBrandImage(t *testing.T) {
 }
 
 func TestUploadBrandImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	_, resp := Client.UploadBrandImage(data)
 	CheckForbiddenStatus(t, resp)
@@ -48,7 +47,7 @@ func TestUploadBrandImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	_, resp = th.SystemAdminClient.UploadBrandImage(data)
@@ -56,13 +55,11 @@ func TestUploadBrandImage(t *testing.T) {
 }
 
 func TestDeleteBrandImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	_, resp := th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)

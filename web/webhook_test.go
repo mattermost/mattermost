@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
@@ -232,7 +232,7 @@ func TestIncomingWebhook(t *testing.T) {
 }
 
 func TestCommandWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cmd, appErr := th.App.CreateCommand(&model.Command{
@@ -250,9 +250,7 @@ func TestCommandWebhooks(t *testing.T) {
 	}
 
 	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
-	if appErr != nil {
-		t.Fatal(appErr)
-	}
+	require.Nil(t, appErr)
 
 	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.NoError(t, err)
@@ -263,12 +261,11 @@ func TestCommandWebhooks(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		if resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
-			t.Fatal(appErr)
-		}
+		response, appErr2 := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+		require.Nil(t, appErr2)
+		require.Equal(t, http.StatusOK, response.StatusCode)
 	}
 
-	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("expected error for sixth usage")
-	}
+	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

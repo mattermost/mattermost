@@ -5,7 +5,8 @@
 package plugintest
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
+	model "github.com/mattermost/mattermost-server/v5/model"
+	plugin "github.com/mattermost/mattermost-server/v5/plugin"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -14,20 +15,71 @@ type Helpers struct {
 	mock.Mock
 }
 
-// EnsureBot provides a mock function with given fields: bot
-func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
-	ret := _m.Called(bot)
+// CheckRequiredServerConfiguration provides a mock function with given fields: req
+func (_m *Helpers) CheckRequiredServerConfiguration(req *model.Config) (bool, error) {
+	ret := _m.Called(req)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.Config) bool); ok {
+		r0 = rf(req)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Config) error); ok {
+		r1 = rf(req)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EnsureBot provides a mock function with given fields: bot, options
+func (_m *Helpers) EnsureBot(bot *model.Bot, options ...plugin.EnsureBotOption) (string, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, bot)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*model.Bot) string); ok {
-		r0 = rf(bot)
+	if rf, ok := ret.Get(0).(func(*model.Bot, ...plugin.EnsureBotOption) string); ok {
+		r0 = rf(bot, options...)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
-		r1 = rf(bot)
+	if rf, ok := ret.Get(1).(func(*model.Bot, ...plugin.EnsureBotOption) error); ok {
+		r1 = rf(bot, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InstallPluginFromURL provides a mock function with given fields: downloadURL, replace
+func (_m *Helpers) InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error) {
+	ret := _m.Called(downloadURL, replace)
+
+	var r0 *model.Manifest
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Manifest); ok {
+		r0 = rf(downloadURL, replace)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Manifest)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(downloadURL, replace)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -124,4 +176,32 @@ func (_m *Helpers) KVSetWithExpiryJSON(key string, value interface{}, expireInSe
 	}
 
 	return r0
+}
+
+// ShouldProcessMessage provides a mock function with given fields: post, options
+func (_m *Helpers) ShouldProcessMessage(post *model.Post, options ...plugin.ShouldProcessMessageOption) (bool, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, post)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.Post, ...plugin.ShouldProcessMessageOption) bool); ok {
+		r0 = rf(post, options...)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post, ...plugin.ShouldProcessMessageOption) error); ok {
+		r1 = rf(post, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

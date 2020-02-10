@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -12,10 +12,10 @@ import (
 
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,10 +37,20 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
+	tempWorkspace, err := ioutil.TempDir("", "apptest")
+	if err != nil {
+		panic(err)
+	}
+
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
+
+	config := memoryStore.Get()
+	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	memoryStore.Set(config)
 
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
@@ -88,17 +98,8 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	if th.tempWorkspace == "" {
-		dir, err := ioutil.TempDir("", "apptest")
-		if err != nil {
-			panic(err)
-		}
-		th.tempWorkspace = dir
+		th.tempWorkspace = tempWorkspace
 	}
-
-	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
-	webappDir := filepath.Join(th.tempWorkspace, "webapp")
-
-	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -191,6 +192,28 @@ func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	}
 	utils.EnableDebugLogForTest()
 	return user
+}
+
+func (me *TestHelper) CreateBot() *model.Bot {
+	id := model.NewId()
+
+	bot := &model.Bot{
+		Username:    "bot" + id,
+		DisplayName: "a bot",
+		Description: "bot",
+		OwnerId:     me.BasicUser.Id,
+	}
+
+	me.App.Log.SetConsoleLevel(mlog.LevelError)
+	bot, err := me.App.CreateBot(bot)
+	if err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	me.App.Log.SetConsoleLevel(mlog.LevelDebug)
+	return bot
 }
 
 func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
@@ -465,7 +488,7 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
@@ -478,7 +501,7 @@ func (me *TestHelper) ResetRoleMigration() {
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
@@ -499,7 +522,7 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
+	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }

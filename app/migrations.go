@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
@@ -95,9 +95,9 @@ func (a *App) DoEmojisPermissionsMigration() {
 		return
 	}
 
-	var role *model.Role = nil
-	var systemAdminRole *model.Role = nil
-	var err *model.AppError = nil
+	var role *model.Role
+	var systemAdminRole *model.Role
+	var err *model.AppError
 
 	mlog.Info("Migrating emojis config to database.")
 	switch *a.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation {

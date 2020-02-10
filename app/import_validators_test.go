@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -487,7 +487,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Username = ptrStr("i am a username with spaces and !!!")
 	err = validateUserImportData(&data)
-	require.NotNil(t, err, "Validation should have failed due to invalid characters in Username.");
+	require.NotNil(t, err, "Validation should have failed due to invalid characters in Username.")
 
 	data.Username = ptrStr("bob")
 
@@ -759,7 +759,6 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	err = validateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
-
 	data = ReactionImportData{
 		User:      ptrStr("username"),
 		EmojiName: ptrStr("emoji"),
@@ -938,13 +937,13 @@ func TestImportValidatePostImportData(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
 
 	// Test with valid all optional parameters.
-	reactions := []ReactionImportData{ReactionImportData{
+	reactions := []ReactionImportData{{
 		User:      ptrStr("username"),
 		EmojiName: ptrStr("emoji"),
 		CreateAt:  ptrInt64(model.GetMillis()),
 	}}
 
-	replies := []ReplyImportData{ReplyImportData{
+	replies := []ReplyImportData{{
 		User:     ptrStr("username"),
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
@@ -1240,13 +1239,13 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.Nil(t, err, "Validation should succeed with post flagged by members")
 
 	// Test with valid all optional parameters.
-	reactions := []ReactionImportData{ReactionImportData{
+	reactions := []ReactionImportData{{
 		User:      ptrStr("username"),
 		EmojiName: ptrStr("emoji"),
 		CreateAt:  ptrInt64(model.GetMillis()),
 	}}
 
-	replies := []ReplyImportData{ReplyImportData{
+	replies := []ReplyImportData{{
 		User:     ptrStr("username"),
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),

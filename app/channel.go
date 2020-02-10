@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
@@ -95,7 +95,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 		_, err = a.Srv.Store.Channel().SaveMember(cm)
 		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", histErr))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
+			return histErr
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -126,21 +127,21 @@ func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *mode
 	if channel.Name == model.DEFAULT_CHANNEL {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	} else {
 		if requestor == nil {
 			if err := a.postJoinChannelMessage(user, channel); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -160,7 +161,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	}
 
 	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId, false)
+	count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId)
 	if err != nil {
 		return nil, err
 	}
@@ -223,6 +224,8 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 }
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+
 	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil, err
@@ -247,7 +250,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -366,10 +370,14 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	}
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		return nil, err
 	}
-	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+	if userId != otherUserId {
+		if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
+		}
 	}
 
 	return channel, nil
@@ -399,7 +407,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 		}
 	}
 
-	mlog.Error(fmt.Sprintf("WaitForChannelMembership giving up channelId=%v userId=%v", channelId, userId), mlog.String("user_id", userId))
+	mlog.Error("WaitForChannelMembership giving up", mlog.String("channel_id", channelId), mlog.String("user_id", userId))
 }
 
 func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
@@ -477,7 +485,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
 		}
 	}
 
@@ -506,7 +515,16 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 	return channel, nil
 }
 
+// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	userIds := strings.Split(channel.Name, "__")
+	if channel.Type != model.CHANNEL_DIRECT &&
+		len(userIds) == 2 &&
+		model.IsValidId(userIds[0]) &&
+		model.IsValidId(userIds[1]) {
+		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.invalid_character.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	_, err := a.Srv.Store.Channel().Update(channel)
 	if err != nil {
 		return nil, err
@@ -594,10 +612,44 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	if channel.DeleteAt == 0 {
+		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
 		return nil, err
 	}
+	channel.DeleteAt = 0
+	a.InvalidateCacheForChannel(channel)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	a.Publish(message)
+
+	user, err := a.Srv.Store.User().Get(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user != nil {
+		T := utils.GetUserTranslations(user.Locale)
+
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
+			Type:      model.POST_CHANNEL_RESTORED,
+			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
+		}
+
+		if _, err := a.CreatePost(post, channel, false); err != nil {
+			mlog.Error("Failed to post unarchive message", mlog.Err(err))
+		}
+	}
+
 	return channel, nil
 }
 
@@ -753,6 +805,11 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 		return nil, err
 	}
 
+	// Notify the clients that the member notify props changed
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+	message.Add("channelMember", member.ToJson())
+	a.Publish(message)
+
 	a.InvalidateCacheForUser(userId)
 	return member, nil
 }
@@ -861,21 +918,21 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
-			mlog.Error(fmt.Sprintf("Failed to post archive message %v", err))
+			mlog.Error("Failed to post archive message", mlog.Err(err))
 		}
 	}
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered error deleting incoming webhook, id=%v", hook.Id))
+			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.InvalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered error deleting outgoing webhook, id=%v", hook.Id))
+			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 
@@ -925,14 +982,25 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
 	}
+
+	if !user.IsGuest() {
+		var userShouldBeAdmin bool
+		userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+		newMember.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, err), mlog.String("user_id", user.Id))
+		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		return nil, err
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1258,8 +1326,8 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 	return a.Srv.Store.Channel().GetAllChannelsCount(storeOpts)
 }
 
-func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
+func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit, userId)
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1523,9 +1591,12 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.leave.left"), user.Username),
-		Type:      model.POST_LEAVE_CHANNEL,
-		UserId:    user.Id,
+		// Message here embeds `@username`, not just `username`, to ensure that mentions
+		// treat this as a username mention even though the user has now left the channel.
+		// The client renders its own system message, ignoring this value altogether.
+		Message: fmt.Sprintf(utils.T("api.channel.leave.left"), fmt.Sprintf("@%s", user.Username)),
+		Type:    model.POST_LEAVE_CHANNEL,
+		UserId:  user.Id,
 		Props: model.StringInterface{
 			"username": user.Username,
 		},
@@ -1593,9 +1664,12 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
-		Type:      model.POST_REMOVE_FROM_CHANNEL,
-		UserId:    removerUserId,
+		// Message here embeds `@username`, not just `username`, to ensure that mentions
+		// treat this as a username mention even though the user has now left the channel.
+		// The client renders its own system message, ignoring this value altogether.
+		Message: fmt.Sprintf(utils.T("api.channel.remove_member.removed"), fmt.Sprintf("@%s", removedUser.Username)),
+		Type:    model.POST_REMOVE_FROM_CHANNEL,
+		UserId:  removerUserId,
 		Props: model.StringInterface{
 			"removedUserId":   removedUser.Id,
 			"removedUsername": removedUser.Username,
@@ -1622,7 +1696,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 	}
 
-	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
@@ -1724,23 +1798,12 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 	return nil
 }
 
-func (a *App) GetNumberOfChannelsOnTeam(teamId string, includeDeleted bool) (int, *model.AppError) {
+func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
 	if err != nil {
 		return 0, err
 	}
-
-	if !includeDeleted {
-		count := 0
-		for _, channel := range *list {
-			if channel.DeleteAt == 0 {
-				count++
-			}
-		}
-		return count, nil
-	}
-
 	return len(*list), nil
 }
 
@@ -1783,6 +1846,40 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 	}
 
 	return nil
+}
+
+// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
+func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	unreadMentions, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
+
+	channelUnread, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
+	if updateErr != nil {
+		return channelUnread, updateErr
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channelUnread.TeamId, channelUnread.ChannelId, channelUnread.UserId, nil)
+	message.Add("msg_count", channelUnread.MsgCount)
+	message.Add("mention_count", channelUnread.MentionCount)
+	message.Add("last_viewed_at", channelUnread.LastViewedAt)
+	message.Add("post_id", postID)
+	a.Publish(message)
+
+	a.UpdateMobileAppBadge(userID)
+
+	return channelUnread, nil
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
@@ -1839,7 +1936,8 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 	return a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 }
 
-func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+// SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
+func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
 	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
@@ -1848,6 +1946,8 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		ExcludeChannelNames:  opts.ExcludeChannelNames,
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
+		Page:                 opts.Page,
+		PerPage:              opts.PerPage,
 	}
 
 	term = strings.TrimSpace(term)
@@ -1861,6 +1961,12 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	term = strings.TrimSpace(term)
 
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	term = strings.TrimSpace(term)
+
+	return a.Srv.Store.Channel().SearchArchivedInTeam(teamId, term, userId)
 }
 
 func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
@@ -1895,13 +2001,13 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 		for _, channelId := range channelIds {
 			channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
 			if errCh != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get channel %v", errCh))
+				mlog.Warn("Failed to get channel", mlog.Err(errCh))
 				continue
 			}
 
 			member, err := a.Srv.Store.Channel().GetMember(channelId, userId)
 			if err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get membership %v", err))
+				mlog.Warn("Failed to get membership", mlog.Err(err))
 				continue
 			}
 
@@ -2158,4 +2264,32 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	}
 
 	return nil
+}
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		channelMembers, err := a.Srv.Store.Channel().GetMembers(channelID, page, perPage)
+		if err != nil {
+			a.Log.Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+			break
+		}
+
+		for _, channelMember := range *channelMembers {
+			a.ClearSessionCacheForUser(channelMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+			message.Add("channelMember", channelMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(*(channelMembers))
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
 }

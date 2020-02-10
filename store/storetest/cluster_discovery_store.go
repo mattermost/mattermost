@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -8,8 +8,8 @@ import (
 
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,13 +29,11 @@ func testClusterDiscoveryStore(t *testing.T, ss store.Store) {
 		Type:        "test_test",
 	}
 
-	if err := ss.ClusterDiscovery().Save(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.ClusterDiscovery().Save(discovery)
+	require.Nil(t, err)
 
-	if err := ss.ClusterDiscovery().Cleanup(); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.ClusterDiscovery().Cleanup()
+	require.Nil(t, err)
 }
 
 func testClusterDiscoveryStoreDelete(t *testing.T, ss store.Store) {
@@ -45,13 +43,11 @@ func testClusterDiscoveryStoreDelete(t *testing.T, ss store.Store) {
 		Type:        "test_test",
 	}
 
-	if err := ss.ClusterDiscovery().Save(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.ClusterDiscovery().Save(discovery)
+	require.Nil(t, err)
 
-	if _, err := ss.ClusterDiscovery().Delete(discovery); err != nil {
-		t.Fatal(err)
-	}
+	_, err = ss.ClusterDiscovery().Delete(discovery)
+	require.Nil(t, err)
 }
 
 func testClusterDiscoveryStoreLastPing(t *testing.T, ss store.Store) {
@@ -61,29 +57,24 @@ func testClusterDiscoveryStoreLastPing(t *testing.T, ss store.Store) {
 		Type:        "test_test_lastPing" + model.NewId(),
 	}
 
-	if err := ss.ClusterDiscovery().Save(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.ClusterDiscovery().Save(discovery)
+	require.Nil(t, err)
 
-	if err := ss.ClusterDiscovery().SetLastPingAt(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.ClusterDiscovery().SetLastPingAt(discovery)
+	require.Nil(t, err)
 
 	ttime := model.GetMillis()
 
 	time.Sleep(1 * time.Second)
 
-	if err := ss.ClusterDiscovery().SetLastPingAt(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.ClusterDiscovery().SetLastPingAt(discovery)
+	require.Nil(t, err)
 
 	list, err := ss.ClusterDiscovery().GetAll(discovery.Type, "cluster_name_lastPing")
 	require.Nil(t, err)
 	assert.Len(t, list, 1)
 
-	if list[0].LastPingAt-ttime < 500 {
-		t.Fatal("failed to set time")
-	}
+	require.Less(t, int64(500), list[0].LastPingAt-ttime)
 
 	discovery2 := &model.ClusterDiscovery{
 		ClusterName: "cluster_name_missing",
@@ -91,9 +82,8 @@ func testClusterDiscoveryStoreLastPing(t *testing.T, ss store.Store) {
 		Type:        "test_test_missing",
 	}
 
-	if err := ss.ClusterDiscovery().SetLastPingAt(discovery2); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.ClusterDiscovery().SetLastPingAt(discovery2)
+	require.Nil(t, err)
 }
 
 func testClusterDiscoveryStoreExists(t *testing.T, ss store.Store) {
@@ -103,9 +93,8 @@ func testClusterDiscoveryStoreExists(t *testing.T, ss store.Store) {
 		Type:        "test_test_Exists" + model.NewId(),
 	}
 
-	if err := ss.ClusterDiscovery().Save(discovery); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.ClusterDiscovery().Save(discovery)
+	require.Nil(t, err)
 
 	val, err := ss.ClusterDiscovery().Exists(discovery)
 	require.Nil(t, err)
@@ -163,5 +152,5 @@ func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
 
 	list, err = ss.ClusterDiscovery().GetAll(model.NewId(), "cluster_name")
 	require.Nil(t, err)
-	assert.Len(t, list, 0)
+	assert.Empty(t, list)
 }

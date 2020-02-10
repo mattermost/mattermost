@@ -63,7 +63,7 @@ pipeline {
 
 								echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-								curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+								curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
 							"""
 						}
 					}
@@ -74,6 +74,7 @@ pipeline {
 		stage('Check i18n') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 			}
 
 			steps {
@@ -93,15 +94,21 @@ pipeline {
 		stage('Build') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 			}
 
 			steps {
-				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
+							echo "Installing golangci-lint"
+							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.0 # Keep this in sync with .golangci.yml and .circleci/config.yml
+							echo "Installing mattermost-govet"
+							GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+							export PATH=$PATH:$GOBIN
 							make config-reset
-							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
+							make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' MM_NO_ENTERPRISE_LINT=true
 							make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
 							make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
 						"""
@@ -122,7 +129,7 @@ pipeline {
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/dist') {
 							step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -137,7 +144,7 @@ pipeline {
 								useServerSideEncryption: false,
 								userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
 							], [
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${CHANGE_BRANCH}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -162,7 +169,7 @@ pipeline {
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/dist') {
 							step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-								bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+								bucket: "pr-builds.mattermost.com/mattermost-server/${BRANCH_NAME}",
 								excludedFile: '',
 								flatten: true,
 								gzipFiles: false,
@@ -221,7 +228,7 @@ pipeline {
 					withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
 						sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
 						sh """
-							docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
+							docker build --no-cache --build-arg MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
 							docker push mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT}
 							docker logout
 						"""
@@ -233,6 +240,7 @@ pipeline {
 		stage('Test') {
 			environment {
 				GOPATH = "/go"
+				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
 				TEST_DATABASE_MYSQL_DSN = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
 				TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 				TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
@@ -272,7 +280,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -328,7 +336,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -353,6 +361,10 @@ pipeline {
 				dir('src/github.com/mattermost/mattermost-server') {
 					ansiColor('xterm') {
 						sh """
+						echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
+						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml exec -T mysql mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
+
 						echo "Generating dump"
 						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
 						/usr/local/bin/docker-compose --no-ansi -f build/docker-compose.yml  exec -T mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
@@ -371,7 +383,7 @@ pipeline {
 					}
 				}
 
-				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:sep-17-2019') {
+				withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server

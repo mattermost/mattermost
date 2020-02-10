@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,13 +8,31 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestChannelStore(t *testing.T) {
 	StoreTestWithSqlSupplier(t, storetest.TestChannelStore)
+}
+
+func TestChannelSearchQuerySQLInjection(t *testing.T) {
+	for _, st := range storeTypes {
+		t.Run(st.Name, func(t *testing.T) {
+			s := &SqlChannelStore{
+				SqlStore: st.SqlSupplier,
+			}
+
+			opts := store.ChannelSearchOpts{}
+			builder := s.channelSearchQuery("'or'1'=sleep(3))); -- -", opts, false)
+			query, _, err := builder.ToSql()
+			require.Nil(t, err)
+			assert.NotContains(t, query, "sleep")
+		})
+	}
 }
 
 func TestChannelStoreInternalDataTypes(t *testing.T) {

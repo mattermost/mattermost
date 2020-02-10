@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net/mail"
 	"net/url"
 	"path"
 	"strings"
@@ -19,10 +18,10 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -171,6 +170,10 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 }
 
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+	if !*a.Config().EmailSettings.SendEmailNotifications && !*a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
+	}
+
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -193,7 +196,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["AppDownloadLink"] = *a.Config().NativeAppSettings.AppDownloadLink
 	}
 
-	if !verified {
+	if !verified && *a.Config().EmailSettings.RequireEmailVerification {
 		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
@@ -347,13 +350,13 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			data := model.MapToJson(props)
 
 			if err := a.Srv.Store.Token().Save(token); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 			}
 		}
 	}
@@ -435,24 +438,26 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			data := model.MapToJson(props)
 
 			if err := a.Srv.Store.Token().Save(token); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
 			if !*a.Config().EmailSettings.SendEmailNotifications {
-				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
+				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", bodyPage.Props["Link"].(string)))
 			}
 
 			embeddedFiles := make(map[string]io.Reader)
-			if senderProfileImage != nil {
-				embeddedFiles = map[string]io.Reader{
-					"user-avatar.png": bytes.NewReader(senderProfileImage),
+			if message != "" {
+				if senderProfileImage != nil {
+					embeddedFiles = map[string]io.Reader{
+						"user-avatar.png": bytes.NewReader(senderProfileImage),
+					}
 				}
 			}
 
 			if err := a.SendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
+				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
 			}
 		}
 	}
@@ -523,8 +528,6 @@ func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 func (a *App) SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
 	license := a.License()
 	config := a.Config()
-	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
-	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
-	return mailservice.SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, embeddedFiles, nil, config, license != nil && *license.Features.Compliance)
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
@@ -5,16 +8,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("basic ping", func(t *testing.T) {
@@ -60,30 +66,21 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	audits, resp := th.SystemAdminClient.GetAudits(0, 100, "")
 	CheckNoError(t, resp)
-
-	if len(audits) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEmpty(t, audits, "should not be empty")
 
 	audits, resp = th.SystemAdminClient.GetAudits(0, 1, "")
 	CheckNoError(t, resp)
-
-	if len(audits) != 1 {
-		t.Fatal("should only be 1")
-	}
+	require.Len(t, audits, 1, "should only be 1")
 
 	audits, resp = th.SystemAdminClient.GetAudits(1, 1, "")
 	CheckNoError(t, resp)
-
-	if len(audits) != 1 {
-		t.Fatal("should only be 1")
-	}
+	require.Len(t, audits, 1, "should only be 1")
 
 	_, resp = th.SystemAdminClient.GetAudits(-1, -1, "")
 	CheckNoError(t, resp)
@@ -97,7 +94,7 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -151,7 +148,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestSiteURLTest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -192,7 +189,7 @@ func TestSiteURLTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -215,24 +212,20 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.InvalidateCaches()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should not clean the cache due no permission.")
-		}
+		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.InvalidateCaches()
 		CheckNoError(t, resp)
-		if !ok {
-			t.Fatal("should clean the cache")
-		}
+		require.True(t, ok, "should clean the cache")
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
@@ -240,46 +233,34 @@ func TestInvalidateCaches(t *testing.T) {
 
 		ok, resp := th.SystemAdminClient.InvalidateCaches()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should not clean the cache due no permission.")
-		}
+		require.False(t, ok, "should not clean the cache due to no permission.")
 	})
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
-		mlog.Info(fmt.Sprint(i))
+		mlog.Info(strconv.Itoa(i))
 	}
 
 	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
 	CheckNoError(t, resp)
+	require.Len(t, logs, 10)
 
-	if len(logs) != 10 {
-		t.Log(len(logs))
-		t.Fatal("wrong length")
-	}
 	for i := 10; i < 20; i++ {
 		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
 	}
 
 	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
 	CheckNoError(t, resp)
-
-	if len(logs) != 10 {
-		t.Log(len(logs))
-		t.Fatal("wrong length")
-	}
+	require.Len(t, logs, 10)
 
 	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
 	CheckNoError(t, resp)
-
-	if len(logs) == 0 {
-		t.Fatal("should not be empty")
-	}
+	require.NotEmpty(t, logs, "should not be empty")
 
 	_, resp = Client.GetLogs(0, 10)
 	CheckForbiddenStatus(t, resp)
@@ -290,7 +271,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -307,6 +288,13 @@ func TestPostLog(t *testing.T) {
 	_, resp := Client.PostLog(message)
 	CheckNoError(t, resp)
 
+	*th.App.Config().ServiceSettings.EnableDeveloper = false
+
+	_, resp = Client.PostLog(message)
+	CheckNoError(t, resp)
+
+	*th.App.Config().ServiceSettings.EnableDeveloper = true
+
 	Client.Logout()
 
 	_, resp = Client.PostLog(message)
@@ -319,22 +307,18 @@ func TestPostLog(t *testing.T) {
 
 	logMessage, resp := th.SystemAdminClient.PostLog(message)
 	CheckNoError(t, resp)
-	if len(logMessage) == 0 {
-		t.Fatal("should return the log message")
-	}
+	require.NotEmpty(t, logMessage, "should return the log message")
+
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	rows, resp := Client.GetAnalyticsOld("", "")
 	CheckForbiddenStatus(t, resp)
-	if rows != nil {
-		t.Fatal("should be nil")
-	}
-
+	require.Nil(t, rows, "should be nil")
 	rows, resp = th.SystemAdminClient.GetAnalyticsOld("", "")
 	CheckNoError(t, resp)
 
@@ -376,10 +360,8 @@ func TestGetAnalyticsOld(t *testing.T) {
 	assert.Equal(t, float64(0), rows2[5].Value)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.Nil(t, err)
+	time.Sleep(100 * time.Millisecond)
 	rows2, resp2 = th.SystemAdminClient.GetAnalyticsOld("standard", "")
 	CheckNoError(t, resp2)
 	assert.Equal(t, "total_websocket_connections", rows2[5].Name)
@@ -398,7 +380,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -409,7 +391,7 @@ func TestS3TestConnection(t *testing.T) {
 
 	s3Port := os.Getenv("CI_MINIO_PORT")
 	if s3Port == "" {
-		s3Port = "9001"
+		s3Port = "9000"
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
@@ -433,10 +415,7 @@ func TestS3TestConnection(t *testing.T) {
 	t.Run("as system admin", func(t *testing.T) {
 		_, resp := th.SystemAdminClient.TestS3Connection(&config)
 		CheckBadRequestStatus(t, resp)
-		if resp.Error.Message != "S3 Bucket is required" {
-			t.Fatal("should return error - missing s3 bucket")
-		}
-
+		require.Equal(t, resp.Error.Message, "S3 Bucket is required", "should return error - missing s3 bucket")
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
@@ -468,7 +447,7 @@ func TestS3TestConnection(t *testing.T) {
 }
 
 func TestSupportedTimezones(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -491,7 +470,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	mockBitlyLink := testServer.URL
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
@@ -533,4 +512,135 @@ func TestRedirectLocation(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.GetRedirectLocation("", "")
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestSetServerBusy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	const secs = 30
+
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := th.Client.SetServerBusy(secs)
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok, "should not set server busy due to no permission")
+		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
+		CheckNoError(t, resp)
+		require.True(t, ok, "should set server busy successfully")
+		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+	})
+}
+
+func TestSetServerBusyInvalidParam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("as system admin, invalid param", func(t *testing.T) {
+		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		for _, p := range params {
+			ok, resp := th.SystemAdminClient.SetServerBusy(p)
+			CheckBadRequestStatus(t, resp)
+			require.False(t, ok, "should not set server busy due to invalid param ", p)
+			require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
+		}
+	})
+}
+
+func TestClearServerBusy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := th.Client.ClearServerBusy()
+		CheckForbiddenStatus(t, resp)
+		require.False(t, ok, "should not clear server busy flag due to no permission.")
+		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+	})
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.ClearServerBusy()
+		CheckNoError(t, resp)
+		require.True(t, ok, "should clear server busy flag successfully")
+		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+	})
+}
+
+func TestGetServerBusyExpires(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := th.Client.GetServerBusyExpires()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		expires, resp := th.SystemAdminClient.GetServerBusyExpires()
+		CheckNoError(t, resp)
+		require.Greater(t, expires.Unix(), time.Now().Unix())
+	})
+}
+
+func TestServerBusy503(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv.Busy.Set(time.Second * 30)
+
+	t.Run("search users while busy", func(t *testing.T) {
+		us := &model.UserSearch{Term: "test"}
+		_, resp := th.SystemAdminClient.SearchUsers(us)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search teams while busy", func(t *testing.T) {
+		ts := &model.TeamSearch{}
+		_, resp := th.SystemAdminClient.SearchTeams(ts)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("search archived channels while busy", func(t *testing.T) {
+		cs := &model.ChannelSearch{}
+		_, resp := th.SystemAdminClient.SearchArchivedChannels("foo", cs)
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	th.App.Srv.Busy.Clear()
+
+	t.Run("search users while not busy", func(t *testing.T) {
+		us := &model.UserSearch{Term: "test"}
+		_, resp := th.SystemAdminClient.SearchUsers(us)
+		CheckNoError(t, resp)
+	})
+}
+
+func TestPushNotificationAck(t *testing.T) {
+	th := Setup(t).InitBasic()
+	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	defer th.TearDown()
+	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
+		handler := api.ApiHandler(pushNotificationAck)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest("POST", "/api/v4/notifications/ack", nil)
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
+
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.NotNil(t, resp.Body)
+	})
 }

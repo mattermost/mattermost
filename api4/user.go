@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (api *API) InitUser() {
@@ -24,7 +24,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.ApiSessionRequired(getUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiSessionRequired(getUsersByIds)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
-	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequired(searchUsers)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
@@ -86,7 +86,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.SanitizeInput()
+	user.SanitizeInput(c.IsSystemAdmin())
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
@@ -605,11 +605,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else {
-		etag = c.App.GetUsersEtag(restrictions.Hash())
-		if c.HandleEtag(etag, "Get Users", w, r) {
-			return
-		}
-
 		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
 		if err != nil {
 			c.Err = err
@@ -925,11 +920,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.Session.IsOAuth && patch.Email != nil {
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"
@@ -1053,6 +1043,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
 
@@ -1399,7 +1394,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	session, err := c.App.DoLogin(w, r, user, deviceId)
+	err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1408,7 +1403,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-		c.App.AttachSessionCookies(w, r, session)
+		c.App.AttachSessionCookies(w, r)
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
@@ -1421,8 +1416,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
 		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
 	}
-
-	c.App.Session = *session
 
 	user.Sanitize(map[string]bool{})
 
@@ -1970,16 +1963,6 @@ func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
-		return
-	}
-
-	if c.App.License() == nil {
-		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.team.promote_guest_to_user.license.error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().GuestAccountsSettings.Enable {
-		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.team.promote_guest_to_user.disabled.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

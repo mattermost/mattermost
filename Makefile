@@ -1,6 +1,12 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM := Windows
+else
+	PLATFORM := $(shell uname)
+endif
 
 IS_CI ?= false
 MM_NO_DOCKER ?= false
@@ -45,21 +51,22 @@ else
 	BUILD_CLIENT = false
 endif
 
-# Golang Flags
-export GO111MODULE=on
-GOPATH ?= $(shell go env GOPATH)
+# Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
-MINIMUM_SUPPORTED_GO_MINOR_VERSION = 12
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 13
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
@@ -78,20 +85,21 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...)
+TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
+
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -104,7 +112,7 @@ else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell go list ./enterprise/...)
+EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
@@ -112,8 +120,12 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-
 all: run ## Alias for 'run'.
+
+# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
+# The second sed will look for v<NUM>.<NUM>* and if its not found replace it with the word latest
+LATEST_RELEASE_MMCTL = $(shell scripts/get_latest_release.sh 'mattermost/mmctl')
+REL_TO_DOWNLOAD = $(shell git rev-parse --abbrev-ref HEAD | sed 's/release-/v/' | sed '/v\([0-9]\)\./! s/\(.*\)/$(LATEST_RELEASE_MMCTL)/')
 
 include build/*.mk
 
@@ -149,77 +161,85 @@ else
 endif
 
 
-govet: ## Runs govet against all packages.
-	@echo Running GOVET
-	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-	$(GO) vet $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GOFLAGS) $(ALL_PACKAGES) || exit 1
-	$(GO) run plugin/checker/main.go
+plugin-checker:
+	$(GO) run $(GOFLAGS) ./plugin/checker
 
-gofmt: ## Runs gofmt against all packages.
-	@echo Running GOFMT
-
-	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
-		echo "Checking "$$package; \
-		files=$$($(GO) list $(GOFLAGS) -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
-		if [ "$$files" ]; then \
-			gofmt_output=$$(gofmt -d -s $$files 2>&1); \
-			if [ "$$gofmt_output" ]; then \
-				echo "$$gofmt_output"; \
-				echo "gofmt failure"; \
-				exit 1; \
-			fi; \
-		fi; \
+prepackaged-plugins: ## Populate the prepackaged-plugins directory
+	@echo Downloading prepackaged plugins
+	mkdir -p prepackaged_plugins
+	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
-	@echo "gofmt success"; \
 
-megacheck: ## Run megacheck on codebasis
-	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
-	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
+prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+# Externally built binaries
+ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+	@echo mmctl installed
+else ifeq ($(PLATFORM),Darwin)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Linux)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Windows)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+else
+	@echo "mmctl error: can't detect OS"
+endif
 
+golangci-lint: ## Run golangci-lint on codebase
+# https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	golangci-lint run ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
+ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	golangci-lint run ./enterprise/...
+endif
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
-	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
-	$(GOPATH)/bin/mmgotool i18n extract
+	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
+	$(GOBIN)/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 filesstore-mocks: ## Creates mock files.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
 
-check-licenses: ## Checks license status.
-	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
-
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
+check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
@@ -258,7 +278,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
+	env GO111MODULE=off $(GO) get -u github.com/jstemmer/go-junit-report
 
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS
@@ -277,7 +297,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 else
 	@echo Running only TE tests
 endif
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -319,7 +339,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		exit 1; \
 	fi
 
-run-server: validate-go-version start-docker ## Starts the server.
+run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -329,20 +349,20 @@ run-server: validate-go-version start-docker ## Starts the server.
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
@@ -387,7 +407,7 @@ stop-client: ## Stops the webapp.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
 
-stop: stop-server stop-client ## Stops server and client.
+stop: stop-server stop-client stop-docker ## Stops server, client and the docker compose.
 
 restart: restart-server restart-client ## Restarts the server and webapp.
 
@@ -428,7 +448,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
-	go clean $(GOFLAGS) -i ./...
+	$(GO) clean $(GOFLAGS) -i ./...
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
@@ -460,14 +480,26 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	go get -u
+	$(GO) get -u ./...
 
 	# Tidy up
-	go mod tidy
+	$(GO) mod tidy
 
 	# Copy everything to vendor directory
-	go mod vendor
+	$(GO) mod vendor
 
+vet: ## Run mattermost go vet specific checks
+	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
+		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
+		exit 1; \
+	fi; \
+
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+endif
+endif
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO

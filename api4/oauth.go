@@ -1,12 +1,12 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitOAuth() {
@@ -85,6 +85,10 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Session.UserId != oldOauthApp.CreatorId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
 		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		oauthApp.IsTrusted = oldOauthApp.IsTrusted
 	}
 
 	updatedOauthApp, err := c.App.UpdateOauthApp(oldOauthApp, oauthApp)

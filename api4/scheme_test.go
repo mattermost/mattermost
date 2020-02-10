@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -161,7 +161,7 @@ func TestCreateScheme(t *testing.T) {
 }
 
 func TestGetScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -223,7 +223,7 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestGetSchemes(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -286,7 +286,7 @@ func TestGetSchemes(t *testing.T) {
 }
 
 func TestGetTeamsForScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -378,7 +378,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 }
 
 func TestGetChannelsForScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -472,7 +472,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 }
 
 func TestPatchScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -579,7 +579,7 @@ func TestPatchScheme(t *testing.T) {
 }
 
 func TestDeleteScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("ValidTeamScheme", func(t *testing.T) {

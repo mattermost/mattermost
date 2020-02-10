@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -53,9 +53,9 @@ func TestDesanitize(t *testing.T) {
 	target.SqlSettings.DataSourceReplicas = append(target.SqlSettings.DataSourceReplicas, "old_replica0")
 	target.SqlSettings.DataSourceSearchReplicas = append(target.SqlSettings.DataSourceReplicas, "old_search_replica0")
 
-	actual_clone := actual.Clone()
+	actualClone := actual.Clone()
 	desanitize(actual, target)
-	assert.Equal(t, actual_clone, actual, "actual should not have been changed")
+	assert.Equal(t, actualClone, actual, "actual should not have been changed")
 
 	// Verify the settings that should have been left untouched in target
 	assert.True(t, *target.LdapSettings.Enable, "LdapSettings.Enable should not have changed")
@@ -203,8 +203,4 @@ func sToP(s string) *string {
 
 func bToP(b bool) *bool {
 	return &b
-}
-
-func iToP(i int) *int {
-	return &i
 }

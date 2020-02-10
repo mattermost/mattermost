@@ -1,14 +1,15 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,10 +26,10 @@ func TestHandleNewNotifications(t *testing.T) {
 
 	job.handleNewNotifications()
 
-	require.Len(t, job.pendingNotifications, 0, "shouldn't have added any pending notifications")
+	require.Empty(t, job.pendingNotifications, "shouldn't have added any pending notifications")
 
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test"}, &model.Team{Name: "team"})
-	require.Len(t, job.pendingNotifications, 0, "shouldn't have added any pending notifications")
+	require.Empty(t, job.pendingNotifications, "shouldn't have added any pending notifications")
 
 	job.handleNewNotifications()
 	require.Len(t, job.pendingNotifications, 1, "should have received posts for 1 user")
@@ -64,11 +65,11 @@ func TestHandleNewNotifications(t *testing.T) {
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test4"}, &model.Team{Name: "team"})
 	job.Add(&model.User{Id: id2}, &model.Post{UserId: id1, Message: "test5"}, &model.Team{Name: "team"})
 	job.handleNewNotifications()
-	assert.Equal(t, job.pendingNotifications[id1][0].post.Message, "test1", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id1][1].post.Message, "test2", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id1][2].post.Message, "test4", "incorrect order of received posts for user1");
-	assert.Equal(t, job.pendingNotifications[id2][0].post.Message, "test3", "incorrect order of received posts for user2");
-	assert.Equal(t, job.pendingNotifications[id2][1].post.Message, "test5", "incorrect order of received posts for user2");
+	assert.Equal(t, job.pendingNotifications[id1][0].post.Message, "test1", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id1][1].post.Message, "test2", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id1][2].post.Message, "test4", "incorrect order of received posts for user1")
+	assert.Equal(t, job.pendingNotifications[id2][0].post.Message, "test3", "incorrect order of received posts for user2")
+	assert.Equal(t, job.pendingNotifications[id2][1].post.Message, "test5", "incorrect order of received posts for user2")
 }
 
 func TestCheckPendingNotifications(t *testing.T) {
@@ -117,7 +118,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should've remove queued post since user acted")
+	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")
 
 	// test that notifications are sent if enough time passes since the first message
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
@@ -210,7 +211,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	// notifications should be sent 901s after post was created, because default batch interval is 15mins
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
-	require.Len(t, job.pendingNotifications[th.BasicUser.Id], 0, "should have sent queued post")
+	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }
 
 /**

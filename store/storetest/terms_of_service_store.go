@@ -1,13 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,13 +30,9 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	savedTermsOfService, err := ss.TermsOfService().Save(termsOfService)
 	require.Nil(t, err)
 
-	if len(savedTermsOfService.Id) != 26 {
-		t.Fatal("Id should have been populated")
-	}
+	require.Len(t, savedTermsOfService.Id, 26, "Id should have been populated")
 
-	if savedTermsOfService.CreateAt == 0 {
-		t.Fatal("Create at should have been populated")
-	}
+	require.NotEqual(t, savedTermsOfService.CreateAt, 0, "Create at should have been populated")
 }
 
 func testGetLatestTermsOfService(t *testing.T, ss store.Store) {

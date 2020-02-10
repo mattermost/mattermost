@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
 import "github.com/pkg/errors"
 
+// Migrate migrates SAML keys and certificates from one store to another given their data source names.
 func Migrate(from, to string) error {
 	source, err := NewStore(from, false)
 	if err != nil {
@@ -23,6 +24,8 @@ func Migrate(from, to string) error {
 
 	files := []string{*sourceConfig.SamlSettings.IdpCertificateFile, *sourceConfig.SamlSettings.PublicCertificateFile,
 		*sourceConfig.SamlSettings.PrivateKeyFile}
+
+	files = append(files, sourceConfig.PluginSettings.SignaturePublicKeyFiles...)
 
 	for _, file := range files {
 		err = migrateFile(file, source, destination)

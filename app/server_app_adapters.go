@@ -1,29 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 )
 
-// This is a bridge between the old and new initalization for the context refactor.
-// It calls app layer initalization code that then turns around and acts on the server.
-// Don't add anything new here, new initilization should be done in the server and
+// This is a bridge between the old and new initialization for the context refactor.
+// It calls app layer initialization code that then turns around and acts on the server.
+// Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
-func (s *Server) RunOldAppInitalization() error {
+func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().CreatePushNotificationsHub()
 	s.FakeApp().StartPushNotificationsHubWorkers()
 
@@ -62,12 +61,16 @@ func (s *Server) RunOldAppInitalization() error {
 
 	if s.FakeApp().Srv.newStore == nil {
 		s.FakeApp().Srv.newStore = func() store.Store {
-			return store.NewTimerLayer(localcachelayer.NewLocalCacheLayer(store.NewLayeredStore(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics), s.Metrics, s.Cluster), s.Metrics, s.Cluster), s.Metrics)
+			return store.NewTimerLayer(
+				localcachelayer.NewLocalCacheLayer(
+					sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
+					s.Metrics, s.Cluster, s.CacheProvider),
+				s.Metrics)
 		}
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
+		mlog.Error("Failed to parse server templates", mlog.Err(err))
 	} else {
 		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
@@ -131,7 +134,7 @@ func (s *Server) RunOldAppInitalization() error {
 		appErr = backend.TestConnection()
 	}
 	if appErr != nil {
-		mlog.Error("Problem with file storage settings: " + appErr.Error())
+		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
 	if model.BuildEnterpriseReady == "true" {

@@ -10,12 +10,30 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 type hclogAdapter struct {
 	wrappedLogger *mlog.Logger
 	extrasKey     string
+}
+
+func (h *hclogAdapter) Log(level hclog.Level, msg string, args ...interface{}) {
+	switch level {
+	case hclog.Trace:
+		h.Trace(msg, args...)
+	case hclog.Debug:
+		h.Debug(msg, args...)
+	case hclog.Info:
+		h.Info(msg, args...)
+	case hclog.Warn:
+		h.Warn(msg, args...)
+	case hclog.Error:
+		h.Error(msg, args...)
+	default:
+		// For unknown/unexpected log level, treat it as an error so we notice and fix the code.
+		h.Error(msg, args...)
+	}
 }
 
 func (h *hclogAdapter) Trace(msg string, args ...interface{}) {
@@ -104,3 +122,11 @@ func (h *hclogAdapter) StandardWriter(opts *hclog.StandardLoggerOptions) io.Writ
 }
 
 func (h *hclogAdapter) SetLevel(hclog.Level) {}
+
+func (h *hclogAdapter) ImpliedArgs() []interface{} {
+	return []interface{}{}
+}
+
+func (h *hclogAdapter) Name() string {
+	return "MattermostPluginLogger"
+}

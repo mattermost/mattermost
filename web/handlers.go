@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -13,10 +14,10 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -66,26 +67,37 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	DisableWhenBusy     bool
 
 	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug("request:", mlog.String("method", r.Method), mlog.String("url", r.URL.Path))
+
+	requestID := model.NewId()
+	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
-	c.App.RequestId = model.NewId()
+	c.App.RequestId = requestID
 	c.App.IpAddress = utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader)
 	c.App.UserAgent = r.UserAgent()
 	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
 	c.Params = ParamsFromRequest(r)
 	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
+
+	// Set the max request body size to be equal to MaxFileSize.
+	// Ideally, non-file request bodies should be smaller than file request bodies,
+	// but we don't have a clean way to identify all file upload handlers.
+	// So to keep it simple, we clamp it to the max file size.
+	// We add a buffer of bytes.MinRead so that file sizes close to max file size
+	// do not get cut off.
+	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
@@ -157,6 +169,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.MfaRequired()
 	}
 
+	if c.Err == nil && h.DisableWhenBusy && c.App.Srv.Busy.IsBusy() {
+		c.SetServerBusyError()
+	}
+
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
@@ -207,7 +223,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
-			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, elapsed)
+			c.App.Metrics.ObserveApiEndpointDuration(h.HandlerName, r.Method, elapsed)
 		}
 	}
 }
@@ -215,7 +231,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
 // a CSRF check occurred and whether or not it succeeded.
 func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, tokenLocation app.TokenLocation, session *model.Session) (checked bool, passed bool) {
-	csrfCheckNeeded := c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET"
+	csrfCheckNeeded := session != nil && c.Err == nil && tokenLocation == app.TokenLocationCookie && !h.TrustRequester && r.Method != "GET"
 	csrfCheckPassed := false
 
 	if csrfCheckNeeded {
@@ -306,25 +322,6 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
-		IsStatic:            false,
-	}
-	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
-	}
-	return handler
-}
-
-// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
-// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
-// websocket.
-func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	handler := &Handler{
-		GetGlobalAppOptions: w.GetGlobalAppOptions,
-		HandleFunc:          h,
-		HandlerName:         GetHandlerName(h),
-		RequireSession:      false,
-		TrustRequester:      true,
-		RequireMfa:          false,
 		IsStatic:            false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {

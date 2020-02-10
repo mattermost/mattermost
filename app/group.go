@@ -1,14 +1,18 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().Get(id)
+}
+
+func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByName(name)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
@@ -17,6 +21,10 @@ func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource)
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetAllBySource(groupSource)
+}
+
+func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetByUser(userId)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
@@ -56,8 +64,42 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 	return a.Srv.Store.Group().DeleteMember(groupID, userID)
 }
 
-func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
+func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	gs, err := a.Srv.Store.Group().GetGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
+	if err != nil && err.Id != "store.sql_group.no_rows" {
+		return nil, err
+	}
+
+	if gs == nil {
+		gs, err = a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		gs, err = a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// if the type is channel, then upsert the associated GroupTeam [MM-14675]
+	if gs.Type == model.GroupSyncableTypeChannel {
+		channel, err := a.Srv.Store.Channel().Get(gs.SyncableId, true)
+		if err != nil {
+			return nil, err
+		}
+		_, err = a.UpsertGroupSyncable(&model.GroupSyncable{
+			GroupId:    gs.GroupId,
+			SyncableId: channel.TeamId,
+			Type:       model.GroupSyncableTypeTeam,
+			AutoAdd:    gs.AutoAdd,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return gs, nil
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
@@ -69,30 +111,64 @@ func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncable
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+	var gs *model.GroupSyncable
+	var err *model.AppError
+
+	if groupSyncable.DeleteAt == 0 {
+		// updating a *deleted* GroupSyncable, so no need to ensure the GroupTeam is present (as done in the upsert)
+		gs, err = a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
+	} else {
+		// do an upsert to ensure that there's an associated GroupTeam
+		gs, err = a.UpsertGroupSyncable(groupSyncable)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return gs, nil
 }
 
 func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	return a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
+	gs, err := a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
+	if err != nil {
+		return nil, err
+	}
+
+	// if a GroupTeam is being deleted delete all associated GroupChannels
+	if gs.Type == model.GroupSyncableTypeTeam {
+		allGroupChannels, err := a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(gs.GroupId, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, groupChannel := range allGroupChannels {
+			_, err = a.Srv.Store.Group().DeleteGroupSyncable(groupChannel.GroupId, groupChannel.SyncableId, groupChannel.Type)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return gs, nil
 }
 
-func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToAdd(since)
+func (a *App) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToAdd(since, teamID)
 }
 
-func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToAdd(since)
+func (a *App) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToAdd(since, channelID)
 }
 
-func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	return a.Srv.Store.Group().TeamMembersToRemove()
+func (a *App) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToRemove(teamID)
 }
 
-func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	return a.Srv.Store.Group().ChannelMembersToRemove()
+func (a *App) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToRemove(teamID)
 }
 
-func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
 	groups, err := a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
 	if err != nil {
 		return nil, 0, err
@@ -106,7 +182,7 @@ func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) (
 	return groups, int(count), nil
 }
 
-func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
 	groups, err := a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
 	if err != nil {
 		return nil, 0, err
@@ -236,4 +312,19 @@ func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []strin
 		return nil, 0, err
 	}
 	return users, totalCount, nil
+}
+
+// UserIsInAdminRoleGroup returns true at least one of the user's groups are configured to set the members as
+// admins in the given syncable.
+func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
+	groupIDs, err := a.Srv.Store.Group().AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+	if err != nil {
+		return false, err
+	}
+
+	if len(groupIDs) == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }

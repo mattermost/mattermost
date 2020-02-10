@@ -1,12 +1,12 @@
 //go:generate go run layer_generators/main.go
 
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package store
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type StoreResult struct {
@@ -64,6 +64,7 @@ type TeamStore interface {
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
+	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
@@ -76,7 +77,7 @@ type TeamStore interface {
 	GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError)
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) *model.AppError
-	AnalyticsTeamCount() (int64, *model.AppError)
+	AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError)
 	AnalyticsPublicTeamCount() (int64, *model.AppError)
 	AnalyticsPrivateTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
@@ -105,6 +106,13 @@ type TeamStore interface {
 	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+
+	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
+	GroupSyncedTeamCount() (int64, *model.AppError)
 }
 
 type ChannelStore interface {
@@ -125,7 +133,7 @@ type ChannelStore interface {
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
-	GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError)
@@ -152,24 +160,25 @@ type ChannelStore interface {
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCountFromCache(channelId string) int64
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
-	GetGuestCountFromCache(channelId string) int64
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
+	CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
+	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
 	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
@@ -188,6 +197,13 @@ type ChannelStore interface {
 	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
+
+	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
+	// non-admin members.
+	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
+
+	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
+	GroupSyncedChannelCount() (int64, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -259,7 +275,7 @@ type UserStore interface {
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError)
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
-	InvalidatProfileCacheForUser(userId string)
+	InvalidateProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
@@ -272,7 +288,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError)
-	GetUnreadCount(userId string) (int64, error)
+	GetUnreadCount(userId string) (int64, *model.AppError)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -295,6 +311,7 @@ type UserStore interface {
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
+	DeactivateGuests() ([]string, *model.AppError)
 }
 
 type BotStore interface {
@@ -325,7 +342,6 @@ type AuditStore interface {
 	Save(audit *model.Audit) *model.AppError
 	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
 	PermanentDeleteByUser(userId string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
 type ClusterDiscoveryStore interface {
@@ -528,6 +544,7 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
 	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
+	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
 	Delete(pluginId, key string) *model.AppError
 	DeleteAllForPlugin(PluginId string) *model.AppError
@@ -569,9 +586,11 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, *model.AppError)
 	Get(groupID string) (*model.Group, *model.AppError)
+	GetByName(name string) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	GetByUser(userId string) ([]*model.Group, *model.AppError)
 	Update(group *model.Group) (*model.Group, *model.AppError)
 	Delete(groupID string) (*model.Group, *model.AppError)
 
@@ -580,6 +599,7 @@ type GroupStore interface {
 	GetMemberCount(groupID string) (int64, *model.AppError)
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+	PermanentDeleteMembersByUser(userId string) *model.AppError
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
@@ -587,16 +607,28 @@ type GroupStore interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
-	TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError)
-	ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError)
+	// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
+	//
+	// Typically since will be the last successful group sync time.
+	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
 
-	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
-	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
+	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
+	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
+	//
+	// Typically since will be the last successful group sync time.
+	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
+	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
+
+	// ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
+	ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError)
+
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
@@ -605,6 +637,29 @@ type GroupStore interface {
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
 	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
+
+	// AdminRoleGroupsForSyncableMember returns the IDs of all of the groups that the user is a member of that are
+	// configured as SchemeAdmin: true for the given syncable.
+	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
+	// the admin role for the given syncable.
+	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// GroupCount returns the total count of records in the UserGroups table.
+	GroupCount() (int64, *model.AppError)
+
+	// GroupTeamCount returns the total count of records in the GroupTeams table.
+	GroupTeamCount() (int64, *model.AppError)
+
+	// GroupChannelCount returns the total count of records in the GroupChannels table.
+	GroupChannelCount() (int64, *model.AppError)
+
+	// GroupMemberCount returns the total count of records in the GroupMembers table.
+	GroupMemberCount() (int64, *model.AppError)
+
+	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
+	DistinctGroupMemberCount() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {
@@ -617,11 +672,20 @@ type LinkMetadataStore interface {
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// Paginate whether to paginate the results.
+// Page page requested, if results are paginated.
+// PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup string
 	IncludeDeleted       bool
 	ExcludeChannelNames  []string
+	Page                 *int
+	PerPage              *int
+}
+
+func (c *ChannelSearchOpts) IsPaginated() bool {
+	return c.Page != nil && c.PerPage != nil
 }
 
 type UserGetByIdsOpts struct {
@@ -636,8 +700,8 @@ type UserGetByIdsOpts struct {
 }
 
 type OrphanedRecord struct {
-	ParentId string
-	ChildId  string
+	ParentId *string
+	ChildId  *string
 }
 
 type RelationalIntegrityCheckData struct {

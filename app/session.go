@@ -1,13 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -72,8 +72,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
 	}
 
-	if session != nil &&
-		*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
+	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
 		!session.IsOAuth &&
 		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
 

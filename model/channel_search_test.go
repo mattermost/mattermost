@@ -1,11 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChannelSearchJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestChannelSearchJson(t *testing.T) {
 	json := channelSearch.ToJson()
 	rchannelSearch := ChannelSearchFromJson(strings.NewReader(json))
 
-	if channelSearch.Term != rchannelSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	assert.Equal(t, channelSearch.Term, rchannelSearch.Term)
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,22 +9,23 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/imgutils"
-	"github.com/mattermost/mattermost-server/utils/markdown"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
+	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 3600
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = utils.NewLru(LINK_CACHE_SIZE)
+var linkCache = lru.New(LINK_CACHE_SIZE)
 
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -73,8 +74,6 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	} else {
 		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
-
-	return
 }
 
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
@@ -86,6 +85,11 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	a.OverrideIconURLIfEmoji(post)
 
 	post.Metadata = &model.PostMetadata{}
+
+	if post.DeleteAt > 0 {
+		// Don't fill out metadata for deleted posts
+		return post
+	}
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
@@ -431,7 +435,7 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	cached, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+	cached, ok := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16))
 	if !ok {
 		return nil, nil, false
 	}
@@ -494,7 +498,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		val = image
 	}
 
-	linkCache.AddWithExpiresInSecs(model.GenerateLinkMetadataHash(requestURL, timestamp), val, LINK_CACHE_DURATION)
+	linkCache.AddWithExpiresInSecs(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), val, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
@@ -508,7 +512,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
-		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)
+		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least
 		// one of these required fields exists before returning the OpenGraph data

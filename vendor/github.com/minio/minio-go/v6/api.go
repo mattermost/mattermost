@@ -104,7 +104,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.38"
+	libraryVersion = "v6.0.45"
 )
 
 // User Agent should always following the below style.
@@ -560,6 +560,13 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 	var bodySeeker io.Seeker // Extracted seeker from io.Reader.
 	var reqRetry = MaxRetry  // Indicates how many times we can retry the request
 
+	defer func() {
+		if err != nil {
+			// close idle connections before returning, upon error.
+			c.httpClient.CloseIdleConnections()
+		}
+	}()
+
 	if metadata.contentBody != nil {
 		// Check if body is seekable then it is retryable.
 		bodySeeker, isRetryable = metadata.contentBody.(io.Seeker)
@@ -620,12 +627,7 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// Initiate the request.
 		res, err = c.do(req)
 		if err != nil {
-			// For supported http requests errors verify.
-			if isHTTPReqErrorRetryable(err) {
-				continue // Retry.
-			}
-			// For other errors, return here no need to retry.
-			return nil, err
+			continue
 		}
 
 		// For any known successful http status, return quickly.
@@ -822,7 +824,7 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 	case signerType.IsV2():
 		// Add signature version '2' authorization header.
 		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
-	case metadata.objectName != "" && method == "PUT" && metadata.customHeader.Get("X-Amz-Copy-Source") == "" && !c.secure:
+	case metadata.objectName != "" && metadata.queryValues == nil && method == "PUT" && metadata.customHeader.Get("X-Amz-Copy-Source") == "" && !c.secure:
 		// Streaming signature is used by default for a PUT object request. Additionally we also
 		// look if the initialized client is secure, if yes then we don't need to perform
 		// streaming signature.

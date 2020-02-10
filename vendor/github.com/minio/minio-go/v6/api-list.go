@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 MinIO, Inc.
+ * Copyright 2015-2019 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ package minio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 )
@@ -39,8 +37,23 @@ import (
 //   }
 //
 func (c Client) ListBuckets() ([]BucketInfo, error) {
+	return c.ListBucketsWithContext(context.Background())
+}
+
+// ListBucketsWithContext list all buckets owned by this authenticated user,
+// accepts a context for facilitate cancellation.
+//
+// This call requires explicit authentication, no anonymous requests are
+// allowed for listing buckets.
+//
+//   api := client.New(....)
+//   for message := range api.ListBucketsWithContext(context.Background()) {
+//       fmt.Println(message)
+//   }
+//
+func (c Client) ListBucketsWithContext(ctx context.Context) ([]BucketInfo, error) {
 	// Execute GET on service.
-	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{contentSHA256Hex: emptySHA256Hex})
+	resp, err := c.executeMethod(ctx, "GET", requestMetadata{contentSHA256Hex: emptySHA256Hex})
 	defer closeResponse(resp)
 	if err != nil {
 		return nil, err
@@ -60,9 +73,13 @@ func (c Client) ListBuckets() ([]BucketInfo, error) {
 
 /// Bucket Read Operations.
 
-// ListObjectsV2 lists all objects matching the objectPrefix from
-// the specified bucket. If recursion is enabled it would list
-// all subdirectories and all its contents.
+// ListObjectsV2WithMetadata lists all objects matching the objectPrefix
+// from the specified bucket. If recursion is enabled it would list
+// all subdirectories and all its contents. This call adds
+// UserMetadata information as well for each object.
+//
+// This is a MinIO extension, this will not work against other S3
+// compatible object storage vendors.
 //
 // Your input parameters are just bucketName, objectPrefix, recursive
 // and a done channel for pro-actively closing the internal go
@@ -76,11 +93,24 @@ func (c Client) ListBuckets() ([]BucketInfo, error) {
 //   defer close(doneCh)
 //   // Recursively list all objects in 'mytestbucket'
 //   recursive := true
-//   for message := range api.ListObjectsV2("mytestbucket", "starthere", recursive, doneCh) {
+//   // Add metadata
+//   metadata := true
+//   for message := range api.ListObjectsV2WithMetadata("mytestbucket", "starthere", recursive, doneCh) {
 //       fmt.Println(message)
 //   }
 //
-func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, doneCh <-chan struct{}) <-chan ObjectInfo {
+func (c Client) ListObjectsV2WithMetadata(bucketName, objectPrefix string, recursive bool,
+	doneCh <-chan struct{}) <-chan ObjectInfo {
+	// Check whether this is snowball region, if yes ListObjectsV2 doesn't work, fallback to listObjectsV1.
+	if location, ok := c.bucketLocCache.Get(bucketName); ok {
+		if location == "snowball" {
+			return c.ListObjects(bucketName, objectPrefix, recursive, doneCh)
+		}
+	}
+	return c.listObjectsV2(bucketName, objectPrefix, recursive, true, doneCh)
+}
+
+func (c Client) listObjectsV2(bucketName, objectPrefix string, recursive, metadata bool, doneCh <-chan struct{}) <-chan ObjectInfo {
 	// Allocate new list objects channel.
 	objectStatCh := make(chan ObjectInfo, 1)
 	// Default listing is delimited at "/"
@@ -118,7 +148,8 @@ func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, d
 		var continuationToken string
 		for {
 			// Get list of objects a maximum of 1000 per request.
-			result, err := c.listObjectsV2Query(bucketName, objectPrefix, continuationToken, fetchOwner, delimiter, 1000, "")
+			result, err := c.listObjectsV2Query(bucketName, objectPrefix, continuationToken,
+				fetchOwner, metadata, delimiter, 0, "")
 			if err != nil {
 				objectStatCh <- ObjectInfo{
 					Err: err,
@@ -128,6 +159,7 @@ func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, d
 
 			// If contents are available loop through and send over channel.
 			for _, object := range result.Contents {
+				object.ETag = trimEtag(object.ETag)
 				select {
 				// Send object content.
 				case objectStatCh <- object:
@@ -163,6 +195,36 @@ func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, d
 	return objectStatCh
 }
 
+// ListObjectsV2 lists all objects matching the objectPrefix from
+// the specified bucket. If recursion is enabled it would list
+// all subdirectories and all its contents.
+//
+// Your input parameters are just bucketName, objectPrefix, recursive
+// and a done channel for pro-actively closing the internal go
+// routine. If you enable recursive as 'true' this function will
+// return back all the objects in a given bucket name and object
+// prefix.
+//
+//   api := client.New(....)
+//   // Create a done channel.
+//   doneCh := make(chan struct{})
+//   defer close(doneCh)
+//   // Recursively list all objects in 'mytestbucket'
+//   recursive := true
+//   for message := range api.ListObjectsV2("mytestbucket", "starthere", recursive, doneCh) {
+//       fmt.Println(message)
+//   }
+//
+func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, doneCh <-chan struct{}) <-chan ObjectInfo {
+	// Check whether this is snowball region, if yes ListObjectsV2 doesn't work, fallback to listObjectsV1.
+	if location, ok := c.bucketLocCache.Get(bucketName); ok {
+		if location == "snowball" {
+			return c.ListObjects(bucketName, objectPrefix, recursive, doneCh)
+		}
+	}
+	return c.listObjectsV2(bucketName, objectPrefix, recursive, false, doneCh)
+}
+
 // listObjectsV2Query - (List Objects V2) - List some or all (up to 1000) of the objects in a bucket.
 //
 // You can use the request parameters as selection criteria to return a subset of the objects in a bucket.
@@ -173,7 +235,8 @@ func (c Client) ListObjectsV2(bucketName, objectPrefix string, recursive bool, d
 // ?prefix - Limits the response to keys that begin with the specified prefix.
 // ?max-keys - Sets the maximum number of keys returned in the response body.
 // ?start-after - Specifies the key to start after when listing objects in a bucket.
-func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken string, fetchOwner bool, delimiter string, maxkeys int, startAfter string) (ListBucketV2Result, error) {
+// ?metadata - Specifies if we want metadata for the objects as part of list operation.
+func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken string, fetchOwner, metadata bool, delimiter string, maxkeys int, startAfter string) (ListBucketV2Result, error) {
 	// Validate bucket name.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return ListBucketV2Result{}, err
@@ -188,6 +251,10 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 
 	// Always set list-type in ListObjects V2
 	urlValues.Set("list-type", "2")
+
+	if metadata {
+		urlValues.Set("metadata", "true")
+	}
 
 	// Always set encoding-type in ListObjects V2
 	urlValues.Set("encoding-type", "url")
@@ -208,12 +275,10 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 		urlValues.Set("fetch-owner", "true")
 	}
 
-	// maxkeys should default to 1000 or less.
-	if maxkeys == 0 || maxkeys > 1000 {
-		maxkeys = 1000
-	}
 	// Set max keys.
-	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	if maxkeys > 0 {
+		urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	}
 
 	// Set start-after
 	if startAfter != "" {
@@ -245,18 +310,21 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 	// This is an additional verification check to make
 	// sure proper responses are received.
 	if listBucketResult.IsTruncated && listBucketResult.NextContinuationToken == "" {
-		return listBucketResult, errors.New("Truncated response should have continuation token set")
+		return listBucketResult, ErrorResponse{
+			Code:    "NotImplemented",
+			Message: "Truncated response should have continuation token set",
+		}
 	}
 
-	for _, obj := range listBucketResult.Contents {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listBucketResult.Contents {
+		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
-	for _, obj := range listBucketResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listBucketResult.CommonPrefixes {
+		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -321,7 +389,7 @@ func (c Client) ListObjects(bucketName, objectPrefix string, recursive bool, don
 		var marker string
 		for {
 			// Get list of objects a maximum of 1000 per request.
-			result, err := c.listObjectsQuery(bucketName, objectPrefix, marker, delimiter, 1000)
+			result, err := c.listObjectsQuery(bucketName, objectPrefix, marker, delimiter, 0)
 			if err != nil {
 				objectStatCh <- ObjectInfo{
 					Err: err,
@@ -401,12 +469,10 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 		urlValues.Set("marker", objectMarker)
 	}
 
-	// maxkeys should default to 1000 or less.
-	if maxkeys == 0 || maxkeys > 1000 {
-		maxkeys = 1000
-	}
 	// Set max keys.
-	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	if maxkeys > 0 {
+		urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
+	}
 
 	// Always set encoding-type
 	urlValues.Set("encoding-type", "url")
@@ -433,15 +499,15 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 		return listBucketResult, err
 	}
 
-	for _, obj := range listBucketResult.Contents {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listBucketResult.Contents {
+		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
-	for _, obj := range listBucketResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listBucketResult.CommonPrefixes {
+		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -517,7 +583,7 @@ func (c Client) listIncompleteUploads(bucketName, objectPrefix string, recursive
 		var uploadIDMarker string
 		for {
 			// list all multipart uploads.
-			result, err := c.listMultipartUploadsQuery(bucketName, objectMarker, uploadIDMarker, objectPrefix, delimiter, 1000)
+			result, err := c.listMultipartUploadsQuery(bucketName, objectMarker, uploadIDMarker, objectPrefix, delimiter, 0)
 			if err != nil {
 				objectMultipartStatCh <- ObjectMultipartInfo{
 					Err: err,
@@ -604,11 +670,10 @@ func (c Client) listMultipartUploadsQuery(bucketName, keyMarker, uploadIDMarker,
 	urlValues.Set("encoding-type", "url")
 
 	// maxUploads should be 1000 or less.
-	if maxUploads == 0 || maxUploads > 1000 {
-		maxUploads = 1000
+	if maxUploads > 0 {
+		// Set max-uploads.
+		urlValues.Set("max-uploads", fmt.Sprintf("%d", maxUploads))
 	}
-	// Set max-uploads.
-	urlValues.Set("max-uploads", fmt.Sprintf("%d", maxUploads))
 
 	// Execute GET on bucketName to list multipart uploads.
 	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
@@ -642,15 +707,15 @@ func (c Client) listMultipartUploadsQuery(bucketName, keyMarker, uploadIDMarker,
 		return listMultipartUploadsResult, err
 	}
 
-	for _, obj := range listMultipartUploadsResult.Uploads {
-		obj.Key, err = url.QueryUnescape(obj.Key)
+	for i, obj := range listMultipartUploadsResult.Uploads {
+		listMultipartUploadsResult.Uploads[i].Key, err = url.QueryUnescape(obj.Key)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
 	}
 
-	for _, obj := range listMultipartUploadsResult.CommonPrefixes {
-		obj.Prefix, err = url.QueryUnescape(obj.Prefix)
+	for i, obj := range listMultipartUploadsResult.CommonPrefixes {
+		listMultipartUploadsResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
@@ -673,8 +738,7 @@ func (c Client) listObjectParts(bucketName, objectName, uploadID string) (partsI
 		// Append to parts info.
 		for _, part := range listObjPartsResult.ObjectParts {
 			// Trim off the odd double quotes from ETag in the beginning and end.
-			part.ETag = strings.TrimPrefix(part.ETag, "\"")
-			part.ETag = strings.TrimSuffix(part.ETag, "\"")
+			part.ETag = trimEtag(part.ETag)
 			partsInfo[part.PartNumber] = part
 		}
 		// Keep part number marker, for the next iteration.
@@ -744,11 +808,10 @@ func (c Client) listObjectPartsQuery(bucketName, objectName, uploadID string, pa
 	urlValues.Set("uploadId", uploadID)
 
 	// maxParts should be 1000 or less.
-	if maxParts == 0 || maxParts > 1000 {
-		maxParts = 1000
+	if maxParts > 0 {
+		// Set max parts.
+		urlValues.Set("max-parts", fmt.Sprintf("%d", maxParts))
 	}
-	// Set max parts.
-	urlValues.Set("max-parts", fmt.Sprintf("%d", maxParts))
 
 	// Execute GET on objectName to get list of parts.
 	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{

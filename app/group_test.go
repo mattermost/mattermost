@@ -1,12 +1,12 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -131,19 +131,30 @@ func TestDeleteGroupMember(t *testing.T) {
 	require.Nil(t, groupMember)
 }
 
-func TestCreateGroupSyncable(t *testing.T) {
+func TestUpsertGroupSyncable(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	gs, err = th.App.CreateGroupSyncable(groupSyncable)
-	require.NotNil(t, err)
-	require.Nil(t, gs)
+	// can update again without error
+	gs, err = th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	gs, err = th.App.DeleteGroupSyncable(gs.GroupId, gs.SyncableId, gs.Type)
+	require.Nil(t, err)
+	require.NotEqual(t, int64(0), gs.DeleteAt)
+
+	// Un-deleting works
+	gs.DeleteAt = 0
+	gs, err = th.App.UpsertGroupSyncable(gs)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), gs.DeleteAt)
 }
 
 func TestGetGroupSyncable(t *testing.T) {
@@ -152,7 +163,7 @@ func TestGetGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -169,7 +180,7 @@ func TestGetGroupSyncables(t *testing.T) {
 	// Create a group team
 	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
-	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -185,7 +196,7 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
 
-	gs, err := th.App.CreateGroupSyncable(groupChannel)
+	gs, err := th.App.UpsertGroupSyncable(groupChannel)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -211,7 +222,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 		Type:       model.GroupSyncableTypeChannel,
 	}
 
-	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
@@ -224,7 +235,8 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.Group{group}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
 	require.Nil(t, err)
@@ -244,13 +256,14 @@ func TestGetGroupsByTeam(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
 	groups, _, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, model.GroupSearchOpts{})
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.Group{group}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
+	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByTeam(model.NewId(), model.GroupSearchOpts{})
 	require.Nil(t, err)
@@ -265,4 +278,56 @@ func TestGetGroups(t *testing.T) {
 	groups, err := th.App.GetGroups(0, 60, model.GroupSearchOpts{})
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
+}
+
+func TestUserIsInAdminRoleGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	g, err := th.App.UpsertGroupMember(group1.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group2.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group1.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	groupSyncable2, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group2.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	// no syncables are set to scheme admin true, so this returns false
+	actual, err := th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.False(t, actual)
+
+	// set a syncable to be scheme admins
+	groupSyncable2.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(groupSyncable2)
+	require.Nil(t, err)
+
+	// a syncable is set to scheme admin true, so this returns true
+	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.True(t, actual)
+
+	// delete the syncable, should be false again
+	th.App.DeleteGroupSyncable(group2.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	actual, err = th.App.UserIsInAdminRoleGroup(th.BasicUser.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.False(t, actual)
 }

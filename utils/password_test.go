@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package utils
 
 import (
@@ -6,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestIsPasswordValidWithSettings(t *testing.T) {
@@ -19,10 +22,10 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			Password: strings.Repeat("x", 3),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewInt(3),
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Lowercase:     model.NewBool(false),
+				Uppercase:     model.NewBool(false),
+				Number:        model.NewBool(false),
+				Symbol:        model.NewBool(false),
 			},
 		},
 		"Long": {
@@ -30,28 +33,28 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
 			},
 		},
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewInt(3),
-				Lowercase: model.NewBool(false),
-				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Lowercase:     model.NewBool(false),
+				Uppercase:     model.NewBool(false),
+				Number:        model.NewBool(false),
+				Symbol:        model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd.app_error",
 		},
 		"TooLong": {
-			Password:      strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
-			Settings:      &model.PasswordSettings{
+			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
+			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd.app_error",
 		},
@@ -60,8 +63,8 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(true),
 				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
 		},
@@ -70,28 +73,28 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			Settings: &model.PasswordSettings{
 				Uppercase: model.NewBool(true),
 				Lowercase: model.NewBool(false),
-				Number: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Number:    model.NewBool(false),
+				Symbol:    model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
 		},
 		"MissingNumber": {
 			Password: "asasdasdsadASD!@#",
 			Settings: &model.PasswordSettings{
-				Number: model.NewBool(true),
+				Number:    model.NewBool(true),
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),
-				Symbol: model.NewBool(false),
+				Symbol:    model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_number.app_error",
 		},
 		"MissingSymbol": {
 			Password: "asdasdasdasdasdASD123",
 			Settings: &model.PasswordSettings{
-				Symbol: model.NewBool(true),
+				Symbol:    model.NewBool(true),
 				Lowercase: model.NewBool(false),
 				Uppercase: model.NewBool(false),
-				Number: model.NewBool(false),
+				Number:    model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
 		},

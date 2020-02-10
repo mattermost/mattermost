@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -15,11 +15,11 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -65,10 +65,8 @@ func (a *App) normalizeDomains(domains string) []string {
 	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 }
 
-func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
-	email = strings.ToLower(email)
-	// First check per team allowedDomains, then app wide restrictions
-	for _, restriction := range []string{allowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains} {
+func (a *App) isEmailAddressAllowed(email string, allowedDomains []string) bool {
+	for _, restriction := range allowedDomains {
 		domains := a.normalizeDomains(restriction)
 		if len(domains) <= 0 {
 			continue
@@ -93,7 +91,16 @@ func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 		return true
 	}
 	email := strings.ToLower(user.Email)
-	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
+	allowedDomains := a.getAllowedDomains(user, team)
+	return a.isEmailAddressAllowed(email, allowedDomains)
+}
+
+func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
+	if user.IsGuest() {
+		return []string{*a.Config().GuestAccountsSettings.RestrictCreationToDomains}
+	}
+	// First check per team allowedDomains, then app wide restrictions
+	return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -543,6 +550,14 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		SchemeUser:  !user.IsGuest(),
 	}
 
+	if !user.IsGuest() {
+		userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+		if err != nil {
+			return nil, false, err
+		}
+		tm.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if team.Email == user.Email {
 		tm.SchemeAdmin = true
 	}
@@ -659,7 +674,7 @@ func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppE
 }
 
 func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	totalCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	totalCount, err := a.Srv.Store.Team().AnalyticsTeamCount(true)
 	if err != nil {
 		return nil, err
 	}
@@ -710,8 +725,13 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
 }
 
-func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	return a.Srv.Store.Team().SearchAll(term)
+// SearchAllTeams returns a team list and the total count of the results
+func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+	if searchOpts.IsPaginated() {
+		return a.Srv.Store.Team().SearchAllPaged(searchOpts.Term, *searchOpts.Page, *searchOpts.PerPage)
+	}
+	results, err := a.Srv.Store.Team().SearchAll(searchOpts.Term)
+	return results, int64(len(results)), err
 }
 
 func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
@@ -764,11 +784,18 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string) ([]*model.TeamMember, *model.AppError) {
-	var members []*model.TeamMember
+func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+	var membersWithErrors []*model.TeamMemberWithError
 
 	for _, userId := range userIds {
 		if _, err := a.AddUserToTeam(teamId, userId, userRequestorId); err != nil {
+			if graceful {
+				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+					UserId: userId,
+					Error:  err,
+				})
+				continue
+			}
 			return nil, err
 		}
 
@@ -776,7 +803,10 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		if err != nil {
 			return nil, err
 		}
-		members = append(members, teamMember)
+		membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
+			UserId: userId,
+			Member: teamMember,
+		})
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
 		message.Add("team_id", teamId)
@@ -784,7 +814,7 @@ func (a *App) AddTeamMembers(teamId string, userIds []string, userRequestorId st
 		a.Publish(message)
 	}
 
-	return members, nil
+	return membersWithErrors, nil
 }
 
 func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
@@ -1020,16 +1050,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 	return nil
 }
 
-func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	if len(emailList) == 0 {
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
-		return err
-	}
-
+func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User, *model.Team, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv.Store.Team().Get(teamId)
@@ -1046,43 +1067,59 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	result := <-tchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, result.Err
 	}
 	team := result.Data.(*model.Team)
 
 	result = <-uchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, result.Err
 	}
 	user := result.Data.(*model.User)
-
-	var invalidEmailList []string
-
-	for _, email := range emailList {
-		if !a.isTeamEmailAddressAllowed(email, team.AllowedDomains) {
-			invalidEmailList = append(invalidEmailList, email)
-		}
-	}
-
-	if len(invalidEmailList) > 0 {
-		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
-	}
-
-	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
-
-	return nil
+	return user, team, nil
 }
 
-func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
+	if err != nil {
+		return nil, err
+	}
+	allowedDomains := a.getAllowedDomains(user, team)
+	var inviteListWithErrors []*model.EmailInviteWithError
+	var goodEmails []string
+	for _, email := range emailList {
+		invite := &model.EmailInviteWithError{
+			Email: email,
+			Error: nil,
+		}
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+		} else {
+			goodEmails = append(goodEmails, email)
+		}
+		inviteListWithErrors = append(inviteListWithErrors, invite)
+	}
+
+	if len(goodEmails) > 0 {
+		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+		a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL())
+	}
+
+	return inviteListWithErrors, nil
+}
+
+func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	if err := guestsInvite.IsValid(); err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	tchan := make(chan store.StoreResult, 1)
@@ -1106,26 +1143,107 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 
 	result := <-cchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	channels := result.Data.([]*model.Channel)
 
 	result = <-uchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	user := result.Data.(*model.User)
 
 	result = <-tchan
 	if result.Err != nil {
-		return result.Err
+		return nil, nil, nil, result.Err
 	}
 	team := result.Data.(*model.Team)
 
 	for _, channel := range channels {
 		if channel.TeamId != teamId {
-			return model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+	return user, team, channels, nil
+}
+
+func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
+	if err != nil {
+		return nil, err
+	}
+
+	var inviteListWithErrors []*model.EmailInviteWithError
+	var goodEmails []string
+	for _, email := range guestsInvite.Emails {
+		invite := &model.EmailInviteWithError{
+			Email: email,
+			Error: nil,
+		}
+		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+		} else {
+			goodEmails = append(goodEmails, email)
+		}
+		inviteListWithErrors = append(inviteListWithErrors, invite)
+	}
+
+	if len(goodEmails) > 0 {
+		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+		a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+	}
+
+	return inviteListWithErrors, nil
+}
+
+func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(emailList) == 0 {
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
+		return err
+	}
+
+	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
+	if err != nil {
+		return err
+	}
+
+	allowedDomains := a.getAllowedDomains(user, team)
+	var invalidEmailList []string
+
+	for _, email := range emailList {
+		if !a.isEmailAddressAllowed(email, allowedDomains) {
+			invalidEmailList = append(invalidEmailList, email)
+		}
+	}
+
+	if len(invalidEmailList) > 0 {
+		s := strings.Join(invalidEmailList, ", ")
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+		return err
+	}
+
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
+
+	return nil
+}
+
+func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableEmailInvitations {
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
+	if err != nil {
+		return err
 	}
 
 	var invalidEmailList []string
@@ -1333,9 +1451,18 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 }
 
 func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if !a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
-		team.Sanitize()
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+		return team
 	}
+
+	if a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_INVITE_USER) {
+		inviteId := team.InviteId
+		team.Sanitize()
+		team.InviteId = inviteId
+		return team
+	}
+
+	team.Sanitize()
 
 	return team
 }
@@ -1461,4 +1588,32 @@ func (a *App) InvalidateAllEmailInvites() *model.AppError {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
+}
+
+func (a *App) ClearTeamMembersCache(teamID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		teamMembers, err := a.Srv.Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		if err != nil {
+			a.Log.Warn("error clearing cache for team members", mlog.String("team_id", teamID))
+			break
+		}
+
+		for _, teamMember := range teamMembers {
+			a.ClearSessionCacheForUser(teamMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", teamMember.UserId, nil)
+			message.Add("member", teamMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(teamMembers)
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
 }

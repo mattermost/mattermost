@@ -1,22 +1,40 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config
 
 import (
-	"fmt"
-	"github.com/mattermost/mattermost-server/testlib"
+	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
+func getDsn(driver string, source string) string {
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		return driver + "://" + source
+	}
+	return source
+}
+
 func TestMigrateDatabaseToFile(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
-	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	sqlSettings := helper.GetSQLSettings()
 	fileDSN := "config.json"
 	files := []string{"IdpCertificateFile", "PublicCertificateFile", "PrivateKeyFile"}
-	data := make([]byte, 5)
-	ds, err := NewDatabaseStore(sqlDSN)
+	data := []byte("aaaaa")
+	ds, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	defer ds.Close()
+	defer func() {
+		defaultCfg := &model.Config{}
+		defaultCfg.SetDefaults()
+		ds.Set(defaultCfg)
+	}()
 	require.NoError(t, err)
 	config := ds.Get()
 	config.SamlSettings.IdpCertificateFile = &files[0]
@@ -29,7 +47,7 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 		err = ds.SetFile(file, data)
 		require.NoError(t, err)
 	}
-	err = Migrate(sqlDSN, fileDSN)
+	err = Migrate(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), fileDSN)
 	require.NoError(t, err)
 
 	fs, err := NewFileStore(fileDSN, false)
@@ -47,14 +65,16 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 }
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
-	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	sqlSettings := helper.GetSQLSettings()
 	fileDSN := "config.json"
 
 	_, err := NewFileStore(fileDSN, true)
 	require.NoError(t, err)
 
-	err = Migrate(fileDSN, sqlDSN)
+	err = Migrate(fileDSN, getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 }

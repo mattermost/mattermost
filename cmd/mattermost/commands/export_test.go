@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // There are no tests that actually run the Message Export job, because it can take a long time to complete depending
@@ -16,7 +16,7 @@ import (
 // fails fast if invalid flags are supplied
 
 func TestMessageExportNotEnabled(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -28,7 +28,7 @@ func TestMessageExportNotEnabled(t *testing.T) {
 }
 
 func TestMessageExportInvalidFormat(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -40,7 +40,7 @@ func TestMessageExportInvalidFormat(t *testing.T) {
 }
 
 func TestMessageExportNegativeExportFrom(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -52,7 +52,7 @@ func TestMessageExportNegativeExportFrom(t *testing.T) {
 }
 
 func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()

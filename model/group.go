@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -41,6 +41,11 @@ type Group struct {
 	DeleteAt     int64       `json:"delete_at"`
 	HasSyncables bool        `db:"-" json:"has_syncables"`
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
+}
+
+type GroupWithSchemeAdmin struct {
+	Group
+	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
 }
 
 type GroupPatch struct {

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 )
 
 func TestMoveCommand(t *testing.T) {
@@ -68,7 +68,8 @@ func TestCreateCommandPost(t *testing.T) {
 		Text: "some message",
 	}
 
-	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp)
+	skipSlackParsing := false
+	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
 	if err == nil || err.Id != "api.context.invalid_param.app_error" {
 		t.Fatal("should have failed - bad post type")
 	}
@@ -185,17 +186,22 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
-		&model.SlackAttachment{
+		{
 			Text: "<!here>",
 		},
 	}
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, "@here", resp.Attachments[0].Text)
+	assert.Equal(t, "@channel", post.Message)
+	if assert.Len(t, post.Attachments(), 1) {
+		assert.Equal(t, "@here", post.Attachments()[0].Text)
+	}
+	assert.Equal(t, "true", post.Props["from_webhook"])
 
 	channel = th.CreatePrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
@@ -205,7 +211,27 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
 		t.Fatal("should have failed - forbidden channel post")
 	}
+
+	// Test that /code text is not converted with the Slack text conversion.
+	command.Trigger = "code"
+	resp.ChannelId = ""
+	resp.Text = "<test.com|test website>"
+	resp.Attachments = []*model.SlackAttachment{
+		{
+			Text: "<!here>",
+		},
+	}
+
+	// set and unset SkipSlackParsing here seems the nicest way as no separate response objects are created for every testcase.
+	resp.SkipSlackParsing = true
+	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	resp.SkipSlackParsing = false
+
+	assert.Nil(t, err)
+	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")
+	assert.Equal(t, "<!here>", resp.Attachments[0].Text)
 }
+
 func TestHandleCommandResponse(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -240,10 +266,10 @@ func TestHandleCommandResponse(t *testing.T) {
 	resp = &model.CommandResponse{
 		Text: "message 1",
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{
+			{
 				Text: "message 2",
 			},
-			&model.CommandResponse{
+			{
 				Type: model.POST_SYSTEM_GENERIC,
 				Text: "message 3",
 			},
@@ -257,8 +283,8 @@ func TestHandleCommandResponse(t *testing.T) {
 
 	resp = &model.CommandResponse{
 		ExtraResponses: []*model.CommandResponse{
-			&model.CommandResponse{},
-			&model.CommandResponse{},
+			{},
+			{},
 		},
 	}
 

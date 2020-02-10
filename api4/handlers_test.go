@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
@@ -7,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func handlerForGzip(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -62,7 +65,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 }
 
 func TestAPIHandlersWithGzip(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)

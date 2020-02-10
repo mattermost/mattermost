@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -27,7 +27,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestJoinTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
@@ -47,7 +47,7 @@ func TestJoinTeam(t *testing.T) {
 }
 
 func TestLeaveTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "team", "remove", th.BasicTeam.Name, th.BasicUser.Email)
@@ -71,7 +71,7 @@ func TestLeaveTeam(t *testing.T) {
 }
 
 func TestListTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -86,7 +86,7 @@ func TestListTeams(t *testing.T) {
 }
 
 func TestListArchivedTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -103,7 +103,7 @@ func TestListArchivedTeams(t *testing.T) {
 }
 
 func TestSearchTeamsByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -118,7 +118,7 @@ func TestSearchTeamsByName(t *testing.T) {
 }
 
 func TestSearchTeamsByDisplayName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -133,7 +133,7 @@ func TestSearchTeamsByDisplayName(t *testing.T) {
 }
 
 func TestSearchArchivedTeamsByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -150,7 +150,7 @@ func TestSearchArchivedTeamsByName(t *testing.T) {
 }
 
 func TestArchiveTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -167,7 +167,7 @@ func TestArchiveTeams(t *testing.T) {
 }
 
 func TestRestoreTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -186,7 +186,7 @@ func TestRestoreTeams(t *testing.T) {
 }
 
 func TestRenameTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeam()
@@ -235,7 +235,7 @@ func TestRenameTeam(t *testing.T) {
 }
 
 func TestModifyTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeam()

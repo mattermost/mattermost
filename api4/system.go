@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,17 +8,22 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
-const REDIRECT_LOCATION_CACHE_SIZE = 10000
+const (
+	REDIRECT_LOCATION_CACHE_SIZE = 10000
+	DEFAULT_SERVER_BUSY_SECONDS  = 3600
+	MAX_SERVER_BUSY_SECONDS      = 86400
+)
 
-var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -40,6 +45,10 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
+
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -262,14 +271,16 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		msg = msg[0:399]
 	}
 
+	msg = "Client Logs API Endpoint Message: " + msg
+	fields := []mlog.Field{
+		mlog.String("type", "client_message"),
+		mlog.String("user_agent", c.App.UserAgent),
+	}
+
 	if !forceToDebug && lvl == "ERROR" {
-		err := &model.AppError{}
-		err.Message = msg
-		err.Id = msg
-		err.Where = "client"
-		c.LogError(err)
+		mlog.Error(msg, fields...)
 	} else {
-		mlog.Debug("message", mlog.String("message", msg))
+		mlog.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
@@ -397,23 +408,98 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
-	return
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
-	ack := model.PushNotificationAckFromJson(r.Body)
+	ack, err := model.PushNotificationAckFromJson(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("pushNotificationAck",
+			"api.push_notifications_ack.message.parse.app_error",
+			nil,
+			err.Error(),
+			http.StatusBadRequest,
+		)
+		return
+	}
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	err := c.App.SendAckToPushProxy(ack)
-	if err != nil {
+	err = c.App.SendAckToPushProxy(ack)
+	if ack.IsIdLoaded {
+		if err != nil {
+			// Log the error only, then continue to fetch notification message
+			c.App.NotificationsLog.Error("Notification ack not sent to push proxy",
+				mlog.String("ackId", ack.Id),
+				mlog.String("type", ack.NotificationType),
+				mlog.String("postId", ack.PostId),
+				mlog.String("status", err.Error()),
+			)
+		}
+
+		notificationInterface := c.App.Notification
+
+		if notificationInterface == nil {
+			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+			return
+		}
+
+		msg, appError := notificationInterface.GetNotificationMessage(ack, c.App.Session.UserId)
+		if appError != nil {
+			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte(msg.ToJson()))
+
+		return
+	} else if err != nil {
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	ReturnStatusOK(w)
-	return
+}
+
+func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	// number of seconds to keep server marked busy
+	secs := r.URL.Query().Get("seconds")
+	if secs == "" {
+		secs = strconv.FormatInt(DEFAULT_SERVER_BUSY_SECONDS, 10)
+	}
+
+	i, err := strconv.ParseInt(secs, 10, 64)
+	if err != nil || i <= 0 || i > MAX_SERVER_BUSY_SECONDS {
+		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MAX_SERVER_BUSY_SECONDS))
+		return
+	}
+
+	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+	ReturnStatusOK(w)
+}
+
+func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	c.App.Srv.Busy.Clear()
+	mlog.Info("server busy state cleared - non-critical services enabled")
+	ReturnStatusOK(w)
+}
+
+func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	w.Write([]byte(c.App.Srv.Busy.ToJson()))
 }

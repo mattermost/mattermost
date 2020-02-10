@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 // EXPERIMENTAL - SUBJECT TO CHANGE
 
@@ -8,20 +8,17 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
-	"time"
+	"strconv"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
-	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
-	// from an external URL to avoid slow connections or large plugins from failing to install.
-	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 60 * time.Minute
 )
 
 func (api *API) InitPlugin() {
@@ -31,6 +28,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
 	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(installMarketplacePlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
@@ -42,7 +40,8 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || !*c.App.Config().PluginSettings.EnableUploads {
+	config := c.App.Config()
+	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads || *config.PluginSettings.RequirePluginSignature {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -81,19 +80,14 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(m.Value["force"]) > 0 && m.Value["force"][0] == "true" {
 		force = true
 	}
-	manifest, unpackErr := c.App.InstallPlugin(file, force)
 
-	if unpackErr != nil {
-		c.Err = unpackErr
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(manifest.ToJson()))
+	installPlugin(c, w, file, force)
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable ||
+		*c.App.Config().PluginSettings.RequirePluginSignature ||
+		!*c.App.Config().PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -103,50 +97,46 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	downloadUrl := r.URL.Query().Get("plugin_download_url")
+	force := r.URL.Query().Get("force") == "true"
+	downloadURL := r.URL.Query().Get("plugin_download_url")
 
-	if !model.IsValidHttpUrl(downloadUrl) {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
-	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	client := c.App.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
-
-	resp, err := client.Get(downloadUrl)
+	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer resp.Body.Close()
 
-	force := false
-	if r.URL.Query().Get("force") == "true" {
-		force = true
-	}
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+}
 
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	manifest, appErr := c.App.InstallPlugin(bytes.NewReader(fileBytes), force)
+	if !*c.App.Config().PluginSettings.EnableMarketplace {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	pluginRequest, err := model.PluginRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
+		return
+	}
+
+	manifest, appErr := c.App.InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
@@ -340,11 +330,26 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
+	localOnly, err := strconv.ParseBool(u.Query().Get("local_only"))
+	if err != nil {
+		localOnly = false
+	}
 
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,
 		Filter:        filter,
 		ServerVersion: serverVersion,
+		LocalOnly:     localOnly,
 	}, nil
+}
+
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+	manifest, appErr := c.App.InstallPlugin(plugin, force)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(manifest.ToJson()))
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -11,7 +14,7 @@ import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -50,7 +53,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	s := httptest.NewServer(http.HandlerFunc(dummyWebsocketHandler(t)))
+	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
 	th.App.HubStart()
@@ -68,7 +71,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	s := httptest.NewServer(http.HandlerFunc(dummyWebsocketHandler(t)))
+	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	th.App.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
@@ -88,7 +91,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
 		for i := 0; i <= BROADCAST_QUEUE_SIZE; i++ {
-			hub.Broadcast(&model.WebSocketEvent{})
+			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
 		}
 
 		hub.InvalidateUser("userId")

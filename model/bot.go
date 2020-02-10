@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -22,14 +22,15 @@ const (
 // Note that the primary key of a bot is the UserId, and matches the primary key of the
 // corresponding user.
 type Bot struct {
-	UserId      string `json:"user_id"`
-	Username    string `json:"username"`
-	DisplayName string `json:"display_name,omitempty"`
-	Description string `json:"description,omitempty"`
-	OwnerId     string `json:"owner_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	UserId         string `json:"user_id"`
+	Username       string `json:"username"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Description    string `json:"description,omitempty"`
+	OwnerId        string `json:"owner_id"`
+	LastIconUpdate int64  `json:"last_icon_update,omitempty"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
 }
 
 // BotPatch is a description of what fields to update on an existing bot.
@@ -167,7 +168,7 @@ func UserFromBot(b *Bot) *User {
 	return &User{
 		Id:        b.UserId,
 		Username:  b.Username,
-		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
+		Email:     NormalizeEmail(fmt.Sprintf("%s@localhost", b.Username)),
 		FirstName: b.DisplayName,
 		Roles:     SYSTEM_USER_ROLE_ID,
 	}
@@ -217,4 +218,16 @@ func (l *BotList) Etag() string {
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
 	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+}
+
+func IsBotDMChannel(channel *Channel, botUserID string) bool {
+	if channel.Type != CHANNEL_DIRECT {
+		return false
+	}
+
+	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
+		return false
+	}
+
+	return true
 }

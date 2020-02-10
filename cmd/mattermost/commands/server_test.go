@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -10,19 +10,18 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/stretchr/testify/require"
 )
 
 type ServerTestHelper struct {
-	configStore        config.Store
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
-func SetupServerTest() *ServerTestHelper {
+func SetupServerTest(t testing.TB) *ServerTestHelper {
 	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
 	// ...and sent it immediately a SIGINT value.
@@ -48,7 +47,7 @@ func (th *ServerTestHelper) TearDownServerTest() {
 }
 
 func TestRunServerSuccess(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	configStore, err := config.NewMemoryStore()
@@ -59,7 +58,7 @@ func TestRunServerSuccess(t *testing.T) {
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Get a random temporary filename for using as a mock systemd socket
@@ -112,7 +111,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 }
 
 func TestRunServerNoSystemd(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Temporarily remove any Systemd socket defined in the environment

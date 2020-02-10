@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,14 +9,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/manualtesting"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/manualtesting"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -72,15 +72,15 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
+	api := api4.Init(server, server.AppOptions, server.Router)
+	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
+	web.New(server, server.AppOptions, server.Router)
+
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
-
-	api := api4.Init(server, server.AppOptions, server.Router)
-	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
-	web.New(server, server.AppOptions, server.Router)
 
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {

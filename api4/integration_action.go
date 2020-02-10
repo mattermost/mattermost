@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitAction() {
@@ -18,7 +18,7 @@ func (api *API) InitAction() {
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId().RequireActionId()
+	c.RequirePostId()
 	if c.Err != nil {
 		return
 	}

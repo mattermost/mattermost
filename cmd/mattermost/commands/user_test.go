@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -37,7 +37,7 @@ func TestCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCreateUserWithoutTeam(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -53,7 +53,7 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "password", th.BasicUser.Email, "password2")
@@ -64,7 +64,7 @@ func TestResetPassword(t *testing.T) {
 }
 
 func TestMakeUserActiveAndInactive(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// first inactivate the user
@@ -75,7 +75,7 @@ func TestMakeUserActiveAndInactive(t *testing.T) {
 }
 
 func TestChangeUserEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	newEmail := model.NewId() + "@mattermost-test.com"
@@ -88,7 +88,6 @@ func TestChangeUserEmail(t *testing.T) {
 	require.Nil(t, err)
 
 	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
-
 
 	// should fail because using an invalid email
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, "wrong$email.com"))
@@ -110,8 +109,35 @@ func TestChangeUserEmail(t *testing.T) {
 
 }
 
+func TestDeleteUserBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
+	_, err := th.App.Srv.Store.User().Get(th.BasicUser.Id)
+	require.Error(t, err)
+
+	// Make a bot
+	bot := &model.Bot{
+		Username:    "bottodelete",
+		Description: "Delete me!",
+		OwnerId:     model.NewId(),
+	}
+	user, err := th.App.Srv.Store.User().Save(model.UserFromBot(bot))
+	require.Nil(t, err)
+	bot.UserId = user.Id
+	bot, err = th.App.Srv.Store.Bot().Save(bot)
+	require.Nil(t, err)
+
+	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
+	_, err = th.App.Srv.Store.User().Get(user.Id)
+	require.Error(t, err)
+	_, err = th.App.Srv.Store.Bot().Get(user.Id, true)
+	require.Error(t, err)
+}
+
 func TestConvertUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("Invalid command line input", func(t *testing.T) {

@@ -1,16 +1,15 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package wsapi
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (api *API) ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
@@ -23,11 +22,18 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	mlog.Debug(fmt.Sprintf("websocket: %s", r.Action))
+	mlog.Debug("Websocket request", mlog.String("action", r.Action))
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
-		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error()))
+		mlog.Error(
+			"websocket session error",
+			mlog.String("action", r.Action),
+			mlog.Int64("seq", r.Seq),
+			mlog.String("user_id", conn.UserId),
+			mlog.String("error_message", sessionErr.SystemMessage(utils.T)),
+			mlog.Err(sessionErr),
+		)
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
@@ -43,7 +49,14 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var err *model.AppError
 
 	if data, err = wh.handlerFunc(r); err != nil {
-		mlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError))
+		mlog.Error(
+			"websocket request handling error",
+			mlog.String("action", r.Action),
+			mlog.Int64("seq", r.Seq),
+			mlog.String("user_id", conn.UserId),
+			mlog.String("error_message", err.SystemMessage(utils.T)),
+			mlog.Err(err),
+		)
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
@@ -58,4 +71,8 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
 	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
+}
+
+func NewServerBusyWebSocketError(action string) *model.AppError {
+	return model.NewAppError("websocket: "+action, "api.websocket_handler.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
 }

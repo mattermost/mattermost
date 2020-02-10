@@ -1,21 +1,15 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
-)
-
-const (
-	groupMemberActionCreate = iota
-	groupMemberActionDelete
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitGroup() {
@@ -186,33 +180,21 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    c.Params.GroupId,
+		SyncableId: syncableID,
+		Type:       syncableType,
+	}
+	groupSyncable.Patch(patch)
+	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if groupSyncable == nil {
-		groupSyncable = &model.GroupSyncable{
-			GroupId:    c.Params.GroupId,
-			SyncableId: syncableID,
-			Type:       syncableType,
-		}
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.CreateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	} else {
-		groupSyncable.DeleteAt = 0
-		groupSyncable.Patch(patch)
-		groupSyncable, appErr = c.App.UpdateGroupSyncable(groupSyncable)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-	}
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -342,8 +324,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -360,6 +343,10 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
@@ -404,6 +391,10 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
 
 	ReturnStatusOK(w)
 }
@@ -514,8 +505,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -560,8 +551,8 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -580,23 +571,40 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
+	var teamID, channelID string
+
+	if id := c.Params.NotAssociatedToTeam; model.IsValidId(id) {
+		teamID = id
+	}
+
+	if id := c.Params.NotAssociatedToChannel; model.IsValidId(id) {
+		channelID = id
+	}
+
+	if teamID == "" && channelID == "" {
+		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
 		IncludeMemberCount: c.Params.IncludeMemberCount,
 	}
 
-	teamID := c.Params.NotAssociatedToTeam
-	if len(teamID) == 26 {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
-			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+	if teamID != "" {
+		_, err := c.App.GetTeam(teamID)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_MANAGE_TEAM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 			return
 		}
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	channelID := c.Params.NotAssociatedToChannel
-	if len(channelID) == 26 {
+	if channelID != "" {
 		channel, err := c.App.GetChannel(channelID)
 		if err != nil {
 			c.Err = err

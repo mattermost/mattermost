@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -389,13 +389,13 @@ func TestSplitWebhookPost(t *testing.T) {
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]interface{}{
 					"attachments": []*model.SlackAttachment{
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", 1000),
 						},
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", 2000),
 						},
-						&model.SlackAttachment{
+						{
 							Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
 						},
 					},
@@ -409,10 +409,10 @@ func TestSplitWebhookPost(t *testing.T) {
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", 1000),
 							},
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", 2000),
 							},
 						},
@@ -421,7 +421,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Props: map[string]interface{}{
 						"attachments": []*model.SlackAttachment{
-							&model.SlackAttachment{
+							{
 								Text: strings.Repeat("本", model.POST_PROPS_MAX_USER_RUNES-1000),
 							},
 						},

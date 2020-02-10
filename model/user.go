@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -9,13 +9,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 )
@@ -85,6 +87,7 @@ type User struct {
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
@@ -395,19 +398,34 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
 }
 
-func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
+func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	splitKeys := strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
-	for _, key := range splitKeys {
+	for _, key := range u.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
 	}
 
-	user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = user.Username + ",@" + user.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
 	if len(nonUsernameKeys) > 0 {
-		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
+}
+
+func (u *User) GetMentionKeys() []string {
+	var keys []string
+
+	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+		trimmedKey := strings.TrimSpace(key)
+
+		if trimmedKey == "" {
+			continue
+		}
+
+		keys = append(keys, trimmedKey)
+	}
+
+	return keys
 }
 
 func (u *User) Patch(patch *UserPatch) {
@@ -470,7 +488,7 @@ func (u *UserAuth) ToJson() string {
 
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
-	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail)
+	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
 }
 
 // Remove any private data from the user object
@@ -495,9 +513,11 @@ func (u *User) Sanitize(options map[string]bool) {
 }
 
 // Remove any input data from the user object that is not user controlled
-func (u *User) SanitizeInput() {
-	u.AuthData = NewString("")
-	u.AuthService = ""
+func (u *User) SanitizeInput(isAdmin bool) {
+	if !isAdmin {
+		u.AuthData = NewString("")
+		u.AuthService = ""
+	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
@@ -611,6 +631,10 @@ func IsValidUserRoles(userRoles string) bool {
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
+}
+
+func (u *User) IsSystemAdmin() bool {
+	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions
@@ -835,4 +859,28 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	bodyBytes, _ := ioutil.ReadAll(data)
 	json.Unmarshal(bodyBytes, uwg)
 	return uwg
+}
+
+var passwordRandomSource = rand.NewSource(time.Now().Unix())
+var passwordSpecialChars = "!$%^&*(),."
+var passwordNumbers = "0123456789"
+var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
+var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
+
+func GeneratePassword(minimumLength int) string {
+	r := rand.New(passwordRandomSource)
+
+	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
+	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+
+	for len(password) < minimumLength {
+		i := r.Intn(len(passwordAllChars))
+		password = password + string([]rune(passwordAllChars)[i])
+	}
+
+	return password
 }

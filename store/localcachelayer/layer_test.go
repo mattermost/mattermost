@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package localcachelayer
 
@@ -7,10 +7,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 type storeType struct {
@@ -71,7 +71,7 @@ func initStores() {
 		go func() {
 			defer wg.Done()
 			st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
-			st.Store = NewLocalCacheLayer(store.NewLayeredStore(st.SqlSupplier, nil, nil), nil, nil)
+			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
@@ -90,6 +90,9 @@ func tearDownStores() {
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
+				}
+				if st.SqlSettings != nil {
+					storetest.CleanupSqlSettings(st.SqlSettings)
 				}
 				wg.Done()
 			}()

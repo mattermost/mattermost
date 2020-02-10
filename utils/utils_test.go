@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -23,13 +23,8 @@ func TestStringArrayIntersection(t *testing.T) {
 		"def",
 	}
 
-	if len(StringArrayIntersection(a, b)) != 0 {
-		t.Fatal("should be 0")
-	}
-
-	if len(StringArrayIntersection(a, c)) != 1 {
-		t.Fatal("should be 1")
-	}
+	assert.Empty(t, StringArrayIntersection(a, b))
+	assert.Len(t, StringArrayIntersection(a, c), 1)
 }
 
 func TestRemoveDuplicatesFromStringArray(t *testing.T) {
@@ -43,9 +38,7 @@ func TestRemoveDuplicatesFromStringArray(t *testing.T) {
 		"a",
 	}
 
-	if len(RemoveDuplicatesFromStringArray(a)) != 3 {
-		t.Fatal("should be 3")
-	}
+	assert.Len(t, RemoveDuplicatesFromStringArray(a), 3)
 }
 
 func TestStringSliceDiff(t *testing.T) {
@@ -53,7 +46,7 @@ func TestStringSliceDiff(t *testing.T) {
 	b := []string{"two", "seven", "four", "six"}
 	expected := []string{"one", "three", "five"}
 
-	assert.Equal(t, StringSliceDiff(a, b), expected)
+	assert.Equal(t, expected, StringSliceDiff(a, b))
 }
 
 func TestGetIpAddress(t *testing.T) {
@@ -159,4 +152,11 @@ func TestGetIpAddress(t *testing.T) {
 	}
 
 	assert.Equal(t, "10.1.0.1", GetIpAddress(&httpRequest10, []string{"X-Real-Ip", "X-Forwarded-For"}))
+}
+
+func TestRemoveStringFromSlice(t *testing.T) {
+	a := []string{"one", "two", "three", "four", "five", "six"}
+	expected := []string{"one", "two", "three", "five", "six"}
+
+	assert.Equal(t, RemoveStringFromSlice("four", a), expected)
 }

@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/store"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -414,7 +413,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 		user, err = a.Srv.Store.User().Get(reaction.UserId)
 		if err != nil {
 			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
-				mlog.Info(fmt.Sprintf("Skipping reactions by user %v, since the entity doesn't exist anymore", reaction.UserId))
+				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
 			return nil, err
@@ -533,12 +532,6 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			// There's no import support for single member channels yet.
-			if len(*channel.Members) == 1 {
-				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
-				continue
-			}
-
 			channelLine := ImportLineFromDirectChannel(channel)
 			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
@@ -566,12 +559,6 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			// Skip deleted.
 			if post.DeleteAt != 0 {
-				continue
-			}
-
-			// There's no import support for single member channels yet.
-			if len(*post.ChannelMembers) == 1 {
-				mlog.Debug("Bulk export for posts containing a single member is not supported.")
 				continue
 			}
 

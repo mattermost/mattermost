@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -26,14 +26,14 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/mfa"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -943,28 +943,40 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) userDeactivated(user *model.User) *model.AppError {
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+func (a *App) userDeactivated(userId string) *model.AppError {
+	if err := a.RevokeAllSessions(userId); err != nil {
 		return err
 	}
 
-	a.SetStatusOffline(user.Id, false)
+	a.SetStatusOffline(userId, false)
+
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	// when disable a user, userDeactivated is called for the user and the
+	// bots the user owns. Only notify once, when the user is the owner, not the
+	// owners bots
+	if !user.IsBot {
+		a.notifySysadminsBotOwnerDeactivated(userId)
+	}
 
 	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
-		a.disableUserBots(user.Id)
+		a.disableUserBots(userId)
 	}
 
 	return nil
 }
 
-func (a *App) invalidateUserChannelMembersCaches(user *model.User) *model.AppError {
-	teamsForUser, err := a.GetTeamsForUser(user.Id)
+func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError {
+	teamsForUser, err := a.GetTeamsForUser(userId)
 	if err != nil {
 		return err
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id, false)
+		channelsForUser, err := a.GetChannelsForUser(team.Id, userId, false)
 		if err != nil {
 			return err
 		}
@@ -992,17 +1004,38 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	ruser := userUpdate.New
 
 	if !active {
-		if err := a.userDeactivated(ruser); err != nil {
+		if err := a.userDeactivated(ruser.Id); err != nil {
 			return nil, err
 		}
 	}
 
-	a.invalidateUserChannelMembersCaches(user)
+	a.invalidateUserChannelMembersCaches(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
 	return ruser, nil
+}
+
+func (a *App) DeactivateGuests() *model.AppError {
+	userIds, err := a.Srv.Store.User().DeactivateGuests()
+	if err != nil {
+		return err
+	}
+
+	for _, userId := range userIds {
+		if err := a.userDeactivated(userId); err != nil {
+			return err
+		}
+	}
+
+	a.Srv.Store.Channel().ClearCaches()
+	a.Srv.Store.User().ClearCaches()
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GUESTS_DEACTIVATED, "", "", "", nil)
+	a.Publish(message)
+
+	return nil
 }
 
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
@@ -1078,14 +1111,14 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 	adminCopyOfUser := user.DeepCopy()
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	adminMessage.Add("user", &adminCopyOfUser)
-	adminMessage.Broadcast.ContainsSensitiveData = true
+	adminMessage.Add("user", adminCopyOfUser)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
 	a.SanitizeProfile(&user, false)
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", &user)
-	message.Broadcast.ContainsSanitizedData = true
+	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 }
 
@@ -1402,6 +1435,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
+	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -1453,6 +1487,10 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
+		return err
+	}
+
+	if err := a.Srv.Store.Group().PermanentDeleteMembersByUser(user.Id); err != nil {
 		return err
 	}
 
@@ -2026,69 +2064,49 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 }
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
-// associated to the team.
-func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+// associated to the team excluding bots.
+func (a *App) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
 	}
-
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(teamGroupUsers) == 0 {
-		return userIDs, nil
-	}
-
-	nonMemberIDs := []string{}
-
-	for _, userID := range userIDs {
-		userIsMember := false
-
-		for _, pu := range teamGroupUsers {
-			if pu.Id == userID {
-				userIsMember = true
-				break
-			}
-		}
-
-		if !userIsMember {
-			nonMemberIDs = append(nonMemberIDs, userID)
-		}
-	}
-
-	return nonMemberIDs, nil
+	return a.filterNonGroupUsers(userIds, teamGroupUsers)
 }
 
 // FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
-// associated to the channel.
-func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+// associated to the channel excluding bots
+func (a *App) FilterNonGroupChannelMembers(userIds []string, channel *model.Channel) ([]string, error) {
 	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
 	}
+	return a.filterNonGroupUsers(userIds, channelGroupUsers)
+}
 
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(channelGroupUsers) == 0 {
-		return userIDs, nil
+// filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
+// and returns the list of normal users present in userIds but not in groupUsers.
+func (a *App) filterNonGroupUsers(userIds []string, groupUsers []*model.User) ([]string, error) {
+	nonMemberIds := []string{}
+	users, err := a.Srv.Store.User().GetProfileByIds(userIds, nil, false)
+	if err != nil {
+		return nil, err
 	}
 
-	nonMemberIDs := []string{}
+	for _, user := range users {
+		userIsMember := user.IsBot
 
-	for _, userID := range userIDs {
-		userIsMember := false
-
-		for _, pu := range channelGroupUsers {
-			if pu.Id == userID {
+		for _, pu := range groupUsers {
+			if pu.Id == user.Id {
 				userIsMember = true
 				break
 			}
 		}
-
 		if !userIsMember {
-			nonMemberIDs = append(nonMemberIDs, userID)
+			nonMemberIds = append(nonMemberIds, user.Id)
 		}
 	}
 
-	return nonMemberIDs, nil
+	return nonMemberIds, nil
 }
 
 func (a *App) RestrictUsersSearchByPermissions(userId string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
@@ -2231,6 +2249,7 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
 	err := a.Srv.Store.User().PromoteGuestToUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2268,12 +2287,15 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
 		}
 	}
 
+	a.ClearSessionCacheForUser(user.Id)
 	return nil
 }
 
@@ -2281,6 +2303,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	err := a.Srv.Store.User().DemoteUserToGuest(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2307,11 +2330,15 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 
 		for _, member := range *channelMembers {
+			a.InvalidateCacheForChannelMembers(member.ChannelId)
+
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
 			a.Publish(evt)
 		}
 	}
+
+	a.ClearSessionCacheForUser(user.Id)
 
 	return nil
 }

@@ -28,10 +28,6 @@ services:
     extends:
         file: docker-compose.common.yml
         service: elasticsearch
-  redis:
-    extends:
-        file: docker-compose.common.yml
-        service: redis
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
@@ -44,8 +40,7 @@ services:
       - inbucket
       - openldap
       - elasticsearch
-      - redis
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 redis:6379
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200
 
 networks:
   mm-test:

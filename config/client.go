@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -8,18 +8,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
-func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
-	props := GenerateLimitedClientConfig(c, diagnosticId, license)
+func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
+	props := GenerateLimitedClientConfig(c, diagnosticID, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
+	props["LockTeammateNameDisplay"] = strconv.FormatBool(*c.TeamSettings.LockTeammateNameDisplay)
 	props["ExperimentalPrimaryTeam"] = *c.TeamSettings.ExperimentalPrimaryTeam
 	props["ExperimentalViewArchivedChannels"] = strconv.FormatBool(*c.TeamSettings.ExperimentalViewArchivedChannels)
 
@@ -44,6 +45,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
 	props["EnableSVGs"] = strconv.FormatBool(*c.ServiceSettings.EnableSVGs)
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
+	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -130,6 +132,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
+	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
@@ -195,7 +198,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
-func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
+func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -247,7 +250,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
-	props["DiagnosticId"] = diagnosticId
+	props["DiagnosticId"] = diagnosticID
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)

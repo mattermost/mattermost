@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
-
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetOpenGraphMetadata(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -61,19 +61,12 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 		openGraph, resp := Client.OpenGraph(ts.URL + data["path"].(string))
 		CheckNoError(t, resp)
-		if strings.Compare(openGraph["title"], data["title"].(string)) != 0 {
-			t.Fatal(fmt.Sprintf(
-				"OG data title mismatch for path \"%s\". Expected title: \"%s\". Actual title: \"%s\"",
-				data["path"].(string), data["title"].(string), openGraph["title"],
-			))
-		}
 
-		if ogDataCacheMissCount != data["cacheMissCount"].(int) {
-			t.Fatal(fmt.Sprintf(
-				"Cache miss count didn't match. Expected value %d. Actual value %d.",
-				data["cacheMissCount"].(int), ogDataCacheMissCount,
-			))
-		}
+		require.Equalf(t, openGraph["title"], data["title"].(string),
+			"OG data title mismatch for path \"%s\".")
+
+		require.Equal(t, ogDataCacheMissCount, data["cacheMissCount"].(int),
+			"Cache miss count didn't match.")
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })

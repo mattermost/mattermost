@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -11,11 +11,11 @@ import (
 	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type Web struct {
@@ -47,7 +47,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 // -1 means that the browser is not supported in any version.
 var browserMinimumSupported = map[string]int{
 	"BrowserIE":     12,
-	"BrowserSafari": 9,
+	"BrowserSafari": 12,
 }
 
 func CheckClientCompatability(agentString string) bool {

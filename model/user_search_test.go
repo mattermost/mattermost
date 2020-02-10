@@ -1,11 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserSearchJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestUserSearchJson(t *testing.T) {
 	json := userSearch.ToJson()
 	ruserSearch := UserSearchFromJson(bytes.NewReader(json))
 
-	if userSearch.Term != ruserSearch.Term {
-		t.Fatal("Terms do not match")
-	}
+	assert.Equal(t, userSearch.Term, ruserSearch.Term, "Terms do not match")
 }

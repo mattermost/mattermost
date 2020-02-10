@@ -1,56 +1,48 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetUserStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "offline" {
-		t.Fatal("Should return offline status")
-	}
+	assert.Equal(t, "offline", userStatus.Status)
 
 	th.App.SetStatusOnline(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "online" {
-		t.Fatal("Should return online status")
-	}
+	assert.Equal(t, "online", userStatus.Status)
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "away" {
-		t.Fatal("Should return away status")
-	}
+	assert.Equal(t, "away", userStatus.Status)
 
 	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "dnd" {
-		t.Fatal("Should return dnd status")
-	}
+	assert.Equal(t, "dnd", userStatus.Status)
 
 	th.App.SetStatusOffline(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "offline" {
-		t.Fatal("Should return offline status")
-	}
+	assert.Equal(t, "offline", userStatus.Status)
 
 	//Get user2 status logged as user1
 	userStatus, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "offline" {
-		t.Fatal("Should return offline status")
-	}
+	assert.Equal(t, "offline", userStatus.Status)
 
 	Client.Logout()
 
@@ -60,13 +52,11 @@ func TestGetUserStatus(t *testing.T) {
 	th.LoginBasic2()
 	userStatus, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
 	CheckNoError(t, resp)
-	if userStatus.Status != "offline" {
-		t.Fatal("Should return offline status")
-	}
+	assert.Equal(t, "offline", userStatus.Status)
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -75,9 +65,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {
-		if userStatus.Status != "offline" {
-			t.Fatal("Status should be offline")
-		}
+		assert.Equal(t, "offline", userStatus.Status)
 	}
 
 	th.App.SetStatusOnline(th.BasicUser.Id, true)
@@ -85,9 +73,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {
-		if userStatus.Status != "online" {
-			t.Fatal("Status should be offline")
-		}
+		assert.Equal(t, "online", userStatus.Status)
 	}
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
@@ -95,9 +81,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {
-		if userStatus.Status != "away" {
-			t.Fatal("Status should be offline")
-		}
+		assert.Equal(t, "away", userStatus.Status)
 	}
 
 	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
@@ -105,9 +89,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {
-		if userStatus.Status != "dnd" {
-			t.Fatal("Status should be offline")
-		}
+		assert.Equal(t, "dnd", userStatus.Status)
 	}
 
 	Client.Logout()
@@ -117,37 +99,29 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 }
 
 func TestUpdateUserStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
 	updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckNoError(t, resp)
-	if updateUserStatus.Status != "online" {
-		t.Fatal("Should return online status")
-	}
+	assert.Equal(t, "online", updateUserStatus.Status)
 
 	toUpdateUserStatus.Status = "away"
 	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckNoError(t, resp)
-	if updateUserStatus.Status != "away" {
-		t.Fatal("Should return away status")
-	}
+	assert.Equal(t, "away", updateUserStatus.Status)
 
 	toUpdateUserStatus.Status = "dnd"
 	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckNoError(t, resp)
-	if updateUserStatus.Status != "dnd" {
-		t.Fatal("Should return dnd status")
-	}
+	assert.Equal(t, "dnd", updateUserStatus.Status)
 
 	toUpdateUserStatus.Status = "offline"
 	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckNoError(t, resp)
-	if updateUserStatus.Status != "offline" {
-		t.Fatal("Should return offline status")
-	}
+	assert.Equal(t, "offline", updateUserStatus.Status)
 
 	toUpdateUserStatus.Status = "online"
 	toUpdateUserStatus.UserId = th.BasicUser2.Id
@@ -156,9 +130,7 @@ func TestUpdateUserStatus(t *testing.T) {
 
 	toUpdateUserStatus.Status = "online"
 	updateUserStatus, _ = th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
-	if updateUserStatus.Status != "online" {
-		t.Fatal("Should return online status")
-	}
+	assert.Equal(t, "online", updateUserStatus.Status)
 
 	_, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
 	CheckBadRequestStatus(t, resp)

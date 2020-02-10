@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"image"
 	"image/color"
-	"math/rand"
 	"strings"
 	"testing"
 	"time"
@@ -16,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	oauthgitlab "github.com/mattermost/mattermost-server/model/gitlab"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
@@ -74,8 +73,7 @@ func TestCreateOAuthUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+	glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 
 	json := glUser.ToJson()
 	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
@@ -253,8 +251,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 
 	var user, user2 *model.User
 	var gitlabUserObj oauthgitlab.GitLabUser
-	user, gitlabUserObj = createGitlabUser(t, th.App, username, email)
-	user2, _ = createGitlabUser(t, th.App, username2, email2)
+	user, gitlabUserObj = createGitlabUser(t, th.App, 1, username, email)
+	user2, _ = createGitlabUser(t, th.App, 2, username2, email2)
 
 	t.Run("UpdateUsername", func(t *testing.T) {
 		t.Run("NoExistingUserWithSameUsername", func(t *testing.T) {
@@ -443,9 +441,8 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 	return payload
 }
 
-func createGitlabUser(t *testing.T, a *App, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	gitlabUserObj := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: username, Login: "user1", Email: email, Name: "Test User"}
+func createGitlabUser(t *testing.T, a *App, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
+	gitlabUserObj := oauthgitlab.GitLabUser{Id: id, Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 
 	var user *model.User
@@ -656,6 +653,88 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Len(t, *members, 1)
 		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
+
+	t.Run("create guest having email domain restrictions", func(t *testing.T) {
+		enableGuestDomainRestricions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+			})
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		forbiddenInvitationEmail := model.NewId() + "other-email@test.com"
+		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
+		forbiddenDomainToken := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		grantedDomainToken := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(forbiddenDomainToken))
+		require.Nil(t, th.App.Srv.Store.Token().Save(grantedDomainToken))
+		guest := model.User{
+			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		newGuest, err := th.App.CreateUserWithToken(&guest, forbiddenDomainToken)
+		require.NotNil(t, err)
+		require.Nil(t, newGuest)
+		assert.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
+
+		newGuest, err = th.App.CreateUserWithToken(&guest, grantedDomainToken)
+		require.Nil(t, err)
+		assert.True(t, newGuest.IsGuest())
+		require.Equal(t, grantedInvitationEmail, newGuest.Email)
+		_, err = th.App.Srv.Store.Token().GetByToken(grantedDomainToken.Token)
+		require.NotNil(t, err)
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+	})
+
+	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "restricted-team.com"
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, err, "Should update the team")
+		enableGuestDomainRestricions := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+			})
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
+		invitationEmail := model.NewId() + "other-email@test.com"
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		guest := model.User{
+			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		newGuest, err := th.App.CreateUserWithToken(&guest, token)
+		require.Nil(t, err)
+		assert.True(t, newGuest.IsGuest())
+		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
+		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err)
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+	})
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -678,7 +757,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	var bots1 []*model.Bot
 	var bots2 []*model.Bot
 
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	_, err1 := sqlSupplier.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 1, len(bots1))
@@ -836,7 +915,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
-		assert.Len(t, restrictions.Teams, 0)
+		assert.Empty(t, restrictions.Teams)
 		assert.NotNil(t, restrictions.Channels)
 		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
 	})
@@ -1055,11 +1134,63 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.Nil(t, err)
 		assert.Len(t, *channelMembers, 3)
 	})
+
+	t.Run("Must invalidate channel stats cache when promoting a guest", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeGuest)
+		require.False(t, teamMember.SchemeUser)
+
+		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		require.True(t, channelMember.SchemeGuest)
+		require.False(t, channelMember.SchemeUser)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(1), guestCount)
+
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+	})
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.False(t, teamMember.SchemeGuest)
+
+		guestCount, _ := th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		require.True(t, channelMember.SchemeUser)
+		require.False(t, channelMember.SchemeGuest)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(0), guestCount)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+
+		guestCount, _ = th.App.GetChannelGuestCount(th.BasicChannel.Id)
+		require.Equal(t, int64(1), guestCount)
+	})
 
 	t.Run("Must fail with guest user", func(t *testing.T) {
 		guest := th.CreateGuest()
@@ -1103,7 +1234,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.True(t, teamMember.SchemeGuest)
 	})
 
-	t.Run("Must work with user user with teams and channels", func(t *testing.T) {
+	t.Run("Must work with user with teams and channels", func(t *testing.T) {
 		user := th.CreateUser()
 		require.Equal(t, "system_user", user.Roles)
 		th.LinkUserToTeam(user, th.BasicTeam)
@@ -1166,4 +1297,28 @@ func TestDemoteUserToGuest(t *testing.T) {
 		require.Nil(t, err)
 		assert.Len(t, *channelMembers, 3)
 	})
+}
+
+func TestDeactivateGuests(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	guest1 := th.CreateGuest()
+	guest2 := th.CreateGuest()
+	user := th.CreateUser()
+
+	err := th.App.DeactivateGuests()
+	require.Nil(t, err)
+
+	guest1, err = th.App.GetUser(guest1.Id)
+	assert.Nil(t, err)
+	assert.NotEqual(t, int64(0), guest1.DeleteAt)
+
+	guest2, err = th.App.GetUser(guest2.Id)
+	assert.Nil(t, err)
+	assert.NotEqual(t, int64(0), guest2.DeleteAt)
+
+	user, err = th.App.GetUser(user.Id)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), user.DeleteAt)
 }

@@ -5,8 +5,8 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
-	store "github.com/mattermost/mattermost-server/store"
+	model "github.com/mattermost/mattermost-server/v5/model"
+	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -119,6 +119,31 @@ func (_m *UserStore) Count(options model.UserCountOptions) (int64, *model.AppErr
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(model.UserCountOptions) *model.AppError); ok {
 		r1 = rf(options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DeactivateGuests provides a mock function with given fields:
+func (_m *UserStore) DeactivateGuests() ([]string, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -810,7 +835,7 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *model.App
 }
 
 // GetUnreadCount provides a mock function with given fields: userId
-func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
+func (_m *UserStore) GetUnreadCount(userId string) (int64, *model.AppError) {
 	ret := _m.Called(userId)
 
 	var r0 int64
@@ -820,11 +845,13 @@ func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(userId)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
 	}
 
 	return r0, r1
@@ -901,8 +928,8 @@ func (_m *UserStore) InferSystemInstallDate() (int64, *model.AppError) {
 	return r0, r1
 }
 
-// InvalidatProfileCacheForUser provides a mock function with given fields: userId
-func (_m *UserStore) InvalidatProfileCacheForUser(userId string) {
+// InvalidateProfileCacheForUser provides a mock function with given fields: userId
+func (_m *UserStore) InvalidateProfileCacheForUser(userId string) {
 	_m.Called(userId)
 }
 

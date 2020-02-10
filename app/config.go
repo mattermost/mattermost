@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -20,10 +20,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -83,7 +83,7 @@ func (a *App) LimitedClientConfig() map[string]string {
 	return a.Srv.limitedClientConfig
 }
 
-// Registers a function with a given to be called when the config is reloaded and may have changed. The function
+// Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
 func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
@@ -104,7 +104,7 @@ func (a *App) RemoveConfigListener(id string) {
 }
 
 // ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
-// and future calls to PostAcrionCookieSecret will always return a valid key, same on all
+// and future calls to PostActionCookieSecret will always return a valid key, same on all
 // servers in the cluster
 func (a *App) ensurePostActionCookieSecret() error {
 	if a.Srv.postActionCookieSecret != nil {
@@ -138,8 +138,10 @@ func (a *App) ensurePostActionCookieSecret() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(appErr))
+		} else {
 			secret = newSecret
 		}
 	}
@@ -199,8 +201,10 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if err = a.Srv.Store.System().Save(system); err == nil {
-			// If we were able to save the key, use it, otherwise ignore the error.
+		// If we were able to save the key, use it, otherwise log the error.
+		if appErr := a.Srv.Store.System().Save(system); appErr != nil {
+			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(appErr))
+		} else {
 			key = newKey
 		}
 	}
@@ -391,6 +395,8 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	}
 
 	if a.Cluster != nil {
+		newCfg = a.Srv.configStore.RemoveEnvironmentOverrides(newCfg)
+		oldCfg = a.Srv.configStore.RemoveEnvironmentOverrides(oldCfg)
 		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
@@ -414,4 +420,20 @@ func (a *App) IsESAutocompletionEnabled() bool {
 	esInterface := a.Elasticsearch
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
+}
+
+func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
+	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
+	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
+	// directly and not through the System Console UI.
+	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
+		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
+			// When the feature is toggled on, use the current timestamp as the start time for future exports.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
+		} else if !*cfg.MessageExportSettings.EnableExport {
+			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
+			// the feature is re-enabled from the System Console in future.
+			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
+		}
+	}
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,9 +9,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 type AutoPostCreator struct {
@@ -92,8 +92,8 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 		RootId:    rootId,
 		Message:   postText,
 		FileIds:   fileIds}
-	rpost, err2 := cfg.client.CreatePost(post)
-	if err2 != nil {
+	rpost, resp := cfg.client.CreatePost(post)
+	if resp != nil && resp.Error != nil {
 		return nil, false
 	}
 	return rpost, true

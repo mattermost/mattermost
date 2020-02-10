@@ -5,7 +5,7 @@
 package mocks
 
 import (
-	model "github.com/mattermost/mattermost-server/model"
+	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -83,20 +83,20 @@ func (_m *TeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 	return r0, r1
 }
 
-// AnalyticsTeamCount provides a mock function with given fields:
-func (_m *TeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
-	ret := _m.Called()
+// AnalyticsTeamCount provides a mock function with given fields: includeDeleted
+func (_m *TeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+	ret := _m.Called(includeDeleted)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func() int64); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(bool) int64); ok {
+		r0 = rf(includeDeleted)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(bool) *model.AppError); ok {
+		r1 = rf(includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -723,6 +723,29 @@ func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]strin
 	return r0, r1
 }
 
+// GroupSyncedTeamCount provides a mock function with given fields:
+func (_m *TeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
 func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	_m.Called(userId)
@@ -908,6 +931,38 @@ func (_m *TeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
+// SearchAllPaged provides a mock function with given fields: term, page, perPage
+func (_m *TeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+	ret := _m.Called(term, page, perPage)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
+		r0 = rf(term, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 int64
+	if rf, ok := ret.Get(1).(func(string, int, int) int64); ok {
+		r1 = rf(term, page, perPage)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	var r2 *model.AppError
+	if rf, ok := ret.Get(2).(func(string, int, int) *model.AppError); ok {
+		r2 = rf(term, page, perPage)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
 // SearchOpen provides a mock function with given fields: term
 func (_m *TeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	ret := _m.Called(term)
@@ -1022,6 +1077,22 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 	}
 
 	return r0, r1
+}
+
+// UpdateMembersRole provides a mock function with given fields: teamID, userIDs
+func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
+	ret := _m.Called(teamID, userIDs)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(teamID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds
