@@ -353,8 +353,7 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 
 func sanitized(user *model.User) *model.User {
 	clonedUser := model.UserFromJson(strings.NewReader(user.ToJson()))
-	clonedUser.AuthData = new(string)
-	*clonedUser.AuthData = ""
+	clonedUser.AuthData = model.NewString("")
 	clonedUser.Props = model.StringMap{}
 
 	return clonedUser
@@ -4948,6 +4947,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
+
+	ss.User().InvalidateProfileCacheForUser(u1.Id)
 
 	user2, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)

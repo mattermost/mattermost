@@ -75,7 +75,8 @@ func (s LocalCacheUserStore) InvalidateProfilesInChannelCache(channelId string) 
 func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
 	if allowFromCache {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId); cacheItem != nil {
-			return cacheItem.(map[string]*model.User), nil
+			cachedMap := cacheItem.(map[string]*model.User)
+			return deepCopyUserMap(cachedMap), nil
 		}
 	}
 
@@ -85,7 +86,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	}
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, userMap)
+		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, deepCopyUserMap(userMap))
 	}
 
 	return userMap, nil
@@ -106,9 +107,10 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	for _, userId := range userIds {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
 			u := cacheItem.(*model.User)
-
+			cu := u.DeepCopy()
 			if options.Since == 0 || u.UpdateAt > options.Since {
-				users = append(users, u.DeepCopy())
+				cu.Sanitize(map[string]bool{})
+				users = append(users, cu)
 			}
 		} else {
 			remainingUserIds = append(remainingUserIds, userId)
@@ -120,17 +122,13 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 	}
 
-	if len(remainingUserIds) > 0 {
-		remainingUsers, err := s.UserStore.GetProfileByIds(remainingUserIds, options, false)
+	for _, id := range remainingUserIds {
+		user, err := s.Get(id)
 		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+			continue // may not be found in the store
 		}
-
-		for _, user := range remainingUsers {
-			users = append(users, user.DeepCopy())
-			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
-		}
-
+		user.Sanitize(map[string]bool{})
+		users = append(users, user)
 	}
 
 	return users, nil
@@ -156,6 +154,17 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
+	u := user.DeepCopy()
+	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, u)
 	return user.DeepCopy(), nil
+}
+
+func deepCopyUserMap(users map[string]*model.User) map[string]*model.User {
+	copyOfUsers := make(map[string]*model.User)
+
+	for id, user := range users {
+		copyOfUsers[id] = user.DeepCopy()
+	}
+
+	return copyOfUsers
 }
