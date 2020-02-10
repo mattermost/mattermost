@@ -16,14 +16,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
-	PROFILES_IN_CHANNEL_CACHE_SIZE  = model.CHANNEL_CACHE_SIZE
-	PROFILES_IN_CHANNEL_CACHE_SEC   = 900 // 15 mins
 	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
 )
 
@@ -42,15 +38,7 @@ type SqlUserStore struct {
 	usersQuery sq.SelectBuilder
 }
 
-var profilesInChannelCache cache.Cache = lru.New(PROFILES_IN_CHANNEL_CACHE_SIZE)
-
-func (us SqlUserStore) ClearCaches() {
-	profilesInChannelCache.Purge()
-
-	if us.metrics != nil {
-		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Purge")
-	}
-}
+func (us SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
@@ -532,28 +520,9 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	return users, nil
 }
 
-func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
-	keys := profilesInChannelCache.Keys()
+func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {}
 
-	for _, key := range keys {
-		if cacheItem, ok := profilesInChannelCache.Get(key); ok {
-			userMap := cacheItem.(map[string]*model.User)
-			if _, userInCache := userMap[userId]; userInCache {
-				profilesInChannelCache.Remove(key)
-				if us.metrics != nil {
-					us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
-				}
-			}
-		}
-	}
-}
-
-func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
-	profilesInChannelCache.Remove(channelId)
-	if us.metrics != nil {
-		us.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
-	}
-}
+func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {}
 
 func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
 	query := us.usersQuery.
@@ -613,23 +582,6 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 }
 
 func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
-			if us.metrics != nil {
-				us.metrics.IncrementMemCacheHitCounter("Profiles in Channel")
-			}
-			return cacheItem.(map[string]*model.User), nil
-		} else {
-			if us.metrics != nil {
-				us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
-			}
-		}
-	} else {
-		if us.metrics != nil {
-			us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
-		}
-	}
-
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
@@ -651,10 +603,6 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
 		userMap[u.Id] = u
-	}
-
-	if allowFromCache {
-		profilesInChannelCache.AddWithExpiresInSecs(channelId, userMap, PROFILES_IN_CHANNEL_CACHE_SEC)
 	}
 
 	return userMap, nil

@@ -95,7 +95,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 		_, err = a.Srv.Store.Channel().SaveMember(cm)
 		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
-			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
+			return histErr
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -233,7 +234,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
-			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -325,10 +327,14 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	}
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		return nil, err
 	}
-	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
+	if userId != otherUserId {
+		if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
+		}
 	}
 
 	return channel, nil
@@ -426,7 +432,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			return nil, err
 		}
 		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-			mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+			return nil, err
 		}
 	}
 
@@ -552,6 +559,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
 		return nil, err
 	}
+	channel.DeleteAt = 0
 	a.InvalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
@@ -571,6 +579,9 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			Message:   T("api.channel.restore_channel.unarchived", map[string]interface{}{"Username": user.Username}),
 			Type:      model.POST_CHANNEL_RESTORED,
 			UserId:    userId,
+			Props: model.StringInterface{
+				"username": user.Username,
+			},
 		}
 
 		if _, err := a.CreatePost(post, channel, false); err != nil {
@@ -910,6 +921,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		SchemeGuest: user.IsGuest(),
 		SchemeUser:  !user.IsGuest(),
 	}
+
+	if !user.IsGuest() {
+		var userShouldBeAdmin bool
+		userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, channel.Id, model.GroupSyncableTypeChannel)
+		if err != nil {
+			return nil, err
+		}
+		newMember.SchemeAdmin = userShouldBeAdmin
+	}
+
 	if _, err = a.Srv.Store.Channel().SaveMember(newMember); err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
@@ -917,7 +938,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
 	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		mlog.Warn("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+		return nil, err
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1597,7 +1619,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 	}
 
-	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId && !user.IsBot {
 		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
@@ -2095,4 +2117,32 @@ func (a *App) FillInChannelsProps(channelList *model.ChannelList) *model.AppErro
 	}
 
 	return nil
+}
+
+func (a *App) ClearChannelMembersCache(channelID string) {
+	perPage := 100
+	page := 0
+
+	for {
+		channelMembers, err := a.Srv.Store.Channel().GetMembers(channelID, page, perPage)
+		if err != nil {
+			a.Log.Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
+			break
+		}
+
+		for _, channelMember := range *channelMembers {
+			a.ClearSessionCacheForUser(channelMember.UserId)
+
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", channelMember.UserId, nil)
+			message.Add("channelMember", channelMember.ToJson())
+			a.Publish(message)
+		}
+
+		length := len(*(channelMembers))
+		if length < perPage {
+			break
+		}
+
+		page++
+	}
 }

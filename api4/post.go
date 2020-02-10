@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -67,7 +68,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SetStatusOnline(c.App.Session.UserId, false)
+	setOnline := r.URL.Query().Get("set_online")
+	setOnlineBool := true // By default, always set online.
+	var err2 error
+	if setOnline != "" {
+		setOnlineBool, err2 = strconv.ParseBool(setOnline)
+		if err2 != nil {
+			mlog.Warn("Failed to parse set_online URL query parameter from createPost request", mlog.Err(err2))
+			setOnlineBool = true // Set online nevertheless.
+		}
+	}
+	if setOnlineBool {
+		c.App.SetStatusOnline(c.App.Session.UserId, false)
+	}
+
 	c.App.UpdateLastActivityAtIfNeeded(c.App.Session)
 
 	w.WriteHeader(http.StatusCreated)
@@ -134,10 +148,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	skipFetchThreads := false
-	if r.URL.Query().Get("fetchThreads") == "false" {
-		skipFetchThreads = true
-	}
+	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 
 	channelId := c.Params.ChannelId
 	page := c.Params.Page
@@ -213,10 +224,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	skipFetchThreads := false
-	if r.URL.Query().Get("fetchThreads") == "false" {
-		skipFetchThreads = true
-	}
+	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads)
 	if err != nil {
 		c.Err = err
@@ -385,10 +393,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-	skipFetchThreads := false
-	if r.URL.Query().Get("fetchThreads") == "false" {
-		skipFetchThreads = true
-	}
+	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	list, err := c.App.GetPostThread(c.Params.PostId, skipFetchThreads)
 	if err != nil {
 		c.Err = err

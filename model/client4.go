@@ -352,6 +352,10 @@ func (c *Client4) GetCommandRoute(commandId string) string {
 	return fmt.Sprintf(c.GetCommandsRoute()+"/%v", commandId)
 }
 
+func (c *Client4) GetCommandMoveRoute(commandId string) string {
+	return fmt.Sprintf(c.GetCommandsRoute()+"/%v/move", commandId)
+}
+
 func (c *Client4) GetEmojisRoute() string {
 	return fmt.Sprintf("/emoji")
 }
@@ -1861,6 +1865,22 @@ func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember
 	return TeamMembersFromJson(r.Body), BuildResponse(r)
 }
 
+// AddTeamMembers adds a number of users to a team and returns the team members.
+func (c *Client4) AddTeamMembersGracefully(teamId string, userIds []string) ([]*TeamMemberWithError, *Response) {
+	var members []*TeamMember
+	for _, userId := range userIds {
+		member := &TeamMember{TeamId: teamId, UserId: userId}
+		members = append(members, member)
+	}
+
+	r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+"/batch?graceful=true", TeamMembersToJson(members))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamMembersWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
 // RemoveTeamMember will remove a user from a team.
 func (c *Client4) RemoveTeamMember(teamId, userId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetTeamMemberRoute(teamId, userId))
@@ -1967,6 +1987,31 @@ func (c *Client4) InviteGuestsToTeam(teamId string, userEmails []string, channel
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// InviteUsersToTeam invite users by email to the team.
+func (c *Client4) InviteUsersToTeamGracefully(teamId string, userEmails []string) ([]*EmailInviteWithError, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email?graceful=true", ArrayToJson(userEmails))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
+}
+
+// InviteGuestsToTeam invite guest by email to some channels in a team.
+func (c *Client4) InviteGuestsToTeamGracefully(teamId string, userEmails []string, channels []string, message string) ([]*EmailInviteWithError, *Response) {
+	guestsInvite := GuestsInvite{
+		Emails:   userEmails,
+		Channels: channels,
+		Message:  message,
+	}
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite-guests/email?graceful=true", guestsInvite.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return EmailInviteWithErrorFromJson(r.Body), BuildResponse(r)
 }
 
 // InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
@@ -3463,6 +3508,18 @@ func (c *Client4) GetSamlCertificateStatus() (*SamlCertificateStatus, *Response)
 	return SamlCertificateStatusFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) GetSamlMetadataFromIdp(samlMetadataURL string) (*SamlMetadataResponse, *Response) {
+	requestBody := make(map[string]string)
+	requestBody["saml_metadata_url"] = samlMetadataURL
+	r, err := c.DoApiPost(c.GetSamlRoute()+"/metadatafromidp", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+
+	defer closeBody(r)
+	return SamlMetadataResponseFromJson(r.Body), BuildResponse(r)
+}
+
 // Compliance Section
 
 // CreateComplianceReport creates an incoming webhook for a channel.
@@ -3600,7 +3657,7 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
-func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*Group, int, *Response) {
+func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
@@ -3612,8 +3669,8 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 	defer closeBody(r)
 
 	responseData := struct {
-		Groups []*Group `json:"groups"`
-		Count  int      `json:"total_group_count"`
+		Groups []*GroupWithSchemeAdmin `json:"groups"`
+		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
 		appErr := NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
@@ -3624,7 +3681,7 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 }
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
-func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group, int, *Response) {
+func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetTeamRoute(teamId), opts.Q, opts.IncludeMemberCount)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
@@ -3636,8 +3693,8 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 	defer closeBody(r)
 
 	responseData := struct {
-		Groups []*Group `json:"groups"`
-		Count  int      `json:"total_group_count"`
+		Groups []*GroupWithSchemeAdmin `json:"groups"`
+		Count  int                     `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
 		appErr := NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
@@ -3966,6 +4023,17 @@ func (c *Client4) UpdateCommand(cmd *Command) (*Command, *Response) {
 	return CommandFromJson(r.Body), BuildResponse(r)
 }
 
+// MoveCommand moves a command to a different team.
+func (c *Client4) MoveCommand(teamId string, commandId string) (bool, *Response) {
+	cmr := CommandMoveRequest{TeamId: teamId}
+	r, err := c.DoApiPut(c.GetCommandMoveRoute(commandId), cmr.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // DeleteCommand deletes a command based on the provided command id string.
 func (c *Client4) DeleteCommand(commandId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetCommandRoute(commandId))
@@ -3985,6 +4053,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	}
 	defer closeBody(r)
 	return CommandListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetCommandById will retrieve a command by id.
+func (c *Client4) GetCommandById(cmdId string) (*Command, *Response) {
+	url := fmt.Sprintf("%s/%s", c.GetCommandsRoute(), cmdId)
+	r, err := c.DoApiGet(url, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CommandFromJson(r.Body), BuildResponse(r)
 }
 
 // ExecuteCommand executes a given slash command.
@@ -4656,7 +4735,7 @@ func (c *Client4) SetServerBusy(secs int) (bool, *Response) {
 
 // ClearServerBusy will mark the server as not busy.
 func (c *Client4) ClearServerBusy() (bool, *Response) {
-	r, err := c.DoApiPost(c.GetServerBusyRoute()+"/clear", "")
+	r, err := c.DoApiDelete(c.GetServerBusyRoute())
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4814,4 +4893,13 @@ func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []s
 	defer closeBody(r)
 	ugc := UsersWithGroupsAndCountFromJson(r.Body)
 	return ugc.Users, ugc.Count, BuildResponse(r)
+}
+
+func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
+	r, err := c.DoApiPut(c.GetConfigRoute()+"/patch", config.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ConfigFromJson(r.Body), BuildResponse(r)
 }

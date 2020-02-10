@@ -18,7 +18,7 @@ func (api *API) InitAction() {
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId().RequireActionId()
+	c.RequirePostId()
 	if c.Err != nil {
 		return
 	}

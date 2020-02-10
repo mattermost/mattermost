@@ -254,7 +254,7 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}

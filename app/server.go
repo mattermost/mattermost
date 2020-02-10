@@ -280,7 +280,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.joinCluster && s.Cluster != nil {
-		s.FakeApp().RegisterAllClusterMessageHandlers()
+		s.FakeApp().registerAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
@@ -518,6 +518,7 @@ func (s *Server) Start() error {
 		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(*s.Config().ServiceSettings.IdleTimeout) * time.Second,
 		ErrorLog:     errStdLog,
 	}
 
@@ -539,13 +540,6 @@ func (s *Server) Start() error {
 
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
-
-	// Migration from old let's encrypt library
-	if *s.Config().ServiceSettings.UseLetsEncrypt {
-		if stat, err := os.Stat(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
-			os.Remove(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
-		}
-	}
 
 	m := &autocert.Manager{
 		Cache:  autocert.DirCache(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
