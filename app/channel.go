@@ -756,24 +756,20 @@ func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.Channe
 	inheritedGuestPermissions := GetChannelModeratedPermissions(inhertedGuestRole)
 
 	var channelModerations []*model.ChannelModeration
-	existingModerations := make(map[string]bool)
 	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
-		// Certain moderations have more than one associated permissions skip any extra permissions as they are assumed to all have the same value.
-		if existingModerations[permissionKey] {
-			continue
+		roles := &model.ChannelModeratedRoles{}
+
+		roles.Members = &model.ChannelModeratedRole{
+			Value:   memberPermissions[permissionKey],
+			Enabled: inheritedMemberPermissions[permissionKey],
 		}
 
-		roles := make(map[string]map[string]bool)
-
-		roles["members"] = map[string]bool{
-			"value":   memberPermissions[permissionKey],
-			"enabled": inheritedMemberPermissions[permissionKey],
-		}
-
-		if permissionKey != "manage_members" {
-			roles["guests"] = map[string]bool{
-				"value":   guestPermissions[permissionKey],
-				"enabled": inheritedGuestPermissions[permissionKey],
+		if permissionKey == "manage_members" {
+			roles.Guests = nil
+		} else {
+			roles.Guests = &model.ChannelModeratedRole{
+				Value:   guestPermissions[permissionKey],
+				Enabled: inheritedGuestPermissions[permissionKey],
 			}
 		}
 
@@ -783,7 +779,6 @@ func (a *App) GetChannelModerationsForChannel(channelId string) ([]*model.Channe
 		}
 
 		channelModerations = append(channelModerations, moderation)
-		existingModerations[permissionKey] = true
 	}
 
 	return channelModerations, nil

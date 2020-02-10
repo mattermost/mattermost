@@ -120,7 +120,7 @@ func RemoveRoles(rolesToRemove []string, roles string) string {
 func GetChannelModeratedPermissions(role *model.Role) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range role.Permissions {
-		for moderated, moderatedPermissionValue := range model.CHANNEL_MODERATED_PERMISSIONS {
+		for moderated, moderatedPermissionValue := range model.CHANNEL_MODERATED_PERMISSIONS_MAP {
 			if moderated == permission {
 				moderatedPermissions[moderatedPermissionValue] = true
 			}

@@ -3020,14 +3020,14 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Equal(t, len(moderations), 4)
 		for _, moderation := range moderations {
 			if moderation.Name == "manage_members" {
-				require.Empty(t, moderation.Roles["guests"])
+				require.Empty(t, moderation.Roles.Guests)
 			} else {
-				require.Equal(t, moderation.Roles["guests"]["value"], true)
-				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+				require.Equal(t, moderation.Roles.Guests.Value, true)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
 			}
 
-			require.Equal(t, moderation.Roles["members"]["value"], true)
-			require.Equal(t, moderation.Roles["members"]["enabled"], true)
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
 		}
 	})
 
@@ -3044,10 +3044,10 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Nil(t, res.Error)
 		for _, moderation := range moderations {
 			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
-				require.Equal(t, moderation.Roles["members"]["value"], true)
-				require.Equal(t, moderation.Roles["members"]["enabled"], true)
-				require.Equal(t, moderation.Roles["guests"]["value"], false)
-				require.Equal(t, moderation.Roles["guests"]["enabled"], false)
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
 			}
 		}
 	})
@@ -3065,10 +3065,10 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Nil(t, res.Error)
 		for _, moderation := range moderations {
 			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
-				require.Equal(t, moderation.Roles["members"]["value"], true)
-				require.Equal(t, moderation.Roles["members"]["enabled"], true)
-				require.Equal(t, moderation.Roles["guests"]["value"], false)
-				require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
 			}
 		}
 	})
@@ -3092,10 +3092,10 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Nil(t, res.Error)
 		for _, moderation := range moderations {
 			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
-				require.Equal(t, moderation.Roles["members"]["value"], true)
-				require.Equal(t, moderation.Roles["members"]["enabled"], true)
-				require.Equal(t, moderation.Roles["guests"]["value"], false)
-				require.Equal(t, moderation.Roles["guests"]["enabled"], false)
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
 			}
 		}
 	})
