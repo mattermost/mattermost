@@ -96,6 +96,8 @@ type Server struct {
 	licenseListenerId       string
 	logListenerId           string
 	clusterLeaderListenerId string
+	searchConfigListenerId  string
+	searchLicenseListenerId string
 	configStore             config.Store
 	asymmetricSigningKey    *ecdsa.PrivateKey
 	postActionCookieSecret  []byte
@@ -335,7 +337,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.SearchEngine.UpdateConfig(s.Config())
-	s.StartSearchEngine()
+	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
+	s.searchConfigListenerId = searchConfigListenerId
+	s.searchLicenseListenerId = searchLicenseListenerId
 
 	return s, nil
 }
@@ -390,6 +394,8 @@ func (s *Server) Shutdown() error {
 
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
+	s.RemoveConfigListener(s.searchConfigListenerId)
+	s.RemoveLicenseListener(s.searchLicenseListenerId)
 
 	s.configStore.Close()
 
@@ -744,7 +750,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func (s *Server) StartSearchEngine() {
+func (s *Server) StartSearchEngine() (string, string) {
 	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
@@ -753,7 +759,7 @@ func (s *Server) StartSearchEngine() {
 		})
 	}
 
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+	configListenerId := s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 		s.SearchEngine.UpdateConfig(newConfig)
 
 		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
@@ -782,7 +788,7 @@ func (s *Server) StartSearchEngine() {
 		}
 	})
 
-	s.AddLicenseListener(func() {
+	licenseListenerId := s.AddLicenseListener(func() {
 		if s.License() != nil {
 			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 				s.Go(func() {
@@ -792,7 +798,7 @@ func (s *Server) StartSearchEngine() {
 				})
 			}
 		} else {
-			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
+			if s.SearchEngine.ElasticsearchEngine != nil {
 				s.Go(func() {
 					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
 						mlog.Error(err.Error())
@@ -801,6 +807,8 @@ func (s *Server) StartSearchEngine() {
 			}
 		}
 	})
+
+	return configListenerId, licenseListenerId
 }
 
 func (s *Server) initDiagnostics(endpoint string) {
