@@ -85,27 +85,27 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "Nu a reușit să obțină metadate de la adresa URL a furnizorului de identitate."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "Eșec întâlnit în timpul analizării informațiilor de metadate primite de la furnizorul de identitate într-un certificat."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-    "translation": "Nu a putut salva fișierul certificat."
+    "translation": "Certificatul nu a putut fi salvat."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "Lipsește nodul descriptorilor SSO furnizor de identitate din XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "Lipsește nodul descriptorilor furnizorului de identitate din XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "Lipsește nodul Servicii SSO furnizor de identitate din XML."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Textul certificatului este invalid."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Tip de conținut invalid."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Lipsește tipul de conținut."
   },
   {
     "id": "api.admin.test_email.body",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "Imposibil de dezarhivat canalul. Canalul nu este arhivat."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} a dezarhivat canalul."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Serverul este ocupat, serviciile non-critice nu sunt disponibile temporar"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1763,8 +1763,16 @@
     "translation": "A apărut o eroare la preluarea notificării push încărcată cu ID"
   },
   {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "A apărut o eroare la crearea mesajului de notificare push"
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "A apărut o eroare la expedierea livrării de chitanță serviciului de notificări prin împingere"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "A apărut o eroare la crearea mesajului de notificare push ack"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2860,19 +2868,19 @@
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Serverul este ocupat, serviciile non-critice nu sunt disponibile temporar"
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "Nu s-a putut decodifica informațiile de metadate XML primite de la furnizorul de identitate."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "Eșec întâlnit la citirea încărcăturii utile de răspuns primite de la Furnizorul de identitate."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "Nu s-a putut citi răspunsul primit de la Furnizorul de identitate."
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2884,7 +2892,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} a fost dezactivat. Au gestionat următoarele conturi bot care acum au fost dezactivate.\n\n{{.BotNames}}{{else}}{{.UserName}} a fost dezactivat. Au gestionat {{.NumBots}} conturi bot care acum au fost dezactivate, inclusiv următoarele:\n\n{{.BotNames}}{{end}} Puteți deține proprietatea fiecărui bot activându-l la ** Integrări > Conturi bot ** și crearea de noi jetoane pentru bot.\n\nPentru mai multe informații, consultați [documentația](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} a fost dezactivat. Au gestionat următoarele conturi bot care sunt încă activate.\n\n{{.BotNames}}\n{{else}}{{.UserName}} a fost dezactivat. Au gestionat {{.NumBots}} conturi de bot care sunt încă activate, inclusiv următoarele:\n\n{{.BotNames}}{{end}}Vă recomandăm cu tărie să luați proprietatea fiecărui bot reactivându-l la **Integrări > Conturi bot** și crearea de noi jetoane pentru bot.\n\nPentru mai multe informații, consultați [documentația](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nDacă doriți ca conturile bot să se dezactiveze automat după dezactivarea utilizatorului, setați “Dezactivați conturile bot după dezactivarea utilizatorului” în **Consola de sistem > Integrări > Conturi bot** la adevărat.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3572,7 +3580,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "A apărut o eroare la extragerea pachetului de pluginuri."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3612,7 +3620,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "Nu a reușit plugin-urile de pe piața Marshal."
+    "translation": "Instalarea pluginului din repozitorul oficial nu a reușit."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3648,7 +3656,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Nu a putut găsi pluginul solicitat pentru piață."
+    "translation": "Nu s-a putut găsi semnătura pluginului solicitată pentru piață."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3792,7 +3800,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+    "translation": "Webhook-ul de ieșire este șters, dar nu poate crea unul nou din cauza unor erori."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -4012,11 +4020,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "Nu a reușit să obțină versiunea serverului Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "Nu a reușit să analizeze versiunea serverului Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4276,7 +4284,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "Tipul de sincronizare incompatibil '{{.Value}}'."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -4884,7 +4892,7 @@
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'"
+    "translation": "Atribut administrativ invalid. Trebuie să fie sub forma 'câmp=valoare'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -6300,7 +6308,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Imposibil de eliminat membrii grupului cu UserID \"{{.UserId}}\""
+    "translation": "Imposibil de eliminat membrul grupului cu UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6456,11 +6464,11 @@
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Eroare la interogarea pentru rândul existent pe MySQL după KVCompareAndSet cu valoarea nemodificată."
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "S-au găsit mai mult de 1 rând pe MySQL după KVCompareAndSet cu valoarea nemodificată."
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
