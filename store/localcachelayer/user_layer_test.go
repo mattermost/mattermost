@@ -19,7 +19,7 @@ func TestUserStore(t *testing.T) {
 	StoreTestWithSqlSupplier(t, storetest.TestUserStore)
 }
 
-func TestUserStoreGetProfileByIdsCache(t *testing.T) {
+func TestUserStoreCache(t *testing.T) {
 	fakeUserIds := []string{"123"}
 	fakeUser := []*model.User{{Id: "123"}}
 
@@ -177,71 +177,5 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 
 		_, _ = cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 2)
-	})
-}
-func TestUserStoreGetCache(t *testing.T) {
-	fakeUserId := "123"
-	fakeUser := &model.User{Id: "123"}
-	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-
-		gotUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
-		assert.Equal(t, fakeUser, gotUser)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
-
-		_, _ = cachedStore.User().Get(fakeUserId)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
-	})
-
-	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-
-		gotUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
-		assert.Equal(t, fakeUser, gotUser)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
-
-		cachedStore.User().InvalidateProfileCacheForUser("123")
-
-		_, _ = cachedStore.User().Get(fakeUserId)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
-	})
-
-	t.Run("should always return a copy of the stored data", func(t *testing.T) {
-		mockStore := getMockStore()
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-
-		storedUser, err := mockStore.User().Get(fakeUserId)
-		require.Nil(t, err)
-		originalProps := storedUser.NotifyProps
-
-		storedUser.NotifyProps = map[string]string{}
-		storedUser.NotifyProps["key"] = "somevalue"
-
-		cachedUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
-		assert.Equal(t, storedUser, cachedUser)
-		if storedUser == cachedUser {
-			assert.Fail(t, "should be different pointers")
-		}
-		cachedUser.NotifyProps["key"] = "othervalue"
-		assert.NotEqual(t, storedUser, cachedUser)
-
-		cachedUser, err = cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
-		assert.Equal(t, storedUser, cachedUser)
-		if storedUser == cachedUser {
-			assert.Fail(t, "should be different pointers")
-		}
-		cachedUser.NotifyProps["key"] = "othervalue"
-		assert.NotEqual(t, storedUser, cachedUser)
-
-		storedUser.NotifyProps = originalProps
 	})
 }

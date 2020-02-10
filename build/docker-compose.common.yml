@@ -20,6 +20,9 @@ services:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    volumes:
+     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
     command: "server /data"
