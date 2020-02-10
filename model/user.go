@@ -391,7 +391,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
 	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
 	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
