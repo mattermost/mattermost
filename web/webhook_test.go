@@ -17,7 +17,7 @@ import (
 )
 
 func TestIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
@@ -232,7 +232,7 @@ func TestIncomingWebhook(t *testing.T) {
 }
 
 func TestCommandWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cmd, appErr := th.App.CreateCommand(&model.Command{
