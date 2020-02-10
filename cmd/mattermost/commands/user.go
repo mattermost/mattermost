@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -340,6 +341,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	if erre != nil || email == "" {
 		return errors.New("Email is required")
 	}
+	email = strings.ToLower((email))
 	password, errp := command.Flags().GetString("password")
 	if errp != nil || password == "" {
 		return errors.New("Password is required")
@@ -572,6 +574,7 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 	}
 
 	email := args[0]
+	email = strings.ToLower(email)
 	if !model.IsValidEmail(email) {
 		return errors.New("Invalid email")
 	}
@@ -640,7 +643,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	}
 
 	newEmail := args[1]
-
+	newEmail = strings.ToLower(newEmail)
 	if !model.IsValidEmail(newEmail) {
 		return errors.New("Invalid email: '" + newEmail + "'")
 	}
