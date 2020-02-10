@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -2057,14 +2057,6 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "This channel has been moved to this team from %v."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
