@@ -5207,16 +5207,20 @@
     "translation": "Link metadata URL must be set"
   },
   {
+    "id": "model.o365.oauth.is_valid.application_id.app_error",
+    "translation": "Invalid Office365 application id"
+  },
+  {
+    "id": "model.o365.oauth.is_valid.application_secret.app_error",
+    "translation": "Invalid Office365 application secret password"
+  },
+  {
+    "id": "model.o365.oauth.is_valid.directory_id.app_error",
+    "translation": "Invalid Office365 directory id"
+  },
+  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "Invalid app id"
-  },
-  {
-    "id": "model.oauth.is_valid.application_id.app_error",
-    "translation": "Invalid application id"
-  },
-  {
-    "id": "model.oauth.is_valid.application_secret.app_error",
-    "translation": "Invalid application secret password"
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -5237,10 +5241,6 @@
   {
     "id": "model.oauth.is_valid.description.app_error",
     "translation": "Invalid description"
-  },
-  {
-    "id": "model.oauth.is_valid.directory_id.app_error",
-    "translation": "Invalid directory id"
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",

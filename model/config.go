@@ -3233,13 +3233,13 @@ func (s *ImageProxySettings) isValid() *AppError {
 func (s *Office365Settings) isValid() *AppError {
 	if *s.Enable {
 		if *s.Id == "" || *s.Id == OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID {
-			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_id.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.application_id.app_error", nil, "", http.StatusBadRequest)
 		}
 		if *s.Secret == "" || *s.Secret == OFFICE365_SETTINGS_DEFAULT_SECRET {
-			return NewAppError("Config.IsValid", "model.oauth.is_valid.application_secret.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.application_secret.app_error", nil, "", http.StatusBadRequest)
 		}
 		if *s.DirectoryId == "" || *s.DirectoryId == OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID {
-			return NewAppError("Config.IsValid", "model.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
+			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 	return nil
