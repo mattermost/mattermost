@@ -85,11 +85,11 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "Impossible d'obtenir les métadonnées de l'URL du fournisseur d'identité."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "Une erreur s'est produite lors du décodage des métadonnées reçues du fournisseur d'identité pour les sauver en un fichier de certificat."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -97,15 +97,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "Le nœud XML contenant les descripteurs d'authentification unique (SSO) pour le fournisseur d'identité est manquant."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "Le nœud XML contenant les descripteurs des clés pour le fournisseur d'identité est manquant."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "Le nœud XML contenant les services d'authentification unique (SSO) pour le fournisseur d'identité est manquant."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Texte du certificat invalide."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Type de contenu invalide."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Type de contenu manquant."
   },
   {
     "id": "api.admin.test_email.body",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "Impossible de désarchiver le canal. Le canal n'est pas archivé."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} a désarchivé le canal."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Le serveur est occupé, les services non critiques sont temporairement indisponibles"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message"
+    "translation": "Une erreur s'est produite lors de la construction du message de la notification push"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message"
+    "translation": "Une erreur s'est produite lors de la construction du message d'accusé de réception (ACK) de la notification push"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2057,14 +2057,6 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "Ce canal a été déplacé vers cette équipe par %v."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Les comptes invités sont désactivés."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Votre licence ne supporte pas les comptes invités"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
@@ -2868,19 +2860,19 @@
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Le serveur est occupé, les services non critiques sont temporairement indisponibles"
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "Impossible de décoder les métadonnées XML reçues du fournisseur d'identité."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "Une erreur s'est produite lors de la lecture de la réponse reçue du fournisseur d'identité."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "Impossible de lire la réponse reçue du fournisseur d'identité."
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2892,7 +2884,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} a été désactivé. Cet utilisateur gérait les comptes de bot suivants qui ont été désactivés également.\n\n{{.BotNames}}{{else}}{{.UserName}} a été désactivé. Cet utilisateur gérait {{.NumBots}} comptes de bot qui ont été désactivés également. Ces comptes sont les suivants :\n\n{{.BotNames}}{{end}}Vous pouvez reprendre la propriété de chaque bot en vous rendant dans **Intégrations > Comptes de bot** et en créant de nouveaux jetons pour chaque bot.\n\nConsultez notre [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled) pour en savoir plus.{{else}}{{if .printAllBots}}{{.UserName}} a été désactivé. Cet utilisateur gérait les comptes de bot suivants qui sont toujours actifs.\n\n{{.BotNames}}\n{{else}}{{.UserName}} a été désactivé. Cet utilisateur gérait {{.NumBots}} comptes de bot qui sont toujours actifs. Ces comptes sont les suivants :\n\n{{.BotNames}}{{end}}Il est hautement recommandé que vous repreniez la propriété de chaque bot en vous rendant dans **Intégrations > Comptes de bot** et en créant de nouveaux jetons pour chaque bot.\n\nConsultez notre [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled) pour en savoir plus.\n\nSi vous souhaitez que les comptes de bot se désactivent automatiquement lorsqu'un utilisateur est désactivé, activez l'option « Désactiver les comptes de bot lorsque leur propriétaire est désactivé » dans **Console système > Intégrations > Intégrations > Comptes de bot**.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -3580,7 +3572,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "Une erreur s'est produite lors de l'extraction du paquet du plugin."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3620,7 +3612,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "Impossible d'interpréter les données des plugins de la place de marché."
+    "translation": "Impossible d'installer le plugin provenant de la place de marché."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3656,7 +3648,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Impossible de trouver le plugin sur la place de marché."
+    "translation": "Impossible de trouver sur la place de marché la signature du plugin demandée."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3800,7 +3792,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+    "translation": "Le webhook sortant est supprimé, mais impossible d'en créer un nouveau en raison d'une erreur."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -4020,11 +4012,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "Impossible de récupérer la version du serveur Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "Impossible d'interpréter la version du serveur Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4124,7 +4116,7 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "Filtre AD/LDAP invité invalide"
+    "translation": "Filtre AD/LDAP admin invalide"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4256,7 +4248,7 @@
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du déchiffrement de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
+    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du déchiffrement de la réponse du fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -4284,7 +4276,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "Type de données à synchroniser non supporté '{{.Value}}'."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -4892,7 +4884,7 @@
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Attribut « Guest » invalide. Doit être de la forme 'champ=valeur'"
+    "translation": "L'attribut « Guest » est invalide. Il doit être de la forme 'champ=valeur'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4908,7 +4900,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Attribut « Guest » invalide. Doit être de la forme 'champ=valeur'"
+    "translation": "L'attribut « Guest » est invalide. Il doit être de la forme 'champ=valeur'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4916,7 +4908,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "URL invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+    "translation": "URL du fournisseur d'identité doit être une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -6308,7 +6300,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Impossible de retirer le membre du groupe portant l'UserID \"{{.UserId}}\""
+    "translation": "Impossible de retirer le membre du groupe portant l'UserID « {{.UserId}} »"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6464,11 +6456,11 @@
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Impossible de construire la requête pour la ligne actuelle dans MySQL après que la requête KVCompareAndSet ait été exécutée alors que la valeur a été inchangée."
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "A trouvé plus d'une ligne de réponse dans MySQL après que la requête KVCompareAndSet ait été exécutée alors que la valeur a été inchangée."
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
