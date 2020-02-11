@@ -285,7 +285,6 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
 func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError) {
 	uniqueNames := utils.RemoveDuplicatesFromStringArray(names)
-	teams := []*model.Team{}
 
 	query := s.getQueryBuilder().
 		Select("*").
@@ -297,6 +296,7 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	teams := []*model.Team{}
 	_, err = s.GetReplica().Select(&teams, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {

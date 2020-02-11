@@ -131,16 +131,18 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 			}
 		}
 
-		if len(post.RootId) > 0 {
-			currentRootCount, ok := rootIds[post.RootId]
-			if !ok {
-				rootIds[post.RootId] = 1
+		if len(post.RootId) == 0 {
+			continue
+		}
+
+		currentRootCount, ok := rootIds[post.RootId]
+		if !ok {
+			rootIds[post.RootId] = 1
+			maxDateRootIds[post.RootId] = post.CreateAt
+		} else {
+			rootIds[post.RootId] = currentRootCount + 1
+			if post.CreateAt > maxDateRootIds[post.RootId] {
 				maxDateRootIds[post.RootId] = post.CreateAt
-			} else {
-				rootIds[post.RootId] = currentRootCount + 1
-				if post.CreateAt > maxDateRootIds[post.RootId] {
-					maxDateRootIds[post.RootId] = post.CreateAt
-				}
 			}
 		}
 	}
@@ -238,7 +240,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *m
 		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, post := range posts {
-		if _, err := tx.Update(post); err != nil {
+		if _, err = tx.Update(post); err != nil {
 			txErr := tx.Rollback()
 			if txErr != nil {
 				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
