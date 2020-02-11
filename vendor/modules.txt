@@ -347,7 +347,13 @@ golang.org/x/tools/go/internal/packagesdriver
 golang.org/x/tools/go/packages
 golang.org/x/tools/go/types/objectpath
 golang.org/x/tools/go/types/typeutil
+golang.org/x/tools/imports
+golang.org/x/tools/internal/fastwalk
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/imports
+golang.org/x/tools/internal/module
 golang.org/x/tools/internal/packagesinternal
+golang.org/x/tools/internal/semver
 # google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.26.0
