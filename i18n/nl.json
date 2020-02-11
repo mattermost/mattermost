@@ -57,7 +57,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Geen bestand in 'certificate' bij aanvraag."
+    "translation": "Geen bestand in 'certificate' veld bij aanvraag."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -81,11 +81,11 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Er deed zich een fout voor bij het verwijderen van het certificaat."
+    "translation": "Er is een fout opgetreden tijdens het verwijderen van het certificaat."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Kon metadata niet ophalen van IdentiteitsProvider URL."
+    "translation": "Fout bij ophalen van  metadata van IdentiteitsProvider URL."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
@@ -113,7 +113,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": "SAML 2.0 wordt niet ondersteund of is niet geconfigureerd op deze server."
+    "translation": "SAML 2.0 is niet geconfigureerd of wordt niet ondersteund op deze server."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Test e-mail instellingen"
+    "translation": "Mattermost - E-mailinstellingen testen"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Bucket is vereist"
+    "translation": "S3-Bucket is vereist."
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -181,7 +181,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Kan de profiel figuur niet uploaden"
+    "translation": "Kan de icoonbestand niet uploaden"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -341,7 +341,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bijwerken van het kanaal weergavenaam veld"
+    "translation": "Ophalen van gebruiker tijdens bijwerken van veld DisplayName van kanaal is mislukt"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -385,7 +385,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v is verwijderd uit het kanaal."
+    "translation": "%v werd verwijderd uit het kanaal."
   },
   {
     "id": "api.channel.remove_members.denied",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
+    "translation": "Er is geprobeerd een ongeldige update van het standaardkanaal {{.Channel}} uit te voeren"
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.admin_only.app_error",
-    "translation": "Intergratie is beperkt voor alleen beheerders."
+    "translation": "Integraties zijn beperkt tot beheerders."
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
@@ -473,7 +473,7 @@
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
-    "translation": "Dit trigger woord is al in gebruik. Kies een ander woord."
+    "translation": "Dit triggerwoord is al in gebruik. Kies een ander woord."
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
@@ -501,7 +501,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Stuur een email uitnodiging naar jouw Mattermost team"
+    "translation": "Stuur een e-mailuitnodiging naar jouw Mattermost-team"
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
@@ -509,11 +509,11 @@
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "Email is niet geconfigureerd, geen uitnodiging(en) verstuurd"
+    "translation": "E-mail is niet geconfigureerd, geen uitnodiging(en) verstuurd"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Probleem opgetreden bij het versturen van email uitnodiging(en)"
+    "translation": "Probleem opgetreden bij het versturen van e-mailuitnodiging(en)"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -529,11 +529,11 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Geef een of meer geldige email adressen"
+    "translation": "Geef een of meer geldige e-mailadressen"
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "Email uitnodiging(en) verstuurd"
+    "translation": "E-mailuitnodiging(en) verstuurd"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -709,11 +709,11 @@
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Stuurd de tekst van je account terug"
+    "translation": "Stuur de tekst van je account terug"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Teveel echo verzoeken, kan het verzoek niet verwerken"
+    "translation": "Te veel echo verzoeken, kan het verzoek niet verwerken"
   },
   {
     "id": "api.command_echo.hint",
@@ -1000,7 +1000,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Stel uw status in naar Online."
+    "translation": "Stel uw status in naar online."
   },
   {
     "id": "api.command_online.name",
@@ -1852,7 +1852,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nKanalen toegevoegd:\r\n"
+    "translation": "\r\nKanalen toegevoegd::\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1868,7 +1868,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Gebruikers aangemaakt:\r\n"
+    "translation": "\r\nGebruikers aangemaakt:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
@@ -2059,14 +2059,6 @@
     "translation": "Het kanaal werd verplaatst van dit team naar %v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Gastgebruikers zijn uitgeschakeld."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Je licentie ondersteunt geen gastgebruikers"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Kan gebruiker niet verwijderen van een groepsbeperkt kanaal."
   },
@@ -2200,7 +2192,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Controleer nieuw emailadres"
+    "translation": "[{{ .SiteName }}] Verifieer je nieuw emailadres"
   },
   {
     "id": "api.templates.email_footer",
@@ -3676,7 +3668,7 @@
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Plugin kan niet worden gewist."
+    "translation": "Plugin kan niet worden gewist"
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -4828,47 +4820,47 @@
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "Ongeldig maximaal aantal gebruikers per team bij team instellingen. Moet een getal groter dan 0 zijn."
+    "translation": "Ongeldig maximaal aantal gebruikers per team bij teaminstellingen. Moet een getal groter dan 0 zijn."
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Message export job BatchSize must be a positive integer"
+    "translation": "Berichteenxport BatchSize moet een positief geheel getal zijn"
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+    "translation": "Berichtenexport DagelijkeUitvoertijd moet een tijdsaanduiding van 24 uur zijn in de notatie UU:MM."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Message export job EnableExport setting must be either true or false"
+    "translation": "Bericht exporttaak EnableExport instelling moet waar of onwaar zijn"
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "Bericht Export job ExportFromTimestamp moet een tijdsaanduiding zijn (uitgedrukt in seconden sinds unix-epoch). Alleen berichten verzonden die na deze tijdsaanduiding, worden geëxporteerd."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'"
+    "translation": "Bericht Export taak ExportFormat moet of 'actiantie', of 'csv' of 'globalrelay' zijn"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "Bericht Export taak ExportFormat is ingesteld op 'globalrelay', maar GlobalRelaySettings ontbreken"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "Berich Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.EmailAddress moet worden ingesteld op een geldig e-mailadres"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpPassword moet worden ingesteld"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "Bericht Exporttaak GlobalRelaySettings.SmtpUsername moet worden ingesteld"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -4876,23 +4868,23 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Ongeldige 'geheugen opslag' bij frequentie beperings instellingen. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldige grootte geheugenopslag voor snelheidslimietinstellingen. Moet een positief getal zijn"
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Ongeldige frequentie beperings instelling. Moet een getal groter dan 0 zijn"
+    "translation": "Ongeldig per sec voor instellingen voor snelheidslimiet. Moet een positief getal zijn"
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
-    "translation": "Invalid value for read timeout."
+    "translation": "Ongeldige waarde voor leestimeout."
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Ongeldig privé bericht beperking. Moet zijn 'allen' of 'team'"
+    "translation": "Ongeldige beperking voor direct bericht. Moet 'any' of 'team' zijn"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
+    "translation": "Ongeldig beheerderskenmerk. Moet in het formulier 'field'='waarde' zijn"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4900,7 +4892,7 @@
   },
   {
     "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-    "translation": "Invalid Canonical Algorithm."
+    "translation": "Ongeldig Canonieke Algoritme."
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
@@ -4908,7 +4900,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "Ongeldig Gastkenmerk. Moet in het formulier 'veld'='waarde' zijn"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4932,7 +4924,7 @@
   },
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-    "translation": "Invalid Signature Algorithm."
+    "translation": "Ongeldig Handtekeningsalgoritme."
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -4940,7 +4932,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Ikoon URL moet een geldige URl zijn, die begint met http:// of https://"
+    "translation": "Site URL moet een geldige URL zijn, die begint met http:// of https://"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4952,59 +4944,59 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "Ongeldige maximale levensduur voor verbinding voor SQL-instellingen. Moet een niet-negatief getal zijn."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
-    "translation": "Ongeldige brond bij SQL instellingen. Moet ingesteld zijn."
+    "translation": "Ongeldige gegevensbron voor SQL-instellingen. Moet worden ingesteld."
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Ongeldig stuurprogramma bij SQL intellingen. Keuze uit mysql of postgres"
+    "translation": "Ongeldig stuurprogrammanaam bij SQL-instellingen. Moet 'mysql' of 'postgres' zijn"
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
-    "translation": "Ongeldig maximum activiteitslooze verbidingen bij SQL instellingen. Moet een getal groter dan 0 zijn."
+    "translation": "Ongeldige instelling voor maximale niet-actieve verbinding voor SQL. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "Ongeldig maximaal aantal open verbindingen bij SQL instellingen. Moet een getal groter dan 0 zijn."
+    "translation": "Ongeldige instelling maximale open verbinding voor SQL. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
-    "translation": "Ongeldige profiel hoogte bij bestands instellingen. Moet groter dan 0 zijn."
+    "translation": "Ongeldige instelling query-timeout voor SQL. Moet een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Ongeldig teamgenoot-weergave. Moet 'full_name', 'nickname_full_name' of 'username' zijn"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
-    "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
+    "translation": "Tijd tussen gebruiker die updates plaatst mag niet worden ingesteld op minder dan 1000 milliseconden."
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Ongeldige waarde voor TLS-certificaatbestand -Gebruik LetsEncrypt of zet pad naar bestaand certificaatbestand"
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Ongeldige waarde voor TLS-sleutelbestand - Gebruik LetsEncrypt of zet pad naar bestaand sleutelbestand"
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Ongeldige waarde doorgegeven voor TLS-codering overschrijven cipher -Raadpleeg de documentatie voor geldige waarden"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
+    "translation": "Ongeldige waarde voor beveiliging van de webserververbinding."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url moet een geldige URL zijn en starten met ws:// of wss://."
+    "translation": "Websocket-URL moet een geldige URL zijn en beginnen met ws: // of wss: //"
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
-    "translation": "Invalid value for write timeout."
+    "translation": "Ongeldige waarde voor schrijftimeout."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -5024,7 +5016,7 @@
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Ongeldig aanmaak id"
+    "translation": "Ongeldig maker-id"
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -5032,99 +5024,99 @@
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at."
+    "translation": "Ongeldige waarde voor create_at."
   },
   {
     "id": "model.file_info.is_valid.id.app_error",
-    "translation": "Invalid value for id."
+    "translation": "Ongeldige waarde voor id."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
-    "translation": "Invalid value for path."
+    "translation": "Ongeldige waarde voor pad."
   },
   {
     "id": "model.file_info.is_valid.post_id.app_error",
-    "translation": "Invalid value for post_id."
+    "translation": "Ongeldige waarde voor post_id."
   },
   {
     "id": "model.file_info.is_valid.update_at.app_error",
-    "translation": "Invalid value for update_at."
+    "translation": "Ongeldige waarde voor update_at."
   },
   {
     "id": "model.file_info.is_valid.user_id.app_error",
-    "translation": "Invalid value for user_id."
+    "translation": "Ongeldige waarde voor gebruikers-ID."
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "Ongeldige groepseigenschap : maken"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "ongeldige wisopdracht voor groepseigenschap"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "ongeldige beschrijving eigenschap voor groep"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "ongeldige eigenschap voor weergavenaam voor groep"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "ongeldige ID-eigenschap voor groep"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "ongeldige naam eigenschap voor groep"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "ongeldige afstandsid-eigenschap voor groep"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "ongeldige broneigenschap voor groep"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "ongeldige update eigenschap voor groep"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "ongeldige groepsideigenschap voor groepslid"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "ongeldige gebruikersid-eigenschap voor groepslid"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "ongeldige groepsid-eigenschap voor groepssyncable"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "ongeldig syncable id voor groepssyncable"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "ongeldige type-eigenschap voor groepssyncable"
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldig kanaal"
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Ongeldig kanaal id"
+    "translation": "Ongeldige kanalen"
   },
   {
     "id": "model.guest.is_valid.email.app_error",
-    "translation": "Ongeldige e-mail"
+    "translation": "Ongeldige email"
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "Ongeldige e-mail"
+    "translation": "Ongeldige e-mails"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -5140,11 +5132,11 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel"
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig postpictogram"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -5152,11 +5144,11 @@
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet ontleden"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team ID"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
@@ -5176,43 +5168,43 @@
   },
   {
     "id": "model.job.is_valid.id.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldig job-id"
   },
   {
     "id": "model.job.is_valid.status.app_error",
-    "translation": "Invalid job status"
+    "translation": "Ongeldige taakstatus"
   },
   {
     "id": "model.job.is_valid.type.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige taaktype"
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
-    "translation": "Invalid value for create_at when uploading a license."
+    "translation": "Ongeldige waarde voor create_at bij het uploaden van een licentie."
   },
   {
     "id": "model.license_record.is_valid.id.app_error",
-    "translation": "Invalid value for id when uploading a license."
+    "translation": "Ongeldige waarde voor id bij het uploaden van een licentie."
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "De metagegevens van de link kunnen niet nul zijn."
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "De metagegevens van de link komen niet overeen met het opgegeven type"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "Tijdaanduiding van de link voor metagegevens moet niet nul zijn en afgerond op het dichtstbijzijnde uur"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "Ongeldig type linkmetagegevens"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "URL van linkmetagegevens moet worden ingesteld"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5256,11 +5248,11 @@
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Ongeldige omgeving"
+    "translation": "Ongeldig pictogram"
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "Ongeldige 'callback' urls"
+    "translation": "Ongeldige callback-URLs"
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
@@ -5268,7 +5260,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": "Invalid value for content_type"
+    "translation": "Ongeldige waarde voor content_type"
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
@@ -5280,7 +5272,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Ongeldige type"
+    "translation": "Ongeldige titel"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -5288,7 +5280,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team ID"
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -5320,19 +5312,19 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "An error occurred while trying to execute this command."
+    "translation": "Er is een fout opgetreden bij het uitvoeren van deze opdracht."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Ongeldige sleutel, moet groter zijn dan {{.Min}} en een maximum {{.Max}} tekens lang."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Ongeldig plugin-ID, moet groter zijn dan {{.Min}} en een maximum {{.Max}} tekens lang."
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "Ongeldige oude waarde, deze moet niet worden ingesteld als de bewerking niet atomisch is."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5344,7 +5336,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Ongeldige bestands-ID ' s. Houd er rekening mee dat uploads beperkt zijn tot maximaal 5 bestanden. Gebruik extra berichten voor meer bestanden."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5380,7 +5372,7 @@
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Ongeldig start id, moet gezet zijn, als ouder id gezet is"
+    "translation": "Een ongeldig root-ID moet worden ingesteld als het bovenliggende ID is ingesteld"
   },
   {
     "id": "model.post.is_valid.type.app_error",
@@ -5420,19 +5412,19 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Ongeldig emoji id"
+    "translation": "Ongeldige emoji-naam"
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig bericht-id"
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikers-id"
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Naam oet 2 of meer kleine letters bevatten"
+    "translation": "Naam moet 2 of meer kleine letters bevatten"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -5460,7 +5452,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Invalid invite id"
+    "translation": "Ongeldig uitnodigingid"
   },
   {
     "id": "model.team.is_valid.name.app_error",
@@ -5484,7 +5476,7 @@
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team ID"
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
@@ -5492,7 +5484,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "Ongeldig token vervaltijd"
   },
   {
     "id": "model.token.is_valid.size",
@@ -5532,7 +5524,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Ongeldige rol"
+    "translation": "Ongeldige locale"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5540,11 +5532,11 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "Er kan geen wachtwoord voor meer dan 72 tekens worden ingesteld vanwege de beperkingen van bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 128 characters."
+    "translation": "Ongeldige positie: mag niet langer zijn dan 128 tekens."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5616,23 +5608,23 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Gebruikersnaam moet beginnen met een letter en tussen 3 en 22 kleine letters bevatten, bestaande uit cijfers, letters en de symbolen \".\", \"-\", en \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
-    "translation": "Invalid description, must be 255 or less characters"
+    "translation": "Ongeldige beschrijving, moet 255 of minder tekens zijn"
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
-    "translation": "Invalid value for id"
+    "translation": "Ongeldige waarde voor id"
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken"
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldig gebruikers-id"
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -5640,23 +5632,23 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the WebSocket server."
+    "translation": "Kon niet verbinden met de WebSocket-server."
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "De Servicevoorwaarden van GitLab zijn bijgewerkt. Ga naar gitlab.com om deze te accepteren en probeer dan opnieuw te loggen in Mattermost."
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "De gebruikers kunnen niet worden opgehaald, ongeldige sorteercriteria"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "De gebruikersstatus kan niet worden ingesteld. Onbekende gebruikersstatus."
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Een bot-gebruiker kan geen bot-gebruiker aanmaken."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5664,31 +5656,31 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker. "
+    "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen. "
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Ontbrekende HTML-tekst."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "E-mailonderwerp ontbreekt."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Aan-adres ontbreekt."
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "fout bij invoegen"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "fout bij selecteren"
   },
   {
     "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query"
+    "translation": "maken van query is mislukt"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5720,67 +5712,67 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kon bot niet verwijderen"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de bot niet ophalen"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot bestaat niet"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De bots konden niet worden opgehaald"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de bot niet bewaren"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de bot niet bijwerken"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Er is een probleem opgetreden bij het bijwerken van de app"
+    "translation": "Er is een fout opgetreden bij het bijwerken van de bot"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "We kunnen de kanalen typen niet tellen"
+    "translation": "Het aantal gewiste kanaaltypen kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "We kunnen de kanalen typen niet tellen"
+    "translation": "Kan het aantal kanaaltypes niet ophalen"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het toevoegen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Starten van databasetransactie is mislukt"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Ophalen van kanaalleden is mislukt"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van kanaallid is mislukt"
   },
   {
     "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date"
+    "translation": "Kan berichten niet tellen vanaf de opgegeven datum"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het kanaal niet verwijderen"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Kan het bestaande kanaal niet vinden"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -5788,19 +5780,19 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Alle kanalen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_all_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Alle kanalen kunnen niet worden opgehaals"
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan niet alle directe kanalen ophalen"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Kan het bestaande kanaal niet vinden"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -5808,15 +5800,15 @@
   },
   {
     "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald."
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Het aantal kanalen kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "De kanalen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -5824,111 +5816,111 @@
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing"
+    "translation": "Kan de kanalenbatch niet ophalen voor indexering"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kanalen kunnen niet worden opgehaald per id"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "De kanalen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found"
+    "translation": "Geen kanaal gevonden"
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Kan het bestaande verwijderde kanaal niet vinden"
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist"
+    "translation": "Er bestaan geen gewiste kanalen"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Kan het bestaande verwijderde kanaal niet vinden"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "No deleted channel exists with that name"
+    "translation": "Er bestaat geen gewist kanaal met die naam"
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Unable to get the channel for the given post"
+    "translation": "Het kanaal voor de gegeven bericht kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kanaallid kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Geen kanaal lid gevonden voor deze gebruikers id en kanaal id"
+    "translation": "Geen kanaallid gevonden voor dat gebruikers-id en kanaal-id"
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "We kunnen het aantal leden van het kanaal niet tellen"
+    "translation": "Het aantal kanaalleden kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Unable to get the channel member for the given post"
+    "translation": "Het kanaallid voor de gegeven bericht kan niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kanaalleden kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kanaalleden kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "De kanalen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "We kunnen het aantal leden van het kanaal niet tellen"
+    "translation": "Kan het aantal vastgemaakte berichten het kanaal niet ophalen"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Openbare kanalen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages"
+    "translation": "Kan het kanaal ongelezen berichten niet ophalen"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count"
+    "translation": "Kan de teller van de vermeldingen niet verhogen"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het versturen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Het openen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
+    "translation": "Het selecteren van de batch van kanaalleden is mislukt"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van kanaallid is mislukt"
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het kanaal niet verwijderen"
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
+    "translation": "Kan transactie niet vastleggen"
   },
   {
     "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel"
+    "translation": "Het gematerialiseerde openbare kanaal kan niet worden verwijderd"
   },
   {
     "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
@@ -5936,15 +5928,15 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet verwijderen"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
+    "translation": "Kan transactie niet vastleggen"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels"
+    "translation": "De gematerialiseerde openbare kanalen kunnen niet worden gewist"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
@@ -5952,27 +5944,27 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kan kanaallid niet verwijderen"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Unable to find the pinned posts"
+    "translation": "Kan de vastgezette berichten niet vinden"
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "We konden de gedeactiveerde gebruikers niet uit het kanaal verwijderen"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kan het kanaallid niet verwijderen"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
+    "translation": "We konden de kanaalschema's niet resetten"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
+    "translation": "De transactie kan niet worden vastgelegd"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
@@ -5980,7 +5972,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "Je kan niet reageren in een gearchiveerd kanaal."
+    "translation": "U kunt een gearchiveerd kanaal niet wijzigen"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5996,7 +5988,7 @@
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Kan het gematerialiseerde openbare kanaal niet aanpassen"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -6004,11 +5996,11 @@
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal"
+    "translation": "Moet update oproepen voor bestaande kanaal"
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "Er bestaat al een kanaal met die naam in hetzelfde team"
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -6016,7 +6008,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het kanaal niet bewaren"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -6040,7 +6032,7 @@
   },
   {
     "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "Een kanaal lid met de opgegeven id bestaat al"
+    "translation": "Er bestaat al een kanaallid met dat id"
   },
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
@@ -6048,19 +6040,19 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kan het kanaallid niet bewaren"
   },
   {
     "id": "store.sql_channel.search.app_error",
-    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+    "translation": "Er is een fout opgetreden bij het doorzoeken van kanalen"
   },
   {
     "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
+    "translation": "De groepskanalen voor de opgegeven gebruiker en term kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
+    "translation": "Kan transactie niet vastleggen"
   },
   {
     "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
@@ -6068,19 +6060,19 @@
   },
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel"
+    "translation": "Kan het gematerialiseerde openbare kanaal niet bijwerken"
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het kanaal niet bijwerken"
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "Je kan niet reageren in een gearchiveerd kanaal."
+    "translation": "U kunt een gearchiveerd kanaal niet wijzigen"
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
+    "translation": "Kan transactie niet vastleggen"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -6100,15 +6092,15 @@
   },
   {
     "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "Kan het gematerialiseerde openbare kanaal niet aanpassen"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "De laatst bekeken tijd kon niet worden bijgewerkt"
+    "translation": "Kan het \"laatst bekeken op tijd\" niet bijwerken"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread"
+    "translation": "Kan kanaal niet markeren als ongelezen"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
@@ -6116,31 +6108,31 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "Kan niet vaststellen of de gebruiker tot een lijst van kanalen behoort"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Failed to get users in channel during specified time period"
+    "translation": "Ophalen van gebruikers in kanaal tijdens opgegeven periode is mislukt"
   },
   {
     "id": "store.sql_channel_member_history.log_join_event.app_error",
-    "translation": "Failed to record channel member history"
+    "translation": "Kan kanaallidgeschiedenis niet opnemen"
   },
   {
     "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Failed to record channel member history. Failed to update existing join record"
+    "translation": "Kan kanaallidgeschiedenis niet opnemen. Bijwerken van bestaand samenvoegrecord is mislukt"
   },
   {
     "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
-    "translation": "Failed to purge records"
+    "translation": "Opschonen van records is mislukt"
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "Opslaan van ClusterDiscovery-rij is mislukt"
   },
   {
     "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete"
+    "translation": "Wissen is mislukt"
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
@@ -6148,43 +6140,43 @@
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows"
+    "translation": "Ophalen van alle zoekrijen is mislukt"
   },
   {
     "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "Opslaan van ClusterDiscovery-rij is mislukt"
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at"
+    "translation": "Bijwerken van laatste ping is mislukt"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdrachten niet tellen"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet verkrijgen"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet wissen"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet wissen"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet ophalen"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdrachten niet ophalen"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet bewaren"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -6192,23 +6184,23 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet bijwerken"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhook kan niet worden opgehaald"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de CommandWebhook niet bewaren"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook"
+    "translation": "U kunt een bestaande CommandWebhook niet bijwerken"
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet gebruiken"
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -6220,7 +6212,7 @@
   },
   {
     "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data"
+    "translation": "Fout bij selecteren van berichtexportgegevens"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -6228,7 +6220,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de emoji niet verwijderen"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -6236,115 +6228,115 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de emoji niet ophalen"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de emoji niet verkrijgen"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de emoji niet verkrijgen"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de emoji niet opslaan"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Unable to delete attachments of the user"
+    "translation": "Bijlagen van de gebruiker kunnen niet worden gewist"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "Kan de bestandsinformatie niet aan de post toevoegen"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "Kan de bestandsinformatie niet naar de post verwijderen"
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "De bestandsinformatie kan niet worden opgehaald"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "Bestandsinformatie kan niet op pad worden opgehaald"
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "De bestandsinformatie voor de post kan niet worden opgehaald"
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "De bestandsinformatie voor de gebruiker kan niet worden opgehaald"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info"
+    "translation": "Kan de bestandsinformatie niet permanent verwijderen"
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
+    "translation": "Er is een fout opgetreden bij het permanent verwijderen van de batch van bestandsinfo"
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "We konden de bestandsinfo niet ophalen"
+    "translation": "Kan de bestandsinformatie niet bewaren"
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "failed to build query"
+    "translation": "maken van query is mislukt"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "groepsyncable is al gewist"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "geen overeenkomende groep gevonden"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "geen rijen gewijzigd"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
+    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "Een team met dat domein bestaat al"
+    "translation": "een groep met die naam bestaat reeds"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "groepslid bestaat reeds"
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Taak kan niet worden gewist"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De taak kan niet worden opgehaald"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De taken kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type"
+    "translation": "Aantal taken kan niet worden opgehaald naar status en type"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type"
+    "translation": "De nieuwste taak kan niet worden opgehaald naar status en type"
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de taak niet opslaan"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Taak kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -6360,11 +6352,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "De metagegevens van de koppeling kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Kan de metagegevens van de koppeling niet opslaan"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6388,7 +6380,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Unable to find the requested app"
+    "translation": "De aangevraagde app is niet gevonden"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -6396,7 +6388,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Geen bestaande apps gevonden"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -6404,7 +6396,7 @@
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "We kunnen de authorisatie code niet vinden"
+    "translation": "Kan de bestaande machtigingscode niet vinden"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
@@ -6416,31 +6408,31 @@
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "De authorisatie code kan niet verwijderd worden"
+    "translation": "Kan de machtigingscode niet verwijderen"
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Het access token kan niet opgeslagen worden."
+    "translation": "Het toegangstoken kan niet worden verwijderd"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "De authorisatie code kan niet verwijderd worden"
+    "translation": "Kan de machtigingscode niet verwijderen"
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Het access token kan niet opgeslagen worden."
+    "translation": "Het toegangstoken kan niet worden opgeslagen."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Bijwerken moet worden aangeroepen voor een bestaande app"
+    "translation": "Moet update voor bestaande app oproepen"
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De app kan niet worden opgeslagen."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "De authorisatie code kan niet opgeslagen worden."
+    "translation": "Kan de machtigingscode niet opslaan."
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
@@ -6448,7 +6440,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "We kunnen de bestaande app niet vinden om bij te werken"
+    "translation": "Kan de bestaande app niet vinden om bij te werken"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
@@ -6456,7 +6448,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De app kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -6464,71 +6456,71 @@
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Query voor bestaande rij op MySQL is mislukt na KVCompareAndSet met ongewijzigde waarde."
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Meer dan 1 rij gevonden op MySQL na KVCompareAndSet met ongewijzigde waarde."
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Could not delete plugin key value"
+    "translation": "Kan pluginsleutelwaarde niet wissen"
   },
   {
     "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Could not get plugin key value"
+    "translation": "Kan de waarde van de plugin-sleutel niet ophalen"
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "Kan niet alle plugin-sleutels oplijsten"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Could not save or update plugin key value"
+    "translation": "Sleutelwaarde van plugin kan niet worden opgeslagen of bijgewerkt"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
+    "translation": "Aantal berichten kan niet worden opgehaald"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
+    "translation": "Aantal berichten per dag kan niet worden opgehaald"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
+    "translation": "Aantal gebruikers met berichten kan niet worden opgehaald"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
+    "translation": "De nalevingsexportfuncties kunnen niet worden opgehaald."
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet verwijderen"
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Bericht kan niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Directe berichten kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "De gemarkeerde posts kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "We kunnen het startbericht voor het kanaal niet ophalen"
+    "translation": "Kan de bovenliggende post niet ophalen voor het kanaal"
   },
   {
     "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound"
+    "translation": "Bericht kan niet worden opgehaald na tijdsperiode"
   },
   {
     "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound"
+    "translation": "Bericht kan niet rond de tijdsperiode worden opgehaald"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -6536,63 +6528,63 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
+    "translation": "De berichten voor het kanaal kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "We kunnen het start bericht voor het kanaal niet ophalen"
+    "translation": "De bovenliggende berichten voor het kanaal kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing"
+    "translation": "Kan de berichten-batch niet ophalen voor indexering"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De berichten kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
+    "translation": "De berichten voor het kanaal kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
+    "translation": "De berichten voor het kanaal kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
+    "translation": "De berichten voor het kanaal kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet overschrijven"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet verwijderen"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "We kunnen het bericht voor de gebruiker niet verwijderen"
+    "translation": "Het commentaar voor gebruiker kan niet worden verwijderd"
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "Er is een fout opgetreden bij het permanent wissen van de batch van berichten"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de berichten niet per kanaal verwijderen"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
+    "translation": "De te wissen berichten van de gebruiker kunnen niet worden geselecteerd"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "We kunnen de geselecteerde berichten voor de gebruiker niet verwijderen (het zijn er te veel), probeer opnieuw"
+    "translation": "Kan de te verwijderen berichten niet selecteren voor de gebruiker (te veel), opnieuw uitvoeren graag"
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet opslaan"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -6600,15 +6592,15 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+    "translation": "Zoeken is uitgeschakeld op deze server. Neem contact op met de systeembeheerder."
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het bericht niet bijwerken"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags"
+    "translation": "Er is een fout opgetreden bij het opschonen van de reeks vlaggen"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6632,7 +6624,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference"
+    "translation": "Kan de voorkeur niet opslaan"
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
@@ -6656,163 +6648,163 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference"
+    "translation": "De voorkeur kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "Reacties voor post kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan reactie niet verwijderen"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction"
+    "translation": "De transactie kan niet worden geopend tijdens het wissen van de reactie"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction"
+    "translation": "Transactie kan niet worden vastgelegd tijdens het wissen van de reactie"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Unable to delete all reactions with this emoji name"
+    "translation": "Kan niet alle reacties met deze emoji-naam verwijderen"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Unable to get all reactions with this emoji name"
+    "translation": "Kan niet alle reacties krijgen met deze emoji-naam"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post"
+    "translation": "Reacties voor post kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
+    "translation": "Er is een fout opgetreden tijdens het permanent verwijderen van de batch aan reacties"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction"
+    "translation": "Transactie kan niet worden geopend tijdens opslaan van reactie"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction"
+    "translation": "Kan transactie niet vastleggen tijdens opslaan van reactie"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan reactie niet opslaan"
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Token kan niet worden gewist"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code"
+    "translation": "Er kan geen token worden opgehaald met deze code"
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "Kan niet alle tokens van een type verwijderen"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Token kan niet worden opgeslagen"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De rol kan niet worden gewist"
   },
   {
     "id": "store.sql_role.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Rol kan niet worden opgehaald"
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Alle rollen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Rol kan niet worden opgehaald"
   },
   {
     "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Rollen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles"
+    "translation": "We konden niet permanent alle rollen verwijderen"
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Nieuwe rol kan niet worden opgeslagen"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid"
+    "translation": "De rol is niet geldig"
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
+    "translation": "Fout bij openen van transactie om de rol op te slaan"
   },
   {
     "id": "store.sql_role.save.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de rol niet bijwerken"
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
+    "translation": "Fout bij het vastleggen van de transactie om de rol op te slaan"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
+    "translation": "De rollen van deze regeling kunnen niet worden gewist"
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het schema niet verwijderen"
   },
   {
     "id": "store.sql_scheme.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan het schema niet ophalen"
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes"
+    "translation": "We konden de schema's niet permanent verwijderen"
   },
   {
     "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme"
+    "translation": "Kan niet alle kanalen opnieuw instellen met behulp van dit schema als standaardschema"
   },
   {
     "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme"
+    "translation": "Het opnieuw instellen van alle teams met dit schema als standaardschema is mislukt"
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het schema niet maken"
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid"
+    "translation": "Het opgegeven schema is ongeldig"
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
+    "translation": "Fout bij het openen van de transactie om het schema op te slaan"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles"
+    "translation": "De standaardschema-rollen kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het schema niet bijwerken"
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
+    "translation": "Fout bij het vastleggen van de transactie om het schema op te slaan"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de sessies niet tellen"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -6824,19 +6816,19 @@
   },
   {
     "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Niet alle gebruikers sessie kunnen verwijderd worden voor de gebruiker"
+    "translation": "Kan niet alle sessies voor de gebruiker verwijderen"
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de sessie niet verwijderen"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan niet alle sessies verwijderen"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de sessie niet opslaan"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -6844,19 +6836,19 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Unable to update the device id"
+    "translation": "Het apparaat-id kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at"
+    "translation": "Kan de last_activity_at niet bijwerken"
   },
   {
     "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props"
+    "translation": "Kan sessie props niet bijwerken"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De rollen kunnen niet worden bijgewerkt"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -6884,7 +6876,7 @@
   },
   {
     "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user"
+    "translation": "De datum en tijd van de laatste activiteit van de gebruiker kunnen niet worden bijgewerkt"
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -6892,11 +6884,11 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Unable to find the system variable."
+    "translation": "Kan de systeemvariabele niet vinden."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "We konden de systeemtabel niet permanent verwijderen"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -6908,39 +6900,39 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Unable to get the channel count for the scheme."
+    "translation": "Kan het aantal kanalen voor het schema niet ophalen."
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De private teams kunnen niet worden geteld"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De openbare teams kunnen niet worden geteld"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De teams kunnen niet worden geteld"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het vastleggen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Starten van databasetransactie is mislukt"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Ophalen van teamleden is mislukt"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van teamlid is mislukt"
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande team niet vinden"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -6948,7 +6940,7 @@
   },
   {
     "id": "store.sql_team.get_active_member_count.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "De teamleden kunnen niet worden geteld"
   },
   {
     "id": "store.sql_team.get_all.app_error",
@@ -6956,7 +6948,7 @@
   },
   {
     "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "Niet alle teams kunnen opgehaald worden"
+    "translation": "We konden niet alle private teams ophalen"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6964,119 +6956,119 @@
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande team niet vinden"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande team niet vinden"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande team niet vinden"
   },
   {
     "id": "store.sql_team.get_by_name.missing.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande team niet vinden"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Het teamlid kan niet worden opgehaald"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Geen teamlid gevonden voor dit gebruikers id en kanaal id"
+    "translation": "Geen teamlid gevonden voor dat gebruikersid en teamid"
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "De teamleden kunnen niet worden geteld"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "De teamleden kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "De teamleden kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "Unable to get the teams unread messages"
+    "translation": "De ongelezen berichten van de teams kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "De lijst met teams van een gebruiker kan niet worden opgehaald"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het vastleggen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Het openen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
+    "translation": " Het selecteren van de groep teamleden is mislukt"
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van teamlid is mislukt"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Het bestaande team kan niet worden gewist"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Het teamlid kan niet worden verwijderd"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes"
+    "translation": "We konden de teamschema's niet resetten"
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het team niet opslaan"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Een team met dat domein bestaat al"
+    "translation": "Er bestaat al een team met deze naam"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
-    "translation": "Bijwerken moet aangeroepen worden voor bestaand team"
+    "translation": "Moet update aanroepen voor bestaande team oproepen"
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Een team lid met de opgegeven id bestaat al"
+    "translation": "Er bestaat al een teamlid met dat id"
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Kan het teamlid niet opslaan"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
-    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+    "translation": "Er is een fout opgetreden bij het zoeken van teams"
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+    "translation": "Er is een fout opgetreden bij het zoeken naar open teams."
   },
   {
     "id": "store.sql_team.search_private_team.app_error",
-    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+    "translation": "Er is een fout opgetreden bij het doorzoeken van privé-teams"
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Het team kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Het bestaande team kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
@@ -7088,83 +7080,83 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Unable to update the date of the last team icon update"
+    "translation": "De datum van de laatste update van het teampictogram kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "Kan niet vaststellen of de gebruiker tot een lijst van teams behoort"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "De servicevoorwaarden kunnen niet worden opgeslagen."
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "Servicevoorwaarden kunnen niet worden opgehaald."
   },
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "Geen servicevoorwaarden gevonden."
   },
   {
     "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
+    "translation": "U mag geen bewaren aanroepen voor bestaande servicevoorwaarden."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Unable to get the active users during the requested period"
+    "translation": "De actieve gebruikers kunnen niet worden opgehaald tijdens de aangevraagde periode"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "De gebruikers kunnen niet geteld worden"
+    "translation": "We konden de inactieve gebruikers niet tellen"
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
+    "translation": "Het aantal systeembeheerders kan niet worden opgehaald"
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Bouwen van query is mislukt"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het vastleggen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Starten van databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Ophalen van de gebruikers is mislukt"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Bijwerken van de gebruiker is mislukt"
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions maken geen zin"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het vastleggen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Starten van databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Het bijwerken van de teamlidmaatschappen van de gebruiker is mislukt"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Bijwerken van de gebruiker is mislukt"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -7172,7 +7164,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "We kunnen geen bestaand account vinden die inloggen bij dit team toe staat. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+    "translation": "Er is geen bestaand account gevonden dat overeenkomt met het verificatietype voor dit team. Voor dit team kan een uitnodiging van de teameigenaar nodig zijn om deel te nemen."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -7180,11 +7172,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+    "translation": "Kan geen bestaande account vinden die overeenkomt met jouw gebruikersnaam voor dit team. Voor dit team kan een uitnodiging van de teameigenaar nodig zijn om deel te nemen."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+    "translation": "Kan geen bestaande account vinden die overeenkomt met jouw logingegevens. Voor dit team kan een uitnodiging van de teameigenaar nodig zijn om deel te nemen."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -7192,11 +7184,11 @@
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
+    "translation": "Er is een fout opgetreden bij het zoeken van de nieuwe gebruikers"
   },
   {
     "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
+    "translation": "Er is een fout opgetreden bij het zoeken van gebruikersprofielen"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
@@ -7204,7 +7196,7 @@
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
+    "translation": "Er is een fout opgetreden bij het vinden van de recent actieve gebruikers"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
@@ -7212,7 +7204,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "De systeemdatum kan niet worden bepaald op basis van de eerste aanmaakdatum van de gebruiker."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
@@ -7228,47 +7220,47 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing"
+    "translation": "De kanaalleden kunnen niet worden opgehaald voor de gebruikersbatch voor indexering"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing"
+    "translation": "De teamleden voor de gebruikersbatch kunnen niet worden opgehaald voor indexering"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Unable to get the users batch for indexing"
+    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald"
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de gebruiker niet vinden."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
+    "translation": "Kan het bestaande account niet verwijderen"
   },
   {
     "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt"
   },
   {
     "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Het vastleggen van de databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Starten van databasetransactie is mislukt"
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
+    "translation": "Het bijwerken van de lidmaatschappen van de gebruikersteams is mislukt"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Bijwerken van de gebruiker is mislukt"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het account niet bewaren."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -7284,11 +7276,11 @@
   },
   {
     "id": "store.sql_user.save.existing.app_error",
-    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
+    "translation": "Moet update gebruiken voor bestaande gebruiker"
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
+    "translation": "Dit team heeft het maximum aantal toegestane accounts bereikt. Neem contact op met de systeembeheerder om een hogere limiet in te stellen."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -7308,11 +7300,11 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters"
+    "translation": "Kan geen gebruiker vinden die overeenkomt met de zoekparameters"
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan het account niet bijwerken"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -7324,7 +7316,7 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "We kunnen geen account vinden om bij te werken"
+    "translation": "Kan het bestaande account niet vinden om bij te werken"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
@@ -7340,15 +7332,15 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "De lijst van deactiveren van gastenids kan niet worden opgehaald"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Gasten kunnen niet worden gedeactiveerd"
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De auth-gegevens kunnen niet worden bijgewerkt"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -7356,11 +7348,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts"
+    "translation": "Kan de failed_attempts niet bijwerken"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de update_at niet bijwerken"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -7372,11 +7364,11 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password"
+    "translation": "Het gebruikerswachtwoord kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user"
+    "translation": "De datum van de laatste update van de gebruiker kan niet worden bijgewerkt"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -7384,115 +7376,115 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Het access token kan niet verwijderd worden"
+    "translation": "Het persoonlijke toegangstoken kan niet worden gewist"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Het access token kan niet verwijderd worden"
+    "translation": "Het persoonlijke toegangstoken kan niet worden opgehaald"
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Het access token kan niet verwijderd worden"
+    "translation": "Alle persoonlijke toegangstokens kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Het access token kan niet verwijderd worden"
+    "translation": "Het persoonlijke toegangstoken per token kan niet worden opgehaald "
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Het access token kan niet verwijderd worden"
+    "translation": "De persoonlijke toegangstokens per gebruiker kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Het access token kan niet opgeslagen worden."
+    "translation": "Kan het persoonlijke toegangstoken niet opslaan"
   },
   {
     "id": "store.sql_user_access_token.search.app_error",
-    "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
+    "translation": "Er is een fout opgetreden bij het doorzoeken van gebruikerstoegangstokens"
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Het access token kan niet opgeslagen worden."
+    "translation": "Het toegangstoken kan niet worden uitgeschakeld"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Het access token kan niet opgeslagen worden."
+    "translation": "Toegangstoken kan niet worden ingeschakeld"
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
+    "translation": "De servicevoorwaarden kunnen niet worden gewist."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
+    "translation": "Servicevoorwaarden kunnen niet worden opgehaald."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
+    "translation": "Geen servicevoorwaarden gevonden."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
+    "translation": "De servicevoorwaarden kunnen niet worden opgeslagen."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de inkomende webhooks niet tellen"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de uitgaande webhooks niet tellen"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhook kan niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhooks kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhook kan niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhook kan niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhooks kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "De webhooks kunnen niet worden opgehaald"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet verwijderen"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de IncomingWebhook niet opslaan"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -7500,7 +7492,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de OutgoingWebhook niet opslaan"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -7508,15 +7500,15 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de IncomingWebhook niet bijwerken"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de webhook niet bijwerken"
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "fout bij bijwerken"
   },
   {
     "id": "system.message.name",
@@ -7524,35 +7516,35 @@
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+    "translation": "Er is een fout opgetreden bij het weergeven van een map uit de lokale serverbestandsopslag."
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "Er is een fout opgetreden bij het weergeven van een map uit S3."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+    "translation": "Er is een fout opgetreden bij het verwijderen van een map uit de lokale serverbestandsopslag."
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
+    "translation": "Er is een fout opgetreden bij het verwijderen van een map uit S3."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+    "translation": "Er is een fout opgetreden bij het verwijderen van een bestand uit de lokale serverbestandsopslag."
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
+    "translation": "Er is een fout opgetreden bij het verwijderen van een bestand uit S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
+    "translation": "Fout bij instellen HELO"
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fout bij het openen van de sql verbinding"
+    "translation": "Openen van verbinding is mislukt"
   },
   {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
@@ -7564,7 +7556,7 @@
   },
   {
     "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
+    "translation": "Fout bij schrijven van bijlage naar e-mail"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
@@ -7572,7 +7564,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "Fout bij instellen \"Van-adres\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7580,15 +7572,15 @@
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Kan geen e-mail bericht toevoegen"
+    "translation": "Toevoegen van e-mailberichtgegevens is mislukt"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "Fout bij instelling van \"Aan-adres\""
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Kon de opdracht niet vinden"
   },
   {
     "id": "web.command_webhook.invalid.app_error",
@@ -7600,15 +7592,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Download de nieuwste Chrome browser"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Download de nieuwste Firefox browser"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Download de nieuwste Safari browser"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -7628,43 +7620,43 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Download de app"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Download de Mattermost app of gebruik een ondersteunde browser voor een betere ervaring."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Download de app"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Installatiehandleiding"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Installatiehandleiding"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Meer info over ondersteunde browsers."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Versie 61+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Versie 44+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Versie 60+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Versie 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7676,11 +7668,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Deze browser wordt niet langer ondersteund door Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Deze versie van je browser wordt niet langer ondersteund door Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
@@ -7688,15 +7680,15 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Stel in als standaard"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "of"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden"
+    "translation": "De gebruikerstoegang kan niet worden bijgewerkt."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
@@ -7704,7 +7696,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -7724,7 +7716,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Unable to split webhook props into {{.Max}} character parts."
+    "translation": "Kan webhook props niet splitsen in {{.Max}} tekenonderdelen."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

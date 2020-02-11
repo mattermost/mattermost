@@ -2059,14 +2059,6 @@
     "translation": "Questo canale è stato spostato in questa squadra da %v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Gli account ospite sono disattivati"
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "La tua licenza non supporta gli account ospite"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Impossibile rimuovere un utente da una squadra con vincoli di gruppo."
   },

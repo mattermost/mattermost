@@ -2059,14 +2059,6 @@
     "translation": "Acest canal a fost mutat la această echipă din %v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Conturile oaspeților sunt dezactivate."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Licența dvs. nu acceptă conturile de invitați"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Nu este posibil să eliminați un utilizator dintr-o echipă cu constrângeri de grup."
   },

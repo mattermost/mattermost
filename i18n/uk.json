@@ -2059,14 +2059,6 @@
     "translation": "Цей канал був перенесений у цю команду з% v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Guest accounts are disabled."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Your license does not support guest accounts"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Unable to remove a user from a group-constrained team."
   },
