@@ -3,60 +3,47 @@
 
 package audit
 
-import "github.com/wiggin77/logr"
+import (
+	"fmt"
 
-const (
-	KeyID        = "id"
-	KeyAPIPath   = "api_path"
-	KeyEvent     = "event"
-	KeyStatus    = "status"
-	KeyUserID    = "user_id"
-	KeySessionID = "session_id"
-	KeyClient    = "client"
-	KeyIPAddress = "ip_address"
-
-	Success = "success"
-	Attempt = "attempt"
-	Fail    = "fail"
+	"github.com/wiggin77/logr"
+	"github.com/wiggin77/logr/format"
 )
+
+type Level logr.Level
 
 var (
-	// IDGenerator creates a new unique id for audit records.
-	// Reassign to generate custom ids.
-	IDGenerator func() string = newID
+	lgr    *logr.Logr
+	logger logr.Logger
+
+	RestLevel   = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
+	AppLevel    = Level{ID: AppLevelID, Name: "audit-app", Stacktrace: false}
+	ModelLevel  = Level{ID: ModelLevelID, Name: "audit-model", Stacktrace: false}
+	AuditFilter = &logr.CustomFilter{}
+
+	// OnQueueFull is called on an attempt to add an audit record to a full queue.
+	// On return the calling goroutine will block until the audit record can be added.
+	OnQueueFull func(qname string, maxQueueSize int)
+
+	// OnError is called when an error occurs while writing an audit record.
+	OnError func(err error)
+
+	// DefaultFormatter is a formatter that can be used when creating targets.
+	DefaultFormatter = &format.JSON{DisableStacktrace: true, KeyTimestamp: "CreateAt"}
 )
 
-// Meta represents metadata that can be added to a audit record as name/value pairs.
-type Meta map[string]interface{}
-
-// Record provides a consistent set of fields used for all audit logging.
-type Record struct {
-	APIPath   string
-	Event     string
-	Status    string
-	UserID    string
-	SessionID string
-	Client    string
-	IPAddress string
-	Meta      Meta
+func init() {
+	initLogr()
 }
 
-// Success marks the audit record status as successful.
-func (rec *Record) Success() {
-	rec.Status = Success
-}
+func initLogr() {
+	lgr = &logr.Logr{MaxQueueSize: MaxQueueSize}
+	logger = lgr.NewLogger()
 
-// Success marks the audit record status as failed.
-func (rec *Record) Fail() {
-	rec.Status = Fail
-}
-
-// AddMeta adds a single name/value pair to this audit record's metadata.
-func (rec *Record) AddMeta(name string, val interface{}) {
-	if rec.Meta == nil {
-		rec.Meta = Meta{}
-	}
-	rec.Meta[name] = val
+	lgr.OnQueueFull = onQueueFull
+	lgr.OnTargetQueueFull = onTargetQueueFull
+	lgr.OnLoggerError = onLoggerError
+	AuditFilter.Add(logr.Level(RestLevel), logr.Level(AppLevel))
 }
 
 // Log emits an audit record with complete info.
@@ -89,4 +76,42 @@ func Log(level Level, path string, evt string, status string, userID string, ses
 		SessionID: sessionID,
 		Meta:      meta,
 	})
+}
+
+// AddTarget adds a Logr target to the list of targets each audit record will be output to.
+func AddTarget(target logr.Target) {
+	lgr.AddTarget(target)
+}
+
+// Shutdown cleanly stops the audit engine after making best efforts to flush all targets.
+func Shutdown() {
+	err := lgr.Shutdown()
+	if err != nil {
+		onLoggerError(err)
+	}
+
+	// Create new empty logr in case the server is restarted (e.g. while running unit tests).
+	initLogr()
+}
+
+func onQueueFull(rec *logr.LogRec, maxQueueSize int) bool {
+	if OnQueueFull != nil {
+		OnQueueFull("main", maxQueueSize)
+	}
+	// block until record can be added.
+	return false
+}
+
+func onTargetQueueFull(target logr.Target, rec *logr.LogRec, maxQueueSize int) bool {
+	if OnQueueFull != nil {
+		OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
+	}
+	// block until record can be added.
+	return false
+}
+
+func onLoggerError(err error) {
+	if OnError != nil {
+		OnError(err)
+	}
 }
