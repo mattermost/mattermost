@@ -46,6 +46,7 @@ type Store interface {
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
+	Atomic() AtomicStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -644,6 +645,16 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError)
 	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
+}
+
+// AtomicStore is an interface for key/value store with atomic operations
+type AtomicStore interface {
+	SaveOrUpdate(keyVal *model.AtomicKeyValue) (*model.AtomicKeyValue, *model.AppError)
+	CompareAndSet(keyVal *model.AtomicKeyValue, oldValue []byte) (bool, *model.AppError)
+	CompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
+	Get(key string) (*model.AtomicKeyValue, *model.AppError)
+	Delete(key string) *model.AppError
+	DeleteAllExpired() *model.AppError
 }
 
 // ChannelSearchOpts contains options for searching channels.

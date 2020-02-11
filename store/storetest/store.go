@@ -42,6 +42,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	AtomicStore               mocks.AtomicStore
 }
 
 func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
@@ -77,6 +78,7 @@ func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 }
 func (s *Store) Group() store.GroupStore               { return &s.GroupStore }
 func (s *Store) LinkMetadata() store.LinkMetadataStore { return &s.LinkMetadataStore }
+func (s *Store) Atomic() store.AtomicStore             { return &s.AtomicStore }
 func (s *Store) MarkSystemRanUnitTests()               { /* do nothing */ }
 func (s *Store) Close()                                { /* do nothing */ }
 func (s *Store) LockToMaster()                         { /* do nothing */ }

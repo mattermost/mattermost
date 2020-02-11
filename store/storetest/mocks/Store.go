@@ -14,6 +14,22 @@ type Store struct {
 	mock.Mock
 }
 
+// Atomic provides a mock function with given fields:
+func (_m *Store) Atomic() store.AtomicStore {
+	ret := _m.Called()
+
+	var r0 store.AtomicStore
+	if rf, ok := ret.Get(0).(func() store.AtomicStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.AtomicStore)
+		}
+	}
+
+	return r0
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()
