@@ -1055,7 +1055,9 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 	teamNames := []string{}
 	for _, postData := range data {
 		usernames = append(usernames, *postData.User)
-		usernames = append(usernames, *postData.FlaggedBy...)
+		if postData.FlaggedBy != nil {
+			usernames = append(usernames, *postData.FlaggedBy...)
+		}
 		teamNames = append(teamNames, *postData.Team)
 	}
 
@@ -1311,7 +1313,9 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 	usernames := []string{}
 	for _, postData := range data {
 		usernames = append(usernames, *postData.User)
-		usernames = append(usernames, *postData.FlaggedBy...)
+		if postData.FlaggedBy != nil {
+			usernames = append(usernames, *postData.FlaggedBy...)
+		}
 		usernames = append(usernames, *postData.ChannelMembers...)
 	}
 
