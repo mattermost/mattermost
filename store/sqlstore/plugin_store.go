@@ -60,7 +60,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		} else if rowsAffected == 0 {
 			// No rows were affected by the update, so let's try an insert
 			if err := ps.GetMaster().Insert(kv); err != nil {
-				return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
