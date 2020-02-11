@@ -141,7 +141,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 }
 
 func TestAuthorizeOAuthUser(t *testing.T) {
-	setup := func(enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
+	setup := func(t *testing.T, enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -188,7 +188,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	}
 
 	t.Run("not enabled", func(t *testing.T) {
-		th := setup(false, true, true, "")
+		th := setup(t, false, true, true, "")
 		defer th.TearDown()
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", "", "")
@@ -197,7 +197,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with an improperly encoded state", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		state := "!"
@@ -208,7 +208,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("without a stored token", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
@@ -222,7 +222,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
@@ -237,7 +237,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with email missing when changing login types", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		email := ""
@@ -259,7 +259,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("without an OAuth cookie", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -272,7 +272,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with an invalid token", func(t *testing.T) {
-		th := setup(true, true, true, "")
+		th := setup(t, true, true, true, "")
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -289,7 +289,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with an incorrect token endpoint", func(t *testing.T) {
-		th := setup(true, false, true, "")
+		th := setup(t, true, false, true, "")
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -307,7 +307,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -326,7 +326,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -348,7 +348,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -369,7 +369,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -390,7 +390,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, false, server.URL)
+		th := setup(t, true, true, false, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -418,7 +418,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -447,7 +447,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th := setup(true, true, true, server.URL)
+		th := setup(t, true, true, true, server.URL)
 		defer th.TearDown()
 
 		cookie := model.NewId()
@@ -487,7 +487,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				}))
 				defer server.Close()
 
-				th := setup(true, true, true, server.URL)
+				th := setup(t, true, true, true, server.URL)
 				defer th.TearDown()
 
 				th.App.UpdateConfig(func(cfg *model.Config) {
