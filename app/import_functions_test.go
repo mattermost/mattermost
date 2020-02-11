@@ -1538,6 +1538,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 		Email:    ptrStr(model.NewId() + "@example.com"),
 		NotifyProps: &UserNotifyPropsImportData{
 			Email: ptrStr("false"),
+			MentionKeys: ptrStr(""),
 		},
 	}
 	require.Nil(t, th.App.importUser(&data, false))
