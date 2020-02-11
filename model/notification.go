@@ -15,18 +15,18 @@ type ExplicitMentions struct {
 	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
 	Mentions map[string]MentionType
 
-	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
-	// a corresponding keyword.
-	OtherPotentialMentions []string
-
-	// HereMentioned is true if the message contained @here.
-	HereMentioned bool
-
 	// AllMentioned is true if the message contained @all.
 	AllMentioned bool
 
 	// ChannelMentioned is true if the message contained @channel.
 	ChannelMentioned bool
+
+	// otherPotentialMentions contains a list of strings that looked like mentions, but didn't have
+	// a corresponding keyword.
+	otherPotentialMentions []string
+
+	// hereMentioned is true if the message contained @here.
+	hereMentioned bool
 }
 
 type MentionType int
@@ -52,6 +52,14 @@ const (
 	// The post contains an at-mention for the user
 	KeywordMention
 )
+
+func (m *ExplicitMentions) OtherPotentialMentions() []string {
+	return m.otherPotentialMentions
+}
+
+func (m *ExplicitMentions) HereMentioned() bool {
+	return m.hereMentioned
+}
 
 func (m *ExplicitMentions) AddMention(userId string, mentionType MentionType) {
 	if m.Mentions == nil {
@@ -81,7 +89,7 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 
 	switch strings.ToLower(word) {
 	case "@here":
-		m.HereMentioned = true
+		m.hereMentioned = true
 		mentionType = ChannelMention
 	case "@channel":
 		m.ChannelMentioned = true
@@ -142,7 +150,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
+			m.otherPotentialMentions = append(m.otherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -154,7 +162,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					m.OtherPotentialMentions = append(m.OtherPotentialMentions, splitWord[1:])
+					m.otherPotentialMentions = append(m.otherPotentialMentions, splitWord[1:])
 				}
 			}
 		}

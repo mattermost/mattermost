@@ -106,7 +106,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		go func() {
-			_, err := a.sendOutOfChannelMentions(sender, post, channel, mentions.OtherPotentialMentions)
+			_, err := a.sendOutOfChannelMentions(sender, post, channel, mentions.OtherPotentialMentions())
 			if err != nil {
 				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -126,7 +126,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			mentions = hooks.NotificationWillBeSent(pluginContext, post, mentions)
+			if res := hooks.NotificationWillBeSent(pluginContext, post, mentions); res != nil {
+				mentions = res
+			}
 			return true
 		}, plugin.NotificationWillBeSentId)
 	}
@@ -174,7 +176,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		T := utils.GetUserTranslations(sender.Locale)
 
-		if mentions.HereMentioned {
+		if mentions.HereMentioned() {
 			a.SendEphemeralPost(
 				post.UserId,
 				&model.Post{

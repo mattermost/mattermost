@@ -29,7 +29,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		"NonexistentUser": {
 			Message: "this is a message for @user",
 			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"user"},
+				otherPotentialMentions: []string{"user"},
 			},
 		},
 		"OnePerson": {
@@ -75,7 +75,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
-				OtherPotentialMentions: []string{"user"},
+				otherPotentialMentions: []string{"user"},
 			},
 		},
 		"OnePersonWithPeriodAfter": {
@@ -280,13 +280,13 @@ func TestGetExplicitMentions(t *testing.T) {
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
-				OtherPotentialMentions: []string{"potential"},
+				otherPotentialMentions: []string{"potential"},
 			},
 		},
 		"PotentialOutOfChannelUserWithPeriod": {
 			Message: "this is an message for @potential.user",
 			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"potential.user"},
+				otherPotentialMentions: []string{"potential.user"},
 			},
 		},
 		"InlineCode": {
@@ -497,21 +497,21 @@ func TestGetExplicitMentions(t *testing.T) {
 					id1: KeywordMention,
 					id2: KeywordMention,
 				},
-				HereMentioned: true,
+				hereMentioned: true,
 			},
 		},
 		"Name on keywords is a prefix of a mention": {
 			Message:  "@other @test-two",
 			Keywords: map[string][]string{"@test": {NewId()}},
 			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"other", "test-two"},
+				otherPotentialMentions: []string{"other", "test-two"},
 			},
 		},
 		"Name on mentions is a prefix of other mention": {
 			Message:  "@other-one @other @other-two",
 			Keywords: nil,
 			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"other-one", "other", "other-two"},
+				otherPotentialMentions: []string{"other-one", "other", "other-two"},
 			},
 		},
 	} {
@@ -577,17 +577,17 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	for message, shouldMention := range cases {
 		post := &Post{Message: message}
 		m := GetExplicitMentions(post, nil)
-		require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
-		require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
+		require.False(t, m.hereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
+		require.False(t, !m.hereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
 	}
 
 	// mentioning @here and someone
 	id := NewId()
 	m := GetExplicitMentions(&Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
-	require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
+	require.True(t, m.hereMentioned, "should've mentioned @here with \"@here @user\"")
 	require.Len(t, m.Mentions, 1)
 	require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
-	require.LessOrEqual(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
+	require.LessOrEqual(t, len(m.otherPotentialMentions), 1, "should've potential mentions for @potential")
 }
 
 func TestIsKeywordMultibyte(t *testing.T) {
@@ -804,7 +804,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		"HereMention": {
 			Word: "@here",
 			Expected: &ExplicitMentions{
-				HereMentioned: true,
+				hereMentioned: true,
 			},
 		},
 		"ChannelMention": {
@@ -822,7 +822,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		"UppercaseHere": {
 			Word: "@HeRe",
 			Expected: &ExplicitMentions{
-				HereMentioned: true,
+				hereMentioned: true,
 			},
 		},
 		"UppercaseChannel": {
@@ -895,7 +895,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
 			Expected: &ExplicitMentions{
-				HereMentioned: true,
+				hereMentioned: true,
 			},
 		},
 		"Mention all after hyphen": {
@@ -916,7 +916,7 @@ func TestProcessText(t *testing.T) {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
 			Expected: &ExplicitMentions{
-				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
+				otherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
 			},
 		},
 		"Mention a real user and another potential user": {
@@ -926,7 +926,7 @@ func TestProcessText(t *testing.T) {
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
-				OtherPotentialMentions: []string{"systembot"},
+				otherPotentialMentions: []string{"systembot"},
 			},
 		},
 	} {
