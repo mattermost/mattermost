@@ -147,15 +147,15 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
+func SetupEnterprise(tb testing.TB) *TestHelper {
 	return setupTestHelper(true, nil)
 }
 
-func Setup() *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(false, nil)
 }
 
-func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	return setupTestHelper(false, updateConfig)
 }
 
@@ -251,6 +251,26 @@ func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient
 
 func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
+}
+
+func (me *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
+	return me.CreateBotWithClient((me.SystemAdminClient))
+}
+
+func (me *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	utils.DisableDebugLogForTest()
+	rbot, resp := client.CreateBot(bot)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+	return rbot
 }
 
 func (me *TestHelper) CreateUser() *model.User {

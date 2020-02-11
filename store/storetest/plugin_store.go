@@ -39,6 +39,22 @@ func testPluginCompareAndSet(t *testing.T, ss store.Store) {
 		assert.True(t, ok)
 	})
 
+	t.Run("set existing key without old value should fail without error because is a automatically handled race condition", func(t *testing.T) {
+		_, err := ss.Plugin().SaveOrUpdate(kv)
+		require.Nil(t, err)
+
+		kvNew := &model.PluginKeyValue{
+			PluginId: kv.PluginId,
+			Key:      kv.Key,
+			Value:    []byte(model.NewId()),
+			ExpireAt: 0,
+		}
+
+		ok, err := ss.Plugin().CompareAndSet(kvNew, nil)
+		require.Nil(t, err)
+		assert.False(t, ok)
+	})
+
 	t.Run("set existing key with new value should succeed given same old value", func(t *testing.T) {
 		_, err := ss.Plugin().SaveOrUpdate(kv)
 		require.Nil(t, err)

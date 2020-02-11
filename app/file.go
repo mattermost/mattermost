@@ -290,7 +290,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Srv.Store.Post().Get(post.Id)
+	result, err := a.Srv.Store.Post().Get(post.Id, false)
 	if err != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -647,6 +647,11 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 func (t *uploadFileTask) readAll() *model.AppError {
 	_, err := t.buf.ReadFrom(t.limitedInput)
 	if err != nil {
+		// Ugly hack: the error is not exported from net/http.
+		if err.Error() == "http: request body too large" {
+			return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+				"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
+		}
 		return t.newAppError("api.file.upload_file.read_request.app_error",
 			err.Error(), http.StatusBadRequest)
 	}
