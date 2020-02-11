@@ -1537,7 +1537,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 		NotifyProps: &UserNotifyPropsImportData{
-			Email: ptrStr("false"),
+			Email:       ptrStr("false"),
 			MentionKeys: ptrStr(""),
 		},
 	}
