@@ -13,6 +13,9 @@ import (
 )
 
 func TestGetMigrationState(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	th := Setup()
 	defer th.TearDown()
 
