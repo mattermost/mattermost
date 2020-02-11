@@ -124,7 +124,54 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
-	require.Fail(t, "Not implemented yet")
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+
+	_, err := ss.Team().Save(&o1)
+	require.Nil(t, err)
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName2"
+	o2.Name = "z-z-z" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+
+	_, err = ss.Team().Save(&o2)
+	require.Nil(t, err)
+
+	t.Run("Get empty list", func(t *testing.T) {
+		teams, err := ss.Team().GetByNames([]string{})
+		require.Nil(t, err)
+		require.Empty(t, teams)
+	})
+
+	t.Run("Get existing teams", func(t *testing.T) {
+		teams, err := ss.Team().GetByNames([]string{o1.Name, o2.Name})
+		require.Nil(t, err)
+		teamsIds := []string{}
+		for _, team := range teams {
+			teamsIds = append(teamsIds, team.Id)
+		}
+		assert.Contains(t, teamsIds, o1.Id, "invalid returned team")
+		assert.Contains(t, teamsIds, o2.Id, "invalid returned team")
+	})
+
+	t.Run("Get existing team and one invalid team name", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{o1.Name, ""})
+		require.NotNil(t, err)
+	})
+
+	t.Run("Get existing team and not existing team", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{o1.Name, "not-existing-team-name"})
+		require.NotNil(t, err)
+	})
+	t.Run("Get not existing teams", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{"not-existing-team-name", "not-existing-team-name-2"})
+		require.NotNil(t, err)
+	})
 }
 
 func testTeamStoreGetByName(t *testing.T, ss store.Store) {
@@ -137,12 +184,21 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	team, err := ss.Team().GetByName(o1.Name)
-	require.Nil(t, err)
-	require.Equal(t, *team, o1, "invalid returned team")
+	t.Run("Get existing team", func(t *testing.T) {
+		team, err := ss.Team().GetByName(o1.Name)
+		require.Nil(t, err)
+		require.Equal(t, *team, o1, "invalid returned team")
+	})
 
-	_, err = ss.Team().GetByName("")
-	require.NotNil(t, err, "Missing id should have failed")
+	t.Run("Get invalid team name", func(t *testing.T) {
+		_, err = ss.Team().GetByName("")
+		require.NotNil(t, err, "Missing id should have failed")
+	})
+
+	t.Run("Get not existing team", func(t *testing.T) {
+		_, err = ss.Team().GetByName("not-existing-team-name")
+		require.NotNil(t, err, "Missing id should have failed")
+	})
 }
 
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
