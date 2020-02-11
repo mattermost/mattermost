@@ -1211,7 +1211,7 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name: "missing id",
+			Name: "id empty",
 			Office365Settings: Office365Settings{
 				Enable:          NewBool(true),
 				Id:              NewString(""),
@@ -1222,10 +1222,10 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 				UserApiEndpoint: NewString("userapiendpoint"),
 				DirectoryId:     NewString("directoryid"),
 			},
-			ExpectError: true,
+			ExpectError: false,
 		},
 		{
-			Name: "missing secret",
+			Name: "secret empty",
 			Office365Settings: Office365Settings{
 				Enable:          NewBool(true),
 				Id:              NewString("id"),
@@ -1236,10 +1236,10 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 				UserApiEndpoint: NewString("userapiendpoint"),
 				DirectoryId:     NewString("directory id"),
 			},
-			ExpectError: true,
+			ExpectError: false,
 		},
 		{
-			Name: "missing directory id",
+			Name: "directory id empty",
 			Office365Settings: Office365Settings{
 				Enable:          NewBool(true),
 				Id:              NewString("id"),
@@ -1250,10 +1250,10 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 				UserApiEndpoint: NewString("userapiendpoint"),
 				DirectoryId:     NewString(""),
 			},
-			ExpectError: true,
+			ExpectError: false,
 		},
 		{
-			Name: "default directory id",
+			Name: "settings enabled - missing directory id",
 			Office365Settings: Office365Settings{
 				Enable:          NewBool(true),
 				Id:              NewString("id"),
@@ -1262,15 +1262,26 @@ func TestOffice365SettingsIsValid(t *testing.T) {
 				AuthEndpoint:    NewString("authendpoint"),
 				TokenEndpoint:   NewString("tokenendpoint"),
 				UserApiEndpoint: NewString("userapiendpoint"),
-				DirectoryId:     NewString(OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID),
 			},
-			ExpectError: true,
+			ExpectError: false,
+		},
+		{
+			Name: "settings disbled - missing directory id",
+			Office365Settings: Office365Settings{
+				Enable:          NewBool(false),
+				Id:              NewString("id"),
+				Secret:          NewString("secret"),
+				Scope:           NewString("scope"),
+				AuthEndpoint:    NewString("authendpoint"),
+				TokenEndpoint:   NewString("tokenendpoint"),
+				UserApiEndpoint: NewString("userapiendpoint"),
+			},
+			ExpectError: false,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			test.Office365Settings.setDefaults(false)
 
-			err := test.Office365Settings.isValid()
 			if test.ExpectError {
 				assert.NotNil(t, err)
 			} else {

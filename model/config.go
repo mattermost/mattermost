@@ -901,19 +901,11 @@ func (s *Office365Settings) setDefaults(isUpdate bool) {
 		s.Enable = NewBool(false)
 	}
 
-	if isUpdate {
-		if s.Id == nil || *s.Id == "" {
-			s.Id = NewString(OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID)
-		}
-	} else {
+	if s.Id == nil {
 		s.Id = NewString("")
 	}
 
-	if isUpdate {
-		if s.Secret == nil || *s.Secret == "" {
-			s.Secret = NewString(OFFICE365_SETTINGS_DEFAULT_SECRET)
-		}
-	} else {
+	if s.Secret == nil {
 		s.Secret = NewString("")
 	}
 
@@ -933,11 +925,7 @@ func (s *Office365Settings) setDefaults(isUpdate bool) {
 		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	}
 
-	if isUpdate {
-		if s.DirectoryId == nil || *s.DirectoryId == "" {
-			s.DirectoryId = NewString(OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID)
-		}
-	} else {
+	if s.DirectoryId == nil {
 		s.DirectoryId = NewString("")
 	}
 }
@@ -2759,10 +2747,6 @@ func (o *Config) IsValid() *AppError {
 	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
 	}
-
-	if err := o.Office365Settings.isValid(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -3227,21 +3211,6 @@ func (s *ImageProxySettings) isValid() *AppError {
 		}
 	}
 
-	return nil
-}
-
-func (s *Office365Settings) isValid() *AppError {
-	if *s.Enable {
-		if *s.Id == "" || *s.Id == OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID {
-			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.application_id.app_error", nil, "", http.StatusBadRequest)
-		}
-		if *s.Secret == "" || *s.Secret == OFFICE365_SETTINGS_DEFAULT_SECRET {
-			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.application_secret.app_error", nil, "", http.StatusBadRequest)
-		}
-		if *s.DirectoryId == "" || *s.DirectoryId == OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID {
-			return NewAppError("Config.IsValid", "model.o365.oauth.is_valid.directory_id.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
 	return nil
 }
 
