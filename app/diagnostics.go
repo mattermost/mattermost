@@ -53,6 +53,7 @@ const (
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
 	TRACK_ELASTICSEARCH             = "elasticsearch"
+	TRACK_GROUPS                    = "groups"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -74,6 +75,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackServer()
 		a.trackPermissions()
 		a.trackElasticsearch()
+		a.trackGroups()
 	}
 }
 
@@ -633,8 +635,10 @@ func (a *App) trackConfig() {
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	plugins, appErr := pluginsEnvironment.Available()
-	if appErr != nil {
+
+	if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+		mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+	} else {
 		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
 		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
 		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
@@ -913,4 +917,51 @@ func (a *App) trackElasticsearch() {
 	}
 
 	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)
+}
+
+func (a *App) trackGroups() {
+	groupCount, err := a.Srv.Store.Group().GroupCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupTeamCount, err := a.Srv.Store.Group().GroupTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupChannelCount, err := a.Srv.Store.Group().GroupChannelCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupSyncedTeamCount, err := a.Srv.Store.Team().GroupSyncedTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupSyncedChannelCount, err := a.Srv.Store.Channel().GroupSyncedChannelCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupMemberCount, err := a.Srv.Store.Group().GroupMemberCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	distinctGroupMemberCount, err := a.Srv.Store.Group().DistinctGroupMemberCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	a.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
+		"group_count":                 groupCount,
+		"group_team_count":            groupTeamCount,
+		"group_channel_count":         groupChannelCount,
+		"group_synced_team_count":     groupSyncedTeamCount,
+		"group_synced_channel_count":  groupSyncedChannelCount,
+		"group_member_count":          groupMemberCount,
+		"distinct_group_member_count": distinctGroupMemberCount,
+	})
 }
