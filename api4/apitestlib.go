@@ -147,15 +147,15 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
+func SetupEnterprise(tb testing.TB) *TestHelper {
 	return setupTestHelper(true, nil)
 }
 
-func Setup() *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(false, nil)
 }
 
-func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	return setupTestHelper(false, updateConfig)
 }
 

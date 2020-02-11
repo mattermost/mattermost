@@ -14,7 +14,7 @@ import (
 )
 
 func TestPlugin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -48,7 +48,7 @@ func TestPlugin(t *testing.T) {
 }
 
 func TestPluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -61,7 +61,7 @@ func TestPluginPublicKeys(t *testing.T) {
 }
 
 func TestPluginPublicKeyDetails(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -76,7 +76,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 }
 
 func TestAddPluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -88,7 +88,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 }
 
 func TestDeletePluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -100,7 +100,7 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 }
 
 func TestPluginPublicKeysFlow(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")

@@ -11,7 +11,7 @@ import (
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -37,7 +37,7 @@ func TestCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCreateUserWithoutTeam(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -53,7 +53,7 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "password", th.BasicUser.Email, "password2")
@@ -64,7 +64,7 @@ func TestResetPassword(t *testing.T) {
 }
 
 func TestMakeUserActiveAndInactive(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// first inactivate the user
@@ -75,7 +75,7 @@ func TestMakeUserActiveAndInactive(t *testing.T) {
 }
 
 func TestChangeUserEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	newEmail := model.NewId() + "@mattermost-test.com"
@@ -110,7 +110,7 @@ func TestChangeUserEmail(t *testing.T) {
 }
 
 func TestDeleteUserBotUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
@@ -137,7 +137,7 @@ func TestDeleteUserBotUser(t *testing.T) {
 }
 
 func TestConvertUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("Invalid command line input", func(t *testing.T) {
