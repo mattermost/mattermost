@@ -55,10 +55,6 @@ type TestHelper struct {
 var mainHelper *testlib.MainHelper
 
 func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
-	if testing.Short() {
-		dbStore.DropAllTables()
-		dbStore.MarkSystemRanUnitTests()
-	}
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -150,7 +146,10 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	return setupTestHelper(mainHelper.GetStore(), true, nil)
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -162,7 +161,10 @@ func Setup(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	return setupTestHelper(mainHelper.GetStore(), false, nil)
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, false, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -174,7 +176,10 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 		tb.SkipNow()
 	}
 
-	return setupTestHelper(mainHelper.GetStore(), false, updateConfig)
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, false, updateConfig)
 }
 
 func UnitSetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
