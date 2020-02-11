@@ -2059,14 +2059,6 @@
     "translation": "Bu kanal %v üzerinden bu takıma taşındı."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Konuk hesapları kullanılmıyor."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Lisansınızda konuk hesaplarını kullanma özelliği yok"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Bir kullanıcı grup kısıtlaması uygulanan bir takımdan çıkarılamaz."
   },

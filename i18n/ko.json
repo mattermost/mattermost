@@ -2059,14 +2059,6 @@
     "translation": "본 채널은 %v에 의해 해당 팀으로 이동되었습니다. "
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "게스트 계정이 비활성화됨."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "게스트 계정을 지원하지 않는 라이센스입니다."
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "그룹 채널에서 사용자를 제거할 수 없습니다."
   },

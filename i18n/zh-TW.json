@@ -2059,14 +2059,6 @@
     "translation": "此頻道已從 %v 移動至此團隊。"
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "訪客帳號已停用"
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "授權不支援訪客帳號"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "無法從群組限制團隊中移除使用者。"
   },
