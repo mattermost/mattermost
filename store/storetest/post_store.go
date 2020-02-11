@@ -2215,7 +2215,133 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
-	require.Fail(t, "Not implemented yet")
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o1, err := ss.Post().Save(o1)
+	require.Nil(t, err)
+
+	o2 := &model.Post{}
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
+	o2.ParentId = o1.Id
+	o2.RootId = o1.Id
+	o2, err = ss.Post().Save(o2)
+	require.Nil(t, err)
+
+	o3 := &model.Post{}
+	o3.ChannelId = o1.ChannelId
+	o3.UserId = model.NewId()
+	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
+	o3, err = ss.Post().Save(o3)
+	require.Nil(t, err)
+
+	o4, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		Message:   model.NewId(),
+		Filenames: []string{"test"},
+	})
+	require.Nil(t, err)
+
+	o5, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+		Message:   model.NewId(),
+		Filenames: []string{"test2", "test3"},
+	})
+	require.Nil(t, err)
+
+	r1, err := ss.Post().Get(o1.Id, false)
+	require.Nil(t, err)
+	ro1 := r1.Posts[o1.Id]
+
+	r2, err := ss.Post().Get(o2.Id, false)
+	require.Nil(t, err)
+	ro2 := r2.Posts[o2.Id]
+
+	r3, err := ss.Post().Get(o3.Id, false)
+	require.Nil(t, err)
+	ro3 := r3.Posts[o3.Id]
+
+	r4, err := ss.Post().Get(o4.Id, false)
+	require.Nil(t, err)
+	ro4 := r4.Posts[o4.Id]
+
+	r5, err := ss.Post().Get(o5.Id, false)
+	require.Nil(t, err)
+	ro5 := r5.Posts[o5.Id]
+
+	require.Equal(t, ro1.Message, o1.Message, "Failed to save/get")
+	require.Equal(t, ro2.Message, o2.Message, "Failed to save/get")
+	require.Equal(t, ro3.Message, o3.Message, "Failed to save/get")
+	require.Equal(t, ro4.Message, o4.Message, "Failed to save/get")
+	require.Equal(t, ro4.Filenames, o4.Filenames, "Failed to save/get")
+	require.Equal(t, ro5.Message, o5.Message, "Failed to save/get")
+	require.Equal(t, ro5.Filenames, o5.Filenames, "Failed to save/get")
+
+	t.Run("overwrite changing message", func(t *testing.T) {
+		o1a := &model.Post{}
+		*o1a = *ro1
+		o1a.Message = ro1.Message + "BBBBBBBBBB"
+
+		o2a := &model.Post{}
+		*o2a = *ro2
+		o2a.Message = ro2.Message + "DDDDDDD"
+
+		o3a := &model.Post{}
+		*o3a = *ro3
+		o3a.Message = ro3.Message + "WWWWWWW"
+
+		_, err = ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		require.Nil(t, err)
+
+		r1, err = ss.Post().Get(o1.Id, false)
+		require.Nil(t, err)
+		ro1a := r1.Posts[o1.Id]
+
+		r2, err = ss.Post().Get(o1.Id, false)
+		require.Nil(t, err)
+		ro2a := r2.Posts[o2.Id]
+
+		r3, err = ss.Post().Get(o3.Id, false)
+		require.Nil(t, err)
+		ro3a := r3.Posts[o3.Id]
+
+		assert.Equal(t, ro1a.Message, o1a.Message, "Failed to overwrite/get")
+		assert.Equal(t, ro2a.Message, o2a.Message, "Failed to overwrite/get")
+		assert.Equal(t, ro3a.Message, o3a.Message, "Failed to overwrite/get")
+	})
+
+	t.Run("overwrite clearing filenames", func(t *testing.T) {
+		o4a := &model.Post{}
+		*o4a = *ro4
+		o4a.Filenames = []string{}
+		o4a.FileIds = []string{model.NewId()}
+
+		o5a := &model.Post{}
+		*o5a = *ro5
+		o5a.Filenames = []string{}
+		o5a.FileIds = []string{}
+
+		_, err = ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		require.Nil(t, err)
+
+		r4, err = ss.Post().Get(o4.Id, false)
+		require.Nil(t, err)
+		ro4a := r4.Posts[o4.Id]
+
+		r5, err = ss.Post().Get(o5.Id, false)
+		require.Nil(t, err)
+		ro5a := r5.Posts[o5.Id]
+
+		require.Empty(t, ro4a.Filenames, "Failed to clear Filenames")
+		require.Len(t, ro4a.FileIds, 1, "Failed to set FileIds")
+		require.Empty(t, ro5a.Filenames, "Failed to clear Filenames")
+		require.Empty(t, ro5a.FileIds, "Failed to set FileIds")
+	})
 }
 
 func testPostStoreOverwrite(t *testing.T, ss store.Store) {
@@ -2242,56 +2368,6 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	r1, err := ss.Post().Get(o1.Id, false)
-	require.Nil(t, err)
-	ro1 := r1.Posts[o1.Id]
-
-	r2, err := ss.Post().Get(o1.Id, false)
-	require.Nil(t, err)
-	ro2 := r2.Posts[o2.Id]
-
-	r3, err := ss.Post().Get(o3.Id, false)
-	require.Nil(t, err)
-	ro3 := r3.Posts[o3.Id]
-
-	require.Equal(t, ro1.Message, o1.Message, "Failed to save/get")
-
-	o1a := &model.Post{}
-	*o1a = *ro1
-	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	_, err = ss.Post().Overwrite(o1a)
-	require.Nil(t, err)
-
-	r1, err = ss.Post().Get(o1.Id, false)
-	require.Nil(t, err)
-	ro1a := r1.Posts[o1.Id]
-
-	require.Equal(t, ro1a.Message, o1a.Message, "Failed to overwrite/get")
-
-	o2a := &model.Post{}
-	*o2a = *ro2
-	o2a.Message = ro2.Message + "DDDDDDD"
-	_, err = ss.Post().Overwrite(o2a)
-	require.Nil(t, err)
-
-	r2, err = ss.Post().Get(o1.Id, false)
-	require.Nil(t, err)
-	ro2a := r2.Posts[o2.Id]
-
-	require.Equal(t, ro2a.Message, o2a.Message, "Failed to overwrite/get")
-
-	o3a := &model.Post{}
-	*o3a = *ro3
-	o3a.Message = ro3.Message + "WWWWWWW"
-	_, err = ss.Post().Overwrite(o3a)
-	require.Nil(t, err)
-
-	r3, err = ss.Post().Get(o3.Id, false)
-	require.Nil(t, err)
-	ro3a := r3.Posts[o3.Id]
-
-	require.Equal(t, ro3a.Message, o3a.Message, "Failed to overwrite/get")
-
 	o4, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
@@ -2300,23 +2376,78 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
+	r1, err := ss.Post().Get(o1.Id, false)
+	require.Nil(t, err)
+	ro1 := r1.Posts[o1.Id]
+
+	r2, err := ss.Post().Get(o2.Id, false)
+	require.Nil(t, err)
+	ro2 := r2.Posts[o2.Id]
+
+	r3, err := ss.Post().Get(o3.Id, false)
+	require.Nil(t, err)
+	ro3 := r3.Posts[o3.Id]
+
 	r4, err := ss.Post().Get(o4.Id, false)
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
-	o4a := &model.Post{}
-	*o4a = *ro4
-	o4a.Filenames = []string{}
-	o4a.FileIds = []string{model.NewId()}
-	_, err = ss.Post().Overwrite(o4a)
-	require.Nil(t, err)
+	require.Equal(t, ro1.Message, o1.Message, "Failed to save/get")
+	require.Equal(t, ro2.Message, o2.Message, "Failed to save/get")
+	require.Equal(t, ro3.Message, o3.Message, "Failed to save/get")
+	require.Equal(t, ro4.Message, o4.Message, "Failed to save/get")
 
-	r4, err = ss.Post().Get(o4.Id, false)
-	require.Nil(t, err)
+	t.Run("overwrite changing message", func(t *testing.T) {
+		o1a := &model.Post{}
+		*o1a = *ro1
+		o1a.Message = ro1.Message + "BBBBBBBBBB"
+		_, err = ss.Post().Overwrite(o1a)
+		require.Nil(t, err)
 
-	ro4a := r4.Posts[o4.Id]
-	require.Empty(t, ro4a.Filenames, "Failed to clear Filenames")
-	require.Len(t, ro4a.FileIds, 1, "Failed to set FileIds")
+		o2a := &model.Post{}
+		*o2a = *ro2
+		o2a.Message = ro2.Message + "DDDDDDD"
+		_, err = ss.Post().Overwrite(o2a)
+		require.Nil(t, err)
+
+		o3a := &model.Post{}
+		*o3a = *ro3
+		o3a.Message = ro3.Message + "WWWWWWW"
+		_, err = ss.Post().Overwrite(o3a)
+		require.Nil(t, err)
+
+		r1, err = ss.Post().Get(o1.Id, false)
+		require.Nil(t, err)
+		ro1a := r1.Posts[o1.Id]
+
+		r2, err = ss.Post().Get(o1.Id, false)
+		require.Nil(t, err)
+		ro2a := r2.Posts[o2.Id]
+
+		r3, err = ss.Post().Get(o3.Id, false)
+		require.Nil(t, err)
+		ro3a := r3.Posts[o3.Id]
+
+		assert.Equal(t, ro1a.Message, o1a.Message, "Failed to overwrite/get")
+		assert.Equal(t, ro2a.Message, o2a.Message, "Failed to overwrite/get")
+		assert.Equal(t, ro3a.Message, o3a.Message, "Failed to overwrite/get")
+	})
+
+	t.Run("overwrite clearing filenames", func(t *testing.T) {
+		o4a := &model.Post{}
+		*o4a = *ro4
+		o4a.Filenames = []string{}
+		o4a.FileIds = []string{model.NewId()}
+		_, err = ss.Post().Overwrite(o4a)
+		require.Nil(t, err)
+
+		r4, err = ss.Post().Get(o4.Id, false)
+		require.Nil(t, err)
+
+		ro4a := r4.Posts[o4.Id]
+		require.Empty(t, ro4a.Filenames, "Failed to clear Filenames")
+		require.Len(t, ro4a.FileIds, 1, "Failed to set FileIds")
+	})
 }
 
 func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
