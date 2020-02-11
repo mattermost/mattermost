@@ -24,5 +24,5 @@ func (s PgChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit i
 	);`
 	}
 
-	helper.ChannelMemberHistoryPermanentDeleteBatch(s, endTime, limit, buildQueryFn)
+	return helper.ChannelMemberHistoryPermanentDeleteBatch(s, endTime, limit, buildQueryFn)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
-func ChannelMemberHistoryPermanentDeleteBatch(s sqlstore.SqlChannelMemberHistoryStore, endTime int64, limit int64, buildQuery func() string) (int64, *model.AppError) {
+func ChannelMemberHistoryPermanentDeleteBatch(s sqlstore.SqlStore, endTime int64, limit int64, buildQuery func() string) (int64, *model.AppError) {
 	query := buildQuery()
 
 	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
