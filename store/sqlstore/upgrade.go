@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cluster"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
@@ -767,7 +768,8 @@ func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 // asyncMigrations are run in the background after all other upgrades are done
 // and should not block normal application use
 func asyncMigrations(ss *SqlSupplier) (*MigrationRunner, error) {
-	runner := NewMigrationRunner(ss, MigrationOptions{})
+	mutexProvider := &cluster.DBMutexProvider{Store: ss.Atomic()}
+	runner := NewMigrationRunner(ss, mutexProvider, MigrationOptions{})
 
 	// example async migrations:
 	// err := runner.Add(NewCreateIndex("idx_posts_root_id_delete_at", "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false))

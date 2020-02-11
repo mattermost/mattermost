@@ -8,10 +8,12 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cluster"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +49,10 @@ type MigrationRunner struct {
 	migrations []AsyncMigration
 	done       chan struct{}
 	options    MigrationOptions
-	cancelFn   context.CancelFunc
+	mutexProv  cluster.MutexProvider
+
+	mu       sync.Mutex
+	cancelFn context.CancelFunc
 }
 
 // MigrationOptions describes options for MigrationRunner
@@ -58,7 +63,7 @@ type MigrationOptions struct {
 }
 
 // NewMigrationRunner creates a migration runner for the given store
-func NewMigrationRunner(s SqlStore, o MigrationOptions) *MigrationRunner {
+func NewMigrationRunner(s SqlStore, provider cluster.MutexProvider, o MigrationOptions) *MigrationRunner {
 	if o.LockTimeoutSecs == 0 {
 		o.LockTimeoutSecs = migrationDefaultLockTimeoutSecs
 	}
@@ -69,9 +74,10 @@ func NewMigrationRunner(s SqlStore, o MigrationOptions) *MigrationRunner {
 		o.NumRetries = migrationDefaultNumRetries
 	}
 	return &MigrationRunner{
-		supplier: s,
-		done:     make(chan struct{}),
-		options:  o,
+		supplier:  s,
+		done:      make(chan struct{}),
+		options:   o,
+		mutexProv: provider,
 	}
 }
 
@@ -100,9 +106,26 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 func (r *MigrationRunner) Run() error {
 	go func() {
 		ctx, cancelFn := context.WithCancel(context.Background())
+		r.mu.Lock()
+		r.cancelFn = cancelFn
+		r.mu.Unlock()
 		defer cancelFn()
 		defer close(r.done)
-		r.cancelFn = cancelFn
+
+		// cluster wide mutex so only one instance will run migrations
+		mutex := r.mutexProv.NewMutex("async_migration")
+		locked := make(chan struct{})
+		// locking in a goroutine to allow for cancelation of context
+		go func() {
+			mutex.Lock()
+			locked <- struct{}{}
+		}()
+		select {
+		case <-locked:
+		case <-ctx.Done():
+			return
+		}
+		defer mutex.Unlock()
 
 		for _, m := range r.migrations {
 			// function that will try to execute migration
@@ -165,6 +188,8 @@ func (r *MigrationRunner) WaitWithTimeout(timeout time.Duration) {
 
 // Cancel running migrations
 func (r *MigrationRunner) Cancel() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	if r.cancelFn != nil {
 		r.cancelFn()
 	}
