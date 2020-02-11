@@ -694,7 +694,7 @@ func TestHookNotificationWillBeSent(t *testing.T) {
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIds[0])
 	assert.NoError(t, err)
 	newMentions := hooks.NotificationWillBeSent(nil, nil, mentions)
-	assert.Equal(t, 2, len(newMentions.Mentions))
+	assert.Len(t, newMentions.Mentions, 2)
 	assert.NotContains(t, newMentions.Mentions, "user1")
 	assert.Contains(t, newMentions.Mentions, "user2")
 	assert.Contains(t, newMentions.Mentions, "user3")
