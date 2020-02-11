@@ -75,7 +75,7 @@ func TestUserPreUpdate(t *testing.T) {
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 	user := User{Username: "user"}
 	user.SetDefaultNotifications()
-	assert.Equalf(t, user.NotifyProps["mention_keys"], "user,@user", "default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "", "default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
 
 	user.Username = "person"
 	user.UpdateMentionKeysFromUsername("user")
