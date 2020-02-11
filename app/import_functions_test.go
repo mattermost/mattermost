@@ -3065,19 +3065,24 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 	t.Run("import with attachment", func(t *testing.T) {
 		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		attachments := GetAttachments(user3.Id, th, t)
 		require.Len(t, attachments, 2)
 		assert.Contains(t, attachments[0].Path, team.Id)
 		assert.Contains(t, attachments[1].Path, team.Id)
 		AssertFileIdsInPost(attachments, th, t)
+
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
 		data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
 		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		attachments := GetAttachments(user3.Id, th, t)
 		require.Len(t, attachments, 1)

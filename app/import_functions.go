@@ -915,7 +915,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, reply)
 		}
-		postsWithData = append(postsWithData, postAndData{post: post, replyData: &replyData})
+		postsWithData = append(postsWithData, postAndData{post: reply, replyData: &replyData})
 	}
 
 	if len(postsForCreateList) > 0 {
@@ -1136,10 +1136,8 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		}
 	}
 
-	for _, post := range postsForOverwriteList {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
-			return err
-		}
+	if _, err := a.Srv.Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+		return err
 	}
 
 	var lastPostWithData *postAndData
@@ -1405,10 +1403,8 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 			return err
 		}
 	}
-	for _, post := range postsForOverwriteList {
-		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
-			return err
-		}
+	if _, err := a.Srv.Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {
+		return err
 	}
 
 	for _, postWithData := range postsWithData {
