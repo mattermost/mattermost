@@ -145,7 +145,7 @@ func (l *Logger) StdLogWriter() io.Writer {
 }
 
 // StdErrPanicLogWriter returns a writer that can be hooked up to the output of a golang standard logger
-// only panic will be interpreted as log entry.
+// all of the stderr will be interpreted as log entry.
 func (l *Logger) StdErrPanicLogWriter() io.Writer {
 	newLogger := *l
 	newLogger.zap = newLogger.zap.WithOptions(zap.AddCallerSkip(4), getStdLogOption())
