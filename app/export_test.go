@@ -44,8 +44,7 @@ func TestReactionsOfPost(t *testing.T) {
 }
 
 func TestExportUserNotifyProps(t *testing.T) {
-
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
@@ -113,7 +112,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestDirCreationForEmoji(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
@@ -123,11 +122,11 @@ func TestDirCreationForEmoji(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	emoji := &model.Emoji{
-		Id: th.BasicUser.Id,
+		Id: model.NewId(),
 	}
 
 	// Creating a dir named `exported_emoji_test` in the root of the repo
