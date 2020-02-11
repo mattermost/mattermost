@@ -143,13 +143,15 @@ func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("Get empty list", func(t *testing.T) {
-		teams, err := ss.Team().GetByNames([]string{})
+		var teams []*model.Team
+		teams, err = ss.Team().GetByNames([]string{})
 		require.Nil(t, err)
 		require.Empty(t, teams)
 	})
 
 	t.Run("Get existing teams", func(t *testing.T) {
-		teams, err := ss.Team().GetByNames([]string{o1.Name, o2.Name})
+		var teams []*model.Team
+		teams, err = ss.Team().GetByNames([]string{o1.Name, o2.Name})
 		require.Nil(t, err)
 		teamsIds := []string{}
 		for _, team := range teams {
@@ -185,7 +187,8 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("Get existing team", func(t *testing.T) {
-		team, err := ss.Team().GetByName(o1.Name)
+		var team *model.Team
+		team, err = ss.Team().GetByName(o1.Name)
 		require.Nil(t, err)
 		require.Equal(t, *team, o1, "invalid returned team")
 	})
