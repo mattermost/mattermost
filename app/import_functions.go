@@ -992,11 +992,11 @@ func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *
 	uniqueUsernames := utils.RemoveDuplicatesFromStringArray(usernames)
 	allUsers, err := a.Srv.Store.User().GetProfilesByUsernames(uniqueUsernames, nil)
 	if err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if len(allUsers) != len(uniqueUsernames) {
-		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
 	}
 
 	users := make(map[string]*model.User)
@@ -1009,7 +1009,7 @@ func (a *App) getUsersByUsernames(usernames []string) (map[string]*model.User, *
 func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.AppError) {
 	allTeams, err := a.Srv.Store.Team().GetByNames(names)
 	if err != nil {
-		return nil, model.NewAppError("BulkImport", "app.import.import_post.some_user_not_found.error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	teams := make(map[string]*model.Team)
