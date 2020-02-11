@@ -9,6 +9,54 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
+	testCases := []struct {
+		Name             string
+		Permissions      []string
+		PatchPermissions []string
+		Expected         []string
+	}{
+		{
+			"Empty patch returns empty slice",
+			[]string{},
+			[]string{},
+			[]string{},
+		},
+		{
+			"Adds permissions to empty initial permissions list",
+			[]string{},
+			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_ADD_REACTION.Id},
+			[]string{CHANNEL_MODERATED_PERMISSIONS[0], CHANNEL_MODERATED_PERMISSIONS[1]},
+		},
+		{
+			"Ignores non moderated permissions in initial permissions list",
+			[]string{PERMISSION_ASSIGN_BOT.Id},
+			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_REMOVE_REACTION.Id},
+			[]string{CHANNEL_MODERATED_PERMISSIONS[0], CHANNEL_MODERATED_PERMISSIONS[1]},
+		},
+		{
+			"Adds removed moderated permissions from initial permissions list",
+			[]string{PERMISSION_CREATE_POST.Id},
+			[]string{},
+			[]string{PERMISSION_CREATE_POST.Id},
+		},
+		{
+			"No changes returns empty slice",
+			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_ASSIGN_BOT.Id},
+			[]string{PERMISSION_CREATE_POST.Id},
+			[]string{},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			baseRole := &Role{Permissions: tc.Permissions}
+			rolePatch := &RolePatch{Permissions: &tc.PatchPermissions}
+			result := ChannelModeratedPermissionsChangedByPatch(baseRole, rolePatch)
+			assert.ElementsMatch(t, tc.Expected, result)
+		})
+	}
+}
+
 func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 	createPosts := CHANNEL_MODERATED_PERMISSIONS[0]
 	createReactions := CHANNEL_MODERATED_PERMISSIONS[1]
