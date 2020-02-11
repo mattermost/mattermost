@@ -119,7 +119,7 @@ func TestCORSRequestHandling(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			th := SetupConfig(func(cfg *model.Config) {
+			th := SetupConfig(t, func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowCorsFrom = testcase.AllowCorsFrom
 				*cfg.ServiceSettings.CorsExposedHeaders = testcase.CorsExposedHeaders
 				*cfg.ServiceSettings.CorsAllowCredentials = testcase.CorsAllowCredentials

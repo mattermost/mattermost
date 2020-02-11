@@ -34,11 +34,11 @@ func TestUpdateConfig(t *testing.T) {
 
 	th.App.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
-		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.SiteURL = "foo"
+		*cfg.ServiceSettings.SiteURL = "http://foo.com"
 	})
 }
 
