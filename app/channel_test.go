@@ -1305,9 +1305,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[2]
 	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[3]
 
-	patchTrue := true
-	patchFalse := false
-
 	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
 
 	testCases := []struct {
@@ -1324,7 +1321,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1338,7 +1335,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1352,7 +1349,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1366,7 +1363,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1380,7 +1377,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1394,7 +1391,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1408,7 +1405,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
@@ -1422,7 +1419,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
 				},
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
@@ -1434,8 +1431,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &nonChannelModeratedPermission,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchFalse,
-						Guests:  &patchFalse,
+						Members: model.NewBool(false),
+						Guests:  model.NewBool(false),
 					},
 				},
 			},
@@ -1448,8 +1445,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchTrue,
-						Guests:  &patchFalse,
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(false),
 					},
 				},
 			},
@@ -1463,8 +1460,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchFalse,
-						Guests:  &patchTrue,
+						Members: model.NewBool(false),
+						Guests:  model.NewBool(true),
 					},
 				},
 			},
@@ -1478,7 +1475,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchFalse,
+						Members: model.NewBool(false),
 					},
 				},
 			},
@@ -1503,28 +1500,28 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				{
 					Name: &createPosts,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchTrue,
-						Guests:  &patchTrue,
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
 					},
 				},
 				{
 					Name: &createReactions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchTrue,
-						Guests:  &patchTrue,
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
 					},
 				},
 				{
 					Name: &channelMentions,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchTrue,
-						Guests:  &patchTrue,
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
 					},
 				},
 				{
 					Name: &manageMembers,
 					Roles: &model.ChannelModeratedRolesPatch{
-						Members: &patchTrue,
+						Members: model.NewBool(true),
 					},
 				},
 			},

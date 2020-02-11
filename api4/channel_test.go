@@ -2992,7 +2992,7 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestGetChannelModerations(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -3108,8 +3108,6 @@ func TestPatchChannelModerations(t *testing.T) {
 	channel := th.BasicChannel
 
 	emptyPatch := []*model.ChannelModerationPatch{}
-	patchFalse := false
-	patchTrue := true
 
 	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
 
@@ -3152,7 +3150,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		patch := []*model.ChannelModerationPatch{
 			{
 				Name:  &createPosts,
-				Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
 			},
 		}
 
@@ -3189,7 +3187,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		patch := []*model.ChannelModerationPatch{
 			{
 				Name:  &createPosts,
-				Roles: &model.ChannelModeratedRolesPatch{Members: &patchTrue},
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
 			},
 		}
 

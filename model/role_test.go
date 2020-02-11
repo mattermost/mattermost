@@ -63,9 +63,6 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 	manageMembers := CHANNEL_MODERATED_PERMISSIONS[2]
 	channelMentions := CHANNEL_MODERATED_PERMISSIONS[3]
 
-	patchTrue := true
-	patchFalse := false
-
 	basePermissions := []string{
 		PERMISSION_ADD_REACTION.Id,
 		PERMISSION_REMOVE_REACTION.Id,
@@ -98,7 +95,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 			},
 			"members",
@@ -110,7 +107,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Guests: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(true)},
 				},
 			},
 			"members",
@@ -122,7 +119,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 			},
 			"guests",
@@ -134,15 +131,15 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 			},
 			"members",
@@ -154,15 +151,15 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Guests: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Guests: NewBool(false)},
 				},
 			},
 			"guests",
@@ -174,19 +171,19 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 				{
 					Name:  &manageMembers,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 				{
 					Name:  &channelMentions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 				{
 					Name:  &createPosts,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 			},
 			"members",
@@ -198,7 +195,7 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 			},
 			"members",
@@ -210,11 +207,11 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 			[]*ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchFalse},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(false)},
 				},
 				{
 					Name:  &createPosts,
-					Roles: &ChannelModeratedRolesPatch{Members: &patchTrue},
+					Roles: &ChannelModeratedRolesPatch{Members: NewBool(true)},
 				},
 			},
 			"members",
