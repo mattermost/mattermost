@@ -764,10 +764,10 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	inheritedGuestPermissions := GetChannelModeratedPermissions(inheritedGuestRole.Permissions)
 
 	for _, moderationPatch := range channelModerationsPatch {
-		if moderationPatch.Roles["members"] && !inheritedMemberPermissions[*moderationPatch.Name] {
+		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !inheritedMemberPermissions[*moderationPatch.Name] {
 			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
 		}
-		if moderationPatch.Roles["guests"] && !inheritedGuestPermissions[*moderationPatch.Name] {
+		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !inheritedGuestPermissions[*moderationPatch.Name] {
 			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
 		}
 	}

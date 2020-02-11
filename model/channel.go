@@ -100,8 +100,13 @@ type ChannelModeratedRole struct {
 }
 
 type ChannelModerationPatch struct {
-	Name  *string         `json:"name"`
-	Roles map[string]bool `json:"roles"`
+	Name  *string                     `json:"name"`
+	Roles *ChannelModeratedRolesPatch `json:"roles"`
+}
+
+type ChannelModeratedRolesPatch struct {
+	Guests  *bool `json:"guests"`
+	Members *bool `json:"members"`
 }
 
 // ChannelSearchOpts contains options for searching channels.

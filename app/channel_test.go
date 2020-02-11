@@ -1300,17 +1300,20 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 	channel := th.BasicChannel
 
-	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_CREATE_POST.Id]
-	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_ADD_REACTION.Id]
-	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_USE_CHANNEL_MENTIONS.Id]
-	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id]
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
+	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[1]
+	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[2]
+	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[3]
+
+	patchTrue := true
+	patchFalse := false
 
 	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
 
 	testCases := []struct {
 		Name                        string
 		ChannelModerationsPatch     []*model.ChannelModerationPatch
-		PermissionsModeratedByPatch map[string]map[string]map[string]bool
+		PermissionsModeratedByPatch map[string]*model.ChannelModeratedRoles
 		InheritedMemberPermissions  []string
 		InheritedGuestPermissions   []string
 		ShouldError                 bool
@@ -1321,15 +1324,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: map[string]bool{"members": false},
+					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createPosts: {
-					"members": {
-						"value":   false,
-						"enabled": true,
-					},
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1338,15 +1338,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: map[string]bool{"members": false},
+					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createReactions: {
-					"members": {
-						"value":   false,
-						"enabled": true,
-					},
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1355,15 +1352,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: map[string]bool{"members": false},
+					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				channelMentions: {
-					"members": {
-						"value":   false,
-						"enabled": true,
-					},
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1372,15 +1366,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: map[string]bool{"members": false},
+					Roles: &model.ChannelModeratedRolesPatch{Members: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				manageMembers: {
-					"members": {
-						"value":   false,
-						"enabled": true,
-					},
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1389,15 +1380,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createPosts,
-					Roles: map[string]bool{"guests": false},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createPosts: {
-					"guests": {
-						"value":   false,
-						"enabled": true,
-					},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1406,15 +1394,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &createReactions,
-					Roles: map[string]bool{"guests": false},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createReactions: {
-					"guests": {
-						"value":   false,
-						"enabled": true,
-					},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1423,15 +1408,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &channelMentions,
-					Roles: map[string]bool{"guests": false},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				channelMentions: {
-					"guests": {
-						"value":   false,
-						"enabled": true,
-					},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
 		},
@@ -1440,10 +1422,10 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name:  &manageMembers,
-					Roles: map[string]bool{"guests": false},
+					Roles: &model.ChannelModeratedRolesPatch{Guests: &patchFalse},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			ShouldError:                 true,
 		},
 		{
@@ -1451,13 +1433,13 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &nonChannelModeratedPermission,
-					Roles: map[string]bool{
-						"members": false,
-						"guests":  false,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchFalse,
+						Guests:  &patchFalse,
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			ShouldError:                 true,
 		},
 		{
@@ -1465,13 +1447,13 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &createPosts,
-					Roles: map[string]bool{
-						"members": true,
-						"guests":  false,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchTrue,
+						Guests:  &patchFalse,
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			InheritedMemberPermissions:  []string{},
 			ShouldError:                 true,
 		},
@@ -1480,13 +1462,13 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &createPosts,
-					Roles: map[string]bool{
-						"members": false,
-						"guests":  true,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchFalse,
+						Guests:  &patchTrue,
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			InheritedGuestPermissions:   []string{},
 			ShouldError:                 true,
 		},
@@ -1495,33 +1477,21 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &createPosts,
-					Roles: map[string]bool{
-						"members": false,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchFalse,
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createPosts: {
-					"members": {
-						"value":   false,
-						"enabled": true,
-					},
-					"guests": {
-						"value":   false,
-						"enabled": false,
-					},
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+					Guests:  &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 				createReactions: {
-					"guests": {
-						"value":   false,
-						"enabled": false,
-					},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 				channelMentions: {
-					"guests": {
-						"value":   false,
-						"enabled": false,
-					},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 			},
 			InheritedGuestPermissions: []string{},
@@ -1532,33 +1502,33 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &createPosts,
-					Roles: map[string]bool{
-						"members": true,
-						"guests":  true,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchTrue,
+						Guests:  &patchTrue,
 					},
 				},
 				{
 					Name: &createReactions,
-					Roles: map[string]bool{
-						"members": true,
-						"guests":  true,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchTrue,
+						Guests:  &patchTrue,
 					},
 				},
 				{
 					Name: &channelMentions,
-					Roles: map[string]bool{
-						"members": true,
-						"guests":  true,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchTrue,
+						Guests:  &patchTrue,
 					},
 				},
 				{
 					Name: &manageMembers,
-					Roles: map[string]bool{
-						"members": true,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: &patchTrue,
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]map[string]map[string]bool{},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
 			ShouldHaveNoChannelScheme:   true,
 		},
 	}
@@ -1605,22 +1575,22 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 			for _, moderation := range moderations {
 				// If the permission is not found in the expected modified permissions table then require it to be true
-				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]["members"]; found {
-					require.Equal(t, moderation.Roles["members"]["value"], permission["value"])
-					require.Equal(t, moderation.Roles["members"]["enabled"], permission["enabled"])
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Members != nil {
+					require.Equal(t, moderation.Roles.Members.Value, permission.Members.Value)
+					require.Equal(t, moderation.Roles.Members.Enabled, permission.Members.Enabled)
 				} else {
-					require.Equal(t, moderation.Roles["members"]["value"], true)
-					require.Equal(t, moderation.Roles["members"]["enabled"], true)
+					require.Equal(t, moderation.Roles.Members.Value, true)
+					require.Equal(t, moderation.Roles.Members.Enabled, true)
 				}
 
-				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]["guests"]; found {
-					require.Equal(t, moderation.Roles["guests"]["value"], permission["value"])
-					require.Equal(t, moderation.Roles["guests"]["enabled"], permission["enabled"])
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
+					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
+					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
 				} else if moderation.Name == manageMembers {
-					require.Empty(t, moderation.Roles["guests"])
+					require.Empty(t, moderation.Roles.Guests)
 				} else {
-					require.Equal(t, moderation.Roles["guests"]["value"], true)
-					require.Equal(t, moderation.Roles["guests"]["enabled"], true)
+					require.Equal(t, moderation.Roles.Guests.Value, true)
+					require.Equal(t, moderation.Roles.Guests.Enabled, true)
 				}
 			}
 		})
