@@ -299,6 +299,7 @@ func (logr *Logr) Flush() error {
 func (logr *Logr) Shutdown() error {
 	logr.mux.Lock()
 	if logr.shutdown {
+		logr.mux.Unlock()
 		return errors.New("Shutdown called again after shut down")
 	}
 	logr.shutdown = true

@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/Masterminds/squirrel v1.2.0
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/armon/go-metrics v0.3.0 // indirect
+	github.com/armon/go-metrics v0.3.2 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible
@@ -56,7 +56,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/miekg/dns v1.1.27 // indirect
-	github.com/minio/minio-go/v6 v6.0.46
+	github.com/minio/minio-go/v6 v6.0.47
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.4.0
+	github.com/prometheus/client_golang v1.4.1
 	github.com/rs/cors v1.7.0
 	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -84,21 +84,22 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
-	github.com/wiggin77/logr v1.0.0
+	github.com/wiggin77/logr v1.0.1
 	github.com/wiggin77/logrus4logr v1.0.0
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
-	golang.org/x/crypto v0.0.0-20200204104054-c9f3fb736b72
+	golang.org/x/crypto v0.0.0-20200210222208-86ce3cb69678
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
 	golang.org/x/lint v0.0.0-20200130185559-910be7a94367 // indirect
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200204074204-1cc6d1ef6c74
-	google.golang.org/genproto v0.0.0-20200204135345-fa8e72b47b90 // indirect
+	golang.org/x/tools v0.0.0-20200211032402-1e13d9580f8b
+	google.golang.org/genproto v0.0.0-20200210034751-acff78025515 // indirect
+	google.golang.org/grpc v1.27.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
