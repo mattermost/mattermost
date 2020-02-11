@@ -44,7 +44,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
 			log:     wrappedLogger,
-			apiImpl: &apiMetricsWrapper{pluginInfo.Manifest.Id, apiImpl, metrics},
+			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -81,7 +81,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 		return nil, err
 	}
 
-	sup.hooks = &hooksMetricsWrapper{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
+	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
 
 	impl, err := sup.hooks.Implemented()
 	if err != nil {
