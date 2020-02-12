@@ -560,6 +560,9 @@ type RoleStore interface {
 	GetByNames(names []string) ([]*model.Role, *model.AppError)
 	Delete(roleId string) (*model.Role, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+
+	// HigherScopedPermissions retrieves the higher-scoped permissions of a list of role names. The higher-scope
+	// (either team scheme or system scheme) is determined based on whether the team has a scheme or not.
 	HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError)
 }
 
