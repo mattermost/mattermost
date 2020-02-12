@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message"
+    "translation": "プッシュ通知メッセージを構築する際にエラーが発生しました"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message"
+    "translation": "プッシュ通知応答メッセージを構築する際にエラーが発生しました"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2057,14 +2057,6 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "このチャンネルは %v からこのチームへ移動されました。"
-  },
-  {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "ゲストアカウントは無効化されています。"
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "現在のライセンスではゲストアカウントはサポートされていません"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",

@@ -2059,14 +2059,6 @@
     "translation": "Kanał został przeniesiony do tego zespołu z %v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Konta gości są wyłączone."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Twoja licencja nie wspiera kont gości"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Nie można usunąć użytkownika z zespołu ograniczonego do grupy."
   },

@@ -2059,14 +2059,6 @@
     "translation": "此频道已从 %v 移至此团队。"
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "游客帐号已停用。"
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "您的许可证不支持游客帐号"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "无法从组受限团队移除用户。"
   },

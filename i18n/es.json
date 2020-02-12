@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message"
+    "translation": "Ocurrió un error construyendo el mensaje de la notificación push"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message"
+    "translation": "Ocurrió un error construyendo el mensaje de acuso de recibo de la notificación push"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2057,14 +2057,6 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "Este canal ha sido movido a este equipo desde %v."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Las cuentas de huéspedes están deshabilitadas."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "La licencia actual no es compatible con cuentas de huéspedes"
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
