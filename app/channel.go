@@ -828,14 +828,32 @@ func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, inhe
 	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
 		roles := &model.ChannelModeratedRoles{}
 
-		roles.Members = &model.ChannelModeratedRole{
-			Value:   memberPermissions[permissionKey],
-			Enabled: inheritedMemberPermissions[permissionKey],
-		}
-
-		if permissionKey == "manage_members" {
+		switch permissionKey {
+		// Remove `manage_members` from guests
+		case model.CHANNEL_MODERATED_PERMISSIONS[2]:
 			roles.Guests = nil
-		} else {
+
+			roles.Members = &model.ChannelModeratedRole{
+				Value:   memberPermissions[permissionKey],
+				Enabled: inheritedMemberPermissions[permissionKey],
+			}
+		// Tie `use_channel_mentions` to `create_posts`
+		case model.PERMISSION_USE_CHANNEL_MENTIONS.Id:
+			roles.Members = &model.ChannelModeratedRole{
+				Value:   memberPermissions[permissionKey] && memberPermissions[model.PERMISSION_CREATE_POST.Id],
+				Enabled: inheritedMemberPermissions[permissionKey] && inheritedMemberPermissions[model.PERMISSION_CREATE_POST.Id],
+			}
+
+			roles.Guests = &model.ChannelModeratedRole{
+				Value:   guestPermissions[permissionKey] && guestPermissions[model.PERMISSION_CREATE_POST.Id],
+				Enabled: inheritedGuestPermissions[permissionKey] && inheritedGuestPermissions[model.PERMISSION_CREATE_POST.Id],
+			}
+		default:
+			roles.Members = &model.ChannelModeratedRole{
+				Value:   memberPermissions[permissionKey],
+				Enabled: inheritedMemberPermissions[permissionKey],
+			}
+
 			roles.Guests = &model.ChannelModeratedRole{
 				Value:   guestPermissions[permissionKey],
 				Enabled: inheritedGuestPermissions[permissionKey],
