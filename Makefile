@@ -205,7 +205,7 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-	$(GO) get -u github.com/reflog/struct2interface
+	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
 	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
