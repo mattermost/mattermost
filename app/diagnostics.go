@@ -635,8 +635,10 @@ func (a *App) trackConfig() {
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	plugins, appErr := pluginsEnvironment.Available()
-	if appErr != nil {
+
+	if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+		mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+	} else {
 		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
 		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
 		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
