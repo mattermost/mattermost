@@ -34,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+// AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
 	AcceptLanguage() string
 	AccountMigration() einterfaces.AccountMigrationInterface
