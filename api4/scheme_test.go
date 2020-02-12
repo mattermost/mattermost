@@ -621,7 +621,7 @@ func TestDeleteScheme(t *testing.T) {
 
 		// Make sure this scheme is in use by a team.
 		team, err := th.App.Srv.Store.Team().Save(&model.Team{
-			Name:        model.NewId(),
+			Name:        "zz" + model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
 			Type:        model.TEAM_OPEN,

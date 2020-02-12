@@ -70,7 +70,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:        utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
+			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TEAM_OPEN,
 		}
