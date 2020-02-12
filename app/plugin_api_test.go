@@ -1288,12 +1288,12 @@ func TestApiMetrics(t *testing.T) {
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
 
 		// Don't care about these mocks
-		metricsMock.On("ObservePluginHookDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
 		// Setup mocks
-		metricsMock.On("ObservePluginApiDuration", pluginId, "UpdateUser", mock.Anything).Return()
+		metricsMock.On("ObservePluginApiDuration", pluginId, "UpdateUser", true, mock.Anything).Return()
 
 		_, _, activationErr := env.Activate(pluginId)
 		require.NoError(t, activationErr)

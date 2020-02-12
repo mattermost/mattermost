@@ -166,14 +166,14 @@ func (_m *MetricsInterface) ObserveHttpRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
-// ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, elapsed
-func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, elapsed float64) {
-	_m.Called(pluginID, apiName, elapsed)
+// ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
+func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, success bool, elapsed float64) {
+	_m.Called(pluginID, apiName, success, elapsed)
 }
 
-// ObservePluginHookDuration provides a mock function with given fields: pluginID, hookName, elapsed
-func (_m *MetricsInterface) ObservePluginHookDuration(pluginID string, hookName string, elapsed float64) {
-	_m.Called(pluginID, hookName, elapsed)
+// ObservePluginHookDuration provides a mock function with given fields: pluginID, hookName, success, elapsed
+func (_m *MetricsInterface) ObservePluginHookDuration(pluginID string, hookName string, success bool, elapsed float64) {
+	_m.Called(pluginID, hookName, success, elapsed)
 }
 
 // ObservePluginMultiHookDuration provides a mock function with given fields: elapsed

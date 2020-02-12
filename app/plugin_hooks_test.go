@@ -1088,14 +1088,14 @@ func TestHookMetrics(t *testing.T) {
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating
-		metricsMock.On("ObservePluginHookDuration", pluginId, "Implemented", mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnActivate", mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnDeactivate", mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnConfigurationChange", mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "UserHasBeenCreated", mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "Implemented", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnActivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnDeactivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnConfigurationChange", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "UserHasBeenCreated", true, mock.Anything).Return()
 
 		// Don't care about these calls.
-		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
