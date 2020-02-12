@@ -341,10 +341,10 @@ type apiTimerLayer struct {
 	metrics  einterfaces.MetricsInterface
 }
 
-func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string) {
+func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
 	if api.metrics != nil {
 		elapsedTime := float64(timePkg.Since(startTime)) / float64(timePkg.Second)
-		api.metrics.ObservePluginApiDuration(api.pluginID, name, elapsedTime)
+		api.metrics.ObservePluginApiDuration(api.pluginID, name, success, elapsedTime)
 	}
 }
 
@@ -353,7 +353,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string) {
 func (api *apiTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} api.apiImpl.{{.Name}}({{valuesOnly .Params}})
-	api.recordTime(startTime, "{{.Name}}")
+	api.recordTime(startTime, "{{.Name}}", true)
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{ end -}}
 }
 
@@ -383,10 +383,10 @@ type hooksTimerLayer struct {
 	metrics   einterfaces.MetricsInterface
 }
 
-func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string) {
+func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
 	if hooks.metrics != nil {
 		elapsedTime := float64(timePkg.Since(startTime)) / float64(timePkg.Second)
-		hooks.metrics.ObservePluginHookDuration(hooks.pluginID, name, elapsedTime)
+		hooks.metrics.ObservePluginHookDuration(hooks.pluginID, name, success, elapsedTime)
 	}
 }
 
@@ -395,7 +395,7 @@ func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string) {
 func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} hooks.hooksImpl.{{.Name}}({{valuesOnly .Params}})
-	hooks.recordTime(startTime, "{{.Name}}")
+	hooks.recordTime(startTime, "{{.Name}}", true)
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{end -}}
 }
 
