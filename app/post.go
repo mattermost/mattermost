@@ -1029,6 +1029,8 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 			if p.DeleteAt == 0 {
 				postList.AddPost(p)
 				postList.AddOrder(p.Id)
+			} else {
+				mlog.Warn("Elasticsearch indexes out of sync due to post marked deleted in database. Please trigger a reindex from the System Console", mlog.String("post_id", p.Id))
 			}
 		}
 	}
