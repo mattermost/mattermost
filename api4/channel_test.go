@@ -636,9 +636,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != numInitialChannelsForTeam+3 {
-		t.Fatal("should be 3 deleted channels")
-	}
+	require.Len(t, channels, numInitialChannelsForTeam+3)
 
 	// Login as different user and create private channel
 	th.LoginBasic2()
@@ -650,9 +648,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != numInitialChannelsForTeam+3 {
-		t.Fatal("should still be 3 deleted channels", len(channels), numInitialChannelsForTeam+3)
-	}
+	require.Len(t, channels, numInitialChannelsForTeam+3)
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
@@ -976,18 +972,14 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 	found := false
 	for _, c := range channels {
-		if c.Type != model.CHANNEL_OPEN {
-			t.Fatal("should only return public channels")
-		}
+		require.Equal(t, model.CHANNEL_OPEN, c.Type)
 
 		if c.Id == th.BasicChannel.Id {
 			found = true
 		}
 	}
 
-	if !found {
-		t.Fatal("didn't find channel")
-	}
+	require.True(t, found)
 
 	search.Term = th.BasicPrivateChannel.Name
 	Client.DeleteChannel(th.BasicPrivateChannel.Id)
@@ -1002,9 +994,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 		}
 	}
 
-	if !found {
-		t.Fatal("couldn't find private channel")
-	}
+	require.True(t, found)
 
 	search.Term = ""
 	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)

@@ -1681,7 +1681,7 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 				return
 			}
 		case <-time.After(5 * time.Second):
-			t.Fatalf("failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
+			require.Failf(t, "failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
 		}
 	}
 }
@@ -2713,7 +2713,7 @@ func TestSetProfileImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	buser, err := th.App.GetUser(user.Id)
@@ -2753,7 +2753,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)

@@ -623,7 +623,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 					assert.Nil(t, webhookPost.Props["override_username"])
 				}
 			case <-time.After(5 * time.Second):
-				t.Fatal("Timeout, webhook response not created as post")
+				require.Fail(t, "Timeout, webhook response not created as post")
 			}
 
 		})

@@ -32,7 +32,7 @@ func TestChannelMemberIsValid(t *testing.T) {
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
 	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
+		require.Fail(t, "should be invalid")
 	}*/
 
 	o.NotifyProps["desktop"] = "junk"
