@@ -349,7 +349,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			props["name"] = team.Name
 			data := model.MapToJson(props)
 
-			if err := a.Store().Token().Save(token); err != nil {
+			if err := a.Srv().Store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
@@ -437,7 +437,7 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			props["name"] = team.Name
 			data := model.MapToJson(props)
 
-			if err := a.Store().Token().Save(token); err != nil {
+			if err := a.Srv().Store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}

@@ -728,7 +728,6 @@ type AppIface interface {
 	SetStatusOffline(userId string, manual bool)
 	SetStatusOnline(userId string, manual bool)
 	SetStatusOutOfOffice(userId string)
-	SetStore(s store.Store)
 	SetT(t goi18n.TranslateFunc)
 	SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
@@ -747,7 +746,6 @@ type AppIface interface {
 	Srv() *Server
 	StartPushNotificationsHubWorkers()
 	StopPushNotificationsHubWorkers()
-	Store() store.Store
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

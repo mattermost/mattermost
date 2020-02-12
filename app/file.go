@@ -185,7 +185,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	teams, err := a.Store().Team().GetTeamsByUserId(post.UserId)
+	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
 		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
@@ -237,7 +237,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	channel, errCh := a.Store().Channel().Get(post.ChannelId, true)
+	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
@@ -290,7 +290,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Store().Post().Get(post.Id, false)
+	result, err := a.Srv().Store.Post().Get(post.Id, false)
 	if err != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -299,7 +299,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Store().FileInfo().GetForPost(post.Id, true, false, false)
+		fileInfos, err = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
 			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
@@ -314,7 +314,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, err = a.Store().FileInfo().Save(info); err != nil {
+		if _, err = a.Srv().Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
@@ -337,7 +337,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, err = a.Store().Post().Update(newPost, post); err != nil {
+	if _, err = a.Srv().Store.Post().Update(newPost, post); err != nil {
 		mlog.Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
@@ -571,7 +571,7 @@ func (t *UploadFileTask) init(a *App) {
 
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
-	t.saveToDatabase = a.Store().FileInfo().Save
+	t.saveToDatabase = a.Srv().Store.FileInfo().Save
 }
 
 // UploadFileX uploads a single file as specified in t. It applies the upload
@@ -950,7 +950,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		return nil, data, err
 	}
 
-	if _, err := a.Store().FileInfo().Save(info); err != nil {
+	if _, err := a.Srv().Store.FileInfo().Save(info); err != nil {
 		return nil, data, err
 	}
 
@@ -1094,7 +1094,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	return a.Store().FileInfo().Get(fileId)
+	return a.Srv().Store.FileInfo().Get(fileId)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -1117,7 +1117,7 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	now := model.GetMillis()
 
 	for _, fileId := range fileIds {
-		fileInfo, err := a.Store().FileInfo().Get(fileId)
+		fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
 		if err != nil {
 			return nil, err
 		}
@@ -1128,7 +1128,7 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if _, err := a.Store().FileInfo().Save(fileInfo); err != nil {
+		if _, err := a.Srv().Store.FileInfo().Save(fileInfo); err != nil {
 			return newFileIds, err
 		}
 
