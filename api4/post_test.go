@@ -112,6 +112,30 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
+	t.Run("creates a post that has channel mentions without the USE_CHANNEL_MENTIONS Permission", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @channel"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @all"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @here"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+	})
+
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC

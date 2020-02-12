@@ -624,6 +624,10 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
 func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		return false
+	}
+
 	if post.Type == model.POST_HEADER_CHANGE || post.Type == model.POST_PURPOSE_CHANGE {
 		return false
 	}
