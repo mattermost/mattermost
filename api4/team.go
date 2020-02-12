@@ -79,6 +79,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team")
 		return
 	}
+	team.Email = strings.ToLower(team.Email)
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_TEAM) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
@@ -151,6 +152,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team")
 		return
 	}
+	team.Email = strings.ToLower(team.Email)
 
 	// The team being updated in the payload must be the same one as indicated in the URL.
 	if team.Id != c.Params.TeamId {
@@ -969,6 +971,9 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailList := model.ArrayFromJson(r.Body)
+	for i := range emailList {
+		emailList[i] = strings.ToLower(emailList[i])
+	}
 
 	if len(emailList) == 0 {
 		c.SetInvalidParam("user_email")
@@ -1016,10 +1021,14 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	guestsInvite := model.GuestsInviteFromJson(r.Body)
+	for i, email := range guestsInvite.Emails {
+		guestsInvite.Emails[i] = strings.ToLower(email)
+	}
 	if err := guestsInvite.IsValid(); err != nil {
 		c.Err = err
 		return
 	}
+
 	if graceful {
 		invitesWithError, err := c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.App.Session.UserId)
 		if err != nil {
