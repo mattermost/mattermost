@@ -49,6 +49,7 @@ func TestGetRoleByName(t *testing.T) {
 	})
 }
 
+// testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -194,7 +195,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 		}
 	}
 
-	// test 48 combinations where the higher-scoped scheme is the SYSTEM scheme
+	// test 24 combinations where the higher-scoped scheme is the SYSTEM scheme
 	test(model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID)
 
 	// create a team scheme
@@ -211,6 +212,6 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	team, err = th.App.UpdateTeamScheme(team)
 	require.Nil(t, err)
 
-	// test 48 combinations where the higher-scoped scheme is a TEAM scheme
+	// test 24 combinations where the higher-scoped scheme is a TEAM scheme
 	test(teamScheme.DefaultChannelGuestRole, teamScheme.DefaultChannelUserRole, teamScheme.DefaultChannelAdminRole)
 }
