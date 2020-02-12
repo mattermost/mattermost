@@ -4848,7 +4848,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Berich Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10"
+    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
