@@ -581,7 +581,6 @@ func TestMaxPostSize(t *testing.T) {
 					Store: mockStore,
 				},
 			}
-			app.SetStore(mockStore)
 
 			assert.Equal(t, testCase.ExpectedMaxPostSize, app.MaxPostSize())
 		})
