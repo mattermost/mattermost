@@ -393,11 +393,11 @@ func (c *Context) RequireChannelName() *Context {
 	return c
 }
 
-func (c *Context) RequireEmail() *Context {
+func (c *Context) SanitizeEmail() *Context {
 	if c.Err != nil {
 		return c
 	}
-
+	c.Params.Email = strings.ToLower(c.Params.Email)
 	if !model.IsValidEmail(c.Params.Email) {
 		c.SetInvalidUrlParam("email")
 	}
