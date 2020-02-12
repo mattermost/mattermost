@@ -1953,14 +1953,14 @@ func (s *apiRPCServer) GetChannel(args *Z_GetChannelArgs, returns *Z_GetChannelR
 }
 
 type Z_GetChannelsArgs struct {
-	A *model.GetChannelsOptions
+	A model.GetChannelsOptions
 }
 type Z_GetChannelsReturns struct {
-	A *model.ChannelList
+	A []*model.Channel
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (g *apiRPCClient) GetChannels(options model.GetChannelsOptions) ([]*model.Channel, *model.AppError) {
 	_args := &Z_GetChannelsArgs{options}
 	_returns := &Z_GetChannelsReturns{}
 	if err := g.client.Call("Plugin.GetChannels", _args, _returns); err != nil {
@@ -1971,7 +1971,7 @@ func (g *apiRPCClient) GetChannels(options *model.GetChannelsOptions) (*model.Ch
 
 func (s *apiRPCServer) GetChannels(args *Z_GetChannelsArgs, returns *Z_GetChannelsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError)
+		GetChannels(options model.GetChannelsOptions) ([]*model.Channel, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannels(args.A)
 	} else {

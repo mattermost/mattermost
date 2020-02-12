@@ -351,8 +351,8 @@ type API interface {
 	// GetChannels gets channels.
 	//
 	// @tag Channel
-	// Minimum server version: 5.21
-	GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError)
+	// Minimum server version: 5.19
+	GetChannels(options model.GetChannelsOptions) ([]*model.Channel, *model.AppError)
 
 	// GetChannelByName gets a channel by its name, given a team id.
 	//

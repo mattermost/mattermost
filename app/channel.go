@@ -1286,7 +1286,7 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (a *App) GetChannelsWithOptions(opt model.GetChannelsOptions) ([]*model.Channel, *model.AppError) {
 	return a.Srv.Store.Channel().GetChannelsWithOptions(opt)
 }
 

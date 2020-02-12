@@ -595,20 +595,20 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 }
 
 // GetChannelsWithOptions provides a mock function with given fields: opt
-func (_m *ChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (_m *ChannelStore) GetChannelsWithOptions(opt model.GetChannelsOptions) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(opt)
 
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(*model.GetChannelsOptions) *model.ChannelList); ok {
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(model.GetChannelsOptions) []*model.Channel); ok {
 		r0 = rf(opt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.GetChannelsOptions) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(model.GetChannelsOptions) *model.AppError); ok {
 		r1 = rf(opt)
 	} else {
 		if ret.Get(1) != nil {

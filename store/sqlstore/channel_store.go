@@ -873,7 +873,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetChannelsWithOptions(opt model.GetChannelsOptions) ([]*model.Channel, *model.AppError) {
 
 	if err := opt.IsValid(); err != nil {
 		return nil, err
@@ -907,8 +907,9 @@ func (s SqlChannelStore) GetChannelsWithOptions(opt *model.GetChannelsOptions) (
 		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	channels := &model.ChannelList{}
-	if _, err = s.GetReplica().Select(channels, queryString, args...); err != nil {
+	channels := []*model.Channel{}
+
+	if _, err = s.GetReplica().Select(&channels, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetChannelsWithOptions", "store.sql_channel.get_channels_with_options.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

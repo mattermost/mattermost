@@ -330,7 +330,7 @@ func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppEr
 	return api.app.GetChannel(channelId)
 }
 
-func (api *PluginAPI) GetChannels(options *model.GetChannelsOptions) (*model.ChannelList, *model.AppError) {
+func (api *PluginAPI) GetChannels(options model.GetChannelsOptions) ([]*model.Channel, *model.AppError) {
 	return api.app.GetChannelsWithOptions(options)
 }
 

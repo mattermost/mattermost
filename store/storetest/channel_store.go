@@ -1032,7 +1032,7 @@ func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 		inputUserID      []string
 		inputChannelType []string
 		inputLimit       int
-		expected         *model.ChannelList
+		expected         []*model.Channel
 		expectedLength   int
 	}{
 		{
@@ -1055,13 +1055,13 @@ func testChannelStoreGetChannelsWithOptions(t *testing.T, ss store.Store) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			channels, err := ss.Channel().GetChannelsWithOptions(&model.GetChannelsOptions{
+			channels, err := ss.Channel().GetChannelsWithOptions(model.GetChannelsOptions{
 				UserIds:      tt.inputUserID,
 				ChannelTypes: tt.inputChannelType,
 				Page:         10,
 			})
 			require.Nil(t, err)
-			assert.Equal(t, tt.expectedLength, len(*channels))
+			assert.Equal(t, tt.expectedLength, len(channels))
 		})
 	}
 

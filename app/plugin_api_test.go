@@ -1013,11 +1013,15 @@ func TestPluginGetChannelsOptions(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			_, err := p.API.GetChannels(&model.GetChannelsOptions{
+			channels, err := p.API.GetChannels(model.GetChannelsOptions{
 				Page:         10,
 			})
 			if err != nil {
 				return nil, err.Error() + "failed get channels with options"
+			}
+
+			if len(channels) != 1 {
+				return nil, err.Error() + "should have rigth channel length"
 			}
 			return nil, "stub"
 		}
@@ -1026,7 +1030,8 @@ func TestPluginGetChannelsOptions(t *testing.T) {
 		}
 	`,
 		`{"id": "testplugingetchannelsoptions", "backend": {"executable": "backend.exe"}, "settings_schema": {
-	}}`, "testplugingetchannelsoptions", th.App)
+	}}`, "testplugingetchannelsoptions",
+		th.App)
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugingetchannelsoptions")
 	require.Nil(t, err)
