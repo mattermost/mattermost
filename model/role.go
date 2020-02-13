@@ -224,6 +224,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_EDIT_POST.Id,
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 		SchemeManaged: true,
@@ -242,6 +243,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_GET_PUBLIC_LINK.Id,
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 		SchemeManaged: true,
@@ -290,6 +292,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.team_post_all.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -301,6 +304,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.team_post_all_public.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -360,6 +364,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.system_post_all.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -371,6 +376,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.system_post_all_public.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,

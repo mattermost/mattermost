@@ -82,7 +82,7 @@ func IsApiCall(config configservice.ConfigService, r *http.Request) bool {
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
 
-func IsWebhookCall(a *app.App, r *http.Request) bool {
+func IsWebhookCall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")

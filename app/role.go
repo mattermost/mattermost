@@ -12,11 +12,11 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().Get(id)
+	return a.Srv().Store.Role().Get(id)
 }
 
 func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetAll()
+	return a.Srv().Store.Role().GetAll()
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
@@ -103,12 +103,12 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.BuiltIn = false
 	role.SchemeManaged = false
 
-	return a.Srv.Store.Role().Save(role)
+	return a.Srv().Store.Role().Save(role)
 
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	savedRole, err := a.Srv.Store.Role().Save(role)
+	savedRole, err := a.Srv().Store.Role().Save(role)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
 	message.Add("role", role.ToJson())
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		a.Publish(message)
 	})
 }

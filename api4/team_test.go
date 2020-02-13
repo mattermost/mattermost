@@ -1457,7 +1457,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv.Store.Token().Save(token))
+	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1468,7 +1468,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+	_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 	require.NotNil(t, err, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
@@ -1479,7 +1479,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	require.Nil(t, th.App.Srv.Store.Token().Save(token))
+	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1491,7 +1491,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	require.Nil(t, th.App.Srv.Store.Token().Save(token))
+	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1533,7 +1533,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	require.Nil(t, th.App.Srv.Store.Token().Save(token))
+	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 
