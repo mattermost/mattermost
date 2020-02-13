@@ -107,6 +107,7 @@ func TestMoveChannel(t *testing.T) {
 	// It should fail, unless removeDeactivatedMembers is true.
 	deacivatedUser := th.CreateUser()
 	channel2 := th.CreateChannel(sourceTeam)
+	defer th.App.PermanentDeleteChannel(channel2)
 
 	_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
 	require.Nil(t, err)
@@ -136,6 +137,7 @@ func TestMoveChannel(t *testing.T) {
 
 	channel3, err = th.App.CreateChannel(channel3, false)
 	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channel3)
 
 	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
 	assert.Nil(t, err)
@@ -208,6 +210,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(basicChannel2)
 	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
@@ -259,6 +262,7 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	defer th.TearDown()
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	defer th.App.PermanentDeleteChannel(channel)
 	require.Nil(t, err)
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
