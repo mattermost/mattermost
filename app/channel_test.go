@@ -394,33 +394,6 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
-<<<<<<< HEAD
-=======
-/*func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	// a user creates a channel
-	publicChannel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
-	require.Nil(t, err)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.Nil(t, histories[0].LeaveTime)
-
-	// the user leaves that channel
-	if err := th.App.LeaveChannel(publicChannel.Id, th.BasicUser.Id); err != nil {
-		t.Fatal("Failed to remove user from channel. Error: " + err.Message)
-	}
-	histories = store.Must(th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)).([]*model.ChannelMemberHistoryResult)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.NotNil(t, histories[0].LeaveTime)
-}*/
-
->>>>>>> master
 func TestLeaveDefaultChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
