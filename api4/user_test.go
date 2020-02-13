@@ -155,7 +155,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		ruser, resp := th.Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
@@ -165,7 +165,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after being used")
 
 		teams, err := th.App.GetTeamsForUser(ruser.Id)
@@ -180,7 +180,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, "")
@@ -197,7 +197,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, token.Token)
@@ -226,7 +226,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -244,7 +244,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
 		defer func() {
@@ -261,7 +261,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
@@ -1558,7 +1558,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	_, err := th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
+	_, err := th.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
 	require.Nil(t, err)
 
 	userAuth := &model.UserAuth{}
@@ -1591,7 +1591,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	_, err = th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(user2.Id, user2.Email)
 	require.Nil(t, err)
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
@@ -1742,7 +1742,7 @@ func TestUpdateUserActive(t *testing.T) {
 		CheckNoError(t, resp)
 
 		authData := model.NewId()
-		_, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+		_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 		require.Nil(t, err)
 
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
@@ -1933,7 +1933,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	CheckNoError(t, resp)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv.Store.User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
 
 	user2, resp := th.Client.CreateUser(&model.User{
 		Username: "a000000001" + model.NewId(),
@@ -1941,7 +1941,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	CheckNoError(t, resp)
-	defer th.App.Srv.Store.User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store.User().PermanentDelete(user2.Id)
 
 	rusers, resp := th.SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
 	CheckNoError(t, resp)
@@ -2377,7 +2377,7 @@ func TestResetPassword(t *testing.T) {
 		loc += 6
 		recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
 	}
-	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
+	recoveryToken, err := th.App.Srv().Store.Token().GetByToken(recoveryTokenString)
 	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
@@ -2402,7 +2402,7 @@ func TestResetPassword(t *testing.T) {
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	_, err = th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+	_, err = th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 	require.Nil(t, err)
 	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
@@ -3074,7 +3074,7 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	_, err := th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
+	_, err := th.App.Srv().Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
 	require.Nil(t, err)
 
 	sr = &model.SwitchRequest{

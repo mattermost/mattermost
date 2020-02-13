@@ -202,6 +202,10 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
+app-layers: ## Extract interface from App struct
+	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
+	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract
