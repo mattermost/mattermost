@@ -67,6 +67,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.4.0
 	github.com/prometheus/client_model v0.2.0
+	github.com/reflog/struct2interface v0.3.0 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -93,10 +94,11 @@ require (
 	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
+	golang.org/x/mod v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
 	golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9 // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200128002243-345141a36859
+	golang.org/x/tools v0.0.0-20200211205636-11eff242d136
 	google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b // indirect
 	google.golang.org/grpc v1.26.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

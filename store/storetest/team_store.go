@@ -1337,7 +1337,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1345,7 +1345,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1353,7 +1353,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1464,7 +1464,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1472,7 +1472,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1565,7 +1565,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1579,7 +1579,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1593,7 +1593,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1606,7 +1606,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1688,7 +1688,7 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(&model.Team{
 		DisplayName:      model.NewId(),
-		Name:             model.NewId(),
+		Name:             "zz" + model.NewId(),
 		Email:            MakeEmail(),
 		Type:             model.TEAM_INVITE,
 		GroupConstrained: model.NewBool(true),
@@ -1699,7 +1699,7 @@ func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
 
 	team2, err := ss.Team().Save(&model.Team{
 		DisplayName: model.NewId(),
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_INVITE,
 	})

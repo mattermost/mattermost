@@ -126,7 +126,7 @@ func TestCORSRequestHandling(t *testing.T) {
 			})
 			defer th.TearDown()
 
-			port := th.App.Srv.ListenAddr.Port
+			port := th.App.Srv().ListenAddr.Port
 			host := fmt.Sprintf("http://localhost:%v", port)
 			url := fmt.Sprintf("%v/api/v4/system/ping", host)
 

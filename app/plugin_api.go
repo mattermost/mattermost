@@ -30,7 +30,7 @@ func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 		id:       manifest.Id,
 		manifest: manifest,
 		app:      a,
-		logger:   a.Log.With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
 }
 
@@ -292,7 +292,7 @@ func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage 
 }
 
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
-	if api.app.Ldap == nil {
+	if api.app.Ldap() == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -308,7 +308,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
 		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
