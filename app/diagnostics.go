@@ -630,13 +630,16 @@ func (a *App) trackConfig() {
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	plugins, appErr := pluginsEnvironment.Available()
-	if appErr != nil {
+
+	if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+		mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+	} else {
 		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
 		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
 		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")

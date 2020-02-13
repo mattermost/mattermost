@@ -185,6 +185,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 			continue
 		}
 
+		email = strings.ToLower(email)
 		newUser := model.User{
 			Username:  sUser.Username,
 			FirstName: firstName,

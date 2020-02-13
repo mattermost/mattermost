@@ -39,7 +39,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func Setup() *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -130,7 +130,7 @@ func (th *TestHelper) TearDown() {
 }
 
 func TestStaticFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginID := "com.mattermost.sample"
@@ -216,7 +216,7 @@ func TestStaticFilesRequest(t *testing.T) {
 }
 
 func TestPublicFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginDir, err := ioutil.TempDir("", "")

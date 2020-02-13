@@ -25,7 +25,7 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -112,6 +112,30 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
+	t.Run("creates a post that has channel mentions without the USE_CHANNEL_MENTIONS Permission", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @channel"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @all"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @here"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+	})
+
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC
@@ -150,7 +174,7 @@ func TestCreatePost(t *testing.T) {
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -185,7 +209,7 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 	commentPostType bool,
 ) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
 	team := th.BasicTeam
@@ -365,7 +389,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestCreatePostPublic(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -410,7 +434,7 @@ func TestCreatePostPublic(t *testing.T) {
 }
 
 func TestCreatePostAll(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -465,7 +489,7 @@ func TestCreatePostAll(t *testing.T) {
 }
 
 func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -526,7 +550,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 }
 
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -561,7 +585,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -722,7 +746,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
 	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
 	// on the user object of permissions based on a post in a channel with no team ID.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	dmChannel := th.CreateDmChannel(th.SystemAdminUser)
@@ -744,7 +768,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 }
 
 func TestPatchPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -853,7 +877,7 @@ func TestPatchPost(t *testing.T) {
 }
 
 func TestPinPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -898,7 +922,7 @@ func TestPinPost(t *testing.T) {
 }
 
 func TestUnpinPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -927,7 +951,7 @@ func TestUnpinPost(t *testing.T) {
 }
 
 func TestGetPostsForChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1076,7 +1100,7 @@ func TestGetPostsForChannel(t *testing.T) {
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -1247,7 +1271,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 }
 
 func TestGetPostsBefore(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1389,7 +1413,7 @@ func TestGetPostsBefore(t *testing.T) {
 }
 
 func TestGetPostsAfter(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1512,7 +1536,7 @@ func TestGetPostsAfter(t *testing.T) {
 }
 
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -1759,7 +1783,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 }
 
 func TestGetPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1806,7 +1830,7 @@ func TestGetPost(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1842,7 +1866,7 @@ func TestDeletePost(t *testing.T) {
 }
 
 func TestGetPostThread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1895,7 +1919,7 @@ func TestGetPostThread(t *testing.T) {
 }
 
 func TestSearchPosts(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
@@ -2024,7 +2048,7 @@ func TestSearchPosts(t *testing.T) {
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2048,7 +2072,7 @@ func TestSearchHashtagPosts(t *testing.T) {
 }
 
 func TestSearchPostsInChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2102,7 +2126,7 @@ func TestSearchPostsInChannel(t *testing.T) {
 }
 
 func TestSearchPostsFromUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2158,7 +2182,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 }
 
 func TestSearchPostsWithDateFlags(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2210,7 +2234,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2262,7 +2286,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 }
 
 func TestSetChannelUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	u1 := th.BasicUser

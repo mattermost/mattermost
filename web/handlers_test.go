@@ -19,7 +19,7 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -59,7 +59,7 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(config *model.Config) {
@@ -103,7 +103,7 @@ func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeCSRFToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -243,7 +243,7 @@ func handlerForCSPHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func TestHandlerServeCSPHeader(t *testing.T) {
 	t.Run("non-static", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -265,7 +265,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 	})
 
 	t.Run("static, without subpath", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -287,7 +287,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -342,7 +342,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			th := Setup().InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -379,7 +379,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 
 func TestCheckCSRFToken(t *testing.T) {
 	t.Run("should allow a POST request with a valid CSRF token header", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -409,7 +409,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should allow a POST request with an X-Requested-With header", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -440,7 +440,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not allow a POST request with an X-Requested-With header with strict CSRF enforcement enabled", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -475,7 +475,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -504,7 +504,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check GET requests", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -533,7 +533,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check a request passing the auth token in a header", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -562,7 +562,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check a request passing a nil session", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -587,7 +587,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should check requests for handlers that don't require a session but have one", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		h := &Handler{

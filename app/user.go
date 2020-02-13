@@ -1611,6 +1611,7 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 		return err
 	}
 
+	tokenData.Email = strings.ToLower(tokenData.Email)
 	if err := a.VerifyUserEmail(tokenData.UserId, tokenData.Email); err != nil {
 		return err
 	}

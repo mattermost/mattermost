@@ -309,6 +309,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		hasUserChanged = true
 		hasUserEmailVerifiedChanged = true // Changing the email resets email verified to false by default.
 		user.Email = *data.Email
+		user.Email = strings.ToLower(user.Email)
 	}
 
 	var password string

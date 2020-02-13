@@ -252,7 +252,12 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
 
-	message := model.NewWebSocketEvent(event, "", "", "", nil)
+	teamId := "" // no filtering by teamId by default
+	if event == model.WEBSOCKET_EVENT_UPDATE_TEAM {
+		// in case of update_team event - we send the message only to members of that team
+		teamId = team.Id
+	}
+	message := model.NewWebSocketEvent(event, teamId, "", "", nil)
 	message.Add("team", sanitizedTeam.ToJson())
 	a.Publish(message)
 }
