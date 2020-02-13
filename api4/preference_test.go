@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetPreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -66,7 +66,7 @@ func TestGetPreferences(t *testing.T) {
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -121,7 +121,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -176,7 +176,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 }
 
 func TestUpdatePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -235,7 +235,7 @@ func TestUpdatePreferences(t *testing.T) {
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -291,7 +291,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 }
 
 func TestDeletePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -328,9 +328,7 @@ func TestDeletePreferences(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	prefs, _ = Client.GetPreferences(th.BasicUser.Id)
-	if len(prefs) != originalCount {
-		t.Fatal("should've deleted preferences")
-	}
+	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
 	Client.Logout()
 	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)
@@ -338,7 +336,7 @@ func TestDeletePreferences(t *testing.T) {
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	userId := th.BasicUser.Id
@@ -358,15 +356,12 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	CheckNoError(t, resp)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	WebSocketClient.Listen()
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	wsResp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, model.STATUS_OK, wsResp.Status, "should have responded OK to authentication challenge")
 
 	_, resp = th.Client.DeletePreferences(userId, preferences)
 	CheckNoError(t, resp)
@@ -383,19 +378,17 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 			}
 
 			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.Nil(t, err)
 
 			for i, preference := range *preferences {
-				if preference.UserId != received[i].UserId || preference.Category != received[i].Category || preference.Name != received[i].Name {
-					t.Fatal("received incorrect preference")
-				}
+				require.Equal(t, preference.UserId, received[i].UserId)
+				require.Equal(t, preference.Category, received[i].Category)
+				require.Equal(t, preference.Name, received[i].Name)
 			}
 
 			waiting = false
 		case <-timeout:
-			t.Fatal("timed out waiting for preference delete event")
+			require.Fail(t, "timed out waiting for preference delete event")
 		}
 	}
 }

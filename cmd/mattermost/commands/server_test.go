@@ -21,7 +21,7 @@ type ServerTestHelper struct {
 	originalInterval   int
 }
 
-func SetupServerTest() *ServerTestHelper {
+func SetupServerTest(t testing.TB) *ServerTestHelper {
 	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
 	// ...and sent it immediately a SIGINT value.
@@ -47,7 +47,7 @@ func (th *ServerTestHelper) TearDownServerTest() {
 }
 
 func TestRunServerSuccess(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	configStore, err := config.NewMemoryStore()
@@ -58,7 +58,7 @@ func TestRunServerSuccess(t *testing.T) {
 }
 
 func TestRunServerSystemdNotification(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Get a random temporary filename for using as a mock systemd socket
@@ -111,7 +111,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 }
 
 func TestRunServerNoSystemd(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Temporarily remove any Systemd socket defined in the environment

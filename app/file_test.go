@@ -48,7 +48,7 @@ func TestDoUploadFile(t *testing.T) {
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -58,7 +58,7 @@ func TestDoUploadFile(t *testing.T) {
 	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 
@@ -68,7 +68,7 @@ func TestDoUploadFile(t *testing.T) {
 	info3, err := th.App.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info3.Id)
 		th.App.RemoveFile(info3.Path)
 	}()
 
@@ -78,7 +78,7 @@ func TestDoUploadFile(t *testing.T) {
 	info4, err := th.App.DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamId, "../../"+channelId, "../../"+userId, "../../"+filename, data)
 	require.Nil(t, err, "DoUploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info4.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info4.Id)
 		th.App.RemoveFile(info4.Path)
 	}()
 
@@ -97,7 +97,7 @@ func TestUploadFile(t *testing.T) {
 	info1, err := th.App.UploadFile(data, channelId, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -275,7 +275,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -285,7 +285,7 @@ func TestCopyFileInfos(t *testing.T) {
 	info2, err := th.App.GetFileInfo(infoIds[0])
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info2.Id)
 		th.App.RemoveFile(info2.Path)
 	}()
 
