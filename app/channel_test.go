@@ -1328,9 +1328,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				createPosts: {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
-				channelMentions: {
-					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
-				},
 			},
 		},
 		{
@@ -1385,9 +1382,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createPosts: {
-					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
-				},
-				channelMentions: {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
@@ -1494,8 +1488,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 				channelMentions: {
-					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
-					Guests:  &model.ChannelModeratedRole{Value: false, Enabled: false},
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 			},
 			InheritedGuestPermissions: []string{},

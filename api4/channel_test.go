@@ -3091,39 +3091,9 @@ func TestGetChannelModerations(t *testing.T) {
 		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
 		require.Nil(t, res.Error)
 		for _, moderation := range moderations {
-			if moderation.Name == model.PERMISSION_CREATE_POST.Id || moderation.Name == model.PERMISSION_USE_CHANNEL_MENTIONS.Id {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
 				require.Equal(t, moderation.Roles.Members.Value, true)
 				require.Equal(t, moderation.Roles.Members.Enabled, true)
-				require.Equal(t, moderation.Roles.Guests.Value, false)
-				require.Equal(t, moderation.Roles.Guests.Enabled, false)
-			}
-		}
-	})
-
-	t.Run("Returns value false and enabled false for channel mentions when create post is disabled", func(t *testing.T) {
-		teamScheme, _ := th.App.GetScheme(*team.SchemeId)
-		scheme, _ := th.App.GetScheme(*channel.SchemeId)
-
-		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
-		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelUserRole)
-
-		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
-		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelUserRole)
-
-		defer func() {
-			th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
-			th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelUserRole)
-
-			th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
-			th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelUserRole)
-		}()
-
-		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
-		require.Nil(t, res.Error)
-		for _, moderation := range moderations {
-			if moderation.Name == model.PERMISSION_CREATE_POST.Id || moderation.Name == model.PERMISSION_USE_CHANNEL_MENTIONS.Id {
-				require.Equal(t, moderation.Roles.Members.Value, false)
-				require.Equal(t, moderation.Roles.Members.Enabled, false)
 				require.Equal(t, moderation.Roles.Guests.Value, false)
 				require.Equal(t, moderation.Roles.Guests.Enabled, false)
 			}
@@ -3139,8 +3109,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 	emptyPatch := []*model.ChannelModerationPatch{}
 
-	createPosts := model.PERMISSION_CREATE_POST.Id
-	channelMentions := model.PERMISSION_USE_CHANNEL_MENTIONS.Id
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -3196,7 +3165,7 @@ func TestPatchChannelModerations(t *testing.T) {
 				require.Equal(t, moderation.Roles.Guests.Enabled, true)
 			}
 
-			if moderation.Name == createPosts || moderation.Name == channelMentions {
+			if moderation.Name == createPosts {
 				require.Equal(t, moderation.Roles.Members.Value, false)
 				require.Equal(t, moderation.Roles.Members.Enabled, true)
 			} else {
