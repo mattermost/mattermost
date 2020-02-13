@@ -133,7 +133,7 @@ func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, mi
 }
 
 func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
-	if _, err := a.Srv.Store.System().GetByName(key); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -152,12 +152,12 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
-		if _, err := a.Srv.Store.Role().Save(role); err != nil {
+		if _, err := a.Srv().Store.Role().Save(role); err != nil {
 			return err
 		}
 	}
 
-	if err := a.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
 		return err
 	}
 	return nil
