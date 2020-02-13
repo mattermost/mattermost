@@ -451,7 +451,7 @@ func TestSupportedTimezones(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	supportedTimezonesFromConfig := th.App.Timezones.GetSupported()
+	supportedTimezonesFromConfig := th.App.Timezones().GetSupported()
 	supportedTimezones, resp := Client.GetSupportedTimezone()
 
 	CheckNoError(t, resp)
@@ -524,14 +524,14 @@ func TestSetServerBusy(t *testing.T) {
 		ok, resp := th.Client.SetServerBusy(secs)
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not set server busy due to no permission")
-		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	})
 
 	t.Run("as system admin", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
 		CheckNoError(t, resp)
 		require.True(t, ok, "should set server busy successfully")
-		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
 	})
 }
 
@@ -545,7 +545,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 			ok, resp := th.SystemAdminClient.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, ok, "should not set server busy due to invalid param ", p)
-			require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
+			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
 	})
 }
@@ -554,20 +554,20 @@ func TestClearServerBusy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.Srv.Busy.Set(time.Second * 30)
+	th.App.Srv().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := th.Client.ClearServerBusy()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok, "should not clear server busy flag due to no permission.")
-		require.True(t, th.App.Srv.Busy.IsBusy(), "server should be marked busy")
+		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
 	})
 
-	th.App.Srv.Busy.Set(time.Second * 30)
+	th.App.Srv().Busy.Set(time.Second * 30)
 	t.Run("as system admin", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.ClearServerBusy()
 		CheckNoError(t, resp)
 		require.True(t, ok, "should clear server busy flag successfully")
-		require.False(t, th.App.Srv.Busy.IsBusy(), "server should not be marked busy")
+		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	})
 }
 
@@ -575,7 +575,7 @@ func TestGetServerBusyExpires(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.Srv.Busy.Set(time.Second * 30)
+	th.App.Srv().Busy.Set(time.Second * 30)
 
 	t.Run("as system user", func(t *testing.T) {
 		_, resp := th.Client.GetServerBusyExpires()
@@ -593,7 +593,7 @@ func TestServerBusy503(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.Srv.Busy.Set(time.Second * 30)
+	th.App.Srv().Busy.Set(time.Second * 30)
 
 	t.Run("search users while busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}
@@ -619,7 +619,7 @@ func TestServerBusy503(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
-	th.App.Srv.Busy.Clear()
+	th.App.Srv().Busy.Clear()
 
 	t.Run("search users while not busy", func(t *testing.T) {
 		us := &model.UserSearch{Term: "test"}

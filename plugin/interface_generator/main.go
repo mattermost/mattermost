@@ -263,7 +263,7 @@ func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	_returns := &{{.Name | obscure}}Returns{}
 	if g.implemented[{{.Name}}Id] {
 		if err := g.client.Call("Plugin.{{.Name}}", _args, _returns); err != nil {
-			g.log.Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
+			g.Log().Error("RPC call {{.Name}} to plugin failed.", mlog.Err(err))
 		}
 	}
 	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
