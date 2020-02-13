@@ -564,6 +564,13 @@ type RoleStore interface {
 	// HigherScopedPermissions retrieves the higher-scoped permissions of a list of role names. The higher-scope
 	// (either team scheme or system scheme) is determined based on whether the team has a scheme or not.
 	HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError)
+
+	// AllChannelSchemeRoles returns all of the roles associated to channel schemes.
+	AllChannelSchemeRoles() ([]*model.Role, *model.AppError)
+
+	// LowerScopedChannelSchemeRoles returns all of the non-deleted roles that are affected by updates to the
+	// given role.
+	LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError)
 }
 
 type SchemeStore interface {

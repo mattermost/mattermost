@@ -155,6 +155,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 		}
 		scheme.DefaultTeamGuestRole = savedRole.Name
 	}
+
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		// Channel Admin Role
 		channelAdminRole := &model.Role{
@@ -162,6 +163,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			DisplayName:   fmt.Sprintf("Channel Admin Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
 			SchemeManaged: true,
+		}
+
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelAdminRole.Permissions = []string{}
 		}
 
 		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction)
@@ -178,6 +183,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelUserRole.Permissions = s.filterModerated(channelUserRole.Permissions)
+		}
+
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
 		if err != nil {
 			return nil, err
@@ -190,6 +199,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
 			SchemeManaged: true,
+		}
+
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelGuestRole.Permissions = s.filterModerated(channelGuestRole.Permissions)
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
@@ -216,6 +229,16 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	}
 
 	return scheme, nil
+}
+
+func (s *SqlSchemeStore) filterModerated(permissions []string) []string {
+	filteredPermissions := []string{}
+	for _, perm := range permissions {
+		if _, ok := model.ModeratedPermissions[perm]; ok {
+			filteredPermissions = append(filteredPermissions, perm)
+		}
+	}
+	return filteredPermissions
 }
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {

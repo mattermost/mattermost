@@ -38,6 +38,6 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 func TestChannelRolesGrantPermission(t *testing.T) {
 	testPermissionInheritance(t, func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData) {
-		require.Equal(t, testData.shouldHavePermission, th.App.ChannelRolesGrantPermission([]string{testData.channelRole.Name}, testData.permission.Id, testData.channel.Id))
+		require.Equal(t, testData.shouldHavePermission, th.App.RolesGrantPermission([]string{testData.channelRole.Name}, testData.permission.Id), "row: %+v\n", testData.truthTableRow)
 	})
 }

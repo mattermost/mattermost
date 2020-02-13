@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -314,4 +315,67 @@ func (s *SqlRoleStore) HigherScopedPermissions(roleNames []string) (map[string]*
 	}
 
 	return roleNameHigherScopedPermissions, nil
+}
+
+func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("Roles.*").
+		From("Schemes").
+		Join("Roles ON Schemes.DefaultChannelGuestRole = Roles.Name OR Schemes.DefaultChannelUserRole = Roles.Name OR Schemes.DefaultChannelAdminRole = Roles.Name").
+		Where(sq.Eq{"Schemes.Scope": model.SCHEME_SCOPE_CHANNEL}).
+		Where(sq.Eq{"Roles.DeleteAt": 0}).
+		Where(sq.Eq{"Schemes.DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlRoleStore.AllChannelSchemeManagedRoles", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var dbRoles []*Role
+	if _, err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlRoleStore.AllChannelSchemeManagedRoles", "store.sql_role.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var roles []*model.Role
+	for _, dbRole := range dbRoles {
+		roles = append(roles, dbRole.ToModel())
+	}
+
+	return roles, nil
+}
+
+func (s *SqlRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("ChannelSchemeRoles.*").
+		From("Roles AS HigherScopedRoles").
+		Join("Schemes AS HigherScopedSchemes ON (HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelGuestRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelUserRole OR HigherScopedRoles.Name = HigherScopedSchemes.DefaultChannelAdminRole)").
+		Join("Teams ON Teams.SchemeId = HigherScopedSchemes.Id").
+		Join("Channels ON Channels.TeamId = Teams.Id").
+		Join("Schemes AS ChannelSchemes ON Channels.SchemeId = ChannelSchemes.Id").
+		Join("Roles AS ChannelSchemeRoles ON (ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelGuestRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelUserRole OR ChannelSchemeRoles.Name = ChannelSchemes.DefaultChannelAdminRole)").
+		Where(sq.Eq{"HigherScopedSchemes.Scope": model.SCHEME_SCOPE_TEAM}).
+		Where(sq.Eq{"HigherScopedRoles.Name": roleName}).
+		Where(sq.Eq{"HigherScopedRoles.DeleteAt": 0}).
+		Where(sq.Eq{"HigherScopedSchemes.DeleteAt": 0}).
+		Where(sq.Eq{"Teams.DeleteAt": 0}).
+		Where(sq.Eq{"Channels.DeleteAt": 0}).
+		Where(sq.Eq{"ChannelSchemes.DeleteAt": 0}).
+		Where(sq.Eq{"ChannelSchemeRoles.DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var dbRoles []*Role
+	if _, err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql_role.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var roles []*model.Role
+	for _, dbRole := range dbRoles {
+		roles = append(roles, dbRole.ToModel())
+	}
+
+	return roles, nil
 }

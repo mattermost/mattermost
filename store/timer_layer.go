@@ -4667,6 +4667,22 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.AllChannelSchemeRoles()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.AllChannelSchemeRoles", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
 	start := timemodule.Now()
 
@@ -4759,6 +4775,22 @@ func (s *TimerLayerRoleStore) HigherScopedPermissions(roleNames []string) (map[s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.HigherScopedPermissions", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.LowerScopedChannelSchemeRoles(roleName)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.LowerScopedChannelSchemeRoles", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

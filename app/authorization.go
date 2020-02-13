@@ -45,7 +45,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if err == nil {
 		if roles, ok := ids[channelId]; ok {
 			channelRoles = strings.Fields(roles)
-			if a.ChannelRolesGrantPermission(channelRoles, permission.Id, channelId) {
+			if a.RolesGrantPermission(channelRoles, permission.Id) {
 				return true
 			}
 		}
@@ -66,7 +66,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
 	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
 
-		if a.ChannelRolesGrantPermission(channelMember.GetRoles(), permission.Id, channelMember.ChannelId) {
+		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
@@ -146,7 +146,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 	channelMember, err := a.GetChannelMember(channelId, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
-		if a.ChannelRolesGrantPermission(roles, permission.Id, channelId) {
+		if a.RolesGrantPermission(roles, permission.Id) {
 			return true
 		}
 	}
@@ -161,8 +161,8 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 }
 
 func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv.Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
-		if a.ChannelRolesGrantPermission(channelMember.GetRoles(), permission.Id, channelMember.ChannelId) {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
+		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
@@ -196,80 +196,6 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	}
 
 	return rolesPermitPermission(roles, permissionId)
-}
-
-func (a *App) ChannelRolesGrantPermission(roleNames []string, permissionID, channelID string) bool {
-	// If the permission isn't moderated then read entirely from the channel scheme.
-	if _, ok := model.ModeratedPermissions[permissionID]; ok {
-		return a.RolesGrantPermission(roleNames, permissionID)
-	}
-
-	channel, err := a.Srv.Store.Channel().Get(channelID, true)
-	if err != nil {
-		mlog.Error("Error getting channel", mlog.Err(err))
-		return false
-	}
-
-	// If the channel isn't using a channel scheme then read entirely from the channel scheme.
-	if channel.SchemeId == nil {
-		return a.RolesGrantPermission(roleNames, permissionID)
-	}
-
-	channelScheme, err := a.Srv.Store.Scheme().Get(*channel.SchemeId)
-	if err != nil {
-		mlog.Error("Error getting channel scheme", mlog.Err(err))
-		return false
-	}
-
-	team, err := a.Srv.Store.Team().Get(channel.TeamId)
-	if err != nil {
-		mlog.Error("Error getting team", mlog.Err(err))
-		return false
-	}
-
-	teamScheme := &model.Scheme{}
-	var higherScopedGuest string
-	var higherScopedUser string
-	var higherScopedAdmin string
-
-	// Determine which higher-scoped scheme to read from (system or team).
-	if team.SchemeId == nil {
-		higherScopedGuest = model.CHANNEL_GUEST_ROLE_ID
-		higherScopedUser = model.CHANNEL_USER_ROLE_ID
-		higherScopedAdmin = model.CHANNEL_ADMIN_ROLE_ID
-	} else {
-		teamScheme, err = a.Srv.Store.Scheme().Get(*team.SchemeId)
-		if err != nil {
-			mlog.Error("Error getting team scheme", mlog.Err(err))
-			return false
-		}
-		higherScopedGuest = teamScheme.DefaultChannelGuestRole
-		higherScopedUser = teamScheme.DefaultChannelUserRole
-		higherScopedAdmin = teamScheme.DefaultChannelAdminRole
-	}
-
-	var higherScopedRoleNames []string
-	for _, role := range roleNames {
-		if role == "" {
-			continue
-		}
-		switch role {
-		case channelScheme.DefaultChannelGuestRole, teamScheme.DefaultChannelGuestRole, model.CHANNEL_GUEST_ROLE_ID:
-			higherScopedRoleNames = append(higherScopedRoleNames, higherScopedGuest)
-		case channelScheme.DefaultChannelUserRole, teamScheme.DefaultChannelUserRole, model.CHANNEL_USER_ROLE_ID:
-			higherScopedRoleNames = append(higherScopedRoleNames, higherScopedUser)
-		case channelScheme.DefaultChannelAdminRole, teamScheme.DefaultChannelAdminRole, model.CHANNEL_ADMIN_ROLE_ID:
-			higherScopedRoleNames = append(higherScopedRoleNames, higherScopedAdmin)
-		}
-	}
-
-	roles, err := a.Srv.Store.Role().GetByNames(higherScopedRoleNames)
-	if err != nil {
-		mlog.Error("Error getting roles", mlog.Err(err))
-		return false
-	}
-
-	return rolesPermitPermission(roles, permissionID)
 }
 
 func rolesPermitPermission(roles []*model.Role, permissionId string) bool {

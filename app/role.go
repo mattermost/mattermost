@@ -20,7 +20,7 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	role, err := a.Srv.Store.Role().GetByName(name)
+	role, err := a.Srv().Store.Role().GetByName(name)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	roles, err := a.Srv.Store.Role().GetByNames(names)
+	roles, err := a.Srv().Store.Role().GetByNames(names)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (a *App) updateChannelRolesPermissions(roles []*model.Role) *model.AppError
 	var higherScopeNamesToQuery []string
 
 	for _, role := range roles {
-		if !role.BuiltIn && role.SchemeManaged {
+		if role.SchemeManaged {
 			higherScopeNamesToQuery = append(higherScopeNamesToQuery, role.Name)
 		}
 	}
@@ -62,15 +62,13 @@ func (a *App) updateChannelRolesPermissions(roles []*model.Role) *model.AppError
 		return nil
 	}
 
-	higherScopedPermissionsMap, err := a.Srv.Store.Role().HigherScopedPermissions(higherScopeNamesToQuery)
+	higherScopedPermissionsMap, err := a.Srv().Store.Role().HigherScopedPermissions(higherScopeNamesToQuery)
 	if err != nil {
 		return err
 	}
 
-	// Note: If we start shipping with builtin channel schemes we need to include builtin roles in this branching
-	// statement.
 	for _, role := range roles {
-		if !role.BuiltIn && role.SchemeManaged {
+		if role.SchemeManaged {
 			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
 				role.MergeHigherScopedPermissions(higherScopedPermissions)
 			}
@@ -112,7 +110,34 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	a.sendUpdatedRoleEvent(savedRole)
+
+	var impactedRoles []*model.Role
+
+	switch savedRole.Name {
+	case model.SYSTEM_GUEST_ROLE_ID, model.SYSTEM_USER_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_POST_ALL_ROLE_ID, model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, model.TEAM_POST_ALL_ROLE_ID, model.TEAM_POST_ALL_PUBLIC_ROLE_ID:
+		// do nothing
+	case model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID:
+		impactedRoles, err = a.Srv().Store.Role().AllChannelSchemeRoles()
+		if err != nil {
+			return nil, err
+		}
+	default:
+		impactedRoles, err = a.Srv().Store.Role().LowerScopedChannelSchemeRoles(savedRole.Name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	impactedRoles = append(impactedRoles, savedRole)
+
+	err = a.updateChannelRolesPermissions(impactedRoles)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ir := range impactedRoles {
+		a.sendUpdatedRoleEvent(ir)
+	}
 
 	return savedRole, nil
 
