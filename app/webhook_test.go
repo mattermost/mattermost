@@ -709,9 +709,9 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 		defer close(releaseHandler)
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
+		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
 		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
