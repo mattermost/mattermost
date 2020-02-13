@@ -333,7 +333,7 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) 
 
 	var dbRoles []*Role
 	if _, err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlRoleStore.AllChannelSchemeManagedRoles", "store.sql_role.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.AllChannelSchemeManagedRoles", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var roles []*model.Role
@@ -369,7 +369,7 @@ func (s *SqlRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.
 
 	var dbRoles []*Role
 	if _, err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql_role.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var roles []*model.Role

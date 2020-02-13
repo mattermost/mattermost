@@ -6755,10 +6755,6 @@
     "translation": "Failed to commit the transaction to save the role"
   },
   {
-    "id": "store.sql_role.search.app_error",
-    "translation": ""
-  },
-  {
     "id": "store.sql_scheme.delete.role_update.app_error",
     "translation": "Unable to delete the roles belonging to this scheme"
   },
