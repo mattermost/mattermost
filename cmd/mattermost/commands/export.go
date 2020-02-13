@@ -153,7 +153,6 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		}
 
 		if a.MessageExport == nil {
-			CommandPrettyPrintln("MessageExport feature not available")
 			return errors.New("message export feature not available")
 		}
 
