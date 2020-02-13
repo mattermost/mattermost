@@ -70,12 +70,12 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:        utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
+			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TEAM_OPEN,
 		}
 
-		createdTeam, err := c.App.Srv.Store.Team().Save(team)
+		createdTeam, err := c.App.Srv().Store.Team().Save(team)
 		if err != nil {
 			c.Err = err
 			return
@@ -101,8 +101,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
@@ -151,9 +151,9 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv.Store.Channel().GetChannels(teamid, userid, false)
+	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, false)
 	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false
