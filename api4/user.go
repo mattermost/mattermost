@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -244,7 +245,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireEmail()
+	c.SanitizeEmail()
 	if c.Err != nil {
 		return
 	}
@@ -1264,6 +1265,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	email := props["email"]
+	email = strings.ToLower(email)
 	if len(email) == 0 {
 		c.SetInvalidParam("email")
 		return
@@ -1625,6 +1627,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	email := props["email"]
+	email = strings.ToLower(email)
 	if len(email) == 0 {
 		c.SetInvalidParam("email")
 		return

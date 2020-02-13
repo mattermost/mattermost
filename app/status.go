@@ -67,7 +67,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Store().Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +114,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Store().Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, err
 		}
@@ -203,11 +203,11 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
 		if broadcast {
-			if err := a.Store().Status().SaveOrUpdate(status); err != nil {
+			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		} else {
-			if err := a.Store().Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		}
@@ -296,7 +296,7 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if err := a.Store().Status().SaveOrUpdate(status); err != nil {
+	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
@@ -341,7 +341,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	return a.Store().Status().Get(userId)
+	return a.Srv().Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

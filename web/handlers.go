@@ -4,7 +4,7 @@
 package web
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -84,26 +84,25 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
+
 	t, _ := utils.GetTranslationsAndLocale(w, r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
 	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
 	c.App.SetUserAgent(r.UserAgent())
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
-	c.Params = ParamsFromRequest(r)
 	c.App.SetPath(r.URL.Path)
+	c.Params = ParamsFromRequest(r)
 	c.Log = c.App.Log()
-	if *c.App.Config().ServiceSettings.EnableOpenTracing {
-		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
-		span.SetTag("request_id", c.App.RequestId())
-		span.SetTag("ip_address", c.App.IpAddress())
-		span.SetTag("user_agent", c.App.UserAgent())
-		span.SetTag("url", c.App.Path)
-		defer span.Finish()
-		c.App.SetContext(ctx)
-		c.App.SetStore(store.NewOpenTracingLayer(c.App.Srv().Store, ctx))
-		c.App = app.NewOpenTracingAppLayer(c.App, ctx)
-	}
+
+	// Set the max request body size to be equal to MaxFileSize.
+	// Ideally, non-file request bodies should be smaller than file request bodies,
+	// but we don't have a clean way to identify all file upload handlers.
+	// So to keep it simple, we clamp it to the max file size.
+	// We add a buffer of bytes.MinRead so that file sizes close to max file size
+	// do not get cut off.
+	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
+
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)

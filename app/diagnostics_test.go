@@ -68,7 +68,7 @@ func TestDiagnostics(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	type payload struct {

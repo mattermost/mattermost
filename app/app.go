@@ -51,7 +51,6 @@ type App struct {
 	timezones   *timezones.Timezones
 
 	context context.Context
-	store   store.Store
 }
 
 func New(options ...AppOption) *App {
@@ -115,7 +114,7 @@ func (a *App) EnsureDiagnosticId() {
 	if a.Srv().diagnosticId != "" {
 		return
 	}
-	props, err := a.Store().System().Get()
+	props, err := a.Srv().Store.System().Get()
 	if err != nil {
 		return
 	}
@@ -124,7 +123,7 @@ func (a *App) EnsureDiagnosticId() {
 	if len(id) == 0 {
 		id = model.NewId()
 		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		a.Store().System().Save(systemId)
+		a.Srv().Store.System().Save(systemId)
 	}
 
 	a.Srv().diagnosticId = id
@@ -151,7 +150,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := a.Store().System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -234,15 +233,9 @@ func (a *App) Timezones() *timezones.Timezones {
 func (a *App) Context() context.Context {
 	return a.context
 }
-func (a *App) Store() store.Store {
-	return a.store
-}
 
 func (a *App) SetSession(s *model.Session) {
 	a.session = *s
-}
-func (a *App) SetStore(s store.Store) {
-	a.store = s
 }
 
 func (a *App) SetT(t goi18n.TranslateFunc) {
@@ -271,4 +264,7 @@ func (a *App) SetServer(srv *Server) {
 }
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
+}
+func (a *App) SetLog(l *mlog.Logger) {
+	a.log = l
 }

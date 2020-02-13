@@ -22,7 +22,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -84,7 +84,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Non-admin users can create a team, but they become a team admin by doing so
@@ -121,7 +121,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -166,7 +166,7 @@ func TestGetTeam(t *testing.T) {
 }
 
 func TestGetTeamSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -223,7 +223,7 @@ func TestGetTeamSanitization(t *testing.T) {
 }
 
 func TestGetTeamUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -253,7 +253,7 @@ func TestGetTeamUnread(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -340,7 +340,7 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestUpdateTeamSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -372,7 +372,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 }
 
 func TestPatchTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -428,7 +428,7 @@ func TestPatchTeam(t *testing.T) {
 }
 
 func TestPatchTeamSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -460,7 +460,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 }
 
 func TestRegenerateTeamInviteId(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -478,7 +478,7 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -512,7 +512,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -551,7 +551,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestGetAllTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -696,7 +696,7 @@ func TestGetAllTeams(t *testing.T) {
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -757,7 +757,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -802,7 +802,7 @@ func TestGetTeamByName(t *testing.T) {
 }
 
 func TestGetTeamByNameSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -860,7 +860,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 }
 
 func TestSearchAllTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	oTeam := th.BasicTeam
@@ -922,7 +922,7 @@ func TestSearchAllTeams(t *testing.T) {
 }
 
 func TestSearchAllTeamsPaged(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
@@ -995,7 +995,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 }
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -1065,7 +1065,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 }
 
 func TestGetTeamsForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1104,7 +1104,7 @@ func TestGetTeamsForUser(t *testing.T) {
 }
 
 func TestGetTeamsForUserSanitization(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -1191,7 +1191,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 }
 
 func TestGetTeamMember(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -1224,7 +1224,7 @@ func TestGetTeamMember(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -1280,7 +1280,7 @@ func TestGetTeamMembers(t *testing.T) {
 }
 
 func TestGetTeamMembersForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1316,7 +1316,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 }
 
 func TestGetTeamMembersByIds(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1348,7 +1348,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 }
 
 func TestAddTeamMember(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -1562,7 +1562,7 @@ func TestAddTeamMember(t *testing.T) {
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1652,7 +1652,7 @@ func TestAddTeamMemberMyself(t *testing.T) {
 }
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.SystemAdminClient
 	team := th.BasicTeam
@@ -1712,7 +1712,7 @@ func TestAddTeamMembersDomainConstrained(t *testing.T) {
 }
 
 func TestAddTeamMembers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -1839,7 +1839,7 @@ func TestAddTeamMembers(t *testing.T) {
 }
 
 func TestRemoveTeamMember(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1894,7 +1894,7 @@ func TestRemoveTeamMember(t *testing.T) {
 }
 
 func TestGetTeamStats(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -1939,7 +1939,7 @@ func TestGetTeamStats(t *testing.T) {
 }
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
@@ -2013,7 +2013,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 }
 
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	SystemAdminClient := th.SystemAdminClient
 	th.LoginBasic()
@@ -2118,7 +2118,7 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 }
 
 func TestGetMyTeamsUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2145,7 +2145,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 }
 
 func TestTeamExists(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	public_member_team := th.BasicTeam
@@ -2239,7 +2239,7 @@ func TestTeamExists(t *testing.T) {
 }
 
 func TestImportTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("ImportTeam", func(t *testing.T) {
@@ -2300,7 +2300,7 @@ func TestImportTeam(t *testing.T) {
 }
 
 func TestInviteUsersToTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user1 := th.GenerateTestEmail()
@@ -2401,7 +2401,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	guest1 := th.GenerateTestEmail()
@@ -2510,7 +2510,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 }
 
 func TestGetTeamInviteInfo(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -2534,7 +2534,7 @@ func TestGetTeamInviteInfo(t *testing.T) {
 }
 
 func TestSetTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -2592,7 +2592,7 @@ func TestSetTeamIcon(t *testing.T) {
 }
 
 func TestGetTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -2608,7 +2608,7 @@ func TestGetTeamIcon(t *testing.T) {
 }
 
 func TestRemoveTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -2641,7 +2641,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 }
 
 func TestUpdateTeamScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense(""))
@@ -2712,7 +2712,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 }
 
 func TestTeamMembersMinusGroupMembers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user1 := th.BasicUser

@@ -21,7 +21,7 @@ import (
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	c := &Context{
@@ -45,7 +45,7 @@ func TestOAuthComplete_AccessDenied(t *testing.T) {
 }
 
 func TestAuthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
@@ -130,7 +130,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
@@ -183,7 +183,7 @@ func TestOAuthAccessToken(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)
 	defer th.TearDown()
 
@@ -356,7 +356,7 @@ func TestOAuthComplete(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)
 	defer th.TearDown()
 

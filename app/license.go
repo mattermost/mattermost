@@ -16,7 +16,7 @@ func (a *App) LoadLicense() {
 	a.SetLicense(nil)
 
 	licenseId := ""
-	props, err := a.Store().System().Get()
+	props, err := a.Srv().Store.System().Get()
 	if err == nil {
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
@@ -34,7 +34,7 @@ func (a *App) LoadLicense() {
 		}
 	}
 
-	record, err := a.Store().License().Get(licenseId)
+	record, err := a.Srv().Store.License().Get(licenseId)
 	if err != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
 		return
@@ -51,7 +51,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	}
 	license := model.LicenseFromJson(strings.NewReader(licenseStr))
 
-	uniqueUserCount, err := a.Store().User().Count(model.UserCountOptions{})
+	uniqueUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -72,7 +72,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, err = a.Store().License().Save(record)
+	_, err = a.Srv().Store.License().Save(record)
 	if err != nil {
 		a.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -81,7 +81,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	sysVar := &model.System{}
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = license.Id
-	if err := a.Store().System().SaveOrUpdate(sysVar); err != nil {
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
 		a.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -157,7 +157,7 @@ func (a *App) RemoveLicense() *model.AppError {
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
 
-	if err := a.Store().System().SaveOrUpdate(sysVar); err != nil {
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
 		return err
 	}
 

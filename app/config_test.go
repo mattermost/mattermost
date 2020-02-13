@@ -51,20 +51,20 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestAsymmetricSigningKey(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
 
 func TestPostActionCookieSecret(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 }
 
 func TestClientConfigWithComputed(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()

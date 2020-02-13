@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetUserStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -56,7 +56,7 @@ func TestGetUserStatus(t *testing.T) {
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -99,7 +99,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 }
 
 func TestUpdateUserStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 

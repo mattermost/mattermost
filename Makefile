@@ -88,7 +88,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.2.0
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
@@ -120,12 +120,10 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-all: run ## Alias for 'run'.
-
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-# The second sed will look for v<NUM>.<NUM>* and if its not found replace it with the word latest
-LATEST_RELEASE_MMCTL = $(shell scripts/get_latest_release.sh 'mattermost/mmctl')
-REL_TO_DOWNLOAD = $(shell git rev-parse --abbrev-ref HEAD | sed 's/release-/v/' | sed '/v\([0-9]\)\./! s/\(.*\)/$(LATEST_RELEASE_MMCTL)/')
+MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+
+all: run ## Alias for 'run'.
 
 include build/*.mk
 
@@ -177,14 +175,14 @@ prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Linux)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Windows)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
 else
 	@echo "mmctl error: can't detect OS"
 endif
@@ -204,10 +202,9 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
-app-layers: ## Extract strings for translation from the source code
-	env GO111MODULE=on $(GO) get -u github.com/reflog/struct2interface
+app-layers: ## Extract interface from App struct
+	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
 	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
-	(cd ./app/layer_generators && $(GO) run main.go)
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
