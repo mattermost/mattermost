@@ -16,7 +16,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	singersTeam, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "Singers",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Email:       "singers@test.com",
 		Type:        model.TEAM_OPEN,
 	})
@@ -26,7 +26,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	nerdsTeam, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "Nerds",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Email:       "nerds@test.com",
 		Type:        model.TEAM_INVITE,
 	})
