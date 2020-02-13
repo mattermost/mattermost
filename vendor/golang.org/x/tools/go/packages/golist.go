@@ -16,7 +16,6 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -421,8 +420,6 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 		return nil, err
 	}
 	seen := make(map[string]*jsonPackage)
-	pkgs := make(map[string]*Package)
-	additionalErrors := make(map[string][]Error)
 	// Decode the JSON and convert it to Package form.
 	var response driverResponse
 	for dec := json.NewDecoder(buf); dec.More(); {
@@ -463,62 +460,11 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 		}
 
 		if old, found := seen[p.ImportPath]; found {
-			// If one version of the package has an error, and the other doesn't, assume
-			// that this is a case where go list is reporting a fake dependency variant
-			// of the imported package: When a package tries to invalidly import another
-			// package, go list emits a variant of the imported package (with the same
-			// import path, but with an error on it, and the package will have a
-			// DepError set on it). An example of when this can happen is for imports of
-			// main packages: main packages can not be imported, but they may be
-			// separately matched and listed by another pattern.
-			// See golang.org/issue/36188 for more details.
-
-			// The plan is that eventually, hopefully in Go 1.15, the error will be
-			// reported on the importing package rather than the duplicate "fake"
-			// version of the imported package. Once all supported versions of Go
-			// have the new behavior this logic can be deleted.
-			// TODO(matloob): delete the workaround logic once all supported versions of
-			// Go return the errors on the proper package.
-
-			// There should be exactly one version of a package that doesn't have an
-			// error.
-			if old.Error == nil && p.Error == nil {
-				if !reflect.DeepEqual(p, old) {
-					return nil, fmt.Errorf("internal error: go list gives conflicting information for package %v", p.ImportPath)
-				}
-				continue
+			if !reflect.DeepEqual(p, old) {
+				return nil, fmt.Errorf("internal error: go list gives conflicting information for package %v", p.ImportPath)
 			}
-
-			// Determine if this package's error needs to be bubbled up.
-			// This is a hack, and we expect for go list to eventually set the error
-			// on the package.
-			if old.Error != nil {
-				var errkind string
-				if strings.Contains(old.Error.Err, "not an importable package") {
-					errkind = "not an importable package"
-				} else if strings.Contains(old.Error.Err, "use of internal package") && strings.Contains(old.Error.Err, "not allowed") {
-					errkind = "use of internal package not allowed"
-				}
-				if errkind != "" {
-					if len(old.Error.ImportStack) < 2 {
-						return nil, fmt.Errorf(`internal error: go list gave a %q error with an import stack with fewer than two elements`, errkind)
-					}
-					importingPkg := old.Error.ImportStack[len(old.Error.ImportStack)-2]
-					additionalErrors[importingPkg] = append(additionalErrors[importingPkg], Error{
-						Pos:  old.Error.Pos,
-						Msg:  old.Error.Err,
-						Kind: ListError,
-					})
-				}
-			}
-
-			// Make sure that if there's a version of the package without an error,
-			// that's the one reported to the user.
-			if old.Error == nil {
-				continue
-			}
-
-			// This package will replace the old one at the end of the loop.
+			// skip the duplicate
+			continue
 		}
 		seen[p.ImportPath] = p
 
@@ -617,18 +563,8 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 			})
 		}
 
-		pkgs[pkg.ID] = pkg
-	}
-
-	for id, errs := range additionalErrors {
-		if p, ok := pkgs[id]; ok {
-			p.Errors = append(p.Errors, errs...)
-		}
-	}
-	for _, pkg := range pkgs {
 		response.Packages = append(response.Packages, pkg)
 	}
-	sort.Slice(response.Packages, func(i, j int) bool { return response.Packages[i].ID < response.Packages[j].ID })
 
 	return &response, nil
 }
@@ -763,12 +699,7 @@ func (state *golistState) invokeGo(verb string, args ...string) (*bytes.Buffer, 
 				!strings.ContainsRune("!\"#$%&'()*,:;<=>?[\\]^`{|}\uFFFD", r)
 		}
 		if len(stderr.String()) > 0 && strings.HasPrefix(stderr.String(), "# ") {
-			msg := stderr.String()[len("# "):]
-			if strings.HasPrefix(strings.TrimLeftFunc(msg, isPkgPathRune), "\n") {
-				return stdout, nil
-			}
-			// Treat pkg-config errors as a special case (golang.org/issue/36770).
-			if strings.HasPrefix(msg, "pkg-config") {
+			if strings.HasPrefix(strings.TrimLeftFunc(stderr.String()[len("# "):], isPkgPathRune), "\n") {
 				return stdout, nil
 			}
 		}

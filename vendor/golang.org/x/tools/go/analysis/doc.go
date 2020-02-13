@@ -1,6 +1,6 @@
 /*
 
-Package analysis defines the interface between a modular static
+The analysis package defines the interface between a modular static
 analysis and an analysis driver program.
 
 

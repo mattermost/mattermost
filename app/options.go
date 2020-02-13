@@ -16,7 +16,7 @@ type Option func(s *Server) error
 // By default, the app will use the store specified by the configuration. This allows you to
 // construct an app with a different store.
 //
-// The override parameter must be either a store.Store or func(App) store.Store().
+// The override parameter must be either a store.Store or func(App) store.Store.
 func StoreOverride(override interface{}) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
@@ -96,23 +96,24 @@ type AppOptionCreator func() []AppOption
 
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
-		a.srv = s
-		a.log = s.Log
-		a.notificationsLog = s.NotificationsLog
+		a.Srv = s
 
-		a.accountMigration = s.AccountMigration
-		a.cluster = s.Cluster
-		a.compliance = s.Compliance
-		a.dataRetention = s.DataRetention
-		a.elasticsearch = s.Elasticsearch
-		a.ldap = s.Ldap
-		a.messageExport = s.MessageExport
-		a.metrics = s.Metrics
-		a.notification = s.Notification
-		a.saml = s.Saml
+		a.Log = s.Log
+		a.NotificationsLog = s.NotificationsLog
 
-		a.httpService = s.HTTPService
-		a.imageProxy = s.ImageProxy
-		a.timezones = s.timezones
+		a.AccountMigration = s.AccountMigration
+		a.Cluster = s.Cluster
+		a.Compliance = s.Compliance
+		a.DataRetention = s.DataRetention
+		a.Elasticsearch = s.Elasticsearch
+		a.Ldap = s.Ldap
+		a.MessageExport = s.MessageExport
+		a.Metrics = s.Metrics
+		a.Notification = s.Notification
+		a.Saml = s.Saml
+
+		a.HTTPService = s.HTTPService
+		a.ImageProxy = s.ImageProxy
+		a.Timezones = s.timezones
 	}
 }
