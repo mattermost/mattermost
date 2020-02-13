@@ -94,7 +94,7 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	}
 
 	// Ignore posts this plugin made.
-	if sentByPlugin, _ := post.Props["sent_by_plugin"].(bool); sentByPlugin {
+	if sentByPlugin, _ := post.GetProps()["sent_by_plugin"].(bool); sentByPlugin {
 		return
 	}
 

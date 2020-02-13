@@ -59,7 +59,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
-	prop, ok := post.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	prop, ok := post.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
 	if !ok || prop == nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 }
 
 func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
-	if _, ok := post.Props["attachments"]; ok {
+	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
 		}, nil

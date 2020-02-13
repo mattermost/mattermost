@@ -5,10 +5,12 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
@@ -80,7 +82,7 @@ type Post struct {
 	MessageSource string `json:"message_source,omitempty" db:"-"`
 
 	Type          string          `json:"type"`
-	Props         StringInterface `json:"props"`
+	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
@@ -90,6 +92,10 @@ type Post struct {
 	// Transient data populated before sending a post to the client
 	ReplyCount int64         `json:"reply_count" db:"-"`
 	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
+
+	// Unexported sync.RWMutex used to prevent data race conditions.
+	// It's currently only used to guard Post.Props.
+	mu sync.RWMutex `db:"-"`
 }
 
 type PostEphemeral struct {
@@ -153,10 +159,46 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-// Clone shallowly copies the post.
+// ShallowCopy is an utility function to shallow copy a Post to the given
+// destination without touching the internal RWMutex.
+func (o *Post) ShallowCopy(dst *Post) error {
+	if dst == nil {
+		return errors.New("dst cannot be nil")
+	}
+	o.mu.RLock()
+	dst.mu.Lock()
+	dst.Id = o.Id
+	dst.CreateAt = o.CreateAt
+	dst.UpdateAt = o.UpdateAt
+	dst.EditAt = o.EditAt
+	dst.DeleteAt = o.DeleteAt
+	dst.IsPinned = o.IsPinned
+	dst.UserId = o.UserId
+	dst.ChannelId = o.ChannelId
+	dst.RootId = o.RootId
+	dst.ParentId = o.ParentId
+	dst.OriginalId = o.OriginalId
+	dst.Message = o.Message
+	dst.MessageSource = o.MessageSource
+	dst.Type = o.Type
+	dst.Props = o.Props
+	dst.Hashtags = o.Hashtags
+	dst.Filenames = o.Filenames
+	dst.FileIds = o.FileIds
+	dst.PendingPostId = o.PendingPostId
+	dst.HasReactions = o.HasReactions
+	dst.ReplyCount = o.ReplyCount
+	dst.Metadata = o.Metadata
+	dst.mu.Unlock()
+	o.mu.RUnlock()
+	return nil
+}
+
+// Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := *o
-	return &copy
+	copy := &Post{}
+	o.ShallowCopy(copy)
+	return copy
 }
 
 func (o *Post) ToJson() string {
@@ -196,7 +238,6 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-
 	if len(o.Id) != 26 {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -283,7 +324,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > POST_PROPS_MAX_RUNES {
+	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -296,8 +337,8 @@ func (o *Post) SanitizeProps() {
 	}
 
 	for _, member := range membersToSanitize {
-		if _, ok := o.Props[member]; ok {
-			delete(o.Props, member)
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
 		}
 	}
 }
@@ -318,8 +359,8 @@ func (o *Post) PreSave() {
 }
 
 func (o *Post) PreCommit() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 
 	if o.Filenames == nil {
@@ -337,16 +378,43 @@ func (o *Post) PreCommit() {
 }
 
 func (o *Post) MakeNonNil() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 }
 
+func (o *Post) DelProp(key string) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	delete(propsCopy, key)
+	o.Props = propsCopy
+}
+
 func (o *Post) AddProp(key string, value interface{}) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	propsCopy[key] = value
+	o.Props = propsCopy
+}
 
-	o.MakeNonNil()
+func (o *Post) GetProps() StringInterface {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+	return o.Props
+}
 
-	o.Props[key] = value
+func (o *Post) SetProps(props StringInterface) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	o.Props = props
 }
 
 func (o *Post) IsSystemMessage() bool {
@@ -376,7 +444,8 @@ func (o *Post) Patch(patch *PostPatch) {
 	}
 
 	if patch.Props != nil {
-		o.Props = *patch.Props
+		newProps := *patch.Props
+		o.SetProps(newProps)
 	}
 
 	if patch.FileIds != nil {
@@ -433,11 +502,11 @@ func (o *Post) ChannelMentions() []string {
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProps()["attachments"].([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
+	if attachments, ok := o.GetProps()["attachments"].([]interface{}); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
