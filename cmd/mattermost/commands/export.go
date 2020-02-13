@@ -152,7 +152,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
-		if a.MessageExport == nil {
+		if a.MessageExport() == nil {
 			return errors.New("message export feature not available")
 		}
 
