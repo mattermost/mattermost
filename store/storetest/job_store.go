@@ -77,8 +77,7 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 	received, err := ss.Job().GetAllByType(jobType)
 	require.Nil(t, err)
 	require.Len(t, received, 2)
-	require.False(t, received[0].Id != jobs[0].Id && received[1].Id != jobs[0].Id, "should've received first jobs")
-	require.False(t, received[0].Id != jobs[1].Id && received[1].Id != jobs[1].Id, "should've received second jobs")
+	require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id}, []string{received[0].Id, received[1].Id})
 }
 
 func testJobGetAllByTypePage(t *testing.T, ss store.Store) {

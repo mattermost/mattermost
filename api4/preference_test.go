@@ -328,7 +328,7 @@ func TestDeletePreferences(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	prefs, _ = Client.GetPreferences(th.BasicUser.Id)
-	require.Equal(t, originalCount, len(prefs), "should've deleted preferences")
+	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
 	Client.Logout()
 	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)

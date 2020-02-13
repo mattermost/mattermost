@@ -29,11 +29,10 @@ func TestChannelMemberIsValid(t *testing.T) {
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
 	/*o.Roles = "missing"
-	o.NotifyProps = GetDefaultChannelNotifyProps()
-	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
-		require.Fail(t, "should be invalid")
-	}*/
+		o.NotifyProps = GetDefaultChannelNotifyProps()
+		o.UserId = NewId()
+		err := o.IsValid()
+	    require.NotNil(t, err)*/
 
 	o.NotifyProps["desktop"] = "junk"
 	require.Error(t, o.IsValid(), "should be invalid")
