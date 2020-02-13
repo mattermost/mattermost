@@ -195,10 +195,6 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 		return false
 	}
 
-	return rolesPermitPermission(roles, permissionId)
-}
-
-func rolesPermitPermission(roles []*model.Role, permissionId string) bool {
 	for _, role := range roles {
 		if role.DeleteAt != 0 {
 			continue
