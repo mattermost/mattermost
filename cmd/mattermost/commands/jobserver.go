@@ -47,12 +47,12 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	defer mlog.Info("Stopped Mattermost job server")
 
 	if !noJobs {
-		a.Srv.Jobs.StartWorkers()
-		defer a.Srv.Jobs.StopWorkers()
+		a.Srv().Jobs.StartWorkers()
+		defer a.Srv().Jobs.StopWorkers()
 	}
 	if !noSchedule {
-		a.Srv.Jobs.StartSchedulers()
-		defer a.Srv.Jobs.StopSchedulers()
+		a.Srv().Jobs.StartSchedulers()
+		defer a.Srv().Jobs.StopSchedulers()
 	}
 
 	signalChan := make(chan os.Signal, 1)

@@ -17,7 +17,7 @@ import (
 )
 
 func TestWebSocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.Nil(t, err)
@@ -78,16 +78,16 @@ func TestWebSocket(t *testing.T) {
 }
 
 func TestWebSocketTrailingSlash(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket/", nil)
 	require.NoError(t, err)
 }
 
 func TestWebSocketEvent(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -157,7 +157,7 @@ func TestWebSocketEvent(t *testing.T) {
 }
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -213,10 +213,10 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
@@ -227,7 +227,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX+"/websocket", http.Header{
-		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)},
+		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv().ListenAddr.Port)},
 	})
 	require.Nil(t, err, err)
 
@@ -263,7 +263,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 }
 
 func TestWebSocketStatuses(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -282,13 +282,13 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user)).(*model.User)
 	th.LinkUserToTeam(ruser, rteam)
-	_, err = th.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	require.Nil(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2)).(*model.User)
 	th.LinkUserToTeam(ruser2, rteam)
-	_, err = th.App.Srv.Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.Nil(t, err)
 
 	Client.Login(user.Email, user.Password)
