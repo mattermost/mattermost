@@ -809,6 +809,37 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	assert.Equal(t, 2, len(timezones))
 }
 
+func TestGetChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	channel := &model.Channel{
+		DisplayName: fmt.Sprintf("Public"),
+		Name:        fmt.Sprintf("public"),
+		Type:        model.CHANNEL_OPEN,
+		CreatorId:   th.BasicUser.Id,
+		TeamId:      th.BasicTeam.Id,
+	}
+	th.App.CreateChannel(channel, true)
+	defer th.App.PermanentDeleteChannel(channel)
+	defer th.TearDown()
+
+	channelList, err := th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	fmt.Println(channelList.ToJson())
+	require.Equal(t, 4, len(*channelList))
+
+	th.App.DeleteChannel(channel, th.BasicUser.Id)
+
+	// Now we get all the non-archived channels for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	require.Equal(t, 3, len(*channelList))
+
+	// Now we get all the channels, even though are archived, for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true)
+	require.Nil(t, err)
+	require.Equal(t, 4, len(*channelList))
+}
+
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	th := Setup(t)
 	team := th.CreateTeam()
