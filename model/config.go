@@ -893,7 +893,7 @@ type Office365Settings struct {
 	DirectoryId     *string
 }
 
-func (s *Office365Settings) setDefaults(isUpdate bool) {
+func (s *Office365Settings) setDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -2643,7 +2643,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(isUpdate)
+	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
