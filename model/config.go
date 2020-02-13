@@ -212,9 +212,6 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
-	OFFICE365_SETTINGS_DEFAULT_APPLICATION_ID    = "{application id}"
-	OFFICE365_SETTINGS_DEFAULT_DIRECTORY_ID      = "{directory id}"
-	OFFICE365_SETTINGS_DEFAULT_SECRET            = "{secret}"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
