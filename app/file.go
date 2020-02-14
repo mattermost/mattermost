@@ -1098,7 +1098,7 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetWithOptions(page, perPage, opt)
+	return a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
