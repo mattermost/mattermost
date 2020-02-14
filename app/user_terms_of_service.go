@@ -6,7 +6,7 @@ package app
 import "github.com/mattermost/mattermost-server/v5/model"
 
 func (a *App) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
-	return a.Srv.Store.UserTermsOfService().GetByUser(userId)
+	return a.Srv().Store.UserTermsOfService().GetByUser(userId)
 }
 
 func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError {
@@ -16,11 +16,11 @@ func (a *App) SaveUserTermsOfService(userId, termsOfServiceId string, accepted b
 			TermsOfServiceId: termsOfServiceId,
 		}
 
-		if _, err := a.Srv.Store.UserTermsOfService().Save(userTermsOfService); err != nil {
+		if _, err := a.Srv().Store.UserTermsOfService().Save(userTermsOfService); err != nil {
 			return err
 		}
 	} else {
-		if err := a.Srv.Store.UserTermsOfService().Delete(userId, termsOfServiceId); err != nil {
+		if err := a.Srv().Store.UserTermsOfService().Delete(userId, termsOfServiceId); err != nil {
 			return err
 		}
 	}

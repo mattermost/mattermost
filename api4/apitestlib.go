@@ -114,10 +114,10 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.Server, th.Server.AppOptions, th.App.Srv.Router)
-	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
-	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
-	th.App.Srv.Store.MarkSystemRanUnitTests()
+	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	th.App.Srv().Store.MarkSystemRanUnitTests()
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -147,15 +147,15 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
+func SetupEnterprise(tb testing.TB) *TestHelper {
 	return setupTestHelper(true, nil)
 }
 
-func Setup() *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(false, nil)
 }
 
-func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	return setupTestHelper(false, updateConfig)
 }
 
@@ -169,7 +169,7 @@ func (me *TestHelper) ShutdownApp() {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
 	}
@@ -227,7 +227,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 
 func (me *TestHelper) waitForConnectivity() {
 	for i := 0; i < 1000; i++ {
-		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv.ListenAddr.Port))
+		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
 			return
@@ -238,19 +238,39 @@ func (me *TestHelper) waitForConnectivity() {
 }
 
 func (me *TestHelper) CreateClient() *model.Client4 {
-	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv.ListenAddr.Port))
+	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv().ListenAddr.Port))
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.Client.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), me.Client.AuthToken)
 }
 
 func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), me.SystemAdminClient.AuthToken)
 }
 
 func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), client.AuthToken)
+}
+
+func (me *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
+	return me.CreateBotWithClient((me.SystemAdminClient))
+}
+
+func (me *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	utils.DisableDebugLogForTest()
+	rbot, resp := client.CreateBot(bot)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+	return rbot
 }
 
 func (me *TestHelper) CreateUser() *model.User {
@@ -298,7 +318,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Pa$$word11"
-	_, err := me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err := me.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
@@ -400,7 +420,7 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := me.App.Srv.Store.Post().Save(&model.Post{
+	post, err := me.App.Srv().Store.Post().Save(&model.Post{
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
@@ -731,9 +751,9 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
+	if cm, err := me.App.Srv().Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if _, err = me.App.Srv.Store.Channel().UpdateMember(cm); err != nil {
+		if _, err = me.App.Srv().Store.Channel().UpdateMember(cm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -748,9 +768,9 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -768,9 +788,9 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}

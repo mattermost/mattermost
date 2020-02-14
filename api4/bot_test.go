@@ -20,7 +20,7 @@ import (
 
 func TestCreateBot(t *testing.T) {
 	t.Run("create bot without permissions", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -37,7 +37,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot without config permissions", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
@@ -54,7 +54,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot with permissions", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -80,7 +80,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create invalid bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
@@ -99,7 +99,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("bot attempt to create bot fails", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -137,7 +137,7 @@ func TestCreateBot(t *testing.T) {
 
 func TestPatchBot(t *testing.T) {
 	t.Run("patch non-existent bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -146,7 +146,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch someone else's bot without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -167,7 +167,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch someone else's bot without permission, but with read others permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -190,7 +190,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch someone else's bot with permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -223,7 +223,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch my bot without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -252,7 +252,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch my bot without permission, but with read permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -282,7 +282,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch my bot with permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -316,7 +316,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("partial patch my bot with permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -350,7 +350,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("update bot, internally managed fields ignored", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -384,7 +384,7 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -528,7 +528,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -753,7 +753,7 @@ func TestGetBots(t *testing.T) {
 
 func TestDisableBot(t *testing.T) {
 	t.Run("disable non-existent bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		_, resp := th.Client.DisableBot(model.NewId())
@@ -761,7 +761,7 @@ func TestDisableBot(t *testing.T) {
 	})
 
 	t.Run("disable bot without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -785,7 +785,7 @@ func TestDisableBot(t *testing.T) {
 	})
 
 	t.Run("disable bot without permission, but with read permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -810,7 +810,7 @@ func TestDisableBot(t *testing.T) {
 	})
 
 	t.Run("disable bot with permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -847,7 +847,7 @@ func TestDisableBot(t *testing.T) {
 }
 func TestEnableBot(t *testing.T) {
 	t.Run("enable non-existent bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		_, resp := th.Client.EnableBot(model.NewId())
@@ -855,7 +855,7 @@ func TestEnableBot(t *testing.T) {
 	})
 
 	t.Run("enable bot without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -882,7 +882,7 @@ func TestEnableBot(t *testing.T) {
 	})
 
 	t.Run("enable bot without permission, but with read permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -910,7 +910,7 @@ func TestEnableBot(t *testing.T) {
 	})
 
 	t.Run("enable bot with permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -950,7 +950,7 @@ func TestEnableBot(t *testing.T) {
 }
 
 func TestAssignBot(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("claim non-existent bot", func(t *testing.T) {
@@ -1097,7 +1097,7 @@ func TestAssignBot(t *testing.T) {
 }
 
 func TestSetBotIconImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -1167,7 +1167,7 @@ func TestSetBotIconImage(t *testing.T) {
 }
 
 func TestGetBotIconImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
@@ -1229,7 +1229,7 @@ func TestGetBotIconImage(t *testing.T) {
 }
 
 func TestDeleteBotIconImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())

@@ -1,6 +1,12 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM := Windows
+else
+	PLATFORM := $(shell uname)
+endif
 
 IS_CI ?= false
 MM_NO_DOCKER ?= false
@@ -47,7 +53,9 @@ endif
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
-GOBIN ?= $(PWD)/bin
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
@@ -80,7 +88,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.2.0
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
@@ -91,6 +99,7 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
+
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -111,6 +120,8 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
+# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
+MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -159,6 +170,23 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
+prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+# Externally built binaries
+ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+	@echo mmctl installed
+else ifeq ($(PLATFORM),Darwin)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Linux)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Windows)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+else
+	@echo "mmctl error: can't detect OS"
+endif
+
 golangci-lint: ## Run golangci-lint on codebase
 # https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
@@ -173,6 +201,10 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	golangci-lint run ./enterprise/...
 endif
 endif
+
+app-layers: ## Extract interface from App struct
+	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
+	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
@@ -309,7 +341,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		exit 1; \
 	fi
 
-run-server: validate-go-version start-docker ## Starts the server.
+run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -450,7 +482,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	$(GO) get -u
+	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
@@ -464,10 +496,10 @@ vet: ## Run mattermost go vet specific checks
 		exit 1; \
 	fi; \
 
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
 
