@@ -406,7 +406,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 		}
 	}
 
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	if len(nonUsernameKeys) > 0 {
 		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
