@@ -728,11 +728,11 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (guestRoleName, userRol
 		return
 	}
 
-	return a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	return a.GetTeamSchemeChannelRoles(channel.TeamId)
 }
 
-// GetTeamSchemeRolesForChannel Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
-func (a *App) GetTeamSchemeRolesForChannel(teamId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
+func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	team, err := a.GetTeam(teamId)
 	if err != nil {
 		return
@@ -769,7 +769,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		return nil, err
 	}
 
-	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
 	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
 	if err != nil {
 		return nil, err
@@ -784,7 +784,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 }
 
 func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeRolesForChannel(channel.TeamId)
+	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
 	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
 	if err != nil {
 		return nil, err

@@ -1534,7 +1534,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			inheritedPermissionsOverriden := tc.InheritedMemberPermissions != nil || tc.InheritedGuestPermissions != nil
 			// If the test case restricts inherited permissions.
 			if inheritedPermissionsOverriden {
-				inheritedGuestRoleName, inheritedMemberRoleName, _, _ := th.App.GetTeamSchemeRolesForChannel(channel.TeamId)
+				inheritedGuestRoleName, inheritedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
 				if tc.InheritedMemberPermissions != nil {
 					inheritedMemberRole, err := th.App.GetRoleByName(inheritedMemberRoleName)
 					require.Nil(t, err)
