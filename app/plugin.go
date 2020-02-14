@@ -161,7 +161,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 
-	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log())
+	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log(), a.Metrics())
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
