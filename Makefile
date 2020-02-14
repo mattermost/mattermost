@@ -119,7 +119,7 @@ ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -170,7 +170,7 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 # Externally built binaries
-ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+ifeq ($(shell test -f bin/mmctl && $(MMCTL_REL_TO_DOWNLOAD) != *release-* && echo -n yes),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
