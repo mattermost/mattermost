@@ -226,3 +226,48 @@ func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
 		})
 	}
 }
+
+func TestGetChannelModeratedPermissions(t *testing.T) {
+	tests := []struct {
+		Name        string
+		Permissions []string
+		Expected    map[string]bool
+	}{
+		{
+			"Filters non moderated permissions",
+			[]string{PERMISSION_CREATE_BOT.Id},
+			map[string]bool{},
+		},
+		{
+			"Returns a map of moderated permissions",
+			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_ADD_REACTION.Id, PERMISSION_REMOVE_REACTION.Id, PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id, PERMISSION_USE_CHANNEL_MENTIONS.Id},
+			map[string]bool{
+				CHANNEL_MODERATED_PERMISSIONS[0]: true,
+				CHANNEL_MODERATED_PERMISSIONS[1]: true,
+				CHANNEL_MODERATED_PERMISSIONS[2]: true,
+				CHANNEL_MODERATED_PERMISSIONS[3]: true,
+			},
+		},
+		{
+			"Returns a map of moderated permissions when non moderated present",
+			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_CREATE_DIRECT_CHANNEL.Id},
+			map[string]bool{
+				CHANNEL_MODERATED_PERMISSIONS[0]: true,
+			},
+		},
+		{
+			"Returns a nothing when no permissions present",
+			[]string{},
+			map[string]bool{},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			role := &Role{Permissions: tc.Permissions}
+			moderatedPermissions := role.GetChannelModeratedPermissions()
+			for permission := range moderatedPermissions {
+				assert.Equal(t, moderatedPermissions[permission], tc.Expected[permission])
+			}
+		})
+	}
+}

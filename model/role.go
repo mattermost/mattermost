@@ -160,6 +160,20 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	return result
 }
 
+// GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
+func (r *Role) GetChannelModeratedPermissions() map[string]bool {
+	moderatedPermissions := make(map[string]bool)
+	for _, permission := range r.Permissions {
+		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+			if moderated == permission {
+				moderatedPermissions[moderatedPermissionValue] = true
+			}
+		}
+	}
+
+	return moderatedPermissions
+}
+
 // RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
 func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
 	permissionsToAddToPatch := make(map[string]bool)
