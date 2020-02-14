@@ -30,10 +30,10 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 		DisplayName:      command.DisplayName,
 	}
 
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
-	for _, pc := range a.Srv.pluginCommands {
+	for _, pc := range a.Srv().pluginCommands {
 		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
 			if pc.PluginId == pluginId {
 				pc.Command = command
@@ -42,7 +42,7 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 		}
 	}
 
-	a.Srv.pluginCommands = append(a.Srv.pluginCommands, &PluginCommand{
+	a.Srv().pluginCommands = append(a.Srv().pluginCommands, &PluginCommand{
 		Command:  command,
 		PluginId: pluginId,
 	})
@@ -52,37 +52,37 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
 	trigger = strings.ToLower(trigger)
 
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv.pluginCommands {
+	for _, pc := range a.Srv().pluginCommands {
 		if pc.Command.TeamId != teamId || pc.Command.Trigger != trigger {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv.pluginCommands = remaining
+	a.Srv().pluginCommands = remaining
 }
 
 func (a *App) UnregisterPluginCommands(pluginId string) {
-	a.Srv.pluginCommandsLock.Lock()
-	defer a.Srv.pluginCommandsLock.Unlock()
+	a.Srv().pluginCommandsLock.Lock()
+	defer a.Srv().pluginCommandsLock.Unlock()
 
 	var remaining []*PluginCommand
-	for _, pc := range a.Srv.pluginCommands {
+	for _, pc := range a.Srv().pluginCommands {
 		if pc.PluginId != pluginId {
 			remaining = append(remaining, pc)
 		}
 	}
-	a.Srv.pluginCommands = remaining
+	a.Srv().pluginCommands = remaining
 }
 
 func (a *App) PluginCommandsForTeam(teamId string) []*model.Command {
-	a.Srv.pluginCommandsLock.RLock()
-	defer a.Srv.pluginCommandsLock.RUnlock()
+	a.Srv().pluginCommandsLock.RLock()
+	defer a.Srv().pluginCommandsLock.RUnlock()
 
 	var commands []*model.Command
-	for _, pc := range a.Srv.pluginCommands {
+	for _, pc := range a.Srv().pluginCommands {
 		if pc.Command.TeamId == "" || pc.Command.TeamId == teamId {
 			commands = append(commands, pc.Command)
 		}
@@ -98,14 +98,14 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	trigger = strings.ToLower(trigger)
 
 	var matched *PluginCommand
-	a.Srv.pluginCommandsLock.RLock()
-	for _, pc := range a.Srv.pluginCommands {
+	a.Srv().pluginCommandsLock.RLock()
+	for _, pc := range a.Srv().pluginCommands {
 		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
 			matched = pc
 			break
 		}
 	}
-	a.Srv.pluginCommandsLock.RUnlock()
+	a.Srv().pluginCommandsLock.RUnlock()
 	if matched == nil {
 		return nil, nil, nil
 	}

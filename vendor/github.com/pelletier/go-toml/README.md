@@ -3,12 +3,11 @@
 Go library for the [TOML](https://github.com/mojombo/toml) format.
 
 This library supports TOML version
-[v0.4.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.4.0.md)
+[v0.5.0](https://github.com/toml-lang/toml/blob/master/versions/en/toml-v0.5.0.md)
 
 [![GoDoc](https://godoc.org/github.com/pelletier/go-toml?status.svg)](http://godoc.org/github.com/pelletier/go-toml)
 [![license](https://img.shields.io/github/license/pelletier/go-toml.svg)](https://github.com/pelletier/go-toml/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/pelletier/go-toml.svg?branch=master)](https://travis-ci.org/pelletier/go-toml)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/4aepwwjori266hkt/branch/master?svg=true)](https://ci.appveyor.com/project/pelletier/go-toml/branch/master)
+[![Build Status](https://dev.azure.com/pelletierthomas/go-toml-ci/_apis/build/status/pelletier.go-toml?branchName=master)](https://dev.azure.com/pelletierthomas/go-toml-ci/_build/latest?definitionId=1&branchName=master)
 [![codecov](https://codecov.io/gh/pelletier/go-toml/branch/master/graph/badge.svg)](https://codecov.io/gh/pelletier/go-toml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pelletier/go-toml)](https://goreportcard.com/report/github.com/pelletier/go-toml)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpelletier%2Fgo-toml.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpelletier%2Fgo-toml?ref=badge_shield)
@@ -99,6 +98,13 @@ Go-toml provides two handy command line tools:
     ```
     go install github.com/pelletier/go-toml/cmd/tomljson
     tomljson --help
+    ```
+  
+ * `jsontoml`: Reads a JSON file and outputs a TOML representation.
+ 
+    ```
+    go install github.com/pelletier/go-toml/cmd/jsontoml
+    jsontoml --help
     ```
 
 ### Docker image

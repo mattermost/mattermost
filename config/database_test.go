@@ -19,6 +19,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+func getDsn(driver string, source string) string {
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		return driver + "://" + source
+	}
+	return source
+}
+
 func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byte) (string, func()) {
 	t.Helper()
 	os.Clearenv()
@@ -60,6 +67,19 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 	t.Helper()
 
+	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
+		var actual struct {
+			ID    string `db:"id"`
+			Value []byte `db:"value"`
+		}
+		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
+		require.NoError(t, err)
+
+		actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
+		require.Nil(t, err)
+		return actual.ID, actualCfg
+	}
 	var actual struct {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
@@ -70,7 +90,6 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 
 	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
 	require.Nil(t, err)
-
 	return actual.ID, actualCfg
 }
 
@@ -96,7 +115,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("no existing configuration - initialization required", func(t *testing.T) {
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -107,7 +126,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -119,7 +138,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -148,7 +167,7 @@ func TestDatabaseStoreGet(t *testing.T) {
 	defer tearDown()
 
 	sqlSettings := mainHelper.GetSQLSettings()
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+	ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -174,7 +193,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -184,7 +203,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -197,7 +216,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -207,7 +226,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -220,7 +239,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -230,7 +249,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -243,7 +262,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -253,7 +272,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -266,7 +285,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -276,7 +295,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -292,7 +311,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		defer tearDown()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -302,7 +321,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err = config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err = config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -320,7 +339,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -334,7 +353,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -353,7 +372,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, ldapConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -373,7 +392,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -392,7 +411,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -411,7 +430,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, readOnlyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -431,7 +450,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -454,7 +473,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -472,10 +491,13 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("persist failed: too long", func(t *testing.T) {
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -492,7 +514,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		activeID, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -524,7 +546,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -539,7 +561,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -561,7 +583,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -582,7 +604,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -605,7 +627,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -628,7 +650,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -651,7 +673,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -676,7 +698,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -696,7 +718,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -723,7 +745,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, fixesRequiredConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -737,7 +759,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -761,7 +783,7 @@ func TestDatabaseGetFile(t *testing.T) {
 	})
 	defer tearDown()
 
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+	ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -792,7 +814,7 @@ func TestDatabaseSetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 	defer tearDown()
 
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+	ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -818,14 +840,20 @@ func TestDatabaseSetFile(t *testing.T) {
 	})
 
 	t.Run("max length", func(t *testing.T) {
-		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength)
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
+		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength)
 
 		err := ds.SetFile("toolong", longFile)
 		require.NoError(t, err)
 	})
 
 	t.Run("too long", func(t *testing.T) {
-		longFile := bytes.Repeat([]byte{0x0}, config.MaxWriteLength+1)
+		if *mainHelper.Settings.DriverName == "postgres" {
+			t.Skip("No limit for postgres")
+		}
+		longFile := bytes.Repeat([]byte("a"), config.MaxWriteLength+1)
 
 		err := ds.SetFile("toolong", longFile)
 		if assert.Error(t, err) {
@@ -839,7 +867,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -852,7 +880,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -870,7 +898,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		})
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -883,7 +911,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -898,7 +926,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -910,7 +938,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -934,7 +962,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		})
 		defer tearDown()
 
-		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		ds, err := config.NewDatabaseStore(getDsn(*mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -955,13 +983,20 @@ func TestDatabaseStoreString(t *testing.T) {
 	defer tearDown()
 
 	sqlSettings := mainHelper.GetSQLSettings()
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+	ds, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	maskedDSN := ds.String()
-	assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
-	assert.True(t, strings.Contains(maskedDSN, "mmuser"))
-	assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	} else {
+		maskedDSN := ds.String()
+		assert.True(t, strings.HasPrefix(maskedDSN, "mysql://"))
+		assert.True(t, strings.Contains(maskedDSN, "mmuser"))
+		assert.False(t, strings.Contains(maskedDSN, "mostest"))
+	}
 }

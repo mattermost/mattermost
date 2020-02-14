@@ -89,6 +89,8 @@ func format(s string, codes interface{}) string {
 		seq = v
 	case []int:
 		seq = makeSequence(v)
+	case Colors:
+		seq = makeSequence(v)
 	default:
 		return s
 	}
