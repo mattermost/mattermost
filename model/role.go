@@ -164,6 +164,10 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 func (r *Role) GetChannelModeratedPermissions() map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
+		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
+			continue
+		}
+
 		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
 			if moderated == permission {
 				moderatedPermissions[moderatedPermissionValue] = true
