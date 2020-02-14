@@ -84,8 +84,10 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got %s", body))
@@ -114,8 +116,10 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new Group Message.", fmt.Sprintf("Expected email text 'You have a new Group Message. Got "+body))
@@ -144,8 +148,10 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new notification.", fmt.Sprintf("Expected email text 'You have a new notification. Got "+body))
@@ -174,8 +180,10 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new Direct Message.", fmt.Sprintf("Expected email text 'You have a new Direct Message. Got "+body))
@@ -207,8 +215,10 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
 	r, _ := regexp.Compile("E([S|D]+)T")
@@ -238,8 +248,10 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	tm := time.Unix(post.CreateAt/1000, 0)
 	zone, _ := tm.Zone()
@@ -282,8 +294,10 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc)
 	require.Contains(t, body, "sender - 2:30 PM", fmt.Sprintf("Expected email text 'sender - 2:30 PM'. Got %s", body))
@@ -313,8 +327,10 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "sender - 14:30", fmt.Sprintf("Expected email text 'sender - 14:30'. Got %s", body))
@@ -341,8 +357,10 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
@@ -370,8 +388,10 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new Group Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Group Message from %s'. Got %s", senderName, body))
@@ -399,8 +419,10 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new notification from "+senderName, fmt.Sprintf("Expected email text 'You have a new notification from %s'. Got %s", senderName, body))
@@ -428,8 +450,10 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, "You have a new Direct Message from "+senderName, fmt.Sprintf("Expected email text 'You have a new Direct Message from "+senderName+"'. Got "+body))
@@ -459,8 +483,10 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, ch,
 		channelName, senderName, teamName, teamURL,
@@ -496,11 +522,14 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
@@ -558,11 +587,14 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name, ch2.Name, ch3.Name}, true).Return([]*model.Channel{ch, ch2, ch3}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
@@ -603,11 +635,14 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, ch,
 		ch.Name, senderName, teamName, teamURL,
@@ -632,11 +667,14 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	outMessage := th.App.generateHyperlinkForChannels(message+mention, teamName, teamURL)
 	channelURL := teamURL + "/channels/" + ch.Name
@@ -678,11 +716,14 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name, ch2.Name, ch3.Name}, true).Return([]*model.Channel{ch, ch2, ch3}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
 	channelURL := teamURL + "/channels/" + ch.Name
@@ -708,11 +749,14 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	teamName := "testteam"
 	teamURL := "http://localhost:8065/testteam"
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Id: "test", Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
-	channelStoreMock := th.App.Srv.Store.Channel().(*mocks.ChannelStore)
+	channelStoreMock := mocks.ChannelStore{}
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
+	storeMock.On("Channel").Return(&channelStoreMock)
 
 	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
 	assert.Equal(t, message, outMessage)
@@ -737,8 +781,10 @@ func TestLandingLink(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
@@ -764,8 +810,10 @@ func TestLandingLinkPermalink(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	teamStoreMock := th.App.Srv.Store.Team().(*mocks.TeamStore)
+	storeMock := th.App.Srv().Store.(*mocks.Store)
+	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
+	storeMock.On("Team").Return(&teamStoreMock)
 
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
 	require.Contains(t, body, teamURL+"/pl/"+post.Id, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))

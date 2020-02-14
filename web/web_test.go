@@ -45,7 +45,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	store := testlib.GetMockStore()
+	store := testlib.GetMockStoreForSetupFunctions()
 	return setupTestHelper(tb, store)
 }
 

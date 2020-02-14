@@ -21,7 +21,7 @@ func (s *TestStore) Close() {
 	// Don't propagate to the underlying store, since this instance is persistent.
 }
 
-func GetMockStore() *mocks.Store {
+func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore := mocks.Store{}
 	systemStore := mocks.SystemStore{}
 	systemStore.On("GetByName", "AsymmetricSigningKey").Return(nil, model.NewAppError("FakeError", "store.sql_system.get_by_name.app_error", nil, "", http.StatusInternalServerError))
@@ -39,6 +39,7 @@ func GetMockStore() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER).Return(&model.System{Name: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 

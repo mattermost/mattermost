@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
@@ -123,13 +124,21 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	mockStore := testlib.GetMockStore()
-	return setupTestHelper(mockStore, false, tb)
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, false, tb)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	mockStore := testlib.GetMockStore()
-	return setupTestHelper(mockStore, true, tb)
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, true, tb)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
