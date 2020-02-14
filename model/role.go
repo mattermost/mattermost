@@ -100,24 +100,31 @@ func (r *Role) Patch(patch *RolePatch) {
 func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
 	mergedPermissions := []string{}
 
+
+	higherScopedPermissionsMap := slices.AsStringBoolMap(higherScopedPermissions.Permissions)
+	rolePermissionsMap := slices.AsStringBoolMap(r.Permissions)
+
 	for _, cp := range ALL_PERMISSIONS {
 		if cp.Scope != PERMISSION_SCOPE_CHANNEL {
 			continue
 		}
 
-		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
+
+		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && presentOnHigherScope {
 			mergedPermissions = append(mergedPermissions, cp.Id)
 			continue
 		}
 
 		if _, ok := ModeratedPermissions[cp.Id]; ok {
-			if slices.IncludesString(r.Permissions, cp.Id) && slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+			_, presentOnRole := rolePermissionsMap[cp.Id]
+			if  presentOnRole && presentOnHigherScope {
 				mergedPermissions = append(mergedPermissions, cp.Id)
 			}
 			continue
 		}
 
-		if slices.IncludesString(higherScopedPermissions.Permissions, cp.Id) {
+		if presentOnHigherScope {
 			mergedPermissions = append(mergedPermissions, cp.Id)
 		}
 	}
