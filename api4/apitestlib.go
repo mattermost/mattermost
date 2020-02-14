@@ -183,7 +183,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	return setupTestHelper(dbStore, false, updateConfig)
 }
 
-func SetupWithStoreMockConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
