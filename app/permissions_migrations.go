@@ -46,6 +46,9 @@ const (
 	PERMISSION_INVITE_GUEST                      = "invite_guest"
 	PERMISSION_PROMOTE_GUEST                     = "promote_guest"
 	PERMISSION_DEMOTE_TO_GUEST                   = "demote_to_guest"
+	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
+	PERMISSION_CREATE_POST                       = "create_post"
+	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
 )
 
 func isRole(role string) func(string, map[string]map[string]bool) bool {
@@ -119,7 +122,7 @@ func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, mi
 }
 
 func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
-	if _, err := a.Srv.Store.System().GetByName(key); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
 		return nil
 	}
 
@@ -138,12 +141,12 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
-		if _, err := a.Srv.Store.Role().Save(role); err != nil {
+		if _, err := a.Srv().Store.Role().Save(role); err != nil {
 			return err
 		}
 	}
 
-	if err := a.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
+	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
 		return err
 	}
 	return nil
@@ -277,6 +280,15 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 	}
 }
 
+func getAddUseMentionChannelsPermissionMigration() permissionsMap {
+	return permissionsMap{
+		permissionTransformation{
+			On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+			Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+		},
+	}
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() *model.AppError {
 	PermissionsMigrations := []struct {
@@ -292,6 +304,7 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {

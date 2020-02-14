@@ -28,7 +28,7 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    *app.App
+	App    app.AppIface
 	Server *app.Server
 	Web    *Web
 
@@ -91,12 +91,12 @@ func setupTestHelper(t testing.TB, store store.Store) *TestHelper {
 	})
 
 	web := New(s, s.AppOptions, s.Router)
-	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
+	URL = fmt.Sprintf("http://localhost:%v", a.Srv().ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
 	a.DoAppMigrations()
 
-	a.Srv.Store.MarkSystemRanUnitTests()
+	a.Srv().Store.MarkSystemRanUnitTests()
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
@@ -242,7 +242,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log())
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"

@@ -31,7 +31,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
+	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log())
 	require.NoError(t, err)
 
 	app.SetPluginsEnvironment(env)
@@ -180,7 +180,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, "message", post.Message)
-		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
 		assert.Equal(t, "message", retrievedPost.Message)
 	})
@@ -224,7 +224,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, "message_fromplugin", post.Message)
-		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
 		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
@@ -736,7 +736,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.App.Session.UserId, th.BasicUser.Id)
+	assert.Equal(t, th.App.Session().UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -908,19 +908,19 @@ func TestHookContext(t *testing.T) {
 	defer th.TearDown()
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	th.App.Session.Id = model.NewId()
-	th.App.RequestId = model.NewId()
-	th.App.IpAddress = model.NewId()
-	th.App.AcceptLanguage = model.NewId()
-	th.App.UserAgent = model.NewId()
+	th.App.Session().Id = model.NewId()
+	th.App.requestId = model.NewId()
+	th.App.ipAddress = model.NewId()
+	th.App.acceptLanguage = model.NewId()
+	th.App.userAgent = model.NewId()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
-	mockAPI.On("LogInfo", th.App.RequestId).Return(nil)
-	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
-	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
-	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
+	mockAPI.On("LogDebug", th.App.Session().Id).Return(nil)
+	mockAPI.On("LogInfo", th.App.RequestId()).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress()).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage()).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent()).Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
