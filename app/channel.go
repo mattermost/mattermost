@@ -809,7 +809,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		if _, err := a.CreateChannelScheme(channel); err != nil {
+		if _, err = a.CreateChannelScheme(channel); err != nil {
 			return nil, err
 		}
 	}
