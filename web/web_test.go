@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +47,11 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 	store := testlib.GetMockStoreForSetupFunctions()
-	return setupTestHelper(tb, store)
+	th := setupTestHelper(tb, store)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
