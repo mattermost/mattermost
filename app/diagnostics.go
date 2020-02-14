@@ -630,6 +630,7 @@ func (a *App) trackConfig() {
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	}
