@@ -367,7 +367,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -381,7 +381,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -395,7 +395,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
