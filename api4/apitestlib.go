@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
@@ -183,15 +184,27 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 }
 
 func SetupWithStoreMockConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	return setupTestHelper(testlib.GetMockStore(), false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, updateConfig)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	return setupTestHelper(testlib.GetMockStore(), false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	return setupTestHelper(testlib.GetMockStore(), true, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func (me *TestHelper) ShutdownApp() {
