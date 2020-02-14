@@ -85,11 +85,11 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "Не удалось получить метаданные из URL-адреса поставщика удостоверений."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "Обнаружена ошибка при анализе информации метаданных, полученной от поставщика удостоверений, в сертификат."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -97,15 +97,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "Отсутствует узел дескрипторов SSO Identity Provider в XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "Отсутствует узел дескрипторов ключей провайдера идентификации в XML."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "Отсутствует узел служб SSO Identity Provider в XML."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "Неверный текст сертификата."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Неверный тип контента."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Отсутствующий тип контента."
   },
   {
     "id": "api.admin.test_email.body",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "Невозможно обработать форму из нескольких частей"
+    "translation": "Не удалось разобрать составную форму"
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "Невозможно разархивировать канал. Канал не архивирован."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} разархивировал канал."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -417,7 +417,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Некорректное имя канала. Запрещено использовать идентификаторы пользователей в качестве имени канала (кроме каналов личных сообщений)"
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -425,7 +425,7 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Channel type cannot be updated"
+    "translation": "Тип канала не может быть обновлен"
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "Электронная почта не настроена, приглашение не отослано"
+    "translation": "Электронная почта не настроена, приглашение не отправлено"
   },
   {
     "id": "api.command.invite_people.fail",
@@ -541,15 +541,15 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Установить состояние \"Нет на месте\""
+    "translation": "Установить состояние \"Отошёл\""
   },
   {
     "id": "api.command_away.name",
-    "translation": "нет на месте"
+    "translation": "отошёл"
   },
   {
     "id": "api.command_away.success",
-    "translation": "Сейчас ваше состояние \"Нет на месте\""
+    "translation": "Сейчас ваше состояние \"Отошёл\""
   },
   {
     "id": "api.command_channel_header.channel.app_error",
@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "Этот канал управляется группами. Этот пользователь не является частью группы, которая синхронизируется с этим каналом."
   },
   {
     "id": "api.command_invite.hint",
@@ -848,7 +848,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} не является участником этого канала."
+    "translation": "{{.Username}} не является участником команды."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Сервер занят, некритические службы временно недоступны"
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1394,7 +1394,7 @@
   },
   {
     "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
+    "translation": "Неверный / отсутствует идентификатор канала или идентификатор команды."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1458,7 +1458,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "ошибка маршалирования"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1566,11 +1566,11 @@
   },
   {
     "id": "api.plugin.add_public_key.open.app_error",
-    "translation": "Возникла ошибка при удалении сертификата"
+    "translation": "Произошла ошибка при открытии файла открытого ключа."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
-    "translation": "Произошла ошибка при скачивании плагина."
+    "translation": "При скачивании плагина произошла ошибка."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -1586,15 +1586,15 @@
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Unable to verify plugin signature."
+    "translation": "Невозможно проверить подпись плагина."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} и @{{.LastUsername}} не уведомлены этим упоминанием, потому что они не являются участниками канала. Они не могут быть добавлены в канал, потому что они не являются участниками связанных групп. Чтобы добавить их в канал, они должны быть добавлены в связанные группы."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} не уведомлены этим упоминанием, потому что они не являются участниками канала. Они не могут быть добавлены в канал, потому что они не являются участниками связанных групп. Чтобы добавить их в канал, они должны быть добавлены в связанные группы."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1756,7 +1756,7 @@
   },
   {
     "id": "api.push_notification.id_loaded.default_message",
-    "translation": "You've received a new message."
+    "translation": "Вы получили новое сообщение."
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message"
+    "translation": "Произошла ошибка во время построения сообщения push-уведомления"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message"
+    "translation": "Произошла ошибка во время построения подтверждающего сообщения push-уведомления"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1796,7 +1796,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Это действие запрещено системному администратору с ограниченными правами."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1924,7 +1924,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+    "translation": "{{.Filename}} в zip архиве слишком велик для обработки импортером из Slack\r\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "Эта команда управляется группами. Этот пользователь не является частью группы, которая синхронизируется с этой командой."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Гостям ограничена возможность присоединяться к команде через ссылку-приглашение. Запросите гостевое приглашение по электронной почте для присоединения к команде."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Невозможно прочитать файл изображения команды."
+    "translation": "Невозможно прочитать файл значка команды."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -2016,7 +2016,7 @@
   },
   {
     "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-    "translation": "The channels of the invite must be part of the team of the invite."
+    "translation": "Каналы в приглашении должны быть часть команды в приглашении."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2059,14 +2059,6 @@
     "translation": "Канал перемещен в эту команду из %v."
   },
   {
-    "id": "api.team.promote_guest_to_user.disabled.error",
-    "translation": "Гостевые учётные записи отключены."
-  },
-  {
-    "id": "api.team.promote_guest_to_user.license.error",
-    "translation": "Ваша лицензия не поддерживает гостевые учётные записи"
-  },
-  {
     "id": "api.team.remove_member.group_constrained.app_error",
     "translation": "Невозможно удалить пользователя из канала в связи с ограничением группы."
   },
@@ -2096,15 +2088,15 @@
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Не удалось декодировать поток."
+    "translation": "Не удалось декодировать значок команды."
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Не удалось декодировать метаданные поток команды"
+    "translation": "Не удалось декодировать метаданные значка команды."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Не удалось закодировать поток."
+    "translation": "Не удалось закодировать значок команды."
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
@@ -2236,7 +2228,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "[[{{.SenderName}}]], пригласил вас присоединиться к команде [[{{.TeamDisplayName}}]]."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2244,7 +2236,7 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+    "translation": "[[{{.SenderName}}]], пригласил вас присоединиться к команде [[{{.TeamDisplayName}}]] в качестве гостя."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -2332,7 +2324,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Личный ключ доступа, добавленный в вашу учетную запись"
+    "translation": "Личный токен доступа, добавленный в вашу учетную запись"
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -2404,7 +2396,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
-    "translation": "Плохой ответ от запроса"
+    "translation": "Плохой ответ от запроса токена"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
@@ -2416,7 +2408,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
-    "translation": "Отсутствует маркер доступа"
+    "translation": "Отсутствует токен доступа"
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
@@ -2424,11 +2416,11 @@
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
-    "translation": "Маркер запроса для {{.Service}} ошибочный"
+    "translation": "Запрос токена для {{.Service}} завершился неудачей"
   },
   {
     "id": "api.user.authorize_oauth_user.token_failed.app_error",
-    "translation": "Сбой маркера запроса"
+    "translation": "Сбой запроса токена"
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
@@ -2440,7 +2432,7 @@
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "Неверный MFA маркер."
+    "translation": "Неверный токен MFA."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2508,7 +2500,7 @@
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
-    "translation": "Unable to create the user, invalid invitation."
+    "translation": "Невозможно создать пользователя, недействительное приглашение."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2528,7 +2520,7 @@
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Unable to convert the user to guest because is already a guest"
+    "translation": "Невозможно преобразовать пользователя в гостя, поскольку он уже является гостем"
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
@@ -2632,7 +2624,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Unable to convert the guest to regular user because is not a guest"
+    "translation": "Невозможно преобразовать гостя в обычного пользователя, потому что он не гость"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2700,7 +2692,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Не удалось отправить сообщение \"Личный токен доступа добавлен\""
+    "translation": "Не удалось отправить сообщение \"Личный токен добавлен\""
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2712,7 +2704,7 @@
   },
   {
     "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+    "translation": "Вы не можете активировать гостевую учетную запись, потому что функция гостевого доступа не включена."
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2868,19 +2860,19 @@
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "Сервер занят, некритичные сервисы временно недоступны"
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "Не удалось декодировать информацию метаданных XML, полученную от поставщика удостоверений."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "Обнаружена ошибка при чтении полезной нагрузки ответа, полученной от поставщика удостоверений."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "Не удалось прочитать ответ, полученный от поставщика удостоверений."
   },
   {
     "id": "app.admin.test_email.failure",
@@ -2888,11 +2880,11 @@
   },
   {
     "id": "app.admin.test_site_url.failure",
-    "translation": "This is not a valid live URL"
+    "translation": "Это URL ссылка не работает"
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after user deactivation, set “Disable bot accounts after user deactivation” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые теперь отключены.\n\n{{.BotNames}}{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые теперь отключены, включая следующие:\n\n{{.BotNames}}{{end}} Вы можете стать владельцем каждого бота, включив его в разделе **Интеграции > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые все еще включены.\n\n{{.BotNames}}\n{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые по-прежнему включены, включая следующие:\n\n{{.BotNames}}{{end}} Мы настоятельно рекомендуем вам стать владельцем каждого бота, повторно включив его в разделе **Интеграция > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nЕсли вы хотите, чтобы учетные записи ботов автоматически отключались после деактивации пользователя, установите для параметра «Отключить учетные записи ботов после деактивации пользователя» в **Системная консоль > Интеграция > Учетные записи ботов** значение true.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2928,7 +2920,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Невозможно скопировать пользовательские изображения эмодзи"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -3084,7 +3076,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Невозможно сохранить настройки темы команды"
+    "translation": "Не удалось сохранить настройки темы команды"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3380,11 +3372,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Неверный интервал дозирования электронной почты для пользователя"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Неверные параметры предпросмотра markdown для пользователя"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
@@ -3392,7 +3384,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Неверный параметр показа непрочитанного раздела для пользователя"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3560,7 +3552,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
+    "translation": "Конфигурация плагина в файле config.json должна обновляться вручную при использовании ReadOnlyConfig с включенной кластеризацией."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3576,11 +3568,11 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled. Please check your logs for details."
+    "translation": "Плагины были отключены. Пожалуйста, проверьте журналы (log) для дополнительной информации."
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "Произошла ошибка при извлечении комплекта плагина."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -3588,7 +3580,7 @@
   },
   {
     "id": "app.plugin.flag_managed.app_error",
-    "translation": "Unable to set plugin as managed by the file store."
+    "translation": "Невозможно задать плагин как управляемый файловым хранилищем."
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3600,7 +3592,7 @@
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
-    "translation": "An error occurred while getting the public key from the store."
+    "translation": "Произошла ошибка при получении открытого ключа из хранилища."
   },
   {
     "id": "app.plugin.get_statuses.app_error",
@@ -3620,7 +3612,7 @@
   },
   {
     "id": "app.plugin.install_marketplace_plugin.app_error",
-    "translation": "Failed to install marketplace plugin."
+    "translation": "Не удалось установить плагин из магазина плагинов."
   },
   {
     "id": "app.plugin.invalid_id.app_error",
@@ -3628,7 +3620,7 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Plugin version could not be parsed"
+    "translation": "Невозможно разобрать версию плагина"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3636,35 +3628,35 @@
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Failed to create marketplace client."
+    "translation": "Не удалось создать клиента для магазина плагинов."
   },
   {
     "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Failed to get plugins from the marketplace server."
+    "translation": "Не удалось получить плагины с сервера магазина плагинов."
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "Marketplace has been disabled. Please check your logs for details."
+    "translation": "Магазин плагинов был отключен. Для подробной информации см. логи."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
-    "translation": "Failed to decode the marketplace plugin request."
+    "translation": "Не удалось декодировать запрос от магазина плагинов."
   },
   {
     "id": "app.plugin.marketplace_plugins.not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin."
+    "translation": "Не удалось найти запрашиваемый плагин из магазина плагинов."
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin signature."
+    "translation": "Не удалось найти сигнатуру запрашиваемого плагина из магазина плагинов."
   },
   {
     "id": "app.plugin.marshal.app_error",
-    "translation": "Failed to marshal marketplace plugins."
+    "translation": "Не удалось произвести маршалирование плагинов из магазина плагинов."
   },
   {
     "id": "app.plugin.modify_saml.app_error",
-    "translation": "Can't modify saml files."
+    "translation": "Не удалось модифицировать файлы saml."
   },
   {
     "id": "app.plugin.mvdir.app_error",
@@ -3680,31 +3672,31 @@
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
-    "translation": "Unable to remove plugin bundle from file store."
+    "translation": "Не удалось удалить плагин из файлового хранилища."
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Unable to restart plugin on upgrade."
+    "translation": "Не удалось перезапустить плагин во время обновления."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
-    "translation": "Unable to decode base64 signature."
+    "translation": "Не удалось декодировать сигнатуру base64."
   },
   {
     "id": "app.plugin.store_bundle.app_error",
-    "translation": "Unable to store the plugin to the configured file store."
+    "translation": "Не удалось сохранить плагин в текущее файловое хранилище."
   },
   {
     "id": "app.plugin.store_signature.app_error",
-    "translation": "Unable to store the plugin signature to the configured file store."
+    "translation": "Не удалось сохранить сигнатуру плагина в текущее файловое хранилище."
   },
   {
     "id": "app.plugin.sync.list_filestore.app_error",
-    "translation": "Error reading files from the plugins folder in the file store."
+    "translation": "Ошибка чтения файлов из папки плагинов в файловом хранилище."
   },
   {
     "id": "app.plugin.sync.read_local_folder.app_error",
-    "translation": "Error reading local plugins folder."
+    "translation": "Ошибка чтения локальной папки плагинов."
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
@@ -3800,7 +3792,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+    "translation": "Исходящий вебхук удален, но не удалось создать новый в связи с какой-то ошибкой."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3812,11 +3804,11 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "Конфигурация кластера изменилась для id={{ .id }}. Кластер может стать нестабильным, и требуется перезагрузка. Чтобы убедиться, что кластер настроен правильно, вы должны немедленно выполнить повторный перезапуск."
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "Системная консоль устанавливается только для чтения, если включена высокая доступность, если только ReadOnlyConfig не отключен в файле конфигурации."
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3856,7 +3848,7 @@
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Uploaded file was removed from Global Relay export because it was too large to send."
+    "translation": "Загруженный файл был удален из экспорта в Global Relay, поскольку он был слишком большим для отправки."
   },
   {
     "id": "ent.compliance.global_relay.open_temporary_file.appError",
@@ -3864,7 +3856,7 @@
   },
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Unable to re-read the Global Relay temporary export file."
+    "translation": "Невозможно перечитать временный файл экспорта Global Relay."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -3884,35 +3876,35 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "Работнику агрегатора Elasticsearch не удалось создать задание индексации"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "Работнику агрегатора Elasticsearch не удалось удалить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "Работнику агрегатора Elasticsearch не удалось получить индексы"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "Сбой работника аггрегатора Elasticsearch из-за сбоя задания индексирования"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up Elasticsearch Client Failed"
+    "translation": "Ошибка установки клиента Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Не удалось создать шаблон Elasticsearch для каналов"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Не удалось создать шаблон Elasticsearch для сообщений"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Не удалось создать шаблон Elasticsearch для пользователей"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3936,7 +3928,7 @@
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch search is not enabled on this server"
+    "translation": "Поиск Elasticsearch не включен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
@@ -3956,19 +3948,19 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время окончания"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Работнику индексирования Elasticsearch не удалось проанализировать время начала"
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Попытка проиндексировать новый пакет, когда все объекты будут завершены."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch is not started"
+    "translation": "Elasticsearch не запущен"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3976,7 +3968,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Поиск Elasticsearch отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -3988,11 +3980,11 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
+    "translation": "Поиск Elasticsearch отключен на этом сервере"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
-    "translation": "Failed to parse search result matches"
+    "translation": "Не удалось проанализировать совпадения результатов поиска"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -4012,31 +4004,31 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch is already started"
+    "translation": "Elasticsearch уже запущен"
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "Не удалось создать массовый процессор Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "Не удалось получить версию сервера Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "Не удалось проанализировать версию сервера Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Не удалось запустить массовый процессор Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch is already stopped"
+    "translation": "Elasticsearch уже остановлен"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
+    "translation": "Не удалось подключиться к серверу Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -4048,11 +4040,11 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "URL-адрес или имя пользователя сервера Elasticsearch изменился. Пожалуйста, введите пароль Elasticsearch еще раз, чтобы проверить соединение."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
-    "translation": "Your license does not support ID Loaded Push Notifications."
+    "translation": "Ваша лицензия не поддерживает push-уведомления с идентификатором."
   },
   {
     "id": "ent.ldap.app_error",
@@ -4100,7 +4092,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "ошибка при удалении участия в команде или канале"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -4108,7 +4100,7 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "ошибка при получении групп ldap"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -4116,11 +4108,11 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "Не удалось найти пользователей в AD/LDAP. Проверьте, может ли сервер Mattermost подключиться к вашему серверу AD/LDAP, и попробуйте снова."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Превышен предел размера. Попробуйте проверить [максимальный размер страницы](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -4136,23 +4128,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "ошибка при получении группы ldap"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "ошибка при получении групп ldap"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "ошибка при получении участников группы"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "для указнного uid не найдено групп"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "ошибка при получении групп для пользователя"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -4172,7 +4164,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Unable to deliver the email to Global Relay."
+    "translation": "Невозможно доставить письмо в Global Relay."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
@@ -4196,7 +4188,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Unable to get the information of the export temporary file"
+    "translation": "Невозможно получить информацию о временном файле экспорта"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
@@ -4204,7 +4196,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Unable to open the export temporary file"
+    "translation": "Невозможно открыть временный файл экспорта"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4216,11 +4208,11 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Email already used by another SAML user."
+    "translation": "Электронная почта уже используется другим пользователем SAML."
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
-    "translation": "User not found in the users file."
+    "translation": "Пользователь не найден в файле пользователей."
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
@@ -4284,7 +4276,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "Неподдерживаемый синхронизируемый тип '{{.Value}}'."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -4380,7 +4372,7 @@
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
-    "translation": "Неверный MFA маркер."
+    "translation": "Неверный MFA токен."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4392,7 +4384,7 @@
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Недопустимый маркер доступа"
+    "translation": "Недопустимый токен доступа"
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
@@ -4404,7 +4396,7 @@
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Недопустимый маркер обновления"
+    "translation": "Недопустимый токен обновления"
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
@@ -4540,7 +4532,7 @@
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt must be set"
+    "translation": "CreateAt должен быть задан"
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
@@ -4588,7 +4580,7 @@
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": "Недопустимый маркер"
+    "translation": "Недопустимый токен"
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
@@ -4708,11 +4700,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
+    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch AutocompleteEnabled установлено значение true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
+    "translation": "Параметр Elasticsearch IndexingEnabled должен иметь значение true, если для Elasticsearch SearchEnabled установлено значение true."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -5292,7 +5284,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
-    "translation": "Некорректный маркер"
+    "translation": "Некорректный токен"
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
@@ -5324,15 +5316,15 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Некорректный ключ, должен быть длиной больше {{.Min}} и максимум {{.Max}} символов."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+    "translation": "Некорректный ID плагина, должен быть длиной больше {{.Min}} и максимум {{.Max}} символов."
   },
   {
     "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+    "translation": "Некорректное старое значение, оно не должно было быть установлено когда операция не является атомарной."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5344,7 +5336,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Некорректные идентификаторы файлов. Напомним, что прикрепляемых файлов не должно быть больше 5. Пожалуйста, создайте новые сообщения для добавления дополнительных файлов."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5460,7 +5452,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Invalid invite id"
+    "translation": "Некорректный id приглашения"
   },
   {
     "id": "model.team.is_valid.name.app_error",
@@ -5492,7 +5484,7 @@
   },
   {
     "id": "model.token.is_valid.expiry",
-    "translation": "Invalid token expiry"
+    "translation": "Некорректный срок действия токена"
   },
   {
     "id": "model.token.is_valid.size",
@@ -5540,7 +5532,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+    "translation": "Невозможно установить пароль длиной больше 72 символов в связи с ограничениями bcrypt."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5616,11 +5608,11 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Имя пользователя должно начинаться с буквы, и содержать от 3 до 22 символов в нижнем регистре, состоящим из букв, цифр, и символов \".\", \"-\", и \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
-    "translation": "Invalid description, must be 255 or less characters"
+    "translation": "Некорректное описание, должно быть не больше 255 символов."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",
@@ -5648,15 +5640,15 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "Не удалось получить список пользователей, некорректный критерий сортировки"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
+    "translation": "Невозможно установить статус пользователя. Неизвестный статус пользователя."
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Учетная запись бота не может создать другую учетную запись бота."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5668,27 +5660,27 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Отсутствует тело HTML."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "Отсутствует тема письма."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Отсутствует адрес КОМУ."
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "ошибка insert"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "ошибка select"
   },
   {
     "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query"
+    "translation": "не удалось построить запрос"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5720,7 +5712,7 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить бота"
   },
   {
     "id": "store.sql_bot.get.app_error",
@@ -5728,7 +5720,7 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Бот не существует"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
@@ -5736,11 +5728,11 @@
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить бота"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить бота"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
@@ -5776,7 +5768,7 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить канал"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -5844,7 +5836,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist"
+    "translation": "Не существует удаленных каналов"
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -5900,7 +5892,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count"
+    "translation": "Не удалось увеличить счетчик упоминаний"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5920,7 +5912,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить канал"
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
@@ -5936,7 +5928,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить каналы"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
@@ -5956,11 +5948,11 @@
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Unable to find the pinned posts"
+    "translation": "Не удалось найти прикрепленные сообщения"
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "translation": "Мы не можем удалить деактивированных пользователей из канала"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -6016,7 +6008,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить канал"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -6048,7 +6040,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Не удалось обновить заголовок канала"
+    "translation": "Не удалось сохранить участника канала"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -6136,7 +6128,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "Не удалось сохранить строку ClusterDiscovery"
   },
   {
     "id": "store.sql_cluster_discovery.delete.app_error",
@@ -6152,7 +6144,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row"
+    "translation": "Не удалось сохранить строку ClusterDiscovery"
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",
@@ -6160,31 +6152,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать команды"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить команду"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить команду"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить команду"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить команду"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить команды"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить Команду"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -6192,15 +6184,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить команду"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхук"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить CommandWebhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -6208,7 +6200,7 @@
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось использовать вебхук"
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -6228,7 +6220,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить эмодзи"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -6236,19 +6228,19 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить эмодзи"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить эмодзи"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить эмодзи"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить эмодзи"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -6264,7 +6256,7 @@
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить информацию о файле"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
@@ -6288,11 +6280,11 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить информацию о файле"
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "failed to build query"
+    "translation": "не удалось построить запрос"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -6320,15 +6312,15 @@
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить задание"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить задание"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить задания"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
@@ -6340,11 +6332,11 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить задания"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить задание"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -6360,11 +6352,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "Не удалось сохранить метаданные ссылки"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Не удалось сохранить метаданные ссылки"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6420,7 +6412,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить токен доступа"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -6428,7 +6420,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить токен доступа."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -6436,7 +6428,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить приложение."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -6456,7 +6448,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить приложение"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -6504,7 +6496,7 @@
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить сообщение"
   },
   {
     "id": "store.sql_post.get.app_error",
@@ -6564,11 +6556,11 @@
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось изменить сообщение"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить сообщение"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
@@ -6580,7 +6572,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить сообщения канала"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -6592,7 +6584,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить сообщение"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -6604,7 +6596,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить сообщение"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -6632,7 +6624,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference"
+    "translation": "Не удалось сохранить настройки"
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
@@ -6640,7 +6632,7 @@
   },
   {
     "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Невозможно зафиксировать транзакцию по сохранению настроек"
+    "translation": "Не удалось завершить транзакцию по сохранению настроек"
   },
   {
     "id": "store.sql_preference.save.missing_driver.app_error",
@@ -6648,7 +6640,7 @@
   },
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Невозможно начать транзакцию по сохранению настроек"
+    "translation": "Не удалось начать транзакцию по сохранению настроек"
   },
   {
     "id": "store.sql_preference.save.updating.app_error",
@@ -6656,7 +6648,7 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference"
+    "translation": "Не удалось сохранить настройки"
   },
   {
     "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
@@ -6704,23 +6696,23 @@
   },
   {
     "id": "store.sql_recover.delete.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить токен"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code"
+    "translation": "Не удалось получить токен с указанным кодом"
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "Не удалось удалить все токены указанного типа"
   },
   {
     "id": "store.sql_recover.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить токен"
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить роль"
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -6744,7 +6736,7 @@
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить новую роль"
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -6752,7 +6744,7 @@
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role"
+    "translation": "Не удалось начать транзакцию по сохранению роли"
   },
   {
     "id": "store.sql_role.save.update.app_error",
@@ -6760,7 +6752,7 @@
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role"
+    "translation": "Не удалось завершить транзакцию по сохранению роли"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
@@ -6768,11 +6760,11 @@
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить схему"
   },
   {
     "id": "store.sql_scheme.get.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить схему"
   },
   {
     "id": "store.sql_scheme.permanent_delete_all.app_error",
@@ -6788,7 +6780,7 @@
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось создать схему"
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
@@ -6796,7 +6788,7 @@
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme"
+    "translation": "Не удалось начать транзакцию по сохранению схемы"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
@@ -6804,15 +6796,15 @@
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить схему"
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme"
+    "translation": "Не удалось завершить транзакцию по сохранению схемы"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать сессии"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -6828,15 +6820,15 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить сессию"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить все сессии"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить сессию"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -6856,7 +6848,7 @@
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить роли"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -6912,15 +6904,15 @@
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать приватные команды"
   },
   {
     "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать публичные команды"
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать команды"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -7040,7 +7032,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить команду"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -7056,7 +7048,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Не удалось обновить заголовок канала"
+    "translation": "Не удалось сохранить участника команды"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -7072,7 +7064,7 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить команду"
   },
   {
     "id": "store.sql_team.update.find.app_error",
@@ -7088,7 +7080,7 @@
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Unable to update the date of the last team icon update"
+    "translation": "Невозможно обновить дату последней смены значка команды"
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
@@ -7096,7 +7088,7 @@
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Не удалось созранить условия использования."
+    "translation": "Не удалось сохранить условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
@@ -7124,7 +7116,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "не удалось построить запрос"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -7136,7 +7128,7 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить список пользователей"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
@@ -7240,7 +7232,7 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Пользователь не найден."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -7312,7 +7304,7 @@
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить учетную запись"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -7348,7 +7340,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить данные для аутентификации"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -7436,63 +7428,63 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать входящие вебхуки"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось подсчитать исходящие вебхуки"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхук"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхуки"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхук"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхук"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхуки"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось получить вебхуки"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось удалить вебхук"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -7500,7 +7492,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось сохранить OutgoingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -7508,11 +7500,11 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось обновить вебхук"
   },
   {
     "id": "store.update_error",
@@ -7704,7 +7696,7 @@
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Этому веб-хуку запрещается публиковать сообщения на запрошенном канале."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
