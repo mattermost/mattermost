@@ -14,7 +14,7 @@ type SqlLicenseStore struct {
 	SqlStore
 }
 
-func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
+func newSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -26,7 +26,7 @@ func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	return ls
 }
 
-func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
+func (ls SqlLicenseStore) createIndexesIfNotExists() {
 }
 
 func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {

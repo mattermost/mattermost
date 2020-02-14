@@ -16,7 +16,7 @@ type SqlChannelMemberHistoryStore struct {
 	SqlStore
 }
 
-func NewSqlChannelMemberHistoryStore(sqlStore SqlStore) store.ChannelMemberHistoryStore {
+func newSqlChannelMemberHistoryStore(sqlStore SqlStore) store.ChannelMemberHistoryStore {
 	s := &SqlChannelMemberHistoryStore{
 		SqlStore: sqlStore,
 	}
