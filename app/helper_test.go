@@ -122,12 +122,12 @@ func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, false, tb)
 }
 
-func UnitSetup(tb testing.TB) *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStore()
 	return setupTestHelper(mockStore, false, tb)
 }
 
-func UnitSetupEnterprise(tb testing.TB) *TestHelper {
+func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStore()
 	return setupTestHelper(mockStore, true, tb)
 }

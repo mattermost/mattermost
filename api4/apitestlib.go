@@ -182,15 +182,15 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	return setupTestHelper(dbStore, false, updateConfig)
 }
 
-func UnitSetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+func SetupWithStoreMockConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
 	return setupTestHelper(testlib.GetMockStore(), false, updateConfig)
 }
 
-func UnitSetup(tb testing.TB) *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return setupTestHelper(testlib.GetMockStore(), false, nil)
 }
 
-func UnitSetupEnterprise(tb testing.TB) *TestHelper {
+func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	return setupTestHelper(testlib.GetMockStore(), true, nil)
 }
 

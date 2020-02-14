@@ -93,7 +93,7 @@ func TestSAMLSettings(t *testing.T) {
 				RegisterNewSamlInterface(nil)
 			}
 
-			th := UnitSetupEnterprise(t)
+			th := SetupEnterpriseWithStoreMock(t)
 			defer th.TearDown()
 
 			if tc.useNewSAMLLibrary {

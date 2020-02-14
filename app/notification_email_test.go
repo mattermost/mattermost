@@ -66,7 +66,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -96,7 +96,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -126,7 +126,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -156,7 +156,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -185,7 +185,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -217,7 +217,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -260,7 +260,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -291,7 +291,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -323,7 +323,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -352,7 +352,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -381,7 +381,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -410,7 +410,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -439,7 +439,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -470,7 +470,7 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -511,7 +511,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -577,7 +577,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -618,7 +618,7 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -644,7 +644,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	// TODO: Fix the case where the first channel name contains the other channel names (for example here channelnameone)"
@@ -695,7 +695,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 }
 
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	ch := &model.Channel{
@@ -719,7 +719,7 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 }
 
 func TestLandingLink(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -745,7 +745,7 @@ func TestLandingLink(t *testing.T) {
 }
 
 func TestLandingLinkPermalink(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}

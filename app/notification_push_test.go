@@ -539,7 +539,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 }
 
 func TestGetPushNotificationMessage(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	for name, tc := range map[string]struct {

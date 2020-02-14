@@ -41,7 +41,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func UnitSetup(tb testing.TB) *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}

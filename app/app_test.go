@@ -27,7 +27,7 @@ func TestAppRace(t *testing.T) {
 */
 
 func TestUnitUpdateConfig(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL

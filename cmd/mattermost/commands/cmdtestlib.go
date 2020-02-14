@@ -58,13 +58,13 @@ func Setup(t testing.TB) *testHelper {
 }
 
 // Setup creates an instance of testHelper.
-func UnitSetup(t testing.TB) *testHelper {
+func SetupWithStoreMock(t testing.TB) *testHelper {
 	dir, err := ioutil.TempDir("", "testHelper")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.UnitSetup(t)
+	api4TestHelper := api4.SetupWithStoreMock(t)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,

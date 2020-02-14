@@ -14,7 +14,7 @@ import (
 )
 
 func TestPluginPublicKeys(t *testing.T) {
-	th := UnitSetup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")
