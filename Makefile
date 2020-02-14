@@ -170,7 +170,7 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 # Externally built binaries
-ifeq ($(shell test -f bin/mmctl && $(MMCTL_REL_TO_DOWNLOAD) != *release-* && echo -n yes),yes)
+ifeq ($(shell test -f bin/mmctl && $(MMCTL_REL_TO_DOWNLOAD) != *release-* && printf "yes"),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
