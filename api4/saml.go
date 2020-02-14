@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -72,10 +73,15 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
+
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -91,10 +97,15 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
+
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -115,6 +126,10 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("type", d)
+
 	if d == "application/x-pem-file" {
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -132,6 +147,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+		auditRec.AddMeta("filename", fileData.Filename)
 
 		if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
 			c.Err = err
@@ -142,6 +158,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -151,11 +168,15 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -165,11 +186,15 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -179,11 +204,15 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 

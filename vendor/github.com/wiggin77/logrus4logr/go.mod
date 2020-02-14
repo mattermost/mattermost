@@ -9,7 +9,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.4.2
-	github.com/wiggin77/logr v1.0.0
+	github.com/wiggin77/logr v1.0.2
 	golang.org/x/sys v0.0.0-20191008105621-543471e840be
 	google.golang.org/genproto v0.0.0-20191007204434-a023cd5227bd // indirect
 )

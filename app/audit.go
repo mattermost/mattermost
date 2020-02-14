@@ -46,14 +46,20 @@ func NewAuditStoreTarget(filter logr.Filter, formatter logr.Formatter, server *S
 // Write converts a log record to model.Audit and stores to database.
 func (t *AuditStoreTarget) Write(rec *logr.LogRec) error {
 	flds := rec.Fields()
-	audit := &model.Audit{
-		UserId:    getField(flds, audit.KeyUserID),
-		IpAddress: getField(flds, audit.KeyUserID),
-		Action:    getField(flds, audit.KeyAPIPath),
-		SessionId: getField(flds, audit.KeySessionID),
-		ExtraInfo: getExtraInfo(flds, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID),
+	infos := getExtraInfos(flds, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID)
+	for info := range infos {
+		audit := &model.Audit{
+			UserId:    getField(flds, audit.KeyUserID),
+			IpAddress: getField(flds, audit.KeyUserID),
+			Action:    getField(flds, audit.KeyAPIPath),
+			SessionId: getField(flds, audit.KeySessionID),
+			ExtraInfo: getExtraInfo(flds, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID),
+		}
+		if err := t.server.Store.Audit().Save(audit); err != nil {
+			return err
+		}
 	}
-	return t.server.Store.Audit().Save(audit)
+	return nil
 }
 
 // String returns a string representation of this target.
@@ -70,7 +76,13 @@ func getField(fields logr.Fields, name string) string {
 	return out
 }
 
-func getExtraInfo(fields logr.Fields, skips ...string) string {
+// getExtraInfos returns an array of strings containing extra info fields
+// such that no string exceeds maxlen and at least one string is returned,
+// even if empty.
+func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) string {
+	const sep = " | "
+	maxlen = maxlen - len(sep)
+	infos := []string{}
 	sb := strings.Builder{}
 top:
 	for k, v := range fields {
@@ -79,7 +91,22 @@ top:
 				continue top
 			}
 		}
-		sb.WriteString(fmt.Sprintf("%s=%v", k, v))
+		// a single entry cannot be greater than maxlen; truncate if needed.
+		field := fmt.Sprintf("%s=%v", k, v)
+		if len(field) > maxlen {
+			field = field[:maxlen-3]
+			field = field + "..."
+		}
+		// if adding the new field will exceed maxlen then
+		if sb.Len()+len(field) > maxlen {
+			infos = append(infos, sb.String())
+			sb = strings.Builder{}
+		}
+		if sb.Len() > 0 {
+			sb.WriteString(sep)
+		}
+		sb.WriteString(field)
 	}
+	infos = append(infos, sb.String())
 	return sb.String()
 }

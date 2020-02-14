@@ -252,10 +252,10 @@ github.com/tylerb/graceful
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.1
+# github.com/wiggin77/logr v1.0.2
 github.com/wiggin77/logr
 github.com/wiggin77/logr/format
-# github.com/wiggin77/logrus4logr v1.0.0
+# github.com/wiggin77/logrus4logr v1.0.1
 github.com/wiggin77/logrus4logr
 # github.com/wiggin77/merror v1.0.2
 github.com/wiggin77/merror
@@ -323,7 +323,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5
+# golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows

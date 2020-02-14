@@ -84,8 +84,8 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
-	github.com/wiggin77/logr v1.0.1
-	github.com/wiggin77/logrus4logr v1.0.0
+	github.com/wiggin77/logr v1.0.3
+	github.com/wiggin77/logrus4logr v1.0.2
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.5.1 // indirect
@@ -95,7 +95,7 @@ require (
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
 	golang.org/x/lint v0.0.0-20200130185559-910be7a94367 // indirect
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	golang.org/x/sys v0.0.0-20200202164722-d101bd2416d5 // indirect
+	golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4 // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20200211032402-1e13d9580f8b
 	google.golang.org/genproto v0.0.0-20200210034751-acff78025515 // indirect

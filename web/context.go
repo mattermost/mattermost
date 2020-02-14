@@ -26,9 +26,13 @@ type Context struct {
 
 // LogAuditExMeta logs an audit record.
 func (c *Context) LogAuditRec(rec *audit.Record) {
+	if rec == nil {
+		return
+	}
 	if c.Err != nil {
 		rec.AddMeta("err", c.Err.Id)
 		rec.AddMeta("code", c.Err.StatusCode)
+		rec.Fail()
 	}
 	audit.LogRecord(audit.RestLevel, *rec)
 }

@@ -134,6 +134,8 @@ github.com/wiggin77/logr v0.0.0-20200207192333-388c3fe88257 h1:SusN+cM1cWx20H9vv
 github.com/wiggin77/logr v0.0.0-20200207192333-388c3fe88257/go.mod h1:oIvnsSkyTQojUsr7QO0d4rE2afZbsTj/5WbiikGJu3E=
 github.com/wiggin77/logr v1.0.0 h1:i0hCQjlUpwBYdcu7iqf3hQCNIH9uf9Y2jbwcReNPscc=
 github.com/wiggin77/logr v1.0.0/go.mod h1:oIvnsSkyTQojUsr7QO0d4rE2afZbsTj/5WbiikGJu3E=
+github.com/wiggin77/logr v1.0.2 h1:zNuYJ+UABevEFhvlEi/MXGYiZgVrMmUJPPt60xmByBs=
+github.com/wiggin77/logr v1.0.2/go.mod h1:oIvnsSkyTQojUsr7QO0d4rE2afZbsTj/5WbiikGJu3E=
 github.com/wiggin77/merror v1.0.2 h1:V0nH9eFp64ASyaXC+pB5WpvBoCg7NUwvaCSKdzlcHqw=
 github.com/wiggin77/merror v1.0.2/go.mod h1:uQTcIU0Z6jRK4OwqganPYerzQxSFJ4GSHM3aurxxQpg=
 go.opencensus.io v0.18.0/go.mod h1:vKdFvxhtzZ9onBp9VKHK8z/sRpBMnKAsufL7wlDrCOA=

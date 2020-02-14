@@ -160,7 +160,7 @@ var levelStatusDisabled = LevelStatus{}
 // IsLevelEnabled returns true if at least one target has the specified
 // level enabled. The result is cached so that subsequent checks are fast.
 func (logr *Logr) IsLevelEnabled(lvl Level) LevelStatus {
-	// Check cache.
+	// Check cache. lvlCache may still be nil if no targets added.
 	if logr.lvlCache == nil {
 		return levelStatusDisabled
 	}
@@ -211,7 +211,10 @@ func (logr *Logr) ResetLevelCache() {
 // resetLevelCache empties the level cache without locking.
 // mux.Lock must be held before calling this function.
 func (logr *Logr) resetLevelCache() {
-	logr.lvlCache.clear()
+	// lvlCache may still be nil if no targets added.
+	if logr.lvlCache != nil {
+		logr.lvlCache.clear()
+	}
 }
 
 // enqueue adds a log record to the logr queue. If the queue is full then

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -91,6 +92,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
 
+	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("invite_id", inviteId)
+	auditRec.AddMeta("create_username", user.Username)
+
 	// No permission check required
 
 	var ruser *model.User
@@ -102,6 +108,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
 		}
+		auditRec.AddMeta("token_type", token.Type)
 
 		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
 			if c.App.License() == nil {
@@ -118,6 +125,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
 		ruser, err = c.App.CreateUserAsAdmin(user)
+		auditRec.AddMeta("admin", true)
 	} else {
 		ruser, err = c.App.CreateUserFromSignup(user)
 	}
@@ -126,6 +134,9 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("create_user_id", ruser.Id)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(ruser.ToJson()))
@@ -858,6 +869,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("updateUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", user.Id)
+
 	if !c.App.SessionHasPermissionToUser(c.App.Session, user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -892,7 +907,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("")
+	auditRec.Success()
+	auditRec.AddMeta("update_username", ruser.Username)
+	auditRec.AddMeta("update_email", ruser.Email)
+
 	w.Write([]byte(ruser.ToJson()))
 }
 
@@ -907,6 +925,10 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("user")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("patchUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("patch_user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -947,7 +969,11 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.SetAutoResponderStatus(ruser, ouser.NotifyProps)
-	c.LogAudit("")
+
+	auditRec.Success()
+	auditRec.AddMeta("patch_username", ruser.Username)
+	auditRec.AddMeta("patch_email", ruser.Email)
+
 	w.Write([]byte(ruser.ToJson()))
 }
 
@@ -958,6 +984,10 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := c.Params.UserId
+
+	auditRec := c.MakeAuditRecord("deleteUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("delete_user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -975,12 +1005,14 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("delete_username", user.Username)
 
 	if _, err = c.App.UpdateActive(user, false); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -998,6 +1030,11 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", c.Params.UserId)
+	auditRec.AddMeta("new_roles", newRoles)
+
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_ROLES) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
 		return
@@ -1008,7 +1045,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit(fmt.Sprintf("user=%s roles=%s", c.Params.UserId, newRoles))
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1025,6 +1062,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("active")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("updateUserActive", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", c.Params.UserId)
+	auditRec.AddMeta("new_active", active)
 
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && c.Params.UserId == c.App.Session.UserId
@@ -1055,7 +1097,8 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 	}
 
-	c.LogAudit(fmt.Sprintf("user_id=%s active=%v", user.Id, active))
+	auditRec.Success()
+
 	if isSelfDeactive {
 		c.App.Srv.Go(func() {
 			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
@@ -1077,6 +1120,10 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("updateUserAuth", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", c.Params.UserId)
+
 	userAuth := model.UserAuthFromJson(r.Body)
 	if userAuth == nil {
 		c.SetInvalidParam("user")
@@ -1089,7 +1136,9 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
+	auditRec.Success()
+	auditRec.AddMeta("auth_service", user.AuthService)
+
 	w.Write([]byte(user.ToJson()))
 }
 
@@ -1133,6 +1182,10 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("updateUserMfa", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", c.Params.UserId)
+
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		c.Err.DetailedError += ", attempted access by oauth app"
@@ -1160,14 +1213,14 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.LogAudit("attempt")
-
 	if err := c.App.UpdateMfa(activate, c.Params.UserId, code); err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success - mfa updated")
+	auditRec.Success()
+	auditRec.AddMeta("activate", activate)
+
 	ReturnStatusOK(w)
 }
 
@@ -1209,7 +1262,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 	newPassword := props["new_password"]
 
-	c.LogAudit("attempted")
+	auditRec := c.MakeAuditRecord("updatePassword", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update_user_id", c.Params.UserId)
 
 	var err *model.AppError
 	if c.Params.UserId == c.App.Session.UserId {
@@ -1227,12 +1282,11 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		c.LogAudit("failed")
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("completed")
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1247,16 +1301,16 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newPassword := props["new_password"]
 
-	c.LogAudit("attempt - token=" + token)
+	auditRec := c.MakeAuditRecord("resetPassword", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("token", token)
 
 	if err := c.App.ResetPasswordFromToken(token, newPassword); err != nil {
-		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success - token=" + token)
-
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1269,6 +1323,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("sendPasswordReset", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("email", email)
+
 	sent, err := c.App.SendPasswordReset(email, c.App.GetSiteURL())
 	if err != nil {
 		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
@@ -1280,9 +1338,8 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sent {
-		c.LogAudit("sent=" + email)
+		auditRec.Success()
 	}
-
 	ReturnStatusOK(w)
 }
 
@@ -1372,7 +1429,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginId)
+	auditRec.AddMeta("login_user_id", id)
+	auditRec.AddMeta("device_id", deviceId)
+
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
 
 	if err != nil {
@@ -1392,15 +1454,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.LogAuditWithUserId(user.Id, "authenticated")
-
 	err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-
-	c.LogAuditWithUserId(user.Id, "success")
 
 	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 		c.App.AttachSessionCookies(w, r)
@@ -1419,6 +1477,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.Sanitize(map[string]bool{})
 
+	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
 }
 
@@ -1427,7 +1486,9 @@ func logout(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.LogAudit("")
+	auditRec := c.MakeAuditRecord("Logout", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	c.RemoveSessionCookie(w, r)
 	if c.App.Session.Id != "" {
 		if err := c.App.RevokeSessionById(c.App.Session.Id); err != nil {
@@ -1436,6 +1497,7 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1469,6 +1531,10 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("revokeSession", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("revoke_user_id", c.Params.UserId)
+
 	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -1486,6 +1552,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("device_id", session.DeviceId)
 
 	if session.UserId != c.Params.UserId {
 		c.SetInvalidUrlParam("user_id")
@@ -1497,6 +1564,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1505,6 +1573,10 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("revokeAllSessionsForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("revoke_user_id", c.Params.UserId)
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1516,6 +1588,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1525,11 +1598,15 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("revokeAllSessionsAllUsers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if err := c.App.RevokeSessionsFromAllUsers(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1541,6 +1618,10 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("device_id")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("attachDeviceId", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("device_id", deviceId)
 
 	// A special case where we logout of all other sessions with the same device id
 	if err := c.App.RevokeSessionsForDeviceId(c.App.Session.UserId, deviceId, c.App.Session.Id); err != nil {
@@ -1579,7 +1660,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("")
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1612,12 +1693,15 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("verifyUserEmail", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if err := c.App.VerifyEmailFromToken(token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c.LogAudit("Email Verified")
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1630,12 +1714,18 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("email", email)
+
 	user, err := c.App.GetUserForLogin("", email)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		ReturnStatusOK(w)
 		return
 	}
+	auditRec.AddMeta("send_user_id", user.Id)
+	auditRec.AddMeta("send_username", user.Username)
 
 	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
 		// Don't want to leak whether the email is valid or not
@@ -1644,6 +1734,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1653,6 +1744,12 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("switch_request")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("switchAccountType", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("email", switchRequest.Email)
+	auditRec.AddMeta("new_service", switchRequest.NewService)
+	auditRec.AddMeta("old_service", switchRequest.CurrentService)
 
 	link := ""
 	var err *model.AppError
@@ -1680,7 +1777,7 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success")
+	auditRec.Success()
 	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
@@ -1689,6 +1786,10 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("createUserAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("create_user_id", c.Params.UserId)
 
 	if c.App.Session.IsOAuth {
 		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
@@ -1706,8 +1807,6 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("description")
 		return
 	}
-
-	c.LogAudit("")
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
 		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
@@ -1728,7 +1827,9 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.Success()
+	auditRec.AddMeta("token_id", accessToken.Id)
+
 	w.Write([]byte(accessToken.ToJson()))
 }
 
@@ -1830,7 +1931,9 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("token_id")
 	}
 
-	c.LogAudit("")
+	auditRec := c.MakeAuditRecord("revokeUserAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("token_id", tokenId)
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
 		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
@@ -1842,6 +1945,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("revoke_user_id", accessToken.UserId)
 
 	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1853,7 +1957,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1865,7 +1969,9 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("token_id")
 	}
 
-	c.LogAudit("")
+	auditRec := c.MakeAuditRecord("disableUserAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("token_id", tokenId)
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
@@ -1878,6 +1984,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("disable_user_id", accessToken.UserId)
 
 	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1889,7 +1996,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1901,7 +2008,9 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("token_id")
 	}
 
-	c.LogAudit("")
+	auditRec := c.MakeAuditRecord("enabledUserAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("token_id", tokenId)
 
 	// No separate permission for this action for now
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
@@ -1914,6 +2023,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("enabled_user_id", accessToken.UserId)
 
 	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1925,7 +2035,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("success - token_id=" + accessToken.Id)
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1935,6 +2045,11 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	userId := c.App.Session.UserId
 	termsOfServiceId := props["termsOfServiceId"].(string)
 	accepted := props["accepted"].(bool)
+
+	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("terms_id", termsOfServiceId)
+	auditRec.AddMeta("accepted", accepted)
 
 	if _, err := c.App.GetTermsOfService(termsOfServiceId); err != nil {
 		c.Err = err
@@ -1946,7 +2061,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	c.LogAudit("TermsOfServiceId=" + termsOfServiceId + ", accepted=" + strconv.FormatBool(accepted))
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -1966,6 +2081,10 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("promoteGuestToUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("promote_user_id", c.Params.UserId)
+
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_PROMOTE_GUEST) {
 		c.SetPermissionError(model.PERMISSION_PROMOTE_GUEST)
 		return
@@ -1976,6 +2095,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("promote_username", user.Username)
 
 	if !user.IsGuest() {
 		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.user.promote_guest_to_user.no_guest.app_error", nil, "", http.StatusNotImplemented)
@@ -1987,6 +2107,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -2006,6 +2127,10 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("demoteUserToGuest", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("demote_user_id", c.Params.UserId)
+
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_DEMOTE_TO_GUEST) {
 		c.SetPermissionError(model.PERMISSION_DEMOTE_TO_GUEST)
 		return
@@ -2016,6 +2141,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("demote_username", user.Username)
 
 	if user.IsGuest() {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.user.demote_user_to_guest.already_guest.app_error", nil, "", http.StatusNotImplemented)
@@ -2027,5 +2153,6 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
