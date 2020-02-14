@@ -713,6 +713,13 @@ func (api *apiTimerLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.Ap
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetFileInfos(page, perPage, opt)
+	api.recordTime(startTime, "GetFileInfos", true)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetFile(fileId string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetFile(fileId)
