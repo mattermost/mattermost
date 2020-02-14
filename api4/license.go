@@ -32,7 +32,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var clientLicense map[string]string
 
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		clientLicense = c.App.ClientLicense()
 	} else {
 		clientLicense = c.App.GetSanitizedClientLicense()
@@ -44,7 +44,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -105,7 +105,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
