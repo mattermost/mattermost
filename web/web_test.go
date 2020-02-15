@@ -26,7 +26,7 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    *app.App
+	App    app.AppIface
 	Server *app.Server
 	Web    *Web
 
@@ -39,7 +39,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func Setup() *TestHelper {
+func Setup(tb testing.TB) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -75,12 +75,12 @@ func Setup() *TestHelper {
 	})
 
 	web := New(s, s.AppOptions, s.Router)
-	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
+	URL = fmt.Sprintf("http://localhost:%v", a.Srv().ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
 	a.DoAppMigrations()
 
-	a.Srv.Store.MarkSystemRanUnitTests()
+	a.Srv().Store.MarkSystemRanUnitTests()
 
 	a.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
@@ -130,7 +130,7 @@ func (th *TestHelper) TearDown() {
 }
 
 func TestStaticFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginID := "com.mattermost.sample"
@@ -216,7 +216,7 @@ func TestStaticFilesRequest(t *testing.T) {
 }
 
 func TestPublicFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginDir, err := ioutil.TempDir("", "")
@@ -226,7 +226,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"

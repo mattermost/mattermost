@@ -53,7 +53,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	if len(channelName) > 0 && len(message) > 0 {
-		channel, _ = a.Srv.Store.Channel().GetByName(channel.TeamId, channelName, true)
+		channel, _ = a.Srv().Store.Channel().GetByName(channel.TeamId, channelName, true)
 
 		if channel == nil {
 			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
@@ -66,7 +66,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	// Invalidate cache to allow cache lookups while sending notifications
-	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
+	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
 
 	// Direct and Group messages won't have a nice channel title, omit it
 	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {

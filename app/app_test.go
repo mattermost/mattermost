@@ -34,11 +34,11 @@ func TestUpdateConfig(t *testing.T) {
 
 	th.App.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
-		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
+		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.SiteURL = "foo"
+		*cfg.ServiceSettings.SiteURL = "http://foo.com"
 	})
 }
 
@@ -77,6 +77,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
@@ -101,9 +102,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"team_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"team_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"team_admin": {
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
@@ -130,9 +133,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"system_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"system_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"system_user_access_token": {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
@@ -191,6 +196,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
@@ -262,6 +268,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
@@ -284,9 +291,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"team_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"team_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"team_admin": {
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
@@ -315,9 +324,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"system_post_all": {
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"system_post_all_public": {
 			model.PERMISSION_CREATE_POST_PUBLIC.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		"system_user_access_token": {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
@@ -376,6 +387,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
+			model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM.Id,
@@ -537,6 +549,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_EMOJIS.Id,
 		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
 		model.PERMISSION_VIEW_MEMBERS.Id,
+		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
 	}
 	sort.Strings(expectedSystemAdmin)
 
