@@ -201,7 +201,7 @@ func TestDiagnostics(t *testing.T) {
 	// Enable plugins for the remainder of the tests.
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-	t.Run("SendDailyDiagnosticsPlugins", func(t *testing.T) {
+	t.Run("SendDailyDiagnostics", func(t *testing.T) {
 		th.App.sendDailyDiagnostics(true)
 
 		var info []string
