@@ -668,6 +668,35 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
+
+	t.Run("Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and sends an ephemeral post when user does not have required permission", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		postWithNoMention := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This post does not have mentions",
+			UserId:    th.BasicUser.Id,
+		}
+		rpost, err := th.App.CreatePost(postWithNoMention, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props, model.StringInterface{})
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		postWithMention := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This post has @here mention @all",
+			UserId:    th.BasicUser.Id,
+		}
+		rpost, err = th.App.CreatePost(postWithMention, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props[model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED], true)
+
+		th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -703,6 +732,65 @@ func TestPatchPost(t *testing.T) {
 		rpost, err = th.App.PatchPost(rpost.Id, patch)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+
+	t.Run("Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED when user does not have required permission", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This post does not have mentions",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch still does not have a mention")}
+		rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props, model.StringInterface{})
+
+		patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props[model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED], true)
+
+		th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+	})
+
+	t.Run("Does not set POST_PROPS_MENTION_HIGHLIGHT_DISABLED when user has required permission", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This post does not have mentions",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch has no channel mention")}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props, model.StringInterface{})
+
+		patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
+		require.Nil(t, err)
+		assert.Equal(t, rpost.Props, model.StringInterface{})
 	})
 }
 

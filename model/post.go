@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -58,6 +59,8 @@ const (
 	POST_PROPS_DELETE_BY           = "deleteBy"
 	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
+
+	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 )
 
 type Post struct {
@@ -430,6 +433,38 @@ func SearchParameterFromJson(data io.Reader) *SearchParameter {
 
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
+}
+
+// DisableMentionHighlights Disables a posts mention highlighting and returns the first channel mention that was present in the message
+func (o *Post) DisableMentionHighlights() string {
+	mention, hasMentions := findAtChannelMention(o.Message)
+	if hasMentions {
+		o.AddProp(POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
+	}
+	return mention
+}
+
+// DisableMentionHighlights Disables mention highlighting for a post patch if required
+func (o *PostPatch) DisableMentionHighlights() {
+	_, hasMentions := findAtChannelMention(*o.Message)
+	props := StringInterface{}
+	if o.Props != nil {
+		props = *o.Props
+	}
+
+	if hasMentions && props[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] != true {
+		props[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
+		o.Props = &props
+	}
+}
+
+func findAtChannelMention(message string) (mention string, found bool) {
+	re := regexp.MustCompile(`(?i)\B@(channel|all|here)\b`)
+	matched := re.FindStringSubmatch(message)
+	if found = (len(matched) > 0); found {
+		mention = strings.ToLower(matched[0])
+	}
+	return
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
