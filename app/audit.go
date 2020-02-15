@@ -30,6 +30,8 @@ func configureAudit(s *Server) {
 	// TODO
 }
 
+const MaxExtraInfoLen = 1024
+
 // AuditStoreTarget outputs log records to a database.
 type AuditStoreTarget struct {
 	logr.Basic
@@ -46,14 +48,14 @@ func NewAuditStoreTarget(filter logr.Filter, formatter logr.Formatter, server *S
 // Write converts a log record to model.Audit and stores to database.
 func (t *AuditStoreTarget) Write(rec *logr.LogRec) error {
 	flds := rec.Fields()
-	infos := getExtraInfos(flds, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID)
-	for info := range infos {
+	infos := getExtraInfos(flds, MaxExtraInfoLen, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID)
+	for _, info := range infos {
 		audit := &model.Audit{
 			UserId:    getField(flds, audit.KeyUserID),
 			IpAddress: getField(flds, audit.KeyUserID),
 			Action:    getField(flds, audit.KeyAPIPath),
 			SessionId: getField(flds, audit.KeySessionID),
-			ExtraInfo: getExtraInfo(flds, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID),
+			ExtraInfo: info,
 		}
 		if err := t.server.Store.Audit().Save(audit); err != nil {
 			return err
@@ -79,7 +81,7 @@ func getField(fields logr.Fields, name string) string {
 // getExtraInfos returns an array of strings containing extra info fields
 // such that no string exceeds maxlen and at least one string is returned,
 // even if empty.
-func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) string {
+func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) []string {
 	const sep = " | "
 	maxlen = maxlen - len(sep)
 	infos := []string{}
@@ -108,5 +110,5 @@ top:
 		sb.WriteString(field)
 	}
 	infos = append(infos, sb.String())
-	return sb.String()
+	return infos
 }
