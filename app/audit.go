@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -99,7 +100,8 @@ top:
 			field = field[:maxlen-3]
 			field = field + "..."
 		}
-		// if adding the new field will exceed maxlen then
+		// if adding the new field will exceed maxlen then flush buffer and
+		// start a new one.
 		if sb.Len()+len(field) > maxlen {
 			infos = append(infos, sb.String())
 			sb = strings.Builder{}
@@ -110,5 +112,6 @@ top:
 		sb.WriteString(field)
 	}
 	infos = append(infos, sb.String())
+	sort.Strings(infos)
 	return infos
 }

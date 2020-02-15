@@ -13,9 +13,11 @@ import (
 
 func Test_getExtraInfos(t *testing.T) {
 	fieldsOk := logr.Fields{"prop1": "Hello", "prop2": "there"}
-	wantOk := []string{"prop1=hello | prop2:there"}
+	wantOk := []string{"prop1=Hello | prop2=there"}
 
-	//fieldsTooLong := logr.Fields{"prop1": strings.Repeat("z", MaxExtraInfoLen)}
+	fldTooLong, wantFldTooLong := makeString(MaxExtraInfoLen + 1)
+	fieldsTooLong := logr.Fields{"prop1": fldTooLong, "prop2": "test data"}
+	wantTooLong := []string{wantFldTooLong, "prop2=test data"}
 
 	type args struct {
 		fields logr.Fields
@@ -29,11 +31,17 @@ func Test_getExtraInfos(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{name: "ok", args: args{fields: fieldsOk, maxlen: MaxExtraInfoLen}, want: wantOk},
+		{name: "tooLong", args: args{fields: fieldsTooLong, maxlen: MaxExtraInfoLen}, want: wantTooLong},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := getExtraInfos(tt.args.fields, tt.args.maxlen, tt.args.skips...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("getExtraInfos() = %v, want %v", got, tt.want)
+				for i, s := range tt.want {
+					if got[i] != s {
+						t.Errorf("Len idx %d = %d, want len %d", i, len(got[i]), len(s))
+					}
+				}
 			}
 		})
 	}
