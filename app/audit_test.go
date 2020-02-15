@@ -5,13 +5,16 @@ package app
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/wiggin77/logr"
 )
 
 func Test_getExtraInfos(t *testing.T) {
-	//fieldsOk := logr.Fields{"prop1": "Hello", "prop2": "there"}
+	fieldsOk := logr.Fields{"prop1": "Hello", "prop2": "there"}
+	wantOk := []string{"prop1=hello | prop2:there"}
+
 	//fieldsTooLong := logr.Fields{"prop1": strings.Repeat("z", MaxExtraInfoLen)}
 
 	type args struct {
@@ -25,7 +28,7 @@ func Test_getExtraInfos(t *testing.T) {
 		want []string
 	}{
 		// TODO: Add test cases.
-		//{name: "ok", args:args{fields: fieldsOk, maxlen: MaxExtraInfoLen}, want: }
+		{name: "ok", args: args{fields: fieldsOk, maxlen: MaxExtraInfoLen}, want: wantOk},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -34,4 +37,13 @@ func Test_getExtraInfos(t *testing.T) {
 			}
 		})
 	}
+}
+
+func makeString(length int) (str string, strTrunc string) {
+	str = strings.Repeat("z", length)
+	strTrunc = str
+	if len(str) > MaxExtraInfoLen {
+		strTrunc = str[:MaxExtraInfoLen-3] + "..."
+	}
+	return
 }
