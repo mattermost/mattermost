@@ -108,15 +108,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 
 	if err := authRequest.IsValid(); err != nil {
-		if authRequest.RedirectUri != "" && authRequest.RedirectUri == model.OAUTH_INTEGRATION_ZAPIER_REDIRECT_URI {
-			utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
-				url.Values{
-					"type":    []string{"oauth_invalid_param"},
-					"message": []string{err.Message},
-				}, c.App.AsymmetricSigningKey())
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
-		}
+		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
+			url.Values{
+				"type":    []string{"oauth_invalid_param"},
+				"message": []string{err.Message},
+			}, c.App.AsymmetricSigningKey())
 		return
 	}
 
