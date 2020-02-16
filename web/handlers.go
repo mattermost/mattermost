@@ -5,6 +5,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -17,6 +18,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -92,6 +95,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
 	c.Log = c.App.Log()
+
+	if *c.App.Config().ServiceSettings.EnableOpenTracing {
+		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
+		span.SetTag("request_id", c.App.RequestId())
+		span.SetTag("ip_address", c.App.IpAddress())
+		span.SetTag("user_agent", c.App.UserAgent())
+		span.SetTag("url", c.App.Path())
+		defer span.Finish()
+		c.App.SetContext(ctx)
+
+		tmpSrv := app.Server{}
+		tmpSrv = *c.App.Srv()
+		tmpSrv.Store = store.NewOpenTracingLayer(c.App.Srv().Store, ctx)
+		c.App.SetServer(&tmpSrv)
+		c.App = app.NewOpenTracingAppLayer(c.App, ctx)
+	}
 
 	// Set the max request body size to be equal to MaxFileSize.
 	// Ideally, non-file request bodies should be smaller than file request bodies,
