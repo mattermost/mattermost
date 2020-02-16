@@ -636,22 +636,23 @@ func (a *App) trackConfig() {
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-
-	if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-		mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
-	} else {
-		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
-		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
-		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
-		pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
-		pluginConfigData["version_github"] = pluginVersion(plugins, "github")
-		pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
-		pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
-		pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
-		pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
-		pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
-		pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
-		pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+	if pluginsEnvironment != nil {
+		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+		} else {
+			pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
+			pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
+			pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
+			pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
+			pluginConfigData["version_github"] = pluginVersion(plugins, "github")
+			pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
+			pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
+			pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
+			pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
+			pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
+			pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
+			pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+		}
 	}
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
