@@ -3021,7 +3021,7 @@ func TestGetChannelModerations(t *testing.T) {
 		}
 	})
 
-	t.Run("Returns value false and enabled false for permissions that are not present in inherited scheme when no channel scheme present", func(t *testing.T) {
+	t.Run("Returns value false and enabled false for permissions that are not present in higher scoped scheme when no channel scheme present", func(t *testing.T) {
 		scheme := th.SetupTeamScheme()
 		team.SchemeId = &scheme.Id
 		_, err := th.App.UpdateTeamScheme(team)
@@ -3167,7 +3167,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		require.NotNil(t, channel.SchemeId)
 	})
 
-	t.Run("Removes the existing scheme when moderated permissions are set back to inherited values", func(t *testing.T) {
+	t.Run("Removes the existing scheme when moderated permissions are set back to higher scoped values", func(t *testing.T) {
 		channel, _ = th.App.GetChannel(channel.Id)
 		schemeId := channel.SchemeId
 

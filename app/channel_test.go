@@ -1307,13 +1307,13 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
 
 	testCases := []struct {
-		Name                        string
-		ChannelModerationsPatch     []*model.ChannelModerationPatch
-		PermissionsModeratedByPatch map[string]*model.ChannelModeratedRoles
-		InheritedMemberPermissions  []string
-		InheritedGuestPermissions   []string
-		ShouldError                 bool
-		ShouldHaveNoChannelScheme   bool
+		Name                          string
+		ChannelModerationsPatch       []*model.ChannelModerationPatch
+		PermissionsModeratedByPatch   map[string]*model.ChannelModeratedRoles
+		HigherScopedMemberPermissions []string
+		HigherScopedGuestPermissions  []string
+		ShouldError                   bool
+		ShouldHaveNoChannelScheme     bool
 	}{
 		{
 			Name: "Removing create posts from members role",
@@ -1449,9 +1449,9 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
-			InheritedMemberPermissions:  []string{},
-			ShouldError:                 true,
+			PermissionsModeratedByPatch:   map[string]*model.ChannelModeratedRoles{},
+			HigherScopedMemberPermissions: []string{},
+			ShouldError:                   true,
 		},
 		{
 			Name: "Error when adding a permission that is disabled in the parent guest role",
@@ -1464,9 +1464,9 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					},
 				},
 			},
-			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
-			InheritedGuestPermissions:   []string{},
-			ShouldError:                 true,
+			PermissionsModeratedByPatch:  map[string]*model.ChannelModeratedRoles{},
+			HigherScopedGuestPermissions: []string{},
+			ShouldError:                  true,
 		},
 		{
 			Name: "Removing a permission from the member role that is disabled in the parent guest role",
@@ -1490,11 +1490,11 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
 				},
 			},
-			InheritedGuestPermissions: []string{},
-			ShouldError:               false,
+			HigherScopedGuestPermissions: []string{},
+			ShouldError:                  false,
 		},
 		{
-			Name: "Channel should have no scheme when all moderated permissions are equivalent to inherited role",
+			Name: "Channel should have no scheme when all moderated permissions are equivalent to higher scoped role",
 			ChannelModerationsPatch: []*model.ChannelModerationPatch{
 				{
 					Name: &createPosts,
@@ -1531,26 +1531,26 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			inheritedPermissionsOverriden := tc.InheritedMemberPermissions != nil || tc.InheritedGuestPermissions != nil
-			// If the test case restricts inherited permissions.
-			if inheritedPermissionsOverriden {
-				inheritedGuestRoleName, inheritedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
-				if tc.InheritedMemberPermissions != nil {
-					inheritedMemberRole, err := th.App.GetRoleByName(inheritedMemberRoleName)
+			higherScopedPermissionsOverriden := tc.HigherScopedMemberPermissions != nil || tc.HigherScopedGuestPermissions != nil
+			// If the test case restricts higher scoped permissions.
+			if higherScopedPermissionsOverriden {
+				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+				if tc.HigherScopedMemberPermissions != nil {
+					higherScopedMemberRole, err := th.App.GetRoleByName(higherScopedMemberRoleName)
 					require.Nil(t, err)
-					originalPermissions := inheritedMemberRole.Permissions
+					originalPermissions := higherScopedMemberRole.Permissions
 
-					th.App.PatchRole(inheritedMemberRole, &model.RolePatch{Permissions: &tc.InheritedMemberPermissions})
-					defer th.App.PatchRole(inheritedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
+					th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &tc.HigherScopedMemberPermissions})
+					defer th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
 				}
 
-				if tc.InheritedGuestPermissions != nil {
-					inheritedGuestRole, err := th.App.GetRoleByName(inheritedGuestRoleName)
+				if tc.HigherScopedGuestPermissions != nil {
+					higherScopedGuestRole, err := th.App.GetRoleByName(higherScopedGuestRoleName)
 					require.Nil(t, err)
-					originalPermissions := inheritedGuestRole.Permissions
+					originalPermissions := higherScopedGuestRole.Permissions
 
-					th.App.PatchRole(inheritedGuestRole, &model.RolePatch{Permissions: &tc.InheritedGuestPermissions})
-					defer th.App.PatchRole(inheritedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
+					th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &tc.HigherScopedGuestPermissions})
+					defer th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
 				}
 			}
 

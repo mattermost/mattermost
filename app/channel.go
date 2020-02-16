@@ -769,40 +769,40 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 		return nil, err
 	}
 
-	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
-	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	inheritedGuestRole, err := a.GetRoleByName(inheritedGuestRoleName)
+	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	return buildChannelModerations(memberRole, guestRole, inheritedMemberRole, inheritedGuestRole), nil
+	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
 func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	inheritedGuestRoleName, inheritedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
-	inheritedMemberRole, err := a.GetRoleByName(inheritedMemberRoleName)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	inheritedGuestRole, err := a.GetRoleByName(inheritedGuestRoleName)
+	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	inheritedMemberPermissions := inheritedMemberRole.GetChannelModeratedPermissions()
-	inheritedGuestPermissions := inheritedGuestRole.GetChannelModeratedPermissions()
+	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions()
+	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions()
 
 	for _, moderationPatch := range channelModerationsPatch {
-		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !inheritedMemberPermissions[*moderationPatch.Name] {
+		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
 			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
 		}
-		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !inheritedGuestPermissions[*moderationPatch.Name] {
+		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !higherScopedGuestPermissions[*moderationPatch.Name] {
 			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
 		}
 	}
@@ -828,28 +828,28 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
 	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
 
-	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(inheritedMemberRole, memberRolePatch)) == 0
-	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(inheritedGuestRole, guestRolePatch)) == 0
+	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedMemberRole, memberRolePatch)) == 0
+	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
 	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
-		// The channel scheme matches the permissions of its inherited scheme so delete the scheme
+		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
 		if _, err := a.DeleteChannelScheme(channel); err != nil {
 			return nil, err
 		}
-		memberRole = inheritedMemberRole
-		guestRole = inheritedGuestRole
+		memberRole = higherScopedMemberRole
+		guestRole = higherScopedGuestRole
 	} else {
 		memberRole.Patch(memberRolePatch)
 		guestRole.Patch(guestRolePatch)
 	}
 
-	return buildChannelModerations(memberRole, guestRole, inheritedMemberRole, inheritedGuestRole), nil
+	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
-func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, inheritedMemberRole *model.Role, inheritedGuestRole *model.Role) []*model.ChannelModeration {
+func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
 	memberPermissions := memberRole.GetChannelModeratedPermissions()
 	guestPermissions := guestRole.GetChannelModeratedPermissions()
-	inheritedMemberPermissions := inheritedMemberRole.GetChannelModeratedPermissions()
-	inheritedGuestPermissions := inheritedGuestRole.GetChannelModeratedPermissions()
+	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions()
+	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions()
 
 	var channelModerations []*model.ChannelModeration
 	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
@@ -857,7 +857,7 @@ func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, inhe
 
 		roles.Members = &model.ChannelModeratedRole{
 			Value:   memberPermissions[permissionKey],
-			Enabled: inheritedMemberPermissions[permissionKey],
+			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
 		if permissionKey == "manage_members" {
@@ -865,7 +865,7 @@ func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, inhe
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{
 				Value:   guestPermissions[permissionKey],
-				Enabled: inheritedGuestPermissions[permissionKey],
+				Enabled: higherScopedGuestPermissions[permissionKey],
 			}
 		}
 
