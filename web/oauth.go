@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -51,23 +52,23 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.IsOAuth {
+	if c.App.Session().IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
-	c.LogAudit("attempt")
+	auditRec := c.MakeAuditRecord("authorizeOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
-	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session.UserId, authRequest)
+	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("")
-
+	auditRec.Success()
 	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
 }
 
@@ -80,13 +81,16 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.DeauthorizeOAuthAppForUser(c.App.Session.UserId, clientId)
+	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	err := c.App.DeauthorizeOAuthAppForUser(c.App.Session().UserId, clientId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	c.LogAudit("success")
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -119,7 +123,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// here we should check if the user is logged in
-	if len(c.App.Session.UserId) == 0 {
+	if len(c.App.Session().UserId) == 0 {
 		if loginHint == model.USER_AUTH_SERVICE_SAML {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		} else {
@@ -136,14 +140,14 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.App.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.App.Session().UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session.UserId, authRequest)
+		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
@@ -200,7 +204,10 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := r.FormValue("redirect_uri")
 
-	c.LogAudit("attempt")
+	auditRec := c.MakeAuditRecord("getAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("grant_type", grantType)
+	auditRec.AddMeta("client_id", clientId)
 
 	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
 	if err != nil {
@@ -212,8 +219,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 
-	c.LogAudit("success")
-
+	auditRec.Success()
 	w.Write([]byte(accessRsp.ToJson()))
 }
 
