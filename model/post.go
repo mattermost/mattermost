@@ -435,7 +435,7 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
-// DisableMentionHighlights Disables a posts mention highlighting and returns the first channel mention that was present in the message
+// DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
 func (o *Post) DisableMentionHighlights() string {
 	mention, hasMentions := findAtChannelMention(o.Message)
 	if hasMentions {
@@ -444,7 +444,7 @@ func (o *Post) DisableMentionHighlights() string {
 	return mention
 }
 
-// DisableMentionHighlights Disables mention highlighting for a post patch if required
+// DisableMentionHighlights disables mention highlighting for a post patch if required.
 func (o *PostPatch) DisableMentionHighlights() {
 	_, hasMentions := findAtChannelMention(*o.Message)
 	props := StringInterface{}

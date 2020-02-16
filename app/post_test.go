@@ -669,7 +669,7 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
 
-	t.Run("Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and sends an ephemeral post when user does not have required permission", func(t *testing.T) {
+	t.Run("Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED only when user does not have required permission and skips otherwise", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
