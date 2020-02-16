@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -52,7 +52,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestReloadConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -78,7 +78,7 @@ func TestReloadConfig(t *testing.T) {
 }
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -102,6 +102,11 @@ func TestUpdateConfig(t *testing.T) {
 	CheckNoError(t, resp)
 
 	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
+
+	t.Run("Should set defaults for missing fields", func(t *testing.T) {
+		_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+		require.Nil(t, appErr)
+	})
 
 	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 		//Revert the change
@@ -147,7 +152,7 @@ func TestUpdateConfig(t *testing.T) {
 }
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
@@ -215,7 +220,7 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 }
 
 func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
@@ -244,7 +249,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI")
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
@@ -301,7 +306,7 @@ func TestGetEnvironmentConfig(t *testing.T) {
 }
 
 func TestGetOldClientConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testKey := "supersecretkey"
@@ -317,13 +322,8 @@ func TestGetOldClientConfig(t *testing.T) {
 		config, resp := Client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Equal(t, testKey, config["GoogleDeveloperKey"])
 	})
 
 	t.Run("without session", func(t *testing.T) {
@@ -336,34 +336,29 @@ func TestGetOldClientConfig(t *testing.T) {
 		config, resp := Client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if _, ok := config["GoogleDeveloperKey"]; ok {
-			t.Fatal("config should be missing developer key")
-		}
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
 	t.Run("missing format", func(t *testing.T) {
 		Client := th.Client
 
-		if _, err := Client.DoApiGet("/config/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
-			t.Fatal("should have errored with 501")
-		}
+		_, err := Client.DoApiGet("/config/client", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusNotImplemented, err.StatusCode)
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
 		Client := th.Client
 
-		if _, err := Client.DoApiGet("/config/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
-			t.Fatal("should have errored with 400")
-		}
+		_, err := Client.DoApiGet("/config/client?format=junk", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 }
 
 func TestPatchConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
 
