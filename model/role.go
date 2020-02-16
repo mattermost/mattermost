@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/v5/utils/slices"
 )
 
 const (
@@ -100,8 +98,8 @@ func (r *Role) Patch(patch *RolePatch) {
 func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
 	mergedPermissions := []string{}
 
-	higherScopedPermissionsMap := slices.AsStringBoolMap(higherScopedPermissions.Permissions)
-	rolePermissionsMap := slices.AsStringBoolMap(r.Permissions)
+	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
+	rolePermissionsMap := AsStringBoolMap(r.Permissions)
 
 	for _, cp := range ALL_PERMISSIONS {
 		if cp.Scope != PERMISSION_SCOPE_CHANNEL {

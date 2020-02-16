@@ -18,7 +18,7 @@ import (
 	"github.com/icrowley/fake"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/slices"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -330,7 +330,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !slices.IncludesString(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}

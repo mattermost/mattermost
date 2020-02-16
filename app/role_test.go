@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/slices"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,7 +35,7 @@ func TestGetRolesByNames(t *testing.T) {
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
 
-		require.Equal(t, testData.shouldHavePermission, slices.IncludesString(actualRole.Permissions, testData.permission.Id))
+		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions))
 	})
 }
 
@@ -45,7 +45,7 @@ func TestGetRoleByName(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, actualRole)
 		require.Equal(t, testData.channelRole.Name, actualRole.Name)
-		require.Equal(t, testData.shouldHavePermission, slices.IncludesString(actualRole.Permissions, testData.permission.Id), "row: %+v", testData.truthTableRow)
+		require.Equal(t, testData.shouldHavePermission, utils.StringInSlice(testData.permission.Id, actualRole.Permissions), "row: %+v", testData.truthTableRow)
 	})
 }
 
