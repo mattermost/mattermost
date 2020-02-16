@@ -25,7 +25,7 @@ func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	err = a.mergeInheritedChannelPermissions([]*model.Role{role})
+	err = a.mergeHigherScopedChannelPermissions([]*model.Role{role})
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	err = a.mergeInheritedChannelPermissions(roles)
+	err = a.mergeHigherScopedChannelPermissions(roles)
 	if err != nil {
 		return nil, err
 	}
@@ -47,9 +47,9 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
-// mergeInheritedChannelPermissions updates the permissions based on the role type, whether the permission is
+// mergeHigherScopedChannelPermissions updates the permissions based on the role type, whether the permission is
 // moderated, and the value of the permission on the higher-scoped scheme.
-func (a *App) mergeInheritedChannelPermissions(roles []*model.Role) *model.AppError {
+func (a *App) mergeHigherScopedChannelPermissions(roles []*model.Role) *model.AppError {
 	var higherScopeNamesToQuery []string
 
 	for _, role := range roles {
@@ -130,7 +130,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 
 	impactedRoles = append(impactedRoles, savedRole)
 
-	err = a.mergeInheritedChannelPermissions(impactedRoles)
+	err = a.mergeHigherScopedChannelPermissions(impactedRoles)
 	if err != nil {
 		return nil, err
 	}
