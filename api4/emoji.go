@@ -48,17 +48,17 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.App.Session.UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_CREATE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -83,7 +83,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEmoji, err := c.App.CreateEmoji(c.App.Session.UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.App.Session().UserId, emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -126,17 +126,17 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.App.Session.UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_DELETE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DELETE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_DELETE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -147,11 +147,11 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.Session.UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+	if c.App.Session().UserId != emoji.CreatorId {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DELETE_OTHERS_EMOJIS) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
+				if c.App.SessionHasPermissionToTeam(*c.App.Session(), membership.TeamId, model.PERMISSION_DELETE_OTHERS_EMOJIS) {
 					hasPermission = true
 					break
 				}

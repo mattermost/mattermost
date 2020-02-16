@@ -12,7 +12,7 @@ import (
 )
 
 func TestTestLdap(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.SystemAdminClient.TestLdap()
@@ -34,7 +34,7 @@ func TestTestLdap(t *testing.T) {
 }
 
 func TestSyncLdap(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.SystemAdminClient.SyncLdap()
@@ -52,7 +52,7 @@ func TestSyncLdap(t *testing.T) {
 }
 
 func TestGetLdapGroups(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.GetLdapGroups()
@@ -65,7 +65,7 @@ func TestGetLdapGroups(t *testing.T) {
 func TestLinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.LinkLdapGroup(entryUUID)
@@ -78,7 +78,7 @@ func TestLinkLdapGroup(t *testing.T) {
 func TestUnlinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.UnlinkLdapGroup(entryUUID)
