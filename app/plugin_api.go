@@ -40,16 +40,6 @@ func (api *PluginAPI) applyDefaultConfigValues(pluginConfig map[string]interface
 		return
 	}
 
-	if len(pluginConfig) != 0 {
-		for _, setting := range api.manifest.SettingsSchema.Settings {
-			key := strings.ToLower(setting.Key)
-			if existingValue := pluginConfig[key]; existingValue == "" {
-				pluginConfig[key] = setting.Default
-			}
-		}
-		return
-	}
-
 	for _, settings := range api.manifest.SettingsSchema.Settings {
 		pluginConfig[strings.ToLower(settings.Key)] = settings.Default
 	}
