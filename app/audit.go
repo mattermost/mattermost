@@ -81,28 +81,34 @@ func getField(fields logr.Fields, name string) string {
 
 // getExtraInfos returns an array of strings containing extra info fields
 // such that no string exceeds maxlen and at least one string is returned,
-// even if empty.
+// even if empty. Fields are sorted.
 func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) []string {
 	const sep = " | "
-	maxlen = maxlen - len(sep)
 	infos := []string{}
 	sb := strings.Builder{}
+
+	keys := make([]string, 0, len(fields))
+	for k, _ := range fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
 top:
-	for k, v := range fields {
+	for _, k := range keys {
 		for _, sk := range skips {
 			if sk == k {
 				continue top
 			}
 		}
 		// a single entry cannot be greater than maxlen; truncate if needed.
-		field := fmt.Sprintf("%s=%v", k, v)
+		field := fmt.Sprintf("%s=%v", k, fields[k])
 		if len(field) > maxlen {
 			field = field[:maxlen-3]
 			field = field + "..."
 		}
 		// if adding the new field will exceed maxlen then flush buffer and
 		// start a new one.
-		if sb.Len()+len(field) > maxlen {
+		if sb.Len() > 0 && sb.Len()+len(field)+len(sep) > maxlen {
 			infos = append(infos, sb.String())
 			sb = strings.Builder{}
 		}
@@ -112,6 +118,5 @@ top:
 		sb.WriteString(field)
 	}
 	infos = append(infos, sb.String())
-	sort.Strings(infos)
 	return infos
 }
