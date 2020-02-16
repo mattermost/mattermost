@@ -67,9049 +67,12328 @@ type OpenTracingAppLayer struct {
 	timezones   *timezones.Timezones
 
 	context context.Context
-	store   store.Store
-
-	ctx context.Context
+	ctx     context.Context
 }
 
-func (s *OpenTracingAppLayer) ActivateMfa(userId string, token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ActivateMfa")
+func (a *OpenTracingAppLayer) ActivateMfa(userId string, token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ActivateMfa")
 
-	span.SetTag("userId", userId)
-
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ActivateMfa(userId, token)
+	return a.app.ActivateMfa(userId, token)
 }
 
-func (s *OpenTracingAppLayer) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddChannelMember")
+func (a *OpenTracingAppLayer) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddChannelMember")
 
-	span.SetTag("userId", userId)
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("userRequestorId", userRequestorId)
-
-	span.SetTag("postRootId", postRootId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
+	return a.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }
 
-func (s *OpenTracingAppLayer) AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddConfigListener")
+func (a *OpenTracingAppLayer) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddConfigListener")
 
-	span.SetTag("listener", listener)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.AddConfigListener(listener)
+	return a.app.AddConfigListener(listener)
 }
 
-func (s *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostList, afterPost string, beforePost string, since int64, page int, perPage int) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddCursorIdsForPostList")
+func (a *OpenTracingAppLayer) AddCursorIdsForPostList(originalList *model.PostList, afterPost string, beforePost string, since int64, page int, perPage int) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddCursorIdsForPostList")
 
-	span.SetTag("originalList", originalList)
-
-	span.SetTag("afterPost", afterPost)
-
-	span.SetTag("beforePost", beforePost)
-
-	span.SetTag("since", since)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage)
+	a.app.AddCursorIdsForPostList(originalList, afterPost, beforePost, since, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) AddDirectChannels(teamId string, user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddDirectChannels")
+func (a *OpenTracingAppLayer) AddDirectChannels(teamId string, user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddDirectChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddDirectChannels(teamId, user)
+}
+
+func (a *OpenTracingAppLayer) AddLicenseListener(listener func()) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLicenseListener")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddLicenseListener(listener)
+}
+
+func (a *OpenTracingAppLayer) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddNotificationEmailToBatch")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddNotificationEmailToBatch(user, post, team)
+}
+
+func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddPublicKey(name, key)
+}
+
+func (a *OpenTracingAppLayer) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddSamlIdpCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddSamlIdpCertificate(fileData)
+}
+
+func (a *OpenTracingAppLayer) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddSamlPrivateCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddSamlPrivateCertificate(fileData)
+}
+
+func (a *OpenTracingAppLayer) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddSamlPublicCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddSamlPublicCertificate(fileData)
+}
+
+func (a *OpenTracingAppLayer) AddSessionToCache(session *model.Session) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddSessionToCache")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.AddSessionToCache(session)
+}
+
+func (a *OpenTracingAppLayer) AddStatusCache(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddStatusCache")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.AddStatusCache(status)
+}
+
+func (a *OpenTracingAppLayer) AddStatusCacheSkipClusterSend(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddStatusCacheSkipClusterSend")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.AddStatusCacheSkipClusterSend(status)
+}
+
+func (a *OpenTracingAppLayer) AddTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddTeamMember")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddTeamMember(teamId, userId)
+}
+
+func (a *OpenTracingAppLayer) AddTeamMemberByInviteId(inviteId string, userId string) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddTeamMemberByInviteId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddTeamMemberByInviteId(inviteId, userId)
+}
+
+func (a *OpenTracingAppLayer) AddTeamMemberByToken(userId string, tokenId string) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddTeamMemberByToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddTeamMemberByToken(userId, tokenId)
+}
+
+func (a *OpenTracingAppLayer) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddTeamMembers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddTeamMembers(teamId, userIds, userRequestorId, graceful)
+}
+
+func (a *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddUserToChannel(user, channel)
+}
+
+func (a *OpenTracingAppLayer) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddUserToTeam(teamId, userId, userRequestorId)
+}
+
+func (a *OpenTracingAppLayer) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByInviteId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddUserToTeamByInviteId(inviteId, userId)
+}
+
+func (a *OpenTracingAppLayer) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByTeamId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddUserToTeamByTeamId(teamId, user)
+}
+
+func (a *OpenTracingAppLayer) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AddUserToTeamByToken(userId, tokenId)
+}
+
+func (a *OpenTracingAppLayer) AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AllowOAuthAppAccessToUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AllowOAuthAppAccessToUser(userId, authRequest)
+}
+
+func (a *OpenTracingAppLayer) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AsymmetricSigningKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AsymmetricSigningKey()
+}
+
+func (a *OpenTracingAppLayer) AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AttachDeviceId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AttachDeviceId(sessionId, deviceId, expiresAt)
+}
+
+func (a *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AttachSessionCookies")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.AttachSessionCookies(w, r)
+}
+
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+}
+
+func (a *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthorizeOAuthUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AuthorizeOAuthUser(w, r, service, code, state, redirectUri)
+}
+
+func (a *OpenTracingAppLayer) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AutocompleteChannels(teamId, term)
+}
+
+func (a *OpenTracingAppLayer) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteChannelsForSearch")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AutocompleteChannelsForSearch(teamId, userId, term)
+}
+
+func (a *OpenTracingAppLayer) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteUsersInChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AutocompleteUsersInChannel(teamId, channelId, term, options)
+}
+
+func (a *OpenTracingAppLayer) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AutocompleteUsersInTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.AutocompleteUsersInTeam(teamId, term, options)
+}
+
+func (a *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BroadcastStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.BroadcastStatus(status)
+}
+
+func (a *OpenTracingAppLayer) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPostReactions")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.BuildPostReactions(postId)
+}
+
+func (a *OpenTracingAppLayer) BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildPushNotificationMessage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.BuildPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
+}
+
+func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BuildSamlMetadataObject")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.BuildSamlMetadataObject(idpMetadata)
+}
+
+func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.BulkExport(writer, file, pathToEmojiDir, dirNameToExportEmoji)
+}
+
+func (a *OpenTracingAppLayer) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImport")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.BulkImport(fileReader, dryRun, workers)
+}
+
+func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CancelJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CancelJob(jobId)
+}
+
+func (a *OpenTracingAppLayer) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ChannelMembersMinusGroupMembers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+}
+
+func (a *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ChannelMembersToAdd")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ChannelMembersToAdd(since, channelID)
+}
+
+func (a *OpenTracingAppLayer) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ChannelMembersToRemove")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ChannelMembersToRemove(teamID)
+}
+
+func (a *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, string, string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckForClientSideCert")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckForClientSideCert(r)
+}
+
+func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPasswordAndAllCriteria")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckPasswordAndAllCriteria(user, password, mfaToken)
+}
+
+func (a *OpenTracingAppLayer) CheckRolesExist(roleNames []string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckRolesExist")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckRolesExist(roleNames)
+}
+
+func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserAllAuthenticationCriteria")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckUserAllAuthenticationCriteria(user, mfaToken)
+}
+
+func (a *OpenTracingAppLayer) CheckUserMfa(user *model.User, token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserMfa")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckUserMfa(user, token)
+}
+
+func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserPostflightAuthenticationCriteria")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckUserPostflightAuthenticationCriteria(user)
+}
+
+func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserPreflightAuthenticationCriteria")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
+}
+
+func (a *OpenTracingAppLayer) ClearChannelMembersCache(channelID string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearChannelMembersCache")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearChannelMembersCache(channelID)
+}
+
+func (a *OpenTracingAppLayer) ClearPushNotification(currentSessionId string, userId string, channelId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearPushNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearPushNotification(currentSessionId, userId, channelId)
+}
+
+func (a *OpenTracingAppLayer) ClearPushNotificationSync(currentSessionId string, userId string, channelId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearPushNotificationSync")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ClearPushNotificationSync(currentSessionId, userId, channelId)
+}
+
+func (a *OpenTracingAppLayer) ClearSessionCacheForAllUsers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearSessionCacheForAllUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearSessionCacheForAllUsers()
+}
+
+func (a *OpenTracingAppLayer) ClearSessionCacheForAllUsersSkipClusterSend() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearSessionCacheForAllUsersSkipClusterSend")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearSessionCacheForAllUsersSkipClusterSend()
+}
+
+func (a *OpenTracingAppLayer) ClearSessionCacheForUser(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearSessionCacheForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearSessionCacheForUser(userId)
+}
+
+func (a *OpenTracingAppLayer) ClearSessionCacheForUserSkipClusterSend(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearSessionCacheForUserSkipClusterSend")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearSessionCacheForUserSkipClusterSend(userId)
+}
+
+func (a *OpenTracingAppLayer) ClearTeamMembersCache(teamID string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearTeamMembersCache")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.ClearTeamMembersCache(teamID)
+}
+
+func (a *OpenTracingAppLayer) ClientConfig() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClientConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ClientConfig()
+}
+
+func (a *OpenTracingAppLayer) ClientConfigHash() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClientConfigHash")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ClientConfigHash()
+}
+
+func (a *OpenTracingAppLayer) ClientConfigWithComputed() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClientConfigWithComputed")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ClientConfigWithComputed()
+}
+
+func (a *OpenTracingAppLayer) ClientLicense() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClientLicense")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ClientLicense()
+}
+
+func (a *OpenTracingAppLayer) CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompareAndDeletePluginKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CompareAndDeletePluginKey(pluginId, key, oldValue)
+}
+
+func (a *OpenTracingAppLayer) CompareAndSetPluginKey(pluginId string, key string, oldValue []byte, newValue []byte) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompareAndSetPluginKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CompareAndSetPluginKey(pluginId, key, oldValue, newValue)
+}
+
+func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteOAuth")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CompleteOAuth(service, body, teamId, props)
+}
+
+func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteSwitchWithOAuth")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CompleteSwitchWithOAuth(service, userData, email)
+}
+
+func (a *OpenTracingAppLayer) Config() *model.Config {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Config")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.Config()
+}
+
+func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertUserToBot")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.ConvertUserToBot(user)
+}
+
+func (a *OpenTracingAppLayer) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CopyFileInfos")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CopyFileInfos(userId, fileIds)
+}
+
+func (a *OpenTracingAppLayer) CreateBasicUser(client *model.Client4) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBasicUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateBasicUser(client)
+}
+
+func (a *OpenTracingAppLayer) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBot")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateBot(bot)
+}
+
+func (a *OpenTracingAppLayer) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateChannel(channel, addMember)
+}
+
+func (a *OpenTracingAppLayer) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelWithUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateChannelWithUser(channel, userId)
+}
+
+func (a *OpenTracingAppLayer) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateCommand")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateCommand(cmd)
+}
+
+func (a *OpenTracingAppLayer) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateCommandPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	span.SetTag("teamId", teamId)
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.AddDirectChannels(teamId, user)
-}
-
-func (s *OpenTracingAppLayer) AddLicenseListener(listener func()) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddLicenseListener")
-
-	span.SetTag("listener", listener)
-
-	defer span.Finish()
-
-	return s.app.AddLicenseListener(listener)
-}
-
-func (s *OpenTracingAppLayer) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddNotificationEmailToBatch")
-
-	span.SetTag("user", user)
-
-	span.SetTag("post", post)
-
-	span.SetTag("team", team)
-
-	defer span.Finish()
-
-	return s.app.AddNotificationEmailToBatch(user, post, team)
-}
-
-func (s *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddPublicKey")
-
-	span.SetTag("name", name)
-
-	span.SetTag("key", key)
-
-	defer span.Finish()
-
-	return s.app.AddPublicKey(name, key)
-}
-
-func (s *OpenTracingAppLayer) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddSamlIdpCertificate")
-
-	span.SetTag("fileData", fileData)
-
-	defer span.Finish()
-
-	return s.app.AddSamlIdpCertificate(fileData)
-}
-
-func (s *OpenTracingAppLayer) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddSamlPrivateCertificate")
-
-	span.SetTag("fileData", fileData)
-
-	defer span.Finish()
-
-	return s.app.AddSamlPrivateCertificate(fileData)
-}
-
-func (s *OpenTracingAppLayer) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddSamlPublicCertificate")
-
-	span.SetTag("fileData", fileData)
-
-	defer span.Finish()
-
-	return s.app.AddSamlPublicCertificate(fileData)
-}
-
-func (s *OpenTracingAppLayer) AddSessionToCache(session *model.Session) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddSessionToCache")
-
-	span.SetTag("session", session)
-
-	defer span.Finish()
-
-	s.app.AddSessionToCache(session)
-}
-
-func (s *OpenTracingAppLayer) AddStatusCache(status *model.Status) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddStatusCache")
-
-	span.SetTag("status", status)
-
-	defer span.Finish()
-
-	s.app.AddStatusCache(status)
-}
-
-func (s *OpenTracingAppLayer) AddStatusCacheSkipClusterSend(status *model.Status) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddStatusCacheSkipClusterSend")
-
-	span.SetTag("status", status)
-
-	defer span.Finish()
-
-	s.app.AddStatusCacheSkipClusterSend(status)
-}
-
-func (s *OpenTracingAppLayer) AddTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddTeamMember")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.AddTeamMember(teamId, userId)
-}
-
-func (s *OpenTracingAppLayer) AddTeamMemberByInviteId(inviteId string, userId string) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddTeamMemberByInviteId")
-
-	span.SetTag("inviteId", inviteId)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.AddTeamMemberByInviteId(inviteId, userId)
-}
-
-func (s *OpenTracingAppLayer) AddTeamMemberByToken(userId string, tokenId string) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddTeamMemberByToken")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("tokenId", tokenId)
-
-	defer span.Finish()
-
-	return s.app.AddTeamMemberByToken(userId, tokenId)
-}
-
-func (s *OpenTracingAppLayer) AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddTeamMembers")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userIds", userIds)
-
-	span.SetTag("userRequestorId", userRequestorId)
-
-	span.SetTag("graceful", graceful)
-
-	defer span.Finish()
-
-	return s.app.AddTeamMembers(teamId, userIds, userRequestorId, graceful)
-}
-
-func (s *OpenTracingAppLayer) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddUserToChannel")
-
-	span.SetTag("user", user)
-
-	span.SetTag("channel", channel)
-
-	defer span.Finish()
-
-	return s.app.AddUserToChannel(user, channel)
-}
-
-func (s *OpenTracingAppLayer) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddUserToTeam")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("userRequestorId", userRequestorId)
-
-	defer span.Finish()
-
-	return s.app.AddUserToTeam(teamId, userId, userRequestorId)
-}
-
-func (s *OpenTracingAppLayer) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddUserToTeamByInviteId")
-
-	span.SetTag("inviteId", inviteId)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.AddUserToTeamByInviteId(inviteId, userId)
-}
-
-func (s *OpenTracingAppLayer) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddUserToTeamByTeamId")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.AddUserToTeamByTeamId(teamId, user)
-}
-
-func (s *OpenTracingAppLayer) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AddUserToTeamByToken")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("tokenId", tokenId)
-
-	defer span.Finish()
-
-	return s.app.AddUserToTeamByToken(userId, tokenId)
-}
-
-func (s *OpenTracingAppLayer) AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AllowOAuthAppAccessToUser")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("authRequest", authRequest)
-
-	defer span.Finish()
-
-	return s.app.AllowOAuthAppAccessToUser(userId, authRequest)
-}
-
-func (s *OpenTracingAppLayer) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AsymmetricSigningKey")
-
-	defer span.Finish()
-
-	return s.app.AsymmetricSigningKey()
-}
-
-func (s *OpenTracingAppLayer) AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AttachDeviceId")
-
-	span.SetTag("sessionId", sessionId)
-
-	span.SetTag("deviceId", deviceId)
-
-	span.SetTag("expiresAt", expiresAt)
-
-	defer span.Finish()
-
-	return s.app.AttachDeviceId(sessionId, deviceId, expiresAt)
-}
-
-func (s *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AttachSessionCookies")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	defer span.Finish()
-
-	s.app.AttachSessionCookies(w, r)
-}
-
-func (s *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AuthenticateUserForLogin")
-
-	span.SetTag("id", id)
-
-	span.SetTag("loginId", loginId)
-
-	span.SetTag("password", password)
-
-	span.SetTag("mfaToken", mfaToken)
-
-	span.SetTag("ldapOnly", ldapOnly)
-
-	defer span.Finish()
-
-	return s.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
-}
-
-func (s *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AuthorizeOAuthUser")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	span.SetTag("service", service)
-
-	span.SetTag("code", code)
-
-	span.SetTag("state", state)
-
-	span.SetTag("redirectUri", redirectUri)
-
-	defer span.Finish()
-
-	return s.app.AuthorizeOAuthUser(w, r, service, code, state, redirectUri)
-}
-
-func (s *OpenTracingAppLayer) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AutocompleteChannels")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("term", term)
-
-	defer span.Finish()
-
-	return s.app.AutocompleteChannels(teamId, term)
-}
-
-func (s *OpenTracingAppLayer) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AutocompleteChannelsForSearch")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("term", term)
-
-	defer span.Finish()
-
-	return s.app.AutocompleteChannelsForSearch(teamId, userId, term)
-}
-
-func (s *OpenTracingAppLayer) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AutocompleteUsersInChannel")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.AutocompleteUsersInChannel(teamId, channelId, term, options)
-}
-
-func (s *OpenTracingAppLayer) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.AutocompleteUsersInTeam")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.AutocompleteUsersInTeam(teamId, term, options)
-}
-
-func (s *OpenTracingAppLayer) BroadcastStatus(status *model.Status) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BroadcastStatus")
-
-	span.SetTag("status", status)
-
-	defer span.Finish()
-
-	s.app.BroadcastStatus(status)
-}
-
-func (s *OpenTracingAppLayer) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BuildPostReactions")
-
-	span.SetTag("postId", postId)
-
-	defer span.Finish()
-
-	return s.app.BuildPostReactions(postId)
-}
-
-func (s *OpenTracingAppLayer) BuildPushNotificationMessage(contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string, explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BuildPushNotificationMessage")
-
-	span.SetTag("contentsConfig", contentsConfig)
-
-	span.SetTag("post", post)
-
-	span.SetTag("user", user)
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("channelName", channelName)
-
-	span.SetTag("senderName", senderName)
-
-	span.SetTag("explicitMention", explicitMention)
-
-	span.SetTag("channelWideMention", channelWideMention)
-
-	span.SetTag("replyToThreadType", replyToThreadType)
-
-	defer span.Finish()
-
-	return s.app.BuildPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
-}
-
-func (s *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*model.SamlMetadataResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BuildSamlMetadataObject")
-
-	span.SetTag("idpMetadata", idpMetadata)
-
-	defer span.Finish()
-
-	return s.app.BuildSamlMetadataObject(idpMetadata)
-}
-
-func (s *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BulkExport")
-
-	span.SetTag("writer", writer)
-
-	span.SetTag("file", file)
-
-	span.SetTag("pathToEmojiDir", pathToEmojiDir)
-
-	span.SetTag("dirNameToExportEmoji", dirNameToExportEmoji)
-
-	defer span.Finish()
-
-	return s.app.BulkExport(writer, file, pathToEmojiDir, dirNameToExportEmoji)
-}
-
-func (s *OpenTracingAppLayer) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.BulkImport")
-
-	span.SetTag("fileReader", fileReader)
-
-	span.SetTag("dryRun", dryRun)
-
-	span.SetTag("workers", workers)
-
-	defer span.Finish()
-
-	return s.app.BulkImport(fileReader, dryRun, workers)
-}
-
-func (s *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CancelJob")
-
-	span.SetTag("jobId", jobId)
-
-	defer span.Finish()
-
-	return s.app.CancelJob(jobId)
-}
-
-func (s *OpenTracingAppLayer) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ChannelMembersMinusGroupMembers")
-
-	span.SetTag("channelID", channelID)
-
-	span.SetTag("groupIDs", groupIDs)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
-
-	defer span.Finish()
-
-	return s.app.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
-}
-
-func (s *OpenTracingAppLayer) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ChannelMembersToAdd")
-
-	span.SetTag("since", since)
-
-	span.SetTag("channelID", channelID)
-
-	defer span.Finish()
-
-	return s.app.ChannelMembersToAdd(since, channelID)
-}
-
-func (s *OpenTracingAppLayer) ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ChannelMembersToRemove")
-
-	span.SetTag("teamID", teamID)
-
-	defer span.Finish()
-
-	return s.app.ChannelMembersToRemove(teamID)
-}
-
-func (s *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, string, string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckForClientSideCert")
-
-	span.SetTag("r", r)
-
-	defer span.Finish()
-
-	return s.app.CheckForClientSideCert(r)
-}
-
-func (s *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckPasswordAndAllCriteria")
-
-	span.SetTag("user", user)
-
-	span.SetTag("password", password)
-
-	span.SetTag("mfaToken", mfaToken)
-
-	defer span.Finish()
-
-	return s.app.CheckPasswordAndAllCriteria(user, password, mfaToken)
-}
-
-func (s *OpenTracingAppLayer) CheckRolesExist(roleNames []string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckRolesExist")
-
-	span.SetTag("roleNames", roleNames)
-
-	defer span.Finish()
-
-	return s.app.CheckRolesExist(roleNames)
-}
-
-func (s *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckUserAllAuthenticationCriteria")
-
-	span.SetTag("user", user)
-
-	span.SetTag("mfaToken", mfaToken)
-
-	defer span.Finish()
-
-	return s.app.CheckUserAllAuthenticationCriteria(user, mfaToken)
-}
-
-func (s *OpenTracingAppLayer) CheckUserMfa(user *model.User, token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckUserMfa")
-
-	span.SetTag("user", user)
-
-	span.SetTag("token", token)
-
-	defer span.Finish()
-
-	return s.app.CheckUserMfa(user, token)
-}
-
-func (s *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckUserPostflightAuthenticationCriteria")
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.CheckUserPostflightAuthenticationCriteria(user)
-}
-
-func (s *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CheckUserPreflightAuthenticationCriteria")
-
-	span.SetTag("user", user)
-
-	span.SetTag("mfaToken", mfaToken)
-
-	defer span.Finish()
-
-	return s.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
-}
-
-func (s *OpenTracingAppLayer) ClearChannelMembersCache(channelID string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearChannelMembersCache")
-
-	span.SetTag("channelID", channelID)
-
-	defer span.Finish()
-
-	s.app.ClearChannelMembersCache(channelID)
-}
-
-func (s *OpenTracingAppLayer) ClearPushNotification(currentSessionId string, userId string, channelId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearPushNotification")
-
-	span.SetTag("currentSessionId", currentSessionId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("channelId", channelId)
-
-	defer span.Finish()
-
-	s.app.ClearPushNotification(currentSessionId, userId, channelId)
-}
-
-func (s *OpenTracingAppLayer) ClearPushNotificationSync(currentSessionId string, userId string, channelId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearPushNotificationSync")
-
-	span.SetTag("currentSessionId", currentSessionId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("channelId", channelId)
-
-	defer span.Finish()
-
-	return s.app.ClearPushNotificationSync(currentSessionId, userId, channelId)
-}
-
-func (s *OpenTracingAppLayer) ClearSessionCacheForAllUsers() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearSessionCacheForAllUsers")
-
-	defer span.Finish()
-
-	s.app.ClearSessionCacheForAllUsers()
-}
-
-func (s *OpenTracingAppLayer) ClearSessionCacheForAllUsersSkipClusterSend() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearSessionCacheForAllUsersSkipClusterSend")
-
-	defer span.Finish()
-
-	s.app.ClearSessionCacheForAllUsersSkipClusterSend()
-}
-
-func (s *OpenTracingAppLayer) ClearSessionCacheForUser(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearSessionCacheForUser")
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	s.app.ClearSessionCacheForUser(userId)
-}
-
-func (s *OpenTracingAppLayer) ClearSessionCacheForUserSkipClusterSend(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearSessionCacheForUserSkipClusterSend")
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	s.app.ClearSessionCacheForUserSkipClusterSend(userId)
-}
-
-func (s *OpenTracingAppLayer) ClearTeamMembersCache(teamID string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClearTeamMembersCache")
-
-	span.SetTag("teamID", teamID)
-
-	defer span.Finish()
-
-	s.app.ClearTeamMembersCache(teamID)
-}
-
-func (s *OpenTracingAppLayer) ClientConfig() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClientConfig")
-
-	defer span.Finish()
-
-	return s.app.ClientConfig()
-}
-
-func (s *OpenTracingAppLayer) ClientConfigHash() string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClientConfigHash")
-
-	defer span.Finish()
-
-	return s.app.ClientConfigHash()
-}
-
-func (s *OpenTracingAppLayer) ClientConfigWithComputed() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClientConfigWithComputed")
-
-	defer span.Finish()
-
-	return s.app.ClientConfigWithComputed()
-}
-
-func (s *OpenTracingAppLayer) ClientLicense() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ClientLicense")
-
-	defer span.Finish()
-
-	return s.app.ClientLicense()
-}
-
-func (s *OpenTracingAppLayer) CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CompareAndDeletePluginKey")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("key", key)
-
-	span.SetTag("oldValue", oldValue)
-
-	defer span.Finish()
-
-	return s.app.CompareAndDeletePluginKey(pluginId, key, oldValue)
-}
-
-func (s *OpenTracingAppLayer) CompareAndSetPluginKey(pluginId string, key string, oldValue []byte, newValue []byte) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CompareAndSetPluginKey")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("key", key)
-
-	span.SetTag("oldValue", oldValue)
-
-	span.SetTag("newValue", newValue)
-
-	defer span.Finish()
-
-	return s.app.CompareAndSetPluginKey(pluginId, key, oldValue, newValue)
-}
-
-func (s *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CompleteOAuth")
-
-	span.SetTag("service", service)
-
-	span.SetTag("body", body)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("props", props)
-
-	defer span.Finish()
-
-	return s.app.CompleteOAuth(service, body, teamId, props)
-}
-
-func (s *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CompleteSwitchWithOAuth")
-
-	span.SetTag("service", service)
-
-	span.SetTag("userData", userData)
-
-	span.SetTag("email", email)
-
-	defer span.Finish()
-
-	return s.app.CompleteSwitchWithOAuth(service, userData, email)
-}
-
-func (s *OpenTracingAppLayer) Config() *model.Config {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.Config")
-
-	defer span.Finish()
-
-	return s.app.Config()
-}
-
-func (s *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ConvertUserToBot")
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.ConvertUserToBot(user)
-}
-
-func (s *OpenTracingAppLayer) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CopyFileInfos")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("fileIds", fileIds)
-
-	defer span.Finish()
-
-	return s.app.CopyFileInfos(userId, fileIds)
-}
-
-func (s *OpenTracingAppLayer) CreateBasicUser(client *model.Client4) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateBasicUser")
-
-	span.SetTag("client", client)
-
-	defer span.Finish()
-
-	return s.app.CreateBasicUser(client)
-}
-
-func (s *OpenTracingAppLayer) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateBot")
-
-	span.SetTag("bot", bot)
-
-	defer span.Finish()
-
-	return s.app.CreateBot(bot)
-}
-
-func (s *OpenTracingAppLayer) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateChannel")
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("addMember", addMember)
-
-	defer span.Finish()
-
-	return s.app.CreateChannel(channel, addMember)
-}
-
-func (s *OpenTracingAppLayer) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateChannelWithUser")
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.CreateChannelWithUser(channel, userId)
-}
-
-func (s *OpenTracingAppLayer) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateCommand")
-
-	span.SetTag("cmd", cmd)
-
-	defer span.Finish()
-
-	return s.app.CreateCommand(cmd)
-}
-
-func (s *OpenTracingAppLayer) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateCommandPost")
-
-	span.SetTag("post", post)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("response", response)
 
 	span.SetTag("skipSlackParsing", skipSlackParsing)
 
 	defer span.Finish()
 
-	return s.app.CreateCommandPost(post, teamId, response, skipSlackParsing)
+	return a.app.CreateCommandPost(post, teamId, response, skipSlackParsing)
 }
 
-func (s *OpenTracingAppLayer) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateCommandWebhook")
+func (a *OpenTracingAppLayer) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateCommandWebhook")
 
-	span.SetTag("commandId", commandId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateCommandWebhook(commandId, args)
+}
+
+func (a *OpenTracingAppLayer) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateDefaultChannels(teamID)
+}
+
+func (a *OpenTracingAppLayer) CreateDefaultMemberships(since int64) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateDefaultMemberships")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateDefaultMemberships(since)
+}
+
+func (a *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateEmoji")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateEmoji(sessionUserId, emoji, multiPartImageData)
+}
+
+func (a *OpenTracingAppLayer) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGroup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateGroup(group)
+}
+
+func (a *OpenTracingAppLayer) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGroupChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateGroupChannel(userIds, creatorId)
+}
+
+func (a *OpenTracingAppLayer) CreateGuest(user *model.User) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateGuest")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateGuest(user)
+}
+
+func (a *OpenTracingAppLayer) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateIncomingWebhookForChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateIncomingWebhookForChannel(creatorId, channel, hook)
+}
+
+func (a *OpenTracingAppLayer) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateJob(job)
+}
+
+func (a *OpenTracingAppLayer) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthApp")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateOAuthApp(app)
+}
+
+func (a *OpenTracingAppLayer) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthStateToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateOAuthStateToken(extra)
+}
+
+func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateOAuthUser(service, userData, teamId)
+}
+
+func (a *OpenTracingAppLayer) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOutgoingWebhook")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateOutgoingWebhook(hook)
+}
+
+func (a *OpenTracingAppLayer) CreatePasswordRecoveryToken(userId string, email string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePasswordRecoveryToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreatePasswordRecoveryToken(userId, email)
+}
+
+func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreatePost(post, channel, triggerWebhooks)
+}
+
+func (a *OpenTracingAppLayer) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePostAsUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreatePostAsUser(post, currentSessionId)
+}
+
+func (a *OpenTracingAppLayer) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePostMissingChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreatePostMissingChannel(post, triggerWebhooks)
+}
+
+func (a *OpenTracingAppLayer) CreatePushNotificationsHub() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePushNotificationsHub")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.CreatePushNotificationsHub()
+}
+
+func (a *OpenTracingAppLayer) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateRole")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateRole(role)
+}
+
+func (a *OpenTracingAppLayer) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateScheme")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateScheme(scheme)
+}
+
+func (a *OpenTracingAppLayer) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSession")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateSession(session)
+}
+
+func (a *OpenTracingAppLayer) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateTeam(team)
+}
+
+func (a *OpenTracingAppLayer) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateTeamWithUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateTeamWithUser(team, userId)
+}
+
+func (a *OpenTracingAppLayer) CreateTermsOfService(text string, userId string) (*model.TermsOfService, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateTermsOfService")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateTermsOfService(text, userId)
+}
+
+func (a *OpenTracingAppLayer) CreateUser(user *model.User) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUser(user)
+}
+
+func (a *OpenTracingAppLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserAccessToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUserAccessToken(token)
+}
+
+func (a *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserAsAdmin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUserAsAdmin(user)
+}
+
+func (a *OpenTracingAppLayer) CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserFromSignup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUserFromSignup(user)
+}
+
+func (a *OpenTracingAppLayer) CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserWithInviteId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUserWithInviteId(user, inviteId)
+}
+
+func (a *OpenTracingAppLayer) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserWithToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateUserWithToken(user, token)
+}
+
+func (a *OpenTracingAppLayer) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateVerifyEmailToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateVerifyEmailToken(userId, newEmail)
+}
+
+func (a *OpenTracingAppLayer) CreateWebhookPost(userId string, channel *model.Channel, text string, overrideUsername string, overrideIconUrl string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateWebhookPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.CreateWebhookPost(userId, channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji, props, postType, postRootId)
+}
+
+func (a *OpenTracingAppLayer) DeactivateGuests() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeactivateGuests")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeactivateGuests()
+}
+
+func (a *OpenTracingAppLayer) DeactivateMfa(userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeactivateMfa")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeactivateMfa(userId)
+}
+
+func (a *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userId string, appId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeauthorizeOAuthAppForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeauthorizeOAuthAppForUser(userId, appId)
+}
+
+func (a *OpenTracingAppLayer) DefaultChannelNames() []string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DefaultChannelNames")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DefaultChannelNames()
+}
+
+func (a *OpenTracingAppLayer) DeleteAllExpiredPluginKeys() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteAllExpiredPluginKeys")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteAllExpiredPluginKeys()
+}
+
+func (a *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteAllKeysForPlugin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteAllKeysForPlugin(pluginId)
+}
+
+func (a *OpenTracingAppLayer) DeleteBotIconImage(botUserId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBotIconImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteBotIconImage(botUserId)
+}
+
+func (a *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteBrandImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteBrandImage()
+}
+
+func (a *OpenTracingAppLayer) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteChannel(channel, userId)
+}
+
+func (a *OpenTracingAppLayer) DeleteCommand(commandId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteCommand")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteCommand(commandId)
+}
+
+func (a *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteEmoji")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteEmoji(emoji)
+}
+
+func (a *OpenTracingAppLayer) DeleteEphemeralPost(userId string, postId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteEphemeralPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DeleteEphemeralPost(userId, postId)
+}
+
+func (a *OpenTracingAppLayer) DeleteFlaggedPosts(postId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteFlaggedPosts")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DeleteFlaggedPosts(postId)
+}
+
+func (a *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteGroup(groupID)
+}
+
+func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships() error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupConstrainedMemberships")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteGroupConstrainedMemberships()
+}
+
+func (a *OpenTracingAppLayer) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupMember")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteGroupMember(groupID, userID)
+}
+
+func (a *OpenTracingAppLayer) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteGroupSyncable")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
+}
+
+func (a *OpenTracingAppLayer) DeleteIncomingWebhook(hookId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteIncomingWebhook")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteIncomingWebhook(hookId)
+}
+
+func (a *OpenTracingAppLayer) DeleteOAuthApp(appId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteOAuthApp")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteOAuthApp(appId)
+}
+
+func (a *OpenTracingAppLayer) DeleteOutgoingWebhook(hookId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteOutgoingWebhook")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteOutgoingWebhook(hookId)
+}
+
+func (a *OpenTracingAppLayer) DeletePluginKey(pluginId string, key string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePluginKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeletePluginKey(pluginId, key)
+}
+
+func (a *OpenTracingAppLayer) DeletePost(postId string, deleteByID string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeletePost(postId, deleteByID)
+}
+
+func (a *OpenTracingAppLayer) DeletePostFiles(post *model.Post) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePostFiles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DeletePostFiles(post)
+}
+
+func (a *OpenTracingAppLayer) DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePreferences")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeletePreferences(userId, preferences)
+}
+
+func (a *OpenTracingAppLayer) DeletePublicKey(name string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeletePublicKey")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeletePublicKey(name)
+}
+
+func (a *OpenTracingAppLayer) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteReactionForPost")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteReactionForPost(reaction)
+}
+
+func (a *OpenTracingAppLayer) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteScheme")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteScheme(schemeId)
+}
+
+func (a *OpenTracingAppLayer) DeleteToken(token *model.Token) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DeleteToken(token)
+}
+
+func (a *OpenTracingAppLayer) DemoteUserToGuest(user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DemoteUserToGuest")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DemoteUserToGuest(user)
+}
+
+func (a *OpenTracingAppLayer) DiagnosticId() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DiagnosticId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DiagnosticId()
+}
+
+func (a *OpenTracingAppLayer) DisableAutoResponder(userId string, asAdmin bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableAutoResponder")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DisableAutoResponder(userId, asAdmin)
+}
+
+func (a *OpenTracingAppLayer) DisablePlugin(id string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisablePlugin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DisablePlugin(id)
+}
+
+func (a *OpenTracingAppLayer) DisableUserAccessToken(token *model.UserAccessToken) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DisableUserAccessToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DisableUserAccessToken(token)
+}
+
+func (a *OpenTracingAppLayer) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoActionRequest")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoActionRequest(rawURL, body)
+}
+
+func (a *OpenTracingAppLayer) DoAdvancedPermissionsMigration() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoAdvancedPermissionsMigration")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DoAdvancedPermissionsMigration()
+}
+
+func (a *OpenTracingAppLayer) DoAppMigrations() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoAppMigrations")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DoAppMigrations()
+}
+
+func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoEmojisPermissionsMigration")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DoEmojisPermissionsMigration()
+}
+
+func (a *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoGuestRolesCreationMigration")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.DoGuestRolesCreationMigration()
+}
+
+func (a *OpenTracingAppLayer) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLocalRequest")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoLocalRequest(rawURL, body)
+}
+
+func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLogin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoLogin(w, r, user, deviceId)
+}
+
+func (a *OpenTracingAppLayer) DoPermissionsMigrations() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPermissionsMigrations")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoPermissionsMigrations()
+}
+
+func (a *OpenTracingAppLayer) DoPostAction(postId string, actionId string, userId string, selectedOption string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPostAction")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoPostAction(postId, actionId, userId, selectedOption)
+}
+
+func (a *OpenTracingAppLayer) DoPostActionWithCookie(postId string, actionId string, userId string, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPostActionWithCookie")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoPostActionWithCookie(postId, actionId, userId, selectedOption, cookie)
+}
+
+func (a *OpenTracingAppLayer) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFile")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoUploadFile(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+}
+
+func (a *OpenTracingAppLayer) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoUploadFileExpectModification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+}
+
+func (a *OpenTracingAppLayer) DoubleCheckPassword(user *model.User, password string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoubleCheckPassword")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DoubleCheckPassword(user, password)
+}
+
+func (a *OpenTracingAppLayer) DownloadFromURL(downloadURL string) ([]byte, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DownloadFromURL")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.DownloadFromURL(downloadURL)
+}
+
+func (a *OpenTracingAppLayer) EnablePlugin(id string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnablePlugin")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.EnablePlugin(id)
+}
+
+func (a *OpenTracingAppLayer) EnableUserAccessToken(token *model.UserAccessToken) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnableUserAccessToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.EnableUserAccessToken(token)
+}
+
+func (a *OpenTracingAppLayer) EnsureDiagnosticId() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureDiagnosticId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	a.app.EnsureDiagnosticId()
+}
+
+func (a *OpenTracingAppLayer) EnvironmentConfig() map[string]interface{} {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnvironmentConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+
+	return a.app.EnvironmentConfig()
+}
+
+func (a *OpenTracingAppLayer) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExecuteCommand")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	span.SetTag("args", args)
 
 	defer span.Finish()
 
-	return s.app.CreateCommandWebhook(commandId, args)
+	return a.app.ExecuteCommand(args)
 }
 
-func (s *OpenTracingAppLayer) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateDefaultChannels")
+func (a *OpenTracingAppLayer) ExportAllChannels(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllChannels")
 
-	span.SetTag("teamID", teamID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateDefaultChannels(teamID)
+	return a.app.ExportAllChannels(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateDefaultMemberships(since int64) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateDefaultMemberships")
+func (a *OpenTracingAppLayer) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllDirectChannels")
 
-	span.SetTag("since", since)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateDefaultMemberships(since)
+	return a.app.ExportAllDirectChannels(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateEmoji")
+func (a *OpenTracingAppLayer) ExportAllDirectPosts(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllDirectPosts")
 
-	span.SetTag("sessionUserId", sessionUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("emoji", emoji)
-
-	span.SetTag("multiPartImageData", multiPartImageData)
-
 	defer span.Finish()
 
-	return s.app.CreateEmoji(sessionUserId, emoji, multiPartImageData)
+	return a.app.ExportAllDirectPosts(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateGroup")
+func (a *OpenTracingAppLayer) ExportAllPosts(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllPosts")
 
-	span.SetTag("group", group)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateGroup(group)
+	return a.app.ExportAllPosts(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateGroupChannel")
+func (a *OpenTracingAppLayer) ExportAllTeams(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllTeams")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("creatorId", creatorId)
-
 	defer span.Finish()
 
-	return s.app.CreateGroupChannel(userIds, creatorId)
+	return a.app.ExportAllTeams(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateGuest(user *model.User) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateGuest")
+func (a *OpenTracingAppLayer) ExportAllUsers(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportAllUsers")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateGuest(user)
+	return a.app.ExportAllUsers(writer)
 }
-
-func (s *OpenTracingAppLayer) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateIncomingWebhookForChannel")
 
-	span.SetTag("creatorId", creatorId)
+func (a *OpenTracingAppLayer) ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportCustomEmoji")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("hook", hook)
-
 	defer span.Finish()
 
-	return s.app.CreateIncomingWebhookForChannel(creatorId, channel, hook)
+	return a.app.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji)
 }
 
-func (s *OpenTracingAppLayer) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateJob")
+func (a *OpenTracingAppLayer) ExportPermissions(w io.Writer) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportPermissions")
 
-	span.SetTag("job", job)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateJob(job)
+	return a.app.ExportPermissions(w)
 }
 
-func (s *OpenTracingAppLayer) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateOAuthApp")
+func (a *OpenTracingAppLayer) ExportVersion(writer io.Writer) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportVersion")
 
-	span.SetTag("app", app)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateOAuthApp(app)
+	return a.app.ExportVersion(writer)
 }
 
-func (s *OpenTracingAppLayer) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateOAuthStateToken")
+func (a *OpenTracingAppLayer) ExportWriteLine(writer io.Writer, line *LineImportData) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExportWriteLine")
 
-	span.SetTag("extra", extra)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateOAuthStateToken(extra)
+	return a.app.ExportWriteLine(writer, line)
 }
-
-func (s *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateOAuthUser")
 
-	span.SetTag("service", service)
+func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FetchSamlMetadataFromIdp")
 
-	span.SetTag("userData", userData)
-
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateOAuthUser(service, userData, teamId)
+	return a.app.FetchSamlMetadataFromIdp(url)
 }
 
-func (s *OpenTracingAppLayer) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateOutgoingWebhook")
+func (a *OpenTracingAppLayer) FileBackend() (filesstore.FileBackend, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileBackend")
 
-	span.SetTag("hook", hook)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateOutgoingWebhook(hook)
+	return a.app.FileBackend()
 }
 
-func (s *OpenTracingAppLayer) CreatePasswordRecoveryToken(userId string, email string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreatePasswordRecoveryToken")
+func (a *OpenTracingAppLayer) FileExists(path string) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileExists")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("email", email)
-
 	defer span.Finish()
 
-	return s.app.CreatePasswordRecoveryToken(userId, email)
+	return a.app.FileExists(path)
 }
-
-func (s *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreatePost")
 
-	span.SetTag("post", post)
+func (a *OpenTracingAppLayer) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileReader")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("triggerWebhooks", triggerWebhooks)
-
 	defer span.Finish()
 
-	return s.app.CreatePost(post, channel, triggerWebhooks)
+	return a.app.FileReader(path)
 }
-
-func (s *OpenTracingAppLayer) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreatePostAsUser")
 
-	span.SetTag("post", post)
+func (a *OpenTracingAppLayer) FillInChannelProps(channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInChannelProps")
 
-	span.SetTag("currentSessionId", currentSessionId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreatePostAsUser(post, currentSessionId)
+	return a.app.FillInChannelProps(channel)
 }
 
-func (s *OpenTracingAppLayer) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreatePostMissingChannel")
+func (a *OpenTracingAppLayer) FillInChannelsProps(channelList *model.ChannelList) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInChannelsProps")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("triggerWebhooks", triggerWebhooks)
-
 	defer span.Finish()
 
-	return s.app.CreatePostMissingChannel(post, triggerWebhooks)
+	return a.app.FillInChannelsProps(channelList)
 }
+
+func (a *OpenTracingAppLayer) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FillInPostProps")
 
-func (s *OpenTracingAppLayer) CreatePushNotificationsHub() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreatePushNotificationsHub")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.CreatePushNotificationsHub()
+	return a.app.FillInPostProps(post, channel)
 }
 
-func (s *OpenTracingAppLayer) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateRole")
+func (a *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIds []string, channel *model.Channel) ([]string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FilterNonGroupChannelMembers")
 
-	span.SetTag("role", role)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateRole(role)
+	return a.app.FilterNonGroupChannelMembers(userIds, channel)
 }
 
-func (s *OpenTracingAppLayer) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateScheme")
+func (a *OpenTracingAppLayer) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FilterNonGroupTeamMembers")
 
-	span.SetTag("scheme", scheme)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateScheme(scheme)
+	return a.app.FilterNonGroupTeamMembers(userIds, team)
 }
 
-func (s *OpenTracingAppLayer) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateSession")
+func (a *OpenTracingAppLayer) FindTeamByName(name string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FindTeamByName")
 
-	span.SetTag("session", session)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateSession(session)
+	return a.app.FindTeamByName(name)
 }
 
-func (s *OpenTracingAppLayer) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateTeam")
+func (a *OpenTracingAppLayer) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateMfaSecret")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateTeam(team)
+	return a.app.GenerateMfaSecret(userId)
 }
 
-func (s *OpenTracingAppLayer) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateTeamWithUser")
+func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GeneratePublicLink")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.CreateTeamWithUser(team, userId)
+	return a.app.GeneratePublicLink(siteURL, info)
 }
-
-func (s *OpenTracingAppLayer) CreateTermsOfService(text string, userId string) (*model.TermsOfService, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateTermsOfService")
 
-	span.SetTag("text", text)
+func (a *OpenTracingAppLayer) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetActivePluginManifests")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateTermsOfService(text, userId)
+	return a.app.GetActivePluginManifests()
 }
 
-func (s *OpenTracingAppLayer) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUser")
+func (a *OpenTracingAppLayer) GetAllChannels(page int, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllChannels")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateUser(user)
+	return a.app.GetAllChannels(page, perPage, opts)
 }
 
-func (s *OpenTracingAppLayer) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUserAccessToken")
+func (a *OpenTracingAppLayer) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllChannelsCount")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateUserAccessToken(token)
+	return a.app.GetAllChannelsCount(opts)
 }
 
-func (s *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUserAsAdmin")
+func (a *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllLdapGroupsPage")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateUserAsAdmin(user)
+	return a.app.GetAllLdapGroupsPage(page, perPage, opts)
 }
 
-func (s *OpenTracingAppLayer) CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUserFromSignup")
+func (a *OpenTracingAppLayer) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPrivateTeams")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateUserFromSignup(user)
+	return a.app.GetAllPrivateTeams()
 }
 
-func (s *OpenTracingAppLayer) CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUserWithInviteId")
+func (a *OpenTracingAppLayer) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPrivateTeamsPage")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("inviteId", inviteId)
-
 	defer span.Finish()
 
-	return s.app.CreateUserWithInviteId(user, inviteId)
+	return a.app.GetAllPrivateTeamsPage(offset, limit)
 }
-
-func (s *OpenTracingAppLayer) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateUserWithToken")
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) GetAllPrivateTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPrivateTeamsPageWithCount")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateUserWithToken(user, token)
+	return a.app.GetAllPrivateTeamsPageWithCount(offset, limit)
 }
 
-func (s *OpenTracingAppLayer) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateVerifyEmailToken")
+func (a *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeams")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("newEmail", newEmail)
-
 	defer span.Finish()
 
-	return s.app.CreateVerifyEmailToken(userId, newEmail)
+	return a.app.GetAllPublicTeams()
 }
 
-func (s *OpenTracingAppLayer) CreateWebhookPost(userId string, channel *model.Channel, text string, overrideUsername string, overrideIconUrl string, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.CreateWebhookPost")
+func (a *OpenTracingAppLayer) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeamsPage")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channel", channel)
+	defer span.Finish()
 
-	span.SetTag("text", text)
+	return a.app.GetAllPublicTeamsPage(offset, limit)
+}
 
-	span.SetTag("overrideUsername", overrideUsername)
+func (a *OpenTracingAppLayer) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllPublicTeamsPageWithCount")
 
-	span.SetTag("overrideIconUrl", overrideIconUrl)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("overrideIconEmoji", overrideIconEmoji)
+	defer span.Finish()
 
-	span.SetTag("props", props)
+	return a.app.GetAllPublicTeamsPageWithCount(offset, limit)
+}
 
-	span.SetTag("postType", postType)
+func (a *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRoles")
 
-	span.SetTag("postRootId", postRootId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.CreateWebhookPost(userId, channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji, props, postType, postRootId)
+	return a.app.GetAllRoles()
 }
+
+func (a *OpenTracingAppLayer) GetAllStatuses() map[string]*model.Status {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllStatuses")
 
-func (s *OpenTracingAppLayer) DeactivateGuests() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeactivateGuests")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeactivateGuests()
+	return a.app.GetAllStatuses()
 }
 
-func (s *OpenTracingAppLayer) DeactivateMfa(userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeactivateMfa")
+func (a *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeams")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeactivateMfa(userId)
+	return a.app.GetAllTeams()
 }
 
-func (s *OpenTracingAppLayer) DeauthorizeOAuthAppForUser(userId string, appId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeauthorizeOAuthAppForUser")
+func (a *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPage")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("appId", appId)
-
 	defer span.Finish()
 
-	return s.app.DeauthorizeOAuthAppForUser(userId, appId)
+	return a.app.GetAllTeamsPage(offset, limit)
 }
+
+func (a *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllTeamsPageWithCount")
 
-func (s *OpenTracingAppLayer) DefaultChannelNames() []string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DefaultChannelNames")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DefaultChannelNames()
+	return a.app.GetAllTeamsPageWithCount(offset, limit)
 }
 
-func (s *OpenTracingAppLayer) DeleteAllExpiredPluginKeys() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteAllExpiredPluginKeys")
+func (a *OpenTracingAppLayer) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAnalytics")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.DeleteAllExpiredPluginKeys()
+	return a.app.GetAnalytics(name, teamId)
 }
 
-func (s *OpenTracingAppLayer) DeleteAllKeysForPlugin(pluginId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteAllKeysForPlugin")
+func (a *OpenTracingAppLayer) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAudits")
 
-	span.SetTag("pluginId", pluginId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteAllKeysForPlugin(pluginId)
+	return a.app.GetAudits(userId, limit)
 }
 
-func (s *OpenTracingAppLayer) DeleteBotIconImage(botUserId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteBotIconImage")
+func (a *OpenTracingAppLayer) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAuditsPage")
 
-	span.SetTag("botUserId", botUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteBotIconImage(botUserId)
+	return a.app.GetAuditsPage(userId, page, perPage)
 }
+
+func (a *OpenTracingAppLayer) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAuthorizationCode")
 
-func (s *OpenTracingAppLayer) DeleteBrandImage() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteBrandImage")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteBrandImage()
+	return a.app.GetAuthorizationCode(w, r, service, props, loginHint)
 }
 
-func (s *OpenTracingAppLayer) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteChannel")
+func (a *OpenTracingAppLayer) GetAuthorizedAppsForUser(userId string, page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAuthorizedAppsForUser")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.DeleteChannel(channel, userId)
+	return a.app.GetAuthorizedAppsForUser(userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) DeleteCommand(commandId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteCommand")
+func (a *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBot")
 
-	span.SetTag("commandId", commandId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteCommand(commandId)
+	return a.app.GetBot(botUserId, includeDeleted)
 }
 
-func (s *OpenTracingAppLayer) DeleteEmoji(emoji *model.Emoji) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteEmoji")
+func (a *OpenTracingAppLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBotIconImage")
 
-	span.SetTag("emoji", emoji)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteEmoji(emoji)
+	return a.app.GetBotIconImage(botUserId)
 }
-
-func (s *OpenTracingAppLayer) DeleteEphemeralPost(userId string, postId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteEphemeralPost")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBots")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.DeleteEphemeralPost(userId, postId)
+	return a.app.GetBots(options)
 }
 
-func (s *OpenTracingAppLayer) DeleteFlaggedPosts(postId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteFlaggedPosts")
+func (a *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBrandImage")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.DeleteFlaggedPosts(postId)
+	return a.app.GetBrandImage()
 }
 
-func (s *OpenTracingAppLayer) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteGroup")
+func (a *OpenTracingAppLayer) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetBulkReactionsForPosts")
 
-	span.SetTag("groupID", groupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteGroup(groupID)
+	return a.app.GetBulkReactionsForPosts(postIds)
 }
 
-func (s *OpenTracingAppLayer) DeleteGroupConstrainedMemberships() error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteGroupConstrainedMemberships")
+func (a *OpenTracingAppLayer) GetChannel(channelId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannel")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.DeleteGroupConstrainedMemberships()
+	return a.app.GetChannel(channelId)
 }
-
-func (s *OpenTracingAppLayer) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteGroupMember")
 
-	span.SetTag("groupID", groupID)
+func (a *OpenTracingAppLayer) GetChannelByName(channelName string, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelByName")
 
-	span.SetTag("userID", userID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteGroupMember(groupID, userID)
+	return a.app.GetChannelByName(channelName, teamId, includeDeleted)
 }
 
-func (s *OpenTracingAppLayer) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteGroupSyncable")
+func (a *OpenTracingAppLayer) GetChannelByNameForTeamName(channelName string, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelByNameForTeamName")
 
-	span.SetTag("groupID", groupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("syncableID", syncableID)
-
-	span.SetTag("syncableType", syncableType)
-
 	defer span.Finish()
 
-	return s.app.DeleteGroupSyncable(groupID, syncableID, syncableType)
+	return a.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
-func (s *OpenTracingAppLayer) DeleteIncomingWebhook(hookId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteIncomingWebhook")
+func (a *OpenTracingAppLayer) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelCounts")
 
-	span.SetTag("hookId", hookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteIncomingWebhook(hookId)
+	return a.app.GetChannelCounts(teamId, userId)
 }
 
-func (s *OpenTracingAppLayer) DeleteOAuthApp(appId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteOAuthApp")
+func (a *OpenTracingAppLayer) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelGroupUsers")
 
-	span.SetTag("appId", appId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteOAuthApp(appId)
+	return a.app.GetChannelGroupUsers(channelID)
 }
 
-func (s *OpenTracingAppLayer) DeleteOutgoingWebhook(hookId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteOutgoingWebhook")
+func (a *OpenTracingAppLayer) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelGuestCount")
 
-	span.SetTag("hookId", hookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteOutgoingWebhook(hookId)
+	return a.app.GetChannelGuestCount(channelId)
 }
 
-func (s *OpenTracingAppLayer) DeletePluginKey(pluginId string, key string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeletePluginKey")
+func (a *OpenTracingAppLayer) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMember")
 
-	span.SetTag("pluginId", pluginId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("key", key)
-
 	defer span.Finish()
 
-	return s.app.DeletePluginKey(pluginId, key)
+	return a.app.GetChannelMember(channelId, userId)
 }
-
-func (s *OpenTracingAppLayer) DeletePost(postId string, deleteByID string) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeletePost")
 
-	span.SetTag("postId", postId)
+func (a *OpenTracingAppLayer) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMemberCount")
 
-	span.SetTag("deleteByID", deleteByID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeletePost(postId, deleteByID)
+	return a.app.GetChannelMemberCount(channelId)
 }
 
-func (s *OpenTracingAppLayer) DeletePostFiles(post *model.Post) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeletePostFiles")
+func (a *OpenTracingAppLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersByIds")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.DeletePostFiles(post)
+	return a.app.GetChannelMembersByIds(channelId, userIds)
 }
 
-func (s *OpenTracingAppLayer) DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeletePreferences")
+func (a *OpenTracingAppLayer) GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersForUser")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("preferences", preferences)
-
 	defer span.Finish()
 
-	return s.app.DeletePreferences(userId, preferences)
+	return a.app.GetChannelMembersForUser(teamId, userId)
 }
 
-func (s *OpenTracingAppLayer) DeletePublicKey(name string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeletePublicKey")
+func (a *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(teamId string, userId string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersForUserWithPagination")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeletePublicKey(name)
+	return a.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteReactionForPost")
+func (a *OpenTracingAppLayer) GetChannelMembersPage(channelId string, page int, perPage int) (*model.ChannelMembers, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersPage")
 
-	span.SetTag("reaction", reaction)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteReactionForPost(reaction)
+	return a.app.GetChannelMembersPage(channelId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteScheme")
+func (a *OpenTracingAppLayer) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelMembersTimezones")
 
-	span.SetTag("schemeId", schemeId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteScheme(schemeId)
+	return a.app.GetChannelMembersTimezones(channelId)
 }
 
-func (s *OpenTracingAppLayer) DeleteToken(token *model.Token) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DeleteToken")
+func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(channelId string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelPinnedPostCount")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DeleteToken(token)
+	return a.app.GetChannelPinnedPostCount(channelId)
 }
 
-func (s *OpenTracingAppLayer) DemoteUserToGuest(user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DemoteUserToGuest")
+func (a *OpenTracingAppLayer) GetChannelUnread(channelId string, userId string) (*model.ChannelUnread, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelUnread")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DemoteUserToGuest(user)
+	return a.app.GetChannelUnread(channelId, userId)
 }
+
+func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsByNames")
 
-func (s *OpenTracingAppLayer) DiagnosticId() string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DiagnosticId")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DiagnosticId()
+	return a.app.GetChannelsByNames(channelNames, teamId)
 }
 
-func (s *OpenTracingAppLayer) DisableAutoResponder(userId string, asAdmin bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DisableAutoResponder")
+func (a *OpenTracingAppLayer) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForScheme")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	return s.app.DisableAutoResponder(userId, asAdmin)
+	return a.app.GetChannelsForScheme(scheme, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) DisablePlugin(id string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DisablePlugin")
+func (a *OpenTracingAppLayer) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForSchemePage")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DisablePlugin(id)
+	return a.app.GetChannelsForSchemePage(scheme, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) DisableUserAccessToken(token *model.UserAccessToken) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DisableUserAccessToken")
+func (a *OpenTracingAppLayer) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForUser")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DisableUserAccessToken(token)
+	return a.app.GetChannelsForUser(teamId, userId, includeDeleted)
 }
-
-func (s *OpenTracingAppLayer) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoActionRequest")
 
-	span.SetTag("rawURL", rawURL)
+func (a *OpenTracingAppLayer) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsUserNotIn")
 
-	span.SetTag("body", body)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoActionRequest(rawURL, body)
+	return a.app.GetChannelsUserNotIn(teamId, userId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) DoAdvancedPermissionsMigration() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoAdvancedPermissionsMigration")
+func (a *OpenTracingAppLayer) GetClusterId() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetClusterId")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	s.app.DoAdvancedPermissionsMigration()
+	return a.app.GetClusterId()
 }
+
+func (a *OpenTracingAppLayer) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetClusterPluginStatuses")
 
-func (s *OpenTracingAppLayer) DoAppMigrations() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoAppMigrations")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.DoAppMigrations()
+	return a.app.GetClusterPluginStatuses()
 }
 
-func (s *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoEmojisPermissionsMigration")
+func (a *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetClusterStatus")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	s.app.DoEmojisPermissionsMigration()
+	return a.app.GetClusterStatus()
 }
+
+func (a *OpenTracingAppLayer) GetCommand(commandId string) (*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCommand")
 
-func (s *OpenTracingAppLayer) DoGuestRolesCreationMigration() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoGuestRolesCreationMigration")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.DoGuestRolesCreationMigration()
+	return a.app.GetCommand(commandId)
 }
 
-func (s *OpenTracingAppLayer) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoLocalRequest")
+func (a *OpenTracingAppLayer) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetComplianceFile")
 
-	span.SetTag("rawURL", rawURL)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("body", body)
-
 	defer span.Finish()
 
-	return s.app.DoLocalRequest(rawURL, body)
+	return a.app.GetComplianceFile(job)
 }
+
+func (a *OpenTracingAppLayer) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetComplianceReport")
 
-func (s *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoLogin")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("w", w)
+	defer span.Finish()
 
-	span.SetTag("r", r)
+	return a.app.GetComplianceReport(reportId)
+}
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) GetComplianceReports(page int, perPage int) (model.Compliances, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetComplianceReports")
 
-	span.SetTag("deviceId", deviceId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoLogin(w, r, user, deviceId)
+	return a.app.GetComplianceReports(page, perPage)
 }
 
-func (s *OpenTracingAppLayer) DoPermissionsMigrations() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoPermissionsMigrations")
+func (a *OpenTracingAppLayer) GetConfigFile(name string) ([]byte, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetConfigFile")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.DoPermissionsMigrations()
+	return a.app.GetConfigFile(name)
 }
+
+func (a *OpenTracingAppLayer) GetCookieDomain() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetCookieDomain")
 
-func (s *OpenTracingAppLayer) DoPostAction(postId string, actionId string, userId string, selectedOption string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoPostAction")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("postId", postId)
+	defer span.Finish()
 
-	span.SetTag("actionId", actionId)
+	return a.app.GetCookieDomain()
+}
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDataRetentionPolicy")
 
-	span.SetTag("selectedOption", selectedOption)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoPostAction(postId, actionId, userId, selectedOption)
+	return a.app.GetDataRetentionPolicy()
 }
 
-func (s *OpenTracingAppLayer) DoPostActionWithCookie(postId string, actionId string, userId string, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoPostActionWithCookie")
+func (a *OpenTracingAppLayer) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDefaultProfileImage")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("actionId", actionId)
+	defer span.Finish()
 
-	span.SetTag("userId", userId)
+	return a.app.GetDefaultProfileImage(user)
+}
 
-	span.SetTag("selectedOption", selectedOption)
+func (a *OpenTracingAppLayer) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetDeletedChannels")
 
-	span.SetTag("cookie", cookie)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoPostActionWithCookie(postId, actionId, userId, selectedOption, cookie)
+	return a.app.GetDeletedChannels(teamId, offset, limit, userId)
 }
 
-func (s *OpenTracingAppLayer) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoUploadFile")
+func (a *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmoji")
 
-	span.SetTag("now", now)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("rawTeamId", rawTeamId)
-
-	span.SetTag("rawChannelId", rawChannelId)
+	defer span.Finish()
 
-	span.SetTag("rawUserId", rawUserId)
+	return a.app.GetEmoji(emojiId)
+}
 
-	span.SetTag("rawFilename", rawFilename)
+func (a *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiByName")
 
-	span.SetTag("data", data)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoUploadFile(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	return a.app.GetEmojiByName(emojiName)
 }
-
-func (s *OpenTracingAppLayer) DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoUploadFileExpectModification")
 
-	span.SetTag("now", now)
+func (a *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiImage")
 
-	span.SetTag("rawTeamId", rawTeamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("rawChannelId", rawChannelId)
+	defer span.Finish()
 
-	span.SetTag("rawUserId", rawUserId)
+	return a.app.GetEmojiImage(emojiId)
+}
 
-	span.SetTag("rawFilename", rawFilename)
+func (a *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiList")
 
-	span.SetTag("data", data)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DoUploadFileExpectModification(now, rawTeamId, rawChannelId, rawUserId, rawFilename, data)
+	return a.app.GetEmojiList(page, perPage, sort)
 }
 
-func (s *OpenTracingAppLayer) DoubleCheckPassword(user *model.User, password string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DoubleCheckPassword")
+func (a *OpenTracingAppLayer) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEmojiStaticUrl")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("password", password)
-
 	defer span.Finish()
 
-	return s.app.DoubleCheckPassword(user, password)
+	return a.app.GetEmojiStaticUrl(emojiName)
 }
 
-func (s *OpenTracingAppLayer) DownloadFromURL(downloadURL string) ([]byte, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.DownloadFromURL")
+func (a *OpenTracingAppLayer) GetEnvironmentConfig() map[string]interface{} {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetEnvironmentConfig")
 
-	span.SetTag("downloadURL", downloadURL)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.DownloadFromURL(downloadURL)
+	return a.app.GetEnvironmentConfig()
 }
 
-func (s *OpenTracingAppLayer) EnablePlugin(id string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.EnablePlugin")
+func (a *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFile")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.EnablePlugin(id)
+	return a.app.GetFile(fileId)
 }
 
-func (s *OpenTracingAppLayer) EnableUserAccessToken(token *model.UserAccessToken) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.EnableUserAccessToken")
+func (a *OpenTracingAppLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfo")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.EnableUserAccessToken(token)
+	return a.app.GetFileInfo(fileId)
 }
+
+func (a *OpenTracingAppLayer) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPost")
 
-func (s *OpenTracingAppLayer) EnsureDiagnosticId() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.EnsureDiagnosticId")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.EnsureDiagnosticId()
+	return a.app.GetFileInfosForPost(postId, fromMaster)
 }
 
-func (s *OpenTracingAppLayer) EnvironmentConfig() map[string]interface{} {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.EnvironmentConfig")
+func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfosForPostWithMigration")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.EnvironmentConfig()
+	return a.app.GetFileInfosForPostWithMigration(postId)
 }
 
-func (s *OpenTracingAppLayer) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExecuteCommand")
+func (a *OpenTracingAppLayer) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFlaggedPosts")
 
-	span.SetTag("args", args)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExecuteCommand(args)
+	return a.app.GetFlaggedPosts(userId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) ExportAllChannels(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllChannels")
+func (a *OpenTracingAppLayer) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFlaggedPostsForChannel")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllChannels(writer)
+	return a.app.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) ExportAllDirectChannels(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllDirectChannels")
+func (a *OpenTracingAppLayer) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFlaggedPostsForTeam")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllDirectChannels(writer)
+	return a.app.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) ExportAllDirectPosts(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllDirectPosts")
+func (a *OpenTracingAppLayer) GetGroup(id string) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroup")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllDirectPosts(writer)
+	return a.app.GetGroup(id)
 }
 
-func (s *OpenTracingAppLayer) ExportAllPosts(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllPosts")
+func (a *OpenTracingAppLayer) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupByName")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllPosts(writer)
+	return a.app.GetGroupByName(name)
 }
 
-func (s *OpenTracingAppLayer) ExportAllTeams(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllTeams")
+func (a *OpenTracingAppLayer) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupByRemoteID")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllTeams(writer)
+	return a.app.GetGroupByRemoteID(remoteID, groupSource)
 }
 
-func (s *OpenTracingAppLayer) ExportAllUsers(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportAllUsers")
+func (a *OpenTracingAppLayer) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupChannel")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportAllUsers(writer)
+	return a.app.GetGroupChannel(userIds)
 }
+
+func (a *OpenTracingAppLayer) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberUsers")
 
-func (s *OpenTracingAppLayer) ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportCustomEmoji")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("writer", writer)
+	defer span.Finish()
 
-	span.SetTag("file", file)
+	return a.app.GetGroupMemberUsers(groupID)
+}
 
-	span.SetTag("pathToEmojiDir", pathToEmojiDir)
+func (a *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupMemberUsersPage")
 
-	span.SetTag("dirNameToExportEmoji", dirNameToExportEmoji)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji)
+	return a.app.GetGroupMemberUsersPage(groupID, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) ExportPermissions(w io.Writer) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportPermissions")
+func (a *OpenTracingAppLayer) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupSyncable")
 
-	span.SetTag("w", w)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportPermissions(w)
+	return a.app.GetGroupSyncable(groupID, syncableID, syncableType)
 }
 
-func (s *OpenTracingAppLayer) ExportVersion(writer io.Writer) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportVersion")
+func (a *OpenTracingAppLayer) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupSyncables")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ExportVersion(writer)
+	return a.app.GetGroupSyncables(groupID, syncableType)
 }
 
-func (s *OpenTracingAppLayer) ExportWriteLine(writer io.Writer, line *LineImportData) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ExportWriteLine")
+func (a *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroups")
 
-	span.SetTag("writer", writer)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("line", line)
-
 	defer span.Finish()
 
-	return s.app.ExportWriteLine(writer, line)
+	return a.app.GetGroups(page, perPage, opts)
 }
 
-func (s *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FetchSamlMetadataFromIdp")
+func (a *OpenTracingAppLayer) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByChannel")
 
-	span.SetTag("url", url)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FetchSamlMetadataFromIdp(url)
+	return a.app.GetGroupsByChannel(channelId, opts)
 }
+
+func (a *OpenTracingAppLayer) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByIDs")
 
-func (s *OpenTracingAppLayer) FileBackend() (filesstore.FileBackend, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FileBackend")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FileBackend()
+	return a.app.GetGroupsByIDs(groupIDs)
 }
 
-func (s *OpenTracingAppLayer) FileExists(path string) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FileExists")
+func (a *OpenTracingAppLayer) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsBySource")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FileExists(path)
+	return a.app.GetGroupsBySource(groupSource)
 }
 
-func (s *OpenTracingAppLayer) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FileReader")
+func (a *OpenTracingAppLayer) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByTeam")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FileReader(path)
+	return a.app.GetGroupsByTeam(teamId, opts)
 }
 
-func (s *OpenTracingAppLayer) FillInChannelProps(channel *model.Channel) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FillInChannelProps")
+func (a *OpenTracingAppLayer) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupsByUserId")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FillInChannelProps(channel)
+	return a.app.GetGroupsByUserId(userId)
 }
 
-func (s *OpenTracingAppLayer) FillInChannelsProps(channelList *model.ChannelList) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FillInChannelsProps")
+func (a *OpenTracingAppLayer) GetHubForUserId(userId string) *Hub {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetHubForUserId")
 
-	span.SetTag("channelList", channelList)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FillInChannelsProps(channelList)
+	return a.app.GetHubForUserId(userId)
 }
 
-func (s *OpenTracingAppLayer) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FillInPostProps")
+func (a *OpenTracingAppLayer) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhook")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channel", channel)
-
 	defer span.Finish()
 
-	return s.app.FillInPostProps(post, channel)
+	return a.app.GetIncomingWebhook(hookId)
 }
-
-func (s *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIds []string, channel *model.Channel) ([]string, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FilterNonGroupChannelMembers")
 
-	span.SetTag("userIds", userIds)
+func (a *OpenTracingAppLayer) GetIncomingWebhooksForTeamPage(teamId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksForTeamPage")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FilterNonGroupChannelMembers(userIds, channel)
+	return a.app.GetIncomingWebhooksForTeamPage(teamId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FilterNonGroupTeamMembers")
+func (a *OpenTracingAppLayer) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksForTeamPageByUser")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("team", team)
-
 	defer span.Finish()
 
-	return s.app.FilterNonGroupTeamMembers(userIds, team)
+	return a.app.GetIncomingWebhooksForTeamPageByUser(teamId, userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) FindTeamByName(name string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.FindTeamByName")
+func (a *OpenTracingAppLayer) GetIncomingWebhooksPage(page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksPage")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.FindTeamByName(name)
+	return a.app.GetIncomingWebhooksPage(page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GenerateMfaSecret")
+func (a *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetIncomingWebhooksPageByUser")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GenerateMfaSecret(userId)
+	return a.app.GetIncomingWebhooksPageByUser(userId, page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GeneratePublicLink")
 
-	span.SetTag("siteURL", siteURL)
+func (a *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJob")
 
-	span.SetTag("info", info)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GeneratePublicLink(siteURL, info)
+	return a.app.GetJob(id)
 }
 
-func (s *OpenTracingAppLayer) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetActivePluginManifests")
+func (a *OpenTracingAppLayer) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobs")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetActivePluginManifests()
+	return a.app.GetJobs(offset, limit)
 }
-
-func (s *OpenTracingAppLayer) GetAllChannels(page int, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllChannels")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByType")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("opts", opts)
-
 	defer span.Finish()
 
-	return s.app.GetAllChannels(page, perPage, opts)
+	return a.app.GetJobsByType(jobType, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllChannelsCount")
+func (a *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsByTypePage")
 
-	span.SetTag("opts", opts)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllChannelsCount(opts)
+	return a.app.GetJobsByTypePage(jobType, page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllLdapGroupsPage")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetJobsPage")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("opts", opts)
-
 	defer span.Finish()
 
-	return s.app.GetAllLdapGroupsPage(page, perPage, opts)
+	return a.app.GetJobsPage(page, perPage)
 }
+
+func (a *OpenTracingAppLayer) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLatestTermsOfService")
 
-func (s *OpenTracingAppLayer) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPrivateTeams")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllPrivateTeams()
+	return a.app.GetLatestTermsOfService()
 }
 
-func (s *OpenTracingAppLayer) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPrivateTeamsPage")
+func (a *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLdapGroup")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetAllPrivateTeamsPage(offset, limit)
+	return a.app.GetLdapGroup(ldapGroupID)
 }
-
-func (s *OpenTracingAppLayer) GetAllPrivateTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPrivateTeamsPageWithCount")
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogs")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllPrivateTeamsPageWithCount(offset, limit)
+	return a.app.GetLogs(page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPublicTeams")
+func (a *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLogsSkipSend")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetAllPublicTeams()
+	return a.app.GetLogsSkipSend(page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPublicTeamsPage")
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMarketplacePlugins")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllPublicTeamsPage(offset, limit)
+	return a.app.GetMarketplacePlugins(filter)
 }
 
-func (s *OpenTracingAppLayer) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllPublicTeamsPageWithCount")
+func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMessageForNotification")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetAllPublicTeamsPageWithCount(offset, limit)
+	return a.app.GetMessageForNotification(post, translateFunc)
 }
+
+func (a *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMultipleEmojiByName")
 
-func (s *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllRoles")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllRoles()
+	return a.app.GetMultipleEmojiByName(names)
 }
 
-func (s *OpenTracingAppLayer) GetAllStatuses() map[string]*model.Status {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllStatuses")
+func (a *OpenTracingAppLayer) GetNewUsersForTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNewUsersForTeamPage")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetAllStatuses()
+	return a.app.GetNewUsersForTeamPage(teamId, page, perPage, asAdmin, viewRestrictions)
 }
+
+func (a *OpenTracingAppLayer) GetNextPostIdFromPostList(postList *model.PostList) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNextPostIdFromPostList")
 
-func (s *OpenTracingAppLayer) GetAllTeams() ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllTeams")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllTeams()
+	return a.app.GetNextPostIdFromPostList(postList)
 }
 
-func (s *OpenTracingAppLayer) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllTeamsPage")
+func (a *OpenTracingAppLayer) GetNotificationNameFormat(user *model.User) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNotificationNameFormat")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetAllTeamsPage(offset, limit)
+	return a.app.GetNotificationNameFormat(user)
 }
-
-func (s *OpenTracingAppLayer) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAllTeamsPageWithCount")
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetNumberOfChannelsOnTeam")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAllTeamsPageWithCount(offset, limit)
+	return a.app.GetNumberOfChannelsOnTeam(teamId)
 }
 
-func (s *OpenTracingAppLayer) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAnalytics")
+func (a *OpenTracingAppLayer) GetOAuthAccessTokenForCodeFlow(clientId string, grantType string, redirectUri string, code string, secret string, refreshToken string) (*model.AccessResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthAccessTokenForCodeFlow")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
-
 	defer span.Finish()
 
-	return s.app.GetAnalytics(name, teamId)
+	return a.app.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
 }
 
-func (s *OpenTracingAppLayer) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAudits")
+func (a *OpenTracingAppLayer) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthAccessTokenForImplicitFlow")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetAudits(userId, limit)
+	return a.app.GetOAuthAccessTokenForImplicitFlow(userId, authRequest)
 }
-
-func (s *OpenTracingAppLayer) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAuditsPage")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthApp")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetAuditsPage(userId, page, perPage)
+	return a.app.GetOAuthApp(appId)
 }
 
-func (s *OpenTracingAppLayer) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAuthorizationCode")
+func (a *OpenTracingAppLayer) GetOAuthApps(page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthApps")
 
-	span.SetTag("w", w)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("r", r)
+	defer span.Finish()
 
-	span.SetTag("service", service)
+	return a.app.GetOAuthApps(page, perPage)
+}
 
-	span.SetTag("props", props)
+func (a *OpenTracingAppLayer) GetOAuthAppsByCreator(userId string, page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthAppsByCreator")
 
-	span.SetTag("loginHint", loginHint)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetAuthorizationCode(w, r, service, props, loginHint)
+	return a.app.GetOAuthAppsByCreator(userId, page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GetAuthorizedAppsForUser(userId string, page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetAuthorizedAppsForUser")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetOAuthCodeRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthCodeRedirect")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetAuthorizedAppsForUser(userId, page, perPage)
+	return a.app.GetOAuthCodeRedirect(userId, authRequest)
 }
-
-func (s *OpenTracingAppLayer) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetBot")
 
-	span.SetTag("botUserId", botUserId)
+func (a *OpenTracingAppLayer) GetOAuthImplicitRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthImplicitRedirect")
 
-	span.SetTag("includeDeleted", includeDeleted)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetBot(botUserId, includeDeleted)
+	return a.app.GetOAuthImplicitRedirect(userId, authRequest)
 }
 
-func (s *OpenTracingAppLayer) GetBotIconImage(botUserId string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetBotIconImage")
+func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string, action string, redirectTo string, loginHint string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthLoginEndpoint")
 
-	span.SetTag("botUserId", botUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetBotIconImage(botUserId)
+	return a.app.GetOAuthLoginEndpoint(w, r, service, teamId, action, redirectTo, loginHint)
 }
 
-func (s *OpenTracingAppLayer) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetBots")
+func (a *OpenTracingAppLayer) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthSignupEndpoint")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetBots(options)
+	return a.app.GetOAuthSignupEndpoint(w, r, service, teamId)
 }
 
-func (s *OpenTracingAppLayer) GetBrandImage() ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetBrandImage")
+func (a *OpenTracingAppLayer) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthStateToken")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetBrandImage()
+	return a.app.GetOAuthStateToken(token)
 }
 
-func (s *OpenTracingAppLayer) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetBulkReactionsForPosts")
+func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOpenGraphMetadata")
 
-	span.SetTag("postIds", postIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetBulkReactionsForPosts(postIds)
+	return a.app.GetOpenGraphMetadata(requestURL)
 }
 
-func (s *OpenTracingAppLayer) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannel")
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannel")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannel(channelId)
+	return a.app.GetOrCreateDirectChannel(userId, otherUserId)
 }
-
-func (s *OpenTracingAppLayer) GetChannelByName(channelName string, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelByName")
 
-	span.SetTag("channelName", channelName)
+func (a *OpenTracingAppLayer) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhook")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("includeDeleted", includeDeleted)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelByName(channelName, teamId, includeDeleted)
+	return a.app.GetOutgoingWebhook(hookId)
 }
-
-func (s *OpenTracingAppLayer) GetChannelByNameForTeamName(channelName string, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelByNameForTeamName")
-
-	span.SetTag("channelName", channelName)
 
-	span.SetTag("teamName", teamName)
+func (a *OpenTracingAppLayer) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhooksForChannelPageByUser")
 
-	span.SetTag("includeDeleted", includeDeleted)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
+	return a.app.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelCounts")
+func (a *OpenTracingAppLayer) GetOutgoingWebhooksForTeamPage(teamId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhooksForTeamPage")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelCounts(teamId, userId)
+	return a.app.GetOutgoingWebhooksForTeamPage(teamId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelGroupUsers")
+func (a *OpenTracingAppLayer) GetOutgoingWebhooksForTeamPageByUser(teamId string, userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhooksForTeamPageByUser")
 
-	span.SetTag("channelID", channelID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelGroupUsers(channelID)
+	return a.app.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetChannelGuestCount(channelId string) (int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelGuestCount")
+func (a *OpenTracingAppLayer) GetOutgoingWebhooksPage(page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhooksPage")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelGuestCount(channelId)
+	return a.app.GetOutgoingWebhooksPage(page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMember")
+func (a *OpenTracingAppLayer) GetOutgoingWebhooksPageByUser(userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhooksPageByUser")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.GetChannelMember(channelId, userId)
+	return a.app.GetOutgoingWebhooksPageByUser(userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMemberCount")
+func (a *OpenTracingAppLayer) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPasswordRecoveryToken")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMemberCount(channelId)
+	return a.app.GetPasswordRecoveryToken(token)
 }
-
-func (s *OpenTracingAppLayer) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMembersByIds")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPermalinkPost")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMembersByIds(channelId, userIds)
+	return a.app.GetPermalinkPost(postId, userId)
 }
 
-func (s *OpenTracingAppLayer) GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMembersForUser")
+func (a *OpenTracingAppLayer) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPinnedPosts")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMembersForUser(teamId, userId)
+	return a.app.GetPinnedPosts(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetChannelMembersForUserWithPagination(teamId string, userId string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMembersForUserWithPagination")
+func (a *OpenTracingAppLayer) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginKey")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("userId", userId)
+	return a.app.GetPluginKey(pluginId, key)
+}
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginPublicKeyFiles")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
+	return a.app.GetPluginPublicKeyFiles()
 }
-
-func (s *OpenTracingAppLayer) GetChannelMembersPage(channelId string, page int, perPage int) (*model.ChannelMembers, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMembersPage")
-
-	span.SetTag("channelId", channelId)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginStatus")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMembersPage(channelId, page, perPage)
+	return a.app.GetPluginStatus(id)
 }
 
-func (s *OpenTracingAppLayer) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelMembersTimezones")
+func (a *OpenTracingAppLayer) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginStatuses")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelMembersTimezones(channelId)
+	return a.app.GetPluginStatuses()
 }
 
-func (s *OpenTracingAppLayer) GetChannelPinnedPostCount(channelId string) (int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelPinnedPostCount")
+func (a *OpenTracingAppLayer) GetPlugins() (*model.PluginsResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPlugins")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelPinnedPostCount(channelId)
+	return a.app.GetPlugins()
 }
 
-func (s *OpenTracingAppLayer) GetChannelUnread(channelId string, userId string) (*model.ChannelUnread, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelUnread")
+func (a *OpenTracingAppLayer) GetPluginsEnvironment() *plugin.Environment {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPluginsEnvironment")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.GetChannelUnread(channelId, userId)
+	return a.app.GetPluginsEnvironment()
 }
-
-func (s *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelsByNames")
 
-	span.SetTag("channelNames", channelNames)
+func (a *OpenTracingAppLayer) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostAfterTime")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelsByNames(channelNames, teamId)
+	return a.app.GetPostAfterTime(channelId, time)
 }
-
-func (s *OpenTracingAppLayer) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelsForScheme")
 
-	span.SetTag("scheme", scheme)
+func (a *OpenTracingAppLayer) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIdAfterTime")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetChannelsForScheme(scheme, offset, limit)
+	return a.app.GetPostIdAfterTime(channelId, time)
 }
-
-func (s *OpenTracingAppLayer) GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelsForSchemePage")
 
-	span.SetTag("scheme", scheme)
+func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostIdBeforeTime")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetChannelsForSchemePage(scheme, page, perPage)
+	return a.app.GetPostIdBeforeTime(channelId, time)
 }
-
-func (s *OpenTracingAppLayer) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelsForUser")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")
 
-	span.SetTag("includeDeleted", includeDeleted)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	return a.app.GetPostThread(postId, skipFetchThreads)
 }
 
-func (s *OpenTracingAppLayer) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetChannelsUserNotIn")
+func (a *OpenTracingAppLayer) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPosts")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("userId", userId)
+	return a.app.GetPosts(channelId, offset, limit)
+}
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsAfterPost")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetChannelsUserNotIn(teamId, userId, offset, limit)
+	return a.app.GetPostsAfterPost(options)
 }
 
-func (s *OpenTracingAppLayer) GetClusterId() string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetClusterId")
+func (a *OpenTracingAppLayer) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsAroundPost")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetClusterId()
+	return a.app.GetPostsAroundPost(before, options)
 }
+
+func (a *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsBeforePost")
 
-func (s *OpenTracingAppLayer) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetClusterPluginStatuses")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetClusterPluginStatuses()
+	return a.app.GetPostsBeforePost(options)
 }
 
-func (s *OpenTracingAppLayer) GetClusterStatus() []*model.ClusterInfo {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetClusterStatus")
+func (a *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsEtag")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetClusterStatus()
+	return a.app.GetPostsEtag(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetCommand(commandId string) (*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetCommand")
+func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsForChannelAroundLastUnread")
 
-	span.SetTag("commandId", commandId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetCommand(commandId)
+	return a.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter, skipFetchThreads)
 }
 
-func (s *OpenTracingAppLayer) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetComplianceFile")
+func (a *OpenTracingAppLayer) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsPage")
 
-	span.SetTag("job", job)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetComplianceFile(job)
+	return a.app.GetPostsPage(options)
 }
 
-func (s *OpenTracingAppLayer) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetComplianceReport")
+func (a *OpenTracingAppLayer) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsSince")
 
-	span.SetTag("reportId", reportId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetComplianceReport(reportId)
+	return a.app.GetPostsSince(options)
 }
-
-func (s *OpenTracingAppLayer) GetComplianceReports(page int, perPage int) (model.Compliances, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetComplianceReports")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferenceByCategoryAndNameForUser")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetComplianceReports(page, perPage)
+	return a.app.GetPreferenceByCategoryAndNameForUser(userId, category, preferenceName)
 }
 
-func (s *OpenTracingAppLayer) GetConfigFile(name string) ([]byte, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetConfigFile")
+func (a *OpenTracingAppLayer) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferenceByCategoryForUser")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetConfigFile(name)
+	return a.app.GetPreferenceByCategoryForUser(userId, category)
 }
 
-func (s *OpenTracingAppLayer) GetCookieDomain() string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetCookieDomain")
+func (a *OpenTracingAppLayer) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPreferencesForUser")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetCookieDomain()
+	return a.app.GetPreferencesForUser(userId)
 }
+
+func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPrevPostIdFromPostList")
 
-func (s *OpenTracingAppLayer) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetDataRetentionPolicy")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetDataRetentionPolicy()
+	return a.app.GetPrevPostIdFromPostList(postList)
 }
 
-func (s *OpenTracingAppLayer) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetDefaultProfileImage")
+func (a *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProfileImage")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetDefaultProfileImage(user)
+	return a.app.GetProfileImage(user)
 }
 
-func (s *OpenTracingAppLayer) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetDeletedChannels")
+func (a *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPublicChannelsByIdsForTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("offset", offset)
+	return a.app.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+}
 
-	span.SetTag("limit", limit)
+func (a *OpenTracingAppLayer) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPublicChannelsForTeam")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetDeletedChannels(teamId, offset, limit, userId)
+	return a.app.GetPublicChannelsForTeam(teamId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEmoji")
+func (a *OpenTracingAppLayer) GetPublicKey(name string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPublicKey")
 
-	span.SetTag("emojiId", emojiId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetEmoji(emojiId)
+	return a.app.GetPublicKey(name)
 }
 
-func (s *OpenTracingAppLayer) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEmojiByName")
+func (a *OpenTracingAppLayer) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetReactionsForPost")
 
-	span.SetTag("emojiName", emojiName)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetEmojiByName(emojiName)
+	return a.app.GetReactionsForPost(postId)
 }
 
-func (s *OpenTracingAppLayer) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEmojiImage")
+func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentlyActiveUsersForTeam")
 
-	span.SetTag("emojiId", emojiId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetEmojiImage(emojiId)
+	return a.app.GetRecentlyActiveUsersForTeam(teamId)
 }
 
-func (s *OpenTracingAppLayer) GetEmojiList(page int, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEmojiList")
+func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRecentlyActiveUsersForTeamPage")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
-	span.SetTag("sort", sort)
-
 	defer span.Finish()
 
-	return s.app.GetEmojiList(page, perPage, sort)
+	return a.app.GetRecentlyActiveUsersForTeamPage(teamId, page, perPage, asAdmin, viewRestrictions)
 }
 
-func (s *OpenTracingAppLayer) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEmojiStaticUrl")
+func (a *OpenTracingAppLayer) GetRole(id string) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRole")
 
-	span.SetTag("emojiName", emojiName)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetEmojiStaticUrl(emojiName)
+	return a.app.GetRole(id)
 }
 
-func (s *OpenTracingAppLayer) GetEnvironmentConfig() map[string]interface{} {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetEnvironmentConfig")
+func (a *OpenTracingAppLayer) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRoleByName")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetEnvironmentConfig()
+	return a.app.GetRoleByName(name)
 }
 
-func (s *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFile")
+func (a *OpenTracingAppLayer) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRolesByNames")
 
-	span.SetTag("fileId", fileId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFile(fileId)
+	return a.app.GetRolesByNames(names)
 }
 
-func (s *OpenTracingAppLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFileInfo")
+func (a *OpenTracingAppLayer) GetSamlCertificateStatus() *model.SamlCertificateStatus {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlCertificateStatus")
 
-	span.SetTag("fileId", fileId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFileInfo(fileId)
+	return a.app.GetSamlCertificateStatus()
 }
-
-func (s *OpenTracingAppLayer) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFileInfosForPost")
 
-	span.SetTag("postId", postId)
+func (a *OpenTracingAppLayer) GetSamlMetadata() (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlMetadata")
 
-	span.SetTag("fromMaster", fromMaster)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFileInfosForPost(postId, fromMaster)
+	return a.app.GetSamlMetadata()
 }
 
-func (s *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFileInfosForPostWithMigration")
+func (a *OpenTracingAppLayer) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlMetadataFromIdp")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFileInfosForPostWithMigration(postId)
+	return a.app.GetSamlMetadataFromIdp(idpMetadataUrl)
 }
 
-func (s *OpenTracingAppLayer) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFlaggedPosts")
+func (a *OpenTracingAppLayer) GetSanitizeOptions(asAdmin bool) map[string]bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSanitizeOptions")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("offset", offset)
-
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetFlaggedPosts(userId, offset, limit)
+	return a.app.GetSanitizeOptions(asAdmin)
 }
 
-func (s *OpenTracingAppLayer) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFlaggedPostsForChannel")
+func (a *OpenTracingAppLayer) GetSanitizedClientLicense() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSanitizedClientLicense")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("channelId", channelId)
+	return a.app.GetSanitizedClientLicense()
+}
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetSanitizedConfig() *model.Config {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSanitizedConfig")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+	return a.app.GetSanitizedConfig()
 }
 
-func (s *OpenTracingAppLayer) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetFlaggedPostsForTeam")
+func (a *OpenTracingAppLayer) GetScheme(id string) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetScheme")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
+	defer span.Finish()
+
+	return a.app.GetScheme(id)
+}
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemeByName")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+	return a.app.GetSchemeByName(name)
 }
 
-func (s *OpenTracingAppLayer) GetGroup(id string) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroup")
+func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemeRolesForChannel")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroup(id)
+	return a.app.GetSchemeRolesForChannel(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupByName")
+func (a *OpenTracingAppLayer) GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemeRolesForTeam")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupByName(name)
+	return a.app.GetSchemeRolesForTeam(teamId)
 }
-
-func (s *OpenTracingAppLayer) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupByRemoteID")
 
-	span.SetTag("remoteID", remoteID)
+func (a *OpenTracingAppLayer) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemes")
 
-	span.SetTag("groupSource", groupSource)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupByRemoteID(remoteID, groupSource)
+	return a.app.GetSchemes(scope, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupChannel")
+func (a *OpenTracingAppLayer) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemesPage")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupChannel(userIds)
+	return a.app.GetSchemesPage(scope, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupMemberUsers")
+func (a *OpenTracingAppLayer) GetSession(token string) (*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSession")
 
-	span.SetTag("groupID", groupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupMemberUsers(groupID)
+	return a.app.GetSession(token)
 }
-
-func (s *OpenTracingAppLayer) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupMemberUsersPage")
-
-	span.SetTag("groupID", groupID)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetSessionById(sessionId string) (*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSessionById")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupMemberUsersPage(groupID, page, perPage)
+	return a.app.GetSessionById(sessionId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupSyncable")
+func (a *OpenTracingAppLayer) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSessions")
 
-	span.SetTag("groupID", groupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("syncableID", syncableID)
-
-	span.SetTag("syncableType", syncableType)
-
 	defer span.Finish()
 
-	return s.app.GetGroupSyncable(groupID, syncableID, syncableType)
+	return a.app.GetSessions(userId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupSyncables")
+func (a *OpenTracingAppLayer) GetSinglePost(postId string) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSinglePost")
 
-	span.SetTag("groupID", groupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("syncableType", syncableType)
-
 	defer span.Finish()
 
-	return s.app.GetGroupSyncables(groupID, syncableType)
+	return a.app.GetSinglePost(postId)
 }
-
-func (s *OpenTracingAppLayer) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroups")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetSiteURL() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSiteURL")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("opts", opts)
-
 	defer span.Finish()
 
-	return s.app.GetGroups(page, perPage, opts)
+	return a.app.GetSiteURL()
 }
-
-func (s *OpenTracingAppLayer) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupsByChannel")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) GetStatus(userId string) (*model.Status, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStatus")
 
-	span.SetTag("opts", opts)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupsByChannel(channelId, opts)
+	return a.app.GetStatus(userId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupsByIDs")
+func (a *OpenTracingAppLayer) GetStatusFromCache(userId string) *model.Status {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStatusFromCache")
 
-	span.SetTag("groupIDs", groupIDs)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupsByIDs(groupIDs)
+	return a.app.GetStatusFromCache(userId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupsBySource")
+func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetStatusesByIds")
 
-	span.SetTag("groupSource", groupSource)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupsBySource(groupSource)
+	return a.app.GetStatusesByIds(userIds)
 }
 
-func (s *OpenTracingAppLayer) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupsByTeam")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) GetTeam(teamId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeam")
 
-	span.SetTag("opts", opts)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupsByTeam(teamId, opts)
+	return a.app.GetTeam(teamId)
 }
 
-func (s *OpenTracingAppLayer) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetGroupsByUserId")
+func (a *OpenTracingAppLayer) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamByInviteId")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetGroupsByUserId(userId)
+	return a.app.GetTeamByInviteId(inviteId)
 }
 
-func (s *OpenTracingAppLayer) GetHubForUserId(userId string) *Hub {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetHubForUserId")
+func (a *OpenTracingAppLayer) GetTeamByName(name string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamByName")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetHubForUserId(userId)
+	return a.app.GetTeamByName(name)
 }
 
-func (s *OpenTracingAppLayer) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetIncomingWebhook")
+func (a *OpenTracingAppLayer) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamGroupUsers")
 
-	span.SetTag("hookId", hookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetIncomingWebhook(hookId)
+	return a.app.GetTeamGroupUsers(teamID)
 }
 
-func (s *OpenTracingAppLayer) GetIncomingWebhooksForTeamPage(teamId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetIncomingWebhooksForTeamPage")
+func (a *OpenTracingAppLayer) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamIcon")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetIncomingWebhooksForTeamPage(teamId, page, perPage)
+	return a.app.GetTeamIcon(team)
 }
 
-func (s *OpenTracingAppLayer) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetIncomingWebhooksForTeamPageByUser")
+func (a *OpenTracingAppLayer) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamIdFromQuery")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
+	defer span.Finish()
+
+	return a.app.GetTeamIdFromQuery(query)
+}
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMember")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetIncomingWebhooksForTeamPageByUser(teamId, userId, page, perPage)
+	return a.app.GetTeamMember(teamId, userId)
 }
-
-func (s *OpenTracingAppLayer) GetIncomingWebhooksPage(page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetIncomingWebhooksPage")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMembers")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetIncomingWebhooksPage(page, perPage)
+	return a.app.GetTeamMembers(teamId, offset, limit, restrictions)
 }
 
-func (s *OpenTracingAppLayer) GetIncomingWebhooksPageByUser(userId string, page int, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetIncomingWebhooksPageByUser")
+func (a *OpenTracingAppLayer) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMembersByIds")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetIncomingWebhooksPageByUser(userId, page, perPage)
+	return a.app.GetTeamMembersByIds(teamId, userIds, restrictions)
 }
 
-func (s *OpenTracingAppLayer) GetJob(id string) (*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetJob")
+func (a *OpenTracingAppLayer) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMembersForUser")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetJob(id)
+	return a.app.GetTeamMembersForUser(userId)
 }
 
-func (s *OpenTracingAppLayer) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetJobs")
+func (a *OpenTracingAppLayer) GetTeamMembersForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMembersForUserWithPagination")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetJobs(offset, limit)
+	return a.app.GetTeamMembersForUserWithPagination(userId, page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetJobsByType")
 
-	span.SetTag("jobType", jobType)
+func (a *OpenTracingAppLayer) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamStats")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetJobsByType(jobType, offset, limit)
+	return a.app.GetTeamStats(teamId, restrictions)
 }
-
-func (s *OpenTracingAppLayer) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetJobsByTypePage")
 
-	span.SetTag("jobType", jobType)
+func (a *OpenTracingAppLayer) GetTeamUnread(teamId string, userId string) (*model.TeamUnread, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamUnread")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetJobsByTypePage(jobType, page, perPage)
+	return a.app.GetTeamUnread(teamId, userId)
 }
-
-func (s *OpenTracingAppLayer) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetJobsPage")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForScheme")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetJobsPage(page, perPage)
+	return a.app.GetTeamsForScheme(scheme, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetLatestTermsOfService")
+func (a *OpenTracingAppLayer) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForSchemePage")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetLatestTermsOfService()
+	return a.app.GetTeamsForSchemePage(scheme, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetLdapGroup")
+func (a *OpenTracingAppLayer) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsForUser")
 
-	span.SetTag("ldapGroupID", ldapGroupID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetLdapGroup(ldapGroupID)
+	return a.app.GetTeamsForUser(userId)
 }
-
-func (s *OpenTracingAppLayer) GetLogs(page int, perPage int) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetLogs")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamsUnreadForUser")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetLogs(page, perPage)
+	return a.app.GetTeamsUnreadForUser(excludeTeamId, userId)
 }
 
-func (s *OpenTracingAppLayer) GetLogsSkipSend(page int, perPage int) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetLogsSkipSend")
+func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTermsOfService")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetLogsSkipSend(page, perPage)
+	return a.app.GetTermsOfService(id)
 }
 
-func (s *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetMarketplacePlugins")
+func (a *OpenTracingAppLayer) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTotalUsersStats")
 
-	span.SetTag("filter", filter)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetMarketplacePlugins(filter)
+	return a.app.GetTotalUsersStats(viewRestrictions)
 }
-
-func (s *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetMessageForNotification")
 
-	span.SetTag("post", post)
+func (a *OpenTracingAppLayer) GetUser(userId string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUser")
 
-	span.SetTag("translateFunc", translateFunc)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetMessageForNotification(post, translateFunc)
+	return a.app.GetUser(userId)
 }
 
-func (s *OpenTracingAppLayer) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetMultipleEmojiByName")
+func (a *OpenTracingAppLayer) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserAccessToken")
 
-	span.SetTag("names", names)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetMultipleEmojiByName(names)
+	return a.app.GetUserAccessToken(tokenId, sanitize)
 }
 
-func (s *OpenTracingAppLayer) GetNewUsersForTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetNewUsersForTeamPage")
+func (a *OpenTracingAppLayer) GetUserAccessTokens(page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserAccessTokens")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("page", page)
+	defer span.Finish()
 
-	span.SetTag("perPage", perPage)
+	return a.app.GetUserAccessTokens(page, perPage)
+}
 
-	span.SetTag("asAdmin", asAdmin)
+func (a *OpenTracingAppLayer) GetUserAccessTokensForUser(userId string, page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserAccessTokensForUser")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetNewUsersForTeamPage(teamId, page, perPage, asAdmin, viewRestrictions)
+	return a.app.GetUserAccessTokensForUser(userId, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) GetNextPostIdFromPostList(postList *model.PostList) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetNextPostIdFromPostList")
+func (a *OpenTracingAppLayer) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByAuth")
 
-	span.SetTag("postList", postList)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetNextPostIdFromPostList(postList)
+	return a.app.GetUserByAuth(authData, authService)
 }
 
-func (s *OpenTracingAppLayer) GetNotificationNameFormat(user *model.User) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetNotificationNameFormat")
+func (a *OpenTracingAppLayer) GetUserByEmail(email string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByEmail")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetNotificationNameFormat(user)
+	return a.app.GetUserByEmail(email)
 }
 
-func (s *OpenTracingAppLayer) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetNumberOfChannelsOnTeam")
+func (a *OpenTracingAppLayer) GetUserByUsername(username string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserByUsername")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetNumberOfChannelsOnTeam(teamId)
+	return a.app.GetUserByUsername(username)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthAccessTokenForCodeFlow(clientId string, grantType string, redirectUri string, code string, secret string, refreshToken string) (*model.AccessResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthAccessTokenForCodeFlow")
+func (a *OpenTracingAppLayer) GetUserForLogin(id string, loginId string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserForLogin")
 
-	span.SetTag("clientId", clientId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("grantType", grantType)
-
-	span.SetTag("redirectUri", redirectUri)
+	defer span.Finish()
 
-	span.SetTag("code", code)
+	return a.app.GetUserForLogin(id, loginId)
+}
 
-	span.SetTag("secret", secret)
+func (a *OpenTracingAppLayer) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserStatusesByIds")
 
-	span.SetTag("refreshToken", refreshToken)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
+	return a.app.GetUserStatusesByIds(userIds)
 }
-
-func (s *OpenTracingAppLayer) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthAccessTokenForImplicitFlow")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserTermsOfService")
 
-	span.SetTag("authRequest", authRequest)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthAccessTokenForImplicitFlow(userId, authRequest)
+	return a.app.GetUserTermsOfService(userId)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthApp")
+func (a *OpenTracingAppLayer) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsers")
 
-	span.SetTag("appId", appId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthApp(appId)
+	return a.app.GetUsers(options)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthApps(page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthApps")
+func (a *OpenTracingAppLayer) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersByGroupChannelIds")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetOAuthApps(page, perPage)
+	return a.app.GetUsersByGroupChannelIds(channelIds, asAdmin)
 }
-
-func (s *OpenTracingAppLayer) GetOAuthAppsByCreator(userId string, page int, perPage int) ([]*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthAppsByCreator")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersByIds")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetOAuthAppsByCreator(userId, page, perPage)
+	return a.app.GetUsersByIds(userIds, options)
 }
-
-func (s *OpenTracingAppLayer) GetOAuthCodeRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthCodeRedirect")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersByUsernames")
 
-	span.SetTag("authRequest", authRequest)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthCodeRedirect(userId, authRequest)
+	return a.app.GetUsersByUsernames(usernames, asAdmin, viewRestrictions)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthImplicitRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthImplicitRedirect")
+func (a *OpenTracingAppLayer) GetUsersEtag(restrictionsHash string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersEtag")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("authRequest", authRequest)
-
 	defer span.Finish()
 
-	return s.app.GetOAuthImplicitRedirect(userId, authRequest)
+	return a.app.GetUsersEtag(restrictionsHash)
 }
-
-func (s *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string, action string, redirectTo string, loginHint string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthLoginEndpoint")
 
-	span.SetTag("w", w)
+func (a *OpenTracingAppLayer) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannel")
 
-	span.SetTag("r", r)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("service", service)
-
-	span.SetTag("teamId", teamId)
+	defer span.Finish()
 
-	span.SetTag("action", action)
+	return a.app.GetUsersInChannel(channelId, offset, limit)
+}
 
-	span.SetTag("redirectTo", redirectTo)
+func (a *OpenTracingAppLayer) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelByStatus")
 
-	span.SetTag("loginHint", loginHint)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthLoginEndpoint(w, r, service, teamId, action, redirectTo, loginHint)
+	return a.app.GetUsersInChannelByStatus(channelId, offset, limit)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthSignupEndpoint")
+func (a *OpenTracingAppLayer) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelMap")
 
-	span.SetTag("w", w)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("r", r)
+	return a.app.GetUsersInChannelMap(channelId, offset, limit, asAdmin)
+}
 
-	span.SetTag("service", service)
+func (a *OpenTracingAppLayer) GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelPage")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthSignupEndpoint(w, r, service, teamId)
+	return a.app.GetUsersInChannelPage(channelId, page, perPage, asAdmin)
 }
 
-func (s *OpenTracingAppLayer) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOAuthStateToken")
+func (a *OpenTracingAppLayer) GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelPageByStatus")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOAuthStateToken(token)
+	return a.app.GetUsersInChannelPageByStatus(channelId, page, perPage, asAdmin)
 }
 
-func (s *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOpenGraphMetadata")
+func (a *OpenTracingAppLayer) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInTeam")
 
-	span.SetTag("requestURL", requestURL)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOpenGraphMetadata(requestURL)
+	return a.app.GetUsersInTeam(options)
 }
 
-func (s *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOrCreateDirectChannel")
+func (a *OpenTracingAppLayer) GetUsersInTeamEtag(teamId string, restrictionsHash string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInTeamEtag")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("otherUserId", otherUserId)
-
 	defer span.Finish()
 
-	return s.app.GetOrCreateDirectChannel(userId, otherUserId)
+	return a.app.GetUsersInTeamEtag(teamId, restrictionsHash)
 }
 
-func (s *OpenTracingAppLayer) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhook")
+func (a *OpenTracingAppLayer) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInTeamPage")
 
-	span.SetTag("hookId", hookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhook(hookId)
+	return a.app.GetUsersInTeamPage(options, asAdmin)
 }
+
+func (a *OpenTracingAppLayer) GetUsersNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInChannel")
 
-func (s *OpenTracingAppLayer) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhooksForChannelPageByUser")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channelId", channelId)
+	defer span.Finish()
 
-	span.SetTag("userId", userId)
+	return a.app.GetUsersNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+}
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetUsersNotInChannelMap(teamId string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInChannelMap")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, page, perPage)
+	return a.app.GetUsersNotInChannelMap(teamId, channelId, groupConstrained, offset, limit, asAdmin, viewRestrictions)
 }
-
-func (s *OpenTracingAppLayer) GetOutgoingWebhooksForTeamPage(teamId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhooksForTeamPage")
-
-	span.SetTag("teamId", teamId)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetUsersNotInChannelPage(teamId string, channelId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInChannelPage")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhooksForTeamPage(teamId, page, perPage)
+	return a.app.GetUsersNotInChannelPage(teamId, channelId, groupConstrained, page, perPage, asAdmin, viewRestrictions)
 }
 
-func (s *OpenTracingAppLayer) GetOutgoingWebhooksForTeamPageByUser(teamId string, userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhooksForTeamPageByUser")
+func (a *OpenTracingAppLayer) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("userId", userId)
+	return a.app.GetUsersNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
+}
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInTeamEtag")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhooksForTeamPageByUser(teamId, userId, page, perPage)
+	return a.app.GetUsersNotInTeamEtag(teamId, restrictionsHash)
 }
-
-func (s *OpenTracingAppLayer) GetOutgoingWebhooksPage(page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhooksPage")
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersNotInTeamPage")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhooksPage(page, perPage)
+	return a.app.GetUsersNotInTeamPage(teamId, groupConstrained, page, perPage, asAdmin, viewRestrictions)
 }
-
-func (s *OpenTracingAppLayer) GetOutgoingWebhooksPageByUser(userId string, page int, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetOutgoingWebhooksPageByUser")
-
-	span.SetTag("userId", userId)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersPage")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetOutgoingWebhooksPageByUser(userId, page, perPage)
+	return a.app.GetUsersPage(options, asAdmin)
 }
 
-func (s *OpenTracingAppLayer) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPasswordRecoveryToken")
+func (a *OpenTracingAppLayer) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersWithoutTeam")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPasswordRecoveryToken(token)
+	return a.app.GetUsersWithoutTeam(options)
 }
 
-func (s *OpenTracingAppLayer) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPermalinkPost")
+func (a *OpenTracingAppLayer) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersWithoutTeamPage")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.GetPermalinkPost(postId, userId)
+	return a.app.GetUsersWithoutTeamPage(options, asAdmin)
 }
 
-func (s *OpenTracingAppLayer) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPinnedPosts")
+func (a *OpenTracingAppLayer) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetVerifyEmailToken")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPinnedPosts(channelId)
+	return a.app.GetVerifyEmailToken(token)
 }
-
-func (s *OpenTracingAppLayer) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPluginKey")
 
-	span.SetTag("pluginId", pluginId)
+func (a *OpenTracingAppLayer) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetViewUsersRestrictions")
 
-	span.SetTag("key", key)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPluginKey(pluginId, key)
+	return a.app.GetViewUsersRestrictions(userId)
 }
 
-func (s *OpenTracingAppLayer) GetPluginPublicKeyFiles() ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPluginPublicKeyFiles")
+func (a *OpenTracingAppLayer) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetViewUsersRestrictionsForTeam")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetPluginPublicKeyFiles()
+	return a.app.GetViewUsersRestrictionsForTeam(userId, teamId)
 }
 
-func (s *OpenTracingAppLayer) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPluginStatus")
+func (a *OpenTracingAppLayer) HTMLTemplates() *template.Template {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HTMLTemplates")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPluginStatus(id)
+	return a.app.HTMLTemplates()
 }
+
+func (a *OpenTracingAppLayer) Handle404(w http.ResponseWriter, r *http.Request) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Handle404")
 
-func (s *OpenTracingAppLayer) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPluginStatuses")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPluginStatuses()
+	a.app.Handle404(w, r)
 }
 
-func (s *OpenTracingAppLayer) GetPlugins() (*model.PluginsResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPlugins")
+func (a *OpenTracingAppLayer) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandResponse")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetPlugins()
+	return a.app.HandleCommandResponse(command, args, response, builtIn)
 }
+
+func (a *OpenTracingAppLayer) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandResponsePost")
 
-func (s *OpenTracingAppLayer) GetPluginsEnvironment() *plugin.Environment {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPluginsEnvironment")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPluginsEnvironment()
+	return a.app.HandleCommandResponsePost(command, args, response, builtIn)
 }
 
-func (s *OpenTracingAppLayer) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostAfterTime")
+func (a *OpenTracingAppLayer) HandleCommandWebhook(hookId string, response *model.CommandResponse) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandWebhook")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("time", time)
-
 	defer span.Finish()
 
-	return s.app.GetPostAfterTime(channelId, time)
+	return a.app.HandleCommandWebhook(hookId, response)
 }
-
-func (s *OpenTracingAppLayer) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostIdAfterTime")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleImages")
 
-	span.SetTag("time", time)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostIdAfterTime(channelId, time)
+	a.app.HandleImages(previewPathList, thumbnailPathList, fileData)
 }
 
-func (s *OpenTracingAppLayer) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostIdBeforeTime")
+func (a *OpenTracingAppLayer) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleIncomingWebhook")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("time", time)
-
 	defer span.Finish()
 
-	return s.app.GetPostIdBeforeTime(channelId, time)
+	return a.app.HandleIncomingWebhook(hookId, req)
 }
-
-func (s *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostThread")
 
-	span.SetTag("postId", postId)
+func (a *OpenTracingAppLayer) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleMessageExportConfig")
 
-	span.SetTag("skipFetchThreads", skipFetchThreads)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostThread(postId, skipFetchThreads)
+	a.app.HandleMessageExportConfig(cfg, appCfg)
 }
-
-func (s *OpenTracingAppLayer) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPosts")
-
-	span.SetTag("channelId", channelId)
 
-	span.SetTag("offset", offset)
+func (a *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionTo")
 
-	span.SetTag("limit", limit)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPosts(channelId, offset, limit)
+	return a.app.HasPermissionTo(askingUserId, permission)
 }
 
-func (s *OpenTracingAppLayer) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsAfterPost")
+func (a *OpenTracingAppLayer) HasPermissionToChannel(askingUserId string, channelId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannel")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsAfterPost(options)
+	return a.app.HasPermissionToChannel(askingUserId, channelId, permission)
 }
 
-func (s *OpenTracingAppLayer) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsAroundPost")
+func (a *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToChannelByPost")
 
-	span.SetTag("before", before)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("options", options)
-
 	defer span.Finish()
 
-	return s.app.GetPostsAroundPost(before, options)
+	return a.app.HasPermissionToChannelByPost(askingUserId, postId, permission)
 }
 
-func (s *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsBeforePost")
+func (a *OpenTracingAppLayer) HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToTeam")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsBeforePost(options)
+	return a.app.HasPermissionToTeam(askingUserId, teamId, permission)
 }
 
-func (s *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsEtag")
+func (a *OpenTracingAppLayer) HasPermissionToUser(askingUserId string, userId string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasPermissionToUser")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsEtag(channelId)
+	return a.app.HasPermissionToUser(askingUserId, userId)
 }
 
-func (s *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsForChannelAroundLastUnread")
+func (a *OpenTracingAppLayer) HubRegister(webConn *WebConn) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubRegister")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
+	defer span.Finish()
 
-	span.SetTag("limitBefore", limitBefore)
+	a.app.HubRegister(webConn)
+}
 
-	span.SetTag("limitAfter", limitAfter)
+func (a *OpenTracingAppLayer) HubStart() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubStart")
 
-	span.SetTag("skipFetchThreads", skipFetchThreads)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter, skipFetchThreads)
+	a.app.HubStart()
 }
 
-func (s *OpenTracingAppLayer) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsPage")
+func (a *OpenTracingAppLayer) HubStop() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubStop")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsPage(options)
+	a.app.HubStop()
 }
 
-func (s *OpenTracingAppLayer) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPostsSince")
+func (a *OpenTracingAppLayer) HubUnregister(webConn *WebConn) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HubUnregister")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPostsSince(options)
+	a.app.HubUnregister(webConn)
 }
-
-func (s *OpenTracingAppLayer) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPreferenceByCategoryAndNameForUser")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) ImageProxyAdder() func(string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImageProxyAdder")
 
-	span.SetTag("category", category)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("preferenceName", preferenceName)
-
 	defer span.Finish()
 
-	return s.app.GetPreferenceByCategoryAndNameForUser(userId, category, preferenceName)
+	return a.app.ImageProxyAdder()
 }
-
-func (s *OpenTracingAppLayer) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPreferenceByCategoryForUser")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) ImageProxyRemover() func(string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImageProxyRemover")
 
-	span.SetTag("category", category)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPreferenceByCategoryForUser(userId, category)
+	return a.app.ImageProxyRemover()
 }
 
-func (s *OpenTracingAppLayer) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPreferencesForUser")
+func (a *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImportPermissions")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPreferencesForUser(userId)
+	return a.app.ImportPermissions(jsonl)
 }
 
-func (s *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPrevPostIdFromPostList")
+func (a *OpenTracingAppLayer) InitPlugins(pluginDir string, webappPluginDir string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitPlugins")
 
-	span.SetTag("postList", postList)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPrevPostIdFromPostList(postList)
+	a.app.InitPlugins(pluginDir, webappPluginDir)
 }
 
-func (s *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetProfileImage")
+func (a *OpenTracingAppLayer) InitPostMetadata() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitPostMetadata")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetProfileImage(user)
+	a.app.InitPostMetadata()
 }
 
-func (s *OpenTracingAppLayer) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPublicChannelsByIdsForTeam")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallMarketplacePlugin")
 
-	span.SetTag("channelIds", channelIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+	return a.app.InstallMarketplacePlugin(request)
 }
 
-func (s *OpenTracingAppLayer) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPublicChannelsForTeam")
+func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPlugin")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetPublicChannelsForTeam(teamId, offset, limit)
+	return a.app.InstallPlugin(pluginFile, replace)
 }
 
-func (s *OpenTracingAppLayer) GetPublicKey(name string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetPublicKey")
+func (a *OpenTracingAppLayer) InstallPluginFromData(data model.PluginEventData) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPluginFromData")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetPublicKey(name)
+	a.app.InstallPluginFromData(data)
 }
 
-func (s *OpenTracingAppLayer) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetReactionsForPost")
+func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.ReadSeeker, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPluginWithSignature")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetReactionsForPost(postId)
+	return a.app.InstallPluginWithSignature(pluginFile, signature)
 }
 
-func (s *OpenTracingAppLayer) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetRecentlyActiveUsersForTeam")
+func (a *OpenTracingAppLayer) InvalidateAllCaches() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllCaches")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetRecentlyActiveUsersForTeam(teamId)
+	return a.app.InvalidateAllCaches()
 }
 
-func (s *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetRecentlyActiveUsersForTeamPage")
+func (a *OpenTracingAppLayer) InvalidateAllCachesSkipSend() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllCachesSkipSend")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("page", page)
+	defer span.Finish()
 
-	span.SetTag("perPage", perPage)
+	a.app.InvalidateAllCachesSkipSend()
+}
 
-	span.SetTag("asAdmin", asAdmin)
+func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateAllEmailInvites")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetRecentlyActiveUsersForTeamPage(teamId, page, perPage, asAdmin, viewRestrictions)
+	return a.app.InvalidateAllEmailInvites()
 }
 
-func (s *OpenTracingAppLayer) GetRole(id string) (*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetRole")
+func (a *OpenTracingAppLayer) InvalidateCacheForChannel(channel *model.Channel) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannel")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetRole(id)
+	a.app.InvalidateCacheForChannel(channel)
 }
 
-func (s *OpenTracingAppLayer) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetRoleByName")
+func (a *OpenTracingAppLayer) InvalidateCacheForChannelByNameSkipClusterSend(teamId string, name string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannelByNameSkipClusterSend")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetRoleByName(name)
+	a.app.InvalidateCacheForChannelByNameSkipClusterSend(teamId, name)
 }
 
-func (s *OpenTracingAppLayer) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetRolesByNames")
+func (a *OpenTracingAppLayer) InvalidateCacheForChannelMembers(channelId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannelMembers")
 
-	span.SetTag("names", names)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetRolesByNames(names)
+	a.app.InvalidateCacheForChannelMembers(channelId)
 }
+
+func (a *OpenTracingAppLayer) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannelMembersNotifyProps")
 
-func (s *OpenTracingAppLayer) GetSamlCertificateStatus() *model.SamlCertificateStatus {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSamlCertificateStatus")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSamlCertificateStatus()
+	a.app.InvalidateCacheForChannelMembersNotifyProps(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetSamlMetadata() (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSamlMetadata")
+func (a *OpenTracingAppLayer) InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetSamlMetadata()
+	a.app.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSamlMetadataFromIdp")
+func (a *OpenTracingAppLayer) InvalidateCacheForChannelPosts(channelId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForChannelPosts")
 
-	span.SetTag("idpMetadataUrl", idpMetadataUrl)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSamlMetadataFromIdp(idpMetadataUrl)
+	a.app.InvalidateCacheForChannelPosts(channelId)
 }
 
-func (s *OpenTracingAppLayer) GetSanitizeOptions(asAdmin bool) map[string]bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSanitizeOptions")
+func (a *OpenTracingAppLayer) InvalidateCacheForUser(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUser")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSanitizeOptions(asAdmin)
+	a.app.InvalidateCacheForUser(userId)
 }
+
+func (a *OpenTracingAppLayer) InvalidateCacheForUserSkipClusterSend(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUserSkipClusterSend")
 
-func (s *OpenTracingAppLayer) GetSanitizedClientLicense() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSanitizedClientLicense")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSanitizedClientLicense()
+	a.app.InvalidateCacheForUserSkipClusterSend(userId)
 }
 
-func (s *OpenTracingAppLayer) GetSanitizedConfig() *model.Config {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSanitizedConfig")
+func (a *OpenTracingAppLayer) InvalidateCacheForUserTeams(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUserTeams")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.GetSanitizedConfig()
+	a.app.InvalidateCacheForUserTeams(userId)
 }
 
-func (s *OpenTracingAppLayer) GetScheme(id string) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetScheme")
+func (a *OpenTracingAppLayer) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUserTeamsSkipClusterSend")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetScheme(id)
+	a.app.InvalidateCacheForUserTeamsSkipClusterSend(userId)
 }
 
-func (s *OpenTracingAppLayer) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSchemeByName")
+func (a *OpenTracingAppLayer) InvalidateCacheForWebhook(webhookId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForWebhook")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSchemeByName(name)
+	a.app.InvalidateCacheForWebhook(webhookId)
 }
 
-func (s *OpenTracingAppLayer) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSchemeRolesForChannel")
+func (a *OpenTracingAppLayer) InvalidateWebConnSessionCacheForUser(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateWebConnSessionCacheForUser")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSchemeRolesForChannel(channelId)
+	a.app.InvalidateWebConnSessionCacheForUser(userId)
 }
 
-func (s *OpenTracingAppLayer) GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSchemeRolesForTeam")
+func (a *OpenTracingAppLayer) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteGuestsToChannels")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSchemeRolesForTeam(teamId)
+	return a.app.InviteGuestsToChannels(teamId, guestsInvite, senderId)
 }
 
-func (s *OpenTracingAppLayer) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSchemes")
+func (a *OpenTracingAppLayer) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteGuestsToChannelsGracefully")
 
-	span.SetTag("scope", scope)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("offset", offset)
-
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetSchemes(scope, offset, limit)
+	return a.app.InviteGuestsToChannelsGracefully(teamId, guestsInvite, senderId)
 }
 
-func (s *OpenTracingAppLayer) GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSchemesPage")
+func (a *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamId string, senderId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteNewUsersToTeam")
 
-	span.SetTag("scope", scope)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetSchemesPage(scope, page, perPage)
+	return a.app.InviteNewUsersToTeam(emailList, teamId, senderId)
 }
 
-func (s *OpenTracingAppLayer) GetSession(token string) (*model.Session, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSession")
+func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string, teamId string, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteNewUsersToTeamGracefully")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSession(token)
+	return a.app.InviteNewUsersToTeamGracefully(emailList, teamId, senderId)
 }
 
-func (s *OpenTracingAppLayer) GetSessionById(sessionId string) (*model.Session, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSessionById")
+func (a *OpenTracingAppLayer) IsESAutocompletionEnabled() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESAutocompletionEnabled")
 
-	span.SetTag("sessionId", sessionId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSessionById(sessionId)
+	return a.app.IsESAutocompletionEnabled()
 }
 
-func (s *OpenTracingAppLayer) GetSessions(userId string) ([]*model.Session, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSessions")
+func (a *OpenTracingAppLayer) IsESIndexingEnabled() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESIndexingEnabled")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSessions(userId)
+	return a.app.IsESIndexingEnabled()
 }
 
-func (s *OpenTracingAppLayer) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSinglePost")
+func (a *OpenTracingAppLayer) IsESSearchEnabled() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESSearchEnabled")
 
-	span.SetTag("postId", postId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSinglePost(postId)
+	return a.app.IsESSearchEnabled()
 }
+
+func (a *OpenTracingAppLayer) IsFirstUserAccount() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsFirstUserAccount")
 
-func (s *OpenTracingAppLayer) GetSiteURL() string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetSiteURL")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetSiteURL()
+	return a.app.IsFirstUserAccount()
 }
 
-func (s *OpenTracingAppLayer) GetStatus(userId string) (*model.Status, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetStatus")
+func (a *OpenTracingAppLayer) IsLeader() bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsLeader")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetStatus(userId)
+	return a.app.IsLeader()
 }
 
-func (s *OpenTracingAppLayer) GetStatusFromCache(userId string) *model.Status {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetStatusFromCache")
+func (a *OpenTracingAppLayer) IsPasswordValid(password string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPasswordValid")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetStatusFromCache(userId)
+	return a.app.IsPasswordValid(password)
 }
 
-func (s *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetStatusesByIds")
+func (a *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsPhase2MigrationCompleted")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetStatusesByIds(userIds)
+	return a.app.IsPhase2MigrationCompleted()
 }
 
-func (s *OpenTracingAppLayer) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeam")
+func (a *OpenTracingAppLayer) IsUserAway(lastActivityAt int64) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUserAway")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeam(teamId)
+	return a.app.IsUserAway(lastActivityAt)
 }
 
-func (s *OpenTracingAppLayer) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamByInviteId")
+func (a *OpenTracingAppLayer) IsUserSignUpAllowed() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUserSignUpAllowed")
 
-	span.SetTag("inviteId", inviteId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamByInviteId(inviteId)
+	return a.app.IsUserSignUpAllowed()
 }
 
-func (s *OpenTracingAppLayer) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamByName")
+func (a *OpenTracingAppLayer) IsUsernameTaken(name string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsUsernameTaken")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamByName(name)
+	return a.app.IsUsernameTaken(name)
 }
 
-func (s *OpenTracingAppLayer) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamGroupUsers")
+func (a *OpenTracingAppLayer) JoinChannel(channel *model.Channel, userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinChannel")
 
-	span.SetTag("teamID", teamID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamGroupUsers(teamID)
+	return a.app.JoinChannel(channel, userId)
 }
 
-func (s *OpenTracingAppLayer) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamIcon")
+func (a *OpenTracingAppLayer) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinDefaultChannels")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamIcon(team)
+	return a.app.JoinDefaultChannels(teamId, user, shouldBeAdmin, userRequestorId)
 }
 
-func (s *OpenTracingAppLayer) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamIdFromQuery")
+func (a *OpenTracingAppLayer) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.JoinUserToTeam")
 
-	span.SetTag("query", query)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamIdFromQuery(query)
+	return a.app.JoinUserToTeam(team, user, userRequestorId)
 }
-
-func (s *OpenTracingAppLayer) GetTeamMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamMember")
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) LeaveChannel(channelId string, userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LeaveChannel")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamMember(teamId, userId)
+	return a.app.LeaveChannel(channelId, userId)
 }
 
-func (s *OpenTracingAppLayer) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamMembers")
+func (a *OpenTracingAppLayer) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LeaveTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("offset", offset)
+	defer span.Finish()
+
+	return a.app.LeaveTeam(team, user, requestorId)
+}
 
-	span.SetTag("limit", limit)
+func (a *OpenTracingAppLayer) License() *model.License {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.License")
 
-	span.SetTag("restrictions", restrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamMembers(teamId, offset, limit, restrictions)
+	return a.app.License()
 }
-
-func (s *OpenTracingAppLayer) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamMembersByIds")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userIds", userIds)
+func (a *OpenTracingAppLayer) LimitedClientConfig() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LimitedClientConfig")
 
-	span.SetTag("restrictions", restrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamMembersByIds(teamId, userIds, restrictions)
+	return a.app.LimitedClientConfig()
 }
 
-func (s *OpenTracingAppLayer) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamMembersForUser")
+func (a *OpenTracingAppLayer) LimitedClientConfigWithComputed() map[string]string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LimitedClientConfigWithComputed")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamMembersForUser(userId)
+	return a.app.LimitedClientConfigWithComputed()
 }
-
-func (s *OpenTracingAppLayer) GetTeamMembersForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamMembersForUserWithPagination")
-
-	span.SetTag("userId", userId)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListAllCommands")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamMembersForUserWithPagination(userId, page, perPage)
+	return a.app.ListAllCommands(teamId, T)
 }
 
-func (s *OpenTracingAppLayer) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamStats")
+func (a *OpenTracingAppLayer) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListAutocompleteCommands")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("restrictions", restrictions)
+	span.SetTag("teamId", teamId)
 
 	defer span.Finish()
 
-	return s.app.GetTeamStats(teamId, restrictions)
+	return a.app.ListAutocompleteCommands(teamId, T)
 }
 
-func (s *OpenTracingAppLayer) GetTeamUnread(teamId string, userId string) (*model.TeamUnread, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamUnread")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListDirectory")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamUnread(teamId, userId)
+	return a.app.ListDirectory(path)
 }
 
-func (s *OpenTracingAppLayer) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamsForScheme")
+func (a *OpenTracingAppLayer) ListPluginKeys(pluginId string, page int, perPage int) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListPluginKeys")
 
-	span.SetTag("scheme", scheme)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("offset", offset)
-
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetTeamsForScheme(scheme, offset, limit)
+	return a.app.ListPluginKeys(pluginId, page, perPage)
 }
-
-func (s *OpenTracingAppLayer) GetTeamsForSchemePage(scheme *model.Scheme, page int, perPage int) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamsForSchemePage")
-
-	span.SetTag("scheme", scheme)
 
-	span.SetTag("page", page)
+func (a *OpenTracingAppLayer) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListTeamCommands")
 
-	span.SetTag("perPage", perPage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamsForSchemePage(scheme, page, perPage)
+	return a.app.ListTeamCommands(teamId)
 }
 
-func (s *OpenTracingAppLayer) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamsForUser")
+func (a *OpenTracingAppLayer) LoadLicense() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoadLicense")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTeamsForUser(userId)
+	a.app.LoadLicense()
 }
 
-func (s *OpenTracingAppLayer) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTeamsUnreadForUser")
+func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoginByOAuth")
 
-	span.SetTag("excludeTeamId", excludeTeamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.GetTeamsUnreadForUser(excludeTeamId, userId)
+	return a.app.LoginByOAuth(service, userData, teamId)
 }
 
-func (s *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTermsOfService")
+func (a *OpenTracingAppLayer) MakePermissionError(permission *model.Permission) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakePermissionError")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTermsOfService(id)
+	return a.app.MakePermissionError(permission)
 }
 
-func (s *OpenTracingAppLayer) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetTotalUsersStats")
+func (a *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelAsUnreadFromPost")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetTotalUsersStats(viewRestrictions)
+	return a.app.MarkChannelAsUnreadFromPost(postID, userID)
 }
 
-func (s *OpenTracingAppLayer) GetUser(userId string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUser")
+func (a *OpenTracingAppLayer) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MarkChannelsAsViewed")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUser(userId)
+	return a.app.MarkChannelsAsViewed(channelIds, userId, currentSessionId)
 }
-
-func (s *OpenTracingAppLayer) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserAccessToken")
 
-	span.SetTag("tokenId", tokenId)
+func (a *OpenTracingAppLayer) MaxPostSize() int {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MaxPostSize")
 
-	span.SetTag("sanitize", sanitize)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserAccessToken(tokenId, sanitize)
+	return a.app.MaxPostSize()
 }
 
-func (s *OpenTracingAppLayer) GetUserAccessTokens(page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserAccessTokens")
+func (a *OpenTracingAppLayer) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MigrateFilenamesToFileInfos")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetUserAccessTokens(page, perPage)
+	return a.app.MigrateFilenamesToFileInfos(post)
 }
-
-func (s *OpenTracingAppLayer) GetUserAccessTokensForUser(userId string, page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserAccessTokensForUser")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveChannel")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.GetUserAccessTokensForUser(userId, page, perPage)
+	return a.app.MoveChannel(team, channel, user, removeDeactivatedMembers)
 }
-
-func (s *OpenTracingAppLayer) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserByAuth")
 
-	span.SetTag("authData", authData)
+func (a *OpenTracingAppLayer) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveCommand")
 
-	span.SetTag("authService", authService)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserByAuth(authData, authService)
+	return a.app.MoveCommand(team, command)
 }
 
-func (s *OpenTracingAppLayer) GetUserByEmail(email string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserByEmail")
+func (a *OpenTracingAppLayer) MoveFile(oldPath string, newPath string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveFile")
 
-	span.SetTag("email", email)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserByEmail(email)
+	return a.app.MoveFile(oldPath, newPath)
 }
 
-func (s *OpenTracingAppLayer) GetUserByUsername(username string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserByUsername")
+func (a *OpenTracingAppLayer) NewClusterDiscoveryService() *ClusterDiscoveryService {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewClusterDiscoveryService")
 
-	span.SetTag("username", username)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserByUsername(username)
+	return a.app.NewClusterDiscoveryService()
 }
 
-func (s *OpenTracingAppLayer) GetUserForLogin(id string, loginId string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserForLogin")
+func (a *OpenTracingAppLayer) NewEmailTemplate(name string, locale string) *utils.HTMLTemplate {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewEmailTemplate")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("loginId", loginId)
-
 	defer span.Finish()
 
-	return s.app.GetUserForLogin(id, loginId)
+	return a.app.NewEmailTemplate(name, locale)
 }
 
-func (s *OpenTracingAppLayer) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserStatusesByIds")
+func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewPluginAPI")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserStatusesByIds(userIds)
+	return a.app.NewPluginAPI(manifest)
 }
 
-func (s *OpenTracingAppLayer) GetUserTermsOfService(userId string) (*model.UserTermsOfService, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUserTermsOfService")
+func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUserTermsOfService(userId)
+	return a.app.NewWebConn(ws, session, t, locale)
 }
 
-func (s *OpenTracingAppLayer) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsers")
+func (a *OpenTracingAppLayer) NewWebHub() *Hub {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebHub")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsers(options)
+	return a.app.NewWebHub()
 }
-
-func (s *OpenTracingAppLayer) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersByGroupChannelIds")
 
-	span.SetTag("channelIds", channelIds)
+func (a *OpenTracingAppLayer) OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OldImportChannel")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersByGroupChannelIds(channelIds, asAdmin)
+	return a.app.OldImportChannel(channel, sChannel, users)
 }
 
-func (s *OpenTracingAppLayer) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersByIds")
+func (a *OpenTracingAppLayer) OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OldImportFile")
 
-	span.SetTag("userIds", userIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("options", options)
-
 	defer span.Finish()
 
-	return s.app.GetUsersByIds(userIds, options)
+	return a.app.OldImportFile(timestamp, file, teamId, channelId, userId, fileName)
 }
-
-func (s *OpenTracingAppLayer) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersByUsernames")
 
-	span.SetTag("usernames", usernames)
+func (a *OpenTracingAppLayer) OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OldImportIncomingWebhookPost")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("viewRestrictions", viewRestrictions)
-
 	defer span.Finish()
 
-	return s.app.GetUsersByUsernames(usernames, asAdmin, viewRestrictions)
+	return a.app.OldImportIncomingWebhookPost(post, props)
 }
 
-func (s *OpenTracingAppLayer) GetUsersEtag(restrictionsHash string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersEtag")
+func (a *OpenTracingAppLayer) OldImportPost(post *model.Post) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OldImportPost")
 
-	span.SetTag("restrictionsHash", restrictionsHash)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersEtag(restrictionsHash)
+	return a.app.OldImportPost(post)
 }
-
-func (s *OpenTracingAppLayer) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInChannel")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) OldImportUser(team *model.Team, user *model.User) *model.User {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OldImportUser")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetUsersInChannel(channelId, offset, limit)
+	return a.app.OldImportUser(team, user)
 }
-
-func (s *OpenTracingAppLayer) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInChannelByStatus")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
 
-	span.SetTag("offset", offset)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.GetUsersInChannelByStatus(channelId, offset, limit)
+	return a.app.OpenInteractiveDialog(request)
 }
+
+func (a *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OriginChecker")
 
-func (s *OpenTracingAppLayer) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInChannelMap")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channelId", channelId)
+	defer span.Finish()
 
-	span.SetTag("offset", offset)
+	return a.app.OriginChecker()
+}
 
-	span.SetTag("limit", limit)
+func (a *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OverrideIconURLIfEmoji")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersInChannelMap(channelId, offset, limit, asAdmin)
+	a.app.OverrideIconURLIfEmoji(post)
 }
 
-func (s *OpenTracingAppLayer) GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInChannelPage")
+func (a *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchBot")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("page", page)
+	return a.app.PatchBot(botUserId, botPatch)
+}
 
-	span.SetTag("perPage", perPage)
+func (a *OpenTracingAppLayer) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchChannel")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersInChannelPage(channelId, page, perPage, asAdmin)
+	return a.app.PatchChannel(channel, patch, userId)
 }
+
+func (a *OpenTracingAppLayer) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchPost")
 
-func (s *OpenTracingAppLayer) GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInChannelPageByStatus")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channelId", channelId)
+	defer span.Finish()
 
-	span.SetTag("page", page)
+	return a.app.PatchPost(postId, patch)
+}
 
-	span.SetTag("perPage", perPage)
+func (a *OpenTracingAppLayer) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRole")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersInChannelPageByStatus(channelId, page, perPage, asAdmin)
+	return a.app.PatchRole(role, patch)
 }
 
-func (s *OpenTracingAppLayer) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInTeam")
+func (a *OpenTracingAppLayer) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchScheme")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersInTeam(options)
+	return a.app.PatchScheme(scheme, patch)
 }
 
-func (s *OpenTracingAppLayer) GetUsersInTeamEtag(teamId string, restrictionsHash string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInTeamEtag")
+func (a *OpenTracingAppLayer) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchTeam")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("restrictionsHash", restrictionsHash)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersInTeamEtag(teamId, restrictionsHash)
+	return a.app.PatchTeam(teamId, patch)
 }
 
-func (s *OpenTracingAppLayer) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersInTeamPage")
+func (a *OpenTracingAppLayer) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchUser")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	return s.app.GetUsersInTeamPage(options, asAdmin)
+	return a.app.PatchUser(userId, patch, asAdmin)
 }
-
-func (s *OpenTracingAppLayer) GetUsersNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInChannel")
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) PermanentDeleteAllUsers() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteAllUsers")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("groupConstrained", groupConstrained)
+	defer span.Finish()
 
-	span.SetTag("offset", offset)
+	return a.app.PermanentDeleteAllUsers()
+}
 
-	span.SetTag("limit", limit)
+func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteBot")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+	return a.app.PermanentDeleteBot(botUserId)
 }
-
-func (s *OpenTracingAppLayer) GetUsersNotInChannelMap(teamId string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInChannelMap")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteChannel")
 
-	span.SetTag("groupConstrained", groupConstrained)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("offset", offset)
+	defer span.Finish()
 
-	span.SetTag("limit", limit)
+	return a.app.PermanentDeleteChannel(channel)
+}
 
-	span.SetTag("asAdmin", asAdmin)
+func (a *OpenTracingAppLayer) PermanentDeleteTeam(team *model.Team) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteTeam")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInChannelMap(teamId, channelId, groupConstrained, offset, limit, asAdmin, viewRestrictions)
+	return a.app.PermanentDeleteTeam(team)
 }
 
-func (s *OpenTracingAppLayer) GetUsersNotInChannelPage(teamId string, channelId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInChannelPage")
+func (a *OpenTracingAppLayer) PermanentDeleteTeamId(teamId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteTeamId")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("groupConstrained", groupConstrained)
-
-	span.SetTag("page", page)
+	defer span.Finish()
 
-	span.SetTag("perPage", perPage)
+	return a.app.PermanentDeleteTeamId(teamId)
+}
 
-	span.SetTag("asAdmin", asAdmin)
+func (a *OpenTracingAppLayer) PermanentDeleteUser(user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PermanentDeleteUser")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInChannelPage(teamId, channelId, groupConstrained, page, perPage, asAdmin, viewRestrictions)
+	return a.app.PermanentDeleteUser(user)
 }
 
-func (s *OpenTracingAppLayer) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInTeam")
+func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamId string) []*model.Command {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginCommandsForTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("groupConstrained", groupConstrained)
+	defer span.Finish()
 
-	span.SetTag("offset", offset)
+	return a.app.PluginCommandsForTeam(teamId)
+}
 
-	span.SetTag("limit", limit)
+func (a *OpenTracingAppLayer) PluginContext() *plugin.Context {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginContext")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
+	return a.app.PluginContext()
 }
 
-func (s *OpenTracingAppLayer) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInTeamEtag")
+func (a *OpenTracingAppLayer) PostActionCookieSecret() []byte {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostActionCookieSecret")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("restrictionsHash", restrictionsHash)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInTeamEtag(teamId, restrictionsHash)
+	return a.app.PostActionCookieSecret()
 }
 
-func (s *OpenTracingAppLayer) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersNotInTeamPage")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostAddToChannelMessage")
 
-	span.SetTag("groupConstrained", groupConstrained)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("page", page)
+	defer span.Finish()
 
-	span.SetTag("perPage", perPage)
+	return a.app.PostAddToChannelMessage(user, addedUser, channel, postRootId)
+}
 
-	span.SetTag("asAdmin", asAdmin)
+func (a *OpenTracingAppLayer) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostPatchWithProxyRemovedFromImageURLs")
 
-	span.SetTag("viewRestrictions", viewRestrictions)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersNotInTeamPage(teamId, groupConstrained, page, perPage, asAdmin, viewRestrictions)
+	return a.app.PostPatchWithProxyRemovedFromImageURLs(patch)
 }
 
-func (s *OpenTracingAppLayer) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersPage")
+func (a *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(userId string, channel *model.Channel, oldChannelDisplayName string, newChannelDisplayName string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelDisplayNameMessage")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	return s.app.GetUsersPage(options, asAdmin)
+	return a.app.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, newChannelDisplayName)
 }
 
-func (s *OpenTracingAppLayer) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersWithoutTeam")
+func (a *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(userId string, channel *model.Channel, oldChannelHeader string, newChannelHeader string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelHeaderMessage")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersWithoutTeam(options)
+	return a.app.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, newChannelHeader)
 }
-
-func (s *OpenTracingAppLayer) GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetUsersWithoutTeamPage")
 
-	span.SetTag("options", options)
+func (a *OpenTracingAppLayer) PostUpdateChannelPurposeMessage(userId string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostUpdateChannelPurposeMessage")
 
-	span.SetTag("asAdmin", asAdmin)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetUsersWithoutTeamPage(options, asAdmin)
+	return a.app.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, newChannelPurpose)
 }
 
-func (s *OpenTracingAppLayer) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetVerifyEmailToken")
+func (a *OpenTracingAppLayer) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostWithProxyAddedToImageURLs")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetVerifyEmailToken(token)
+	return a.app.PostWithProxyAddedToImageURLs(post)
 }
 
-func (s *OpenTracingAppLayer) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetViewUsersRestrictions")
+func (a *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PostWithProxyRemovedFromImageURLs")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.GetViewUsersRestrictions(userId)
+	return a.app.PostWithProxyRemovedFromImageURLs(post)
 }
 
-func (s *OpenTracingAppLayer) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.GetViewUsersRestrictionsForTeam")
+func (a *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostForClient")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
-
 	defer span.Finish()
 
-	return s.app.GetViewUsersRestrictionsForTeam(userId, teamId)
+	return a.app.PreparePostForClient(originalPost, isNewPost, isEditPost)
 }
 
-func (s *OpenTracingAppLayer) HTMLTemplates() *template.Template {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HTMLTemplates")
+func (a *OpenTracingAppLayer) PreparePostListForClient(originalList *model.PostList) *model.PostList {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PreparePostListForClient")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.HTMLTemplates()
+	return a.app.PreparePostListForClient(originalList)
 }
-
-func (s *OpenTracingAppLayer) Handle404(w http.ResponseWriter, r *http.Request) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.Handle404")
 
-	span.SetTag("w", w)
+func (a *OpenTracingAppLayer) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ProcessSlackAttachments")
 
-	span.SetTag("r", r)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.Handle404(w, r)
+	return a.app.ProcessSlackAttachments(attachments)
 }
 
-func (s *OpenTracingAppLayer) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleCommandResponse")
+func (a *OpenTracingAppLayer) ProcessSlackText(text string) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ProcessSlackText")
 
-	span.SetTag("command", command)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("args", args)
+	defer span.Finish()
+
+	return a.app.ProcessSlackText(text)
+}
 
-	span.SetTag("response", response)
+func (a *OpenTracingAppLayer) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PromoteGuestToUser")
 
-	span.SetTag("builtIn", builtIn)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HandleCommandResponse(command, args, response, builtIn)
+	return a.app.PromoteGuestToUser(user, requestorId)
 }
+
+func (a *OpenTracingAppLayer) Publish(message *model.WebSocketEvent) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Publish")
 
-func (s *OpenTracingAppLayer) HandleCommandResponsePost(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleCommandResponsePost")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("command", command)
+	defer span.Finish()
 
-	span.SetTag("args", args)
+	a.app.Publish(message)
+}
 
-	span.SetTag("response", response)
+func (a *OpenTracingAppLayer) PublishSkipClusterSend(message *model.WebSocketEvent) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PublishSkipClusterSend")
 
-	span.SetTag("builtIn", builtIn)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HandleCommandResponsePost(command, args, response, builtIn)
+	a.app.PublishSkipClusterSend(message)
 }
 
-func (s *OpenTracingAppLayer) HandleCommandWebhook(hookId string, response *model.CommandResponse) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleCommandWebhook")
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 
-	span.SetTag("hookId", hookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("response", response)
-
 	defer span.Finish()
 
-	return s.app.HandleCommandWebhook(hookId, response)
+	return a.app.PurgeElasticsearchIndexes()
 }
-
-func (s *OpenTracingAppLayer) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleImages")
 
-	span.SetTag("previewPathList", previewPathList)
+func (a *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReadFile")
 
-	span.SetTag("thumbnailPathList", thumbnailPathList)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("fileData", fileData)
-
 	defer span.Finish()
 
-	s.app.HandleImages(previewPathList, thumbnailPathList, fileData)
+	return a.app.ReadFile(path)
 }
-
-func (s *OpenTracingAppLayer) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleIncomingWebhook")
 
-	span.SetTag("hookId", hookId)
+func (a *OpenTracingAppLayer) RecycleDatabaseConnection() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RecycleDatabaseConnection")
 
-	span.SetTag("req", req)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HandleIncomingWebhook(hookId, req)
+	a.app.RecycleDatabaseConnection()
 }
 
-func (s *OpenTracingAppLayer) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HandleMessageExportConfig")
+func (a *OpenTracingAppLayer) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegenCommandToken")
 
-	span.SetTag("cfg", cfg)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("appCfg", appCfg)
-
 	defer span.Finish()
 
-	s.app.HandleMessageExportConfig(cfg, appCfg)
+	return a.app.RegenCommandToken(cmd)
 }
-
-func (s *OpenTracingAppLayer) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HasPermissionTo")
 
-	span.SetTag("askingUserId", askingUserId)
+func (a *OpenTracingAppLayer) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegenOutgoingWebhookToken")
 
-	span.SetTag("permission", permission)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HasPermissionTo(askingUserId, permission)
+	return a.app.RegenOutgoingWebhookToken(hook)
 }
 
-func (s *OpenTracingAppLayer) HasPermissionToChannel(askingUserId string, channelId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HasPermissionToChannel")
+func (a *OpenTracingAppLayer) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegenerateOAuthAppSecret")
 
-	span.SetTag("askingUserId", askingUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("permission", permission)
-
 	defer span.Finish()
 
-	return s.app.HasPermissionToChannel(askingUserId, channelId, permission)
+	return a.app.RegenerateOAuthAppSecret(app)
 }
-
-func (s *OpenTracingAppLayer) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HasPermissionToChannelByPost")
-
-	span.SetTag("askingUserId", askingUserId)
 
-	span.SetTag("postId", postId)
+func (a *OpenTracingAppLayer) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegenerateTeamInviteId")
 
-	span.SetTag("permission", permission)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HasPermissionToChannelByPost(askingUserId, postId, permission)
+	return a.app.RegenerateTeamInviteId(teamId)
 }
 
-func (s *OpenTracingAppLayer) HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HasPermissionToTeam")
+func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginId string, command *model.Command) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RegisterPluginCommand")
 
-	span.SetTag("askingUserId", askingUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("permission", permission)
-
 	defer span.Finish()
 
-	return s.app.HasPermissionToTeam(askingUserId, teamId, permission)
+	return a.app.RegisterPluginCommand(pluginId, command)
 }
-
-func (s *OpenTracingAppLayer) HasPermissionToUser(askingUserId string, userId string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HasPermissionToUser")
 
-	span.SetTag("askingUserId", askingUserId)
+func (a *OpenTracingAppLayer) ReloadConfig() error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReloadConfig")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.HasPermissionToUser(askingUserId, userId)
+	return a.app.ReloadConfig()
 }
 
-func (s *OpenTracingAppLayer) HubRegister(webConn *WebConn) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HubRegister")
+func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveConfigListener")
 
-	span.SetTag("webConn", webConn)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.HubRegister(webConn)
+	a.app.RemoveConfigListener(id)
 }
 
-func (s *OpenTracingAppLayer) HubStart() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HubStart")
+func (a *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveFile")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	s.app.HubStart()
+	return a.app.RemoveFile(path)
 }
+
+func (a *OpenTracingAppLayer) RemoveLicense() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveLicense")
 
-func (s *OpenTracingAppLayer) HubStop() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HubStop")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.HubStop()
+	return a.app.RemoveLicense()
 }
 
-func (s *OpenTracingAppLayer) HubUnregister(webConn *WebConn) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.HubUnregister")
+func (a *OpenTracingAppLayer) RemoveLicenseListener(id string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveLicenseListener")
 
-	span.SetTag("webConn", webConn)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.HubUnregister(webConn)
+	a.app.RemoveLicenseListener(id)
 }
 
-func (s *OpenTracingAppLayer) ImageProxyAdder() func(string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImageProxyAdder")
+func (a *OpenTracingAppLayer) RemovePlugin(id string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemovePlugin")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.ImageProxyAdder()
+	return a.app.RemovePlugin(id)
 }
+
+func (a *OpenTracingAppLayer) RemovePluginFromData(data model.PluginEventData) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemovePluginFromData")
 
-func (s *OpenTracingAppLayer) ImageProxyRemover() func(string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImageProxyRemover")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ImageProxyRemover()
+	a.app.RemovePluginFromData(data)
 }
 
-func (s *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ImportPermissions")
+func (a *OpenTracingAppLayer) RemoveSamlIdpCertificate() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveSamlIdpCertificate")
 
-	span.SetTag("jsonl", jsonl)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ImportPermissions(jsonl)
+	return a.app.RemoveSamlIdpCertificate()
 }
 
-func (s *OpenTracingAppLayer) InitPlugins(pluginDir string, webappPluginDir string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InitPlugins")
+func (a *OpenTracingAppLayer) RemoveSamlPrivateCertificate() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveSamlPrivateCertificate")
 
-	span.SetTag("pluginDir", pluginDir)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("webappPluginDir", webappPluginDir)
-
 	defer span.Finish()
 
-	s.app.InitPlugins(pluginDir, webappPluginDir)
+	return a.app.RemoveSamlPrivateCertificate()
 }
+
+func (a *OpenTracingAppLayer) RemoveSamlPublicCertificate() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveSamlPublicCertificate")
 
-func (s *OpenTracingAppLayer) InitPostMetadata() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InitPostMetadata")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InitPostMetadata()
+	return a.app.RemoveSamlPublicCertificate()
 }
 
-func (s *OpenTracingAppLayer) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InstallMarketplacePlugin")
+func (a *OpenTracingAppLayer) RemoveTeamIcon(teamId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamIcon")
 
-	span.SetTag("request", request)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.InstallMarketplacePlugin(request)
+	return a.app.RemoveTeamIcon(teamId)
 }
 
-func (s *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InstallPlugin")
+func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamMemberFromTeam")
 
-	span.SetTag("pluginFile", pluginFile)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("replace", replace)
-
 	defer span.Finish()
 
-	return s.app.InstallPlugin(pluginFile, replace)
+	return a.app.RemoveTeamMemberFromTeam(teamMember, requestorId)
 }
 
-func (s *OpenTracingAppLayer) InstallPluginFromData(data model.PluginEventData) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InstallPluginFromData")
+func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUserFromChannel")
 
-	span.SetTag("data", data)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InstallPluginFromData(data)
+	return a.app.RemoveUserFromChannel(userIdToRemove, removerUserId, channel)
 }
-
-func (s *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.ReadSeeker, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InstallPluginWithSignature")
 
-	span.SetTag("pluginFile", pluginFile)
+func (a *OpenTracingAppLayer) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUserFromTeam")
 
-	span.SetTag("signature", signature)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.InstallPluginWithSignature(pluginFile, signature)
+	return a.app.RemoveUserFromTeam(teamId, userId, requestorId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateAllCaches() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateAllCaches")
+func (a *OpenTracingAppLayer) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RenameChannel")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.InvalidateAllCaches()
+	return a.app.RenameChannel(channel, newChannelName, newDisplayName)
 }
+
+func (a *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RenameTeam")
 
-func (s *OpenTracingAppLayer) InvalidateAllCachesSkipSend() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateAllCachesSkipSend")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateAllCachesSkipSend()
+	return a.app.RenameTeam(team, newTeamName, newDisplayName)
 }
 
-func (s *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateAllEmailInvites")
+func (a *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString string, newPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPasswordFromToken")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.InvalidateAllEmailInvites()
+	return a.app.ResetPasswordFromToken(userSuppliedTokenString, newPassword)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForChannel(channel *model.Channel) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannel")
+func (a *OpenTracingAppLayer) ResetPermissionsSystem() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPermissionsSystem")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannel(channel)
+	return a.app.ResetPermissionsSystem()
 }
-
-func (s *OpenTracingAppLayer) InvalidateCacheForChannelByNameSkipClusterSend(teamId string, name string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannelByNameSkipClusterSend")
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestoreChannel")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannelByNameSkipClusterSend(teamId, name)
+	return a.app.RestoreChannel(channel, userId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForChannelMembers(channelId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannelMembers")
+func (a *OpenTracingAppLayer) RestoreTeam(teamId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestoreTeam")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannelMembers(channelId)
+	return a.app.RestoreTeam(teamId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannelMembersNotifyProps")
+func (a *OpenTracingAppLayer) RestrictUsersGetByPermissions(userId string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestrictUsersGetByPermissions")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannelMembersNotifyProps(channelId)
+	return a.app.RestrictUsersGetByPermissions(userId, options)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend")
+func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(userId string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RestrictUsersSearchByPermissions")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
+	return a.app.RestrictUsersSearchByPermissions(userId, options)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForChannelPosts(channelId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForChannelPosts")
+func (a *OpenTracingAppLayer) RevokeAccessToken(token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAccessToken")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForChannelPosts(channelId)
+	return a.app.RevokeAccessToken(token)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForUser(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForUser")
+func (a *OpenTracingAppLayer) RevokeAllSessions(userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeAllSessions")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForUser(userId)
+	return a.app.RevokeAllSessions(userId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForUserSkipClusterSend(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForUserSkipClusterSend")
+func (a *OpenTracingAppLayer) RevokeSession(session *model.Session) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeSession")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForUserSkipClusterSend(userId)
+	return a.app.RevokeSession(session)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForUserTeams(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForUserTeams")
+func (a *OpenTracingAppLayer) RevokeSessionById(sessionId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeSessionById")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForUserTeams(userId)
+	return a.app.RevokeSessionById(sessionId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForUserTeamsSkipClusterSend")
+func (a *OpenTracingAppLayer) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeSessionsForDeviceId")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForUserTeamsSkipClusterSend(userId)
+	return a.app.RevokeSessionsForDeviceId(userId, deviceId, currentSessionId)
 }
 
-func (s *OpenTracingAppLayer) InvalidateCacheForWebhook(webhookId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateCacheForWebhook")
+func (a *OpenTracingAppLayer) RevokeSessionsFromAllUsers() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeSessionsFromAllUsers")
 
-	span.SetTag("webhookId", webhookId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateCacheForWebhook(webhookId)
+	return a.app.RevokeSessionsFromAllUsers()
 }
 
-func (s *OpenTracingAppLayer) InvalidateWebConnSessionCacheForUser(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InvalidateWebConnSessionCacheForUser")
+func (a *OpenTracingAppLayer) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RevokeUserAccessToken")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.InvalidateWebConnSessionCacheForUser(userId)
+	return a.app.RevokeUserAccessToken(token)
 }
-
-func (s *OpenTracingAppLayer) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteGuestsToChannels")
-
-	span.SetTag("teamId", teamId)
 
-	span.SetTag("guestsInvite", guestsInvite)
+func (a *OpenTracingAppLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RolesGrantPermission")
 
-	span.SetTag("senderId", senderId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.InviteGuestsToChannels(teamId, guestsInvite, senderId)
+	return a.app.RolesGrantPermission(roleNames, permissionId)
 }
 
-func (s *OpenTracingAppLayer) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteGuestsToChannelsGracefully")
+func (a *OpenTracingAppLayer) SanitizeProfile(user *model.User, asAdmin bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizeProfile")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("guestsInvite", guestsInvite)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("senderId", senderId)
-
 	defer span.Finish()
 
-	return s.app.InviteGuestsToChannelsGracefully(teamId, guestsInvite, senderId)
+	a.app.SanitizeProfile(user, asAdmin)
 }
-
-func (s *OpenTracingAppLayer) InviteNewUsersToTeam(emailList []string, teamId string, senderId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteNewUsersToTeam")
 
-	span.SetTag("emailList", emailList)
+func (a *OpenTracingAppLayer) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizeTeam")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("senderId", senderId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.InviteNewUsersToTeam(emailList, teamId, senderId)
+	return a.app.SanitizeTeam(session, team)
 }
-
-func (s *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string, teamId string, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.InviteNewUsersToTeamGracefully")
-
-	span.SetTag("emailList", emailList)
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SanitizeTeams")
 
-	span.SetTag("senderId", senderId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.InviteNewUsersToTeamGracefully(emailList, teamId, senderId)
+	return a.app.SanitizeTeams(session, teams)
 }
+
+func (a *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveAndBroadcastStatus")
 
-func (s *OpenTracingAppLayer) IsESAutocompletionEnabled() bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsESAutocompletionEnabled")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsESAutocompletionEnabled()
+	a.app.SaveAndBroadcastStatus(status)
 }
 
-func (s *OpenTracingAppLayer) IsESIndexingEnabled() bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsESIndexingEnabled")
+func (a *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveBrandImage")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.IsESIndexingEnabled()
+	return a.app.SaveBrandImage(imageData)
 }
+
+func (a *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveComplianceReport")
 
-func (s *OpenTracingAppLayer) IsESSearchEnabled() bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsESSearchEnabled")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsESSearchEnabled()
+	return a.app.SaveComplianceReport(job)
 }
 
-func (s *OpenTracingAppLayer) IsFirstUserAccount() bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsFirstUserAccount")
+func (a *OpenTracingAppLayer) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveConfig")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.IsFirstUserAccount()
+	return a.app.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
+
+func (a *OpenTracingAppLayer) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveLicense")
 
-func (s *OpenTracingAppLayer) IsLeader() bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsLeader")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsLeader()
+	return a.app.SaveLicense(licenseBytes)
 }
 
-func (s *OpenTracingAppLayer) IsPasswordValid(password string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsPasswordValid")
+func (a *OpenTracingAppLayer) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveReactionForPost")
 
-	span.SetTag("password", password)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsPasswordValid(password)
+	return a.app.SaveReactionForPost(reaction)
 }
 
-func (s *OpenTracingAppLayer) IsPhase2MigrationCompleted() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsPhase2MigrationCompleted")
+func (a *OpenTracingAppLayer) SaveUserTermsOfService(userId string, termsOfServiceId string, accepted bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SaveUserTermsOfService")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.IsPhase2MigrationCompleted()
+	return a.app.SaveUserTermsOfService(userId, termsOfServiceId, accepted)
 }
 
-func (s *OpenTracingAppLayer) IsUserAway(lastActivityAt int64) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsUserAway")
+func (a *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Scheme {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SchemesIterator")
 
-	span.SetTag("lastActivityAt", lastActivityAt)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsUserAway(lastActivityAt)
+	return a.app.SchemesIterator(batchSize)
 }
+
+func (a *OpenTracingAppLayer) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchAllChannels")
 
-func (s *OpenTracingAppLayer) IsUserSignUpAllowed() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsUserSignUpAllowed")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsUserSignUpAllowed()
+	return a.app.SearchAllChannels(term, opts)
 }
 
-func (s *OpenTracingAppLayer) IsUsernameTaken(name string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.IsUsernameTaken")
+func (a *OpenTracingAppLayer) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchAllTeams")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.IsUsernameTaken(name)
+	return a.app.SearchAllTeams(searchOpts)
 }
 
-func (s *OpenTracingAppLayer) JoinChannel(channel *model.Channel, userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.JoinChannel")
+func (a *OpenTracingAppLayer) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchArchivedChannels")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.JoinChannel(channel, userId)
+	return a.app.SearchArchivedChannels(teamId, term, userId)
 }
 
-func (s *OpenTracingAppLayer) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.JoinDefaultChannels")
+func (a *OpenTracingAppLayer) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannels")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("user", user)
+	return a.app.SearchChannels(teamId, term)
+}
 
-	span.SetTag("shouldBeAdmin", shouldBeAdmin)
+func (a *OpenTracingAppLayer) SearchChannelsForUser(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannelsForUser")
 
-	span.SetTag("userRequestorId", userRequestorId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.JoinDefaultChannels(teamId, user, shouldBeAdmin, userRequestorId)
+	return a.app.SearchChannelsForUser(userId, teamId, term)
 }
-
-func (s *OpenTracingAppLayer) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.JoinUserToTeam")
 
-	span.SetTag("team", team)
+func (a *OpenTracingAppLayer) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchChannelsUserNotIn")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userRequestorId", userRequestorId)
-
 	defer span.Finish()
 
-	return s.app.JoinUserToTeam(team, user, userRequestorId)
+	return a.app.SearchChannelsUserNotIn(teamId, userId, term)
 }
-
-func (s *OpenTracingAppLayer) LeaveChannel(channelId string, userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LeaveChannel")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchEmoji")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.LeaveChannel(channelId, userId)
+	return a.app.SearchEmoji(name, prefixOnly, limit)
 }
 
-func (s *OpenTracingAppLayer) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LeaveTeam")
+func (a *OpenTracingAppLayer) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchGroupChannels")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("user", user)
-
-	span.SetTag("requestorId", requestorId)
-
 	defer span.Finish()
 
-	return s.app.LeaveTeam(team, user, requestorId)
+	return a.app.SearchGroupChannels(userId, term)
 }
 
-func (s *OpenTracingAppLayer) License() *model.License {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.License")
+func (a *OpenTracingAppLayer) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPostsInTeam")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.License()
+	return a.app.SearchPostsInTeam(teamId, paramsList)
 }
+
+func (a *OpenTracingAppLayer) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPostsInTeamForUser")
 
-func (s *OpenTracingAppLayer) LimitedClientConfig() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LimitedClientConfig")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.LimitedClientConfig()
+	return a.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) LimitedClientConfigWithComputed() map[string]string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LimitedClientConfigWithComputed")
+func (a *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPrivateTeams")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.LimitedClientConfigWithComputed()
+	return a.app.SearchPrivateTeams(term)
 }
-
-func (s *OpenTracingAppLayer) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ListAllCommands")
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchPublicTeams")
 
-	span.SetTag("T", T)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ListAllCommands(teamId, T)
+	return a.app.SearchPublicTeams(term)
 }
-
-func (s *OpenTracingAppLayer) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ListAutocompleteCommands")
 
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUserAccessTokens")
 
-	span.SetTag("T", T)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ListAutocompleteCommands(teamId, T)
+	return a.app.SearchUserAccessTokens(term)
 }
 
-func (s *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ListDirectory")
+func (a *OpenTracingAppLayer) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsers")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ListDirectory(path)
+	return a.app.SearchUsers(props, options)
 }
-
-func (s *OpenTracingAppLayer) ListPluginKeys(pluginId string, page int, perPage int) ([]string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ListPluginKeys")
 
-	span.SetTag("pluginId", pluginId)
+func (a *OpenTracingAppLayer) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersInChannel")
 
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
 	defer span.Finish()
 
-	return s.app.ListPluginKeys(pluginId, page, perPage)
+	return a.app.SearchUsersInChannel(channelId, term, options)
 }
 
-func (s *OpenTracingAppLayer) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ListTeamCommands")
+func (a *OpenTracingAppLayer) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersInTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ListTeamCommands(teamId)
+	return a.app.SearchUsersInTeam(teamId, term, options)
 }
 
-func (s *OpenTracingAppLayer) LoadLicense() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LoadLicense")
+func (a *OpenTracingAppLayer) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersNotInChannel")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	s.app.LoadLicense()
+	return a.app.SearchUsersNotInChannel(teamId, channelId, term, options)
 }
-
-func (s *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.LoginByOAuth")
 
-	span.SetTag("service", service)
+func (a *OpenTracingAppLayer) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersNotInTeam")
 
-	span.SetTag("userData", userData)
-
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.LoginByOAuth(service, userData, teamId)
+	return a.app.SearchUsersNotInTeam(notInTeamId, term, options)
 }
 
-func (s *OpenTracingAppLayer) MakePermissionError(permission *model.Permission) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MakePermissionError")
+func (a *OpenTracingAppLayer) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchUsersWithoutTeam")
 
-	span.SetTag("permission", permission)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.MakePermissionError(permission)
+	return a.app.SearchUsersWithoutTeam(term, options)
 }
 
-func (s *OpenTracingAppLayer) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MarkChannelAsUnreadFromPost")
+func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAckToPushProxy")
 
-	span.SetTag("postID", postID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userID", userID)
-
 	defer span.Finish()
 
-	return s.app.MarkChannelAsUnreadFromPost(postID, userID)
+	return a.app.SendAckToPushProxy(ack)
 }
-
-func (s *OpenTracingAppLayer) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MarkChannelsAsViewed")
 
-	span.SetTag("channelIds", channelIds)
+func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("currentSessionId", currentSessionId)
-
 	defer span.Finish()
 
-	return s.app.MarkChannelsAsViewed(channelIds, userId, currentSessionId)
+	return a.app.SendAutoResponse(channel, receiver)
 }
+
+func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponseIfNecessary")
 
-func (s *OpenTracingAppLayer) MaxPostSize() int {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MaxPostSize")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.MaxPostSize()
+	return a.app.SendAutoResponseIfNecessary(channel, sender)
 }
 
-func (s *OpenTracingAppLayer) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MigrateFilenamesToFileInfos")
+func (a *OpenTracingAppLayer) SendChangeUsernameEmail(oldUsername string, newUsername string, email string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendChangeUsernameEmail")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.MigrateFilenamesToFileInfos(post)
+	return a.app.SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL)
 }
 
-func (s *OpenTracingAppLayer) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MoveChannel")
+func (a *OpenTracingAppLayer) SendDailyDiagnostics() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDailyDiagnostics")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channel", channel)
+	defer span.Finish()
+
+	a.app.SendDailyDiagnostics()
+}
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) SendDeactivateAccountEmail(email string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDeactivateAccountEmail")
 
-	span.SetTag("removeDeactivatedMembers", removeDeactivatedMembers)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.MoveChannel(team, channel, user, removeDeactivatedMembers)
+	return a.app.SendDeactivateAccountEmail(email, locale, siteURL)
 }
-
-func (s *OpenTracingAppLayer) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MoveCommand")
 
-	span.SetTag("team", team)
+func (a *OpenTracingAppLayer) SendDiagnostic(event string, properties map[string]interface{}) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDiagnostic")
 
-	span.SetTag("command", command)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.MoveCommand(team, command)
+	a.app.SendDiagnostic(event, properties)
 }
 
-func (s *OpenTracingAppLayer) MoveFile(oldPath string, newPath string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.MoveFile")
+func (a *OpenTracingAppLayer) SendEmailChangeEmail(oldEmail string, newEmail string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEmailChangeEmail")
 
-	span.SetTag("oldPath", oldPath)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("newPath", newPath)
-
 	defer span.Finish()
 
-	return s.app.MoveFile(oldPath, newPath)
+	return a.app.SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL)
 }
+
+func (a *OpenTracingAppLayer) SendEmailChangeVerifyEmail(newUserEmail string, locale string, siteURL string, token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEmailChangeVerifyEmail")
 
-func (s *OpenTracingAppLayer) NewClusterDiscoveryService() *ClusterDiscoveryService {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.NewClusterDiscoveryService")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.NewClusterDiscoveryService()
+	return a.app.SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token)
 }
 
-func (s *OpenTracingAppLayer) NewEmailTemplate(name string, locale string) *utils.HTMLTemplate {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.NewEmailTemplate")
+func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEmailVerification")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("locale", locale)
-
 	defer span.Finish()
 
-	return s.app.NewEmailTemplate(name, locale)
+	return a.app.SendEmailVerification(user, newEmail)
 }
 
-func (s *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.NewPluginAPI")
+func (a *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEphemeralPost")
 
-	span.SetTag("manifest", manifest)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.NewPluginAPI(manifest)
+	return a.app.SendEphemeralPost(userId, post)
 }
+
+func (a *OpenTracingAppLayer) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendGuestInviteEmails")
 
-func (s *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.NewWebConn")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("ws", ws)
+	defer span.Finish()
 
-	span.SetTag("session", session)
+	a.app.SendGuestInviteEmails(team, channels, senderName, senderUserId, invites, siteURL, message)
+}
 
-	span.SetTag("t", t)
+func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendInviteEmails")
 
-	span.SetTag("locale", locale)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.NewWebConn(ws, session, t, locale)
+	a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
 }
 
-func (s *OpenTracingAppLayer) NewWebHub() *Hub {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.NewWebHub")
+func (a *OpenTracingAppLayer) SendMail(to string, subject string, htmlBody string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendMail")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.NewWebHub()
+	return a.app.SendMail(to, subject, htmlBody)
 }
-
-func (s *OpenTracingAppLayer) OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OldImportChannel")
 
-	span.SetTag("channel", channel)
+func (a *OpenTracingAppLayer) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendMailWithEmbeddedFiles")
 
-	span.SetTag("sChannel", sChannel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("users", users)
-
 	defer span.Finish()
 
-	return s.app.OldImportChannel(channel, sChannel, users)
+	return a.app.SendMailWithEmbeddedFiles(to, subject, htmlBody, embeddedFiles)
 }
-
-func (s *OpenTracingAppLayer) OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OldImportFile")
 
-	span.SetTag("timestamp", timestamp)
+func (a *OpenTracingAppLayer) SendMfaChangeEmail(email string, activated bool, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendMfaChangeEmail")
 
-	span.SetTag("file", file)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
+	defer span.Finish()
 
-	span.SetTag("channelId", channelId)
+	return a.app.SendMfaChangeEmail(email, activated, locale, siteURL)
+}
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) SendNotificationMail(to string, subject string, htmlBody string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotificationMail")
 
-	span.SetTag("fileName", fileName)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.OldImportFile(timestamp, file, teamId, channelId, userId, fileName)
+	return a.app.SendNotificationMail(to, subject, htmlBody)
 }
-
-func (s *OpenTracingAppLayer) OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OldImportIncomingWebhookPost")
 
-	span.SetTag("post", post)
+func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifications")
 
-	span.SetTag("props", props)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.OldImportIncomingWebhookPost(post, props)
+	return a.app.SendNotifications(post, team, channel, sender, parentPostList)
 }
 
-func (s *OpenTracingAppLayer) OldImportPost(post *model.Post) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OldImportPost")
+func (a *OpenTracingAppLayer) SendPasswordChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendPasswordChangeEmail")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.OldImportPost(post)
+	return a.app.SendPasswordChangeEmail(email, method, locale, siteURL)
 }
 
-func (s *OpenTracingAppLayer) OldImportUser(team *model.Team, user *model.User) *model.User {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OldImportUser")
+func (a *OpenTracingAppLayer) SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendPasswordReset")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("user", user)
-
 	defer span.Finish()
 
-	return s.app.OldImportUser(team, user)
+	return a.app.SendPasswordReset(email, siteURL)
 }
 
-func (s *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OpenInteractiveDialog")
+func (a *OpenTracingAppLayer) SendPasswordResetEmail(email string, token *model.Token, locale string, siteURL string) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendPasswordResetEmail")
 
-	span.SetTag("request", request)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.OpenInteractiveDialog(request)
+	return a.app.SendPasswordResetEmail(email, token, locale, siteURL)
 }
+
+func (a *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendSignInChangeEmail")
 
-func (s *OpenTracingAppLayer) OriginChecker() func(*http.Request) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OriginChecker")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.OriginChecker()
+	return a.app.SendSignInChangeEmail(email, method, locale, siteURL)
 }
 
-func (s *OpenTracingAppLayer) OverrideIconURLIfEmoji(post *model.Post) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.OverrideIconURLIfEmoji")
+func (a *OpenTracingAppLayer) SendUserAccessTokenAddedEmail(email string, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendUserAccessTokenAddedEmail")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.OverrideIconURLIfEmoji(post)
+	return a.app.SendUserAccessTokenAddedEmail(email, locale, siteURL)
 }
 
-func (s *OpenTracingAppLayer) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchBot")
+func (a *OpenTracingAppLayer) SendVerifyEmail(userEmail string, locale string, siteURL string, token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendVerifyEmail")
 
-	span.SetTag("botUserId", botUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("botPatch", botPatch)
-
 	defer span.Finish()
 
-	return s.app.PatchBot(botUserId, botPatch)
+	return a.app.SendVerifyEmail(userEmail, locale, siteURL, token)
 }
-
-func (s *OpenTracingAppLayer) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchChannel")
 
-	span.SetTag("channel", channel)
+func (a *OpenTracingAppLayer) SendWelcomeEmail(userId string, email string, verified bool, locale string, siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendWelcomeEmail")
 
-	span.SetTag("patch", patch)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.PatchChannel(channel, patch, userId)
+	return a.app.SendWelcomeEmail(userId, email, verified, locale, siteURL)
 }
-
-func (s *OpenTracingAppLayer) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchPost")
 
-	span.SetTag("postId", postId)
+func (a *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId string, destinationPluginId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServeInterPluginRequest")
 
-	span.SetTag("patch", patch)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PatchPost(postId, patch)
+	a.app.ServeInterPluginRequest(w, r, sourcePluginId, destinationPluginId)
 }
 
-func (s *OpenTracingAppLayer) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchRole")
+func (a *OpenTracingAppLayer) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServePluginPublicRequest")
 
-	span.SetTag("role", role)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("patch", patch)
-
 	defer span.Finish()
 
-	return s.app.PatchRole(role, patch)
+	a.app.ServePluginPublicRequest(w, r)
 }
-
-func (s *OpenTracingAppLayer) PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchScheme")
 
-	span.SetTag("scheme", scheme)
+func (a *OpenTracingAppLayer) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServePluginRequest")
 
-	span.SetTag("patch", patch)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PatchScheme(scheme, patch)
+	a.app.ServePluginRequest(w, r)
 }
 
-func (s *OpenTracingAppLayer) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchTeam")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServerBusyStateChanged")
 
-	span.SetTag("patch", patch)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PatchTeam(teamId, patch)
+	a.app.ServerBusyStateChanged(sbs)
 }
 
-func (s *OpenTracingAppLayer) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PatchUser")
+func (a *OpenTracingAppLayer) SessionCacheLength() int {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionCacheLength")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("patch", patch)
-
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	return s.app.PatchUser(userId, patch, asAdmin)
+	return a.app.SessionCacheLength()
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteAllUsers() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteAllUsers")
+func (a *OpenTracingAppLayer) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionTo")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.PermanentDeleteAllUsers()
+	return a.app.SessionHasPermissionTo(session, permission)
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteBot")
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannel")
 
-	span.SetTag("botUserId", botUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PermanentDeleteBot(botUserId)
+	return a.app.SessionHasPermissionToChannel(session, channelId, permission)
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteChannel")
+func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToChannelByPost")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PermanentDeleteChannel(channel)
+	return a.app.SessionHasPermissionToChannelByPost(session, postId, permission)
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteTeam(team *model.Team) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteTeam")
+func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageBot")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PermanentDeleteTeam(team)
+	return a.app.SessionHasPermissionToManageBot(session, botUserId)
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteTeamId(teamId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteTeamId")
+func (a *OpenTracingAppLayer) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToTeam")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PermanentDeleteTeamId(teamId)
+	return a.app.SessionHasPermissionToTeam(session, teamId, permission)
 }
 
-func (s *OpenTracingAppLayer) PermanentDeleteUser(user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PermanentDeleteUser")
+func (a *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, userId string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToUser")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PermanentDeleteUser(user)
+	return a.app.SessionHasPermissionToUser(session, userId)
 }
 
-func (s *OpenTracingAppLayer) PluginCommandsForTeam(teamId string) []*model.Command {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PluginCommandsForTeam")
+func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToUserOrBot")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PluginCommandsForTeam(teamId)
+	return a.app.SessionHasPermissionToUserOrBot(session, userId)
 }
+
+func (a *OpenTracingAppLayer) SetActiveChannel(userId string, channelId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetActiveChannel")
 
-func (s *OpenTracingAppLayer) PluginContext() *plugin.Context {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PluginContext")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PluginContext()
+	return a.app.SetActiveChannel(userId, channelId)
 }
 
-func (s *OpenTracingAppLayer) PostActionCookieSecret() []byte {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostActionCookieSecret")
+func (a *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetAutoResponderStatus")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.PostActionCookieSecret()
+	a.app.SetAutoResponderStatus(user, oldNotifyProps)
 }
+
+func (a *OpenTracingAppLayer) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetBotIconImage")
 
-func (s *OpenTracingAppLayer) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostAddToChannelMessage")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("user", user)
+	defer span.Finish()
 
-	span.SetTag("addedUser", addedUser)
+	return a.app.SetBotIconImage(botUserId, file)
+}
 
-	span.SetTag("channel", channel)
+func (a *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetBotIconImageFromMultiPartFile")
 
-	span.SetTag("postRootId", postRootId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostAddToChannelMessage(user, addedUser, channel, postRootId)
+	return a.app.SetBotIconImageFromMultiPartFile(botUserId, imageData)
 }
 
-func (s *OpenTracingAppLayer) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostPatchWithProxyRemovedFromImageURLs")
+func (a *OpenTracingAppLayer) SetClientLicense(m map[string]string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetClientLicense")
 
-	span.SetTag("patch", patch)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostPatchWithProxyRemovedFromImageURLs(patch)
+	a.app.SetClientLicense(m)
 }
 
-func (s *OpenTracingAppLayer) PostUpdateChannelDisplayNameMessage(userId string, channel *model.Channel, oldChannelDisplayName string, newChannelDisplayName string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostUpdateChannelDisplayNameMessage")
+func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetDefaultProfileImage")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
 
-	span.SetTag("channel", channel)
+	return a.app.SetDefaultProfileImage(user)
+}
 
-	span.SetTag("oldChannelDisplayName", oldChannelDisplayName)
+func (a *OpenTracingAppLayer) SetDiagnosticId(id string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetDiagnosticId")
 
-	span.SetTag("newChannelDisplayName", newChannelDisplayName)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, newChannelDisplayName)
+	a.app.SetDiagnosticId(id)
 }
+
+func (a *OpenTracingAppLayer) SetLicense(license *model.License) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetLicense")
 
-func (s *OpenTracingAppLayer) PostUpdateChannelHeaderMessage(userId string, channel *model.Channel, oldChannelHeader string, newChannelHeader string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostUpdateChannelHeaderMessage")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
+	defer span.Finish()
 
-	span.SetTag("channel", channel)
+	return a.app.SetLicense(license)
+}
 
-	span.SetTag("oldChannelHeader", oldChannelHeader)
+func (a *OpenTracingAppLayer) SetLog(l *mlog.Logger) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetLog")
 
-	span.SetTag("newChannelHeader", newChannelHeader)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, newChannelHeader)
+	a.app.SetLog(l)
 }
 
-func (s *OpenTracingAppLayer) PostUpdateChannelPurposeMessage(userId string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostUpdateChannelPurposeMessage")
+func (a *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPhase2PermissionsMigrationStatus")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channel", channel)
+	defer span.Finish()
+
+	return a.app.SetPhase2PermissionsMigrationStatus(isComplete)
+}
 
-	span.SetTag("oldChannelPurpose", oldChannelPurpose)
+func (a *OpenTracingAppLayer) SetPluginKey(pluginId string, key string, value []byte) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPluginKey")
 
-	span.SetTag("newChannelPurpose", newChannelPurpose)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, newChannelPurpose)
+	return a.app.SetPluginKey(pluginId, key, value)
 }
 
-func (s *OpenTracingAppLayer) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostWithProxyAddedToImageURLs")
+func (a *OpenTracingAppLayer) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPluginKeyWithExpiry")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostWithProxyAddedToImageURLs(post)
+	return a.app.SetPluginKeyWithExpiry(pluginId, key, value, expireInSeconds)
 }
 
-func (s *OpenTracingAppLayer) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PostWithProxyRemovedFromImageURLs")
+func (a *OpenTracingAppLayer) SetPluginKeyWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPluginKeyWithOptions")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PostWithProxyRemovedFromImageURLs(post)
+	return a.app.SetPluginKeyWithOptions(pluginId, key, value, options)
 }
-
-func (s *OpenTracingAppLayer) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PreparePostForClient")
 
-	span.SetTag("originalPost", originalPost)
+func (a *OpenTracingAppLayer) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPluginsEnvironment")
 
-	span.SetTag("isNewPost", isNewPost)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("isEditPost", isEditPost)
-
 	defer span.Finish()
 
-	return s.app.PreparePostForClient(originalPost, isNewPost, isEditPost)
+	a.app.SetPluginsEnvironment(pluginsEnvironment)
 }
 
-func (s *OpenTracingAppLayer) PreparePostListForClient(originalList *model.PostList) *model.PostList {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PreparePostListForClient")
+func (a *OpenTracingAppLayer) SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImage")
 
-	span.SetTag("originalList", originalList)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PreparePostListForClient(originalList)
+	return a.app.SetProfileImage(userId, imageData)
 }
 
-func (s *OpenTracingAppLayer) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ProcessSlackAttachments")
+func (a *OpenTracingAppLayer) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromFile")
 
-	span.SetTag("attachments", attachments)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ProcessSlackAttachments(attachments)
+	return a.app.SetProfileImageFromFile(userId, file)
 }
 
-func (s *OpenTracingAppLayer) ProcessSlackText(text string) string {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ProcessSlackText")
+func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetProfileImageFromMultiPartFile")
 
-	span.SetTag("text", text)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ProcessSlackText(text)
+	return a.app.SetProfileImageFromMultiPartFile(userId, file)
 }
-
-func (s *OpenTracingAppLayer) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PromoteGuestToUser")
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSamlIdpCertificateFromMetadata")
 
-	span.SetTag("requestorId", requestorId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.PromoteGuestToUser(user, requestorId)
+	return a.app.SetSamlIdpCertificateFromMetadata(data)
 }
 
-func (s *OpenTracingAppLayer) Publish(message *model.WebSocketEvent) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.Publish")
+func (a *OpenTracingAppLayer) SetStatusAwayIfNeeded(userId string, manual bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusAwayIfNeeded")
 
-	span.SetTag("message", message)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.Publish(message)
+	a.app.SetStatusAwayIfNeeded(userId, manual)
 }
 
-func (s *OpenTracingAppLayer) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PublishSkipClusterSend")
+func (a *OpenTracingAppLayer) SetStatusDoNotDisturb(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturb")
 
-	span.SetTag("message", message)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.PublishSkipClusterSend(message)
+	a.app.SetStatusDoNotDisturb(userId)
 }
 
-func (s *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.PurgeElasticsearchIndexes")
+func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userId string, activityAt int64) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusLastActivityAt")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.PurgeElasticsearchIndexes()
+	a.app.SetStatusLastActivityAt(userId, activityAt)
 }
 
-func (s *OpenTracingAppLayer) ReadFile(path string) ([]byte, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ReadFile")
+func (a *OpenTracingAppLayer) SetStatusOffline(userId string, manual bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOffline")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ReadFile(path)
+	a.app.SetStatusOffline(userId, manual)
 }
+
+func (a *OpenTracingAppLayer) SetStatusOnline(userId string, manual bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOnline")
 
-func (s *OpenTracingAppLayer) RecycleDatabaseConnection() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RecycleDatabaseConnection")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.RecycleDatabaseConnection()
+	a.app.SetStatusOnline(userId, manual)
 }
 
-func (s *OpenTracingAppLayer) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RegenCommandToken")
+func (a *OpenTracingAppLayer) SetStatusOutOfOffice(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusOutOfOffice")
 
-	span.SetTag("cmd", cmd)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RegenCommandToken(cmd)
+	a.app.SetStatusOutOfOffice(userId)
 }
 
-func (s *OpenTracingAppLayer) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RegenOutgoingWebhookToken")
+func (a *OpenTracingAppLayer) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIcon")
 
-	span.SetTag("hook", hook)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RegenOutgoingWebhookToken(hook)
+	return a.app.SetTeamIcon(teamId, imageData)
 }
 
-func (s *OpenTracingAppLayer) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RegenerateOAuthAppSecret")
+func (a *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromFile")
 
-	span.SetTag("app", app)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RegenerateOAuthAppSecret(app)
+	return a.app.SetTeamIconFromFile(team, file)
 }
 
-func (s *OpenTracingAppLayer) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RegenerateTeamInviteId")
+func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetTeamIconFromMultiPartFile")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RegenerateTeamInviteId(teamId)
+	return a.app.SetTeamIconFromMultiPartFile(teamId, file)
 }
-
-func (s *OpenTracingAppLayer) RegisterPluginCommand(pluginId string, command *model.Command) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RegisterPluginCommand")
 
-	span.SetTag("pluginId", pluginId)
+func (a *OpenTracingAppLayer) SetupInviteEmailRateLimiting() error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetupInviteEmailRateLimiting")
 
-	span.SetTag("command", command)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RegisterPluginCommand(pluginId, command)
+	return a.app.SetupInviteEmailRateLimiting()
 }
 
-func (s *OpenTracingAppLayer) ReloadConfig() error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ReloadConfig")
+func (a *OpenTracingAppLayer) ShutDownPlugins() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ShutDownPlugins")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.ReloadConfig()
+	a.app.ShutDownPlugins()
 }
 
-func (s *OpenTracingAppLayer) RemoveConfigListener(id string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveConfigListener")
+func (a *OpenTracingAppLayer) Shutdown() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Shutdown")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.RemoveConfigListener(id)
+	a.app.Shutdown()
 }
 
-func (s *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveFile")
+func (a *OpenTracingAppLayer) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddBotUser")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemoveFile(path)
+	return a.app.SlackAddBotUser(teamId, log)
 }
+
+func (a *OpenTracingAppLayer) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddChannels")
 
-func (s *OpenTracingAppLayer) RemoveLicense() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveLicense")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemoveLicense()
+	return a.app.SlackAddChannels(teamId, slackchannels, posts, users, uploads, botUser, importerLog)
 }
 
-func (s *OpenTracingAppLayer) RemoveLicenseListener(id string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveLicenseListener")
+func (a *OpenTracingAppLayer) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddPosts")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.RemoveLicenseListener(id)
+	a.app.SlackAddPosts(teamId, channel, posts, users, uploads, botUser)
 }
 
-func (s *OpenTracingAppLayer) RemovePlugin(id string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemovePlugin")
+func (a *OpenTracingAppLayer) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddUsers")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemovePlugin(id)
+	return a.app.SlackAddUsers(teamId, slackusers, importerLog)
 }
 
-func (s *OpenTracingAppLayer) RemovePluginFromData(data model.PluginEventData) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemovePluginFromData")
+func (a *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackImport")
 
-	span.SetTag("data", data)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.RemovePluginFromData(data)
+	return a.app.SlackImport(fileData, fileSize, teamID)
 }
 
-func (s *OpenTracingAppLayer) RemoveSamlIdpCertificate() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveSamlIdpCertificate")
+func (a *OpenTracingAppLayer) SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackUploadFile")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.RemoveSamlIdpCertificate()
+	return a.app.SlackUploadFile(slackPostFile, uploads, teamId, channelId, userId, slackTimestamp)
 }
+
+func (a *OpenTracingAppLayer) SoftDeleteTeam(teamId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SoftDeleteTeam")
 
-func (s *OpenTracingAppLayer) RemoveSamlPrivateCertificate() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveSamlPrivateCertificate")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemoveSamlPrivateCertificate()
+	return a.app.SoftDeleteTeam(teamId)
 }
 
-func (s *OpenTracingAppLayer) RemoveSamlPublicCertificate() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveSamlPublicCertificate")
+func (a *OpenTracingAppLayer) StartPushNotificationsHubWorkers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartPushNotificationsHubWorkers")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.RemoveSamlPublicCertificate()
+	a.app.StartPushNotificationsHubWorkers()
 }
 
-func (s *OpenTracingAppLayer) RemoveTeamIcon(teamId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveTeamIcon")
+func (a *OpenTracingAppLayer) StopPushNotificationsHubWorkers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StopPushNotificationsHubWorkers")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemoveTeamIcon(teamId)
+	a.app.StopPushNotificationsHubWorkers()
 }
 
-func (s *OpenTracingAppLayer) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveTeamMemberFromTeam")
+func (a *OpenTracingAppLayer) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SubmitInteractiveDialog")
 
-	span.SetTag("teamMember", teamMember)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("requestorId", requestorId)
-
 	defer span.Finish()
 
-	return s.app.RemoveTeamMemberFromTeam(teamMember, requestorId)
+	return a.app.SubmitInteractiveDialog(request)
 }
-
-func (s *OpenTracingAppLayer) RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveUserFromChannel")
 
-	span.SetTag("userIdToRemove", userIdToRemove)
+func (a *OpenTracingAppLayer) SwitchEmailToLdap(email string, password string, code string, ldapLoginId string, ldapPassword string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchEmailToLdap")
 
-	span.SetTag("removerUserId", removerUserId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("channel", channel)
-
 	defer span.Finish()
 
-	return s.app.RemoveUserFromChannel(userIdToRemove, removerUserId, channel)
+	return a.app.SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword)
 }
-
-func (s *OpenTracingAppLayer) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RemoveUserFromTeam")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email string, password string, code string, service string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchEmailToOAuth")
 
-	span.SetTag("requestorId", requestorId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RemoveUserFromTeam(teamId, userId, requestorId)
+	return a.app.SwitchEmailToOAuth(w, r, email, password, code, service)
 }
-
-func (s *OpenTracingAppLayer) RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RenameChannel")
-
-	span.SetTag("channel", channel)
 
-	span.SetTag("newChannelName", newChannelName)
+func (a *OpenTracingAppLayer) SwitchLdapToEmail(ldapPassword string, code string, email string, newPassword string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchLdapToEmail")
 
-	span.SetTag("newDisplayName", newDisplayName)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RenameChannel(channel, newChannelName, newDisplayName)
+	return a.app.SwitchLdapToEmail(ldapPassword, code, email, newPassword)
 }
 
-func (s *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RenameTeam")
+func (a *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, requesterId string) (string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SwitchOAuthToEmail")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("newTeamName", newTeamName)
-
-	span.SetTag("newDisplayName", newDisplayName)
-
 	defer span.Finish()
 
-	return s.app.RenameTeam(team, newTeamName, newDisplayName)
+	return a.app.SwitchOAuthToEmail(email, password, requesterId)
 }
 
-func (s *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString string, newPassword string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ResetPasswordFromToken")
+func (a *OpenTracingAppLayer) SyncLdap() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncLdap")
 
-	span.SetTag("userSuppliedTokenString", userSuppliedTokenString)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("newPassword", newPassword)
-
 	defer span.Finish()
 
-	return s.app.ResetPasswordFromToken(userSuppliedTokenString, newPassword)
+	a.app.SyncLdap()
 }
+
+func (a *OpenTracingAppLayer) SyncPlugins() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncPlugins")
 
-func (s *OpenTracingAppLayer) ResetPermissionsSystem() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ResetPermissionsSystem")
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.ResetPermissionsSystem()
+	return a.app.SyncPlugins()
 }
 
-func (s *OpenTracingAppLayer) RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RestoreChannel")
+func (a *OpenTracingAppLayer) SyncPluginsActiveState() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncPluginsActiveState")
 
-	span.SetTag("channel", channel)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	return s.app.RestoreChannel(channel, userId)
+	a.app.SyncPluginsActiveState()
 }
 
-func (s *OpenTracingAppLayer) RestoreTeam(teamId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RestoreTeam")
+func (a *OpenTracingAppLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncRolesAndMembership")
 
-	span.SetTag("teamId", teamId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RestoreTeam(teamId)
+	a.app.SyncRolesAndMembership(syncableID, syncableType)
 }
 
-func (s *OpenTracingAppLayer) RestrictUsersGetByPermissions(userId string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RestrictUsersGetByPermissions")
+func (a *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SyncSyncableRoles")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("options", options)
-
 	defer span.Finish()
 
-	return s.app.RestrictUsersGetByPermissions(userId, options)
+	return a.app.SyncSyncableRoles(syncableID, syncableType)
 }
-
-func (s *OpenTracingAppLayer) RestrictUsersSearchByPermissions(userId string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RestrictUsersSearchByPermissions")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersMinusGroupMembers")
 
-	span.SetTag("options", options)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RestrictUsersSearchByPermissions(userId, options)
+	return a.app.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 }
 
-func (s *OpenTracingAppLayer) RevokeAccessToken(token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeAccessToken")
+func (a *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersToAdd")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RevokeAccessToken(token)
+	return a.app.TeamMembersToAdd(since, teamID)
 }
 
-func (s *OpenTracingAppLayer) RevokeAllSessions(userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeAllSessions")
+func (a *OpenTracingAppLayer) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TeamMembersToRemove")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RevokeAllSessions(userId)
+	return a.app.TeamMembersToRemove(teamID)
 }
 
-func (s *OpenTracingAppLayer) RevokeSession(session *model.Session) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeSession")
+func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestElasticsearch")
 
-	span.SetTag("session", session)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RevokeSession(session)
+	return a.app.TestElasticsearch(cfg)
 }
 
-func (s *OpenTracingAppLayer) RevokeSessionById(sessionId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeSessionById")
+func (a *OpenTracingAppLayer) TestEmail(userId string, cfg *model.Config) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestEmail")
 
-	span.SetTag("sessionId", sessionId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RevokeSessionById(sessionId)
+	return a.app.TestEmail(userId, cfg)
 }
 
-func (s *OpenTracingAppLayer) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeSessionsForDeviceId")
+func (a *OpenTracingAppLayer) TestLdap() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestLdap")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("deviceId", deviceId)
-
-	span.SetTag("currentSessionId", currentSessionId)
-
 	defer span.Finish()
 
-	return s.app.RevokeSessionsForDeviceId(userId, deviceId, currentSessionId)
+	return a.app.TestLdap()
 }
 
-func (s *OpenTracingAppLayer) RevokeSessionsFromAllUsers() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeSessionsFromAllUsers")
+func (a *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestSiteURL")
 
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
 	defer span.Finish()
 
-	return s.app.RevokeSessionsFromAllUsers()
+	return a.app.TestSiteURL(siteURL)
 }
 
-func (s *OpenTracingAppLayer) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RevokeUserAccessToken")
+func (a *OpenTracingAppLayer) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ToggleMuteChannel")
 
-	span.SetTag("token", token)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RevokeUserAccessToken(token)
+	return a.app.ToggleMuteChannel(channelId, userId)
 }
-
-func (s *OpenTracingAppLayer) RolesGrantPermission(roleNames []string, permissionId string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.RolesGrantPermission")
 
-	span.SetTag("roleNames", roleNames)
+func (a *OpenTracingAppLayer) TotalWebsocketConnections() int {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TotalWebsocketConnections")
 
-	span.SetTag("permissionId", permissionId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.RolesGrantPermission(roleNames, permissionId)
+	return a.app.TotalWebsocketConnections()
 }
 
-func (s *OpenTracingAppLayer) SanitizeProfile(user *model.User, asAdmin bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SanitizeProfile")
+func (a *OpenTracingAppLayer) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TriggerWebhook")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	s.app.SanitizeProfile(user, asAdmin)
+	a.app.TriggerWebhook(payload, hook, post, channel)
 }
-
-func (s *OpenTracingAppLayer) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SanitizeTeam")
 
-	span.SetTag("session", session)
+func (a *OpenTracingAppLayer) UnregisterPluginCommand(pluginId string, teamId string, trigger string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnregisterPluginCommand")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SanitizeTeam(session, team)
+	a.app.UnregisterPluginCommand(pluginId, teamId, trigger)
 }
 
-func (s *OpenTracingAppLayer) SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SanitizeTeams")
+func (a *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnregisterPluginCommands")
 
-	span.SetTag("session", session)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teams", teams)
-
 	defer span.Finish()
 
-	return s.app.SanitizeTeams(session, teams)
+	a.app.UnregisterPluginCommands(pluginId)
 }
 
-func (s *OpenTracingAppLayer) SaveAndBroadcastStatus(status *model.Status) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveAndBroadcastStatus")
+func (a *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateActive")
 
-	span.SetTag("status", status)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.SaveAndBroadcastStatus(status)
+	return a.app.UpdateActive(user, active)
 }
 
-func (s *OpenTracingAppLayer) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveBrandImage")
+func (a *OpenTracingAppLayer) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotActive")
 
-	span.SetTag("imageData", imageData)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SaveBrandImage(imageData)
+	return a.app.UpdateBotActive(botUserId, active)
 }
 
-func (s *OpenTracingAppLayer) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveComplianceReport")
+func (a *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateBotOwner")
 
-	span.SetTag("job", job)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SaveComplianceReport(job)
+	return a.app.UpdateBotOwner(botUserId, newOwnerId)
 }
-
-func (s *OpenTracingAppLayer) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveConfig")
 
-	span.SetTag("newCfg", newCfg)
+func (a *OpenTracingAppLayer) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannel")
 
-	span.SetTag("sendConfigChangeClusterMessage", sendConfigChangeClusterMessage)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+	return a.app.UpdateChannel(channel)
 }
 
-func (s *OpenTracingAppLayer) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveLicense")
+func (a *OpenTracingAppLayer) UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelLastViewedAt")
 
-	span.SetTag("licenseBytes", licenseBytes)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SaveLicense(licenseBytes)
+	return a.app.UpdateChannelLastViewedAt(channelIds, userId)
 }
 
-func (s *OpenTracingAppLayer) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveReactionForPost")
+func (a *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberNotifyProps")
 
-	span.SetTag("reaction", reaction)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SaveReactionForPost(reaction)
+	return a.app.UpdateChannelMemberNotifyProps(data, channelId, userId)
 }
 
-func (s *OpenTracingAppLayer) SaveUserTermsOfService(userId string, termsOfServiceId string, accepted bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SaveUserTermsOfService")
+func (a *OpenTracingAppLayer) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberRoles")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("termsOfServiceId", termsOfServiceId)
-
-	span.SetTag("accepted", accepted)
-
 	defer span.Finish()
 
-	return s.app.SaveUserTermsOfService(userId, termsOfServiceId, accepted)
+	return a.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
 }
 
-func (s *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Scheme {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SchemesIterator")
+func (a *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelMemberSchemeRoles")
 
-	span.SetTag("batchSize", batchSize)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SchemesIterator(batchSize)
+	return a.app.UpdateChannelMemberSchemeRoles(channelId, userId, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 }
 
-func (s *OpenTracingAppLayer) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchAllChannels")
+func (a *OpenTracingAppLayer) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelPrivacy")
 
-	span.SetTag("term", term)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("opts", opts)
-
 	defer span.Finish()
 
-	return s.app.SearchAllChannels(term, opts)
+	return a.app.UpdateChannelPrivacy(oldChannel, user)
 }
 
-func (s *OpenTracingAppLayer) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchAllTeams")
+func (a *OpenTracingAppLayer) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateChannelScheme")
 
-	span.SetTag("searchOpts", searchOpts)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SearchAllTeams(searchOpts)
+	return a.app.UpdateChannelScheme(channel)
 }
-
-func (s *OpenTracingAppLayer) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchArchivedChannels")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("term", term)
+func (a *OpenTracingAppLayer) UpdateCommand(oldCmd *model.Command, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateCommand")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SearchArchivedChannels(teamId, term, userId)
+	return a.app.UpdateCommand(oldCmd, updatedCmd)
 }
 
-func (s *OpenTracingAppLayer) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchChannels")
-
-	span.SetTag("teamId", teamId)
+func (a *OpenTracingAppLayer) UpdateConfig(f func(*model.Config)) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateConfig")
 
-	span.SetTag("term", term)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SearchChannels(teamId, term)
+	a.app.UpdateConfig(f)
 }
 
-func (s *OpenTracingAppLayer) SearchChannelsForUser(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchChannelsForUser")
+func (a *OpenTracingAppLayer) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateEphemeralPost")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("term", term)
-
 	defer span.Finish()
 
-	return s.app.SearchChannelsForUser(userId, teamId, term)
+	return a.app.UpdateEphemeralPost(userId, post)
 }
-
-func (s *OpenTracingAppLayer) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchChannelsUserNotIn")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateGroup")
 
-	span.SetTag("term", term)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SearchChannelsUserNotIn(teamId, userId, term)
+	return a.app.UpdateGroup(group)
 }
 
-func (s *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchEmoji")
+func (a *OpenTracingAppLayer) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateGroupSyncable")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("prefixOnly", prefixOnly)
-
-	span.SetTag("limit", limit)
-
 	defer span.Finish()
 
-	return s.app.SearchEmoji(name, prefixOnly, limit)
+	return a.app.UpdateGroupSyncable(groupSyncable)
 }
-
-func (s *OpenTracingAppLayer) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchGroupChannels")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebhook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateIncomingWebhook")
 
-	span.SetTag("term", term)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.SearchGroupChannels(userId, term)
+	return a.app.UpdateIncomingWebhook(oldHook, updatedHook)
 }
 
-func (s *OpenTracingAppLayer) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchPostsInTeam")
+func (a *OpenTracingAppLayer) UpdateLastActivityAtIfNeeded(session model.Session) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateLastActivityAtIfNeeded")
 
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("paramsList", paramsList)
-
-	defer span.Finish()
-
-	return s.app.SearchPostsInTeam(teamId, paramsList)
-}
-
-func (s *OpenTracingAppLayer) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchPostsInTeamForUser")
-
-	span.SetTag("terms", terms)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("isOrSearch", isOrSearch)
-
-	span.SetTag("includeDeletedChannels", includeDeletedChannels)
-
-	span.SetTag("timeZoneOffset", timeZoneOffset)
-
-	span.SetTag("page", page)
-
-	span.SetTag("perPage", perPage)
-
-	defer span.Finish()
-
-	return s.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
-}
-
-func (s *OpenTracingAppLayer) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchPrivateTeams")
-
-	span.SetTag("term", term)
-
-	defer span.Finish()
-
-	return s.app.SearchPrivateTeams(term)
-}
-
-func (s *OpenTracingAppLayer) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchPublicTeams")
-
-	span.SetTag("term", term)
-
-	defer span.Finish()
-
-	return s.app.SearchPublicTeams(term)
-}
-
-func (s *OpenTracingAppLayer) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUserAccessTokens")
-
-	span.SetTag("term", term)
-
-	defer span.Finish()
-
-	return s.app.SearchUserAccessTokens(term)
-}
-
-func (s *OpenTracingAppLayer) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsers")
-
-	span.SetTag("props", props)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsers(props, options)
-}
-
-func (s *OpenTracingAppLayer) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsersInChannel")
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsersInChannel(channelId, term, options)
-}
-
-func (s *OpenTracingAppLayer) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsersInTeam")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsersInTeam(teamId, term, options)
-}
-
-func (s *OpenTracingAppLayer) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsersNotInChannel")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsersNotInChannel(teamId, channelId, term, options)
-}
-
-func (s *OpenTracingAppLayer) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsersNotInTeam")
-
-	span.SetTag("notInTeamId", notInTeamId)
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsersNotInTeam(notInTeamId, term, options)
-}
-
-func (s *OpenTracingAppLayer) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SearchUsersWithoutTeam")
-
-	span.SetTag("term", term)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SearchUsersWithoutTeam(term, options)
-}
-
-func (s *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendAckToPushProxy")
-
-	span.SetTag("ack", ack)
-
-	defer span.Finish()
-
-	return s.app.SendAckToPushProxy(ack)
-}
-
-func (s *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendAutoResponse")
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("receiver", receiver)
-
-	defer span.Finish()
-
-	return s.app.SendAutoResponse(channel, receiver)
-}
-
-func (s *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendAutoResponseIfNecessary")
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("sender", sender)
-
-	defer span.Finish()
-
-	return s.app.SendAutoResponseIfNecessary(channel, sender)
-}
-
-func (s *OpenTracingAppLayer) SendChangeUsernameEmail(oldUsername string, newUsername string, email string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendChangeUsernameEmail")
-
-	span.SetTag("oldUsername", oldUsername)
-
-	span.SetTag("newUsername", newUsername)
-
-	span.SetTag("email", email)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendDailyDiagnostics() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendDailyDiagnostics")
-
-	defer span.Finish()
-
-	s.app.SendDailyDiagnostics()
-}
-
-func (s *OpenTracingAppLayer) SendDeactivateAccountEmail(email string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendDeactivateAccountEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendDeactivateAccountEmail(email, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendDiagnostic(event string, properties map[string]interface{}) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendDiagnostic")
-
-	span.SetTag("event", event)
-
-	span.SetTag("properties", properties)
-
-	defer span.Finish()
-
-	s.app.SendDiagnostic(event, properties)
-}
-
-func (s *OpenTracingAppLayer) SendEmailChangeEmail(oldEmail string, newEmail string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendEmailChangeEmail")
-
-	span.SetTag("oldEmail", oldEmail)
-
-	span.SetTag("newEmail", newEmail)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendEmailChangeVerifyEmail(newUserEmail string, locale string, siteURL string, token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendEmailChangeVerifyEmail")
-
-	span.SetTag("newUserEmail", newUserEmail)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	span.SetTag("token", token)
-
-	defer span.Finish()
-
-	return s.app.SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token)
-}
-
-func (s *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendEmailVerification")
-
-	span.SetTag("user", user)
-
-	span.SetTag("newEmail", newEmail)
-
-	defer span.Finish()
-
-	return s.app.SendEmailVerification(user, newEmail)
-}
-
-func (s *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post) *model.Post {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendEphemeralPost")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("post", post)
-
-	defer span.Finish()
-
-	return s.app.SendEphemeralPost(userId, post)
-}
-
-func (s *OpenTracingAppLayer) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendGuestInviteEmails")
-
-	span.SetTag("team", team)
-
-	span.SetTag("channels", channels)
-
-	span.SetTag("senderName", senderName)
-
-	span.SetTag("senderUserId", senderUserId)
-
-	span.SetTag("invites", invites)
-
-	span.SetTag("siteURL", siteURL)
-
-	span.SetTag("message", message)
-
-	defer span.Finish()
-
-	s.app.SendGuestInviteEmails(team, channels, senderName, senderUserId, invites, siteURL, message)
-}
-
-func (s *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendInviteEmails")
-
-	span.SetTag("team", team)
-
-	span.SetTag("senderName", senderName)
-
-	span.SetTag("senderUserId", senderUserId)
-
-	span.SetTag("invites", invites)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	s.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendMail(to string, subject string, htmlBody string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendMail")
-
-	span.SetTag("to", to)
-
-	span.SetTag("subject", subject)
-
-	span.SetTag("htmlBody", htmlBody)
-
-	defer span.Finish()
-
-	return s.app.SendMail(to, subject, htmlBody)
-}
-
-func (s *OpenTracingAppLayer) SendMailWithEmbeddedFiles(to string, subject string, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendMailWithEmbeddedFiles")
-
-	span.SetTag("to", to)
-
-	span.SetTag("subject", subject)
-
-	span.SetTag("htmlBody", htmlBody)
-
-	span.SetTag("embeddedFiles", embeddedFiles)
-
-	defer span.Finish()
-
-	return s.app.SendMailWithEmbeddedFiles(to, subject, htmlBody, embeddedFiles)
-}
-
-func (s *OpenTracingAppLayer) SendMfaChangeEmail(email string, activated bool, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendMfaChangeEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("activated", activated)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendMfaChangeEmail(email, activated, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendNotificationMail(to string, subject string, htmlBody string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendNotificationMail")
-
-	span.SetTag("to", to)
-
-	span.SetTag("subject", subject)
-
-	span.SetTag("htmlBody", htmlBody)
-
-	defer span.Finish()
-
-	return s.app.SendNotificationMail(to, subject, htmlBody)
-}
-
-func (s *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendNotifications")
-
-	span.SetTag("post", post)
-
-	span.SetTag("team", team)
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("sender", sender)
-
-	span.SetTag("parentPostList", parentPostList)
-
-	defer span.Finish()
-
-	return s.app.SendNotifications(post, team, channel, sender, parentPostList)
-}
-
-func (s *OpenTracingAppLayer) SendPasswordChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendPasswordChangeEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("method", method)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendPasswordChangeEmail(email, method, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendPasswordReset")
-
-	span.SetTag("email", email)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendPasswordReset(email, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendPasswordResetEmail(email string, token *model.Token, locale string, siteURL string) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendPasswordResetEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("token", token)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendPasswordResetEmail(email, token, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendSignInChangeEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("method", method)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendSignInChangeEmail(email, method, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendUserAccessTokenAddedEmail(email string, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendUserAccessTokenAddedEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendUserAccessTokenAddedEmail(email, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) SendVerifyEmail(userEmail string, locale string, siteURL string, token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendVerifyEmail")
-
-	span.SetTag("userEmail", userEmail)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	span.SetTag("token", token)
-
-	defer span.Finish()
-
-	return s.app.SendVerifyEmail(userEmail, locale, siteURL, token)
-}
-
-func (s *OpenTracingAppLayer) SendWelcomeEmail(userId string, email string, verified bool, locale string, siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SendWelcomeEmail")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("email", email)
-
-	span.SetTag("verified", verified)
-
-	span.SetTag("locale", locale)
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.SendWelcomeEmail(userId, email, verified, locale, siteURL)
-}
-
-func (s *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId string, destinationPluginId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ServeInterPluginRequest")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	span.SetTag("sourcePluginId", sourcePluginId)
-
-	span.SetTag("destinationPluginId", destinationPluginId)
-
-	defer span.Finish()
-
-	s.app.ServeInterPluginRequest(w, r, sourcePluginId, destinationPluginId)
-}
-
-func (s *OpenTracingAppLayer) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ServePluginPublicRequest")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	defer span.Finish()
-
-	s.app.ServePluginPublicRequest(w, r)
-}
-
-func (s *OpenTracingAppLayer) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ServePluginRequest")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	defer span.Finish()
-
-	s.app.ServePluginRequest(w, r)
-}
-
-func (s *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ServerBusyStateChanged")
-
-	span.SetTag("sbs", sbs)
-
-	defer span.Finish()
-
-	s.app.ServerBusyStateChanged(sbs)
-}
-
-func (s *OpenTracingAppLayer) SessionCacheLength() int {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionCacheLength")
-
-	defer span.Finish()
-
-	return s.app.SessionCacheLength()
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionTo")
-
-	span.SetTag("session", session)
-
-	span.SetTag("permission", permission)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionTo(session, permission)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToChannel")
-
-	span.SetTag("session", session)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("permission", permission)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToChannel(session, channelId, permission)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToChannelByPost")
-
-	span.SetTag("session", session)
-
-	span.SetTag("postId", postId)
-
-	span.SetTag("permission", permission)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToChannelByPost(session, postId, permission)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToManageBot")
-
-	span.SetTag("session", session)
-
-	span.SetTag("botUserId", botUserId)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToManageBot(session, botUserId)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToTeam")
-
-	span.SetTag("session", session)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("permission", permission)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToTeam(session, teamId, permission)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToUser(session model.Session, userId string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToUser")
-
-	span.SetTag("session", session)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToUser(session, userId)
-}
-
-func (s *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SessionHasPermissionToUserOrBot")
-
-	span.SetTag("session", session)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.SessionHasPermissionToUserOrBot(session, userId)
-}
-
-func (s *OpenTracingAppLayer) SetActiveChannel(userId string, channelId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetActiveChannel")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("channelId", channelId)
-
-	defer span.Finish()
-
-	return s.app.SetActiveChannel(userId, channelId)
-}
-
-func (s *OpenTracingAppLayer) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetAutoResponderStatus")
-
-	span.SetTag("user", user)
-
-	span.SetTag("oldNotifyProps", oldNotifyProps)
-
-	defer span.Finish()
-
-	s.app.SetAutoResponderStatus(user, oldNotifyProps)
-}
-
-func (s *OpenTracingAppLayer) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetBotIconImage")
-
-	span.SetTag("botUserId", botUserId)
-
-	span.SetTag("file", file)
-
-	defer span.Finish()
-
-	return s.app.SetBotIconImage(botUserId, file)
-}
-
-func (s *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetBotIconImageFromMultiPartFile")
-
-	span.SetTag("botUserId", botUserId)
-
-	span.SetTag("imageData", imageData)
-
-	defer span.Finish()
-
-	return s.app.SetBotIconImageFromMultiPartFile(botUserId, imageData)
-}
-
-func (s *OpenTracingAppLayer) SetClientLicense(m map[string]string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetClientLicense")
-
-	span.SetTag("m", m)
-
-	defer span.Finish()
-
-	s.app.SetClientLicense(m)
-}
-
-func (s *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetDefaultProfileImage")
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.SetDefaultProfileImage(user)
-}
-
-func (s *OpenTracingAppLayer) SetDiagnosticId(id string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetDiagnosticId")
-
-	span.SetTag("id", id)
-
-	defer span.Finish()
-
-	s.app.SetDiagnosticId(id)
-}
-
-func (s *OpenTracingAppLayer) SetLicense(license *model.License) bool {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetLicense")
-
-	span.SetTag("license", license)
-
-	defer span.Finish()
-
-	return s.app.SetLicense(license)
-}
-
-func (s *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetPhase2PermissionsMigrationStatus")
-
-	span.SetTag("isComplete", isComplete)
-
-	defer span.Finish()
-
-	return s.app.SetPhase2PermissionsMigrationStatus(isComplete)
-}
-
-func (s *OpenTracingAppLayer) SetPluginKey(pluginId string, key string, value []byte) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetPluginKey")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("key", key)
-
-	span.SetTag("value", value)
-
-	defer span.Finish()
-
-	return s.app.SetPluginKey(pluginId, key, value)
-}
-
-func (s *OpenTracingAppLayer) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetPluginKeyWithExpiry")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("key", key)
-
-	span.SetTag("value", value)
-
-	span.SetTag("expireInSeconds", expireInSeconds)
-
-	defer span.Finish()
-
-	return s.app.SetPluginKeyWithExpiry(pluginId, key, value, expireInSeconds)
-}
-
-func (s *OpenTracingAppLayer) SetPluginKeyWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetPluginKeyWithOptions")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("key", key)
-
-	span.SetTag("value", value)
-
-	span.SetTag("options", options)
-
-	defer span.Finish()
-
-	return s.app.SetPluginKeyWithOptions(pluginId, key, value, options)
-}
-
-func (s *OpenTracingAppLayer) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetPluginsEnvironment")
-
-	span.SetTag("pluginsEnvironment", pluginsEnvironment)
-
-	defer span.Finish()
-
-	s.app.SetPluginsEnvironment(pluginsEnvironment)
-}
-
-func (s *OpenTracingAppLayer) SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetProfileImage")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("imageData", imageData)
-
-	defer span.Finish()
-
-	return s.app.SetProfileImage(userId, imageData)
-}
-
-func (s *OpenTracingAppLayer) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetProfileImageFromFile")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("file", file)
-
-	defer span.Finish()
-
-	return s.app.SetProfileImageFromFile(userId, file)
-}
-
-func (s *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetProfileImageFromMultiPartFile")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("file", file)
-
-	defer span.Finish()
-
-	return s.app.SetProfileImageFromMultiPartFile(userId, file)
-}
-
-func (s *OpenTracingAppLayer) SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetSamlIdpCertificateFromMetadata")
-
-	span.SetTag("data", data)
-
-	defer span.Finish()
-
-	return s.app.SetSamlIdpCertificateFromMetadata(data)
-}
-
-func (s *OpenTracingAppLayer) SetStatusAwayIfNeeded(userId string, manual bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusAwayIfNeeded")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("manual", manual)
-
-	defer span.Finish()
-
-	s.app.SetStatusAwayIfNeeded(userId, manual)
-}
-
-func (s *OpenTracingAppLayer) SetStatusDoNotDisturb(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusDoNotDisturb")
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	s.app.SetStatusDoNotDisturb(userId)
-}
-
-func (s *OpenTracingAppLayer) SetStatusLastActivityAt(userId string, activityAt int64) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusLastActivityAt")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("activityAt", activityAt)
-
-	defer span.Finish()
-
-	s.app.SetStatusLastActivityAt(userId, activityAt)
-}
-
-func (s *OpenTracingAppLayer) SetStatusOffline(userId string, manual bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusOffline")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("manual", manual)
-
-	defer span.Finish()
-
-	s.app.SetStatusOffline(userId, manual)
-}
-
-func (s *OpenTracingAppLayer) SetStatusOnline(userId string, manual bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusOnline")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("manual", manual)
-
-	defer span.Finish()
-
-	s.app.SetStatusOnline(userId, manual)
-}
-
-func (s *OpenTracingAppLayer) SetStatusOutOfOffice(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetStatusOutOfOffice")
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	s.app.SetStatusOutOfOffice(userId)
-}
-
-func (s *OpenTracingAppLayer) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetTeamIcon")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("imageData", imageData)
-
-	defer span.Finish()
-
-	return s.app.SetTeamIcon(teamId, imageData)
-}
-
-func (s *OpenTracingAppLayer) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetTeamIconFromFile")
-
-	span.SetTag("team", team)
-
-	span.SetTag("file", file)
-
-	defer span.Finish()
-
-	return s.app.SetTeamIconFromFile(team, file)
-}
-
-func (s *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetTeamIconFromMultiPartFile")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("file", file)
-
-	defer span.Finish()
-
-	return s.app.SetTeamIconFromMultiPartFile(teamId, file)
-}
-
-func (s *OpenTracingAppLayer) SetupInviteEmailRateLimiting() error {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SetupInviteEmailRateLimiting")
-
-	defer span.Finish()
-
-	return s.app.SetupInviteEmailRateLimiting()
-}
-
-func (s *OpenTracingAppLayer) ShutDownPlugins() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ShutDownPlugins")
-
-	defer span.Finish()
-
-	s.app.ShutDownPlugins()
-}
-
-func (s *OpenTracingAppLayer) Shutdown() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.Shutdown")
-
-	defer span.Finish()
-
-	s.app.Shutdown()
-}
-
-func (s *OpenTracingAppLayer) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackAddBotUser")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("log", log)
-
-	defer span.Finish()
-
-	return s.app.SlackAddBotUser(teamId, log)
-}
-
-func (s *OpenTracingAppLayer) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackAddChannels")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("slackchannels", slackchannels)
-
-	span.SetTag("posts", posts)
-
-	span.SetTag("users", users)
-
-	span.SetTag("uploads", uploads)
-
-	span.SetTag("botUser", botUser)
-
-	span.SetTag("importerLog", importerLog)
-
-	defer span.Finish()
-
-	return s.app.SlackAddChannels(teamId, slackchannels, posts, users, uploads, botUser, importerLog)
-}
-
-func (s *OpenTracingAppLayer) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackAddPosts")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channel", channel)
-
-	span.SetTag("posts", posts)
-
-	span.SetTag("users", users)
-
-	span.SetTag("uploads", uploads)
-
-	span.SetTag("botUser", botUser)
-
-	defer span.Finish()
-
-	s.app.SlackAddPosts(teamId, channel, posts, users, uploads, botUser)
-}
-
-func (s *OpenTracingAppLayer) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackAddUsers")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("slackusers", slackusers)
-
-	span.SetTag("importerLog", importerLog)
-
-	defer span.Finish()
-
-	return s.app.SlackAddUsers(teamId, slackusers, importerLog)
-}
-
-func (s *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackImport")
-
-	span.SetTag("fileData", fileData)
-
-	span.SetTag("fileSize", fileSize)
-
-	span.SetTag("teamID", teamID)
-
-	defer span.Finish()
-
-	return s.app.SlackImport(fileData, fileSize, teamID)
-}
-
-func (s *OpenTracingAppLayer) SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SlackUploadFile")
-
-	span.SetTag("slackPostFile", slackPostFile)
-
-	span.SetTag("uploads", uploads)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("slackTimestamp", slackTimestamp)
-
-	defer span.Finish()
-
-	return s.app.SlackUploadFile(slackPostFile, uploads, teamId, channelId, userId, slackTimestamp)
-}
-
-func (s *OpenTracingAppLayer) SoftDeleteTeam(teamId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SoftDeleteTeam")
-
-	span.SetTag("teamId", teamId)
-
-	defer span.Finish()
-
-	return s.app.SoftDeleteTeam(teamId)
-}
-
-func (s *OpenTracingAppLayer) StartPushNotificationsHubWorkers() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.StartPushNotificationsHubWorkers")
-
-	defer span.Finish()
-
-	s.app.StartPushNotificationsHubWorkers()
-}
-
-func (s *OpenTracingAppLayer) StopPushNotificationsHubWorkers() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.StopPushNotificationsHubWorkers")
-
-	defer span.Finish()
-
-	s.app.StopPushNotificationsHubWorkers()
-}
-
-func (s *OpenTracingAppLayer) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SubmitInteractiveDialog")
-
-	span.SetTag("request", request)
-
-	defer span.Finish()
-
-	return s.app.SubmitInteractiveDialog(request)
-}
-
-func (s *OpenTracingAppLayer) SwitchEmailToLdap(email string, password string, code string, ldapLoginId string, ldapPassword string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SwitchEmailToLdap")
-
-	span.SetTag("email", email)
-
-	span.SetTag("password", password)
-
-	span.SetTag("code", code)
-
-	span.SetTag("ldapLoginId", ldapLoginId)
-
-	span.SetTag("ldapPassword", ldapPassword)
-
-	defer span.Finish()
-
-	return s.app.SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword)
-}
-
-func (s *OpenTracingAppLayer) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email string, password string, code string, service string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SwitchEmailToOAuth")
-
-	span.SetTag("w", w)
-
-	span.SetTag("r", r)
-
-	span.SetTag("email", email)
-
-	span.SetTag("password", password)
-
-	span.SetTag("code", code)
-
-	span.SetTag("service", service)
-
-	defer span.Finish()
-
-	return s.app.SwitchEmailToOAuth(w, r, email, password, code, service)
-}
-
-func (s *OpenTracingAppLayer) SwitchLdapToEmail(ldapPassword string, code string, email string, newPassword string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SwitchLdapToEmail")
-
-	span.SetTag("ldapPassword", ldapPassword)
-
-	span.SetTag("code", code)
-
-	span.SetTag("email", email)
-
-	span.SetTag("newPassword", newPassword)
-
-	defer span.Finish()
-
-	return s.app.SwitchLdapToEmail(ldapPassword, code, email, newPassword)
-}
-
-func (s *OpenTracingAppLayer) SwitchOAuthToEmail(email string, password string, requesterId string) (string, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SwitchOAuthToEmail")
-
-	span.SetTag("email", email)
-
-	span.SetTag("password", password)
-
-	span.SetTag("requesterId", requesterId)
-
-	defer span.Finish()
-
-	return s.app.SwitchOAuthToEmail(email, password, requesterId)
-}
-
-func (s *OpenTracingAppLayer) SyncLdap() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SyncLdap")
-
-	defer span.Finish()
-
-	s.app.SyncLdap()
-}
-
-func (s *OpenTracingAppLayer) SyncPlugins() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SyncPlugins")
-
-	defer span.Finish()
-
-	return s.app.SyncPlugins()
-}
-
-func (s *OpenTracingAppLayer) SyncPluginsActiveState() {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SyncPluginsActiveState")
-
-	defer span.Finish()
-
-	s.app.SyncPluginsActiveState()
-}
-
-func (s *OpenTracingAppLayer) SyncRolesAndMembership(syncableID string, syncableType model.GroupSyncableType) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SyncRolesAndMembership")
-
-	span.SetTag("syncableID", syncableID)
-
-	span.SetTag("syncableType", syncableType)
-
-	defer span.Finish()
-
-	s.app.SyncRolesAndMembership(syncableID, syncableType)
-}
-
-func (s *OpenTracingAppLayer) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.SyncSyncableRoles")
-
-	span.SetTag("syncableID", syncableID)
-
-	span.SetTag("syncableType", syncableType)
-
-	defer span.Finish()
-
-	return s.app.SyncSyncableRoles(syncableID, syncableType)
-}
-
-func (s *OpenTracingAppLayer) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TeamMembersMinusGroupMembers")
-
-	span.SetTag("teamID", teamID)
-
-	span.SetTag("groupIDs", groupIDs)
-
-	span.SetTag("page", page)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("perPage", perPage)
-
-	defer span.Finish()
-
-	return s.app.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
-}
-
-func (s *OpenTracingAppLayer) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TeamMembersToAdd")
-
-	span.SetTag("since", since)
-
-	span.SetTag("teamID", teamID)
-
-	defer span.Finish()
-
-	return s.app.TeamMembersToAdd(since, teamID)
-}
-
-func (s *OpenTracingAppLayer) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TeamMembersToRemove")
-
-	span.SetTag("teamID", teamID)
-
-	defer span.Finish()
-
-	return s.app.TeamMembersToRemove(teamID)
-}
-
-func (s *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TestElasticsearch")
-
-	span.SetTag("cfg", cfg)
-
-	defer span.Finish()
-
-	return s.app.TestElasticsearch(cfg)
-}
-
-func (s *OpenTracingAppLayer) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TestEmail")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("cfg", cfg)
-
-	defer span.Finish()
-
-	return s.app.TestEmail(userId, cfg)
-}
-
-func (s *OpenTracingAppLayer) TestLdap() *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TestLdap")
-
-	defer span.Finish()
-
-	return s.app.TestLdap()
-}
-
-func (s *OpenTracingAppLayer) TestSiteURL(siteURL string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TestSiteURL")
-
-	span.SetTag("siteURL", siteURL)
-
-	defer span.Finish()
-
-	return s.app.TestSiteURL(siteURL)
-}
-
-func (s *OpenTracingAppLayer) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ToggleMuteChannel")
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.ToggleMuteChannel(channelId, userId)
-}
-
-func (s *OpenTracingAppLayer) TotalWebsocketConnections() int {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TotalWebsocketConnections")
-
-	defer span.Finish()
-
-	return s.app.TotalWebsocketConnections()
-}
-
-func (s *OpenTracingAppLayer) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.TriggerWebhook")
-
-	span.SetTag("payload", payload)
-
-	span.SetTag("hook", hook)
-
-	span.SetTag("post", post)
-
-	span.SetTag("channel", channel)
-
-	defer span.Finish()
-
-	s.app.TriggerWebhook(payload, hook, post, channel)
-}
-
-func (s *OpenTracingAppLayer) UnregisterPluginCommand(pluginId string, teamId string, trigger string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UnregisterPluginCommand")
-
-	span.SetTag("pluginId", pluginId)
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("trigger", trigger)
-
-	defer span.Finish()
-
-	s.app.UnregisterPluginCommand(pluginId, teamId, trigger)
-}
-
-func (s *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UnregisterPluginCommands")
-
-	span.SetTag("pluginId", pluginId)
-
-	defer span.Finish()
-
-	s.app.UnregisterPluginCommands(pluginId)
-}
-
-func (s *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateActive")
-
-	span.SetTag("user", user)
-
-	span.SetTag("active", active)
-
-	defer span.Finish()
-
-	return s.app.UpdateActive(user, active)
-}
-
-func (s *OpenTracingAppLayer) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateBotActive")
-
-	span.SetTag("botUserId", botUserId)
-
-	span.SetTag("active", active)
-
-	defer span.Finish()
-
-	return s.app.UpdateBotActive(botUserId, active)
-}
-
-func (s *OpenTracingAppLayer) UpdateBotOwner(botUserId string, newOwnerId string) (*model.Bot, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateBotOwner")
-
-	span.SetTag("botUserId", botUserId)
-
-	span.SetTag("newOwnerId", newOwnerId)
-
-	defer span.Finish()
-
-	return s.app.UpdateBotOwner(botUserId, newOwnerId)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannel")
-
-	span.SetTag("channel", channel)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannel(channel)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelLastViewedAt")
-
-	span.SetTag("channelIds", channelIds)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelLastViewedAt(channelIds, userId)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelMemberNotifyProps")
-
-	span.SetTag("data", data)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelMemberNotifyProps(data, channelId, userId)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelMemberRoles")
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("newRoles", newRoles)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelMemberSchemeRoles")
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("isSchemeGuest", isSchemeGuest)
-
-	span.SetTag("isSchemeUser", isSchemeUser)
-
-	span.SetTag("isSchemeAdmin", isSchemeAdmin)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelMemberSchemeRoles(channelId, userId, isSchemeGuest, isSchemeUser, isSchemeAdmin)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelPrivacy")
-
-	span.SetTag("oldChannel", oldChannel)
-
-	span.SetTag("user", user)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelPrivacy(oldChannel, user)
-}
-
-func (s *OpenTracingAppLayer) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateChannelScheme")
-
-	span.SetTag("channel", channel)
-
-	defer span.Finish()
-
-	return s.app.UpdateChannelScheme(channel)
-}
-
-func (s *OpenTracingAppLayer) UpdateCommand(oldCmd *model.Command, updatedCmd *model.Command) (*model.Command, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateCommand")
-
-	span.SetTag("oldCmd", oldCmd)
-
-	span.SetTag("updatedCmd", updatedCmd)
-
-	defer span.Finish()
-
-	return s.app.UpdateCommand(oldCmd, updatedCmd)
-}
-
-func (s *OpenTracingAppLayer) UpdateConfig(f func(*model.Config)) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateConfig")
-
-	span.SetTag("f", f)
-
-	defer span.Finish()
-
-	s.app.UpdateConfig(f)
-}
-
-func (s *OpenTracingAppLayer) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateEphemeralPost")
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("post", post)
-
-	defer span.Finish()
-
-	return s.app.UpdateEphemeralPost(userId, post)
-}
-
-func (s *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateGroup")
-
-	span.SetTag("group", group)
-
-	defer span.Finish()
-
-	return s.app.UpdateGroup(group)
-}
-
-func (s *OpenTracingAppLayer) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateGroupSyncable")
-
-	span.SetTag("groupSyncable", groupSyncable)
-
-	defer span.Finish()
-
-	return s.app.UpdateGroupSyncable(groupSyncable)
-}
-
-func (s *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebhook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateIncomingWebhook")
-
-	span.SetTag("oldHook", oldHook)
-
-	span.SetTag("updatedHook", updatedHook)
-
-	defer span.Finish()
-
-	return s.app.UpdateIncomingWebhook(oldHook, updatedHook)
-}
-
-func (s *OpenTracingAppLayer) UpdateLastActivityAtIfNeeded(session model.Session) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateLastActivityAtIfNeeded")
-
-	span.SetTag("session", session)
-
 	defer span.Finish()
 
-	s.app.UpdateLastActivityAtIfNeeded(session)
+	a.app.UpdateLastActivityAtIfNeeded(session)
 }
 
-func (s *OpenTracingAppLayer) UpdateMfa(activate bool, userId string, token string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateMfa")
+func (a *OpenTracingAppLayer) UpdateMfa(activate bool, userId string, token string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateMfa")
 
-	span.SetTag("activate", activate)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
-	span.SetTag("token", token)
-
 	defer span.Finish()
 
-	return s.app.UpdateMfa(activate, userId, token)
+	return a.app.UpdateMfa(activate, userId, token)
 }
 
-func (s *OpenTracingAppLayer) UpdateMobileAppBadge(userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateMobileAppBadge")
+func (a *OpenTracingAppLayer) UpdateMobileAppBadge(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateMobileAppBadge")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.UpdateMobileAppBadge(userId)
+	a.app.UpdateMobileAppBadge(userId)
 }
 
-func (s *OpenTracingAppLayer) UpdateMobileAppBadgeSync(userId string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateMobileAppBadgeSync")
+func (a *OpenTracingAppLayer) UpdateMobileAppBadgeSync(userId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateMobileAppBadgeSync")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateMobileAppBadgeSync(userId)
+	return a.app.UpdateMobileAppBadgeSync(userId)
 }
-
-func (s *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateOAuthUserAttrs")
-
-	span.SetTag("userData", userData)
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateOAuthUserAttrs")
 
-	span.SetTag("provider", provider)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("service", service)
-
 	defer span.Finish()
 
-	return s.app.UpdateOAuthUserAttrs(userData, user, provider, service)
+	return a.app.UpdateOAuthUserAttrs(userData, user, provider, service)
 }
-
-func (s *OpenTracingAppLayer) UpdateOauthApp(oldApp *model.OAuthApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateOauthApp")
 
-	span.SetTag("oldApp", oldApp)
+func (a *OpenTracingAppLayer) UpdateOauthApp(oldApp *model.OAuthApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateOauthApp")
 
-	span.SetTag("updatedApp", updatedApp)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateOauthApp(oldApp, updatedApp)
+	return a.app.UpdateOauthApp(oldApp, updatedApp)
 }
 
-func (s *OpenTracingAppLayer) UpdateOutgoingWebhook(oldHook *model.OutgoingWebhook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateOutgoingWebhook")
+func (a *OpenTracingAppLayer) UpdateOutgoingWebhook(oldHook *model.OutgoingWebhook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateOutgoingWebhook")
 
-	span.SetTag("oldHook", oldHook)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("updatedHook", updatedHook)
-
 	defer span.Finish()
 
-	return s.app.UpdateOutgoingWebhook(oldHook, updatedHook)
+	return a.app.UpdateOutgoingWebhook(oldHook, updatedHook)
 }
-
-func (s *OpenTracingAppLayer) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePassword")
 
-	span.SetTag("user", user)
+func (a *OpenTracingAppLayer) UpdatePassword(user *model.User, newPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePassword")
 
-	span.SetTag("newPassword", newPassword)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdatePassword(user, newPassword)
+	return a.app.UpdatePassword(user, newPassword)
 }
 
-func (s *OpenTracingAppLayer) UpdatePasswordAsUser(userId string, currentPassword string, newPassword string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePasswordAsUser")
+func (a *OpenTracingAppLayer) UpdatePasswordAsUser(userId string, currentPassword string, newPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordAsUser")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("currentPassword", currentPassword)
-
-	span.SetTag("newPassword", newPassword)
-
 	defer span.Finish()
 
-	return s.app.UpdatePasswordAsUser(userId, currentPassword, newPassword)
+	return a.app.UpdatePasswordAsUser(userId, currentPassword, newPassword)
 }
-
-func (s *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(userId string, newPassword string, method string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePasswordByUserIdSendEmail")
-
-	span.SetTag("userId", userId)
 
-	span.SetTag("newPassword", newPassword)
+func (a *OpenTracingAppLayer) UpdatePasswordByUserIdSendEmail(userId string, newPassword string, method string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordByUserIdSendEmail")
 
-	span.SetTag("method", method)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdatePasswordByUserIdSendEmail(userId, newPassword, method)
+	return a.app.UpdatePasswordByUserIdSendEmail(userId, newPassword, method)
 }
 
-func (s *OpenTracingAppLayer) UpdatePasswordSendEmail(user *model.User, newPassword string, method string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePasswordSendEmail")
+func (a *OpenTracingAppLayer) UpdatePasswordSendEmail(user *model.User, newPassword string, method string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePasswordSendEmail")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("newPassword", newPassword)
-
-	span.SetTag("method", method)
-
 	defer span.Finish()
 
-	return s.app.UpdatePasswordSendEmail(user, newPassword, method)
+	return a.app.UpdatePasswordSendEmail(user, newPassword, method)
 }
 
-func (s *OpenTracingAppLayer) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePost")
+func (a *OpenTracingAppLayer) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePost")
 
-	span.SetTag("post", post)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("safeUpdate", safeUpdate)
-
 	defer span.Finish()
 
-	return s.app.UpdatePost(post, safeUpdate)
+	return a.app.UpdatePost(post, safeUpdate)
 }
-
-func (s *OpenTracingAppLayer) UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdatePreferences")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdatePreferences")
 
-	span.SetTag("preferences", preferences)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdatePreferences(userId, preferences)
+	return a.app.UpdatePreferences(userId, preferences)
 }
 
-func (s *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateRole")
+func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRole")
 
-	span.SetTag("role", role)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateRole(role)
+	return a.app.UpdateRole(role)
 }
 
-func (s *OpenTracingAppLayer) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateScheme")
+func (a *OpenTracingAppLayer) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateScheme")
 
-	span.SetTag("scheme", scheme)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateScheme(scheme)
+	return a.app.UpdateScheme(scheme)
 }
 
-func (s *OpenTracingAppLayer) UpdateSessionsIsGuest(userId string, isGuest bool) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateSessionsIsGuest")
+func (a *OpenTracingAppLayer) UpdateSessionsIsGuest(userId string, isGuest bool) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSessionsIsGuest")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("isGuest", isGuest)
-
 	defer span.Finish()
 
-	s.app.UpdateSessionsIsGuest(userId, isGuest)
+	a.app.UpdateSessionsIsGuest(userId, isGuest)
 }
 
-func (s *OpenTracingAppLayer) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateTeam")
+func (a *OpenTracingAppLayer) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateTeam")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateTeam(team)
+	return a.app.UpdateTeam(team)
 }
-
-func (s *OpenTracingAppLayer) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateTeamMemberRoles")
-
-	span.SetTag("teamId", teamId)
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateTeamMemberRoles")
 
-	span.SetTag("newRoles", newRoles)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
+	return a.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
-
-func (s *OpenTracingAppLayer) UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateTeamMemberSchemeRoles")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("userId", userId)
 
-	span.SetTag("isSchemeGuest", isSchemeGuest)
+func (a *OpenTracingAppLayer) UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateTeamMemberSchemeRoles")
 
-	span.SetTag("isSchemeUser", isSchemeUser)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("isSchemeAdmin", isSchemeAdmin)
-
 	defer span.Finish()
 
-	return s.app.UpdateTeamMemberSchemeRoles(teamId, userId, isSchemeGuest, isSchemeUser, isSchemeAdmin)
+	return a.app.UpdateTeamMemberSchemeRoles(teamId, userId, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 }
-
-func (s *OpenTracingAppLayer) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateTeamPrivacy")
-
-	span.SetTag("teamId", teamId)
 
-	span.SetTag("teamType", teamType)
+func (a *OpenTracingAppLayer) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateTeamPrivacy")
 
-	span.SetTag("allowOpenInvite", allowOpenInvite)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateTeamPrivacy(teamId, teamType, allowOpenInvite)
+	return a.app.UpdateTeamPrivacy(teamId, teamType, allowOpenInvite)
 }
 
-func (s *OpenTracingAppLayer) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateTeamScheme")
+func (a *OpenTracingAppLayer) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateTeamScheme")
 
-	span.SetTag("team", team)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateTeamScheme(team)
+	return a.app.UpdateTeamScheme(team)
 }
 
-func (s *OpenTracingAppLayer) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUser")
+func (a *OpenTracingAppLayer) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUser")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("sendNotifications", sendNotifications)
-
 	defer span.Finish()
 
-	return s.app.UpdateUser(user, sendNotifications)
+	return a.app.UpdateUser(user, sendNotifications)
 }
-
-func (s *OpenTracingAppLayer) UpdateUserActive(userId string, active bool) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUserActive")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateUserActive(userId string, active bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserActive")
 
-	span.SetTag("active", active)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateUserActive(userId, active)
+	return a.app.UpdateUserActive(userId, active)
 }
 
-func (s *OpenTracingAppLayer) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUserAsUser")
+func (a *OpenTracingAppLayer) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserAsUser")
 
-	span.SetTag("user", user)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("asAdmin", asAdmin)
-
 	defer span.Finish()
 
-	return s.app.UpdateUserAsUser(user, asAdmin)
+	return a.app.UpdateUserAsUser(user, asAdmin)
 }
-
-func (s *OpenTracingAppLayer) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUserAuth")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserAuth")
 
-	span.SetTag("userAuth", userAuth)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpdateUserAuth(userId, userAuth)
+	return a.app.UpdateUserAuth(userId, userAuth)
 }
 
-func (s *OpenTracingAppLayer) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUserNotifyProps")
+func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserNotifyProps")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("props", props)
-
 	defer span.Finish()
 
-	return s.app.UpdateUserNotifyProps(userId, props)
+	return a.app.UpdateUserNotifyProps(userId, props)
 }
-
-func (s *OpenTracingAppLayer) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateUserRoles")
 
-	span.SetTag("userId", userId)
+func (a *OpenTracingAppLayer) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserRoles")
 
-	span.SetTag("newRoles", newRoles)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("sendWebSocketEvent", sendWebSocketEvent)
-
 	defer span.Finish()
 
-	return s.app.UpdateUserRoles(userId, newRoles, sendWebSocketEvent)
+	return a.app.UpdateUserRoles(userId, newRoles, sendWebSocketEvent)
 }
-
-func (s *OpenTracingAppLayer) UpdateWebConnUserActivity(session model.Session, activityAt int64) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpdateWebConnUserActivity")
 
-	span.SetTag("session", session)
+func (a *OpenTracingAppLayer) UpdateWebConnUserActivity(session model.Session, activityAt int64) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateWebConnUserActivity")
 
-	span.SetTag("activityAt", activityAt)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.UpdateWebConnUserActivity(session, activityAt)
+	a.app.UpdateWebConnUserActivity(session, activityAt)
 }
 
-func (s *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UploadEmojiImage")
+func (a *OpenTracingAppLayer) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadEmojiImage")
 
-	span.SetTag("id", id)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("imageData", imageData)
-
 	defer span.Finish()
 
-	return s.app.UploadEmojiImage(id, imageData)
+	return a.app.UploadEmojiImage(id, imageData)
 }
-
-func (s *OpenTracingAppLayer) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UploadFile")
 
-	span.SetTag("data", data)
+func (a *OpenTracingAppLayer) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFile")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("filename", filename)
-
 	defer span.Finish()
 
-	return s.app.UploadFile(data, channelId, filename)
+	return a.app.UploadFile(data, channelId, filename)
 }
-
-func (s *OpenTracingAppLayer) UploadFileX(channelId string, name string, input io.Reader, opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UploadFileX")
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) UploadFileX(channelId string, name string, input io.Reader, opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFileX")
 
-	span.SetTag("name", name)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("input", input)
-
-	span.SetTag("opts", opts)
-
 	defer span.Finish()
 
-	return s.app.UploadFileX(channelId, name, input, opts...)
+	return a.app.UploadFileX(channelId, name, input, opts...)
 }
-
-func (s *OpenTracingAppLayer) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UploadFiles")
-
-	span.SetTag("teamId", teamId)
-
-	span.SetTag("channelId", channelId)
-
-	span.SetTag("userId", userId)
-
-	span.SetTag("files", files)
 
-	span.SetTag("filenames", filenames)
+func (a *OpenTracingAppLayer) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadFiles")
 
-	span.SetTag("clientIds", clientIds)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("now", now)
-
 	defer span.Finish()
 
-	return s.app.UploadFiles(teamId, channelId, userId, files, filenames, clientIds, now)
+	return a.app.UploadFiles(teamId, channelId, userId, files, filenames, clientIds, now)
 }
-
-func (s *OpenTracingAppLayer) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UploadMultipartFiles")
-
-	span.SetTag("teamId", teamId)
 
-	span.SetTag("channelId", channelId)
+func (a *OpenTracingAppLayer) UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UploadMultipartFiles")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("fileHeaders", fileHeaders)
-
-	span.SetTag("clientIds", clientIds)
-
-	span.SetTag("now", now)
-
 	defer span.Finish()
 
-	return s.app.UploadMultipartFiles(teamId, channelId, userId, fileHeaders, clientIds, now)
+	return a.app.UploadMultipartFiles(teamId, channelId, userId, fileHeaders, clientIds, now)
 }
-
-func (s *OpenTracingAppLayer) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpsertGroupMember")
 
-	span.SetTag("groupID", groupID)
+func (a *OpenTracingAppLayer) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpsertGroupMember")
 
-	span.SetTag("userID", userID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpsertGroupMember(groupID, userID)
+	return a.app.UpsertGroupMember(groupID, userID)
 }
 
-func (s *OpenTracingAppLayer) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UpsertGroupSyncable")
+func (a *OpenTracingAppLayer) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpsertGroupSyncable")
 
-	span.SetTag("groupSyncable", groupSyncable)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.UpsertGroupSyncable(groupSyncable)
+	return a.app.UpsertGroupSyncable(groupSyncable)
 }
 
-func (s *OpenTracingAppLayer) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UserCanSeeOtherUser")
+func (a *OpenTracingAppLayer) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserCanSeeOtherUser")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("otherUserId", otherUserId)
-
 	defer span.Finish()
 
-	return s.app.UserCanSeeOtherUser(userId, otherUserId)
+	return a.app.UserCanSeeOtherUser(userId, otherUserId)
 }
-
-func (s *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.UserIsInAdminRoleGroup")
 
-	span.SetTag("userID", userID)
+func (a *OpenTracingAppLayer) UserIsInAdminRoleGroup(userID string, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UserIsInAdminRoleGroup")
 
-	span.SetTag("syncableID", syncableID)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("syncableType", syncableType)
-
 	defer span.Finish()
 
-	return s.app.UserIsInAdminRoleGroup(userID, syncableID, syncableType)
+	return a.app.UserIsInAdminRoleGroup(userID, syncableID, syncableType)
 }
 
-func (s *OpenTracingAppLayer) ValidateAndSetLicenseBytes(b []byte) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ValidateAndSetLicenseBytes")
+func (a *OpenTracingAppLayer) ValidateAndSetLicenseBytes(b []byte) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ValidateAndSetLicenseBytes")
 
-	span.SetTag("b", b)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	s.app.ValidateAndSetLicenseBytes(b)
+	a.app.ValidateAndSetLicenseBytes(b)
 }
 
-func (s *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.VerifyEmailFromToken")
+func (a *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyEmailFromToken")
 
-	span.SetTag("userSuppliedTokenString", userSuppliedTokenString)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.VerifyEmailFromToken(userSuppliedTokenString)
+	return a.app.VerifyEmailFromToken(userSuppliedTokenString)
 }
-
-func (s *OpenTracingAppLayer) VerifyPlugin(plugin io.ReadSeeker, signature io.ReadSeeker) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.VerifyPlugin")
 
-	span.SetTag("plugin", plugin)
+func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.ReadSeeker, signature io.ReadSeeker) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyPlugin")
 
-	span.SetTag("signature", signature)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.VerifyPlugin(plugin, signature)
+	return a.app.VerifyPlugin(plugin, signature)
 }
 
-func (s *OpenTracingAppLayer) VerifyUserEmail(userId string, email string) *model.AppError {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.VerifyUserEmail")
+func (a *OpenTracingAppLayer) VerifyUserEmail(userId string, email string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyUserEmail")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("email", email)
-
 	defer span.Finish()
 
-	return s.app.VerifyUserEmail(userId, email)
+	return a.app.VerifyUserEmail(userId, email)
 }
-
-func (s *OpenTracingAppLayer) ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.ViewChannel")
 
-	span.SetTag("view", view)
+func (a *OpenTracingAppLayer) ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ViewChannel")
 
-	span.SetTag("userId", userId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("currentSessionId", currentSessionId)
-
 	defer span.Finish()
 
-	return s.app.ViewChannel(view, userId, currentSessionId)
+	return a.app.ViewChannel(view, userId, currentSessionId)
 }
 
-func (s *OpenTracingAppLayer) WaitForChannelMembership(channelId string, userId string) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.WaitForChannelMembership")
+func (a *OpenTracingAppLayer) WaitForChannelMembership(channelId string, userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.WaitForChannelMembership")
 
-	span.SetTag("channelId", channelId)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
-	span.SetTag("userId", userId)
-
 	defer span.Finish()
 
-	s.app.WaitForChannelMembership(channelId, userId)
+	a.app.WaitForChannelMembership(channelId, userId)
 }
-
-func (s *OpenTracingAppLayer) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.WriteFile")
 
-	span.SetTag("fr", fr)
+func (a *OpenTracingAppLayer) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.WriteFile")
 
-	span.SetTag("path", path)
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
 
 	defer span.Finish()
 
-	return s.app.WriteFile(fr, path)
+	return a.app.WriteFile(fr, path)
 }
 
 func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *OpenTracingAppLayer {
-	newStore := OpenTracingAppLayer{
+	newApp := OpenTracingAppLayer{
 		app: childApp,
 		ctx: ctx,
 	}
 
-	newStore.srv = childApp.Srv()
-	newStore.log = childApp.Log()
-	newStore.notificationsLog = childApp.NotificationsLog()
-	newStore.t = childApp.GetT()
+	newApp.srv = childApp.Srv()
+	newApp.log = childApp.Log()
+	newApp.notificationsLog = childApp.NotificationsLog()
+	newApp.t = childApp.GetT()
 	if childApp.Session() != nil {
-		newStore.session = *childApp.Session()
+		newApp.session = *childApp.Session()
 	}
-	newStore.requestId = childApp.RequestId()
-	newStore.ipAddress = childApp.IpAddress()
-	newStore.path = childApp.Path()
-	newStore.userAgent = childApp.UserAgent()
-	newStore.acceptLanguage = childApp.AcceptLanguage()
-	newStore.accountMigration = childApp.AccountMigration()
-	newStore.cluster = childApp.Cluster()
-	newStore.compliance = childApp.Compliance()
-	newStore.dataRetention = childApp.DataRetention()
-	newStore.elasticsearch = childApp.Elasticsearch()
-	newStore.ldap = childApp.Ldap()
-	newStore.messageExport = childApp.MessageExport()
-	newStore.metrics = childApp.Metrics()
-	newStore.notification = childApp.Notification()
-	newStore.saml = childApp.Saml()
-	newStore.httpService = childApp.HTTPService()
-	newStore.imageProxy = childApp.ImageProxy()
-	newStore.timezones = childApp.Timezones()
-	newStore.context = childApp.Context()
-	newStore.store = childApp.Store()
+	newApp.requestId = childApp.RequestId()
+	newApp.ipAddress = childApp.IpAddress()
+	newApp.path = childApp.Path()
+	newApp.userAgent = childApp.UserAgent()
+	newApp.acceptLanguage = childApp.AcceptLanguage()
+	newApp.accountMigration = childApp.AccountMigration()
+	newApp.cluster = childApp.Cluster()
+	newApp.compliance = childApp.Compliance()
+	newApp.dataRetention = childApp.DataRetention()
+	newApp.elasticsearch = childApp.Elasticsearch()
+	newApp.ldap = childApp.Ldap()
+	newApp.messageExport = childApp.MessageExport()
+	newApp.metrics = childApp.Metrics()
+	newApp.notification = childApp.Notification()
+	newApp.saml = childApp.Saml()
+	newApp.httpService = childApp.HTTPService()
+	newApp.imageProxy = childApp.ImageProxy()
+	newApp.timezones = childApp.Timezones()
+	newApp.context = childApp.Context()
 
-	return &newStore
-}
-
-func (s *OpenTracingAppLayer) Srv() *Server {
-	return s.srv
-}
-func (s *OpenTracingAppLayer) Log() *mlog.Logger {
-	return s.log
-}
-func (s *OpenTracingAppLayer) NotificationsLog() *mlog.Logger {
-	return s.notificationsLog
-}
-func (s *OpenTracingAppLayer) T(translationID string, args ...interface{}) string {
-	return s.t(translationID, args...)
-}
-func (s *OpenTracingAppLayer) Session() *model.Session {
-	return &s.session
-}
-func (s *OpenTracingAppLayer) RequestId() string {
-	return s.requestId
-}
-func (s *OpenTracingAppLayer) IpAddress() string {
-	return s.ipAddress
-}
-func (s *OpenTracingAppLayer) Path() string {
-	return s.path
-}
-func (s *OpenTracingAppLayer) UserAgent() string {
-	return s.userAgent
-}
-func (s *OpenTracingAppLayer) AcceptLanguage() string {
-	return s.acceptLanguage
-}
-func (s *OpenTracingAppLayer) AccountMigration() einterfaces.AccountMigrationInterface {
-	return s.accountMigration
-}
-func (s *OpenTracingAppLayer) Cluster() einterfaces.ClusterInterface {
-	return s.cluster
-}
-func (s *OpenTracingAppLayer) Compliance() einterfaces.ComplianceInterface {
-	return s.compliance
-}
-func (s *OpenTracingAppLayer) DataRetention() einterfaces.DataRetentionInterface {
-	return s.dataRetention
-}
-func (s *OpenTracingAppLayer) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return s.elasticsearch
-}
-func (s *OpenTracingAppLayer) Ldap() einterfaces.LdapInterface {
-	return s.ldap
-}
-func (s *OpenTracingAppLayer) MessageExport() einterfaces.MessageExportInterface {
-	return s.messageExport
-}
-func (s *OpenTracingAppLayer) Metrics() einterfaces.MetricsInterface {
-	return s.metrics
-}
-func (s *OpenTracingAppLayer) Notification() einterfaces.NotificationInterface {
-	return s.notification
-}
-func (s *OpenTracingAppLayer) Saml() einterfaces.SamlInterface {
-	return s.saml
-}
-func (s *OpenTracingAppLayer) HTTPService() httpservice.HTTPService {
-	return s.httpService
-}
-func (s *OpenTracingAppLayer) ImageProxy() *imageproxy.ImageProxy {
-	return s.imageProxy
-}
-func (s *OpenTracingAppLayer) Timezones() *timezones.Timezones {
-	return s.timezones
-}
-func (s *OpenTracingAppLayer) Context() context.Context {
-	return s.context
-}
-func (s *OpenTracingAppLayer) Store() store.Store {
-	return s.store
+	return &newApp
 }
 
-func (s *OpenTracingAppLayer) SetSession(sess *model.Session) {
-	s.session = *sess
+func (a *OpenTracingAppLayer) Srv() *Server {
+	return a.srv
 }
-func (s *OpenTracingAppLayer) SetStore(str store.Store) {
-	s.store = str
+func (a *OpenTracingAppLayer) Log() *mlog.Logger {
+	return a.log
 }
-
-func (s *OpenTracingAppLayer) SetT(t goi18n.TranslateFunc) {
-	s.t = t
+func (a *OpenTracingAppLayer) NotificationsLog() *mlog.Logger {
+	return a.notificationsLog
 }
-func (s *OpenTracingAppLayer) SetRequestId(str string) {
-	s.requestId = str
+func (a *OpenTracingAppLayer) T(translationID string, args ...interface{}) string {
+	return a.t(translationID, args...)
 }
-func (s *OpenTracingAppLayer) SetIpAddress(str string) {
-	s.ipAddress = str
+func (a *OpenTracingAppLayer) Session() *model.Session {
+	return &a.session
 }
-func (s *OpenTracingAppLayer) SetUserAgent(str string) {
-	s.userAgent = str
+func (a *OpenTracingAppLayer) RequestId() string {
+	return a.requestId
 }
-func (s *OpenTracingAppLayer) SetAcceptLanguage(str string) {
-	s.acceptLanguage = str
+func (a *OpenTracingAppLayer) IpAddress() string {
+	return a.ipAddress
 }
-func (s *OpenTracingAppLayer) SetPath(str string) {
-	s.path = str
+func (a *OpenTracingAppLayer) Path() string {
+	return a.path
 }
-func (s *OpenTracingAppLayer) SetContext(c context.Context) {
-	s.context = c
+func (a *OpenTracingAppLayer) UserAgent() string {
+	return a.userAgent
 }
-func (s *OpenTracingAppLayer) SetServer(srv *Server) {
-	s.srv = srv
+func (a *OpenTracingAppLayer) AcceptLanguage() string {
+	return a.acceptLanguage
 }
-func (s *OpenTracingAppLayer) GetT() goi18n.TranslateFunc {
-	return s.t
+func (a *OpenTracingAppLayer) AccountMigration() einterfaces.AccountMigrationInterface {
+	return a.accountMigration
+}
+func (a *OpenTracingAppLayer) Cluster() einterfaces.ClusterInterface {
+	return a.cluster
+}
+func (a *OpenTracingAppLayer) Compliance() einterfaces.ComplianceInterface {
+	return a.compliance
+}
+func (a *OpenTracingAppLayer) DataRetention() einterfaces.DataRetentionInterface {
+	return a.dataRetention
+}
+func (a *OpenTracingAppLayer) Elasticsearch() einterfaces.ElasticsearchInterface {
+	return a.elasticsearch
+}
+func (a *OpenTracingAppLayer) Ldap() einterfaces.LdapInterface {
+	return a.ldap
+}
+func (a *OpenTracingAppLayer) MessageExport() einterfaces.MessageExportInterface {
+	return a.messageExport
+}
+func (a *OpenTracingAppLayer) Metrics() einterfaces.MetricsInterface {
+	return a.metrics
+}
+func (a *OpenTracingAppLayer) Notification() einterfaces.NotificationInterface {
+	return a.notification
+}
+func (a *OpenTracingAppLayer) Saml() einterfaces.SamlInterface {
+	return a.saml
+}
+func (a *OpenTracingAppLayer) HTTPService() httpservice.HTTPService {
+	return a.httpService
+}
+func (a *OpenTracingAppLayer) ImageProxy() *imageproxy.ImageProxy {
+	return a.imageProxy
+}
+func (a *OpenTracingAppLayer) Timezones() *timezones.Timezones {
+	return a.timezones
+}
+func (a *OpenTracingAppLayer) Context() context.Context {
+	return a.context
+}
+func (a *OpenTracingAppLayer) SetSession(sess *model.Session) {
+	a.session = *sess
+}
+func (a *OpenTracingAppLayer) SetT(t goi18n.TranslateFunc) {
+	a.t = t
+}
+func (a *OpenTracingAppLayer) SetRequestId(str string) {
+	a.requestId = str
+}
+func (a *OpenTracingAppLayer) SetIpAddress(str string) {
+	a.ipAddress = str
+}
+func (a *OpenTracingAppLayer) SetUserAgent(str string) {
+	a.userAgent = str
+}
+func (a *OpenTracingAppLayer) SetAcceptLanguage(str string) {
+	a.acceptLanguage = str
+}
+func (a *OpenTracingAppLayer) SetPath(str string) {
+	a.path = str
+}
+func (a *OpenTracingAppLayer) SetContext(c context.Context) {
+	a.context = c
+}
+func (a *OpenTracingAppLayer) SetServer(srv *Server) {
+	a.srv = srv
+}
+func (a *OpenTracingAppLayer) GetT() goi18n.TranslateFunc {
+	return a.t
 }

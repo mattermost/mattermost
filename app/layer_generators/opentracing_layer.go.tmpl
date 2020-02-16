@@ -39,171 +39,169 @@ type {{.Name}} struct {
 	timezones   *timezones.Timezones
 
 	context context.Context
-	store   store.Store
-
-
 	ctx context.Context
 }
 
 
 {{range $index, $element := .Methods}}
-func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
-	span, _ := tracing.StartSpanWithParentByContext(s.ctx, "app.{{$index}}")
-	{{range $paramName, $param := $element.Params}}
-	span.SetTag("{{$param.Name}}", {{$param.Name}})
+func (a *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.{{$index}}")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() { 
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx 
+	}()
+	{{range $paramIdx, $param := $element.Params}}
+		{{if index $element.ParamsToTrace $param.Name }}
+			span.SetTag("{{$param.Name}}", {{$param.Name}})
+		{{end}}	
 	{{end}}
 	defer span.Finish()
 
-	{{if $element.Results | len | eq 0}}s.app.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}return s.app.{{$index}}({{$element.Params | joinParams}})
+	{{if $element.Results | len | eq 0}}a.app.{{$index}}({{$element.Params | joinParams}})
+	{{ else }}return a.app.{{$index}}({{$element.Params | joinParams}})
 	{{ end}}}
 {{end}}
 
 func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *{{.Name}} {
-	newStore := {{.Name}}{
+	newApp := {{.Name}}{
 		app: childApp,
 		ctx: ctx,
 	}
 
-	newStore.srv = childApp.Srv()
-	newStore.log = childApp.Log()
-	newStore.notificationsLog = childApp.NotificationsLog()
-	newStore.t = childApp.GetT()
+	newApp.srv = childApp.Srv()
+	newApp.log = childApp.Log()
+	newApp.notificationsLog = childApp.NotificationsLog()
+	newApp.t = childApp.GetT()
 	if childApp.Session() != nil {
-		newStore.session = *childApp.Session()
+		newApp.session = *childApp.Session()
 	}
-	newStore.requestId = childApp.RequestId()
-	newStore.ipAddress = childApp.IpAddress()
-	newStore.path = childApp.Path()
-	newStore.userAgent = childApp.UserAgent()
-	newStore.acceptLanguage = childApp.AcceptLanguage()
-	newStore.accountMigration = childApp.AccountMigration()
-	newStore.cluster = childApp.Cluster()
-	newStore.compliance = childApp.Compliance()
-	newStore.dataRetention = childApp.DataRetention()
-	newStore.elasticsearch = childApp.Elasticsearch()
-	newStore.ldap = childApp.Ldap()
-	newStore.messageExport = childApp.MessageExport()
-	newStore.metrics = childApp.Metrics()
-	newStore.notification = childApp.Notification()
-	newStore.saml = childApp.Saml()
-	newStore.httpService = childApp.HTTPService()
-	newStore.imageProxy = childApp.ImageProxy()
-	newStore.timezones = childApp.Timezones()
-	newStore.context = childApp.Context()
-	newStore.store = childApp.Store()
+	newApp.requestId = childApp.RequestId()
+	newApp.ipAddress = childApp.IpAddress()
+	newApp.path = childApp.Path()
+	newApp.userAgent = childApp.UserAgent()
+	newApp.acceptLanguage = childApp.AcceptLanguage()
+	newApp.accountMigration = childApp.AccountMigration()
+	newApp.cluster = childApp.Cluster()
+	newApp.compliance = childApp.Compliance()
+	newApp.dataRetention = childApp.DataRetention()
+	newApp.elasticsearch = childApp.Elasticsearch()
+	newApp.ldap = childApp.Ldap()
+	newApp.messageExport = childApp.MessageExport()
+	newApp.metrics = childApp.Metrics()
+	newApp.notification = childApp.Notification()
+	newApp.saml = childApp.Saml()
+	newApp.httpService = childApp.HTTPService()
+	newApp.imageProxy = childApp.ImageProxy()
+	newApp.timezones = childApp.Timezones()
+	newApp.context = childApp.Context()
 
-	return &newStore
-}
-
-
-func (s *{{.Name}}) Srv() *Server {
-	return s.srv
-}
-func (s *{{.Name}}) Log() *mlog.Logger {
-	return s.log
-}
-func (s *{{.Name}}) NotificationsLog() *mlog.Logger {
-	return s.notificationsLog
-}
-func (s *{{.Name}}) T(translationID string, args ...interface{}) string {
-	return s.t(translationID, args...)
-}
-func (s *{{.Name}}) Session() *model.Session {
-	return &s.session
-}
-func (s *{{.Name}}) RequestId() string {
-	return s.requestId
-}
-func (s *{{.Name}}) IpAddress() string {
-	return s.ipAddress
-}
-func (s *{{.Name}}) Path() string {
-	return s.path
-}
-func (s *{{.Name}}) UserAgent() string {
-	return s.userAgent
-}
-func (s *{{.Name}}) AcceptLanguage() string {
-	return s.acceptLanguage
-}
-func (s *{{.Name}}) AccountMigration() einterfaces.AccountMigrationInterface {
-	return s.accountMigration
-}
-func (s *{{.Name}}) Cluster() einterfaces.ClusterInterface {
-	return s.cluster
-}
-func (s *{{.Name}}) Compliance() einterfaces.ComplianceInterface {
-	return s.compliance
-}
-func (s *{{.Name}}) DataRetention() einterfaces.DataRetentionInterface {
-	return s.dataRetention
-}
-func (s *{{.Name}}) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return s.elasticsearch
-}
-func (s *{{.Name}}) Ldap() einterfaces.LdapInterface {
-	return s.ldap
-}
-func (s *{{.Name}}) MessageExport() einterfaces.MessageExportInterface {
-	return s.messageExport
-}
-func (s *{{.Name}}) Metrics() einterfaces.MetricsInterface {
-	return s.metrics
-}
-func (s *{{.Name}}) Notification() einterfaces.NotificationInterface {
-	return s.notification
-}
-func (s *{{.Name}}) Saml() einterfaces.SamlInterface {
-	return s.saml
-}
-func (s *{{.Name}}) HTTPService() httpservice.HTTPService {
-	return s.httpService
-}
-func (s *{{.Name}}) ImageProxy() *imageproxy.ImageProxy {
-	return s.imageProxy
-}
-func (s *{{.Name}}) Timezones() *timezones.Timezones {
-	return s.timezones
-}
-func (s *{{.Name}}) Context() context.Context {
-	return s.context
-}
-func (s *{{.Name}}) Store() store.Store {
-	return s.store
+	return &newApp
 }
 
-func (s *{{.Name}}) SetSession(sess *model.Session) {
-	s.session = *sess
-}
-func (s *{{.Name}}) SetStore(str store.Store) {
-	s.store = str
-}
 
-func (s *{{.Name}}) SetT(t goi18n.TranslateFunc){
-	s.t = t
+func (a *{{.Name}}) Srv() *Server {
+	return a.srv
 }
-func (s *{{.Name}}) SetRequestId(str string){
-	s.requestId = str
+func (a *{{.Name}}) Log() *mlog.Logger {
+	return a.log
 }
-func (s *{{.Name}}) SetIpAddress(str string){
-	s.ipAddress = str
+func (a *{{.Name}}) NotificationsLog() *mlog.Logger {
+	return a.notificationsLog
 }
-func (s *{{.Name}}) SetUserAgent(str string){
-	s.userAgent = str
+func (a *{{.Name}}) T(translationID string, args ...interface{}) string {
+	return a.t(translationID, args...)
 }
-func (s *{{.Name}}) SetAcceptLanguage(str string)	{
-	s.acceptLanguage = str
+func (a *{{.Name}}) Session() *model.Session {
+	return &a.session
 }
-func (s *{{.Name}}) SetPath(str string){
-	s.path = str
+func (a *{{.Name}}) RequestId() string {
+	return a.requestId
 }
-func (s *{{.Name}}) SetContext(c context.Context){
-	s.context = c
+func (a *{{.Name}}) IpAddress() string {
+	return a.ipAddress
 }
-func (s *{{.Name}}) SetServer(srv *Server) {
-	s.srv = srv
+func (a *{{.Name}}) Path() string {
+	return a.path
 }
-func (s *{{.Name}}) GetT() goi18n.TranslateFunc {
-	return s.t
+func (a *{{.Name}}) UserAgent() string {
+	return a.userAgent
+}
+func (a *{{.Name}}) AcceptLanguage() string {
+	return a.acceptLanguage
+}
+func (a *{{.Name}}) AccountMigration() einterfaces.AccountMigrationInterface {
+	return a.accountMigration
+}
+func (a *{{.Name}}) Cluster() einterfaces.ClusterInterface {
+	return a.cluster
+}
+func (a *{{.Name}}) Compliance() einterfaces.ComplianceInterface {
+	return a.compliance
+}
+func (a *{{.Name}}) DataRetention() einterfaces.DataRetentionInterface {
+	return a.dataRetention
+}
+func (a *{{.Name}}) Elasticsearch() einterfaces.ElasticsearchInterface {
+	return a.elasticsearch
+}
+func (a *{{.Name}}) Ldap() einterfaces.LdapInterface {
+	return a.ldap
+}
+func (a *{{.Name}}) MessageExport() einterfaces.MessageExportInterface {
+	return a.messageExport
+}
+func (a *{{.Name}}) Metrics() einterfaces.MetricsInterface {
+	return a.metrics
+}
+func (a *{{.Name}}) Notification() einterfaces.NotificationInterface {
+	return a.notification
+}
+func (a *{{.Name}}) Saml() einterfaces.SamlInterface {
+	return a.saml
+}
+func (a *{{.Name}}) HTTPService() httpservice.HTTPService {
+	return a.httpService
+}
+func (a *{{.Name}}) ImageProxy() *imageproxy.ImageProxy {
+	return a.imageProxy
+}
+func (a *{{.Name}}) Timezones() *timezones.Timezones {
+	return a.timezones
+}
+func (a *{{.Name}}) Context() context.Context {
+	return a.context
+}
+func (a *{{.Name}}) SetSession(sess *model.Session) {
+	a.session = *sess
+}
+func (a *{{.Name}}) SetT(t goi18n.TranslateFunc){
+	a.t = t
+}
+func (a *{{.Name}}) SetRequestId(str string){
+	a.requestId = str
+}
+func (a *{{.Name}}) SetIpAddress(str string){
+	a.ipAddress = str
+}
+func (a *{{.Name}}) SetUserAgent(str string){
+	a.userAgent = str
+}
+func (a *{{.Name}}) SetAcceptLanguage(str string)	{
+	a.acceptLanguage = str
+}
+func (a *{{.Name}}) SetPath(str string){
+	a.path = str
+}
+func (a *{{.Name}}) SetContext(c context.Context){
+	a.context = c
+}
+func (a *{{.Name}}) SetServer(srv *Server) {
+	a.srv = srv
+}
+func (a *{{.Name}}) GetT() goi18n.TranslateFunc {
+	return a.t
 }

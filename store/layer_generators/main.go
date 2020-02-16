@@ -17,6 +17,8 @@ import (
 	"text/template"
 )
 
+const OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+
 func main() {
 	BuildTimerLayer()
 	BuildOpenTracingLayer()
@@ -56,8 +58,9 @@ type Param struct {
 }
 
 type Method struct {
-	Params  []Param
-	Results []string
+	Params        []Param
+	Results       []string
+	ParamsToTrace map[string]bool
 }
 
 type SubStore struct {
@@ -83,7 +86,7 @@ func ExtractStoreMetadata() StoreMetadata {
 		panic(err)
 	}
 	file.Close()
-	f, err := parser.ParseFile(fset, "", src, 0)
+	f, err := parser.ParseFile(fset, "", src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
 		panic(err)
 	}
@@ -96,6 +99,7 @@ func ExtractStoreMetadata() StoreMetadata {
 		"DropAllTables":            false,
 		"TotalMasterDbConnections": true,
 		"TotalReadDbConnections":   true,
+		"SetContext":               true,
 		"TotalSearchDbConnections": true,
 		"GetCurrentSchemaVersion":  true,
 	}
@@ -111,10 +115,20 @@ func ExtractStoreMetadata() StoreMetadata {
 					if _, ok := topLevelFunctions[methodName]; ok {
 						params := []Param{}
 						results := []string{}
-
+						paramsToTrace := map[string]bool{}
 						ast.Inspect(method.Type, func(expr ast.Node) bool {
 							switch e := expr.(type) {
 							case *ast.FuncType:
+								if method.Doc != nil {
+									for _, comment := range method.Doc.List {
+										s := comment.Text
+										if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
+											for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
+												paramsToTrace[strings.TrimSpace(p)] = true
+											}
+										}
+									}
+								}
 								if e.Params != nil {
 									for _, param := range e.Params.List {
 										for _, paramName := range param.Names {
@@ -130,7 +144,7 @@ func ExtractStoreMetadata() StoreMetadata {
 							}
 							return true
 						})
-						metadata.Methods[methodName] = Method{Params: params, Results: results}
+						metadata.Methods[methodName] = Method{Params: params, Results: results, ParamsToTrace: paramsToTrace}
 					}
 				}
 			} else if strings.HasSuffix(x.Name.Name, "Store") {
@@ -141,10 +155,21 @@ func ExtractStoreMetadata() StoreMetadata {
 
 					params := []Param{}
 					results := []string{}
+					paramsToTrace := map[string]bool{}
 
 					ast.Inspect(method.Type, func(expr ast.Node) bool {
 						switch e := expr.(type) {
 						case *ast.FuncType:
+							if method.Doc != nil {
+								for _, comment := range method.Doc.List {
+									s := comment.Text
+									if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
+										for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
+											paramsToTrace[strings.TrimSpace(p)] = true
+										}
+									}
+								}
+							}
 							if e.Params != nil {
 								for _, param := range e.Params.List {
 									for _, paramName := range param.Names {
@@ -160,7 +185,7 @@ func ExtractStoreMetadata() StoreMetadata {
 						}
 						return true
 					})
-					metadata.SubStores[subStoreName].Methods[methodName] = Method{Params: params, Results: results}
+					metadata.SubStores[subStoreName].Methods[methodName] = Method{Params: params, Results: results, ParamsToTrace: paramsToTrace}
 				}
 			}
 		}

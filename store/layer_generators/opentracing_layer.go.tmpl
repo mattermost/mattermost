@@ -14,7 +14,6 @@ import (
 
 type {{.Name}} struct {
 	Store
-	Context context.Context
 {{range $index, $element := .SubStores}}	{{$index}}Store {{$index}}Store
 {{end}}
 }
@@ -35,9 +34,16 @@ type {{.Name}} struct {
 {{range $substoreName, $substore := .SubStores}}
 {{range $index, $element := $substore.Methods}}
 func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
-	span, _ := tracing.StartSpanWithParentByContext(s.Root.Context, "{{$substoreName}}Store.{{$index}}")
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "{{$substoreName}}Store.{{$index}}")
+	s.Root.Store.SetContext(newCtx)
+	defer func(){
+		s.Root.Store.SetContext(origCtx)
+	}()
 	{{range $paramName, $param := $element.Params}}
-	span.SetTag("{{$param.Name}}", {{$param.Name}})
+		{{if index $element.ParamsToTrace $param.Name }}
+			span.SetTag("{{$param.Name}}", {{$param.Name}})
+		{{end}}
 	{{end}}
 	defer span.Finish()
 
@@ -60,7 +66,6 @@ func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$ele
 func New{{.Name}}(childStore Store, ctx context.Context) *{{.Name}} {
 	newStore := {{.Name}}{
 		Store: childStore,
-		Context: ctx,
 	}
 	{{range $substoreName, $substore := .SubStores}}
 	newStore.{{$substoreName}}Store = &{{$.Name}}{{$substoreName}}Store{{"{"}}{{$substoreName}}Store: childStore.{{$substoreName}}(), Root: &newStore}{{end}}

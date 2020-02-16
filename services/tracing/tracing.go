@@ -34,6 +34,9 @@ func (l LogrusAdapter) Infof(msg string, args ...interface{}) {
 	// we ignore Info messages from opentracing
 }
 
+// New instantiates Jaeger opentracing client with default options
+// To override the defaults use environment variables listed here: https://github.com/jaegertracing/jaeger-client-go/blob/master/config/config.go
+
 func New() (*Tracer, error) {
 	cfg := jaegercfg.Configuration{
 		Sampler: &jaegercfg.SamplerConfig{

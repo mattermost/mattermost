@@ -38,6 +38,7 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
+// @openTracingParams teamId, skipSlackParsing
 func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
@@ -68,6 +69,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	return post, nil
 }
 
+// @openTracingParams teamId
 // previous ListCommands now ListAutocompleteCommands
 func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
@@ -154,6 +156,7 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	return commands, nil
 }
 
+// @openTracingParams args
 func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
