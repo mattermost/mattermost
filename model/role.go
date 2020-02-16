@@ -100,7 +100,6 @@ func (r *Role) Patch(patch *RolePatch) {
 func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
 	mergedPermissions := []string{}
 
-
 	higherScopedPermissionsMap := slices.AsStringBoolMap(higherScopedPermissions.Permissions)
 	rolePermissionsMap := slices.AsStringBoolMap(r.Permissions)
 
@@ -118,7 +117,7 @@ func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermiss
 
 		if _, ok := ModeratedPermissions[cp.Id]; ok {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
-			if  presentOnRole && presentOnHigherScope {
+			if presentOnRole && presentOnHigherScope {
 				mergedPermissions = append(mergedPermissions, cp.Id)
 			}
 			continue
