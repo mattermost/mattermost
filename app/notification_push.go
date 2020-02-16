@@ -136,7 +136,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 		err := a.sendToPushProxy(*tmpMessage, session)
 		if err != nil {
-			a.NotificationsLog.Error("Notification error",
+			a.NotificationsLog().Error("Notification error",
 				mlog.String("ackId", tmpMessage.AckId),
 				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
@@ -149,7 +149,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 			continue
 		}
 
-		a.NotificationsLog.Info("Notification sent",
+		a.NotificationsLog().Info("Notification sent",
 			mlog.String("ackId", tmpMessage.AckId),
 			mlog.String("type", tmpMessage.Type),
 			mlog.String("userId", session.UserId),
@@ -159,8 +159,8 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 			mlog.String("status", model.PUSH_SEND_SUCCESS),
 		)
 
-		if a.Metrics != nil {
-			a.Metrics.IncrementPostSentPush()
+		if a.Metrics() != nil {
+			a.Metrics().IncrementPostSentPush()
 		}
 	}
 
@@ -188,7 +188,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
 	}
-	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(user.Id, pushNotification)
+	a.Srv().PushNotificationsHub.SendNotificationForUserToWorker(user.Id, pushNotification)
 }
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention, hasFiles bool,
@@ -240,7 +240,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func (a *App) ClearPushNotification(currentSessionId, userId, channelId string) 
 		userId:           userId,
 		channelId:        channelId,
 	}
-	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
+	a.Srv().PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
 }
 
 func (a *App) UpdateMobileAppBadgeSync(userId string) *model.AppError {
@@ -268,7 +268,7 @@ func (a *App) UpdateMobileAppBadgeSync(userId string) *model.AppError {
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
 		return err
 	}
@@ -283,14 +283,14 @@ func (a *App) UpdateMobileAppBadge(userId string) {
 		notificationType: NOTIFICATION_TYPE_UPDATE_BADGE,
 		userId:           userId,
 	}
-	a.Srv.PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
+	a.Srv().PushNotificationsHub.SendNotificationForUserToWorker(userId, pushNotification)
 }
 
 func (a *App) CreatePushNotificationsHub() {
 	closeChan := make(chan struct{})
 	workerFn := func(idx int) {
-		channel := a.Srv.PushNotificationsHub.Channels[idx]
-		a.Srv.Go(func() { a.pushNotificationWorker(channel, closeChan, idx) })
+		channel := a.Srv().PushNotificationsHub.Channels[idx]
+		a.Srv().Go(func() { a.pushNotificationWorker(channel, closeChan, idx) })
 	}
 	hub := PushNotificationsHub{
 		Channels:      []chan PushNotification{},
@@ -301,7 +301,7 @@ func (a *App) CreatePushNotificationsHub() {
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
 	}
-	a.Srv.PushNotificationsHub = hub
+	a.Srv().PushNotificationsHub = hub
 }
 
 func (a *App) pushNotificationWorker(notifications chan PushNotification, closeChan chan struct{}, idx int) {
@@ -344,11 +344,11 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification, closeC
 				workerIdle = true
 				continue
 			}
-			if a.Srv.PushNotificationsHub.StopWorker(idx) {
+			if a.Srv().PushNotificationsHub.StopWorker(idx) {
 				// we have to return now but try to start a new goroutine if channel is not empty
 				// because it may have not been started by SendNotificationForUserToWorker
 				if len(notifications) > 0 {
-					a.Srv.PushNotificationsHub.StartWorker(idx)
+					a.Srv().PushNotificationsHub.StartWorker(idx)
 				}
 				return
 			}
@@ -360,16 +360,16 @@ func (a *App) StartPushNotificationsHubWorkers() {
 }
 
 func (a *App) StopPushNotificationsHubWorkers() {
-	for _, channel := range a.Srv.PushNotificationsHub.Channels {
+	for _, channel := range a.Srv().PushNotificationsHub.Channels {
 		close(channel)
 	}
-	close(a.Srv.PushNotificationsHub.closeChan)
+	close(a.Srv().PushNotificationsHub.closeChan)
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.DiagnosticId()
 
-	a.NotificationsLog.Info("Notification will be sent",
+	a.NotificationsLog().Info("Notification will be sent",
 		mlog.String("ackId", msg.AckId),
 		mlog.String("type", msg.Type),
 		mlog.String("userId", session.UserId),
@@ -382,7 +382,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		return err
 	}
 
-	resp, err := a.HTTPService.MakeClient(true).Do(request)
+	resp, err := a.HTTPService().MakeClient(true).Do(request)
 	if err != nil {
 		return err
 	}
@@ -409,7 +409,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return nil
 	}
 
-	a.NotificationsLog.Info("Notification received",
+	a.NotificationsLog().Info("Notification received",
 		mlog.String("ackId", ack.Id),
 		mlog.String("type", ack.NotificationType),
 		mlog.String("deviceType", ack.ClientPlatform),
@@ -427,7 +427,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return err
 	}
 
-	resp, err := a.HTTPService.MakeClient(true).Do(request)
+	resp, err := a.HTTPService().MakeClient(true).Do(request)
 	if err != nil {
 		return err
 	}
@@ -438,7 +438,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	return a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
@@ -515,7 +515,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 
 	var msg *model.PushNotification
 
-	notificationInterface := a.Srv.Notification
+	notificationInterface := a.Srv().Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.ID_LOADED_NOTIFICATION {
 		contentsConfig = model.GENERIC_NOTIFICATION
 	}
@@ -526,7 +526,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 		msg = a.buildFullPushNotificationMessage(contentsConfig, post, user, channel, channelName, senderName, explicitMention, channelWideMention, replyToThreadType)
 	}
 
-	unreadCount, err := a.Srv.Store.User().GetUnreadCount(user.Id)
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
 	if err != nil {
 		return nil, err
 	}
