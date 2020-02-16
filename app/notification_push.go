@@ -26,7 +26,7 @@ const NOTIFICATION_TYPE_UPDATE_BADGE NotificationType = "update_badge"
 
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
-const workerMaxIdleTime = 60 * time.Second
+const workerMaxIdleTime = 600 * time.Second
 
 type PushNotificationsHub struct {
 	Channels  []chan PushNotification
@@ -305,10 +305,14 @@ func (a *App) CreatePushNotificationsHub() {
 }
 
 func (a *App) pushNotificationWorker(notifications chan PushNotification, closeChan chan struct{}, idx int) {
+	workerIdle := false
+	ticker := time.NewTicker(workerMaxIdleTime / 2)
+	defer ticker.Stop()
 	for {
 		select {
 		case notification := <-notifications:
 			var err *model.AppError
+			workerIdle = false
 
 			switch notification.notificationType {
 			case NOTIFICATION_TYPE_CLEAR:
@@ -335,7 +339,11 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification, closeC
 			}
 		case <-closeChan:
 			return
-		case <-time.After(workerMaxIdleTime):
+		case <-ticker.C:
+			if !workerIdle {
+				workerIdle = true
+				continue
+			}
 			if a.Srv.PushNotificationsHub.StopWorker(idx) {
 				// we have to return now but try to start a new goroutine if channel is not empty
 				// because it may have not been started by SendNotificationForUserToWorker
