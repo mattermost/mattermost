@@ -110,6 +110,9 @@ type TeamStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+
+	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
+	GroupSyncedTeamCount() (int64, *model.AppError)
 }
 
 type ChannelStore interface {
@@ -198,6 +201,9 @@ type ChannelStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
+
+	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
+	GroupSyncedChannelCount() (int64, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -488,6 +494,7 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, *model.AppError)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
 	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
+	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
 	DeleteForPost(postId string) (string, *model.AppError)
@@ -639,6 +646,21 @@ type GroupStore interface {
 	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
 	// the admin role for the given syncable.
 	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// GroupCount returns the total count of records in the UserGroups table.
+	GroupCount() (int64, *model.AppError)
+
+	// GroupTeamCount returns the total count of records in the GroupTeams table.
+	GroupTeamCount() (int64, *model.AppError)
+
+	// GroupChannelCount returns the total count of records in the GroupChannels table.
+	GroupChannelCount() (int64, *model.AppError)
+
+	// GroupMemberCount returns the total count of records in the GroupMembers table.
+	GroupMemberCount() (int64, *model.AppError)
+
+	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
+	DistinctGroupMemberCount() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {

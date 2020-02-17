@@ -1228,3 +1228,43 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 
 	return userIDs, nil
 }
+
+func (s *SqlGroupStore) GroupCount() (int64, *model.AppError) {
+	return s.countTable("UserGroups")
+}
+
+func (s *SqlGroupStore) GroupTeamCount() (int64, *model.AppError) {
+	return s.countTable("GroupTeams")
+}
+
+func (s *SqlGroupStore) GroupChannelCount() (int64, *model.AppError) {
+	return s.countTable("GroupChannels")
+}
+
+func (s *SqlGroupStore) GroupMemberCount() (int64, *model.AppError) {
+	return s.countTable("GroupMembers")
+}
+
+func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
+	return s.countTableWithSelect("COUNT(DISTINCT UserId)", "GroupMembers")
+}
+
+func (s *SqlGroupStore) countTable(tableName string) (int64, *model.AppError) {
+	return s.countTableWithSelect("COUNT(*)", tableName)
+}
+
+func (s *SqlGroupStore) countTableWithSelect(selectStr, tableName string) (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(sq.Eq{"DeleteAt": 0})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.countTableWithSelect", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(sql, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.countTableWithSelect", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}

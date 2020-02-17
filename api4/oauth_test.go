@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -72,7 +72,7 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -188,7 +188,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 }
 
 func TestGetOAuthApps(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -254,7 +254,7 @@ func TestGetOAuthApps(t *testing.T) {
 }
 
 func TestGetOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -318,7 +318,7 @@ func TestGetOAuthApp(t *testing.T) {
 }
 
 func TestGetOAuthAppInfo(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -382,7 +382,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 }
 
 func TestDeleteOAuthApp(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -449,7 +449,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 }
 
 func TestRegenerateOAuthAppSecret(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -517,7 +517,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 }
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
