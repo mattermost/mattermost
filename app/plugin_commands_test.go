@@ -210,9 +210,7 @@ func TestPluginCommand(t *testing.T) {
 		}
 
 		th.App.RemovePlugin(pluginIds[0])
-		if killed {
-			t.Fatal("execute command appears to have deadlocked")
-		}
+		require.False(t, killed, "execute command appears to have deadlocked")
 	})
 
 	t.Run("error after plugin command unregistered", func(t *testing.T) {

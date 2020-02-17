@@ -103,6 +103,11 @@ func TestUpdateConfig(t *testing.T) {
 
 	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
+	t.Run("Should set defaults for missing fields", func(t *testing.T) {
+		_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+		require.Nil(t, appErr)
+	})
+
 	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 		//Revert the change
 		badcfg := cfg.Clone()
@@ -317,13 +322,8 @@ func TestGetOldClientConfig(t *testing.T) {
 		config, resp := Client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Equal(t, testKey, config["GoogleDeveloperKey"])
 	})
 
 	t.Run("without session", func(t *testing.T) {
@@ -336,29 +336,24 @@ func TestGetOldClientConfig(t *testing.T) {
 		config, resp := Client.GetOldClientConfig("")
 		CheckNoError(t, resp)
 
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if _, ok := config["GoogleDeveloperKey"]; ok {
-			t.Fatal("config should be missing developer key")
-		}
+		require.NotEmpty(t, config["Version"], "config not returned correctly")
+		require.Empty(t, config["GoogleDeveloperKey"], "config should be missing developer key")
 	})
 
 	t.Run("missing format", func(t *testing.T) {
 		Client := th.Client
 
-		if _, err := Client.DoApiGet("/config/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
-			t.Fatal("should have errored with 501")
-		}
+		_, err := Client.DoApiGet("/config/client", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusNotImplemented, err.StatusCode)
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
 		Client := th.Client
 
-		if _, err := Client.DoApiGet("/config/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
-			t.Fatal("should have errored with 400")
-		}
+		_, err := Client.DoApiGet("/config/client?format=junk", "")
+		require.NotNil(t, err)
+		require.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 }
 
