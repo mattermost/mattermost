@@ -281,7 +281,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	if a.Metrics != nil {
+	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}
 
