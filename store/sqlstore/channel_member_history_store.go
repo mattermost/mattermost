@@ -160,22 +160,5 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
-	// query :=
-	// 	`DELETE FROM ChannelMemberHistory
-	// 			WHERE LeaveTime IS NOT NULL
-	// 			AND LeaveTime <= :EndTime
-	// 			LIMIT :Limit`
-
-	// params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
-	// sqlResult, err := s.GetMaster().Exec(query, params)
-	// if err != nil {
-	// 	return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
-	// }
-
-	// rowsAffected, err := sqlResult.RowsAffected()
-	// if err != nil {
-	// 	return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
-	// }
-	// return rowsAffected, nil
 	return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", nil, "Driver does not implement this function", http.StatusInternalServerError)
 }
