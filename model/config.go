@@ -882,6 +882,63 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	}
 }
 
+type Office365Settings struct {
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
+	DirectoryId     *string
+}
+
+func (s *Office365Settings) setDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
+	}
+
+	if s.Scope == nil {
+		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.AuthEndpoint == nil {
+		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
+	}
+
+	if s.TokenEndpoint == nil {
+		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+	}
+
+	if s.UserApiEndpoint == nil {
+		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	}
+
+	if s.DirectoryId == nil {
+		s.DirectoryId = NewString("")
+	}
+}
+
+func (s *Office365Settings) SSOSettings() *SSOSettings {
+	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	return &ssoSettings
+}
+
 type SqlSettings struct {
 	DriverName                  *string  `restricted:"true"`
 	DataSource                  *string  `restricted:"true"`
@@ -2511,7 +2568,7 @@ type Config struct {
 	ThemeSettings           ThemeSettings
 	GitLabSettings          SSOSettings
 	GoogleSettings          SSOSettings
-	Office365Settings       SSOSettings
+	Office365Settings       Office365Settings
 	LdapSettings            LdapSettings
 	ComplianceSettings      ComplianceSettings
 	LocalizationSettings    LocalizationSettings
@@ -2551,7 +2608,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
-		return &o.Office365Settings
+		return o.Office365Settings.SSOSettings()
 	}
 
 	return nil
@@ -2586,7 +2643,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
@@ -2687,7 +2744,6 @@ func (o *Config) IsValid() *AppError {
 	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
 	}
-
 	return nil
 }
 

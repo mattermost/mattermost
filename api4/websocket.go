@@ -30,9 +30,9 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := c.App.NewWebConn(ws, c.App.Session, c.App.T, "")
+	wc := c.App.NewWebConn(ws, *c.App.Session(), c.App.T, "")
 
-	if len(c.App.Session.UserId) > 0 {
+	if len(c.App.Session().UserId) > 0 {
 		c.App.HubRegister(wc)
 	}
 

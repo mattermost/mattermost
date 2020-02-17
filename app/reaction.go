@@ -36,7 +36,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	reaction, err = a.Srv.Store.Reaction().Save(reaction)
+	reaction, err = a.Srv().Store.Reaction().Save(reaction)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
 	})
 
@@ -52,13 +52,13 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	return a.Srv.Store.Reaction().GetForPost(postId, true)
+	return a.Srv().Store.Reaction().GetForPost(postId, true)
 }
 
 func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
-	allReactions, err := a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIds)
 	if err != nil {
 		return nil, err
 	}
@@ -114,14 +114,14 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		hasReactions = false
 	}
 
-	if _, err := a.Srv.Store.Reaction().Delete(reaction); err != nil {
+	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
 		return err
 	}
 
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
 	})
 

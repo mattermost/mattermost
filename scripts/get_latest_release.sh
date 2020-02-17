@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
-# Time: 2020-01-29 14:49:24
-# Author: https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c
-get_latest_release() {
-  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
-    grep '"tag_name":' |                                            # Get tag line
-    sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
-}
+# $1 - repo to check against
+# $2 - release branch pattern to match
+# This script will check if the current repo has version pattern $2 ('release-5.20') in the branch name.
+# If it does it will check for a matching release version in the $1 repo and if found check for the newest dot version.
+# If the branch pattern isn't found than it will default to the newest release available in $1.
+REPO_TO_USE=$1
+BRANCH_TO_USE=$2
 
-# Usage
-# $ get_latest_release "creationix/nvm"
-# v0.31.4
-# Assume we are in a git dir
-get_latest_release $1
+LATEST_REL=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
+# Check if this is a release branch
+THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "$THIS_BRANCH" =~ $BRANCH_TO_USE ]];
+then
+    VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
+    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+else
+    REL_TO_USE=$(echo "$THIS_BRANCH" | sed "s/\(.*\)/$LATEST_REL/")
+fi
+
+echo "$REL_TO_USE"
