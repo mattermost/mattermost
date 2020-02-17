@@ -1202,7 +1202,7 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Не удалось создать эмодзи. Уже существует другой эмодзи с таким же именем."
+    "translation": "Не удалось создать смайлик. Уже существует другой смайлик с таким же именем."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
@@ -1210,23 +1210,23 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Невозможно создать эмодзи. Непонятен запрос."
+    "translation": "Невозможно создать смайлик. Непонятен запрос."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Невозможно создать эмодзи. Изображение должно быть не более 1 MB."
+    "translation": "Невозможно создать смайлик. Изображение должно быть не более 1 MB."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Дополнительные эмодзи были отключены системным администратором."
+    "translation": "Пользовательские смайлики были отключены системным администратором."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Не удалось декодировать файл изображения для эмодзи."
+    "translation": "Не удалось декодировать файл изображения для смайлика."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Не удалось прочитать файл изображения для эмодзи."
+    "translation": "Не удалось прочитать файл изображения для смайлика."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1234,7 +1234,7 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Не удалось создать эмодзи. Должен быть PNG, JPEG или GIF файл."
+    "translation": "Невозможно создать смайлик. Должен быть PNG, JPEG или GIF файл."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
@@ -1254,11 +1254,11 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Не удалось создать эможи. Изображение должно быть меньше {{.MaxWidth}} {{.MaxHeight}}."
+    "translation": "Невозможно создать смайлик. Изображение должно быть меньше {{.MaxWidth}} {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Невозможно создать эмоджи. Произошла ошибка при попытке открыть прикреплённое изображение."
+    "translation": "Невозможно создать смайлик. Произошла ошибка при попытке открыть прикреплённое изображение."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -2884,7 +2884,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые теперь отключены.\n\n{{.BotNames}}{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые теперь отключены, включая следующие:\n\n{{.BotNames}}{{end}} Вы можете стать владельцем каждого бота, включив его в разделе **Интеграции > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые все еще включены.\n\n{{.BotNames}}\n{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые по-прежнему включены, включая следующие:\n\n{{.BotNames}}{{end}} Мы настоятельно рекомендуем вам стать владельцем каждого бота, повторно включив его в разделе **Интеграция > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nЕсли вы хотите, чтобы учетные записи ботов автоматически отключались после деактивации пользователя, установите для параметра «Отключить учетные записи ботов после деактивации пользователя» в **Системная консоль > Интеграция > Учетные записи ботов** значение true.{{end}}"
+    "translation": "{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые теперь отключены.\n\n{{.BotNames}}{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые теперь отключены, включая следующие:\n\n{{.BotNames}}{{end}} Вы можете стать владельцем каждого бота, включив его в разделе **Интеграции > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} были деактивированы. Они управляли следующими учетными записями ботов, которые все еще включены.\n\n{{.BotNames}}\n{{else}}{{.UserName}} были деактивированы. Они управляли {{.NumBots}} учетными записями ботов, которые по-прежнему включены, включая следующие:\n\n{{.BotNames}}{{end}} Мы настоятельно рекомендуем вам стать владельцем каждого бота, повторно включив его в разделе **Интеграция > Учетные записи ботов** и создав новые токены для бота.\n\nДля получения дополнительной информации см. Нашу [документацию](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nЕсли вы хотите, чтобы учетные записи ботов автоматически отключались после деактивации пользователя, установите для параметра «Отключить учетные записи ботов после деактивации пользователя» в **Системная консоль > Интеграция > Учетные записи ботов** значение true.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2920,7 +2920,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Невозможно скопировать пользовательские изображения эмодзи"
+    "translation": "Невозможно скопировать пользовательские изображения смайликов"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2952,7 +2952,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Ошибка при чтении файла изображения emoji. Emoji с именем: \"{{.EmojiName}}\""
+    "translation": "Ошибка при чтении файла изображения смайлика. Смайлик с именем: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -3184,15 +3184,15 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Нет данных об эмоджи для импорта."
+    "translation": "Импортируемые данные о смайле пусты."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Импорт emoji - изображение отсутствует или поле пустое."
+    "translation": "Импорт смайликов - изображение отсутствует или поле пустое."
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Имя поля Импорт эмодзи пропущено или пустое"
+    "translation": "Поле имени для импорта смайликов отсутствует или не заполнено."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3308,7 +3308,7 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
-    "translation": "The wrong roles were provided for a scheme with this scope."
+    "translation": "Неправильные роли были предоставлены для схемы с этой областью видимости."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -4048,7 +4048,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "ldap интерфейс был nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -4168,23 +4168,23 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Unable to set the email From address."
+    "translation": "Невозможно задать адрес электронной почты в поле From."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "Невозможно задать текст сообщения электронной почты."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "Невозможно написать сообщение электронной почты."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Unable to read the email information."
+    "translation": "Невозможно прочитать информацию электронной почты."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Unable to set the email To address."
+    "translation": "Невозможно задать адрес электронной почты в поле To."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
@@ -4192,7 +4192,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Unable to get the an email from the temporary file"
+    "translation": "Невозможно получить письмо из временного файла."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
@@ -4316,15 +4316,15 @@
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Could not request cancellation for job that is not in a cancelable state."
+    "translation": "Не удалось запросить отмену для задания, которое не находится в состоянии отмены."
   },
   {
     "id": "jobs.set_job_error.update.error",
-    "translation": "Failed to set job status to error"
+    "translation": "Не удалось установить статус задания на ошибку"
   },
   {
     "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP synchronization job timeout."
+    "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -4380,7 +4380,7 @@
   },
   {
     "id": "migrations.worker.run_migration.unknown_key",
-    "translation": "Unable to run migration job due to unknown migration key."
+    "translation": "Невозможно запустить задание миграции из-за неизвестного ключа миграции."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -4504,11 +4504,11 @@
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Invalid email notification value"
+    "translation": "Неверное значение уведомления по электронной почте"
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Неверный статус \"игнорировать упоминания на канале\""
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4536,7 +4536,7 @@
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Hostname must be set"
+    "translation": "Имя хоста должно быть задано"
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
@@ -4544,11 +4544,11 @@
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt must be set"
+    "translation": "LastPingAt должен быть задан"
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName must be set"
+    "translation": "ClusterName должен быть задан"
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
@@ -4656,15 +4656,15 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Allowing cookies for subdomains requires SiteURL to be set."
+    "translation": "Для разрешения файлов cookie для поддоменов необходимо установить SiteURL."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Недопустимые RemoteImageProxyOptions для atmos/camo. Должен быть установлен на ваш общий ключ."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "Недопустимый RemoteImageProxyURL для atmos/camo. Должен быть установлен на ваш общий ключ."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4672,7 +4672,7 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
+    "translation": "Время начала работы по сохранению данных должно быть 24-часовой отметкой в формате ЧЧ:ММ."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -4684,19 +4684,19 @@
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-    "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
+    "translation": "Пользовательская схема URL {{.Scheme}} недопустима. Пользовательские схемы URL должны начинаться с буквы и содержать только буквы, цифры, плюс (+), точку (.) И дефис (-)."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+    "translation": "Параметр Elasticsearch AggregatePostsAfterDays должен быть числом больше или равным 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Окно времени массовой индексации Elasticsearch должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elasticsearch ConnectionUrl setting must be provided when Elasticsearch indexing is enabled."
+    "translation": "Параметр Elasticsearch ConnectionUrl должен быть указан, когда включена индексация Elasticsearch."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -4712,11 +4712,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+    "translation": "Параметр Elasticsearch PostsAggregatorJobStartTime должен быть временем в формате \"чч:мм\""
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Время ожидания запроса Elasticsearch должно составлять не менее 1 секунды."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4728,7 +4728,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "Недопустимый тип содержимого уведомления по электронной почте для настроек электронной почты. Должен быть либо \"full\", либо \"generic\"."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -4748,11 +4748,11 @@
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+    "translation": "Неверная группировка непрочитанных каналов в сервисных настройках. Должно быть «disabled», «default_on» или «default_off»."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Неверный тип прокси изображений. Должен быть 'local' или 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4796,7 +4796,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Available Languages must contain Default Client Language"
+    "translation": "Доступные языки должны содержать язык клиента по умолчанию"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4812,7 +4812,7 @@
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
-    "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
+    "translation": "Неверный максимальный размер файла для файла настроек. Должно быть целым числом больше нуля."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
@@ -4824,43 +4824,43 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Message export job BatchSize must be a positive integer"
+    "translation": "BatchSize задания экспорта сообщения должно быть положительным целым числом"
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+    "translation": "DailyRuntime задания экспорта сообщения должно быть 24-часовой отметкой времени в форме ЧЧ:ММ."
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Message export job EnableExport setting must be either true or false"
+    "translation": "EnableExport задания экспорта сообщений должно быть равно true или false"
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+    "translation": "ExportFromTimestamp задания экспорта сообщения должно быть отметкой времени (выражается в секундах с начала эпохи Unix). Только сообщения, отправленные после этой отметки времени, будут экспортированы."
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of 'actiance', 'csv' or 'globalrelay'"
+    "translation": "ExportFormat задания экспорта сообщения должно иметь одно из следующих значений: 'actiance', 'csv' или 'globalrelay'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing"
+    "translation": "ExportFormat задания экспорта сообщения установлено в 'globalrelay', но GlobalRelaySettings отсутствуют"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'"
+    "translation": "GlobalRelaySettings.CustomerType экспорта сообщения должен иметь одно из значений: «A9» или «A10»."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address"
+    "translation": "GlobalRelaySettings.EmailAddress задания экспорта сообщения должно быть установлено на действительный адрес электронной почты"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set"
+    "translation": "GlobalRelaySettings.SmtpPassword задания экспорта сообщения должно быть установлено"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set"
+    "translation": "GlobalRelaySettings.SmtpUsername задания экспорта сообщения должно быть установлено"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -4884,7 +4884,7 @@
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Invalid Admin attribute. Must be in the form 'field=value'"
+    "translation": "Неверный атрибут администратора. Должен быть в форме 'поле=значение'"
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4900,7 +4900,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Invalid Guest attribute. Must be in the form 'field=value'"
+    "translation": "Неверный атрибут гостя. Должен быть в форме 'поле=значение'"
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4944,7 +4944,7 @@
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
-    "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
+    "translation": "Неверное максимальное время жизни соединения для настроек SQL. Должно быть неотрицательным числом."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -4968,7 +4968,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display. Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Неверный способ отображения имени в команде. Должно быть 'full_name', 'nickname_full_name' или 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4976,15 +4976,15 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Неверное значение для файла сертификата TLS - либо используйте LetsEncrypt, либо укажите путь к существующему файлу сертификата."
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Неверное значение для файла ключа TLS - либо используйте LetsEncrypt, либо укажите путь к существующему файлу ключа"
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Передано недопустимое значение для шифра перезаписи TLS - действительные значения см. в документации."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -5004,7 +5004,7 @@
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Некорректный идентификатор emoji"
+    "translation": "Некорректный идентификатор смайлика"
   },
   {
     "id": "model.emoji.name.app_error",
@@ -5048,39 +5048,39 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "Недопустимое свойство отображаемого имени для группы"
   },
   {
     "id": "model.group_member.group_id.app_error",
@@ -5312,7 +5312,7 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "An error occurred while trying to execute this command."
+    "translation": "Произошла ошибка при попытке выполнить эту команду."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
@@ -5412,7 +5412,7 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Недопустимое название эмодзи"
+    "translation": "Недопустимое название смайлика"
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
@@ -5632,11 +5632,11 @@
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
-    "translation": "Unable to connect to the WebSocket server."
+    "translation": "Невозможно подключиться к серверу WebSocket."
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "Условия предоставления услуг GitLab обновлены. Пожалуйста, зайдите на gitlab.com, чтобы принять их, а затем попробуйте снова войти в Mattermost."
   },
   {
     "id": "plugin.api.get_users_in_channel",
@@ -5748,11 +5748,11 @@
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Не удалось начать транзакцию базы данных"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
@@ -5764,7 +5764,7 @@
   },
   {
     "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date"
+    "translation": "Не удалось подсчитать сообщения с указанной даты"
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5800,7 +5800,7 @@
   },
   {
     "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "Невозможно получить каналы для предоставленной схемы"
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
@@ -5816,7 +5816,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing"
+    "translation": "Невозможно получить пакет каналов для индексации"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
@@ -5896,15 +5896,15 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Не удалось открыть транзакцию базы данных"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
+    "translation": "Не удалось сделать выборку участников каналов"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
@@ -5960,7 +5960,7 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
+    "translation": "Мы не смогли сбросить схемы канала"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
@@ -6024,7 +6024,7 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
-    "translation": "Невозможно начать транзакцию"
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.save_member.commit_transaction.app_error",
@@ -6036,7 +6036,7 @@
   },
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Невозможно начать транзакцию"
+    "translation": "Невозможно открыть транзакцию"
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
@@ -6096,7 +6096,7 @@
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Ну удалось установить время последнего просмотра на"
+    "translation": "Не удалось установить время последнего просмотра на"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at_post.app_error",
@@ -6112,11 +6112,11 @@
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Failed to get users in channel during specified time period"
+    "translation": "Не удалось получить пользователей в канале в течение указанного периода времени"
   },
   {
     "id": "store.sql_channel_member_history.log_join_event.app_error",
-    "translation": "Failed to record channel member history"
+    "translation": "Не удалось записать историю участников канала"
   },
   {
     "id": "store.sql_channel_member_history.log_leave_event.update_error",
@@ -6124,7 +6124,7 @@
   },
   {
     "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
-    "translation": "Failed to purge records"
+    "translation": "Не удалось очистить записи"
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
@@ -6132,7 +6132,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete"
+    "translation": "Не получилось удалить"
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
@@ -6140,7 +6140,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows"
+    "translation": "Не удалось получить все строки обнаружения"
   },
   {
     "id": "store.sql_cluster_discovery.save.app_error",
@@ -6148,7 +6148,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at"
+    "translation": "Не удалось обновить последний пинг в"
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
@@ -6196,7 +6196,7 @@
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook"
+    "translation": "Вы не можете обновить существующий CommandWebhook"
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
@@ -6212,7 +6212,7 @@
   },
   {
     "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data"
+    "translation": "Не удалось выбрать данные экспорта сообщения"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -6220,31 +6220,31 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Не удалось удалить эмодзи"
+    "translation": "Не удалось удалить смайлик"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "Не удалось найти эмодзи для удаления"
+    "translation": "Не удалось найти смайлик для удаления"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось получить смайлик"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось получить смайлик"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Не удалось получить эмодзи"
+    "translation": "Не удалось получить смайлик"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Не удалось сохранить эмодзи"
+    "translation": "Не удалось сохранить смайлик"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Unable to delete attachments of the user"
+    "translation": "Невозможно удалить вложения пользователя"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -6272,11 +6272,11 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info"
+    "translation": "Невозможно окончательно удалить информацию о файле"
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
+    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информации о файлах"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6288,19 +6288,19 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "синхронизируемая группа уже удалена"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "не найдено подходящей группы"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "строки не изменены"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
+    "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6308,7 +6308,7 @@
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "участник группы уже существует"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6324,11 +6324,11 @@
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type"
+    "translation": "Невозможно получить количество заданий по статусу и типу"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type"
+    "translation": "Невозможно получить самое новое задание по статусу и типу"
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -6364,7 +6364,7 @@
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
-    "translation": "Невозможно начать транзакцию по удалению приложения OAuth2"
+    "translation": "Невозможно открыть транзакцию по удалению приложения OAuth2"
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -6380,7 +6380,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Unable to find the requested app"
+    "translation": "Невозможно найти запрошенное приложение"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -6456,11 +6456,11 @@
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Не удалось запросить существующую строку в MySQL после KVCompareAndSet с неизменным значением."
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
+    "translation": "Найдено более 1 строки в MySQL после KVCompareAndSet с неизменным значением."
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
@@ -6480,19 +6480,19 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
+    "translation": "Невозможно получить количество сообщений"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
+    "translation": "Невозможно получить количество сообщений по дням"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
+    "translation": "Невозможно получить количество пользователей с сообщениями"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
+    "translation": "Не удалось получить сообщения для комплаенс-отчета."
   },
   {
     "id": "store.sql_post.delete.app_error",
@@ -6536,7 +6536,7 @@
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing"
+    "translation": "Невозможно получить пакет сообщений для индексации"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -6568,7 +6568,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета сообщений"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
@@ -6600,7 +6600,7 @@
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags"
+    "translation": "Мы столкнулись с ошибкой при очистке пакета флагов"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6640,7 +6640,7 @@
   },
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию по сохранению настроек"
+    "translation": "Не удалось открыть транзакцию по сохранению настроек"
   },
   {
     "id": "store.sql_preference.save.updating.app_error",
@@ -6668,11 +6668,11 @@
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Не удалось удалить реакцию с данным именем эмодзи"
+    "translation": "Не удалось удалить реакцию с данным именем смайлика"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Не удалось получить реакцию с данным именем эмодзи"
+    "translation": "Не удалось получить реакцию с данным именем смайлика"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
@@ -6680,7 +6680,7 @@
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
+    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6744,7 +6744,7 @@
   },
   {
     "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию по сохранению роли"
+    "translation": "Не удалось открыть транзакцию по сохранению роли"
   },
   {
     "id": "store.sql_role.save.update.app_error",
@@ -6752,11 +6752,11 @@
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Не удалось завершить транзакцию по сохранению роли"
+    "translation": "Не удалось зафиксировать транзакцию по сохранению роли"
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme"
+    "translation": "Невозможно удалить роли, принадлежащие этой схеме"
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
@@ -6788,7 +6788,7 @@
   },
   {
     "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию по сохранению схемы"
+    "translation": "Не удалось открыть транзакцию по сохранению схемы"
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
@@ -6800,7 +6800,7 @@
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Не удалось завершить транзакцию по сохранению схемы"
+    "translation": "Не удалось зафиксировать транзакцию по сохранению схемы"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6884,11 +6884,11 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Unable to find the system variable."
+    "translation": "Невозможно найти системную переменную."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry"
+    "translation": "Мы не можем окончательно удалить запись системной таблицы"
   },
   {
     "id": "store.sql_system.save.app_error",
@@ -6900,7 +6900,7 @@
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Unable to get the channel count for the scheme."
+    "translation": "Невозможно получить количество каналов для схемы."
   },
   {
     "id": "store.sql_team.analytics_private_team_count.app_error",
@@ -6916,11 +6916,11 @@
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Не удалось начать транзакцию базы данных"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
@@ -6972,7 +6972,7 @@
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
+    "translation": "Невозможно получить каналы для предоставленной схемы"
   },
   {
     "id": "store.sql_team.get_member.app_error",
@@ -7000,19 +7000,19 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "Невозможно получить список команд пользователя"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
+    "translation": "Не удалось открыть транзакцию базы данных"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
+    "translation": "Не удалось сделать выборку участников каналов"
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
@@ -7028,7 +7028,7 @@
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes"
+    "translation": "Мы не смогли сбросить схемы команды"
   },
   {
     "id": "store.sql_team.save.app_error",
@@ -7104,7 +7104,7 @@
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Unable to get the active users during the requested period"
+    "translation": "Невозможно получить активных пользователей в течение запрошенного периода"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -7112,19 +7112,19 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
+    "translation": "Невозможно получить количество системных администраторов"
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "не удалось построить запрос"
+    "translation": "Не удалось построить запрос"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Не удалось начать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
@@ -7136,7 +7136,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions не имеет смысла"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
@@ -7144,11 +7144,11 @@
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Не удалось начать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
@@ -7204,7 +7204,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
+    "translation": "Невозможно определить системную дату на основе даты создания первого пользователя."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
@@ -7228,7 +7228,7 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Unable to get the users batch for indexing"
+    "translation": "Невозможно получить пакет сообщений для индексации"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -7244,11 +7244,11 @@
   },
   {
     "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
+    "translation": "Не удалось зафиксировать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
+    "translation": "Не удалось начать транзакцию базы данных"
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
@@ -7300,7 +7300,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters"
+    "translation": "Невозможно найти пользователя, соответствующего критериям поиска"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -7332,7 +7332,7 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids"
+    "translation": "Невозможно получить список идентификаторов отключенных гостей"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
@@ -7508,7 +7508,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "ошибка обновления"
   },
   {
     "id": "system.message.name",
@@ -7520,7 +7520,7 @@
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "Обнаружена ошибка листинга каталога с S3."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
@@ -7528,7 +7528,7 @@
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
+    "translation": "Обнаружена ошибка удаления каталога из S3."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
@@ -7536,7 +7536,7 @@
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
+    "translation": "Обнаружена ошибка удаления файла из S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -7556,7 +7556,7 @@
   },
   {
     "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
+    "translation": "Не удалось записать вложение в электронное письмо"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
@@ -7564,7 +7564,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
+    "translation": "Ошибка установки \"From Address\""
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -7576,7 +7576,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
+    "translation": "Ошибка установки \"To Address\""
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -7592,15 +7592,15 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "Установите последнюю версию браузера Chrome"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "Установите последнюю версию браузера Firefox"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "Установите последнюю версию браузера Safari"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -7620,43 +7620,43 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "Скачать приложение"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Загрузите приложение Mattermost или используйте поддерживаемый браузер для лучшей работы."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "Скачать приложение"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "Руководство по установке"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "Руководство по установке"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "Подробности о поддерживаемых браузерах."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "Версия 61+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Версия 44+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Версия 60+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "Версия 12+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -7668,23 +7668,23 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "Этот браузер больше не поддерживается Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "Эта версия вашего браузера больше не поддерживается Mattermost"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
-    "translation": "Open Edge"
+    "translation": "Открыть Edge"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "Сделать браузером по умолчанию"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "или"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
