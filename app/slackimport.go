@@ -156,7 +156,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
-	team, err := a.Srv.Store.Team().Get(teamId)
+	team, err := a.Srv().Store.Team().Get(teamId)
 	if err != nil {
 		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
@@ -175,7 +175,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if existingUser, err := a.Srv.Store.User().GetByEmail(email); err == nil {
+		if existingUser, err := a.Srv().Store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -185,6 +185,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 			continue
 		}
 
+		email = strings.ToLower(email)
 		newUser := model.User{
 			Username:  sUser.Username,
 			FirstName: firstName,
@@ -206,7 +207,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 }
 
 func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	team, err := a.Srv.Store.Team().Get(teamId)
+	team, err := a.Srv().Store.Team().Get(teamId)
 	if err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
@@ -532,10 +533,10 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 
 		var mChannel *model.Channel
 		var err *model.AppError
-		if mChannel, err = a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); err == nil {
+		if mChannel, err = a.Srv().Store.Channel().GetByName(teamId, sChannel.Name, true); err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
-		} else if _, err := a.Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); err == nil {
+		} else if _, err := a.Srv().Store.Channel().GetDeletedByName(teamId, sChannel.Name); err == nil {
 			// The channel already exists but has been deleted. Generate a random string for the handle instead.
 			newChannel.Name = model.NewId()
 			newChannel = SlackSanitiseChannelProperties(newChannel)
@@ -790,7 +791,7 @@ func (a *App) OldImportPost(post *model.Post) string {
 		post.RootId = firstPostId
 		post.ParentId = firstPostId
 
-		_, err := a.Srv.Store.Post().Save(post)
+		_, err := a.Srv().Store.Post().Save(post)
 		if err != nil {
 			mlog.Debug("Error saving post.", mlog.String("user_id", post.UserId), mlog.String("message", post.Message))
 		}
@@ -800,7 +801,7 @@ func (a *App) OldImportPost(post *model.Post) string {
 				firstPostId = post.Id
 			}
 			for _, fileId := range post.FileIds {
-				if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+				if err := a.Srv().Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
 					mlog.Error(
 						"Error attaching files to post.",
 						mlog.String("post_id", post.Id),
@@ -826,13 +827,13 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 
 	user.Roles = model.SYSTEM_USER_ROLE_ID
 
-	ruser, err := a.Srv.Store.User().Save(user)
+	ruser, err := a.Srv().Store.User().Save(user)
 	if err != nil {
 		mlog.Error("Error saving user.", mlog.Err(err))
 		return nil
 	}
 
-	if _, err = a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+	if _, err = a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
 		mlog.Error("Failed to set email verified.", mlog.Err(err))
 	}
 
@@ -877,7 +878,7 @@ func (a *App) OldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		return sc
 	}
 
-	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	sc, err := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil
 	}
