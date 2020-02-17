@@ -21,7 +21,7 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 			if engine.IsIndexingEnabled() {
 				go (func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.DeleteChannel(channel); err != nil {
-						mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+						mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					}
 					mlog.Debug("Removed channel from index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
 				})(engine)
@@ -36,7 +36,7 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 			if engine.IsIndexingEnabled() {
 				go (func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.IndexChannel(channel); err != nil {
-						mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+						mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					}
 					mlog.Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
 				})(engine)
@@ -113,9 +113,9 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 	allFailed := true
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			channelList, err = c.esAutocompleteChannels(engine, teamId, term, includeDeleted)
+			channelList, err = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
 			if err != nil {
-				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.Err(err))
+				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			allFailed = false
@@ -134,7 +134,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 	return channelList, err
 }
 
-func (c *SearchChannelStore) esAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	channelIds, err := engine.SearchChannels(teamId, term)
 	if err != nil {
 		return nil, err
