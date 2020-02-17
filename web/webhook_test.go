@@ -87,6 +87,10 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
+		resp, err = http.Post(url, "AppLicaTion/x-www-Form-urlencoded", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
 		resp, err = http.Post(url, "application/x-www-form-urlencoded;charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
@@ -115,6 +119,10 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "mimetype/wrong", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusBadRequest)
 	})
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
