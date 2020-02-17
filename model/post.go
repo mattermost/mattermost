@@ -446,15 +446,11 @@ func (o *Post) DisableMentionHighlights() string {
 
 // DisableMentionHighlights disables mention highlighting for a post patch if required.
 func (o *PostPatch) DisableMentionHighlights() {
-	_, hasMentions := findAtChannelMention(*o.Message)
-	props := StringInterface{}
-	if o.Props != nil {
-		props = *o.Props
-	}
-
-	if hasMentions && props[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] != true {
-		props[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
-		o.Props = &props
+	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
+		if o.Props == nil {
+			o.Props = &StringInterface{}
+		}
+		(*o.Props)[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
 	}
 }
 

@@ -189,12 +189,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
-	var ephemeralResponse *model.Post
+	var ephemeralPost *model.Post
 	if !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
 			T := utils.GetUserTranslations(user.Locale)
-			ephemeralResponse = &model.Post{
+			ephemeralPost = &model.Post{
 				UserId:    user.Id,
 				RootId:    post.RootId,
 				ParentId:  post.ParentId,
@@ -328,8 +328,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
-	if ephemeralResponse != nil {
-		a.SendEphemeralPost(post.UserId, ephemeralResponse)
+	if ephemeralPost != nil {
+		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
 	return rpost, nil
