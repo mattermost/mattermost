@@ -15,7 +15,7 @@ import (
 )
 
 func TestConfigFlag(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 	dir := th.TemporaryDirectory()
 
