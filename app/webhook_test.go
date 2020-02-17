@@ -623,7 +623,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 					assert.Nil(t, webhookPost.Props["override_username"])
 				}
 			case <-time.After(5 * time.Second):
-				t.Fatal("Timeout, webhook response not created as post")
+				require.Fail(t, "Timeout, webhook response not created as post")
 			}
 
 		})
@@ -709,9 +709,9 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 		defer close(releaseHandler)
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
+		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
 		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")

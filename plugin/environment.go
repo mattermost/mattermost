@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -52,6 +53,7 @@ type Environment struct {
 	registeredPlugins      sync.Map
 	pluginHealthCheckJob   *PluginHealthCheckJob
 	logger                 *mlog.Logger
+	metrics                einterfaces.MetricsInterface
 	newAPIImpl             apiImplCreatorFunc
 	pluginDir              string
 	webappPluginDir        string
@@ -59,9 +61,10 @@ type Environment struct {
 	prepackagedPluginsLock sync.RWMutex
 }
 
-func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
+func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger, metrics einterfaces.MetricsInterface) (*Environment, error) {
 	return &Environment{
 		logger:          logger,
+		metrics:         metrics,
 		newAPIImpl:      newAPIImpl,
 		pluginDir:       pluginDir,
 		webappPluginDir: webappPluginDir,
@@ -267,7 +270,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		sup, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
+		sup, err := newSupervisor(pluginInfo, env.newAPIImpl(pluginInfo.Manifest), env.logger, env.metrics)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
@@ -454,6 +457,8 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
+	startTime := time.Now()
+
 	env.registeredPlugins.Range(func(key, value interface{}) bool {
 		rp := value.(registeredPlugin)
 
@@ -461,8 +466,21 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 			return true
 		}
 
-		return hookRunnerFunc(rp.supervisor.Hooks())
+		hookStartTime := time.Now()
+		result := hookRunnerFunc(rp.supervisor.Hooks())
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
+		}
+
+		return result
 	})
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
 }
 
 // SetPrepackagedPlugins saves prepackaged plugins in the environment.
