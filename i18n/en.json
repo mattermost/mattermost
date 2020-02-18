@@ -5687,6 +5687,10 @@
     "translation": "select error"
   },
   {
+    "id": "store.search_user_store.empty_team_id",
+    "translation": "Failed to get list of allowed channels for team: empty teamId"
+  },
+  {
     "id": "store.sql.build_query.app_error",
     "translation": "failed to build query."
   },

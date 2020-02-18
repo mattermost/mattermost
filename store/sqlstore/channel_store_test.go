@@ -12,11 +12,16 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestChannelStore(t *testing.T) {
 	StoreTestWithSqlSupplier(t, storetest.TestChannelStore)
+}
+
+func TestSearchChannelStore(t *testing.T) {
+	StoreTestWithSearchTestEngine(t, searchtest.TestSearchChannelStore)
 }
 
 func TestChannelSearchQuerySQLInjection(t *testing.T) {

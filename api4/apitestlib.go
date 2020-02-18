@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -59,7 +60,14 @@ type TestHelper struct {
 
 var mainHelper *testlib.MainHelper
 
+var searchEngine *searchengine.Broker
+
+func UseTestSearchEngine(engine *searchengine.Broker) {
+	searchEngine = engine
+}
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
+	//testStore.DropAllTables()
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -97,6 +105,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
 	}
+
+	th.App.SetSearchEngine(searchEngine)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
