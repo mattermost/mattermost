@@ -208,7 +208,7 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-			user, err := a.Srv.Store.User().GetByUsername(mention)
+			user, err := a.Srv().Store.User().GetByUsername(mention)
 
 			if err != nil && err.StatusCode != http.StatusNotFound {
 				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(err))
@@ -220,7 +220,7 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 			if err != nil {
 				trimmed, ok := model.TrimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
-					userFromTrimmed, userErr := a.Srv.Store.User().GetByUsername(trimmed)
+					userFromTrimmed, userErr := a.Srv().Store.User().GetByUsername(trimmed)
 					if userErr != nil && err.StatusCode != http.StatusNotFound {
 						return
 					}
