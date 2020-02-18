@@ -12,19 +12,19 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().Get(id)
+	return a.Srv().Store.Role().Get(id)
 }
 
 func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetAll()
+	return a.Srv().Store.Role().GetAll()
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetByName(name)
+	return a.Srv().Store.Role().GetByName(name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	return a.Srv.Store.Role().GetByNames(names)
+	return a.Srv().Store.Role().GetByNames(names)
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
@@ -50,12 +50,12 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.BuiltIn = false
 	role.SchemeManaged = false
 
-	return a.Srv.Store.Role().Save(role)
+	return a.Srv().Store.Role().Save(role)
 
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	savedRole, err := a.Srv.Store.Role().Save(role)
+	savedRole, err := a.Srv().Store.Role().Save(role)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
 	message.Add("role", role.ToJson())
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		a.Publish(message)
 	})
 }
