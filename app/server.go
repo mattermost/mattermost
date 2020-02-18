@@ -69,8 +69,9 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	Hubs                        []*Hub
+	hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
+	hubsLock                    sync.RWMutex
 
 	PushNotificationsHub PushNotificationsHub
 
@@ -818,4 +819,22 @@ func (s *Server) shutdownDiagnostics() error {
 	}
 
 	return nil
+}
+
+func (s *Server) GetHubs() []*Hub {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	return s.hubs
+}
+
+func (s *Server) SetHubs(hubs []*Hub) {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	s.hubs = hubs
+}
+
+func (s *Server) SetHub(index int, hub *Hub) {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	s.hubs[index] = hub
 }
