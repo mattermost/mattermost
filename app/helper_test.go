@@ -33,7 +33,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
+func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -48,6 +48,9 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	config := memoryStore.Get()
+	if configSet != nil {
+		configSet(config)
+	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
@@ -105,11 +108,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, tb)
+	return setupTestHelper(true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, tb)
+	return setupTestHelper(false, tb, nil)
+}
+
+func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
+	return setupTestHelper(false, tb, configSet)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
