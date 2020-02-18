@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -116,45 +117,6 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 				ChannelId:   th.BasicChannel.Id,
 				Username:    "valid",
 				IconURL:     "http://example.com/icon",
-			},
-		},
-		"invalid, with username, post icon and invalid ipList": {
-			EnableIncomingHooks:        true,
-			EnablePostUsernameOverride: true,
-			EnablePostIconOverride:     true,
-			IncomingWebhook: model.IncomingWebhook{
-				DisplayName: "title",
-				Description: "description",
-				ChannelId:   th.BasicChannel.Id,
-				Username:    "valid",
-				IconURL:     "http://example.com/icon",
-				WhiteIpList: model.StringArray{""},
-			},
-
-			ExpectedError:           true,
-			ExpectedIncomingWebhook: nil,
-		},
-		"valid, with username, post icon and ipList": {
-			EnableIncomingHooks:        true,
-			EnablePostUsernameOverride: true,
-			EnablePostIconOverride:     true,
-			IncomingWebhook: model.IncomingWebhook{
-				DisplayName: "title",
-				Description: "description",
-				ChannelId:   th.BasicChannel.Id,
-				Username:    "valid",
-				IconURL:     "http://example.com/icon",
-				WhiteIpList: model.StringArray{"192.168.1.1", "1.1.1.1/32"},
-			},
-
-			ExpectedError: false,
-			ExpectedIncomingWebhook: &model.IncomingWebhook{
-				DisplayName: "title",
-				Description: "description",
-				ChannelId:   th.BasicChannel.Id,
-				Username:    "valid",
-				IconURL:     "http://example.com/icon",
-				WhiteIpList: model.StringArray{"192.168.1.1", "1.1.1.1/32"},
 			},
 		},
 
@@ -753,9 +715,9 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 			w.Header().Set("Content-Type", "application/json")
-			// to test getting the correct digest in header, find and uncomment (nowStamp = "1576740798") in app/webhook.go
-			// uncomment the next test
-			// assert.Equal(t, "6899e29a8426b6df8bbd4a922a749493f093693866276e8fbc2aac2892d35992", r.Header.Get("Signature"))
+			bodyBytes, _ := ioutil.ReadAll(r.Body)
+			digest := model.GenerateHmacSignature(&bodyBytes, r.Header.Get("Timestamp"), "secret")
+			assert.Equal(t, digest, r.Header.Get("Signature"))
 
 		}))
 		defer server.Close()
@@ -775,7 +737,6 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", "secret")
 		require.NotNil(t, err)
-		// restore this
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -787,8 +748,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", "secret")
 		require.NotNil(t, err)
-		// restore this
-		// require.Equal(t, io.ErrUnexpectedEOF, err)
+		require.Equal(t, io.ErrUnexpectedEOF, err)
 	})
 
 	t.Run("with a large, invalid response", func(t *testing.T) {
@@ -799,7 +759,6 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", "secret")
 		require.NotNil(t, err)
-		// restore this
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -820,7 +779,6 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", "secret")
 		require.NotNil(t, err)
-		// restore this test
 		require.IsType(t, &url.Error{}, err)
 	})
 }

@@ -5,8 +5,11 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -230,26 +233,9 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err := http.Post(url0, "", nil)
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusBadRequest)
-		// matching the whitelist ip
-		hook, err1 := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
-			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, WhiteIpList: model.StringArray{"127.0.0.1"}})
-		require.Nil(t, err1)
-		url := ApiClient.Url + "/hooks/" + hook.Id
-		payload := "payload={\"text\": \"test text\"}"
-		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
-		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
-		// not matching the whitelist ip
-		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
-			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, WhiteIpList: model.StringArray{"127.0.0.2"}})
-		require.Nil(t, err1)
-		url = ApiClient.Url + "/hooks/" + hook.Id
-		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
-		require.Nil(t, err)
-		assert.False(t, resp.StatusCode == http.StatusOK)
 		// Signature
 		// without Hmac signature
-		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
+		hook, err1 := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
 			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 		require.Nil(t, err1)
 		url = ApiClient.Url + "/hooks/" + hook.Id
@@ -271,6 +257,11 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err2)
 		resp, err2 = client.Do(req)
 		require.Nil(t, err2)
+		bytesbody, _ := ioutil.ReadAll(resp.Body)
+		var mydata5 map[string]interface{}
+		err = json.Unmarshal(bytesbody, &mydata5)
+		require.Nil(t, err)
+		assert.Equal(t, "model.incoming_hook.insufficient_header.app_error", mydata5["id"])
 		assert.False(t, resp.StatusCode == http.StatusOK)
 		// // Content-Type mismatch
 		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
@@ -283,11 +274,15 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err2)
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		dish, _ := client.Do(req)
+		bytesbody, _ = ioutil.ReadAll(dish.Body)
+		var mydata map[string]interface{}
+		err = json.Unmarshal(bytesbody, &mydata)
+		require.Nil(t, err)
+		assert.Equal(t, "api.webhook.invalid_content_type.app_error", mydata["id"])
 		assert.True(t, dish.StatusCode == http.StatusBadRequest)
 		// verification test
-		// for testing this , uncomment this line in app/webhook.go: hook.SecretToken = "me" // for testing
 		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
-			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, HmacAlgorithm: "HMAC-SHA1",
+			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, HmacAlgorithm: "HMAC-SHA256",
 				HmacModel: model.StringInterface{"HeaderName": "Signature"}, SignedContentModel: model.StringArray{"{payload}"},
 				ContentType: "application/json"})
 		require.Nil(t, err1)
@@ -295,14 +290,43 @@ func TestIncomingWebhook(t *testing.T) {
 		req, err2 = http.NewRequest("POST", url, bytes.NewBuffer(data))
 		require.Nil(t, err2)
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Signature", "dc34a34fc76339a4898af22aa9abdcd578ccd876")
-		res, _ := client.Do(req)
-		// require.NotNil(t, er)
-
+		digest := model.GenerateHmacSignature(&data, "", hook.SecretToken)
+		req.Header.Set("Signature", digest)
+		res, er := client.Do(req)
+		require.Nil(t, er)
+		assert.True(t, res.StatusCode == http.StatusOK)
+		// checking timestamp #1, expired timestamp: now minus 31s
+		hook, err1 = th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel,
+			&model.IncomingWebhook{ChannelId: th.BasicChannel.Id, HmacAlgorithm: "HMAC-SHA256",
+				HmacModel:          model.StringInterface{"HeaderName": "Signature"},
+				TimestampModel:     model.StringInterface{"HeaderName": "Timestamp"},
+				SignedContentModel: model.StringArray{"{payload}", "{timestamp}"}, ContentType: "application/json"})
+		require.Nil(t, err1)
+		url = ApiClient.Url + "/hooks/" + hook.Id
+		req, err2 = http.NewRequest("POST", url, bytes.NewBuffer(data))
+		require.Nil(t, err2)
+		req.Header.Set("Content-Type", "application/json")
+		now := strconv.FormatInt(time.Now().Unix()-31, 10)
+		req.Header.Set("Timestamp", now)
+		digest = model.GenerateHmacSignature(&data, now, hook.SecretToken)
+		req.Header.Set("Signature", digest)
+		res, er = client.Do(req)
+		require.Nil(t, er)
+		bytesbody, _ = ioutil.ReadAll(res.Body)
+		var mydata1 map[string]interface{}
+		err = json.Unmarshal(bytesbody, &mydata1)
+		require.Nil(t, err)
+		assert.Equal(t, "api.webhook.incoming.webhook_expired.app_error", mydata1["id"])
 		assert.True(t, res.StatusCode == http.StatusBadRequest)
-		// assert.True(t, res.StatusCode == http.StatusOK)
+		// checking timestamp #1, with valid timestamp
+		now = strconv.FormatInt(time.Now().Unix(), 10)
+		req.Header.Set("Timestamp", now)
+		digest = model.GenerateHmacSignature(&data, now, hook.SecretToken)
+		req.Header.Set("Signature", digest)
+		res, er = client.Do(req)
+		require.Nil(t, er)
+		assert.True(t, res.StatusCode == http.StatusOK)
 
-		// checking timestamp
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {
@@ -353,4 +377,79 @@ func TestCommandWebhooks(t *testing.T) {
 	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("expected error for sixth usage")
 	}
+}
+
+func TestCreateContentToSign(t *testing.T) {
+	contentModel := model.StringArray{"{payload}", "{timestamp}"}
+	me := []byte("me")
+	signedHook := signedIncomingHook{Payload: &me, Timestamp: "123"}
+	createContentToSign(contentModel, &signedHook)
+	require.Equal(t, []byte("me123"), *signedHook.ContentToSign)
+
+}
+
+func TestParseHeader(t *testing.T) {
+	json := []byte(`{"firstName":"John","lastName":"Dow"}`)
+	body := bytes.NewBuffer(json)
+	req, _ := http.NewRequest("POST", "/ideal", body)
+
+	i := &model.IncomingWebhook{}
+	unsignedHook := signedIncomingHook{}
+
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	i.HmacModel = model.StringInterface{"HeaderName": "Signature"}
+	require.Error(t, parseHeader(i, &unsignedHook, req), "This should be an error")
+	req.Header.Set("Signature", "djfhgughgjfjgkgjfjgjfkgjfk")
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+
+	i.HmacModel["SplitBy"] = "by"
+	i.HmacModel["Index"] = "1"
+	require.Error(t, parseHeader(i, &unsignedHook, req), "This should be an error")
+
+	i.HmacModel["Index"] = "0"
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	require.Equal(t, signedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk"}, unsignedHook)
+
+	i.HmacModel["Prefix"] = "v0="
+	req.Header.Set("Signature", "v0=djfhgughgjfjgkgjfjgjfkgjfk")
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	require.Equal(t, signedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk"}, unsignedHook)
+
+	i.TimestampModel = model.StringInterface{"HeaderName": "Timestamp"}
+	require.Error(t, parseHeader(i, &unsignedHook, req), "This should be an error")
+	req.Header.Set("Timestamp", "t=123456,j=junc")
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	i.TimestampModel["SplitBy"] = ","
+	require.Error(t, parseHeader(i, &unsignedHook, req), "This should be an error")
+	i.TimestampModel["Index"] = "0"
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	i.TimestampModel["Prefix"] = "t="
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	require.Equal(t, signedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk", Timestamp: "123456"}, unsignedHook)
+
+	bodyP := []byte("me")
+	unsignedHook.Payload = &bodyP
+	i.SignedContentModel = model.StringArray{"{timestamp}", "{payload}"}
+	require.Nil(t, parseHeader(i, &unsignedHook, req), "This should be nil")
+	require.Equal(t, []byte("123456me"), *unsignedHook.ContentToSign)
+}
+
+func TestParseHeaderModel(t *testing.T) {
+	rawModel := model.StringInterface{}
+	require.Equal(t, headerModel{}, parseHeaderModel(rawModel))
+	rawModel = model.StringInterface{"HeaderName": "me", "bomber": "boom"}
+	require.Equal(t, headerModel{HeaderName: "me", SplitBy: "", Index: "", Prefix: ""}, parseHeaderModel(rawModel))
+}
+
+func TestVerifySignature(t *testing.T) {
+	signContent := []byte("me")
+	signedHook := signedIncomingHook{Signature: "292dd895f1318e301d9cb8b088879e357e4a1bb9",
+		Algorithm: "HMAC-SHA1", ContentToSign: &signContent}
+	require.True(t, signedHook.verifySignature("secret"), "This should be true")
+
+	signContent = []byte(`{"text": "bullfood"}`)
+	signedHook = signedIncomingHook{Signature: "36ec87e44ad5039a7d488b58a6719964efa36270",
+		Algorithm: "HMAC-SHA1", ContentToSign: &signContent}
+	require.True(t, signedHook.verifySignature("secret"), "This should be true")
+
 }

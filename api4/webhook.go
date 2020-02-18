@@ -335,9 +335,6 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hook.SecretToken = model.NewRandomString(26)
-	// hook.SecretToken = "me" // for testing, it's "me"
-
 	rhook, err := c.App.CreateOutgoingWebhook(hook)
 	if err != nil {
 		c.LogAudit("fail")

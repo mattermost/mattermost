@@ -1353,16 +1353,8 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.incoming_webhook.invalid_signing_model.app_error",
-    "translation": "Invalid wehook authentication information."
-  },
-  {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "api.incoming_webhook.invalid_white_ip_list.app_error",
-    "translation": "The white ip list contains an invalid IP address or CIDR."
   },
   {
     "id": "api.io_error",
@@ -2825,10 +2817,6 @@
   {
     "id": "api.webhook.incoming.invalid_hook_id.app_error",
     "translation": "You posted to an invalid webhook URL."
-  },
-  {
-    "id": "api.webhook.incoming.invalid_hook_ip.app_error",
-    "translation": "Your IP is not listed in the white list."
   },
   {
     "id": "api.webhook.incoming.invalid_webhook_Hmac.app_error",
@@ -5099,6 +5087,22 @@
     "translation": "Invalid title"
   },
   {
+    "id": "model.incoming_hook.hmac_algorithm.app_error",
+    "translation": "Invalid HMAC algorithm"
+  },
+  {
+    "id": "model.incoming_hook.hmac_headername.app_error",
+    "translation": "Invalid HMAC header"
+  },
+  {
+    "id": "model.incoming_hook.hmac_prefix.app_error",
+    "translation": "Invalid HMAC prefix"
+  },
+  {
+    "id": "model.incoming_hook.hmac_splitter.app_error",
+    "translation": "Invalid HMAC header splitter"
+  },
+  {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "Invalid post icon"
   },
@@ -5119,8 +5123,24 @@
     "translation": "Secret token for webhook signature is invalid."
   },
   {
+    "id": "model.incoming_hook.signed_content_model.app_error",
+    "translation": "Invalid content model for signing"
+  },
+  {
     "id": "model.incoming_hook.team_id.app_error",
     "translation": "Invalid team ID"
+  },
+  {
+    "id": "model.incoming_hook.timestamp_header.app_error",
+    "translation": "Invalid timestamp header"
+  },
+  {
+    "id": "model.incoming_hook.timestamp_splitter.app_error",
+    "translation": "Invalid timestamp splitter"
+  },
+  {
+    "id": "model.incoming_hook.timestamp_prefix.app_error",
+    "translation": "Invalid timestamp prefix"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",

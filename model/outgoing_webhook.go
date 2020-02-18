@@ -267,10 +267,10 @@ func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (trigge
 	return triggerWord
 }
 
-func GenerateHmacSignature(payLoad *[]byte, timestamp, secret string) string {
+func GenerateHmacSignature(payLoad *[]byte, timestamp, secretToken string) string {
 	contentToSign := append(*payLoad, []byte(timestamp)...)
 
-	mac := hmac.New(sha256.New, []byte(secret))
+	mac := hmac.New(sha256.New, []byte(secretToken))
 	mac.Write(contentToSign)
 
 	return hex.EncodeToString(mac.Sum(nil))

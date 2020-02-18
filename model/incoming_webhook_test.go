@@ -4,8 +4,6 @@
 package model
 
 import (
-	"bytes"
-	"net/http"
 	"strings"
 	"testing"
 
@@ -71,132 +69,45 @@ func TestValidModelSplitter(t *testing.T) {
 	require.Equal(t, StringInterface{"HeaderName": "dsdfa"}, p, "should be reset to StringInterface{} with header name preserved")
 }
 
-func TestIsValidModels(t *testing.T) {
+func TestIsValidSignatureModels(t *testing.T) {
 	i := &IncomingWebhook{}
-
-	require.False(t, i.IsValidModels())
+	// empty signature model, default to hmac algorithm error
+	require.Equal(t, "model.incoming_hook.hmac_algorithm.app_error", i.IsValidSignatureModels().Id)
+	// invalid hmac algorithm
 	i.HmacAlgorithm = "HMAC-MD5"
-	require.False(t, i.IsValidModels())
+	require.Equal(t, "model.incoming_hook.hmac_algorithm.app_error", i.IsValidSignatureModels().Id)
 
 	i.HmacAlgorithm = "HMAC-SHA256"
+	i.SignedContentModel = StringArray{}
+	require.Equal(t, "model.incoming_hook.signed_content_model.app_error", i.IsValidSignatureModels().Id)
+
 	i.SignedContentModel = StringArray{"we"}
 	i.HmacModel = StringInterface{}
-	i.HmacModel["HeaderName"] = "good"
-	require.True(t, i.IsValidModels())
-
-	// i.TimestampModel = StringInterface{}
-	i.HmacModel["HeaderName"] = 1
-	require.False(t, i.IsValidModels())
-	i.HmacModel["HeaderName"] = "slkjjjjjjjjjjjjjjjjjjjjjjj"
-	require.False(t, i.IsValidModels())
-	i.HmacModel["HeaderName"] = ""
-	require.False(t, i.IsValidModels())
+	require.Equal(t, "model.incoming_hook.hmac_headername.app_error", i.IsValidSignatureModels().Id)
 
 	i.HmacModel["HeaderName"] = "good"
-	i.HmacModel["Prefix"] = "1"
-	require.True(t, i.IsValidModels())
-	i.HmacModel["Prefix"] = 1
-	require.False(t, i.IsValidModels())
-	i.HmacModel["Prefix"] = "1"
-	i.HmacModel["Index"] = "1"
-	require.True(t, i.IsValidModels())
-	require.Equal(t, StringInterface{"HeaderName": "good", "Prefix": "1"}, i.HmacModel, "Should have only the header name")
+	i.HmacModel["SplitBy"] = ","
+	require.Equal(t, "model.incoming_hook.hmac_splitter.app_error", i.IsValidSignatureModels().Id)
+	i.HmacModel["SplitBy"] = ""
+	require.Nil(t, i.IsValidSignatureModels())
 
-	i.TimestampModel["SplitBy"] = "by"
-	require.True(t, i.IsValidModels())
-	require.Equal(t, StringInterface{}, i.TimestampModel, "Should have reset if no headername for timestamp model")
+	i.HmacModel["Prefix"] = ""
+	require.Equal(t, "model.incoming_hook.hmac_prefix.app_error", i.IsValidSignatureModels().Id)
+
+	i.HmacModel["Prefix"] = "1"
 	i.TimestampModel["HeaderName"] = 1
-	require.False(t, i.IsValidModels())
-	i.TimestampModel["HeaderName"] = ""
-	require.False(t, i.IsValidModels())
-	i.TimestampModel["HeaderName"] = "t"
+	require.Equal(t, "model.incoming_hook.timestamp_header.app_error", i.IsValidSignatureModels().Id)
+	i.TimestampModel = StringInterface{"HeaderName": "goodName"}
+	require.Nil(t, i.IsValidSignatureModels())
+
 	i.TimestampModel["SplitBy"] = "by"
+	require.Equal(t, "model.incoming_hook.timestamp_splitter.app_error", i.IsValidSignatureModels().Id)
+
 	i.TimestampModel["Index"] = "3"
-	require.True(t, i.IsValidModels())
-	delete(i.TimestampModel, "SplitBy")
-	require.True(t, i.IsValidModels())
-	require.Equal(t, StringInterface{"HeaderName": "t"}, i.TimestampModel, "should match")
-	i.TimestampModel["Prefix"] = 1
-	require.False(t, i.IsValidModels())
-	i.TimestampModel["Prefix"] = "11"
-	require.True(t, i.IsValidModels())
-	i.TimestampModel["Prefix"] = "123456789"
-	require.False(t, i.IsValidModels())
-
-	i.TimestampModel = StringInterface{"HeaderName": "goodName", "SplitBy": "by", "Index": "2", "Prefix": "pre"}
-	i.HmacModel = StringInterface{"HeaderName": "goodName", "SplitBy": "by", "Index": "2", "Prefix": "pre"}
-	require.True(t, i.IsValidModels())
-
-	i.SignedContentModel = StringArray{}
-	require.False(t, i.IsValidModels())
-}
-
-func TestParseHeader(t *testing.T) {
-	json := []byte(`{"firstName":"John","lastName":"Dow"}`)
-	body := bytes.NewBuffer(json)
-	req, _ := http.NewRequest("POST", "/ideal", body)
-
-	i := &IncomingWebhook{}
-	unsignedHook := SignedIncomingHook{}
-
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	i.HmacModel = StringInterface{"HeaderName": "Signature"}
-	require.Error(t, i.ParseHeader(&unsignedHook, req), "This should be an error")
-	req.Header.Set("Signature", "djfhgughgjfjgkgjfjgjfkgjfk")
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-
-	i.HmacModel["SplitBy"] = "by"
-	i.HmacModel["Index"] = "1"
-	require.Error(t, i.ParseHeader(&unsignedHook, req), "This should be an error")
-
-	i.HmacModel["Index"] = "0"
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	require.Equal(t, SignedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk"}, unsignedHook)
-
-	i.HmacModel["Prefix"] = "v0="
-	req.Header.Set("Signature", "v0=djfhgughgjfjgkgjfjgjfkgjfk")
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	require.Equal(t, SignedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk"}, unsignedHook)
-
-	i.TimestampModel = StringInterface{"HeaderName": "Timestamp"}
-	require.Error(t, i.ParseHeader(&unsignedHook, req), "This should be an error")
-	req.Header.Set("Timestamp", "t=123456,j=junc")
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	i.TimestampModel["SplitBy"] = ","
-	require.Error(t, i.ParseHeader(&unsignedHook, req), "This should be an error")
-	i.TimestampModel["Index"] = "0"
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	i.TimestampModel["Prefix"] = "t="
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	require.Equal(t, SignedIncomingHook{Signature: "djfhgughgjfjgkgjfjgjfkgjfk", Timestamp: "123456"}, unsignedHook)
-
-	bodyP := []byte("me")
-	unsignedHook.Payload = &bodyP
-	i.SignedContentModel = StringArray{"{timestamp}", "{payload}"}
-	require.Nil(t, i.ParseHeader(&unsignedHook, req), "This should be nil")
-	require.Equal(t, []byte("123456me"), *unsignedHook.ContentToSign)
-}
-
-func TestVerifySignature(t *testing.T) {
-	signContent := []byte("me")
-	signedHook := SignedIncomingHook{Signature: "292dd895f1318e301d9cb8b088879e357e4a1bb9",
-		Algorithm: "HMAC-SHA1", ContentToSign: &signContent}
-	require.True(t, signedHook.VerifySignature("secret"), "This should be true")
-
-	signContent = []byte(`{"text": "bullfood"}`)
-	signedHook = SignedIncomingHook{Signature: "36ec87e44ad5039a7d488b58a6719964efa36270",
-		Algorithm: "HMAC-SHA1", ContentToSign: &signContent}
-	require.True(t, signedHook.VerifySignature("secret"), "This should be true")
-
-}
-
-func TestCreateContentToSign(t *testing.T) {
-	contentModel := StringArray{"{payload}", "{timestamp}"}
-	me := []byte("me")
-	signedHook := SignedIncomingHook{Payload: &me, Timestamp: "123"}
-	contentModel.CreateContentToSign(&signedHook)
-	require.Equal(t, []byte("me123"), *signedHook.ContentToSign)
-
+	i.TimestampModel["Prefix"] = ""
+	require.Equal(t, "model.incoming_hook.timestamp_prefix.app_error", i.IsValidSignatureModels().Id)
+	i.TimestampModel["Prefix"] = "t1="
+	require.Nil(t, i.IsValidSignatureModels())
 }
 
 func TestIncomingWebhookIsValid(t *testing.T) {
@@ -265,19 +176,6 @@ func TestIncomingWebhookIsValid(t *testing.T) {
 		o.SecretToken = token
 		require.Nil(t, o.IsValid())
 	}
-
-	o.WhiteIpList = StringArray{"", "", "", "", "", ""}
-	require.Error(t, o.IsValid())
-
-	o.WhiteIpList = StringArray{"", "", "", "", ""}
-	require.Nil(t, o.IsValid())
-}
-
-func TestParseHeaderModel(t *testing.T) {
-	rawModel := StringInterface{}
-	require.Equal(t, HeaderModel{}, ParseHeaderModel(rawModel))
-	rawModel = StringInterface{"HeaderName": "me", "bomber": "boom"}
-	require.Equal(t, HeaderModel{HeaderName: "me", SplitBy: "", Index: "", Prefix: ""}, ParseHeaderModel(rawModel))
 }
 
 func TestIncomingWebhookPreSave(t *testing.T) {

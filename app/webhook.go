@@ -5,7 +5,7 @@ package app
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -150,10 +150,10 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 }
 
-func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType, secret string) (*model.OutgoingWebhookResponse, error) {
+func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType, secretToken string) (*model.OutgoingWebhookResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(body)
 	if err != nil {
-		return nil, errors.New("OutgoingWehookRequest payload failed to read.")
+		return nil, fmt.Errorf("failed to read outgoing webhook request payload: %w", err)
 	}
 	bodyReader := bytes.NewReader(bodyBytes)
 
@@ -165,10 +165,9 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType, 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
-	nowStamp := strconv.FormatInt(time.Now().Unix(), 10)
-	// nowStamp = "1576740798" // for testing only
-	hmacDigest := model.GenerateHmacSignature(&bodyBytes, nowStamp, secret)
-	req.Header.Set("Timestamp", nowStamp)
+	now := strconv.FormatInt(time.Now().Unix(), 10)
+	hmacDigest := model.GenerateHmacSignature(&bodyBytes, now, secretToken)
+	req.Header.Set("Timestamp", now)
 	req.Header.Set("Signature", hmacDigest)
 
 	resp, err := a.HTTPService.MakeClient(false).Do(req)
@@ -340,19 +339,13 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(hook.WhiteIpList) > 0 {
-		if !(model.IsValidIpList(hook.WhiteIpList)) {
-			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_white_ip_list.app_error", nil, "", http.StatusBadRequest)
+	if len(hook.HmacAlgorithm) > 0 {
+		if err := hook.IsValidSignatureModels(); err != nil {
+			return nil, err
 		}
-	} else if len(hook.HmacAlgorithm) > 0 {
-		if hook.IsValidModels() {
-			hook.SecretToken = model.NewRandomString(26)
-			// hook.SecretToken = "me" // for testing
-		} else {
-			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_signing_model.app_error", nil, "", http.StatusBadRequest)
-		}
+		hook.SecretToken = model.NewRandomString(26)
 	} else {
-		hook.ResetModels()
+		hook.ResetSignatureModels()
 	}
 
 	return a.Srv.Store.Webhook().SaveIncoming(hook)
@@ -470,6 +463,8 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 			}
 		}
 	}
+
+	hook.SecretToken = model.NewRandomString(26)
 
 	webhook, err := a.Srv.Store.Webhook().SaveOutgoing(hook)
 	if err != nil {

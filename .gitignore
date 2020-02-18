@@ -100,3 +100,6 @@ tags
 
 debug
 client
+
+# ignore report.xml
+report.xml
