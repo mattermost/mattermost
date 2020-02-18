@@ -12,7 +12,7 @@ import (
 )
 
 func (a *App) MakePermissionError(permission *model.Permission) *model.AppError {
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -39,7 +39,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return false
 	}
 
-	ids, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
 	if err == nil {
@@ -64,14 +64,14 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv.Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
 
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv.Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
 		if channel.TeamId != "" {
 			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 		}
@@ -161,13 +161,13 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 }
 
 func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv.Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv.Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
 

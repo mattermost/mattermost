@@ -62,7 +62,7 @@ func (a *App) NewWebHub() *Hub {
 
 func (a *App) TotalWebsocketConnections() int {
 	count := int64(0)
-	for _, hub := range a.Srv.Hubs {
+	for _, hub := range a.Srv().Hubs {
 		count = count + atomic.LoadInt64(&hub.connectionCount)
 	}
 
@@ -74,13 +74,13 @@ func (a *App) HubStart() {
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
-	a.Srv.Hubs = make([]*Hub, numberOfHubs)
-	a.Srv.HubsStopCheckingForDeadlock = make(chan bool, 1)
+	a.Srv().Hubs = make([]*Hub, numberOfHubs)
+	a.Srv().HubsStopCheckingForDeadlock = make(chan bool, 1)
 
-	for i := 0; i < len(a.Srv.Hubs); i++ {
-		a.Srv.Hubs[i] = a.NewWebHub()
-		a.Srv.Hubs[i].connectionIndex = i
-		a.Srv.Hubs[i].Start()
+	for i := 0; i < len(a.Srv().Hubs); i++ {
+		a.Srv().Hubs[i] = a.NewWebHub()
+		a.Srv().Hubs[i].connectionIndex = i
+		a.Srv().Hubs[i].Start()
 	}
 
 	go func() {
@@ -93,7 +93,7 @@ func (a *App) HubStart() {
 		for {
 			select {
 			case <-ticker.C:
-				for _, hub := range a.Srv.Hubs {
+				for _, hub := range a.Srv().Hubs {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
 						mlog.Error(
 							"Hub processing might be deadlock with events in the buffer",
@@ -114,7 +114,7 @@ func (a *App) HubStart() {
 					}
 				}
 
-			case <-a.Srv.HubsStopCheckingForDeadlock:
+			case <-a.Srv().HubsStopCheckingForDeadlock:
 				return
 			}
 		}
@@ -125,27 +125,27 @@ func (a *App) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
 	select {
-	case a.Srv.HubsStopCheckingForDeadlock <- true:
+	case a.Srv().HubsStopCheckingForDeadlock <- true:
 	default:
 		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
 	}
 
-	for _, hub := range a.Srv.Hubs {
+	for _, hub := range a.Srv().Hubs {
 		hub.Stop()
 	}
 
-	a.Srv.Hubs = []*Hub{}
+	a.Srv().Hubs = []*Hub{}
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
-	if len(a.Srv.Hubs) == 0 {
+	if len(a.Srv().Hubs) == 0 {
 		return nil
 	}
 
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(a.Srv.Hubs))
-	return a.Srv.Hubs[index]
+	index := hash.Sum32() % uint32(len(a.Srv().Hubs))
+	return a.Srv().Hubs[index]
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
@@ -163,13 +163,13 @@ func (a *App) HubUnregister(webConn *WebConn) {
 }
 
 func (a *App) Publish(message *model.WebSocketEvent) {
-	if metrics := a.Metrics; metrics != nil {
+	if metrics := a.Metrics(); metrics != nil {
 		metrics.IncrementWebsocketEvent(message.EventType())
 	}
 
 	a.PublishSkipClusterSend(message)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		cm := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_PUBLISH,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -184,7 +184,7 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
-		a.Cluster.SendClusterMessage(cm)
+		a.Cluster().SendClusterMessage(cm)
 	}
 }
 
@@ -195,17 +195,17 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 			hub.Broadcast(message)
 		}
 	} else {
-		for _, hub := range a.Srv.Hubs {
+		for _, hub := range a.Srv().Hubs {
 			hub.Broadcast(message)
 		}
 	}
 }
 
 func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
-	a.Srv.Store.Channel().InvalidateChannel(channel.Id)
+	a.Srv().Store.Channel().InvalidateChannel(channel.Id)
 	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		nameMsg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -219,31 +219,31 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 			nameMsg.Props["id"] = channel.TeamId
 		}
 
-		a.Cluster.SendClusterMessage(nameMsg)
+		a.Cluster().SendClusterMessage(nameMsg)
 	}
 }
 
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
-	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
-	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
-	a.Srv.Store.Channel().InvalidateGuestCount(channelId)
+	a.Srv().Store.User().InvalidateProfilesInChannelCache(channelId)
+	a.Srv().Store.Channel().InvalidateMemberCount(channelId)
+	a.Srv().Store.Channel().InvalidateGuestCount(channelId)
 }
 
 func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	a.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     channelId,
 		}
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
 func (a *App) InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
-	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
+	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
 }
 
 func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
@@ -251,46 +251,46 @@ func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string
 		teamId = "dm"
 	}
 
-	a.Srv.Store.Channel().InvalidateChannelByName(teamId, name)
+	a.Srv().Store.Channel().InvalidateChannelByName(teamId, name)
 }
 
 func (a *App) InvalidateCacheForChannelPosts(channelId string) {
-	a.Srv.Store.Channel().InvalidatePinnedPostCount(channelId)
-	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	a.Srv().Store.Channel().InvalidatePinnedPostCount(channelId)
+	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
 func (a *App) InvalidateCacheForUser(userId string) {
 	a.InvalidateCacheForUserSkipClusterSend(userId)
 
-	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	a.Srv.Store.User().InvalidateProfileCacheForUser(userId)
+	a.Srv().Store.User().InvalidateProfilesInChannelCacheByUser(userId)
+	a.Srv().Store.User().InvalidateProfileCacheForUser(userId)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     userId,
 		}
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
 func (a *App) InvalidateCacheForUserTeams(userId string) {
 	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
-	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
+	a.Srv().Store.Team().InvalidateAllTeamIdsForUser(userId)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     userId,
 		}
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
-	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
+	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userId)
 
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
@@ -306,7 +306,7 @@ func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
 }
 
 func (a *App) InvalidateCacheForWebhook(webhookId string) {
-	a.Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
+	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookId)
 }
 
 func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
@@ -406,7 +406,7 @@ func (h *Hub) Start() {
 
 				conns := connections.ForUser(webCon.UserId)
 				if len(conns) == 0 {
-					h.app.Srv.Go(func() {
+					h.app.Srv().Go(func() {
 						h.app.SetStatusOffline(webCon.UserId, false)
 					})
 				} else {
@@ -417,7 +417,7 @@ func (h *Hub) Start() {
 						}
 					}
 					if h.app.IsUserAway(latestActivity) {
-						h.app.Srv.Go(func() {
+						h.app.Srv().Go(func() {
 							h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
 						})
 					}
