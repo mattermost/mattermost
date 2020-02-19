@@ -79,29 +79,22 @@ func TestExecuteCommand(t *testing.T) {
 	defer th.TearDown()
 
 	// Testing slash command message is correctly parsed
-	TestCases := []string{
-		"/code happy path",
-		"/code\nnewline path",
-		"/code\n/nDouble newline path",
-		"/code  double space",
-		"/code\ttab",
-	}
-	results := []string{
-		"    happy path",
-		"    newline path",
-		"    /nDouble newline path",
-		"     double space",
-		"    tab",
+	TestCases := map[string]string {
+		"/code happy path": "    happy path",
+		"/code\nnewline path": "    newline path",
+		"/code\n/nDouble newline path": "    /nDouble newline path",
+		"/code  double space": "     double space",
+		"/code\ttab": "    tab",
 	}
 
-	for index, TestCase := range TestCases {
+	for TestCase, result := range TestCases {
 		args := &model.CommandArgs{
 			Command: TestCase,
 			T:       func(s string, args ...interface{}) string { return s },
 		}
 		resp, _ := th.App.ExecuteCommand(args)
 
-		assert.Equal(t, resp.Text, results[index])
+		assert.Equal(t, resp.Text, result)
 	}
 	argsMissingSlashCharacter := &model.CommandArgs{
 		Command: "missing leading slash character",
