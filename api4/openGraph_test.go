@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetOpenGraphMetadata(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client

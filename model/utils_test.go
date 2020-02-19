@@ -184,16 +184,6 @@ func TestIsValidEmail(t *testing.T) {
 	}
 }
 
-func TestValidLower(t *testing.T) {
-	if !IsLower("corey+test@hulen.com") {
-		t.Error("should be valid")
-	}
-
-	if IsLower("Corey+test@hulen.com") {
-		t.Error("should be invalid")
-	}
-}
-
 func TestEtag(t *testing.T) {
 	etag := Etag("hello", 24)
 	require.NotEqual(t, "", etag)
