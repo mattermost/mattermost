@@ -29,9 +29,9 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	mediaType, _, mimerr := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if mimerr != nil && mimerr != mime.ErrInvalidMediaParameter {
-		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimerr.Error(), http.StatusBadRequest)
+	mediaType, _, mimeErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimeErr.Error(), http.StatusBadRequest)
 		return
 	}
 
