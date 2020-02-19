@@ -79,12 +79,12 @@ func TestExecuteCommand(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
-		TestCases := map[string]string {
-			"/code happy path": "    happy path",
-			"/code\nnewline path": "    newline path",
+		TestCases := map[string]string{
+			"/code happy path":             "    happy path",
+			"/code\nnewline path":          "    newline path",
 			"/code\n/nDouble newline path": "    /nDouble newline path",
-			"/code  double space": "     double space",
-			"/code\ttab": "    tab",
+			"/code  double space":          "     double space",
+			"/code\ttab":                   "    tab",
 		}
 
 		for TestCase, result := range TestCases {
