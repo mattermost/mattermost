@@ -533,7 +533,7 @@ func TestPostClone(t *testing.T) {
 		return p != pp
 	})
 	require.Condition(t, func() bool {
-		return &p.mu != &pp.mu
+		return &p.propsMu != &pp.propsMu
 	})
 }
 

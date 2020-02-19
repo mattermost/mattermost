@@ -259,16 +259,16 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 }
 
 func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
-	makePost := func(chId string, user string) model.Post {
+	makePost := func(chId string, user string) *model.Post {
 		post := model.Post{}
 		post.ChannelId = chId
 		post.UserId = user
 		_, err := ss.Post().Save(&post)
 		require.Nil(t, err)
-		return post
+		return &post
 	}
 
-	makeFile := func(post model.Post, user string, createAt int64, idPrefix string) model.FileInfo {
+	makeFile := func(post *model.Post, user string, createAt int64, idPrefix string) model.FileInfo {
 		id := model.NewId()
 		id = idPrefix + id[1:] // hacky way to get sortable Ids to confirm secondary Id sort works
 		fileInfo := model.FileInfo{
@@ -298,10 +298,10 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	post2_2 := makePost(channelId3, userId2)
 
 	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
-	file1_1 := makeFile(post1_1, userId1, epoch.AddDate(0, 0, 1).Unix(), "a")      // file 1 by user 1
-	file1_2 := makeFile(post1_2, userId1, epoch.AddDate(0, 0, 2).Unix(), "b")      // file 2 by user 1
-	file1_3 := makeFile(model.Post{}, userId1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
-	file2_1 := makeFile(post2_1, userId2, epoch.AddDate(0, 0, 4).Unix(), "d")      // file 2 by user 1
+	file1_1 := makeFile(post1_1, userId1, epoch.AddDate(0, 0, 1).Unix(), "a")       // file 1 by user 1
+	file1_2 := makeFile(post1_2, userId1, epoch.AddDate(0, 0, 2).Unix(), "b")       // file 2 by user 1
+	file1_3 := makeFile(&model.Post{}, userId1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
+	file2_1 := makeFile(post2_1, userId2, epoch.AddDate(0, 0, 4).Unix(), "d")       // file 2 by user 1
 	file2_2 := makeFile(post2_2, userId2, epoch.AddDate(0, 0, 5).Unix(), "e")
 
 	// delete a file

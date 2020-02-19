@@ -82,6 +82,7 @@ type Post struct {
 	MessageSource string `json:"message_source,omitempty" db:"-"`
 
 	Type          string          `json:"type"`
+	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
 	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
@@ -92,10 +93,6 @@ type Post struct {
 	// Transient data populated before sending a post to the client
 	ReplyCount int64         `json:"reply_count" db:"-"`
 	Metadata   *PostMetadata `json:"metadata,omitempty" db:"-"`
-
-	// Unexported sync.RWMutex used to prevent data race conditions.
-	// It's currently only used to guard Post.Props.
-	mu sync.RWMutex `db:"-"`
 }
 
 type PostEphemeral struct {
@@ -165,8 +162,10 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	if dst == nil {
 		return errors.New("dst cannot be nil")
 	}
-	o.mu.RLock()
-	dst.mu.Lock()
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	dst.propsMu.Lock()
+	defer dst.propsMu.Unlock()
 	dst.Id = o.Id
 	dst.CreateAt = o.CreateAt
 	dst.UpdateAt = o.UpdateAt
@@ -189,8 +188,6 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.HasReactions = o.HasReactions
 	dst.ReplyCount = o.ReplyCount
 	dst.Metadata = o.Metadata
-	dst.mu.Unlock()
-	o.mu.RUnlock()
 	return nil
 }
 
@@ -384,8 +381,8 @@ func (o *Post) MakeNonNil() {
 }
 
 func (o *Post) DelProp(key string) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]interface{}, len(o.Props)-1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
@@ -395,8 +392,8 @@ func (o *Post) DelProp(key string) {
 }
 
 func (o *Post) AddProp(key string, value interface{}) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
 	propsCopy := make(map[string]interface{}, len(o.Props)+1)
 	for k, v := range o.Props {
 		propsCopy[k] = v
@@ -406,14 +403,14 @@ func (o *Post) AddProp(key string, value interface{}) {
 }
 
 func (o *Post) GetProps() StringInterface {
-	o.mu.RLock()
-	defer o.mu.RUnlock()
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
 	return o.Props
 }
 
 func (o *Post) SetProps(props StringInterface) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
 	o.Props = props
 }
 
