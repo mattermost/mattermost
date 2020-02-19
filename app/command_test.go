@@ -78,32 +78,47 @@ func TestExecuteCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Testing slash command message is correctly parsed
-	TestCases := map[string]string {
-		"/code happy path": "    happy path",
-		"/code\nnewline path": "    newline path",
-		"/code\n/nDouble newline path": "    /nDouble newline path",
-		"/code  double space": "     double space",
-		"/code\ttab": "    tab",
-	}
+	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
+		TestCases := map[string]string {
+			"/code happy path": "    happy path",
+			"/code\nnewline path": "    newline path",
+			"/code\n/nDouble newline path": "    /nDouble newline path",
+			"/code  double space": "     double space",
+			"/code\ttab": "    tab",
+		}
 
-	for TestCase, result := range TestCases {
-		args := &model.CommandArgs{
-			Command: TestCase,
+		for TestCase, result := range TestCases {
+			args := &model.CommandArgs{
+				Command: TestCase,
+				T:       func(s string, args ...interface{}) string { return s },
+			}
+			resp, _ := th.App.ExecuteCommand(args)
+
+			assert.Equal(t, resp.Text, result)
+		}
+	})
+
+	t.Run("missing slash character", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "missing leading slash character",
 			T:       func(s string, args ...interface{}) string { return s },
 		}
-		resp, _ := th.App.ExecuteCommand(args)
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		if err == nil || err.Id != "api.command.execute_command.format.app_error" {
+			t.Fatal("should have failed - missing leading slash character")
+		}
+	})
 
-		assert.Equal(t, resp.Text, result)
-	}
-	argsMissingSlashCharacter := &model.CommandArgs{
-		Command: "missing leading slash character",
-		T:       func(s string, args ...interface{}) string { return s },
-	}
-	_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
-	if err == nil || err.Id != "api.command.execute_command.format.app_error" {
-		t.Fatal("should have failed - missing leading slash character")
-	}
+	t.Run("empty", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "",
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		if err == nil || err.Id != "api.command.execute_command.format.app_error" {
+			t.Fatal("should have failed - empty command input")
+		}
+	})
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
