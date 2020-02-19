@@ -6271,6 +6271,10 @@
     "translation": "Unable to get the file info for the user"
   },
   {
+    "id": "store.sql_file_info.get_with_options.app_error",
+    "translation": "Unable to get the file info with options"
+  },
+  {
     "id": "store.sql_file_info.permanent_delete.app_error",
     "translation": "Unable to permanently delete the file info"
   },

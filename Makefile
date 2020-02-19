@@ -172,7 +172,7 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 # Externally built binaries
-ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
@@ -496,10 +496,10 @@ vet: ## Run mattermost go vet specific checks
 		exit 1; \
 	fi; \
 
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
 

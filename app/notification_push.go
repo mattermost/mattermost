@@ -22,8 +22,8 @@ const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
 const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
 const NOTIFICATION_TYPE_UPDATE_BADGE NotificationType = "update_badge"
 
-const PUSH_NOTIFICATION_HUB_WORKERS = 1
-const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 1
+const PUSH_NOTIFICATION_HUB_WORKERS = 1000
+const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
 
 type PushNotificationsHub struct {
 	Channels []chan PushNotification
