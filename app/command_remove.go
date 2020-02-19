@@ -107,7 +107,7 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	userProfile, err := a.Srv().Store.User().GetByUsername(targetUsername)
 	if err != nil {
 		mlog.Error(err.Error())
 		return &model.CommandResponse{

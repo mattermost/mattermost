@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -153,6 +154,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Display Name is required")
 	}
 	email, _ := command.Flags().GetString("email")
+	email = strings.ToLower(email)
 	useprivate, _ := command.Flags().GetBool("private")
 
 	teamType := model.TEAM_OPEN
