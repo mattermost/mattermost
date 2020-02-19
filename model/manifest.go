@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,6 +24,20 @@ type PluginOption struct {
 	// The string value for the option.
 	Value string `json:"value" yaml:"value"`
 }
+
+type PluginSettingType int
+
+const (
+	Bool PluginSettingType = iota
+	Dropdown
+	Generated
+	Radio
+	Text
+	LongText
+	Number
+	Username
+	Custom
+)
 
 type PluginSetting struct {
 	// The key that the setting will be assigned to in the configuration file.
@@ -49,6 +63,8 @@ type PluginSetting struct {
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
+	// "number" will result in in integer setting that can be typed in manually.
+	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
 	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
@@ -60,7 +76,7 @@ type PluginSetting struct {
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
-	// The placeholder to display for "text", "generated" and "username" types when blank.
+	// The placeholder to display for "generated", "text", "longtext", "number" and "username" types when blank.
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
@@ -95,6 +111,7 @@ type PluginSettingsSchema struct {
 //      "description": "This is my plugin",
 //      "homepage_url": "https://example.com",
 //      "support_url": "https://example.com/support",
+//      "release_notes_url": "https://example.com/releases/v0.0.1",
 //      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
@@ -141,6 +158,9 @@ type Manifest struct {
 	// SupportURL is an optional URL where plugin issues can be reported.
 	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
 
+	// ReleaseNotesURL is an optional URL where a changelog for the release can be found.
+	ReleaseNotesURL string `json:"release_notes_url,omitempty" yaml:"release_notes_url,omitempty"`
+
 	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
 	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.
 	IconPath string `json:"icon_path,omitempty" yaml:"icon_path,omitempty"`
@@ -168,6 +188,11 @@ type Manifest struct {
 
 	// Plugins can store any kind of data in Props to allow other plugins to use it.
 	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
+
+	// RequiredConfig defines any required server configuration fields for the plugin to function properly.
+	//
+	// Use the plugin helpers CheckRequiredServerConfiguration method to enforce this.
+	RequiredConfig *Config `json:"required_configuration,omitempty" yaml:"required_configuration,omitempty"`
 }
 
 type ManifestServer struct {
@@ -297,6 +322,117 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (m *Manifest) IsValid() error {
+	if !IsValidPluginId(m.Id) {
+		return errors.New("invalid plugin ID")
+	}
+
+	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
+		return errors.New("invalid HomepageURL")
+	}
+
+	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
+		return errors.New("invalid SupportURL")
+	}
+
+	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+		return errors.New("invalid ReleaseNotesURL")
+	}
+
+	if m.Version != "" {
+		_, err := semver.Parse(m.Version)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse Version")
+		}
+	}
+
+	if m.MinServerVersion != "" {
+		_, err := semver.Parse(m.MinServerVersion)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse MinServerVersion")
+		}
+	}
+
+	if m.SettingsSchema != nil {
+		err := m.SettingsSchema.isValid()
+		if err != nil {
+			return errors.Wrap(err, "invalid settings schema")
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSettingsSchema) isValid() error {
+	for _, setting := range s.Settings {
+		err := setting.isValid()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *PluginSetting) isValid() error {
+	pluginSettingType, err := convertTypeToPluginSettingType(s.Type)
+	if err != nil {
+		return err
+	}
+
+	if s.RegenerateHelpText != "" && pluginSettingType != Generated {
+		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
+	}
+
+	if s.Placeholder != "" && !(pluginSettingType == Generated ||
+		pluginSettingType == Text ||
+		pluginSettingType == LongText ||
+		pluginSettingType == Number ||
+		pluginSettingType == Username) {
+		return errors.New("should not set Placeholder for setting type not in text, generated or username")
+	}
+
+	if s.Options != nil {
+		if pluginSettingType != Radio && pluginSettingType != Dropdown {
+			return errors.New("should not set Options for setting type not in radio or dropdown")
+		}
+
+		for _, option := range s.Options {
+			if option.DisplayName == "" || option.Value == "" {
+				return errors.New("should not have empty Displayname or Value for any option")
+			}
+		}
+	}
+
+	return nil
+}
+
+func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
+	var settingType PluginSettingType
+	switch t {
+	case "bool":
+		return Bool, nil
+	case "dropdown":
+		return Dropdown, nil
+	case "generated":
+		return Generated, nil
+	case "radio":
+		return Radio, nil
+	case "text":
+		return Text, nil
+	case "number":
+		return Number, nil
+	case "longtext":
+		return LongText, nil
+	case "username":
+		return Username, nil
+	case "custom":
+		return Custom, nil
+	default:
+		return settingType, errors.New("invalid setting type: " + t)
+	}
 }
 
 // FindManifest will find and parse the manifest in a given directory.

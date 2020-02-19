@@ -25,6 +25,7 @@ const (
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER                      = "clear_session_user"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES                        = "inv_roles"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS               = "inv_profile_ids"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_IN_CHANNEL           = "inv_profile_in_channel"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES                      = "inv_schemes"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS                     = "inv_webhooks"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID                 = "inv_emojis_by_id"
@@ -37,6 +38,7 @@ const (
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS                 = "inv_all_user_sessions"
 	CLUSTER_EVENT_INSTALL_PLUGIN                                    = "install_plugin"
 	CLUSTER_EVENT_REMOVE_PLUGIN                                     = "remove_plugin"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE             = "inv_terms_of_service"
 	CLUSTER_EVENT_BUSY_STATE_CHANGED                                = "busy_state_change"
 
 	// SendTypes for ClusterMessage.

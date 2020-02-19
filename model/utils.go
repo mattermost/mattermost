@@ -378,6 +378,7 @@ var reservedName = []string{
 	"oauth",
 	"error",
 	"help",
+	"plugins",
 }
 
 func IsValidChannelIdentifier(s string) bool {

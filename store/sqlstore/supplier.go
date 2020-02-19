@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	sqltrace "log"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -112,6 +111,16 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
+}
+
+type TraceOnAdapter struct{}
+
+func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
+	originalString := fmt.Sprintf(format, v...)
+	newString := strings.ReplaceAll(originalString, "\n", " ")
+	newString = strings.ReplaceAll(newString, "\t", " ")
+	newString = strings.ReplaceAll(newString, "\"", "")
+	mlog.Debug(newString)
 }
 
 func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
@@ -248,26 +257,26 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	if settings.Trace != nil && *settings.Trace {
-		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
+		dbmap.TraceOn("sql-trace:", &TraceOnAdapter{})
 	}
 
 	return dbmap
 }
 
-func (s *SqlSupplier) initConnection() {
-	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
+func (ss *SqlSupplier) initConnection() {
+	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
-	if len(s.settings.DataSourceReplicas) > 0 {
-		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
-		for i, replica := range s.settings.DataSourceReplicas {
-			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceReplicas) > 0 {
+		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		for i, replica := range ss.settings.DataSourceReplicas {
+			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
-	if len(s.settings.DataSourceSearchReplicas) > 0 {
-		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
-		for i, replica := range s.settings.DataSourceSearchReplicas {
-			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
+	if len(ss.settings.DataSourceSearchReplicas) > 0 {
+		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		for i, replica := range ss.settings.DataSourceSearchReplicas {
+			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 		}
 	}
 }
@@ -904,7 +913,6 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 }
 
 func (ss *SqlSupplier) Close() {
-	mlog.Info("Closing SqlStore")
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
 		replica.Db.Close()

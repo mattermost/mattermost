@@ -187,7 +187,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
@@ -201,7 +201,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		)
 
 		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
@@ -213,7 +213,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": model.NewId()}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
@@ -225,7 +225,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, err := th.App.AddUserToTeamByToken(model.NewId(), token.Token)
@@ -237,11 +237,11 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
-		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
@@ -254,7 +254,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		assert.NotNil(t, err)
 	})
@@ -264,9 +264,70 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		assert.NotNil(t, err)
+	})
+
+	t.Run("invalid add a guest user with a non-granted email domain", func(t *testing.T) {
+		restrictedDomain := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.team.join_user_to_team.allowed_domains.app_error", err.Id)
+	})
+
+	t.Run("add a guest user with a granted email domain", func(t *testing.T) {
+		restrictedDomain := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		guestEmail := rguest.Email
+		rguest.Email = "test@restricted.com"
+		_, err := th.App.Srv().Store.User().Update(rguest, false)
+		require.Nil(t, err)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, err)
+		rguest.Email = guestEmail
+		_, err = th.App.Srv().Store.User().Update(rguest, false)
+		require.Nil(t, err)
+	})
+
+	t.Run("add a guest user even though there are team and system domain restrictions", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "restricted-team.com"
+		_, err := th.Server.Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
+		restrictedDomain := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = &restrictedDomain })
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
+		)
+		_, err = th.App.Srv().Store.User().Update(rguest, false)
+		require.Nil(t, err)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, err)
+		th.BasicTeam.AllowedDomains = ""
+		_, err = th.Server.Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
 	})
 
 	t.Run("valid request from guest invite", func(t *testing.T) {
@@ -274,12 +335,12 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
-		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
@@ -297,7 +358,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		_, err = th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		require.NotNil(t, err, "Should return an error when trying to join a group-constrained team.")
@@ -321,7 +382,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		_, err = th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		require.NotNil(t, err, "Should not add restricted user")
@@ -639,7 +700,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		ruser, _ := th.App.CreateUser(&user)
 		defer th.App.PermanentDeleteUser(&user)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -651,7 +713,8 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		th.App.joinUserToTeam(team, ruser)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.True(t, alreadyAdded, "Should return already added")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -664,7 +727,8 @@ func TestJoinUserToTeam(t *testing.T) {
 		th.App.joinUserToTeam(team, ruser)
 		th.App.LeaveTeam(team, ruser, ruser.Id)
 
-		_, alreadyAdded, err := th.App.joinUserToTeam(team, ruser)
+		var alreadyAdded bool
+		_, alreadyAdded, err = th.App.joinUserToTeam(team, ruser)
 		require.False(t, alreadyAdded, "Should return already added equal to false")
 		require.Nil(t, err, "Should return no error")
 	})
@@ -679,7 +743,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		defer th.App.PermanentDeleteUser(&user2)
 		th.App.joinUserToTeam(team, ruser1)
 
-		_, _, err := th.App.joinUserToTeam(team, ruser2)
+		_, _, err = th.App.joinUserToTeam(team, ruser2)
 		require.NotNil(t, err, "Should fail")
 	})
 
@@ -697,8 +761,49 @@ func TestJoinUserToTeam(t *testing.T) {
 		th.App.LeaveTeam(team, ruser1, ruser1.Id)
 		th.App.joinUserToTeam(team, ruser2)
 
-		_, _, err := th.App.joinUserToTeam(team, ruser1)
+		_, _, err = th.App.joinUserToTeam(team, ruser1)
 		require.NotNil(t, err, "Should fail")
+	})
+
+	t.Run("new join with correct scheme_admin value from group syncable", func(t *testing.T) {
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser1, _ := th.App.CreateUser(&user1)
+		defer th.App.PermanentDeleteUser(&user1)
+
+		group := th.CreateGroup()
+
+		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+		require.Nil(t, err)
+
+		gs, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			AutoAdd:     true,
+			SyncableId:  team.Id,
+			Type:        model.GroupSyncableTypeTeam,
+			GroupId:     group.Id,
+			SchemeAdmin: false,
+		})
+		require.Nil(t, err)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = model.NewInt(999) })
+
+		tm1, _, err := th.App.joinUserToTeam(team, ruser1)
+		require.Nil(t, err)
+		require.False(t, tm1.SchemeAdmin)
+
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser2, _ := th.App.CreateUser(&user2)
+		defer th.App.PermanentDeleteUser(&user2)
+
+		_, err = th.App.UpsertGroupMember(group.Id, user2.Id)
+		require.Nil(t, err)
+
+		gs.SchemeAdmin = true
+		_, err = th.App.UpdateGroupSyncable(gs)
+		require.Nil(t, err)
+
+		tm2, _, err := th.App.joinUserToTeam(team, ruser2)
+		require.Nil(t, err)
+		require.True(t, tm2.SchemeAdmin)
 	})
 }
 
@@ -895,7 +1000,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		Type:     TOKEN_TYPE_GUEST_INVITATION,
 		Extra:    "",
 	}
-	err := th.App.Srv.Store.Token().Save(&t1)
+	err := th.App.Srv().Store.Token().Save(&t1)
 	require.Nil(t, err)
 
 	t2 := model.Token{
@@ -904,7 +1009,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		Type:     TOKEN_TYPE_TEAM_INVITATION,
 		Extra:    "",
 	}
-	err = th.App.Srv.Store.Token().Save(&t2)
+	err = th.App.Srv().Store.Token().Save(&t2)
 	require.Nil(t, err)
 
 	t3 := model.Token{
@@ -913,18 +1018,18 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		Type:     "other",
 		Extra:    "",
 	}
-	err = th.App.Srv.Store.Token().Save(&t3)
+	err = th.App.Srv().Store.Token().Save(&t3)
 	require.Nil(t, err)
 
 	err = th.App.InvalidateAllEmailInvites()
 	require.Nil(t, err)
 
-	_, err = th.App.Srv.Store.Token().GetByToken(t1.Token)
+	_, err = th.App.Srv().Store.Token().GetByToken(t1.Token)
 	require.NotNil(t, err)
 
-	_, err = th.App.Srv.Store.Token().GetByToken(t2.Token)
+	_, err = th.App.Srv().Store.Token().GetByToken(t2.Token)
 	require.NotNil(t, err)
 
-	_, err = th.App.Srv.Store.Token().GetByToken(t3.Token)
+	_, err = th.App.Srv().Store.Token().GetByToken(t3.Token)
 	require.Nil(t, err)
 }

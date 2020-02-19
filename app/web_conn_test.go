@@ -16,8 +16,13 @@ import (
 func TestWebConnShouldSendEvent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles()})
+	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.GetRawRoles(), TeamMembers: []*model.TeamMember{
+		{
+			UserId: th.BasicUser.Id,
+			TeamId: th.BasicTeam.Id,
+			Roles:  model.TEAM_USER_ROLE_ID,
+		},
+	}})
 	require.Nil(t, err)
 
 	basicUserWc := &WebConn{
@@ -30,7 +35,13 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc.SetSessionToken(session.Token)
 	basicUserWc.SetSessionExpiresAt(session.ExpiresAt)
 
-	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles()})
+	session2, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser2.Id, Roles: th.BasicUser2.GetRawRoles(), TeamMembers: []*model.TeamMember{
+		{
+			UserId: th.BasicUser2.Id,
+			TeamId: th.BasicTeam.Id,
+			Roles:  model.TEAM_ADMIN_ROLE_ID,
+		},
+	}})
 	require.Nil(t, err)
 
 	basicUser2Wc := &WebConn{
@@ -72,11 +83,18 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		// needs more cases to get full coverage
 	}
 
-	event := &model.WebSocketEvent{Event: "some_event"}
+	event := model.NewWebSocketEvent("some_event", "", "", "", nil)
 	for _, c := range cases {
-		event.Broadcast = c.Broadcast
+		event = event.SetBroadcast(c.Broadcast)
 		assert.Equal(t, c.User1Expected, basicUserWc.ShouldSendEvent(event), c.Description)
 		assert.Equal(t, c.User2Expected, basicUser2Wc.ShouldSendEvent(event), c.Description)
 		assert.Equal(t, c.AdminExpected, adminUserWc.ShouldSendEvent(event), c.Description)
 	}
+
+	event2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, th.BasicTeam.Id, "", "", nil)
+	assert.True(t, basicUserWc.ShouldSendEvent(event2))
+	assert.True(t, basicUser2Wc.ShouldSendEvent(event2))
+
+	event3 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "wrongId", "", "", nil)
+	assert.False(t, basicUserWc.ShouldSendEvent(event3))
 }

@@ -723,6 +723,29 @@ func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]strin
 	return r0, r1
 }
 
+// GroupSyncedTeamCount provides a mock function with given fields:
+func (_m *TeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
 func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	_m.Called(userId)
@@ -1054,6 +1077,22 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, 
 	}
 
 	return r0, r1
+}
+
+// UpdateMembersRole provides a mock function with given fields: teamID, userIDs
+func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
+	ret := _m.Called(teamID, userIDs)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(teamID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds

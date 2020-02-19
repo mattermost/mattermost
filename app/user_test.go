@@ -372,7 +372,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv.Store.User().Save(&botuser)
+		_, err = th.App.Srv().Store.User().Save(&botuser)
 		assert.Nil(t, err)
 
 		newBotEmail := th.MakeEmail()
@@ -415,7 +415,7 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv.Store.User().Save(&botuser)
+		_, err = th.App.Srv().Store.User().Save(&botuser)
 		assert.Nil(t, err)
 
 		newBotEmail := th.MakeEmail()
@@ -583,7 +583,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_VERIFY_EMAIL,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on bad token type")
@@ -595,7 +595,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on expired token")
@@ -606,7 +606,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
 		require.NotNil(t, err, "Should fail on bad team id")
@@ -618,13 +618,13 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(&user, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 		assert.False(t, newUser.IsGuest())
 		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
 
-		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
@@ -638,15 +638,97 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token)
 		require.Nil(t, err, "Should add user to the team. err=%v", err)
 
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
-		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+	})
+
+	t.Run("create guest having email domain restrictions", func(t *testing.T) {
+		enableGuestDomainRestricions := *th.App.Config().GuestAccountsSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.GuestAccountsSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+			})
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "restricted.com" })
+		forbiddenInvitationEmail := model.NewId() + "other-email@test.com"
+		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
+		forbiddenDomainToken := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		grantedDomainToken := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
+		require.Nil(t, th.App.Srv().Store.Token().Save(grantedDomainToken))
+		guest := model.User{
+			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		newGuest, err := th.App.CreateUserWithToken(&guest, forbiddenDomainToken)
+		require.NotNil(t, err)
+		require.Nil(t, newGuest)
+		assert.Equal(t, "api.user.create_user.accepted_domain.app_error", err.Id)
+
+		newGuest, err = th.App.CreateUserWithToken(&guest, grantedDomainToken)
+		require.Nil(t, err)
+		assert.True(t, newGuest.IsGuest())
+		require.Equal(t, grantedInvitationEmail, newGuest.Email)
+		_, err = th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
+		require.NotNil(t, err)
+
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+	})
+
+	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "restricted-team.com"
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, err, "Should update the team")
+		enableGuestDomainRestricions := *th.App.Config().TeamSettings.RestrictCreationToDomains
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.TeamSettings.RestrictCreationToDomains = &enableGuestDomainRestricions
+			})
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
+		invitationEmail := model.NewId() + "other-email@test.com"
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		guest := model.User{
+			Email:       strings.ToLower(model.NewId()) + "+test@example.com",
+			Nickname:    "Darth Vader",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		newGuest, err := th.App.CreateUserWithToken(&guest, token)
+		require.Nil(t, err)
+		assert.True(t, newGuest.IsGuest())
+		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
+		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -675,7 +757,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	var bots1 []*model.Bot
 	var bots2 []*model.Bot
 
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 	_, err1 := sqlSupplier.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 1, len(bots1))
@@ -833,7 +915,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.NotNil(t, restrictions)
-		assert.Len(t, restrictions.Teams, 0)
+		assert.Empty(t, restrictions.Teams)
 		assert.NotNil(t, restrictions.Channels)
 		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
 	})

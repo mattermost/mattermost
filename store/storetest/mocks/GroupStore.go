@@ -14,6 +14,31 @@ type GroupStore struct {
 	mock.Mock
 }
 
+// AdminRoleGroupsForSyncableMember provides a mock function with given fields: userID, syncableID, syncableType
+func (_m *GroupStore) AdminRoleGroupsForSyncableMember(userID string, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	ret := _m.Called(userID, syncableID, syncableType)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) []string); ok {
+		r0 = rf(userID, syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(userID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // ChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs, page, perPage
 func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	ret := _m.Called(channelID, groupIDs, page, perPage)
@@ -39,13 +64,13 @@ func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs
 	return r0, r1
 }
 
-// ChannelMembersToAdd provides a mock function with given fields: since
-func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	ret := _m.Called(since)
+// ChannelMembersToAdd provides a mock function with given fields: since, channelID
+func (_m *GroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+	ret := _m.Called(since, channelID)
 
 	var r0 []*model.UserChannelIDPair
-	if rf, ok := ret.Get(0).(func(int64) []*model.UserChannelIDPair); ok {
-		r0 = rf(since)
+	if rf, ok := ret.Get(0).(func(int64, *string) []*model.UserChannelIDPair); ok {
+		r0 = rf(since, channelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserChannelIDPair)
@@ -53,8 +78,8 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPa
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
-		r1 = rf(since)
+	if rf, ok := ret.Get(1).(func(int64, *string) *model.AppError); ok {
+		r1 = rf(since, channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -64,13 +89,13 @@ func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPa
 	return r0, r1
 }
 
-// ChannelMembersToRemove provides a mock function with given fields:
-func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	ret := _m.Called()
+// ChannelMembersToRemove provides a mock function with given fields: channelID
+func (_m *GroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(channelID)
 
 	var r0 []*model.ChannelMember
-	if rf, ok := ret.Get(0).(func() []*model.ChannelMember); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*string) []*model.ChannelMember); ok {
+		r0 = rf(channelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelMember)
@@ -78,8 +103,8 @@ func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.A
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(*string) *model.AppError); ok {
+		r1 = rf(channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -297,6 +322,29 @@ func (_m *GroupStore) DeleteMember(groupID string, userID string) (*model.GroupM
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
 		r1 = rf(groupID, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DistinctGroupMemberCount provides a mock function with given fields:
+func (_m *GroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -532,15 +580,15 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 }
 
 // GetGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	ret := _m.Called(channelId, opts)
 
-	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+	var r0 []*model.GroupWithSchemeAdmin
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.GroupWithSchemeAdmin); ok {
 		r0 = rf(channelId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Group)
+			r0 = ret.Get(0).([]*model.GroupWithSchemeAdmin)
 		}
 	}
 
@@ -557,15 +605,15 @@ func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearc
 }
 
 // GetGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
 	ret := _m.Called(teamId, opts)
 
-	var r0 []*model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
+	var r0 []*model.GroupWithSchemeAdmin
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.GroupWithSchemeAdmin); ok {
 		r0 = rf(teamId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Group)
+			r0 = ret.Get(0).([]*model.GroupWithSchemeAdmin)
 		}
 	}
 
@@ -654,6 +702,98 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, page int, perPage int) 
 	return r0, r1
 }
 
+// GroupChannelCount provides a mock function with given fields:
+func (_m *GroupStore) GroupChannelCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GroupCount provides a mock function with given fields:
+func (_m *GroupStore) GroupCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GroupMemberCount provides a mock function with given fields:
+func (_m *GroupStore) GroupMemberCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GroupTeamCount provides a mock function with given fields:
+func (_m *GroupStore) GroupTeamCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteMembersByUser provides a mock function with given fields: userId
 func (_m *GroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
@@ -668,6 +808,31 @@ func (_m *GroupStore) PermanentDeleteMembersByUser(userId string) *model.AppErro
 	}
 
 	return r0
+}
+
+// PermittedSyncableAdmins provides a mock function with given fields: syncableID, syncableType
+func (_m *GroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+	ret := _m.Called(syncableID, syncableType)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) []string); ok {
+		r0 = rf(syncableID, syncableType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage
@@ -695,13 +860,13 @@ func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []str
 	return r0, r1
 }
 
-// TeamMembersToAdd provides a mock function with given fields: since
-func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	ret := _m.Called(since)
+// TeamMembersToAdd provides a mock function with given fields: since, teamID
+func (_m *GroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+	ret := _m.Called(since, teamID)
 
 	var r0 []*model.UserTeamIDPair
-	if rf, ok := ret.Get(0).(func(int64) []*model.UserTeamIDPair); ok {
-		r0 = rf(since)
+	if rf, ok := ret.Get(0).(func(int64, *string) []*model.UserTeamIDPair); ok {
+		r0 = rf(since, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.UserTeamIDPair)
@@ -709,8 +874,8 @@ func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *m
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
-		r1 = rf(since)
+	if rf, ok := ret.Get(1).(func(int64, *string) *model.AppError); ok {
+		r1 = rf(since, teamID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -720,13 +885,13 @@ func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *m
 	return r0, r1
 }
 
-// TeamMembersToRemove provides a mock function with given fields:
-func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	ret := _m.Called()
+// TeamMembersToRemove provides a mock function with given fields: teamID
+func (_m *GroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(teamID)
 
 	var r0 []*model.TeamMember
-	if rf, ok := ret.Get(0).(func() []*model.TeamMember); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(*string) []*model.TeamMember); ok {
+		r0 = rf(teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -734,8 +899,8 @@ func (_m *GroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppErro
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(*string) *model.AppError); ok {
+		r1 = rf(teamID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

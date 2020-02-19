@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -20,6 +21,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoSaveGetByPath", func(t *testing.T) { testFileInfoSaveGetByPath(t, ss) })
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
 	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, ss) })
+	t.Run("FileInfoGetWithOptions", func(t *testing.T) { testFileInfoGetWithOptions(t, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, ss) })
 	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, ss) })
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
@@ -256,6 +258,143 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	assert.Len(t, userPosts, 1)
 }
 
+func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
+	makePost := func(chId string, user string) model.Post {
+		post := model.Post{}
+		post.ChannelId = chId
+		post.UserId = user
+		_, err := ss.Post().Save(&post)
+		require.Nil(t, err)
+		return post
+	}
+
+	makeFile := func(post model.Post, user string, createAt int64, idPrefix string) model.FileInfo {
+		id := model.NewId()
+		id = idPrefix + id[1:] // hacky way to get sortable Ids to confirm secondary Id sort works
+		fileInfo := model.FileInfo{
+			Id:        id,
+			CreatorId: user,
+			Path:      "file.txt",
+			CreateAt:  createAt,
+		}
+		if post.Id != "" {
+			fileInfo.PostId = post.Id
+		}
+		_, err := ss.FileInfo().Save(&fileInfo)
+		require.Nil(t, err)
+		return fileInfo
+	}
+
+	userId1 := model.NewId()
+	userId2 := model.NewId()
+
+	channelId1 := model.NewId()
+	channelId2 := model.NewId()
+	channelId3 := model.NewId()
+
+	post1_1 := makePost(channelId1, userId1) // post 1 by user 1
+	post1_2 := makePost(channelId3, userId1) // post 2 by user 1
+	post2_1 := makePost(channelId2, userId2)
+	post2_2 := makePost(channelId3, userId2)
+
+	epoch := time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
+	file1_1 := makeFile(post1_1, userId1, epoch.AddDate(0, 0, 1).Unix(), "a")      // file 1 by user 1
+	file1_2 := makeFile(post1_2, userId1, epoch.AddDate(0, 0, 2).Unix(), "b")      // file 2 by user 1
+	file1_3 := makeFile(model.Post{}, userId1, epoch.AddDate(0, 0, 3).Unix(), "c") // file that is not attached to a post
+	file2_1 := makeFile(post2_1, userId2, epoch.AddDate(0, 0, 4).Unix(), "d")      // file 2 by user 1
+	file2_2 := makeFile(post2_2, userId2, epoch.AddDate(0, 0, 5).Unix(), "e")
+
+	// delete a file
+	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		Name            string
+		Page, PerPage   int
+		Opt             *model.GetFileInfosOptions
+		ExpectedFileIds []string
+	}{
+		{
+			Name:            "Get files with nil option",
+			Page:            0,
+			PerPage:         10,
+			Opt:             nil,
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id},
+		},
+		{
+			Name:            "Get files including deleted",
+			Page:            0,
+			PerPage:         10,
+			Opt:             &model.GetFileInfosOptions{IncludeDeleted: true},
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
+		},
+		{
+			Name:    "Get files including deleted filtered by channel",
+			Page:    0,
+			PerPage: 10,
+			Opt: &model.GetFileInfosOptions{
+				IncludeDeleted: true,
+				ChannelIds:     []string{channelId3},
+			},
+			ExpectedFileIds: []string{file1_2.Id, file2_2.Id},
+		},
+		{
+			Name:    "Get files including deleted filtered by channel and user",
+			Page:    0,
+			PerPage: 10,
+			Opt: &model.GetFileInfosOptions{
+				IncludeDeleted: true,
+				UserIds:        []string{userId1},
+				ChannelIds:     []string{channelId3},
+			},
+			ExpectedFileIds: []string{file1_2.Id},
+		},
+		{
+			Name:    "Get files including deleted sorted by created at",
+			Page:    0,
+			PerPage: 10,
+			Opt: &model.GetFileInfosOptions{
+				IncludeDeleted: true,
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+			},
+			ExpectedFileIds: []string{file1_1.Id, file1_2.Id, file1_3.Id, file2_1.Id, file2_2.Id},
+		},
+		{
+			Name:    "Get files filtered by user ordered by created at descending",
+			Page:    0,
+			PerPage: 10,
+			Opt: &model.GetFileInfosOptions{
+				UserIds:        []string{userId1},
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortDescending: true,
+			},
+			ExpectedFileIds: []string{file1_3.Id, file1_2.Id, file1_1.Id},
+		},
+		{
+			Name:    "Get all files including deleted ordered by created descending 2nd page of 3 per page ",
+			Page:    1,
+			PerPage: 3,
+			Opt: &model.GetFileInfosOptions{
+				IncludeDeleted: true,
+				SortBy:         model.FILEINFO_SORT_BY_CREATED,
+				SortDescending: true,
+			},
+			ExpectedFileIds: []string{file1_2.Id, file1_1.Id},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Page, tc.PerPage, tc.Opt)
+			require.Nil(t, err)
+			require.Len(t, fileInfos, len(tc.ExpectedFileIds))
+			for i := range tc.ExpectedFileIds {
+				assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
+			}
+		})
+	}
+}
+
 type byFileInfoId []*model.FileInfo
 
 func (a byFileInfoId) Len() int           { return len(a) }
@@ -395,7 +534,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 
 	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
 	require.Nil(t, err)
-	assert.Len(t, infos, 0)
+	assert.Empty(t, infos)
 }
 
 func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {

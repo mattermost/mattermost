@@ -15,7 +15,7 @@ import (
 )
 
 func TestJoinChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -30,7 +30,7 @@ func TestJoinChannel(t *testing.T) {
 }
 
 func TestRemoveChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -51,7 +51,7 @@ func TestRemoveChannel(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team1 := th.BasicTeam
@@ -77,7 +77,7 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestListChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -100,7 +100,7 @@ func TestListChannels(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -113,7 +113,7 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestCreateChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -126,7 +126,7 @@ func TestCreateChannel(t *testing.T) {
 }
 
 func TestRenameChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -139,7 +139,7 @@ func TestRenameChannel(t *testing.T) {
 }
 
 func Test_searchChannelCmdF(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -226,4 +226,31 @@ func Test_searchChannelCmdF(t *testing.T) {
 			assert.Contains(t, th.CheckCommand(t, test.Args...), test.Expected)
 		})
 	}
+}
+
+func TestModifyChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel1 := th.CreatePrivateChannel()
+	channel2 := th.CreatePrivateChannel()
+
+	th.CheckCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel1.Name, "--username", th.BasicUser2.Email)
+	res, err := th.App.Srv().Store.Channel().Get(channel1.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, model.CHANNEL_OPEN, res.Type)
+
+	// should fail because user doesn't exist
+	require.Error(t, th.RunCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel2.Name, "--username", "idonotexist"))
+
+	pchannel1 := th.CreatePublicChannel()
+	pchannel2 := th.CreatePublicChannel()
+
+	th.CheckCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel1.Name, "--username", th.BasicUser2.Email)
+	res, err = th.App.Srv().Store.Channel().Get(pchannel1.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, model.CHANNEL_PRIVATE, res.Type)
+
+	// should fail because user doesn't exist
+	require.Error(t, th.RunCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel2.Name, "--username", "idonotexist"))
 }

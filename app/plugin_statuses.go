@@ -58,8 +58,8 @@ func (a *App) GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 		return nil, err
 	}
 
-	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
-		clusterPluginStatuses, err := a.Cluster.GetPluginStatuses()
+	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
+		clusterPluginStatuses, err := a.Cluster().GetPluginStatuses()
 		if err != nil {
 			return nil, model.NewAppError("GetClusterPluginStatuses", "app.plugin.get_cluster_plugin_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -79,7 +79,7 @@ func (a *App) notifyPluginStatusesChanged() error {
 	// Notify any system admins.
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_STATUSES_CHANGED, "", "", "", nil)
 	message.Add("plugin_statuses", pluginStatuses)
-	message.Broadcast.ContainsSensitiveData = true
+	message.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(message)
 
 	return nil

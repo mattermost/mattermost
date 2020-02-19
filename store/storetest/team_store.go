@@ -45,6 +45,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("TeamPublicCount", func(t *testing.T) { testPublicTeamCount(t, ss) })
 	t.Run("TeamPrivateCount", func(t *testing.T) { testPrivateTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
+	t.Run("GetMembersOrder", func(t *testing.T) { testGetMembersOrder(t, ss) })
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, ss) })
 	t.Run("GetTeamMembersByIds", func(t *testing.T) { testGetTeamMembersByIds(t, ss) })
@@ -60,6 +61,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, ss) })
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
+	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -803,6 +805,40 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
 }
 
+func testGetMembersOrder(t *testing.T, ss store.Store) {
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
+	m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
+	m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
+	m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
+	m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
+
+	_, err := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m4, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m5, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m6, -1)
+	require.Nil(t, err)
+
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
+	assert.Len(t, ms, 5)
+	assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
+	assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
+	assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
+	assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
+	assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
+}
+
 func testTeamMembers(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
@@ -848,7 +884,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
-	require.Len(t, ms, 0)
+	require.Empty(t, ms)
 
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
@@ -867,7 +903,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 
 	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
 	require.Nil(t, err)
-	require.Len(t, ms, 0)
+	require.Empty(t, ms)
 }
 
 func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
@@ -924,7 +960,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
-	require.Len(t, result, 0)
+	require.Empty(t, result)
 }
 
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
@@ -1301,7 +1337,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1309,7 +1345,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1317,7 +1353,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1340,12 +1376,12 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	// Get the teams by a valid Scheme ID where there aren't any matching Teams.
 	d, err = ss.Team().GetTeamsByScheme(s2.Id, 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d, 0)
+	assert.Empty(t, d)
 
 	// Get the teams by an invalid Scheme ID.
 	d, err = ss.Team().GetTeamsByScheme(model.NewId(), 0, 100)
 	assert.Nil(t, err)
-	assert.Len(t, d, 0)
+	assert.Empty(t, d)
 }
 
 func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
@@ -1428,7 +1464,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1436,7 +1472,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1529,7 +1565,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1543,7 +1579,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1557,7 +1593,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1570,7 +1606,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1647,4 +1683,40 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, t1.Id, tmfe1.TeamId)
 	assert.Equal(t, u1.Id, tmfe1.UserId)
 	assert.Equal(t, t1.Name, tmfe1.TeamName)
+}
+
+func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName:      model.NewId(),
+		Name:             "zz" + model.NewId(),
+		Email:            MakeEmail(),
+		Type:             model.TEAM_INVITE,
+		GroupConstrained: model.NewBool(true),
+	})
+	require.Nil(t, err)
+	require.True(t, team1.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team1.Id)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: model.NewId(),
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_INVITE,
+	})
+	require.Nil(t, err)
+	require.False(t, team2.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team2.Id)
+
+	count, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, count, int64(1))
+
+	team2.GroupConstrained = model.NewBool(true)
+	team2, err = ss.Team().Update(team2)
+	require.Nil(t, err)
+	require.True(t, team2.IsGroupConstrained())
+
+	countAfter, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, countAfter, count+1)
 }

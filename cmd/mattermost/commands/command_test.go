@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -131,7 +131,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestShowCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	url := "http://localhost:8000/test-command"
@@ -179,7 +179,7 @@ func TestDeleteCommand(t *testing.T) {
 	// Skipped due to v5.6 RC build issues.
 	t.Skip()
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	url := "http://localhost:8000/test-command"
 	team := th.BasicTeam
@@ -215,7 +215,7 @@ func TestDeleteCommand(t *testing.T) {
 }
 
 func TestModifyCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// set config

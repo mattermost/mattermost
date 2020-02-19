@@ -15,13 +15,14 @@ import (
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
+	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiSessionRequired(patchConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -33,7 +34,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -56,7 +57,9 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	cfg.SetDefaults()
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -81,19 +84,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
 
-	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
-	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
-	// directly and not through the System Console UI.
-	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
-		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
-			// When the feature is toggled on, use the current timestamp as the start time for future exports.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
-		} else if !*cfg.MessageExportSettings.EnableExport {
-			// When the feature is disabled, reset the timestamp so that the timestamp will be set if
-			// the feature is re-enabled from the System Console in future.
-			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
-		}
-	}
+	// Do not allow certificates to be changed through the API
+	cfg.PluginSettings.SignaturePublicKeyFiles = appCfg.PluginSettings.SignaturePublicKeyFiles
+
+	c.App.HandleMessageExportConfig(cfg, appCfg)
 
 	err := cfg.IsValid()
 	if err != nil {
@@ -129,7 +123,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var config map[string]string
-	if len(c.App.Session.UserId) == 0 {
+	if len(c.App.Session().UserId) == 0 {
 		config = c.App.LimitedClientConfigWithComputed()
 	} else {
 		config = c.App.ClientConfigWithComputed()
@@ -139,7 +133,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -148,4 +142,60 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(model.StringInterfaceToJson(envConfig)))
+}
+
+func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	cfg := model.ConfigFromJson(r.Body)
+	if cfg == nil {
+		c.SetInvalidParam("config")
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	appCfg := c.App.Config()
+	var filterFn utils.StructFieldFilter
+	if *appCfg.ExperimentalSettings.RestrictSystemAdmin {
+		filterFn = func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return !(structField.Tag.Get("restricted") == "true")
+		}
+	} else {
+		filterFn = func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return true
+		}
+	}
+
+	// Do not allow plugin uploads to be toggled through the API
+	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
+
+	if cfg.MessageExportSettings.EnableExport != nil {
+		c.App.HandleMessageExportConfig(cfg, appCfg)
+	}
+
+	updatedCfg, mergeErr := config.Merge(appCfg, cfg, &utils.MergeConfig{
+		StructFieldFilter: filterFn,
+	})
+
+	if mergeErr != nil {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.restricted_merge.app_error", nil, mergeErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err := updatedCfg.IsValid()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.SaveConfig(updatedCfg, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
 }

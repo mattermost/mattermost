@@ -17,6 +17,216 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIsValid(t *testing.T) {
+	testCases := []struct {
+		Title       string
+		manifest    *Manifest
+		ExpectError bool
+	}{
+		{"Invalid Id", &Manifest{Id: "some id"}, true},
+		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", ReleaseNotesURL: "some url"}, true},
+		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
+		{"Invalid min version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
+		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
+			Settings: []*PluginSetting{{Type: "Invalid"}},
+		}}, true},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test"}, false},
+		{"Happy case", &Manifest{
+			Id:               "com.company.test",
+			Name:             "thename",
+			Description:      "thedescription",
+			HomepageURL:      "http://someurl.com",
+			SupportURL:       "http://someotherurl.com",
+			ReleaseNotesURL:  "http://someotherurl.com/releases/v0.0.1",
+			Version:          "0.0.1",
+			MinServerVersion: "5.6.0",
+			Server: &ManifestServer{
+				Executable: "theexecutable",
+			},
+			Webapp: &ManifestWebapp{
+				BundlePath: "thebundlepath",
+			},
+			SettingsSchema: &PluginSettingsSchema{
+				Header: "theheadertext",
+				Footer: "thefootertext",
+				Settings: []*PluginSetting{
+					{
+						Key:         "thesetting",
+						DisplayName: "thedisplayname",
+						Type:        "dropdown",
+						HelpText:    "thehelptext",
+						Options: []*PluginOption{
+							{
+								DisplayName: "theoptiondisplayname",
+								Value:       "thevalue",
+							},
+						},
+						Default: "thedefault",
+					},
+				},
+			},
+		}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			err := tc.manifest.IsValid()
+			if tc.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestIsValidSettingsSchema(t *testing.T) {
+	testCases := []struct {
+		Title          string
+		settingsSchema *PluginSettingsSchema
+		ExpectError    bool
+	}{
+		{"Invalid Setting", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "invalid"}}}, true},
+		{"Happy case", &PluginSettingsSchema{Settings: []*PluginSetting{{Type: "text"}}}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			err := tc.settingsSchema.isValid()
+			if tc.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSettingIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		Setting     PluginSetting
+		ExpectError bool
+	}{
+		"Invalid setting type": {
+			PluginSetting{Type: "invalid"},
+			true,
+		},
+		"RegenerateHelpText error": {
+			PluginSetting{Type: "text", RegenerateHelpText: "some text"},
+			true,
+		},
+		"Placeholder error": {
+			PluginSetting{Type: "bool", Placeholder: "some text"},
+			true,
+		},
+		"Nil Options": {
+			PluginSetting{Type: "bool"},
+			false,
+		},
+		"Options error": {
+			PluginSetting{Type: "generated", Options: []*PluginOption{}},
+			true,
+		},
+		"Options displayName error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					Value: "some value",
+				}},
+			},
+			true,
+		},
+		"Options value error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "some name",
+				}},
+			},
+			true,
+		},
+		"Happy case": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "Name",
+					Value:       "value",
+				}},
+			},
+			false,
+		},
+		"Valid number setting": {
+			PluginSetting{
+				Type:    "number",
+				Default: 10,
+			},
+			false,
+		},
+		"Placeholder is disallowed for bool settings": {
+			PluginSetting{
+				Type:        "bool",
+				Placeholder: "some Text",
+			},
+			true,
+		},
+		"Placeholder is allowed for text settings": {
+			PluginSetting{
+				Type:        "text",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+		"Placeholder is allowed for long text settings": {
+			PluginSetting{
+				Type:        "longtext",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Setting.isValid()
+			if test.ExpectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestConvertTypeToPluginSettingType(t *testing.T) {
+	testCases := []struct {
+		Title               string
+		Type                string
+		ExpectedSettingType PluginSettingType
+		ExpectError         bool
+	}{
+		{"bool", "bool", Bool, false},
+		{"dropdown", "dropdown", Dropdown, false},
+		{"generated", "generated", Generated, false},
+		{"radio", "radio", Radio, false},
+		{"text", "text", Text, false},
+		{"longtext", "longtext", LongText, false},
+		{"username", "username", Username, false},
+		{"custom", "custom", Custom, false},
+		{"invalid", "invalid", Bool, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Title, func(t *testing.T) {
+			settingType, err := convertTypeToPluginSettingType(tc.Type)
+			if !tc.ExpectError {
+				assert.Equal(t, settingType, tc.ExpectedSettingType)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
 func TestFindManifest(t *testing.T) {
 	for _, tc := range []struct {
 		Filename       string

@@ -5179,10 +5179,6 @@
     "translation": "Límite de paginación excedido"
   },
   {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "Hemos detectado un error al eliminar permanentemente el lote de auditorías"
-  },
-  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Encontramos un error al eliminar los audits"
   },
