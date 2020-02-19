@@ -104,9 +104,7 @@ func TestExecuteCommand(t *testing.T) {
 			T:       func(s string, args ...interface{}) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
-		if err == nil || err.Id != "api.command.execute_command.format.app_error" {
-			t.Fatal("should have failed - missing leading slash character")
-		}
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
 	})
 
 	t.Run("empty", func(t *testing.T) {
@@ -115,9 +113,7 @@ func TestExecuteCommand(t *testing.T) {
 			T:       func(s string, args ...interface{}) string { return s },
 		}
 		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
-		if err == nil || err.Id != "api.command.execute_command.format.app_error" {
-			t.Fatal("should have failed - empty command input")
-		}
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
 	})
 }
 
