@@ -822,23 +822,23 @@ func (s *Server) shutdownDiagnostics() error {
 }
 
 // GetHubs returns the list of hubs. This method is safe
-// for concurrent use by multiple goroutines
+// for concurrent use by multiple goroutines.
 func (s *Server) GetHubs() []*Hub {
 	s.hubsLock.RLock()
 	defer s.hubsLock.RUnlock()
 	return s.hubs
 }
 
-// SetHubs set a new list of hubs. This method is safe
-// for concurrent use by multiple goroutines
+// SetHubs sets a new list of hubs. This method is safe
+// for concurrent use by multiple goroutines.
 func (s *Server) SetHubs(hubs []*Hub) {
 	s.hubsLock.Lock()
 	defer s.hubsLock.Unlock()
 	s.hubs = hubs
 }
 
-// SetHub change the hub nth-element in the hubs list. This method is safe
-// for concurrent use by multiple goroutines
+// SetHub sets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
 func (s *Server) SetHub(index int, hub *Hub) {
 	s.hubsLock.Lock()
 	defer s.hubsLock.Unlock()
