@@ -36,16 +36,16 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	bot := &model.Bot{
-		OwnerId: c.App.Session.UserId,
+		OwnerId: c.App.Session().UserId,
 	}
 	bot.Patch(botPatch)
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_BOT) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_BOT) {
 		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session.UserId); err == nil {
+	if user, err := c.App.GetUser(c.App.Session().UserId); err == nil {
 		if user.IsBot {
 			c.SetPermissionError(model.PERMISSION_CREATE_BOT)
 			return
@@ -80,7 +80,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -112,10 +112,10 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHERS_BOTS) {
 		// Allow access to any bot.
-	} else if bot.OwnerId == c.App.Session.UserId {
-		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+	} else if bot.OwnerId == c.App.Session().UserId {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_BOTS) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
@@ -148,12 +148,12 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var OwnerId string
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHERS_BOTS) {
 		// Get bots created by any user.
 		OwnerId = ""
-	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_BOTS) {
 		// Only get bots created by this user.
-		OwnerId = c.App.Session.UserId
+		OwnerId = c.App.Session().UserId
 	} else {
 		c.SetPermissionError(model.PERMISSION_READ_BOTS)
 		return
@@ -193,7 +193,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 	}
 	botUserId := c.Params.BotUserId
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -216,7 +216,7 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	botUserId := c.Params.BotUserId
 	userId := c.Params.UserId
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -244,7 +244,7 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, botUserId)
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session().UserId, botUserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -287,7 +287,7 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -333,7 +333,7 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}

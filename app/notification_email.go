@@ -23,7 +23,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
-		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
 		if err != nil {
 			return err
 		}
@@ -48,7 +48,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
+		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
@@ -68,7 +68,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	translateFunc := utils.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
+	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = data.Value == "true"
@@ -98,14 +98,14 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
 
-	if a.Metrics != nil {
-		a.Metrics.IncrementPostSentEmail()
+	if a.Metrics() != nil {
+		a.Metrics().IncrementPostSentEmail()
 	}
 
 	return nil
@@ -318,7 +318,7 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
+	infos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
