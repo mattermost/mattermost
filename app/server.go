@@ -69,9 +69,9 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
+	hubsLock                    sync.RWMutex
 	hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
-	hubsLock                    sync.RWMutex
 
 	PushNotificationsHub PushNotificationsHub
 
@@ -821,18 +821,24 @@ func (s *Server) shutdownDiagnostics() error {
 	return nil
 }
 
+// GetHubs returns the list of hubs. This method is safe
+// for concurrent use by multiple goroutines
 func (s *Server) GetHubs() []*Hub {
 	s.hubsLock.RLock()
 	defer s.hubsLock.RUnlock()
 	return s.hubs
 }
 
+// SetHubs set a new list of hubs. This method is safe
+// for concurrent use by multiple goroutines
 func (s *Server) SetHubs(hubs []*Hub) {
 	s.hubsLock.Lock()
 	defer s.hubsLock.Unlock()
 	s.hubs = hubs
 }
 
+// SetHub change the hub nth-element in the hubs list. This method is safe
+// for concurrent use by multiple goroutines
 func (s *Server) SetHub(index int, hub *Hub) {
 	s.hubsLock.Lock()
 	defer s.hubsLock.Unlock()
