@@ -81,7 +81,7 @@ func (a *App) HubStart() {
 		newHub := a.NewWebHub()
 		newHub.connectionIndex = i
 		a.Srv().SetHub(i, newHub)
-		a.Srv().GetHubs()[i].Start()
+		newHub.Start()
 	}
 
 	go func() {
@@ -146,7 +146,12 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
 	index := hash.Sum32() % uint32(len(a.Srv().GetHubs()))
-	return a.Srv().GetHubs()[index]
+	hub, err := a.Srv().GetHub(int(index))
+	if err != nil {
+		mlog.Warn("Requested hub doesn't exist", mlog.Int("hub_index", int(index)))
+		return nil
+	}
+	return hub
 }
 
 func (a *App) HubRegister(webConn *WebConn) {

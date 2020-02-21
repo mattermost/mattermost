@@ -829,6 +829,17 @@ func (s *Server) GetHubs() []*Hub {
 	return s.hubs
 }
 
+// getHub gets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) GetHub(index int) (*Hub, error) {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	if index >= len(s.hubs) {
+		return nil, errors.New("Hub element doesn't exist")
+	}
+	return s.hubs[index], nil
+}
+
 // SetHubs sets a new list of hubs. This method is safe
 // for concurrent use by multiple goroutines.
 func (s *Server) SetHubs(hubs []*Hub) {
