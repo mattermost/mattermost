@@ -88,7 +88,7 @@ func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) []string {
 	sb := strings.Builder{}
 
 	keys := make([]string, 0, len(fields))
-	for k, _ := range fields {
+	for k := range fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
