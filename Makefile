@@ -241,7 +241,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint gomodtidy plugin-checker vet ## Runs golangci against all packages
+check-style: gomodtidy golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
@@ -298,7 +298,7 @@ gomodtidy:
 	@cp go.sum go.sum.orig
 	$(GO) mod tidy
 	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
-		echo "go.mod/go.sum was modified. Run \"go mod tidy\"."; \
+		echo "go.mod/go.sum was modified. diff- $(diff go.mod go.mod.orig) Run \"go mod tidy\"."; \
 		rm go.*.orig; \
 		exit 1; \
 	fi;
