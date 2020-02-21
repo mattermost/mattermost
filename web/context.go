@@ -24,8 +24,13 @@ type Context struct {
 	siteURLHeader string
 }
 
-// LogAuditExMeta logs an audit record.
+// LogAuditRec logs an audit record using default RestLevel.
 func (c *Context) LogAuditRec(rec *audit.Record) {
+	c.LogAuditRecWithLevel(rec, audit.RestLevel)
+}
+
+// LogAuditRec logs an audit record using specificed Level.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 	if rec == nil {
 		return
 	}
@@ -34,7 +39,7 @@ func (c *Context) LogAuditRec(rec *audit.Record) {
 		rec.AddMeta("code", c.Err.StatusCode)
 		rec.Fail()
 	}
-	audit.LogRecord(audit.RestLevel, *rec)
+	audit.LogRecord(level, *rec)
 }
 
 // LogAuditMeta creates an audit record and logs it.

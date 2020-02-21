@@ -16,9 +16,12 @@ var (
 	lgr    *logr.Logr
 	logger logr.Logger
 
-	RestLevel   = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
-	AppLevel    = Level{ID: AppLevelID, Name: "audit-app", Stacktrace: false}
-	ModelLevel  = Level{ID: ModelLevelID, Name: "audit-model", Stacktrace: false}
+	RestLevel        = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
+	RestContentLevel = Level{ID: RestContentLevelID, Name: "audit-rest-content", Stacktrace: false}
+	CLILevel         = Level{ID: CLILevelID, Name: "audit-cli", Stacktrace: false}
+	AppLevel         = Level{ID: AppLevelID, Name: "audit-app", Stacktrace: false}
+	ModelLevel       = Level{ID: ModelLevelID, Name: "audit-model", Stacktrace: false}
+
 	AuditFilter = &logr.CustomFilter{}
 
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
@@ -43,7 +46,9 @@ func initLogr() {
 	lgr.OnQueueFull = onQueueFull
 	lgr.OnTargetQueueFull = onTargetQueueFull
 	lgr.OnLoggerError = onLoggerError
-	AuditFilter.Add(logr.Level(RestLevel), logr.Level(AppLevel))
+
+	// Default filters. Replace AuditFilter to customize.
+	AuditFilter.Add(logr.Level(RestLevel), logr.Level(RestContentLevel), logr.Level(CLILevel))
 }
 
 // Log emits an audit record with complete info.

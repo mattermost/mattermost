@@ -6,9 +6,11 @@ package audit
 const (
 	MaxQueueSize = 1000
 
-	RestLevelID  = 240
-	AppLevelID   = 241
-	ModelLevelID = 242
+	RestLevelID        = 240
+	RestContentLevelID = 241
+	CLILevelID         = 242
+	AppLevelID         = 243
+	ModelLevelID       = 244
 
 	KeyID        = "id"
 	KeyAPIPath   = "api_path"
