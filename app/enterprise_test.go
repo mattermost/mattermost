@@ -93,7 +93,7 @@ func TestSAMLSettings(t *testing.T) {
 				RegisterNewSamlInterface(nil)
 			}
 
-			th := SetupEnterprise(t).InitBasic()
+			th := SetupEnterprise(t)
 			defer th.TearDown()
 
 			if tc.useNewSAMLLibrary {
@@ -104,10 +104,10 @@ func TestSAMLSettings(t *testing.T) {
 
 			th.Server.initEnterprise()
 			if tc.isNil {
-				assert.Nil(t, th.App.Srv.Saml)
+				assert.Nil(t, th.App.Srv().Saml)
 			} else {
-				assert.NotNil(t, th.App.Srv.Saml)
-				metadata, err := th.App.Srv.Saml.GetMetadata()
+				assert.NotNil(t, th.App.Srv().Saml)
+				metadata, err := th.App.Srv().Saml.GetMetadata()
 				assert.Nil(t, err)
 				assert.Equal(t, tc.metadata, metadata)
 			}

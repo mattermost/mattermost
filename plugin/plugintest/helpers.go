@@ -150,6 +150,35 @@ func (_m *Helpers) KVGetJSON(key string, value interface{}) (bool, error) {
 	return r0, r1
 }
 
+// KVListWithOptions provides a mock function with given fields: options
+func (_m *Helpers) KVListWithOptions(options ...plugin.KVListOption) ([]string, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(...plugin.KVListOption) []string); ok {
+		r0 = rf(options...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(...plugin.KVListOption) error); ok {
+		r1 = rf(options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // KVSetJSON provides a mock function with given fields: key, value
 func (_m *Helpers) KVSetJSON(key string, value interface{}) error {
 	ret := _m.Called(key, value)
