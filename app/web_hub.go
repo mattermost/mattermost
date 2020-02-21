@@ -80,7 +80,11 @@ func (a *App) HubStart() {
 	for i := 0; i < len(a.Srv().GetHubs()); i++ {
 		newHub := a.NewWebHub()
 		newHub.connectionIndex = i
-		a.Srv().SetHub(i, newHub)
+		err := a.Srv().SetHub(i, newHub)
+		if err != nil {
+			mlog.Warn("Error starting hub", mlog.Err(err), mlog.Int("index", i))
+			continue
+		}
 		newHub.Start()
 	}
 

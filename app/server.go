@@ -850,8 +850,12 @@ func (s *Server) SetHubs(hubs []*Hub) {
 
 // SetHub sets the element at the given index in the hubs list. This method is safe
 // for concurrent use by multiple goroutines.
-func (s *Server) SetHub(index int, hub *Hub) {
+func (s *Server) SetHub(index int, hub *Hub) error {
 	s.hubsLock.Lock()
 	defer s.hubsLock.Unlock()
+	if index >= len(s.hubs) {
+		return errors.New("Index is greater than the size of the hubs list")
+	}
 	s.hubs[index] = hub
+	return nil
 }
