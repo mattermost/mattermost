@@ -241,7 +241,7 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
-check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
+check-style: golangci-lint gomodtidy plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
@@ -293,7 +293,18 @@ test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
-test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+gomodtidy:
+	@cp go.mod go.mod.orig
+	@cp go.sum go.sum.orig
+	$(GO) mod tidy
+	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
+		echo "go.mod/go.sum was modified. Run \"go mod tidy\"."; \
+		rm go.*.orig; \
+		exit 1; \
+	fi;
+	@rm go.*.orig;
+
+test-server: ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
