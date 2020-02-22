@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -240,6 +241,10 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.Client.Logout()
 	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	// A hack for now because App.SyncRolesAndMembership happens in a separate goroutine
+	// and for now, there is no way to know when the goroutine has finished.
+	time.Sleep(500 * time.Millisecond)
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)
