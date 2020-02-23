@@ -8,9 +8,10 @@ const (
 
 	RestLevelID        = 240
 	RestContentLevelID = 241
-	CLILevelID         = 242
-	AppLevelID         = 243
-	ModelLevelID       = 244
+	RestPermsLevelID   = 242
+	CLILevelID         = 243
+	AppLevelID         = 244
+	ModelLevelID       = 245
 
 	KeyID        = "id"
 	KeyAPIPath   = "api_path"

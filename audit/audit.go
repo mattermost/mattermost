@@ -18,9 +18,8 @@ var (
 
 	RestLevel        = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
 	RestContentLevel = Level{ID: RestContentLevelID, Name: "audit-rest-content", Stacktrace: false}
+	RestPermsLevel   = Level{ID: RestPermsLevelID, Name: "audit-rest-perms", Stacktrace: false}
 	CLILevel         = Level{ID: CLILevelID, Name: "audit-cli", Stacktrace: false}
-	AppLevel         = Level{ID: AppLevelID, Name: "audit-app", Stacktrace: false}
-	ModelLevel       = Level{ID: ModelLevelID, Name: "audit-model", Stacktrace: false}
 
 	AuditFilter = &logr.CustomFilter{}
 
@@ -48,7 +47,7 @@ func initLogr() {
 	lgr.OnLoggerError = onLoggerError
 
 	// Default filters. Replace AuditFilter to customize.
-	AuditFilter.Add(logr.Level(RestLevel), logr.Level(RestContentLevel), logr.Level(CLILevel))
+	AuditFilter.Add(logr.Level(RestLevel), logr.Level(RestContentLevel), logr.Level(RestPermsLevel), logr.Level(CLILevel))
 }
 
 // Log emits an audit record with complete info.
