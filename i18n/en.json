@@ -4404,7 +4404,7 @@
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Invalid authorization code".
+    "translation": "Invalid authorization code."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
