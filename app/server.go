@@ -116,6 +116,7 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
+	Audit            *audit.Audit
 	Log              *mlog.Logger
 	NotificationsLog *mlog.Logger
 
@@ -209,6 +210,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	model.AppErrorInit(utils.T)
+
+	if s.Audit == nil {
+		s.Audit = &audit.Audit{}
+		s.Audit.Init(audit.DefMaxQueueSize)
+		s.configureAudit(s.Audit)
+	}
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
@@ -389,7 +396,7 @@ func (s *Server) Shutdown() error {
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
 
-	audit.Shutdown()
+	s.Audit.Shutdown()
 
 	s.configStore.Close()
 
@@ -471,9 +478,6 @@ func stripPort(hostport string) string {
 
 func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
-
-	// configure auditing first
-	configureAudit(s)
 
 	var handler http.Handler = s.RootRouter
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {

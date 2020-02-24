@@ -26,7 +26,7 @@ type Context struct {
 
 // LogAuditRec logs an audit record using default RestLevel.
 func (c *Context) LogAuditRec(rec *audit.Record) {
-	c.LogAuditRecWithLevel(rec, audit.RestLevel)
+	c.LogAuditRecWithLevel(rec, app.RestLevel)
 }
 
 // LogAuditRec logs an audit record using specificed Level.
@@ -38,11 +38,11 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		rec.AddMeta("err", c.Err.Id)
 		rec.AddMeta("code", c.Err.StatusCode)
 		if c.Err.Id == "api.context.permissions.app_error" {
-			level = audit.RestPermsLevel
+			level = app.RestPermsLevel
 		}
 		rec.Fail()
 	}
-	audit.LogRecord(level, *rec)
+	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
 // LogAuditMeta creates an audit record and logs it.

@@ -10,8 +10,24 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/wiggin77/logr"
+	"github.com/wiggin77/logr/format"
+)
+
+const (
+	RestLevelID        = 240
+	RestContentLevelID = 241
+	RestPermsLevelID   = 242
+	CLILevelID         = 243
+)
+
+var (
+	RestLevel        = audit.Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
+	RestContentLevel = audit.Level{ID: RestContentLevelID, Name: "audit-rest-content", Stacktrace: false}
+	RestPermsLevel   = audit.Level{ID: RestPermsLevelID, Name: "audit-rest-perms", Stacktrace: false}
+	CLILevel         = audit.Level{ID: CLILevelID, Name: "audit-cli", Stacktrace: false}
 )
 
 func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
@@ -22,27 +38,26 @@ func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits,
 	return a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
 }
 
-func configureAudit(s *Server) {
-	// Audit to the database
-	ast := NewAuditStoreTarget(audit.AuditFilter, audit.DefaultFormatter, s, audit.MaxQueueSize)
-	audit.AddTarget(ast)
-
-	// Audit to a file via config
-	// TODO
+func (s *Server) configureAudit(adt *audit.Audit) {
+	// For now just send audit records to database. When implemented, use config store
+	// to configure where audit records are written, and which filter is used.
+	filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
+	target := NewAuditStoreTarget(filter, s.Store.Audit(), audit.DefMaxQueueSize)
+	adt.AddTarget(target)
 }
 
 const MaxExtraInfoLen = 1024
 
-// AuditStoreTarget outputs log records to a database.
+// AuditStoreTarget outputs log records to a database via store.AuditStore.
 type AuditStoreTarget struct {
 	logr.Basic
-	server *Server
+	store store.AuditStore
 }
 
 // NewAuditStoreTarget creates a target that outputs audit records to a database.
-func NewAuditStoreTarget(filter logr.Filter, formatter logr.Formatter, server *Server, maxQueue int) *AuditStoreTarget {
-	w := &AuditStoreTarget{server: server}
-	w.Basic.Start(w, w, filter, formatter, maxQueue)
+func NewAuditStoreTarget(filter logr.Filter, store store.AuditStore, maxQueue int) *AuditStoreTarget {
+	w := &AuditStoreTarget{store: store}
+	w.Basic.Start(w, w, filter, &format.Plain{}, maxQueue)
 	return w
 }
 
@@ -58,7 +73,7 @@ func (t *AuditStoreTarget) Write(rec *logr.LogRec) error {
 			SessionId: getField(flds, audit.KeySessionID),
 			ExtraInfo: info,
 		}
-		if err := t.server.Store.Audit().Save(audit); err != nil {
+		if err := t.store.Save(audit); err != nil {
 			return err
 		}
 	}

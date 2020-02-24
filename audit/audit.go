@@ -7,21 +7,13 @@ import (
 	"fmt"
 
 	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/format"
 )
 
 type Level logr.Level
 
-var (
+type Audit struct {
 	lgr    *logr.Logr
 	logger logr.Logger
-
-	RestLevel        = Level{ID: RestLevelID, Name: "audit-rest", Stacktrace: false}
-	RestContentLevel = Level{ID: RestContentLevelID, Name: "audit-rest-content", Stacktrace: false}
-	RestPermsLevel   = Level{ID: RestPermsLevelID, Name: "audit-rest-perms", Stacktrace: false}
-	CLILevel         = Level{ID: CLILevelID, Name: "audit-cli", Stacktrace: false}
-
-	AuditFilter = &logr.CustomFilter{}
 
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
 	// On return the calling goroutine will block until the audit record can be added.
@@ -29,29 +21,28 @@ var (
 
 	// OnError is called when an error occurs while writing an audit record.
 	OnError func(err error)
-
-	// DefaultFormatter is a formatter that can be used when creating targets.
-	DefaultFormatter = &format.JSON{DisableStacktrace: true, KeyTimestamp: "CreateAt"}
-)
-
-func init() {
-	initLogr()
 }
 
-func initLogr() {
-	lgr = &logr.Logr{MaxQueueSize: MaxQueueSize}
-	logger = lgr.NewLogger()
+func (a *Audit) Init(maxQueueSize int) {
+	a.lgr = &logr.Logr{MaxQueueSize: DefMaxQueueSize}
+	a.logger = a.lgr.NewLogger()
 
-	lgr.OnQueueFull = onQueueFull
-	lgr.OnTargetQueueFull = onTargetQueueFull
-	lgr.OnLoggerError = onLoggerError
+	a.lgr.OnQueueFull = a.onQueueFull
+	a.lgr.OnTargetQueueFull = a.onTargetQueueFull
+	a.lgr.OnLoggerError = a.onLoggerError
+}
 
-	// Default filters. Replace AuditFilter to customize.
-	AuditFilter.Add(logr.Level(RestLevel), logr.Level(RestContentLevel), logr.Level(RestPermsLevel), logr.Level(CLILevel))
+// MakeFilter creates a filter which only allows the specified audit levels to be output.
+func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
+	filter := &logr.CustomFilter{}
+	for _, l := range level {
+		filter.Add(logr.Level(l))
+	}
+	return filter
 }
 
 // Log emits an audit record with complete info.
-func LogRecord(level Level, rec Record) {
+func (a *Audit) LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
 	flds[KeyID] = IDGenerator()
 	flds[KeyAPIPath] = rec.APIPath
@@ -66,13 +57,13 @@ func LogRecord(level Level, rec Record) {
 		flds[k] = v
 	}
 
-	l := logger.WithFields(flds)
+	l := a.logger.WithFields(flds)
 	l.Log(logr.Level(level))
 }
 
 // Log emits an audit record based on minimum required info.
-func Log(level Level, path string, evt string, status string, userID string, sessionID string, meta Meta) {
-	LogRecord(level, Record{
+func (a *Audit) Log(level Level, path string, evt string, status string, userID string, sessionID string, meta Meta) {
+	a.LogRecord(level, Record{
 		APIPath:   path,
 		Event:     evt,
 		Status:    status,
@@ -83,39 +74,36 @@ func Log(level Level, path string, evt string, status string, userID string, ses
 }
 
 // AddTarget adds a Logr target to the list of targets each audit record will be output to.
-func AddTarget(target logr.Target) {
-	lgr.AddTarget(target)
+func (a *Audit) AddTarget(target logr.Target) {
+	a.lgr.AddTarget(target)
 }
 
 // Shutdown cleanly stops the audit engine after making best efforts to flush all targets.
-func Shutdown() {
-	err := lgr.Shutdown()
+func (a *Audit) Shutdown() {
+	err := a.lgr.Shutdown()
 	if err != nil {
-		onLoggerError(err)
+		a.onLoggerError(err)
 	}
-
-	// Create new empty logr in case the server is restarted (e.g. while running unit tests).
-	initLogr()
 }
 
-func onQueueFull(rec *logr.LogRec, maxQueueSize int) bool {
-	if OnQueueFull != nil {
-		OnQueueFull("main", maxQueueSize)
+func (a *Audit) onQueueFull(rec *logr.LogRec, maxQueueSize int) bool {
+	if a.OnQueueFull != nil {
+		a.OnQueueFull("main", maxQueueSize)
 	}
 	// block until record can be added.
 	return false
 }
 
-func onTargetQueueFull(target logr.Target, rec *logr.LogRec, maxQueueSize int) bool {
-	if OnQueueFull != nil {
-		OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
+func (a *Audit) onTargetQueueFull(target logr.Target, rec *logr.LogRec, maxQueueSize int) bool {
+	if a.OnQueueFull != nil {
+		a.OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
 	}
 	// block until record can be added.
 	return false
 }
 
-func onLoggerError(err error) {
-	if OnError != nil {
-		OnError(err)
+func (a *Audit) onLoggerError(err error) {
+	if a.OnError != nil {
+		a.OnError(err)
 	}
 }

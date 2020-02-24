@@ -45,7 +45,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.UserId = c.App.Session().UserId
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("channel_id", post.ChannelId)
 
 	hasPermission := false
@@ -112,7 +112,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createEphemeralPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("channel_id", ephRequest.Post.ChannelId)
 
 	ephRequest.Post.UserId = c.App.Session().UserId
@@ -377,7 +377,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	post, err := c.App.GetSinglePost(c.Params.PostId)
@@ -538,7 +538,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("post_id", post.Id)
 	auditRec.AddMeta("channel_id", post.ChannelId)
 	auditRec.AddMeta("creator_user_id", post.UserId)
@@ -597,7 +597,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
@@ -663,7 +663,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, audit.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
