@@ -5360,7 +5360,7 @@
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Invalid parent id.."
+    "translation": "Invalid parent id."
   },
   {
     "id": "model.post.is_valid.props.app_error",
