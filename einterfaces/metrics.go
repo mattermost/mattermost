@@ -37,6 +37,8 @@ type MetricsInterface interface {
 
 	IncrementWebsocketEvent(eventType string)
 	IncrementWebSocketBroadcast(eventType string)
+	IncrementWebSocketBroadcastHubElements(hub string, amount float64)
+	DecrementWebSocketBroadcastHubElements(hub string, amount float64)
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
