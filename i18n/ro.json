@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Oaspeții sunt restricționați să se alăture echipei cu un link de invitație. Vă rugăm să solicitați o invitație de e-mail invitat către echipă."
+    "translation": "Oaspeții sunt restricționați să se alăture echipei printr-un link de invitație. Vă rugăm să solicitați o invitație de e-mail invitat către echipă."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -4112,7 +4112,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Limita de dimensiune a fost depășită. Încercați să verificați [mărimea paginii maximă] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exterior)."
+    "translation": "Limita de dimensiune a fost depășită. Încercați să verificați [mărimea paginii maximă] (https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
