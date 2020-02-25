@@ -83,7 +83,7 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 	}
 
 	verboseFlag, _ := command.Flags().GetBool("verbose")
-	results := a.Srv.Store.CheckIntegrity()
+	results := a.Srv().Store.CheckIntegrity()
 	for result := range results {
 		if result.Err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", result.Err.Error())

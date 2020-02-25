@@ -26,13 +26,17 @@ type Response struct {
 	Header http.Header
 	// Body is the deserialized response body.
 	Body json.RawMessage
+	// DeprecationWarnings lists all deprecation warnings returned from
+	// Elasticsearch.
+	DeprecationWarnings []string
 }
 
 // newResponse creates a new response from the HTTP response.
 func (c *Client) newResponse(res *http.Response, maxBodySize int64) (*Response, error) {
 	r := &Response{
-		StatusCode: res.StatusCode,
-		Header:     res.Header,
+		StatusCode:          res.StatusCode,
+		Header:              res.Header,
+		DeprecationWarnings: res.Header["Warning"],
 	}
 	if res.Body != nil {
 		body := io.Reader(res.Body)

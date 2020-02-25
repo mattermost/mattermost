@@ -16,7 +16,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	singersTeam, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "Singers",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Email:       "singers@test.com",
 		Type:        model.TEAM_OPEN,
 	})
@@ -26,7 +26,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	nerdsTeam, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "Nerds",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Email:       "nerds@test.com",
 		Type:        model.TEAM_INVITE,
 	})
@@ -297,7 +297,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	timeAfterLeaving := model.GetMillis()
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, err = th.App.Srv.Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
+	_, err = th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
 	if err != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
 	}
@@ -313,7 +313,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, err = th.App.Srv.Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
+	_, err = th.App.Srv().Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
 	if err != nil {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
 	}

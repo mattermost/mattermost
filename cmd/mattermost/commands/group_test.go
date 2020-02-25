@@ -11,7 +11,7 @@ import (
 )
 
 func TestChannelGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create public channel
@@ -56,7 +56,7 @@ func TestChannelGroupEnable(t *testing.T) {
 }
 
 func TestChannelGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -106,7 +106,7 @@ func TestChannelGroupDisable(t *testing.T) {
 }
 
 func TestChannelGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -150,7 +150,7 @@ func TestChannelGroupStatus(t *testing.T) {
 }
 
 func TestChannelGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -212,7 +212,7 @@ func TestChannelGroupList(t *testing.T) {
 }
 
 func TestTeamGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to enable, should fail because team has no groups
@@ -249,7 +249,7 @@ func TestTeamGroupEnable(t *testing.T) {
 }
 
 func TestTeamGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to disable, should work
@@ -296,7 +296,7 @@ func TestTeamGroupDisable(t *testing.T) {
 }
 
 func TestTeamGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// get status, should be Disabled
@@ -337,7 +337,7 @@ func TestTeamGroupStatus(t *testing.T) {
 }
 
 func TestTeamGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// list groups for a team with none, should work

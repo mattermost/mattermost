@@ -61,6 +61,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, ss) })
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
+	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -1336,7 +1337,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1344,7 +1345,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1352,7 +1353,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1463,7 +1464,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1471,7 +1472,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1564,7 +1565,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1578,7 +1579,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1592,7 +1593,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1605,7 +1606,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1682,4 +1683,40 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, t1.Id, tmfe1.TeamId)
 	assert.Equal(t, u1.Id, tmfe1.UserId)
 	assert.Equal(t, t1.Name, tmfe1.TeamName)
+}
+
+func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName:      model.NewId(),
+		Name:             "zz" + model.NewId(),
+		Email:            MakeEmail(),
+		Type:             model.TEAM_INVITE,
+		GroupConstrained: model.NewBool(true),
+	})
+	require.Nil(t, err)
+	require.True(t, team1.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team1.Id)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: model.NewId(),
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_INVITE,
+	})
+	require.Nil(t, err)
+	require.False(t, team2.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team2.Id)
+
+	count, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, count, int64(1))
+
+	team2.GroupConstrained = model.NewBool(true)
+	team2, err = ss.Team().Update(team2)
+	require.Nil(t, err)
+	require.True(t, team2.IsGroupConstrained())
+
+	countAfter, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, countAfter, count+1)
 }
