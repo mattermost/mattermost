@@ -1,4 +1,8 @@
 # mattermost-plugin-api
+
+[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/lieut-data/mattermost-plugin-api)
+[![Test Status](https://github.com/lieut-data/mattermost-plugin-api/workflows/Test/badge.svg)](https://github.com/lieut-data/mattermost-plugin-api/actions?query=workflow%3ATest)
+
 A hackathon project to explore reworking the Mattermost Plugin API.
 
 The plugin API as exposed in [github.com/mattermost/mattermost-server/plugin](http://github.com/mattermost/mattermost-server/plugin) began with the hope of adopting a consistent interface and style. But our vision for how to structure the API changed over time, along with our ability to remain consistent. 
