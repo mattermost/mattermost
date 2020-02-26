@@ -252,6 +252,18 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 
 		actualKV, err := ss.Plugin().Get(kv.PluginId, kv.Key)
 		require.Nil(t, err)
+
+		// When tested with KVSetWithOptions, a strict comparison can fail because that
+		// function accepts a relative time and makes its own call to model.GetMillis(),
+		// leading to off-by-one issues. All these tests are written with 15+ second
+		// differences, so allow for an off-by-1000ms in either direction.
+		require.NotNil(t, actualKV)
+
+		expiryDelta := actualKV.ExpireAt - kv.ExpireAt
+		if expiryDelta > -1000 && expiryDelta < 1000 {
+			actualKV.ExpireAt = kv.ExpireAt
+		}
+
 		assert.Equal(t, kv, actualKV)
 	}
 
