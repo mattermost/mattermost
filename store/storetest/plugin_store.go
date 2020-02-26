@@ -76,7 +76,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 			ExpireAt: 0,
 		}
 
-		kv, err := ss.Plugin().SaveOrUpdate(kv)
+		kv, err := doer(kv)
 		require.NotNil(t, err)
 		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", err.Id)
 		assert.Nil(t, kv)
@@ -97,14 +97,14 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 			ExpireAt: expireAt,
 		}
 
-		retKV, err := ss.Plugin().SaveOrUpdate(kv)
+		retKV, err := doer(kv)
 		require.Nil(t, err)
 		assert.Equal(t, kv, retKV)
 		// SaveOrUpdate returns the kv passed in, so test each field individually for
 		// completeness. It should probably be changed to not bother doing that.
 		assert.Equal(t, pluginId, kv.PluginId)
 		assert.Equal(t, key, kv.Key)
-		assert.Equal(t, []byte(value), retKV.Value)
+		assert.Equal(t, []byte(value), kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
 		actualKV, err := ss.Plugin().Get(pluginId, key)
@@ -127,16 +127,14 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 			ExpireAt: expireAt,
 		}
 
-		retKV, err := ss.Plugin().SaveOrUpdate(kv)
-		require.Nil(t, err)
-
+		retKV, err := doer(kv)
 		require.Nil(t, err)
 		assert.Equal(t, kv, retKV)
 		// SaveOrUpdate returns the kv passed in, so test each field individually for
 		// completeness. It should probably be changed to not bother doing that.
 		assert.Equal(t, pluginId, kv.PluginId)
 		assert.Equal(t, key, kv.Key)
-		assert.Nil(t, retKV.Value)
+		assert.Nil(t, kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
 		actualKV, err := ss.Plugin().Get(pluginId, key)
@@ -160,20 +158,20 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 			ExpireAt: expireAt,
 		}
 
-		_, err := ss.Plugin().SaveOrUpdate(kv)
+		_, err := doer(kv)
 		require.Nil(t, err)
 
 		newValue := model.NewId()
 		kv.Value = []byte(newValue)
-		retKV, err := ss.Plugin().SaveOrUpdate(kv)
 
+		retKV, err := doer(kv)
 		require.Nil(t, err)
 		assert.Equal(t, kv, retKV)
 		// SaveOrUpdate returns the kv passed in, so test each field individually for
 		// completeness. It should probably be changed to not bother doing that.
 		assert.Equal(t, pluginId, kv.PluginId)
 		assert.Equal(t, key, kv.Key)
-		assert.Equal(t, []byte(newValue), retKV.Value)
+		assert.Equal(t, []byte(newValue), kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
 		actualKV, err := ss.Plugin().Get(pluginId, key)
@@ -196,11 +194,11 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 			ExpireAt: expireAt,
 		}
 
-		_, err := ss.Plugin().SaveOrUpdate(kv)
+		_, err := doer(kv)
 		require.Nil(t, err)
 
 		kv.Value = nil
-		retKV, err := ss.Plugin().SaveOrUpdate(kv)
+		retKV, err := doer(kv)
 
 		require.Nil(t, err)
 		assert.Equal(t, kv, retKV)
@@ -208,7 +206,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 		// completeness. It should probably be changed to not bother doing that.
 		assert.Equal(t, pluginId, kv.PluginId)
 		assert.Equal(t, key, kv.Key)
-		assert.Nil(t, retKV.Value)
+		assert.Nil(t, kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
 		actualKV, err := ss.Plugin().Get(pluginId, key)
@@ -695,7 +693,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 		doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
-				Atomic: true,
+				Atomic: false,
 			}
 
 			if kv.ExpireAt != 0 {
