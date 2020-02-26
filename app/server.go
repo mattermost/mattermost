@@ -145,6 +145,7 @@ func NewServer(options ...Option) (*Server, error) {
 		licenseListeners:    map[string]func(){},
 		clientConfig:        make(map[string]string),
 	}
+
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -209,7 +210,6 @@ func NewServer(options ...Option) (*Server, error) {
 	model.AppErrorInit(utils.T)
 
 	s.timezones = timezones.New()
-
 	// Start email batching because it's not like the other jobs
 	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {

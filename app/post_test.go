@@ -192,13 +192,13 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
 		require.Nil(t, err)
 
-		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -219,14 +219,14 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
 		})
 		require.Nil(t, err)
 
-		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -445,7 +445,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -577,7 +577,7 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
-				Srv: &Server{
+				srv: &Server{
 					Store: mockStore,
 				},
 			}
@@ -601,7 +601,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -837,7 +837,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.ElasticsearchInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		th.App.elasticsearch = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -858,7 +858,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.ElasticsearchInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		th.App.elasticsearch = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -875,7 +875,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.ElasticsearchInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		th.App.elasticsearch = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -900,7 +900,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		es := &mocks.ElasticsearchInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		th.App.elasticsearch = es
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
