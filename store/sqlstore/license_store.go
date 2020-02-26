@@ -34,7 +34,7 @@ func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
 // Save validates and stores the license instance in the database. The Id
 // and Bytes fields are mandatory. The Bytes field is limited to a maximum
 // of 10000 bytes. If the license ID matches an existing license in the
-// database it returns the license stored in the database. If not, it save the
+// database it returns the license stored in the database. If not, it saves the
 // new database and returns the created license with the CreateAt field
 // updated.
 func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
