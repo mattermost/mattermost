@@ -10,6 +10,8 @@ import (
 	"context"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 type OpenTracingLayer struct {
@@ -336,7 +338,14 @@ func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) 
 
 	defer span.Finish()
 
-	return s.AuditStore.Get(user_id, offset, limit)
+	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -350,7 +359,14 @@ func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) *model
 
 	defer span.Finish()
 
-	return s.AuditStore.PermanentDeleteByUser(userId)
+	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -364,7 +380,14 @@ func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 
 	defer span.Finish()
 
-	return s.AuditStore.Save(audit)
+	resultVar0 := s.AuditStore.Save(audit)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -378,7 +401,14 @@ func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*mod
 
 	defer span.Finish()
 
-	return s.BotStore.Get(userId, includeDeleted)
+	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -392,7 +422,14 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 
 	defer span.Finish()
 
-	return s.BotStore.GetAll(options)
+	resultVar0, resultVar1 := s.BotStore.GetAll(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -406,7 +443,14 @@ func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) *model.AppErro
 
 	defer span.Finish()
 
-	return s.BotStore.PermanentDelete(userId)
+	resultVar0 := s.BotStore.PermanentDelete(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -420,7 +464,14 @@ func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppE
 
 	defer span.Finish()
 
-	return s.BotStore.Save(bot)
+	resultVar0, resultVar1 := s.BotStore.Save(bot)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -434,7 +485,14 @@ func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.Ap
 
 	defer span.Finish()
 
-	return s.BotStore.Update(bot)
+	resultVar0, resultVar1 := s.BotStore.Update(bot)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -448,7 +506,14 @@ func (s *OpenTracingLayerChannelStore) AnalyticsDeletedTypeCount(teamId string, 
 
 	defer span.Finish()
 
-	return s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
+	resultVar0, resultVar1 := s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -462,7 +527,14 @@ func (s *OpenTracingLayerChannelStore) AnalyticsTypeCount(teamId string, channel
 
 	defer span.Finish()
 
-	return s.ChannelStore.AnalyticsTypeCount(teamId, channelType)
+	resultVar0, resultVar1 := s.ChannelStore.AnalyticsTypeCount(teamId, channelType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -476,7 +548,14 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeam(teamId string, term st
 
 	defer span.Finish()
 
-	return s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -490,7 +569,14 @@ func (s *OpenTracingLayerChannelStore) AutocompleteInTeamForSearch(teamId string
 
 	defer span.Finish()
 
-	return s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -504,7 +590,14 @@ func (s *OpenTracingLayerChannelStore) ClearAllCustomRoleAssignments() *model.Ap
 
 	defer span.Finish()
 
-	return s.ChannelStore.ClearAllCustomRoleAssignments()
+	resultVar0 := s.ChannelStore.ClearAllCustomRoleAssignments()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -532,7 +625,14 @@ func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelId string, timesta
 
 	defer span.Finish()
 
-	return s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
+	resultVar0, resultVar1 := s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -546,7 +646,14 @@ func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, o
 
 	defer span.Finish()
 
-	return s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+	resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -560,7 +667,14 @@ func (s *OpenTracingLayerChannelStore) Delete(channelId string, time int64) *mod
 
 	defer span.Finish()
 
-	return s.ChannelStore.Delete(channelId, time)
+	resultVar0 := s.ChannelStore.Delete(channelId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -574,7 +688,14 @@ func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*mod
 
 	defer span.Finish()
 
-	return s.ChannelStore.Get(id, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.Get(id, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -588,7 +709,14 @@ func (s *OpenTracingLayerChannelStore) GetAll(teamId string) ([]*model.Channel, 
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAll(teamId)
+	resultVar0, resultVar1 := s.ChannelStore.GetAll(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -602,7 +730,14 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelMembersForUser(userId string
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -616,7 +751,14 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -630,7 +772,14 @@ func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opt
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllChannels(page, perPage, opts)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllChannels(page, perPage, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -644,7 +793,14 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpt
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllChannelsCount(opts)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsCount(opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -658,7 +814,14 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelsForExportAfter(limit int, a
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -672,7 +835,14 @@ func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit 
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
+	resultVar0, resultVar1 := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -686,7 +856,14 @@ func (s *OpenTracingLayerChannelStore) GetByName(team_id string, name string, al
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetByName(team_id, name, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetByName(team_id, name, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -700,7 +877,14 @@ func (s *OpenTracingLayerChannelStore) GetByNameIncludeDeleted(team_id string, n
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -714,7 +898,14 @@ func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetByNames(team_id, names, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -728,7 +919,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamId string, userId st
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelCounts(teamId, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelCounts(teamId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -742,7 +940,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelMembersForExport(userId string,
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelMembersForExport(userId, teamId)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelMembersForExport(userId, teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -756,7 +961,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelMembersTimezones(channelId stri
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelMembersTimezones(channelId)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelMembersTimezones(channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -770,7 +982,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelUnread(channelId string, userId
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelUnread(channelId, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelUnread(channelId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -784,7 +1003,14 @@ func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string,
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -798,7 +1024,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelsBatchForIndexing(startTime int
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -812,7 +1045,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string) ([]
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelsByIds(channelIds)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByIds(channelIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -826,7 +1066,14 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeId string, offs
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -840,7 +1087,14 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, li
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -854,7 +1108,14 @@ func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name str
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetDeletedByName(team_id, name)
+	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByName(team_id, name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -868,7 +1129,14 @@ func (s *OpenTracingLayerChannelStore) GetForPost(postId string) (*model.Channel
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetForPost(postId)
+	resultVar0, resultVar1 := s.ChannelStore.GetForPost(postId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -882,7 +1150,14 @@ func (s *OpenTracingLayerChannelStore) GetFromMaster(id string) (*model.Channel,
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetFromMaster(id)
+	resultVar0, resultVar1 := s.ChannelStore.GetFromMaster(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -896,7 +1171,14 @@ func (s *OpenTracingLayerChannelStore) GetGuestCount(channelId string, allowFrom
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetGuestCount(channelId, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetGuestCount(channelId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -910,7 +1192,14 @@ func (s *OpenTracingLayerChannelStore) GetMember(channelId string, userId string
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMember(channelId, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetMember(channelId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -924,7 +1213,14 @@ func (s *OpenTracingLayerChannelStore) GetMemberCount(channelId string, allowFro
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMemberCount(channelId, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetMemberCount(channelId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -938,7 +1234,9 @@ func (s *OpenTracingLayerChannelStore) GetMemberCountFromCache(channelId string)
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMemberCountFromCache(channelId)
+	resultVar0 := s.ChannelStore.GetMemberCountFromCache(channelId)
+
+	return resultVar0
 
 }
 
@@ -952,7 +1250,14 @@ func (s *OpenTracingLayerChannelStore) GetMemberForPost(postId string, userId st
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMemberForPost(postId, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetMemberForPost(postId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -966,7 +1271,14 @@ func (s *OpenTracingLayerChannelStore) GetMembers(channelId string, offset int, 
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMembers(channelId, offset, limit)
+	resultVar0, resultVar1 := s.ChannelStore.GetMembers(channelId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -980,7 +1292,14 @@ func (s *OpenTracingLayerChannelStore) GetMembersByIds(channelId string, userIds
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMembersByIds(channelId, userIds)
+	resultVar0, resultVar1 := s.ChannelStore.GetMembersByIds(channelId, userIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -994,7 +1313,14 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUser(teamId string, userId s
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMembersForUser(teamId, userId)
+	resultVar0, resultVar1 := s.ChannelStore.GetMembersForUser(teamId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1008,7 +1334,14 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(teamId st
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMembersForUserWithPagination(teamId, userId, page, perPage)
+	resultVar0, resultVar1 := s.ChannelStore.GetMembersForUserWithPagination(teamId, userId, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1022,7 +1355,14 @@ func (s *OpenTracingLayerChannelStore) GetMoreChannels(teamId string, userId str
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
+	resultVar0, resultVar1 := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1036,7 +1376,14 @@ func (s *OpenTracingLayerChannelStore) GetPinnedPostCount(channelId string, allo
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
+	resultVar0, resultVar1 := s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1050,7 +1397,14 @@ func (s *OpenTracingLayerChannelStore) GetPinnedPosts(channelId string) (*model.
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetPinnedPosts(channelId)
+	resultVar0, resultVar1 := s.ChannelStore.GetPinnedPosts(channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1064,7 +1418,14 @@ func (s *OpenTracingLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId stri
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1078,7 +1439,14 @@ func (s *OpenTracingLayerChannelStore) GetPublicChannelsForTeam(teamId string, o
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
+	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1092,7 +1460,14 @@ func (s *OpenTracingLayerChannelStore) GetTeamChannels(teamId string) (*model.Ch
 
 	defer span.Finish()
 
-	return s.ChannelStore.GetTeamChannels(teamId)
+	resultVar0, resultVar1 := s.ChannelStore.GetTeamChannels(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1106,7 +1481,14 @@ func (s *OpenTracingLayerChannelStore) GroupSyncedChannelCount() (int64, *model.
 
 	defer span.Finish()
 
-	return s.ChannelStore.GroupSyncedChannelCount()
+	resultVar0, resultVar1 := s.ChannelStore.GroupSyncedChannelCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1120,7 +1502,14 @@ func (s *OpenTracingLayerChannelStore) IncrementMentionCount(channelId string, u
 
 	defer span.Finish()
 
-	return s.ChannelStore.IncrementMentionCount(channelId, userId)
+	resultVar0 := s.ChannelStore.IncrementMentionCount(channelId, userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1232,7 +1621,9 @@ func (s *OpenTracingLayerChannelStore) IsUserInChannelUseCache(userId string, ch
 
 	defer span.Finish()
 
-	return s.ChannelStore.IsUserInChannelUseCache(userId, channelId)
+	resultVar0 := s.ChannelStore.IsUserInChannelUseCache(userId, channelId)
+
+	return resultVar0
 
 }
 
@@ -1246,7 +1637,14 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelId strin
 
 	defer span.Finish()
 
-	return s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
+	resultVar0, resultVar1 := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1260,7 +1658,9 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 
 	defer span.Finish()
 
-	return s.ChannelStore.MigratePublicChannels()
+	resultVar0 := s.ChannelStore.MigratePublicChannels()
+
+	return resultVar0
 
 }
 
@@ -1274,7 +1674,14 @@ func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) *model.
 
 	defer span.Finish()
 
-	return s.ChannelStore.PermanentDelete(channelId)
+	resultVar0 := s.ChannelStore.PermanentDelete(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1288,7 +1695,14 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteByTeam(teamId string) *mod
 
 	defer span.Finish()
 
-	return s.ChannelStore.PermanentDeleteByTeam(teamId)
+	resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1302,7 +1716,14 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteMembersByChannel(channelId
 
 	defer span.Finish()
 
-	return s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
+	resultVar0 := s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1316,7 +1737,14 @@ func (s *OpenTracingLayerChannelStore) PermanentDeleteMembersByUser(userId strin
 
 	defer span.Finish()
 
-	return s.ChannelStore.PermanentDeleteMembersByUser(userId)
+	resultVar0 := s.ChannelStore.PermanentDeleteMembersByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1330,7 +1758,14 @@ func (s *OpenTracingLayerChannelStore) RemoveAllDeactivatedMembers(channelId str
 
 	defer span.Finish()
 
-	return s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
+	resultVar0 := s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1344,7 +1779,14 @@ func (s *OpenTracingLayerChannelStore) RemoveMember(channelId string, userId str
 
 	defer span.Finish()
 
-	return s.ChannelStore.RemoveMember(channelId, userId)
+	resultVar0 := s.ChannelStore.RemoveMember(channelId, userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1358,7 +1800,14 @@ func (s *OpenTracingLayerChannelStore) ResetAllChannelSchemes() *model.AppError 
 
 	defer span.Finish()
 
-	return s.ChannelStore.ResetAllChannelSchemes()
+	resultVar0 := s.ChannelStore.ResetAllChannelSchemes()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1372,7 +1821,14 @@ func (s *OpenTracingLayerChannelStore) Restore(channelId string, time int64) *mo
 
 	defer span.Finish()
 
-	return s.ChannelStore.Restore(channelId, time)
+	resultVar0 := s.ChannelStore.Restore(channelId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1386,7 +1842,14 @@ func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsP
 
 	defer span.Finish()
 
-	return s.ChannelStore.Save(channel, maxChannelsPerTeam)
+	resultVar0, resultVar1 := s.ChannelStore.Save(channel, maxChannelsPerTeam)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1400,7 +1863,14 @@ func (s *OpenTracingLayerChannelStore) SaveDirectChannel(channel *model.Channel,
 
 	defer span.Finish()
 
-	return s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+	resultVar0, resultVar1 := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1414,7 +1884,14 @@ func (s *OpenTracingLayerChannelStore) SaveMember(member *model.ChannelMember) (
 
 	defer span.Finish()
 
-	return s.ChannelStore.SaveMember(member)
+	resultVar0, resultVar1 := s.ChannelStore.SaveMember(member)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1428,7 +1905,14 @@ func (s *OpenTracingLayerChannelStore) SearchAllChannels(term string, opts Chann
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchAllChannels(term, opts)
+	resultVar0, resultVar1, resultVar2 := s.ChannelStore.SearchAllChannels(term, opts)
+
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2
 
 }
 
@@ -1442,7 +1926,14 @@ func (s *OpenTracingLayerChannelStore) SearchArchivedInTeam(teamId string, term 
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
+	resultVar0, resultVar1 := s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1456,7 +1947,14 @@ func (s *OpenTracingLayerChannelStore) SearchForUserInTeam(userId string, teamId
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1470,7 +1968,14 @@ func (s *OpenTracingLayerChannelStore) SearchGroupChannels(userId string, term s
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchGroupChannels(userId, term)
+	resultVar0, resultVar1 := s.ChannelStore.SearchGroupChannels(userId, term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1484,7 +1989,14 @@ func (s *OpenTracingLayerChannelStore) SearchInTeam(teamId string, term string, 
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1498,7 +2010,14 @@ func (s *OpenTracingLayerChannelStore) SearchMore(userId string, teamId string, 
 
 	defer span.Finish()
 
-	return s.ChannelStore.SearchMore(userId, teamId, term)
+	resultVar0, resultVar1 := s.ChannelStore.SearchMore(userId, teamId, term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1512,7 +2031,14 @@ func (s *OpenTracingLayerChannelStore) SetDeleteAt(channelId string, deleteAt in
 
 	defer span.Finish()
 
-	return s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
+	resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1526,7 +2052,14 @@ func (s *OpenTracingLayerChannelStore) Update(channel *model.Channel) (*model.Ch
 
 	defer span.Finish()
 
-	return s.ChannelStore.Update(channel)
+	resultVar0, resultVar1 := s.ChannelStore.Update(channel)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1540,7 +2073,14 @@ func (s *OpenTracingLayerChannelStore) UpdateLastViewedAt(channelIds []string, u
 
 	defer span.Finish()
 
-	return s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
+	resultVar0, resultVar1 := s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1554,7 +2094,14 @@ func (s *OpenTracingLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.
 
 	defer span.Finish()
 
-	return s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
+	resultVar0, resultVar1 := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1568,7 +2115,14 @@ func (s *OpenTracingLayerChannelStore) UpdateMember(member *model.ChannelMember)
 
 	defer span.Finish()
 
-	return s.ChannelStore.UpdateMember(member)
+	resultVar0, resultVar1 := s.ChannelStore.UpdateMember(member)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1582,7 +2136,14 @@ func (s *OpenTracingLayerChannelStore) UpdateMembersRole(channelID string, userI
 
 	defer span.Finish()
 
-	return s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+	resultVar0 := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1596,7 +2157,14 @@ func (s *OpenTracingLayerChannelStore) UserBelongsToChannels(userId string, chan
 
 	defer span.Finish()
 
-	return s.ChannelStore.UserBelongsToChannels(userId, channelIds)
+	resultVar0, resultVar1 := s.ChannelStore.UserBelongsToChannels(userId, channelIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1610,7 +2178,14 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) GetUsersInChannelDuring(star
 
 	defer span.Finish()
 
-	return s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
+	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1624,7 +2199,14 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) LogJoinEvent(userId string, 
 
 	defer span.Finish()
 
-	return s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
+	resultVar0 := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1638,7 +2220,14 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) LogLeaveEvent(userId string,
 
 	defer span.Finish()
 
-	return s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
+	resultVar0 := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1652,7 +2241,14 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime
 
 	defer span.Finish()
 
-	return s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
+	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1666,7 +2262,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Cleanup() *model.AppError {
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.Cleanup()
+	resultVar0 := s.ClusterDiscoveryStore.Cleanup()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1680,7 +2283,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Delete(discovery *model.ClusterD
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.Delete(discovery)
+	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Delete(discovery)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1694,7 +2304,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Exists(discovery *model.ClusterD
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.Exists(discovery)
+	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Exists(discovery)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1708,7 +2325,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) GetAll(discoveryType string, clu
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
+	resultVar0, resultVar1 := s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1722,7 +2346,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Save(discovery *model.ClusterDis
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.Save(discovery)
+	resultVar0 := s.ClusterDiscoveryStore.Save(discovery)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1736,7 +2367,14 @@ func (s *OpenTracingLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.C
 
 	defer span.Finish()
 
-	return s.ClusterDiscoveryStore.SetLastPingAt(discovery)
+	resultVar0 := s.ClusterDiscoveryStore.SetLastPingAt(discovery)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1750,7 +2388,14 @@ func (s *OpenTracingLayerCommandStore) AnalyticsCommandCount(teamId string) (int
 
 	defer span.Finish()
 
-	return s.CommandStore.AnalyticsCommandCount(teamId)
+	resultVar0, resultVar1 := s.CommandStore.AnalyticsCommandCount(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1764,7 +2409,14 @@ func (s *OpenTracingLayerCommandStore) Delete(commandId string, time int64) *mod
 
 	defer span.Finish()
 
-	return s.CommandStore.Delete(commandId, time)
+	resultVar0 := s.CommandStore.Delete(commandId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1778,7 +2430,14 @@ func (s *OpenTracingLayerCommandStore) Get(id string) (*model.Command, *model.Ap
 
 	defer span.Finish()
 
-	return s.CommandStore.Get(id)
+	resultVar0, resultVar1 := s.CommandStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1792,7 +2451,14 @@ func (s *OpenTracingLayerCommandStore) GetByTeam(teamId string) ([]*model.Comman
 
 	defer span.Finish()
 
-	return s.CommandStore.GetByTeam(teamId)
+	resultVar0, resultVar1 := s.CommandStore.GetByTeam(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1806,7 +2472,14 @@ func (s *OpenTracingLayerCommandStore) GetByTrigger(teamId string, trigger strin
 
 	defer span.Finish()
 
-	return s.CommandStore.GetByTrigger(teamId, trigger)
+	resultVar0, resultVar1 := s.CommandStore.GetByTrigger(teamId, trigger)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1820,7 +2493,14 @@ func (s *OpenTracingLayerCommandStore) PermanentDeleteByTeam(teamId string) *mod
 
 	defer span.Finish()
 
-	return s.CommandStore.PermanentDeleteByTeam(teamId)
+	resultVar0 := s.CommandStore.PermanentDeleteByTeam(teamId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1834,7 +2514,14 @@ func (s *OpenTracingLayerCommandStore) PermanentDeleteByUser(userId string) *mod
 
 	defer span.Finish()
 
-	return s.CommandStore.PermanentDeleteByUser(userId)
+	resultVar0 := s.CommandStore.PermanentDeleteByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1848,7 +2535,14 @@ func (s *OpenTracingLayerCommandStore) Save(webhook *model.Command) (*model.Comm
 
 	defer span.Finish()
 
-	return s.CommandStore.Save(webhook)
+	resultVar0, resultVar1 := s.CommandStore.Save(webhook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1862,7 +2556,14 @@ func (s *OpenTracingLayerCommandStore) Update(hook *model.Command) (*model.Comma
 
 	defer span.Finish()
 
-	return s.CommandStore.Update(hook)
+	resultVar0, resultVar1 := s.CommandStore.Update(hook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1890,7 +2591,14 @@ func (s *OpenTracingLayerCommandWebhookStore) Get(id string) (*model.CommandWebh
 
 	defer span.Finish()
 
-	return s.CommandWebhookStore.Get(id)
+	resultVar0, resultVar1 := s.CommandWebhookStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1904,7 +2612,14 @@ func (s *OpenTracingLayerCommandWebhookStore) Save(webhook *model.CommandWebhook
 
 	defer span.Finish()
 
-	return s.CommandWebhookStore.Save(webhook)
+	resultVar0, resultVar1 := s.CommandWebhookStore.Save(webhook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1918,7 +2633,14 @@ func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) *mode
 
 	defer span.Finish()
 
-	return s.CommandWebhookStore.TryUse(id, limit)
+	resultVar0 := s.CommandWebhookStore.TryUse(id, limit)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -1932,7 +2654,14 @@ func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Com
 
 	defer span.Finish()
 
-	return s.ComplianceStore.ComplianceExport(compliance)
+	resultVar0, resultVar1 := s.ComplianceStore.ComplianceExport(compliance)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1946,7 +2675,14 @@ func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, *mo
 
 	defer span.Finish()
 
-	return s.ComplianceStore.Get(id)
+	resultVar0, resultVar1 := s.ComplianceStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1960,7 +2696,14 @@ func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.C
 
 	defer span.Finish()
 
-	return s.ComplianceStore.GetAll(offset, limit)
+	resultVar0, resultVar1 := s.ComplianceStore.GetAll(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1974,7 +2717,14 @@ func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, limit int) 
 
 	defer span.Finish()
 
-	return s.ComplianceStore.MessageExport(after, limit)
+	resultVar0, resultVar1 := s.ComplianceStore.MessageExport(after, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -1988,7 +2738,14 @@ func (s *OpenTracingLayerComplianceStore) Save(compliance *model.Compliance) (*m
 
 	defer span.Finish()
 
-	return s.ComplianceStore.Save(compliance)
+	resultVar0, resultVar1 := s.ComplianceStore.Save(compliance)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2002,7 +2759,14 @@ func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (
 
 	defer span.Finish()
 
-	return s.ComplianceStore.Update(compliance)
+	resultVar0, resultVar1 := s.ComplianceStore.Update(compliance)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2016,7 +2780,14 @@ func (s *OpenTracingLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *mod
 
 	defer span.Finish()
 
-	return s.EmojiStore.Delete(emoji, time)
+	resultVar0 := s.EmojiStore.Delete(emoji, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -2030,7 +2801,14 @@ func (s *OpenTracingLayerEmojiStore) Get(id string, allowFromCache bool) (*model
 
 	defer span.Finish()
 
-	return s.EmojiStore.Get(id, allowFromCache)
+	resultVar0, resultVar1 := s.EmojiStore.Get(id, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2044,7 +2822,14 @@ func (s *OpenTracingLayerEmojiStore) GetByName(name string, allowFromCache bool)
 
 	defer span.Finish()
 
-	return s.EmojiStore.GetByName(name, allowFromCache)
+	resultVar0, resultVar1 := s.EmojiStore.GetByName(name, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2058,7 +2843,14 @@ func (s *OpenTracingLayerEmojiStore) GetList(offset int, limit int, sort string)
 
 	defer span.Finish()
 
-	return s.EmojiStore.GetList(offset, limit, sort)
+	resultVar0, resultVar1 := s.EmojiStore.GetList(offset, limit, sort)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2072,7 +2864,14 @@ func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model
 
 	defer span.Finish()
 
-	return s.EmojiStore.GetMultipleByName(names)
+	resultVar0, resultVar1 := s.EmojiStore.GetMultipleByName(names)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2086,7 +2885,14 @@ func (s *OpenTracingLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *mo
 
 	defer span.Finish()
 
-	return s.EmojiStore.Save(emoji)
+	resultVar0, resultVar1 := s.EmojiStore.Save(emoji)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2100,7 +2906,14 @@ func (s *OpenTracingLayerEmojiStore) Search(name string, prefixOnly bool, limit 
 
 	defer span.Finish()
 
-	return s.EmojiStore.Search(name, prefixOnly, limit)
+	resultVar0, resultVar1 := s.EmojiStore.Search(name, prefixOnly, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2114,7 +2927,14 @@ func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileId string, postId strin
 
 	defer span.Finish()
 
-	return s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+	resultVar0 := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -2142,7 +2962,14 @@ func (s *OpenTracingLayerFileInfoStore) DeleteForPost(postId string) (string, *m
 
 	defer span.Finish()
 
-	return s.FileInfoStore.DeleteForPost(postId)
+	resultVar0, resultVar1 := s.FileInfoStore.DeleteForPost(postId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2156,7 +2983,14 @@ func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.
 
 	defer span.Finish()
 
-	return s.FileInfoStore.Get(id)
+	resultVar0, resultVar1 := s.FileInfoStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2170,7 +3004,14 @@ func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo,
 
 	defer span.Finish()
 
-	return s.FileInfoStore.GetByPath(path)
+	resultVar0, resultVar1 := s.FileInfoStore.GetByPath(path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2184,7 +3025,14 @@ func (s *OpenTracingLayerFileInfoStore) GetForPost(postId string, readFromMaster
 
 	defer span.Finish()
 
-	return s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
+	resultVar0, resultVar1 := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2198,7 +3046,35 @@ func (s *OpenTracingLayerFileInfoStore) GetForUser(userId string) ([]*model.File
 
 	defer span.Finish()
 
-	return s.FileInfoStore.GetForUser(userId)
+	resultVar0, resultVar1 := s.FileInfoStore.GetForUser(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+
+}
+
+func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetWithOptions")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+
+	resultVar0, resultVar1 := s.FileInfoStore.GetWithOptions(page, perPage, opt)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2226,7 +3102,14 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDelete(fileId string) *model.Ap
 
 	defer span.Finish()
 
-	return s.FileInfoStore.PermanentDelete(fileId)
+	resultVar0 := s.FileInfoStore.PermanentDelete(fileId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -2240,7 +3123,14 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limi
 
 	defer span.Finish()
 
-	return s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+	resultVar0, resultVar1 := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2254,7 +3144,14 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(userId string) (in
 
 	defer span.Finish()
 
-	return s.FileInfoStore.PermanentDeleteByUser(userId)
+	resultVar0, resultVar1 := s.FileInfoStore.PermanentDeleteByUser(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2268,7 +3165,14 @@ func (s *OpenTracingLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileI
 
 	defer span.Finish()
 
-	return s.FileInfoStore.Save(info)
+	resultVar0, resultVar1 := s.FileInfoStore.Save(info)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2282,7 +3186,14 @@ func (s *OpenTracingLayerGroupStore) AdminRoleGroupsForSyncableMember(userID str
 
 	defer span.Finish()
 
-	return s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+	resultVar0, resultVar1 := s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2296,7 +3207,14 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersMinusGroupMembers(channelID s
 
 	defer span.Finish()
 
-	return s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+	resultVar0, resultVar1 := s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2310,7 +3228,14 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID 
 
 	defer span.Finish()
 
-	return s.GroupStore.ChannelMembersToAdd(since, channelID)
+	resultVar0, resultVar1 := s.GroupStore.ChannelMembersToAdd(since, channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2324,7 +3249,14 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersToRemove(channelID *string) (
 
 	defer span.Finish()
 
-	return s.GroupStore.ChannelMembersToRemove(channelID)
+	resultVar0, resultVar1 := s.GroupStore.ChannelMembersToRemove(channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2338,7 +3270,14 @@ func (s *OpenTracingLayerGroupStore) CountChannelMembersMinusGroupMembers(channe
 
 	defer span.Finish()
 
-	return s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
+	resultVar0, resultVar1 := s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2352,7 +3291,14 @@ func (s *OpenTracingLayerGroupStore) CountGroupsByChannel(channelId string, opts
 
 	defer span.Finish()
 
-	return s.GroupStore.CountGroupsByChannel(channelId, opts)
+	resultVar0, resultVar1 := s.GroupStore.CountGroupsByChannel(channelId, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2366,7 +3312,14 @@ func (s *OpenTracingLayerGroupStore) CountGroupsByTeam(teamId string, opts model
 
 	defer span.Finish()
 
-	return s.GroupStore.CountGroupsByTeam(teamId, opts)
+	resultVar0, resultVar1 := s.GroupStore.CountGroupsByTeam(teamId, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2380,7 +3333,14 @@ func (s *OpenTracingLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID st
 
 	defer span.Finish()
 
-	return s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
+	resultVar0, resultVar1 := s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2394,7 +3354,14 @@ func (s *OpenTracingLayerGroupStore) Create(group *model.Group) (*model.Group, *
 
 	defer span.Finish()
 
-	return s.GroupStore.Create(group)
+	resultVar0, resultVar1 := s.GroupStore.Create(group)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2408,7 +3375,14 @@ func (s *OpenTracingLayerGroupStore) CreateGroupSyncable(groupSyncable *model.Gr
 
 	defer span.Finish()
 
-	return s.GroupStore.CreateGroupSyncable(groupSyncable)
+	resultVar0, resultVar1 := s.GroupStore.CreateGroupSyncable(groupSyncable)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2422,7 +3396,14 @@ func (s *OpenTracingLayerGroupStore) Delete(groupID string) (*model.Group, *mode
 
 	defer span.Finish()
 
-	return s.GroupStore.Delete(groupID)
+	resultVar0, resultVar1 := s.GroupStore.Delete(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2436,7 +3417,14 @@ func (s *OpenTracingLayerGroupStore) DeleteGroupSyncable(groupID string, syncabl
 
 	defer span.Finish()
 
-	return s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
+	resultVar0, resultVar1 := s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2450,7 +3438,14 @@ func (s *OpenTracingLayerGroupStore) DeleteMember(groupID string, userID string)
 
 	defer span.Finish()
 
-	return s.GroupStore.DeleteMember(groupID, userID)
+	resultVar0, resultVar1 := s.GroupStore.DeleteMember(groupID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2464,7 +3459,14 @@ func (s *OpenTracingLayerGroupStore) DistinctGroupMemberCount() (int64, *model.A
 
 	defer span.Finish()
 
-	return s.GroupStore.DistinctGroupMemberCount()
+	resultVar0, resultVar1 := s.GroupStore.DistinctGroupMemberCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2478,7 +3480,14 @@ func (s *OpenTracingLayerGroupStore) Get(groupID string) (*model.Group, *model.A
 
 	defer span.Finish()
 
-	return s.GroupStore.Get(groupID)
+	resultVar0, resultVar1 := s.GroupStore.Get(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2492,7 +3501,14 @@ func (s *OpenTracingLayerGroupStore) GetAllBySource(groupSource model.GroupSourc
 
 	defer span.Finish()
 
-	return s.GroupStore.GetAllBySource(groupSource)
+	resultVar0, resultVar1 := s.GroupStore.GetAllBySource(groupSource)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2506,7 +3522,14 @@ func (s *OpenTracingLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID strin
 
 	defer span.Finish()
 
-	return s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
+	resultVar0, resultVar1 := s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2520,7 +3543,14 @@ func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group
 
 	defer span.Finish()
 
-	return s.GroupStore.GetByIDs(groupIDs)
+	resultVar0, resultVar1 := s.GroupStore.GetByIDs(groupIDs)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2534,7 +3564,14 @@ func (s *OpenTracingLayerGroupStore) GetByName(name string) (*model.Group, *mode
 
 	defer span.Finish()
 
-	return s.GroupStore.GetByName(name)
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2548,7 +3585,14 @@ func (s *OpenTracingLayerGroupStore) GetByRemoteID(remoteID string, groupSource 
 
 	defer span.Finish()
 
-	return s.GroupStore.GetByRemoteID(remoteID, groupSource)
+	resultVar0, resultVar1 := s.GroupStore.GetByRemoteID(remoteID, groupSource)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2562,7 +3606,14 @@ func (s *OpenTracingLayerGroupStore) GetByUser(userId string) ([]*model.Group, *
 
 	defer span.Finish()
 
-	return s.GroupStore.GetByUser(userId)
+	resultVar0, resultVar1 := s.GroupStore.GetByUser(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2576,7 +3627,14 @@ func (s *OpenTracingLayerGroupStore) GetGroupSyncable(groupID string, syncableID
 
 	defer span.Finish()
 
-	return s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
+	resultVar0, resultVar1 := s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2590,7 +3648,14 @@ func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model
 
 	defer span.Finish()
 
-	return s.GroupStore.GetGroups(page, perPage, opts)
+	resultVar0, resultVar1 := s.GroupStore.GetGroups(page, perPage, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2604,7 +3669,14 @@ func (s *OpenTracingLayerGroupStore) GetGroupsByChannel(channelId string, opts m
 
 	defer span.Finish()
 
-	return s.GroupStore.GetGroupsByChannel(channelId, opts)
+	resultVar0, resultVar1 := s.GroupStore.GetGroupsByChannel(channelId, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2618,7 +3690,14 @@ func (s *OpenTracingLayerGroupStore) GetGroupsByTeam(teamId string, opts model.G
 
 	defer span.Finish()
 
-	return s.GroupStore.GetGroupsByTeam(teamId, opts)
+	resultVar0, resultVar1 := s.GroupStore.GetGroupsByTeam(teamId, opts)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2632,7 +3711,14 @@ func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, *mod
 
 	defer span.Finish()
 
-	return s.GroupStore.GetMemberCount(groupID)
+	resultVar0, resultVar1 := s.GroupStore.GetMemberCount(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2646,7 +3732,14 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsers(groupID string) ([]*model.Us
 
 	defer span.Finish()
 
-	return s.GroupStore.GetMemberUsers(groupID)
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsers(groupID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2660,7 +3753,14 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 
 	defer span.Finish()
 
-	return s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2674,7 +3774,14 @@ func (s *OpenTracingLayerGroupStore) GroupChannelCount() (int64, *model.AppError
 
 	defer span.Finish()
 
-	return s.GroupStore.GroupChannelCount()
+	resultVar0, resultVar1 := s.GroupStore.GroupChannelCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2688,7 +3795,14 @@ func (s *OpenTracingLayerGroupStore) GroupCount() (int64, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.GroupStore.GroupCount()
+	resultVar0, resultVar1 := s.GroupStore.GroupCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2702,7 +3816,14 @@ func (s *OpenTracingLayerGroupStore) GroupMemberCount() (int64, *model.AppError)
 
 	defer span.Finish()
 
-	return s.GroupStore.GroupMemberCount()
+	resultVar0, resultVar1 := s.GroupStore.GroupMemberCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2716,7 +3837,14 @@ func (s *OpenTracingLayerGroupStore) GroupTeamCount() (int64, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.GroupStore.GroupTeamCount()
+	resultVar0, resultVar1 := s.GroupStore.GroupTeamCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2730,7 +3858,14 @@ func (s *OpenTracingLayerGroupStore) PermanentDeleteMembersByUser(userId string)
 
 	defer span.Finish()
 
-	return s.GroupStore.PermanentDeleteMembersByUser(userId)
+	resultVar0 := s.GroupStore.PermanentDeleteMembersByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -2744,7 +3879,14 @@ func (s *OpenTracingLayerGroupStore) PermittedSyncableAdmins(syncableID string, 
 
 	defer span.Finish()
 
-	return s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
+	resultVar0, resultVar1 := s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2758,7 +3900,14 @@ func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string,
 
 	defer span.Finish()
 
-	return s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
+	resultVar0, resultVar1 := s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2772,7 +3921,14 @@ func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *strin
 
 	defer span.Finish()
 
-	return s.GroupStore.TeamMembersToAdd(since, teamID)
+	resultVar0, resultVar1 := s.GroupStore.TeamMembersToAdd(since, teamID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2786,7 +3942,14 @@ func (s *OpenTracingLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*mod
 
 	defer span.Finish()
 
-	return s.GroupStore.TeamMembersToRemove(teamID)
+	resultVar0, resultVar1 := s.GroupStore.TeamMembersToRemove(teamID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2800,7 +3963,14 @@ func (s *OpenTracingLayerGroupStore) Update(group *model.Group) (*model.Group, *
 
 	defer span.Finish()
 
-	return s.GroupStore.Update(group)
+	resultVar0, resultVar1 := s.GroupStore.Update(group)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2814,7 +3984,14 @@ func (s *OpenTracingLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.Gr
 
 	defer span.Finish()
 
-	return s.GroupStore.UpdateGroupSyncable(groupSyncable)
+	resultVar0, resultVar1 := s.GroupStore.UpdateGroupSyncable(groupSyncable)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2828,7 +4005,14 @@ func (s *OpenTracingLayerGroupStore) UpsertMember(groupID string, userID string)
 
 	defer span.Finish()
 
-	return s.GroupStore.UpsertMember(groupID, userID)
+	resultVar0, resultVar1 := s.GroupStore.UpsertMember(groupID, userID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2842,7 +4026,14 @@ func (s *OpenTracingLayerJobStore) Delete(id string) (string, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.JobStore.Delete(id)
+	resultVar0, resultVar1 := s.JobStore.Delete(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2856,7 +4047,14 @@ func (s *OpenTracingLayerJobStore) Get(id string) (*model.Job, *model.AppError) 
 
 	defer span.Finish()
 
-	return s.JobStore.Get(id)
+	resultVar0, resultVar1 := s.JobStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2870,7 +4068,14 @@ func (s *OpenTracingLayerJobStore) GetAllByStatus(status string) ([]*model.Job, 
 
 	defer span.Finish()
 
-	return s.JobStore.GetAllByStatus(status)
+	resultVar0, resultVar1 := s.JobStore.GetAllByStatus(status)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2884,7 +4089,14 @@ func (s *OpenTracingLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *
 
 	defer span.Finish()
 
-	return s.JobStore.GetAllByType(jobType)
+	resultVar0, resultVar1 := s.JobStore.GetAllByType(jobType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2898,7 +4110,14 @@ func (s *OpenTracingLayerJobStore) GetAllByTypePage(jobType string, offset int, 
 
 	defer span.Finish()
 
-	return s.JobStore.GetAllByTypePage(jobType, offset, limit)
+	resultVar0, resultVar1 := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2912,7 +4131,14 @@ func (s *OpenTracingLayerJobStore) GetAllPage(offset int, limit int) ([]*model.J
 
 	defer span.Finish()
 
-	return s.JobStore.GetAllPage(offset, limit)
+	resultVar0, resultVar1 := s.JobStore.GetAllPage(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2926,7 +4152,14 @@ func (s *OpenTracingLayerJobStore) GetCountByStatusAndType(status string, jobTyp
 
 	defer span.Finish()
 
-	return s.JobStore.GetCountByStatusAndType(status, jobType)
+	resultVar0, resultVar1 := s.JobStore.GetCountByStatusAndType(status, jobType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2940,7 +4173,14 @@ func (s *OpenTracingLayerJobStore) GetNewestJobByStatusAndType(status string, jo
 
 	defer span.Finish()
 
-	return s.JobStore.GetNewestJobByStatusAndType(status, jobType)
+	resultVar0, resultVar1 := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2954,7 +4194,14 @@ func (s *OpenTracingLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppE
 
 	defer span.Finish()
 
-	return s.JobStore.Save(job)
+	resultVar0, resultVar1 := s.JobStore.Save(job)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2968,7 +4215,14 @@ func (s *OpenTracingLayerJobStore) UpdateOptimistically(job *model.Job, currentS
 
 	defer span.Finish()
 
-	return s.JobStore.UpdateOptimistically(job, currentStatus)
+	resultVar0, resultVar1 := s.JobStore.UpdateOptimistically(job, currentStatus)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2982,7 +4236,14 @@ func (s *OpenTracingLayerJobStore) UpdateStatus(id string, status string) (*mode
 
 	defer span.Finish()
 
-	return s.JobStore.UpdateStatus(id, status)
+	resultVar0, resultVar1 := s.JobStore.UpdateStatus(id, status)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -2996,7 +4257,14 @@ func (s *OpenTracingLayerJobStore) UpdateStatusOptimistically(id string, current
 
 	defer span.Finish()
 
-	return s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
+	resultVar0, resultVar1 := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3010,7 +4278,14 @@ func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, *mo
 
 	defer span.Finish()
 
-	return s.LicenseStore.Get(id)
+	resultVar0, resultVar1 := s.LicenseStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3024,7 +4299,14 @@ func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*mode
 
 	defer span.Finish()
 
-	return s.LicenseStore.Save(license)
+	resultVar0, resultVar1 := s.LicenseStore.Save(license)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3038,7 +4320,14 @@ func (s *OpenTracingLayerLinkMetadataStore) Get(url string, timestamp int64) (*m
 
 	defer span.Finish()
 
-	return s.LinkMetadataStore.Get(url, timestamp)
+	resultVar0, resultVar1 := s.LinkMetadataStore.Get(url, timestamp)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3052,7 +4341,14 @@ func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadat
 
 	defer span.Finish()
 
-	return s.LinkMetadataStore.Save(linkMetadata)
+	resultVar0, resultVar1 := s.LinkMetadataStore.Save(linkMetadata)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3066,7 +4362,14 @@ func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) *model.AppError {
 
 	defer span.Finish()
 
-	return s.OAuthStore.DeleteApp(id)
+	resultVar0 := s.OAuthStore.DeleteApp(id)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3080,7 +4383,14 @@ func (s *OpenTracingLayerOAuthStore) GetAccessData(token string) (*model.AccessD
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAccessData(token)
+	resultVar0, resultVar1 := s.OAuthStore.GetAccessData(token)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3094,7 +4404,14 @@ func (s *OpenTracingLayerOAuthStore) GetAccessDataByRefreshToken(token string) (
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAccessDataByRefreshToken(token)
+	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByRefreshToken(token)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3108,7 +4425,14 @@ func (s *OpenTracingLayerOAuthStore) GetAccessDataByUserForApp(userId string, cl
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
+	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3122,7 +4446,14 @@ func (s *OpenTracingLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetApp(id)
+	resultVar0, resultVar1 := s.OAuthStore.GetApp(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3136,7 +4467,14 @@ func (s *OpenTracingLayerOAuthStore) GetAppByUser(userId string, offset int, lim
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAppByUser(userId, offset, limit)
+	resultVar0, resultVar1 := s.OAuthStore.GetAppByUser(userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3150,7 +4488,14 @@ func (s *OpenTracingLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OA
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetApps(offset, limit)
+	resultVar0, resultVar1 := s.OAuthStore.GetApps(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3164,7 +4509,14 @@ func (s *OpenTracingLayerOAuthStore) GetAuthData(code string) (*model.AuthData, 
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAuthData(code)
+	resultVar0, resultVar1 := s.OAuthStore.GetAuthData(code)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3178,7 +4530,14 @@ func (s *OpenTracingLayerOAuthStore) GetAuthorizedApps(userId string, offset int
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
+	resultVar0, resultVar1 := s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3192,7 +4551,14 @@ func (s *OpenTracingLayerOAuthStore) GetPreviousAccessData(userId string, client
 
 	defer span.Finish()
 
-	return s.OAuthStore.GetPreviousAccessData(userId, clientId)
+	resultVar0, resultVar1 := s.OAuthStore.GetPreviousAccessData(userId, clientId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3206,7 +4572,14 @@ func (s *OpenTracingLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string
 
 	defer span.Finish()
 
-	return s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
+	resultVar0 := s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3220,7 +4593,14 @@ func (s *OpenTracingLayerOAuthStore) RemoveAccessData(token string) *model.AppEr
 
 	defer span.Finish()
 
-	return s.OAuthStore.RemoveAccessData(token)
+	resultVar0 := s.OAuthStore.RemoveAccessData(token)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3234,7 +4614,14 @@ func (s *OpenTracingLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 
 	defer span.Finish()
 
-	return s.OAuthStore.RemoveAllAccessData()
+	resultVar0 := s.OAuthStore.RemoveAllAccessData()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3248,7 +4635,14 @@ func (s *OpenTracingLayerOAuthStore) RemoveAuthData(code string) *model.AppError
 
 	defer span.Finish()
 
-	return s.OAuthStore.RemoveAuthData(code)
+	resultVar0 := s.OAuthStore.RemoveAuthData(code)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3262,7 +4656,14 @@ func (s *OpenTracingLayerOAuthStore) SaveAccessData(accessData *model.AccessData
 
 	defer span.Finish()
 
-	return s.OAuthStore.SaveAccessData(accessData)
+	resultVar0, resultVar1 := s.OAuthStore.SaveAccessData(accessData)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3276,7 +4677,14 @@ func (s *OpenTracingLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthA
 
 	defer span.Finish()
 
-	return s.OAuthStore.SaveApp(app)
+	resultVar0, resultVar1 := s.OAuthStore.SaveApp(app)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3290,7 +4698,14 @@ func (s *OpenTracingLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*mo
 
 	defer span.Finish()
 
-	return s.OAuthStore.SaveAuthData(authData)
+	resultVar0, resultVar1 := s.OAuthStore.SaveAuthData(authData)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3304,7 +4719,14 @@ func (s *OpenTracingLayerOAuthStore) UpdateAccessData(accessData *model.AccessDa
 
 	defer span.Finish()
 
-	return s.OAuthStore.UpdateAccessData(accessData)
+	resultVar0, resultVar1 := s.OAuthStore.UpdateAccessData(accessData)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3318,7 +4740,14 @@ func (s *OpenTracingLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAut
 
 	defer span.Finish()
 
-	return s.OAuthStore.UpdateApp(app)
+	resultVar0, resultVar1 := s.OAuthStore.UpdateApp(app)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3332,7 +4761,14 @@ func (s *OpenTracingLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyVa
 
 	defer span.Finish()
 
-	return s.PluginStore.CompareAndDelete(keyVal, oldValue)
+	resultVar0, resultVar1 := s.PluginStore.CompareAndDelete(keyVal, oldValue)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3346,7 +4782,14 @@ func (s *OpenTracingLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue
 
 	defer span.Finish()
 
-	return s.PluginStore.CompareAndSet(keyVal, oldValue)
+	resultVar0, resultVar1 := s.PluginStore.CompareAndSet(keyVal, oldValue)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3360,7 +4803,14 @@ func (s *OpenTracingLayerPluginStore) Delete(pluginId string, key string) *model
 
 	defer span.Finish()
 
-	return s.PluginStore.Delete(pluginId, key)
+	resultVar0 := s.PluginStore.Delete(pluginId, key)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3374,7 +4824,14 @@ func (s *OpenTracingLayerPluginStore) DeleteAllExpired() *model.AppError {
 
 	defer span.Finish()
 
-	return s.PluginStore.DeleteAllExpired()
+	resultVar0 := s.PluginStore.DeleteAllExpired()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3388,7 +4845,14 @@ func (s *OpenTracingLayerPluginStore) DeleteAllForPlugin(PluginId string) *model
 
 	defer span.Finish()
 
-	return s.PluginStore.DeleteAllForPlugin(PluginId)
+	resultVar0 := s.PluginStore.DeleteAllForPlugin(PluginId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3402,7 +4866,14 @@ func (s *OpenTracingLayerPluginStore) Get(pluginId string, key string) (*model.P
 
 	defer span.Finish()
 
-	return s.PluginStore.Get(pluginId, key)
+	resultVar0, resultVar1 := s.PluginStore.Get(pluginId, key)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3416,7 +4887,14 @@ func (s *OpenTracingLayerPluginStore) List(pluginId string, page int, perPage in
 
 	defer span.Finish()
 
-	return s.PluginStore.List(pluginId, page, perPage)
+	resultVar0, resultVar1 := s.PluginStore.List(pluginId, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3430,7 +4908,14 @@ func (s *OpenTracingLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue)
 
 	defer span.Finish()
 
-	return s.PluginStore.SaveOrUpdate(keyVal)
+	resultVar0, resultVar1 := s.PluginStore.SaveOrUpdate(keyVal)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3444,7 +4929,14 @@ func (s *OpenTracingLayerPluginStore) SetWithOptions(pluginId string, key string
 
 	defer span.Finish()
 
-	return s.PluginStore.SetWithOptions(pluginId, key, value, options)
+	resultVar0, resultVar1 := s.PluginStore.SetWithOptions(pluginId, key, value, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3458,7 +4950,14 @@ func (s *OpenTracingLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFi
 
 	defer span.Finish()
 
-	return s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
+	resultVar0, resultVar1 := s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3472,7 +4971,14 @@ func (s *OpenTracingLayerPostStore) AnalyticsPostCountsByDay(options *model.Anal
 
 	defer span.Finish()
 
-	return s.PostStore.AnalyticsPostCountsByDay(options)
+	resultVar0, resultVar1 := s.PostStore.AnalyticsPostCountsByDay(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3486,7 +4992,14 @@ func (s *OpenTracingLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId str
 
 	defer span.Finish()
 
-	return s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
+	resultVar0, resultVar1 := s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3514,7 +5027,14 @@ func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID
 
 	defer span.Finish()
 
-	return s.PostStore.Delete(postId, time, deleteByID)
+	resultVar0 := s.PostStore.Delete(postId, time, deleteByID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3528,7 +5048,14 @@ func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*mode
 
 	defer span.Finish()
 
-	return s.PostStore.Get(id, skipFetchThreads)
+	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3542,7 +5069,14 @@ func (s *OpenTracingLayerPostStore) GetDirectPostParentsForExportAfter(limit int
 
 	defer span.Finish()
 
-	return s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
+	resultVar0, resultVar1 := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3556,7 +5090,9 @@ func (s *OpenTracingLayerPostStore) GetEtag(channelId string, allowFromCache boo
 
 	defer span.Finish()
 
-	return s.PostStore.GetEtag(channelId, allowFromCache)
+	resultVar0 := s.PostStore.GetEtag(channelId, allowFromCache)
+
+	return resultVar0
 
 }
 
@@ -3570,7 +5106,14 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPosts(userId string, offset int, l
 
 	defer span.Finish()
 
-	return s.PostStore.GetFlaggedPosts(userId, offset, limit)
+	resultVar0, resultVar1 := s.PostStore.GetFlaggedPosts(userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3584,7 +5127,14 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPostsForChannel(userId string, cha
 
 	defer span.Finish()
 
-	return s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3604,7 +5154,14 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId
 
 	defer span.Finish()
 
-	return s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3618,7 +5175,9 @@ func (s *OpenTracingLayerPostStore) GetMaxPostSize() int {
 
 	defer span.Finish()
 
-	return s.PostStore.GetMaxPostSize()
+	resultVar0 := s.PostStore.GetMaxPostSize()
+
+	return resultVar0
 
 }
 
@@ -3632,7 +5191,14 @@ func (s *OpenTracingLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.PostStore.GetOldest()
+	resultVar0, resultVar1 := s.PostStore.GetOldest()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3646,7 +5212,14 @@ func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterId 
 
 	defer span.Finish()
 
-	return s.PostStore.GetParentsForExportAfter(limit, afterId)
+	resultVar0, resultVar1 := s.PostStore.GetParentsForExportAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3660,7 +5233,14 @@ func (s *OpenTracingLayerPostStore) GetPostAfterTime(channelId string, time int6
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostAfterTime(channelId, time)
+	resultVar0, resultVar1 := s.PostStore.GetPostAfterTime(channelId, time)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3674,7 +5254,14 @@ func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelId string, time in
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostIdAfterTime(channelId, time)
+	resultVar0, resultVar1 := s.PostStore.GetPostIdAfterTime(channelId, time)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3688,7 +5275,14 @@ func (s *OpenTracingLayerPostStore) GetPostIdBeforeTime(channelId string, time i
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostIdBeforeTime(channelId, time)
+	resultVar0, resultVar1 := s.PostStore.GetPostIdBeforeTime(channelId, time)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3702,7 +5296,14 @@ func (s *OpenTracingLayerPostStore) GetPosts(options model.GetPostsOptions, allo
 
 	defer span.Finish()
 
-	return s.PostStore.GetPosts(options, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPosts(options, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3716,7 +5317,14 @@ func (s *OpenTracingLayerPostStore) GetPostsAfter(options model.GetPostsOptions)
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsAfter(options)
+	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3730,7 +5338,14 @@ func (s *OpenTracingLayerPostStore) GetPostsBatchForIndexing(startTime int64, en
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
+	resultVar0, resultVar1 := s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3744,7 +5359,14 @@ func (s *OpenTracingLayerPostStore) GetPostsBefore(options model.GetPostsOptions
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsBefore(options)
+	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3758,7 +5380,14 @@ func (s *OpenTracingLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Po
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsByIds(postIds)
+	resultVar0, resultVar1 := s.PostStore.GetPostsByIds(postIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3772,7 +5401,14 @@ func (s *OpenTracingLayerPostStore) GetPostsCreatedAt(channelId string, time int
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsCreatedAt(channelId, time)
+	resultVar0, resultVar1 := s.PostStore.GetPostsCreatedAt(channelId, time)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3786,7 +5422,14 @@ func (s *OpenTracingLayerPostStore) GetPostsSince(options model.GetPostsSinceOpt
 
 	defer span.Finish()
 
-	return s.PostStore.GetPostsSince(options, allowFromCache)
+	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3800,7 +5443,14 @@ func (s *OpenTracingLayerPostStore) GetRepliesForExport(parentId string) ([]*mod
 
 	defer span.Finish()
 
-	return s.PostStore.GetRepliesForExport(parentId)
+	resultVar0, resultVar1 := s.PostStore.GetRepliesForExport(parentId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3814,7 +5464,14 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string) (*model.Post, *model.Ap
 
 	defer span.Finish()
 
-	return s.PostStore.GetSingle(id)
+	resultVar0, resultVar1 := s.PostStore.GetSingle(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3842,7 +5499,14 @@ func (s *OpenTracingLayerPostStore) Overwrite(post *model.Post) (*model.Post, *m
 
 	defer span.Finish()
 
-	return s.PostStore.Overwrite(post)
+	resultVar0, resultVar1 := s.PostStore.Overwrite(post)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3856,7 +5520,14 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit in
 
 	defer span.Finish()
 
-	return s.PostStore.PermanentDeleteBatch(endTime, limit)
+	resultVar0, resultVar1 := s.PostStore.PermanentDeleteBatch(endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3870,7 +5541,14 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) *
 
 	defer span.Finish()
 
-	return s.PostStore.PermanentDeleteByChannel(channelId)
+	resultVar0 := s.PostStore.PermanentDeleteByChannel(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3884,7 +5562,14 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(userId string) *model.
 
 	defer span.Finish()
 
-	return s.PostStore.PermanentDeleteByUser(userId)
+	resultVar0 := s.PostStore.PermanentDeleteByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3898,7 +5583,14 @@ func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, *model.
 
 	defer span.Finish()
 
-	return s.PostStore.Save(post)
+	resultVar0, resultVar1 := s.PostStore.Save(post)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3912,7 +5604,14 @@ func (s *OpenTracingLayerPostStore) Search(teamId string, userId string, params 
 
 	defer span.Finish()
 
-	return s.PostStore.Search(teamId, userId, params)
+	resultVar0, resultVar1 := s.PostStore.Search(teamId, userId, params)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3926,7 +5625,14 @@ func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.P
 
 	defer span.Finish()
 
-	return s.PostStore.Update(newPost, oldPost)
+	resultVar0, resultVar1 := s.PostStore.Update(newPost, oldPost)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3940,7 +5646,14 @@ func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64,
 
 	defer span.Finish()
 
-	return s.PreferenceStore.CleanupFlagsBatch(limit)
+	resultVar0, resultVar1 := s.PreferenceStore.CleanupFlagsBatch(limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -3954,7 +5667,14 @@ func (s *OpenTracingLayerPreferenceStore) Delete(userId string, category string,
 
 	defer span.Finish()
 
-	return s.PreferenceStore.Delete(userId, category, name)
+	resultVar0 := s.PreferenceStore.Delete(userId, category, name)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3968,7 +5688,14 @@ func (s *OpenTracingLayerPreferenceStore) DeleteCategory(userId string, category
 
 	defer span.Finish()
 
-	return s.PreferenceStore.DeleteCategory(userId, category)
+	resultVar0 := s.PreferenceStore.DeleteCategory(userId, category)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3982,7 +5709,14 @@ func (s *OpenTracingLayerPreferenceStore) DeleteCategoryAndName(category string,
 
 	defer span.Finish()
 
-	return s.PreferenceStore.DeleteCategoryAndName(category, name)
+	resultVar0 := s.PreferenceStore.DeleteCategoryAndName(category, name)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -3996,7 +5730,14 @@ func (s *OpenTracingLayerPreferenceStore) Get(userId string, category string, na
 
 	defer span.Finish()
 
-	return s.PreferenceStore.Get(userId, category, name)
+	resultVar0, resultVar1 := s.PreferenceStore.Get(userId, category, name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4010,7 +5751,14 @@ func (s *OpenTracingLayerPreferenceStore) GetAll(userId string) (model.Preferenc
 
 	defer span.Finish()
 
-	return s.PreferenceStore.GetAll(userId)
+	resultVar0, resultVar1 := s.PreferenceStore.GetAll(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4024,7 +5772,14 @@ func (s *OpenTracingLayerPreferenceStore) GetCategory(userId string, category st
 
 	defer span.Finish()
 
-	return s.PreferenceStore.GetCategory(userId, category)
+	resultVar0, resultVar1 := s.PreferenceStore.GetCategory(userId, category)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4038,7 +5793,14 @@ func (s *OpenTracingLayerPreferenceStore) PermanentDeleteByUser(userId string) *
 
 	defer span.Finish()
 
-	return s.PreferenceStore.PermanentDeleteByUser(userId)
+	resultVar0 := s.PreferenceStore.PermanentDeleteByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4052,7 +5814,14 @@ func (s *OpenTracingLayerPreferenceStore) Save(preferences *model.Preferences) *
 
 	defer span.Finish()
 
-	return s.PreferenceStore.Save(preferences)
+	resultVar0 := s.PreferenceStore.Save(preferences)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4066,7 +5835,14 @@ func (s *OpenTracingLayerReactionStore) BulkGetForPosts(postIds []string) ([]*mo
 
 	defer span.Finish()
 
-	return s.ReactionStore.BulkGetForPosts(postIds)
+	resultVar0, resultVar1 := s.ReactionStore.BulkGetForPosts(postIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4080,7 +5856,14 @@ func (s *OpenTracingLayerReactionStore) Delete(reaction *model.Reaction) (*model
 
 	defer span.Finish()
 
-	return s.ReactionStore.Delete(reaction)
+	resultVar0, resultVar1 := s.ReactionStore.Delete(reaction)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4094,7 +5877,14 @@ func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string)
 
 	defer span.Finish()
 
-	return s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+	resultVar0 := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4108,7 +5898,14 @@ func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache
 
 	defer span.Finish()
 
-	return s.ReactionStore.GetForPost(postId, allowFromCache)
+	resultVar0, resultVar1 := s.ReactionStore.GetForPost(postId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4122,7 +5919,14 @@ func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limi
 
 	defer span.Finish()
 
-	return s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+	resultVar0, resultVar1 := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4136,7 +5940,14 @@ func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.R
 
 	defer span.Finish()
 
-	return s.ReactionStore.Save(reaction)
+	resultVar0, resultVar1 := s.ReactionStore.Save(reaction)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4150,7 +5961,14 @@ func (s *OpenTracingLayerRoleStore) Delete(roldId string) (*model.Role, *model.A
 
 	defer span.Finish()
 
-	return s.RoleStore.Delete(roldId)
+	resultVar0, resultVar1 := s.RoleStore.Delete(roldId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4164,7 +5982,14 @@ func (s *OpenTracingLayerRoleStore) Get(roleId string) (*model.Role, *model.AppE
 
 	defer span.Finish()
 
-	return s.RoleStore.Get(roleId)
+	resultVar0, resultVar1 := s.RoleStore.Get(roleId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4178,7 +6003,14 @@ func (s *OpenTracingLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.RoleStore.GetAll()
+	resultVar0, resultVar1 := s.RoleStore.GetAll()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4192,7 +6024,14 @@ func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, *model.
 
 	defer span.Finish()
 
-	return s.RoleStore.GetByName(name)
+	resultVar0, resultVar1 := s.RoleStore.GetByName(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4206,7 +6045,14 @@ func (s *OpenTracingLayerRoleStore) GetByNames(names []string) ([]*model.Role, *
 
 	defer span.Finish()
 
-	return s.RoleStore.GetByNames(names)
+	resultVar0, resultVar1 := s.RoleStore.GetByNames(names)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4220,7 +6066,14 @@ func (s *OpenTracingLayerRoleStore) PermanentDeleteAll() *model.AppError {
 
 	defer span.Finish()
 
-	return s.RoleStore.PermanentDeleteAll()
+	resultVar0 := s.RoleStore.PermanentDeleteAll()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4234,7 +6087,14 @@ func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, *model.
 
 	defer span.Finish()
 
-	return s.RoleStore.Save(role)
+	resultVar0, resultVar1 := s.RoleStore.Save(role)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4248,7 +6108,14 @@ func (s *OpenTracingLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *m
 
 	defer span.Finish()
 
-	return s.SchemeStore.Delete(schemeId)
+	resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4262,7 +6129,14 @@ func (s *OpenTracingLayerSchemeStore) Get(schemeId string) (*model.Scheme, *mode
 
 	defer span.Finish()
 
-	return s.SchemeStore.Get(schemeId)
+	resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4276,7 +6150,14 @@ func (s *OpenTracingLayerSchemeStore) GetAllPage(scope string, offset int, limit
 
 	defer span.Finish()
 
-	return s.SchemeStore.GetAllPage(scope, offset, limit)
+	resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4290,7 +6171,14 @@ func (s *OpenTracingLayerSchemeStore) GetByName(schemeName string) (*model.Schem
 
 	defer span.Finish()
 
-	return s.SchemeStore.GetByName(schemeName)
+	resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4304,7 +6192,14 @@ func (s *OpenTracingLayerSchemeStore) PermanentDeleteAll() *model.AppError {
 
 	defer span.Finish()
 
-	return s.SchemeStore.PermanentDeleteAll()
+	resultVar0 := s.SchemeStore.PermanentDeleteAll()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4318,7 +6213,14 @@ func (s *OpenTracingLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme,
 
 	defer span.Finish()
 
-	return s.SchemeStore.Save(scheme)
+	resultVar0, resultVar1 := s.SchemeStore.Save(scheme)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4332,7 +6234,14 @@ func (s *OpenTracingLayerSessionStore) AnalyticsSessionCount() (int64, *model.Ap
 
 	defer span.Finish()
 
-	return s.SessionStore.AnalyticsSessionCount()
+	resultVar0, resultVar1 := s.SessionStore.AnalyticsSessionCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4360,7 +6269,14 @@ func (s *OpenTracingLayerSessionStore) Get(sessionIdOrToken string) (*model.Sess
 
 	defer span.Finish()
 
-	return s.SessionStore.Get(sessionIdOrToken)
+	resultVar0, resultVar1 := s.SessionStore.Get(sessionIdOrToken)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4374,7 +6290,14 @@ func (s *OpenTracingLayerSessionStore) GetSessions(userId string) ([]*model.Sess
 
 	defer span.Finish()
 
-	return s.SessionStore.GetSessions(userId)
+	resultVar0, resultVar1 := s.SessionStore.GetSessions(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4388,7 +6311,14 @@ func (s *OpenTracingLayerSessionStore) GetSessionsWithActiveDeviceIds(userId str
 
 	defer span.Finish()
 
-	return s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
+	resultVar0, resultVar1 := s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4402,7 +6332,14 @@ func (s *OpenTracingLayerSessionStore) PermanentDeleteSessionsByUser(teamId stri
 
 	defer span.Finish()
 
-	return s.SessionStore.PermanentDeleteSessionsByUser(teamId)
+	resultVar0 := s.SessionStore.PermanentDeleteSessionsByUser(teamId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4416,7 +6353,14 @@ func (s *OpenTracingLayerSessionStore) Remove(sessionIdOrToken string) *model.Ap
 
 	defer span.Finish()
 
-	return s.SessionStore.Remove(sessionIdOrToken)
+	resultVar0 := s.SessionStore.Remove(sessionIdOrToken)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4430,7 +6374,14 @@ func (s *OpenTracingLayerSessionStore) RemoveAllSessions() *model.AppError {
 
 	defer span.Finish()
 
-	return s.SessionStore.RemoveAllSessions()
+	resultVar0 := s.SessionStore.RemoveAllSessions()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4444,7 +6395,14 @@ func (s *OpenTracingLayerSessionStore) Save(session *model.Session) (*model.Sess
 
 	defer span.Finish()
 
-	return s.SessionStore.Save(session)
+	resultVar0, resultVar1 := s.SessionStore.Save(session)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4458,7 +6416,14 @@ func (s *OpenTracingLayerSessionStore) UpdateDeviceId(id string, deviceId string
 
 	defer span.Finish()
 
-	return s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
+	resultVar0, resultVar1 := s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4472,7 +6437,14 @@ func (s *OpenTracingLayerSessionStore) UpdateLastActivityAt(sessionId string, ti
 
 	defer span.Finish()
 
-	return s.SessionStore.UpdateLastActivityAt(sessionId, time)
+	resultVar0 := s.SessionStore.UpdateLastActivityAt(sessionId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4486,7 +6458,14 @@ func (s *OpenTracingLayerSessionStore) UpdateProps(session *model.Session) *mode
 
 	defer span.Finish()
 
-	return s.SessionStore.UpdateProps(session)
+	resultVar0 := s.SessionStore.UpdateProps(session)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4500,7 +6479,14 @@ func (s *OpenTracingLayerSessionStore) UpdateRoles(userId string, roles string) 
 
 	defer span.Finish()
 
-	return s.SessionStore.UpdateRoles(userId, roles)
+	resultVar0, resultVar1 := s.SessionStore.UpdateRoles(userId, roles)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4514,7 +6500,14 @@ func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, *model.
 
 	defer span.Finish()
 
-	return s.StatusStore.Get(userId)
+	resultVar0, resultVar1 := s.StatusStore.Get(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4528,7 +6521,14 @@ func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Statu
 
 	defer span.Finish()
 
-	return s.StatusStore.GetByIds(userIds)
+	resultVar0, resultVar1 := s.StatusStore.GetByIds(userIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4542,7 +6542,14 @@ func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.
 
 	defer span.Finish()
 
-	return s.StatusStore.GetTotalActiveUsersCount()
+	resultVar0, resultVar1 := s.StatusStore.GetTotalActiveUsersCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4556,7 +6563,14 @@ func (s *OpenTracingLayerStatusStore) ResetAll() *model.AppError {
 
 	defer span.Finish()
 
-	return s.StatusStore.ResetAll()
+	resultVar0 := s.StatusStore.ResetAll()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4570,7 +6584,14 @@ func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) *model.
 
 	defer span.Finish()
 
-	return s.StatusStore.SaveOrUpdate(status)
+	resultVar0 := s.StatusStore.SaveOrUpdate(status)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4584,7 +6605,14 @@ func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastAc
 
 	defer span.Finish()
 
-	return s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+	resultVar0 := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4598,7 +6626,14 @@ func (s *OpenTracingLayerSystemStore) Get() (model.StringMap, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.SystemStore.Get()
+	resultVar0, resultVar1 := s.SystemStore.Get()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4612,7 +6647,14 @@ func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, *mo
 
 	defer span.Finish()
 
-	return s.SystemStore.GetByName(name)
+	resultVar0, resultVar1 := s.SystemStore.GetByName(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4626,7 +6668,14 @@ func (s *OpenTracingLayerSystemStore) PermanentDeleteByName(name string) (*model
 
 	defer span.Finish()
 
-	return s.SystemStore.PermanentDeleteByName(name)
+	resultVar0, resultVar1 := s.SystemStore.PermanentDeleteByName(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4640,7 +6689,14 @@ func (s *OpenTracingLayerSystemStore) Save(system *model.System) *model.AppError
 
 	defer span.Finish()
 
-	return s.SystemStore.Save(system)
+	resultVar0 := s.SystemStore.Save(system)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4654,7 +6710,14 @@ func (s *OpenTracingLayerSystemStore) SaveOrUpdate(system *model.System) *model.
 
 	defer span.Finish()
 
-	return s.SystemStore.SaveOrUpdate(system)
+	resultVar0 := s.SystemStore.SaveOrUpdate(system)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4668,7 +6731,14 @@ func (s *OpenTracingLayerSystemStore) Update(system *model.System) *model.AppErr
 
 	defer span.Finish()
 
-	return s.SystemStore.Update(system)
+	resultVar0 := s.SystemStore.Update(system)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4682,7 +6752,14 @@ func (s *OpenTracingLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId stri
 
 	defer span.Finish()
 
-	return s.TeamStore.AnalyticsGetTeamCountForScheme(schemeId)
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsGetTeamCountForScheme(schemeId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4696,7 +6773,14 @@ func (s *OpenTracingLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.A
 
 	defer span.Finish()
 
-	return s.TeamStore.AnalyticsPrivateTeamCount()
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsPrivateTeamCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4710,7 +6794,14 @@ func (s *OpenTracingLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.Ap
 
 	defer span.Finish()
 
-	return s.TeamStore.AnalyticsPublicTeamCount()
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsPublicTeamCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4724,7 +6815,14 @@ func (s *OpenTracingLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int
 
 	defer span.Finish()
 
-	return s.TeamStore.AnalyticsTeamCount(includeDeleted)
+	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount(includeDeleted)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4738,7 +6836,14 @@ func (s *OpenTracingLayerTeamStore) ClearAllCustomRoleAssignments() *model.AppEr
 
 	defer span.Finish()
 
-	return s.TeamStore.ClearAllCustomRoleAssignments()
+	resultVar0 := s.TeamStore.ClearAllCustomRoleAssignments()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -4766,7 +6871,14 @@ func (s *OpenTracingLayerTeamStore) Get(id string) (*model.Team, *model.AppError
 
 	defer span.Finish()
 
-	return s.TeamStore.Get(id)
+	resultVar0, resultVar1 := s.TeamStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4780,7 +6892,14 @@ func (s *OpenTracingLayerTeamStore) GetActiveMemberCount(teamId string, restrict
 
 	defer span.Finish()
 
-	return s.TeamStore.GetActiveMemberCount(teamId, restrictions)
+	resultVar0, resultVar1 := s.TeamStore.GetActiveMemberCount(teamId, restrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4794,7 +6913,14 @@ func (s *OpenTracingLayerTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAll()
+	resultVar0, resultVar1 := s.TeamStore.GetAll()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4808,7 +6934,14 @@ func (s *OpenTracingLayerTeamStore) GetAllForExportAfter(limit int, afterId stri
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllForExportAfter(limit, afterId)
+	resultVar0, resultVar1 := s.TeamStore.GetAllForExportAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4822,7 +6955,14 @@ func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllPage(offset, limit)
+	resultVar0, resultVar1 := s.TeamStore.GetAllPage(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4836,7 +6976,14 @@ func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllPrivateTeamListing()
+	resultVar0, resultVar1 := s.TeamStore.GetAllPrivateTeamListing()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4850,7 +6997,14 @@ func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamPageListing(offset int, lim
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
+	resultVar0, resultVar1 := s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4864,7 +7018,14 @@ func (s *OpenTracingLayerTeamStore) GetAllPublicTeamPageListing(offset int, limi
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
+	resultVar0, resultVar1 := s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4878,7 +7039,14 @@ func (s *OpenTracingLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.A
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllTeamListing()
+	resultVar0, resultVar1 := s.TeamStore.GetAllTeamListing()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4892,7 +7060,14 @@ func (s *OpenTracingLayerTeamStore) GetAllTeamPageListing(offset int, limit int)
 
 	defer span.Finish()
 
-	return s.TeamStore.GetAllTeamPageListing(offset, limit)
+	resultVar0, resultVar1 := s.TeamStore.GetAllTeamPageListing(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4906,7 +7081,14 @@ func (s *OpenTracingLayerTeamStore) GetByInviteId(inviteId string) (*model.Team,
 
 	defer span.Finish()
 
-	return s.TeamStore.GetByInviteId(inviteId)
+	resultVar0, resultVar1 := s.TeamStore.GetByInviteId(inviteId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4920,7 +7102,14 @@ func (s *OpenTracingLayerTeamStore) GetByName(name string) (*model.Team, *model.
 
 	defer span.Finish()
 
-	return s.TeamStore.GetByName(name)
+	resultVar0, resultVar1 := s.TeamStore.GetByName(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4934,7 +7123,14 @@ func (s *OpenTracingLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId s
 
 	defer span.Finish()
 
-	return s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+	resultVar0, resultVar1 := s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4948,7 +7144,14 @@ func (s *OpenTracingLayerTeamStore) GetChannelUnreadsForTeam(teamId string, user
 
 	defer span.Finish()
 
-	return s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
+	resultVar0, resultVar1 := s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4962,7 +7165,14 @@ func (s *OpenTracingLayerTeamStore) GetMember(teamId string, userId string) (*mo
 
 	defer span.Finish()
 
-	return s.TeamStore.GetMember(teamId, userId)
+	resultVar0, resultVar1 := s.TeamStore.GetMember(teamId, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4976,7 +7186,14 @@ func (s *OpenTracingLayerTeamStore) GetMembers(teamId string, offset int, limit 
 
 	defer span.Finish()
 
-	return s.TeamStore.GetMembers(teamId, offset, limit, restrictions)
+	resultVar0, resultVar1 := s.TeamStore.GetMembers(teamId, offset, limit, restrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -4990,7 +7207,14 @@ func (s *OpenTracingLayerTeamStore) GetMembersByIds(teamId string, userIds []str
 
 	defer span.Finish()
 
-	return s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
+	resultVar0, resultVar1 := s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5004,7 +7228,14 @@ func (s *OpenTracingLayerTeamStore) GetTeamMembersForExport(userId string) ([]*m
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTeamMembersForExport(userId)
+	resultVar0, resultVar1 := s.TeamStore.GetTeamMembersForExport(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5018,7 +7249,14 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByScheme(schemeId string, offset int
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTeamsByScheme(schemeId, offset, limit)
+	resultVar0, resultVar1 := s.TeamStore.GetTeamsByScheme(schemeId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5032,7 +7270,14 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Te
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTeamsByUserId(userId)
+	resultVar0, resultVar1 := s.TeamStore.GetTeamsByUserId(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5046,7 +7291,14 @@ func (s *OpenTracingLayerTeamStore) GetTeamsForUser(userId string) ([]*model.Tea
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTeamsForUser(userId)
+	resultVar0, resultVar1 := s.TeamStore.GetTeamsForUser(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5060,7 +7312,14 @@ func (s *OpenTracingLayerTeamStore) GetTeamsForUserWithPagination(userId string,
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
+	resultVar0, resultVar1 := s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5074,7 +7333,14 @@ func (s *OpenTracingLayerTeamStore) GetTotalMemberCount(teamId string, restricti
 
 	defer span.Finish()
 
-	return s.TeamStore.GetTotalMemberCount(teamId, restrictions)
+	resultVar0, resultVar1 := s.TeamStore.GetTotalMemberCount(teamId, restrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5088,7 +7354,14 @@ func (s *OpenTracingLayerTeamStore) GetUserTeamIds(userId string, allowFromCache
 
 	defer span.Finish()
 
-	return s.TeamStore.GetUserTeamIds(userId, allowFromCache)
+	resultVar0, resultVar1 := s.TeamStore.GetUserTeamIds(userId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5102,7 +7375,14 @@ func (s *OpenTracingLayerTeamStore) GroupSyncedTeamCount() (int64, *model.AppErr
 
 	defer span.Finish()
 
-	return s.TeamStore.GroupSyncedTeamCount()
+	resultVar0, resultVar1 := s.TeamStore.GroupSyncedTeamCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5130,7 +7410,14 @@ func (s *OpenTracingLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUs
 
 	defer span.Finish()
 
-	return s.TeamStore.MigrateTeamMembers(fromTeamId, fromUserId)
+	resultVar0, resultVar1 := s.TeamStore.MigrateTeamMembers(fromTeamId, fromUserId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5144,7 +7431,14 @@ func (s *OpenTracingLayerTeamStore) PermanentDelete(teamId string) *model.AppErr
 
 	defer span.Finish()
 
-	return s.TeamStore.PermanentDelete(teamId)
+	resultVar0 := s.TeamStore.PermanentDelete(teamId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5158,7 +7452,14 @@ func (s *OpenTracingLayerTeamStore) RemoveAllMembersByTeam(teamId string) *model
 
 	defer span.Finish()
 
-	return s.TeamStore.RemoveAllMembersByTeam(teamId)
+	resultVar0 := s.TeamStore.RemoveAllMembersByTeam(teamId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5172,7 +7473,14 @@ func (s *OpenTracingLayerTeamStore) RemoveAllMembersByUser(userId string) *model
 
 	defer span.Finish()
 
-	return s.TeamStore.RemoveAllMembersByUser(userId)
+	resultVar0 := s.TeamStore.RemoveAllMembersByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5186,7 +7494,14 @@ func (s *OpenTracingLayerTeamStore) RemoveMember(teamId string, userId string) *
 
 	defer span.Finish()
 
-	return s.TeamStore.RemoveMember(teamId, userId)
+	resultVar0 := s.TeamStore.RemoveMember(teamId, userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5200,7 +7515,14 @@ func (s *OpenTracingLayerTeamStore) ResetAllTeamSchemes() *model.AppError {
 
 	defer span.Finish()
 
-	return s.TeamStore.ResetAllTeamSchemes()
+	resultVar0 := s.TeamStore.ResetAllTeamSchemes()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5214,7 +7536,14 @@ func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, *model.
 
 	defer span.Finish()
 
-	return s.TeamStore.Save(team)
+	resultVar0, resultVar1 := s.TeamStore.Save(team)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5228,7 +7557,14 @@ func (s *OpenTracingLayerTeamStore) SaveMember(member *model.TeamMember, maxUser
 
 	defer span.Finish()
 
-	return s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	resultVar0, resultVar1 := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5242,7 +7578,14 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string) ([]*model.Team, *mode
 
 	defer span.Finish()
 
-	return s.TeamStore.SearchAll(term)
+	resultVar0, resultVar1 := s.TeamStore.SearchAll(term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5256,7 +7599,14 @@ func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, page int, perPag
 
 	defer span.Finish()
 
-	return s.TeamStore.SearchAllPaged(term, page, perPage)
+	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, page, perPage)
+
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2
 
 }
 
@@ -5270,7 +7620,14 @@ func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, *mod
 
 	defer span.Finish()
 
-	return s.TeamStore.SearchOpen(term)
+	resultVar0, resultVar1 := s.TeamStore.SearchOpen(term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5284,7 +7641,14 @@ func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *
 
 	defer span.Finish()
 
-	return s.TeamStore.SearchPrivate(term)
+	resultVar0, resultVar1 := s.TeamStore.SearchPrivate(term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5298,7 +7662,14 @@ func (s *OpenTracingLayerTeamStore) Update(team *model.Team) (*model.Team, *mode
 
 	defer span.Finish()
 
-	return s.TeamStore.Update(team)
+	resultVar0, resultVar1 := s.TeamStore.Update(team)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5312,7 +7683,14 @@ func (s *OpenTracingLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curT
 
 	defer span.Finish()
 
-	return s.TeamStore.UpdateLastTeamIconUpdate(teamId, curTime)
+	resultVar0 := s.TeamStore.UpdateLastTeamIconUpdate(teamId, curTime)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5326,7 +7704,14 @@ func (s *OpenTracingLayerTeamStore) UpdateMember(member *model.TeamMember) (*mod
 
 	defer span.Finish()
 
-	return s.TeamStore.UpdateMember(member)
+	resultVar0, resultVar1 := s.TeamStore.UpdateMember(member)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5340,7 +7725,14 @@ func (s *OpenTracingLayerTeamStore) UpdateMembersRole(teamID string, userIDs []s
 
 	defer span.Finish()
 
-	return s.TeamStore.UpdateMembersRole(teamID, userIDs)
+	resultVar0 := s.TeamStore.UpdateMembersRole(teamID, userIDs)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5354,7 +7746,14 @@ func (s *OpenTracingLayerTeamStore) UserBelongsToTeams(userId string, teamIds []
 
 	defer span.Finish()
 
-	return s.TeamStore.UserBelongsToTeams(userId, teamIds)
+	resultVar0, resultVar1 := s.TeamStore.UserBelongsToTeams(userId, teamIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5368,7 +7767,14 @@ func (s *OpenTracingLayerTermsOfServiceStore) Get(id string, allowFromCache bool
 
 	defer span.Finish()
 
-	return s.TermsOfServiceStore.Get(id, allowFromCache)
+	resultVar0, resultVar1 := s.TermsOfServiceStore.Get(id, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5382,7 +7788,14 @@ func (s *OpenTracingLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*m
 
 	defer span.Finish()
 
-	return s.TermsOfServiceStore.GetLatest(allowFromCache)
+	resultVar0, resultVar1 := s.TermsOfServiceStore.GetLatest(allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5396,7 +7809,14 @@ func (s *OpenTracingLayerTermsOfServiceStore) Save(termsOfService *model.TermsOf
 
 	defer span.Finish()
 
-	return s.TermsOfServiceStore.Save(termsOfService)
+	resultVar0, resultVar1 := s.TermsOfServiceStore.Save(termsOfService)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5424,7 +7844,14 @@ func (s *OpenTracingLayerTokenStore) Delete(token string) *model.AppError {
 
 	defer span.Finish()
 
-	return s.TokenStore.Delete(token)
+	resultVar0 := s.TokenStore.Delete(token)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5438,7 +7865,14 @@ func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, *mo
 
 	defer span.Finish()
 
-	return s.TokenStore.GetByToken(token)
+	resultVar0, resultVar1 := s.TokenStore.GetByToken(token)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5452,7 +7886,14 @@ func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) *mo
 
 	defer span.Finish()
 
-	return s.TokenStore.RemoveAllTokensByType(tokenType)
+	resultVar0 := s.TokenStore.RemoveAllTokensByType(tokenType)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5466,7 +7907,14 @@ func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) *model.AppError
 
 	defer span.Finish()
 
-	return s.TokenStore.Save(recovery)
+	resultVar0 := s.TokenStore.Save(recovery)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5480,7 +7928,14 @@ func (s *OpenTracingLayerUserStore) AnalyticsActiveCount(time int64, options mod
 
 	defer span.Finish()
 
-	return s.UserStore.AnalyticsActiveCount(time, options)
+	resultVar0, resultVar1 := s.UserStore.AnalyticsActiveCount(time, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5494,7 +7949,14 @@ func (s *OpenTracingLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, *mo
 
 	defer span.Finish()
 
-	return s.UserStore.AnalyticsGetInactiveUsersCount()
+	resultVar0, resultVar1 := s.UserStore.AnalyticsGetInactiveUsersCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5508,7 +7970,14 @@ func (s *OpenTracingLayerUserStore) AnalyticsGetSystemAdminCount() (int64, *mode
 
 	defer span.Finish()
 
-	return s.UserStore.AnalyticsGetSystemAdminCount()
+	resultVar0, resultVar1 := s.UserStore.AnalyticsGetSystemAdminCount()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5522,7 +7991,14 @@ func (s *OpenTracingLayerUserStore) ClearAllCustomRoleAssignments() *model.AppEr
 
 	defer span.Finish()
 
-	return s.UserStore.ClearAllCustomRoleAssignments()
+	resultVar0 := s.UserStore.ClearAllCustomRoleAssignments()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5550,7 +8026,14 @@ func (s *OpenTracingLayerUserStore) Count(options model.UserCountOptions) (int64
 
 	defer span.Finish()
 
-	return s.UserStore.Count(options)
+	resultVar0, resultVar1 := s.UserStore.Count(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5564,7 +8047,14 @@ func (s *OpenTracingLayerUserStore) DeactivateGuests() ([]string, *model.AppErro
 
 	defer span.Finish()
 
-	return s.UserStore.DeactivateGuests()
+	resultVar0, resultVar1 := s.UserStore.DeactivateGuests()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5578,7 +8068,14 @@ func (s *OpenTracingLayerUserStore) DemoteUserToGuest(userID string) *model.AppE
 
 	defer span.Finish()
 
-	return s.UserStore.DemoteUserToGuest(userID)
+	resultVar0 := s.UserStore.DemoteUserToGuest(userID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -5592,7 +8089,14 @@ func (s *OpenTracingLayerUserStore) Get(id string) (*model.User, *model.AppError
 
 	defer span.Finish()
 
-	return s.UserStore.Get(id)
+	resultVar0, resultVar1 := s.UserStore.Get(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5606,7 +8110,14 @@ func (s *OpenTracingLayerUserStore) GetAll() ([]*model.User, *model.AppError) {
 
 	defer span.Finish()
 
-	return s.UserStore.GetAll()
+	resultVar0, resultVar1 := s.UserStore.GetAll()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5620,7 +8131,14 @@ func (s *OpenTracingLayerUserStore) GetAllAfter(limit int, afterId string) ([]*m
 
 	defer span.Finish()
 
-	return s.UserStore.GetAllAfter(limit, afterId)
+	resultVar0, resultVar1 := s.UserStore.GetAllAfter(limit, afterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5634,7 +8152,14 @@ func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions
 
 	defer span.Finish()
 
-	return s.UserStore.GetAllProfiles(options)
+	resultVar0, resultVar1 := s.UserStore.GetAllProfiles(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5648,7 +8173,14 @@ func (s *OpenTracingLayerUserStore) GetAllProfilesInChannel(channelId string, al
 
 	defer span.Finish()
 
-	return s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
+	resultVar0, resultVar1 := s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5662,7 +8194,14 @@ func (s *OpenTracingLayerUserStore) GetAllUsingAuthService(authService string) (
 
 	defer span.Finish()
 
-	return s.UserStore.GetAllUsingAuthService(authService)
+	resultVar0, resultVar1 := s.UserStore.GetAllUsingAuthService(authService)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5676,7 +8215,14 @@ func (s *OpenTracingLayerUserStore) GetAnyUnreadPostCountForChannel(userId strin
 
 	defer span.Finish()
 
-	return s.UserStore.GetAnyUnreadPostCountForChannel(userId, channelId)
+	resultVar0, resultVar1 := s.UserStore.GetAnyUnreadPostCountForChannel(userId, channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5690,7 +8236,14 @@ func (s *OpenTracingLayerUserStore) GetByAuth(authData *string, authService stri
 
 	defer span.Finish()
 
-	return s.UserStore.GetByAuth(authData, authService)
+	resultVar0, resultVar1 := s.UserStore.GetByAuth(authData, authService)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5704,7 +8257,14 @@ func (s *OpenTracingLayerUserStore) GetByEmail(email string) (*model.User, *mode
 
 	defer span.Finish()
 
-	return s.UserStore.GetByEmail(email)
+	resultVar0, resultVar1 := s.UserStore.GetByEmail(email)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5718,7 +8278,14 @@ func (s *OpenTracingLayerUserStore) GetByUsername(username string) (*model.User,
 
 	defer span.Finish()
 
-	return s.UserStore.GetByUsername(username)
+	resultVar0, resultVar1 := s.UserStore.GetByUsername(username)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5732,7 +8299,14 @@ func (s *OpenTracingLayerUserStore) GetChannelGroupUsers(channelID string) ([]*m
 
 	defer span.Finish()
 
-	return s.UserStore.GetChannelGroupUsers(channelID)
+	resultVar0, resultVar1 := s.UserStore.GetChannelGroupUsers(channelID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5746,7 +8320,9 @@ func (s *OpenTracingLayerUserStore) GetEtagForAllProfiles() string {
 
 	defer span.Finish()
 
-	return s.UserStore.GetEtagForAllProfiles()
+	resultVar0 := s.UserStore.GetEtagForAllProfiles()
+
+	return resultVar0
 
 }
 
@@ -5760,7 +8336,9 @@ func (s *OpenTracingLayerUserStore) GetEtagForProfiles(teamId string) string {
 
 	defer span.Finish()
 
-	return s.UserStore.GetEtagForProfiles(teamId)
+	resultVar0 := s.UserStore.GetEtagForProfiles(teamId)
+
+	return resultVar0
 
 }
 
@@ -5774,7 +8352,9 @@ func (s *OpenTracingLayerUserStore) GetEtagForProfilesNotInTeam(teamId string) s
 
 	defer span.Finish()
 
-	return s.UserStore.GetEtagForProfilesNotInTeam(teamId)
+	resultVar0 := s.UserStore.GetEtagForProfilesNotInTeam(teamId)
+
+	return resultVar0
 
 }
 
@@ -5788,7 +8368,14 @@ func (s *OpenTracingLayerUserStore) GetForLogin(loginId string, allowSignInWithU
 
 	defer span.Finish()
 
-	return s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
+	resultVar0, resultVar1 := s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5802,7 +8389,14 @@ func (s *OpenTracingLayerUserStore) GetNewUsersForTeam(teamId string, offset int
 
 	defer span.Finish()
 
-	return s.UserStore.GetNewUsersForTeam(teamId, offset, limit, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetNewUsersForTeam(teamId, offset, limit, viewRestrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5816,7 +8410,14 @@ func (s *OpenTracingLayerUserStore) GetProfileByGroupChannelIdsForUser(userId st
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfileByGroupChannelIdsForUser(userId, channelIds)
+	resultVar0, resultVar1 := s.UserStore.GetProfileByGroupChannelIdsForUser(userId, channelIds)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5830,7 +8431,14 @@ func (s *OpenTracingLayerUserStore) GetProfileByIds(userIds []string, options *U
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
+	resultVar0, resultVar1 := s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5844,7 +8452,14 @@ func (s *OpenTracingLayerUserStore) GetProfiles(options *model.UserGetOptions) (
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfiles(options)
+	resultVar0, resultVar1 := s.UserStore.GetProfiles(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5858,7 +8473,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesByUsernames(usernames []string, v
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5872,7 +8494,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesInChannel(channelId string, offse
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5886,7 +8515,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesInChannelByStatus(channelId strin
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5900,7 +8536,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesNotInChannel(teamId string, chann
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5914,7 +8557,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesNotInTeam(teamId string, groupCon
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5928,7 +8578,14 @@ func (s *OpenTracingLayerUserStore) GetProfilesWithoutTeam(options *model.UserGe
 
 	defer span.Finish()
 
-	return s.UserStore.GetProfilesWithoutTeam(options)
+	resultVar0, resultVar1 := s.UserStore.GetProfilesWithoutTeam(options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5942,7 +8599,14 @@ func (s *OpenTracingLayerUserStore) GetRecentlyActiveUsersForTeam(teamId string,
 
 	defer span.Finish()
 
-	return s.UserStore.GetRecentlyActiveUsersForTeam(teamId, offset, limit, viewRestrictions)
+	resultVar0, resultVar1 := s.UserStore.GetRecentlyActiveUsersForTeam(teamId, offset, limit, viewRestrictions)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5956,7 +8620,14 @@ func (s *OpenTracingLayerUserStore) GetSystemAdminProfiles() (map[string]*model.
 
 	defer span.Finish()
 
-	return s.UserStore.GetSystemAdminProfiles()
+	resultVar0, resultVar1 := s.UserStore.GetSystemAdminProfiles()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5970,7 +8641,14 @@ func (s *OpenTracingLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.U
 
 	defer span.Finish()
 
-	return s.UserStore.GetTeamGroupUsers(teamID)
+	resultVar0, resultVar1 := s.UserStore.GetTeamGroupUsers(teamID)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5984,7 +8662,14 @@ func (s *OpenTracingLayerUserStore) GetUnreadCount(userId string) (int64, *model
 
 	defer span.Finish()
 
-	return s.UserStore.GetUnreadCount(userId)
+	resultVar0, resultVar1 := s.UserStore.GetUnreadCount(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -5998,7 +8683,14 @@ func (s *OpenTracingLayerUserStore) GetUnreadCountForChannel(userId string, chan
 
 	defer span.Finish()
 
-	return s.UserStore.GetUnreadCountForChannel(userId, channelId)
+	resultVar0, resultVar1 := s.UserStore.GetUnreadCountForChannel(userId, channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6012,7 +8704,14 @@ func (s *OpenTracingLayerUserStore) GetUsersBatchForIndexing(startTime int64, en
 
 	defer span.Finish()
 
-	return s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
+	resultVar0, resultVar1 := s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6026,7 +8725,14 @@ func (s *OpenTracingLayerUserStore) InferSystemInstallDate() (int64, *model.AppE
 
 	defer span.Finish()
 
-	return s.UserStore.InferSystemInstallDate()
+	resultVar0, resultVar1 := s.UserStore.InferSystemInstallDate()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6082,7 +8788,14 @@ func (s *OpenTracingLayerUserStore) PermanentDelete(userId string) *model.AppErr
 
 	defer span.Finish()
 
-	return s.UserStore.PermanentDelete(userId)
+	resultVar0 := s.UserStore.PermanentDelete(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6096,7 +8809,14 @@ func (s *OpenTracingLayerUserStore) PromoteGuestToUser(userID string) *model.App
 
 	defer span.Finish()
 
-	return s.UserStore.PromoteGuestToUser(userID)
+	resultVar0 := s.UserStore.PromoteGuestToUser(userID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6110,7 +8830,14 @@ func (s *OpenTracingLayerUserStore) ResetLastPictureUpdate(userId string) *model
 
 	defer span.Finish()
 
-	return s.UserStore.ResetLastPictureUpdate(userId)
+	resultVar0 := s.UserStore.ResetLastPictureUpdate(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6124,7 +8851,14 @@ func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, *model.
 
 	defer span.Finish()
 
-	return s.UserStore.Save(user)
+	resultVar0, resultVar1 := s.UserStore.Save(user)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6138,7 +8872,14 @@ func (s *OpenTracingLayerUserStore) Search(teamId string, term string, options *
 
 	defer span.Finish()
 
-	return s.UserStore.Search(teamId, term, options)
+	resultVar0, resultVar1 := s.UserStore.Search(teamId, term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6152,7 +8893,14 @@ func (s *OpenTracingLayerUserStore) SearchInChannel(channelId string, term strin
 
 	defer span.Finish()
 
-	return s.UserStore.SearchInChannel(channelId, term, options)
+	resultVar0, resultVar1 := s.UserStore.SearchInChannel(channelId, term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6166,7 +8914,14 @@ func (s *OpenTracingLayerUserStore) SearchNotInChannel(teamId string, channelId 
 
 	defer span.Finish()
 
-	return s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
+	resultVar0, resultVar1 := s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6180,7 +8935,14 @@ func (s *OpenTracingLayerUserStore) SearchNotInTeam(notInTeamId string, term str
 
 	defer span.Finish()
 
-	return s.UserStore.SearchNotInTeam(notInTeamId, term, options)
+	resultVar0, resultVar1 := s.UserStore.SearchNotInTeam(notInTeamId, term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6194,7 +8956,14 @@ func (s *OpenTracingLayerUserStore) SearchWithoutTeam(term string, options *mode
 
 	defer span.Finish()
 
-	return s.UserStore.SearchWithoutTeam(term, options)
+	resultVar0, resultVar1 := s.UserStore.SearchWithoutTeam(term, options)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6208,7 +8977,14 @@ func (s *OpenTracingLayerUserStore) Update(user *model.User, allowRoleUpdate boo
 
 	defer span.Finish()
 
-	return s.UserStore.Update(user, allowRoleUpdate)
+	resultVar0, resultVar1 := s.UserStore.Update(user, allowRoleUpdate)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6222,7 +8998,14 @@ func (s *OpenTracingLayerUserStore) UpdateAuthData(userId string, service string
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateAuthData(userId, service, authData, email, resetMfa)
+	resultVar0, resultVar1 := s.UserStore.UpdateAuthData(userId, service, authData, email, resetMfa)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6236,7 +9019,14 @@ func (s *OpenTracingLayerUserStore) UpdateFailedPasswordAttempts(userId string, 
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateFailedPasswordAttempts(userId, attempts)
+	resultVar0 := s.UserStore.UpdateFailedPasswordAttempts(userId, attempts)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6250,7 +9040,14 @@ func (s *OpenTracingLayerUserStore) UpdateLastPictureUpdate(userId string) *mode
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateLastPictureUpdate(userId)
+	resultVar0 := s.UserStore.UpdateLastPictureUpdate(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6264,7 +9061,14 @@ func (s *OpenTracingLayerUserStore) UpdateMfaActive(userId string, active bool) 
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateMfaActive(userId, active)
+	resultVar0 := s.UserStore.UpdateMfaActive(userId, active)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6278,7 +9082,14 @@ func (s *OpenTracingLayerUserStore) UpdateMfaSecret(userId string, secret string
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateMfaSecret(userId, secret)
+	resultVar0 := s.UserStore.UpdateMfaSecret(userId, secret)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6292,7 +9103,14 @@ func (s *OpenTracingLayerUserStore) UpdatePassword(userId string, newPassword st
 
 	defer span.Finish()
 
-	return s.UserStore.UpdatePassword(userId, newPassword)
+	resultVar0 := s.UserStore.UpdatePassword(userId, newPassword)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6306,7 +9124,14 @@ func (s *OpenTracingLayerUserStore) UpdateUpdateAt(userId string) (int64, *model
 
 	defer span.Finish()
 
-	return s.UserStore.UpdateUpdateAt(userId)
+	resultVar0, resultVar1 := s.UserStore.UpdateUpdateAt(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6320,7 +9145,14 @@ func (s *OpenTracingLayerUserStore) VerifyEmail(userId string, email string) (st
 
 	defer span.Finish()
 
-	return s.UserStore.VerifyEmail(userId, email)
+	resultVar0, resultVar1 := s.UserStore.VerifyEmail(userId, email)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6334,7 +9166,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) Delete(tokenId string) *model.App
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.Delete(tokenId)
+	resultVar0 := s.UserAccessTokenStore.Delete(tokenId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6348,7 +9187,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) DeleteAllForUser(userId string) *
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.DeleteAllForUser(userId)
+	resultVar0 := s.UserAccessTokenStore.DeleteAllForUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6362,7 +9208,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) Get(tokenId string) (*model.UserA
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.Get(tokenId)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.Get(tokenId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6376,7 +9229,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.GetAll(offset, limit)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.GetAll(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6390,7 +9250,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) GetByToken(tokenString string) (*
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.GetByToken(tokenString)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByToken(tokenString)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6404,7 +9271,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) GetByUser(userId string, page int
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.GetByUser(userId, page, perPage)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByUser(userId, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6418,7 +9292,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) Save(token *model.UserAccessToken
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.Save(token)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.Save(token)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6432,7 +9313,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) Search(term string) ([]*model.Use
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.Search(term)
+	resultVar0, resultVar1 := s.UserAccessTokenStore.Search(term)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6446,7 +9334,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
+	resultVar0 := s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6460,7 +9355,14 @@ func (s *OpenTracingLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string)
 
 	defer span.Finish()
 
-	return s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
+	resultVar0 := s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6474,7 +9376,14 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfS
 
 	defer span.Finish()
 
-	return s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
+	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6488,7 +9397,14 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*mod
 
 	defer span.Finish()
 
-	return s.UserTermsOfServiceStore.GetByUser(userId)
+	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6502,7 +9418,14 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) Save(userTermsOfService *model
 
 	defer span.Finish()
 
-	return s.UserTermsOfServiceStore.Save(userTermsOfService)
+	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6516,7 +9439,14 @@ func (s *OpenTracingLayerWebhookStore) AnalyticsIncomingCount(teamId string) (in
 
 	defer span.Finish()
 
-	return s.WebhookStore.AnalyticsIncomingCount(teamId)
+	resultVar0, resultVar1 := s.WebhookStore.AnalyticsIncomingCount(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6530,7 +9460,14 @@ func (s *OpenTracingLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (in
 
 	defer span.Finish()
 
-	return s.WebhookStore.AnalyticsOutgoingCount(teamId)
+	resultVar0, resultVar1 := s.WebhookStore.AnalyticsOutgoingCount(teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6558,7 +9495,14 @@ func (s *OpenTracingLayerWebhookStore) DeleteIncoming(webhookId string, time int
 
 	defer span.Finish()
 
-	return s.WebhookStore.DeleteIncoming(webhookId, time)
+	resultVar0 := s.WebhookStore.DeleteIncoming(webhookId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6572,7 +9516,14 @@ func (s *OpenTracingLayerWebhookStore) DeleteOutgoing(webhookId string, time int
 
 	defer span.Finish()
 
-	return s.WebhookStore.DeleteOutgoing(webhookId, time)
+	resultVar0 := s.WebhookStore.DeleteOutgoing(webhookId, time)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6586,7 +9537,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncoming(id string, allowFromCache boo
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncoming(id, allowFromCache)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncoming(id, allowFromCache)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6600,7 +9558,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingByChannel(channelId string) ([
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncomingByChannel(channelId)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByChannel(channelId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6614,7 +9579,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingByTeam(teamId string, offset i
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6628,7 +9600,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingByTeamByUser(teamId string, us
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6642,7 +9621,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingList(offset int, limit int) ([
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncomingList(offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingList(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6656,7 +9642,14 @@ func (s *OpenTracingLayerWebhookStore) GetIncomingListByUser(userId string, offs
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6670,7 +9663,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWe
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoing(id)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoing(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6684,7 +9684,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingByChannel(channelId string, of
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6698,7 +9705,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingByChannelByUser(channelId stri
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6712,7 +9726,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingByTeam(teamId string, offset i
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6726,7 +9747,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, us
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6740,7 +9768,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingList(offset int, limit int) ([
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingList(offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingList(offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6754,7 +9789,14 @@ func (s *OpenTracingLayerWebhookStore) GetOutgoingListByUser(userId string, offs
 
 	defer span.Finish()
 
-	return s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
+	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6782,7 +9824,14 @@ func (s *OpenTracingLayerWebhookStore) PermanentDeleteIncomingByChannel(channelI
 
 	defer span.Finish()
 
-	return s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
+	resultVar0 := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6796,7 +9845,14 @@ func (s *OpenTracingLayerWebhookStore) PermanentDeleteIncomingByUser(userId stri
 
 	defer span.Finish()
 
-	return s.WebhookStore.PermanentDeleteIncomingByUser(userId)
+	resultVar0 := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6810,7 +9866,14 @@ func (s *OpenTracingLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelI
 
 	defer span.Finish()
 
-	return s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
+	resultVar0 := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6824,7 +9887,14 @@ func (s *OpenTracingLayerWebhookStore) PermanentDeleteOutgoingByUser(userId stri
 
 	defer span.Finish()
 
-	return s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
+	resultVar0 := s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 
 }
 
@@ -6838,7 +9908,14 @@ func (s *OpenTracingLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebho
 
 	defer span.Finish()
 
-	return s.WebhookStore.SaveIncoming(webhook)
+	resultVar0, resultVar1 := s.WebhookStore.SaveIncoming(webhook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6852,7 +9929,14 @@ func (s *OpenTracingLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebho
 
 	defer span.Finish()
 
-	return s.WebhookStore.SaveOutgoing(webhook)
+	resultVar0, resultVar1 := s.WebhookStore.SaveOutgoing(webhook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6866,7 +9950,14 @@ func (s *OpenTracingLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWeb
 
 	defer span.Finish()
 
-	return s.WebhookStore.UpdateIncoming(webhook)
+	resultVar0, resultVar1 := s.WebhookStore.UpdateIncoming(webhook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 
@@ -6880,7 +9971,14 @@ func (s *OpenTracingLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhoo
 
 	defer span.Finish()
 
-	return s.WebhookStore.UpdateOutgoing(hook)
+	resultVar0, resultVar1 := s.WebhookStore.UpdateOutgoing(hook)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 
 }
 

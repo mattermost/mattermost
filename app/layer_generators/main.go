@@ -177,6 +177,22 @@ func GenerateLayer(name, templateFile string) string {
 			}
 			return "true"
 		},
+		"errorPresent": func(results []string) bool {
+			for _, typeName := range results {
+				if typeName == "*model.AppError" {
+					return true
+				}
+			}
+			return false
+		},
+		"errorVar": func(results []string) string {
+			for idx, typeName := range results {
+				if typeName == "*model.AppError" {
+					return fmt.Sprintf("resultVar%d", idx)
+				}
+			}
+			return ""
+		},
 		"joinParams": func(params []Param) string {
 			paramsNames := []string{}
 			for _, param := range params {

@@ -6,6 +6,10 @@
 
 package app
 
+import (
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
+)
 
 type {{.Name}} struct {
 	app AppIface
@@ -61,8 +65,19 @@ func (a *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$ele
 	{{end}}
 	defer span.Finish()
 
-	{{if $element.Results | len | eq 0}}a.app.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}return a.app.{{$index}}({{$element.Params | joinParams}})
+	{{if $element.Results | len | eq 0}}
+		a.app.{{$index}}({{$element.Params | joinParams}})
+	{{ else }}
+
+		{{$element.Results | genResultsVars}} := a.app.{{$index}}({{$element.Params | joinParams}})
+		{{if $element.Results | errorPresent }}
+			if {{$element.Results | errorVar}} != nil {
+				span.LogFields(spanlog.Error({{$element.Results | errorVar}}))
+				ext.Error.Set(span, true)
+			}
+		{{end}}
+		
+		return {{ $element.Results | genResultsVars }}
 	{{ end}}}
 {{end}}
 

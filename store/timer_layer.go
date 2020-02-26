@@ -2463,6 +2463,22 @@ func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.FileInfoStore.GetWithOptions(page, perPage, opt)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetWithOptions", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	start := timemodule.Now()
 

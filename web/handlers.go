@@ -14,6 +14,9 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -98,11 +101,22 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
+		carrier := opentracing.HTTPHeadersCarrier(r.Header)
+		_ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, carrier)
+		ext.HTTPMethod.Set(span, r.Method)
+		ext.HTTPUrl.Set(span, c.App.Path())
+		ext.PeerAddress.Set(span, c.App.IpAddress())
 		span.SetTag("request_id", c.App.RequestId())
-		span.SetTag("ip_address", c.App.IpAddress())
 		span.SetTag("user_agent", c.App.UserAgent())
-		span.SetTag("url", c.App.Path())
-		defer span.Finish()
+
+		defer func() {
+			if c.Err != nil {
+				span.LogFields(spanlog.Error(c.Err))
+				ext.HTTPStatusCode.Set(span, uint16(c.Err.StatusCode))
+				ext.Error.Set(span, true)
+			}
+			span.Finish()
+		}()
 		c.App.SetContext(ctx)
 
 		tmpSrv := app.Server{}

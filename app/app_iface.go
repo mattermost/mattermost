@@ -501,6 +501,7 @@ type AppIface interface {
 	GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
 	GetFile(fileId string) ([]byte, *model.AppError)
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)

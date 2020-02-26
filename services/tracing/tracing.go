@@ -15,6 +15,7 @@ import (
 
 	"github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
+	"github.com/uber/jaeger-client-go/zipkin"
 )
 
 type Tracer struct {
@@ -48,11 +49,16 @@ func New() (*Tracer, error) {
 		},
 	}
 
+	zipkinPropagator := zipkin.NewZipkinB3HTTPHeaderPropagator()
+
 	closer, err := cfg.InitGlobalTracer(
 		"mattermost",
 		jaegercfg.Logger(LogrusAdapter{}),
 		jaegercfg.Metrics(metrics.NullFactory),
 		jaegercfg.Tag("serverStartTime", time.Now().UTC().Format(time.RFC3339)),
+		jaegercfg.Injector(opentracing.HTTPHeaders, zipkinPropagator),
+		jaegercfg.Extractor(opentracing.HTTPHeaders, zipkinPropagator),
+		jaegercfg.ZipkinSharedRPCSpan(true),
 	)
 
 	if err != nil {
