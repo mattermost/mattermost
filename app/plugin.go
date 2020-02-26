@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -210,21 +211,24 @@ func (a *App) SyncPlugins() *model.AppError {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		pluginId := plugin.Manifest.Id
-
-		// Only handle managed plugins with .filestore flag file.
-		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginId, managedPluginFileName))
-		if os.IsNotExist(err) {
-			mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginId))
-		} else if err != nil {
-			mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginId), mlog.Err(err))
-		} else {
-			mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginId))
-			if err := a.removePluginLocally(pluginId); err != nil {
-				mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginId), mlog.Err(err))
+		wg.Add(1)
+		go func(pluginID string) {
+			defer wg.Done()
+			// Only handle managed plugins with .filestore flag file.
+			_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
+			if os.IsNotExist(err) {
+				mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginID))
+			} else if err != nil {
+				mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+			} else {
+				mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginID))
+				if err := a.removePluginLocally(pluginID); err != nil {
+					mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginID), mlog.Err(err))
+				}
 			}
-		}
+		}(plugin.Manifest.Id)
 	}
 
 	// Install plugins from the file store.
@@ -234,28 +238,35 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	for _, plugin := range pluginSignaturePathMap {
-		reader, appErr := a.FileReader(plugin.path)
-		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
-			continue
-		}
-		defer reader.Close()
-
-		var signature filesstore.ReadCloseSeeker
-		if *a.Config().PluginSettings.RequirePluginSignature {
-			signature, appErr = a.FileReader(plugin.signaturePath)
+		wg.Add(1)
+		go func(plugin *pluginSignaturePath) {
+			defer wg.Done()
+			reader, appErr := a.FileReader(plugin.path)
 			if appErr != nil {
-				mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
-				continue
+				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+				return
 			}
-			defer signature.Close()
-		}
+			defer reader.Close()
 
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-		if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-		}
+			var signature filesstore.ReadCloseSeeker
+			if *a.Config().PluginSettings.RequirePluginSignature {
+				signature, appErr = a.FileReader(plugin.signaturePath)
+				if appErr != nil {
+					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+					return
+				}
+				defer signature.Close()
+			}
+
+			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+			if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			}
+		}(plugin)
+
 	}
+
+	wg.Wait()
 	return nil
 }
 
@@ -739,7 +750,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	fileStorePaths := []string{}
+	var fileStorePaths []string
 	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 		fileStorePaths = append(fileStorePaths, walkPath)
 		return nil
@@ -751,14 +762,27 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 
 	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-	for _, pluginPaths := range pluginSignaturePathMap {
-		plugin, err := a.processPrepackagedPlugin(pluginPaths)
-		if err != nil {
-			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
-			continue
-		}
+	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
 
-		plugins = append(plugins, plugin)
+	var wg sync.WaitGroup
+	for _, psPath := range pluginSignaturePathMap {
+		wg.Add(1)
+		go func(psPath *pluginSignaturePath) {
+			defer wg.Done()
+			p, err := a.processPrepackagedPlugin(psPath)
+			if err != nil {
+				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
+				return
+			}
+			prepackagedPlugins <- p
+		}(psPath)
+	}
+
+	wg.Wait()
+	close(prepackagedPlugins)
+
+	for p := range prepackagedPlugins {
+		plugins = append(plugins, p)
 	}
 
 	return plugins
@@ -773,6 +797,8 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
 	}
+	defer fileReader.Close()
+
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
