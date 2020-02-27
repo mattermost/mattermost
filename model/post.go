@@ -414,6 +414,12 @@ func (o *Post) SetProps(props StringInterface) {
 	o.Props = props
 }
 
+func (o *Post) GetProp(key string) interface{} {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props[key]
+}
+
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
 }
@@ -499,11 +505,11 @@ func (o *Post) ChannelMentions() []string {
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.GetProps()["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.GetProps()["attachments"].([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment

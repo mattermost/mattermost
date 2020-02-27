@@ -125,7 +125,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	require.Nil(t, post1.GetProps()[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post1.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
 	post2 := &Post{
 		Message: "test",
@@ -136,7 +136,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post2.SanitizeProps()
 
-	require.Nil(t, post2.GetProps()[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post2.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
 	post3 := &Post{
 		Message: "test",
@@ -148,9 +148,9 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post3.SanitizeProps()
 
-	require.Nil(t, post3.GetProps()[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post3.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
-	require.NotNil(t, post3.GetProps()["attachments"])
+	require.NotNil(t, post3.GetProp("attachments"))
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
@@ -544,7 +544,7 @@ func BenchmarkClonePost(b *testing.B) {
 	}
 }
 
-func BenchmarkPostPropsRead_indirect(b *testing.B) {
+func BenchmarkPostPropsGet_indirect(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
@@ -553,7 +553,7 @@ func BenchmarkPostPropsRead_indirect(b *testing.B) {
 	}
 }
 
-func BenchmarkPostPropsRead_direct(b *testing.B) {
+func BenchmarkPostPropsGet_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
@@ -599,6 +599,26 @@ func BenchmarkPostPropsDel_direct(b *testing.B) {
 	}
 }
 
+func BenchmarkPostPropGet_direct(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	p.Props["somekey"] = "somevalue"
+	for i := 0; i < b.N; i++ {
+		_ = p.Props["somekey"]
+	}
+}
+
+func BenchmarkPostPropGet_indirect(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	p.Props["somekey"] = "somevalue"
+	for i := 0; i < b.N; i++ {
+		_ = p.GetProp("somekey")
+	}
+}
+
 // TestPostPropsDataRace tries to trigger data race conditions related to Post.Props.
 // It's meant to be run with the -race flag.
 func TestPostPropsDataRace(t *testing.T) {
@@ -616,7 +636,7 @@ func TestPostPropsDataRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i < 100; i++ {
-			_ = p.GetProps()["test"]
+			_ = p.GetProp("test")
 		}
 		wg.Done()
 	}()

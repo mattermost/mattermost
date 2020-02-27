@@ -280,7 +280,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
 	post := posts[0]
-	actual := post.GetProps()[model.POST_PROPS_DELETE_BY]
+	actual := post.GetProp(model.POST_PROPS_DELETE_BY)
 
 	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 

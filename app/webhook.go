@@ -199,7 +199,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	split.Message = remainingText
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProps()["attachments"].([]*model.SlackAttachment)
+	attachments, _ := post.GetProp("attachments").([]*model.SlackAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {

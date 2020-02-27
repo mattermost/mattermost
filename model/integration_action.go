@@ -369,7 +369,7 @@ func (r *SubmitDialogResponse) ToJson() []byte {
 
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
-	if o.GetProps()["attachments"] != nil {
+	if o.GetProp("attachments") != nil {
 		o.AddProp("attachments", attachments)
 	}
 	for _, attachment := range attachments {
@@ -391,10 +391,10 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
-	if o.GetProps()["attachments"] != nil {
+	if o.GetProp("attachments") != nil {
 		o.AddProp("attachments", o.Attachments())
 	}
-	if attachments, ok := o.GetProps()["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action.Id == "" {

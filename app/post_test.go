@@ -432,7 +432,7 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.GetProps()["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err = th.App.UpdatePost(post, false)
@@ -441,7 +441,7 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.GetProps()["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 }
 
 func TestImageProxy(t *testing.T) {

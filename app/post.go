@@ -225,7 +225,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.GetProps()["attachments"].([]*model.SlackAttachment); ok {
+	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []interface{}{}
@@ -1294,7 +1294,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 
 func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
-	if post.UserId == user.Id && post.GetProps()["from_webhook"] != "true" {
+	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
 		return false
 	}
 
@@ -1306,7 +1306,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 	// Check for mentions caused by being added to the channel
 	if post.Type == model.POST_ADD_TO_CHANNEL {
-		if addedUserId, ok := post.GetProps()[model.POST_PROPS_ADDED_USER_ID].(string); ok && addedUserId == user.Id {
+		if addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string); ok && addedUserId == user.Id {
 			return true
 		}
 	}
