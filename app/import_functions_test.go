@@ -2907,6 +2907,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
 
+		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
+
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
 		require.Nil(t, err)
@@ -2915,6 +2917,163 @@ func TestImportImportDirectPost(t *testing.T) {
 		post := posts[0]
 		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	})
+
+	t.Run("Post with reaction", func(t *testing.T) {
+		reactionPostTime := ptrInt64(754321 + 2)
+		reactionTime := ptrInt64(754321 + 3)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message with reaction"),
+			CreateAt: reactionPostTime,
+			Reactions: &[]ReactionImportData{{
+				User:      ptrStr(th.BasicUser2.Username),
+				EmojiName: ptrStr("+1"),
+				CreateAt:  reactionTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id || !post.HasReactions
+		require.False(t, postBool, "Post properties not as expected")
+
+		reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err, "Can't get reaction")
+
+		require.Len(t, reactions, 1, "Invalid number of reactions")
+	})
+
+	t.Run("Post with reply", func(t *testing.T) {
+		replyPostTime := ptrInt64(754321 + 5)
+		replyTime := ptrInt64(754321 + 6)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser2.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id
+		require.False(t, postBool, "Post properties not as expected")
+
+		// Check the reply values.
+		replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		require.Nil(t, err)
+
+		require.Len(t, replies, 1, "Unexpected number of posts found.")
+
+		reply := replies[0]
+		replyBool := reply.Message != *(*data.Replies)[0].Message || reply.CreateAt != *(*data.Replies)[0].CreateAt || reply.UserId != th.BasicUser2.Id
+		require.False(t, replyBool, "Post properties not as expected")
+
+		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
+	})
+
+	t.Run("Update post with replies", func(t *testing.T) {
+		replyPostTime := ptrInt64(754321 + 5)
+		replyTime := ptrInt64(754321 + 6)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+	})
+
+	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
+		replyPostTime := ptrInt64(754321 + 9)
+		replyTime := ptrInt64(754321 + 10)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply 2"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 10, "")
+	})
+
+	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
+		replyPostTime := ptrInt64(754321 + 5)
+		replyTime := ptrInt64(754321 + 12)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply 2"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 11, "")
 	})
 }
 
