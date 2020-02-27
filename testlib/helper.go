@@ -21,7 +21,7 @@ import (
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
-	SqlSupplier      *sqlstore.SqlSupplier
+	SQLSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -95,15 +95,15 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_MYSQL
+		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = &TestStore{
-		h.SqlSupplier,
+		h.SQLSupplier,
 	}
 }
 
@@ -116,6 +116,9 @@ func (h *MainHelper) setupResources() {
 }
 
 func (h *MainHelper) Close() error {
+	if h.SQLSupplier != nil {
+		h.SQLSupplier.Close()
+	}
 	if h.Settings != nil {
 		storetest.CleanupSqlSettings(h.Settings)
 	}
@@ -132,7 +135,7 @@ func (h *MainHelper) Close() error {
 	return nil
 }
 
-func (h *MainHelper) GetSqlSettings() *model.SqlSettings {
+func (h *MainHelper) GetSQLSettings() *model.SqlSettings {
 	if h.Settings == nil {
 		panic("MainHelper not initialized with database access.")
 	}
@@ -148,12 +151,12 @@ func (h *MainHelper) GetStore() store.Store {
 	return h.Store
 }
 
-func (h *MainHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
-	if h.SqlSupplier == nil {
+func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
+	if h.SQLSupplier == nil {
 		panic("MainHelper not initialized with sql supplier.")
 	}
 
-	return h.SqlSupplier
+	return h.SQLSupplier
 }
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {

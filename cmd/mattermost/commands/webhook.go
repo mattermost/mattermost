@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -76,6 +77,15 @@ var WebhookDeleteCmd = &cobra.Command{
 	RunE:    deleteWebhookCmdF,
 }
 
+var WebhookMoveOutgoingCmd = &cobra.Command{
+	Use:     "move-outgoing",
+	Short:   "Move outgoing webhook",
+	Long:    "Move outgoing webhook with an id",
+	Example: "  webhook move-outgoing newteam oldteam:webhook-id --channel new-default-channel",
+	Args:    cobra.ExactArgs(2),
+	RunE:    moveOutgoingWebhookCmd,
+}
+
 func listWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -104,13 +114,13 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		// Fetch all hooks with a very large limit so we get them all.
 		incomingResult := make(chan store.StoreResult, 1)
 		go func() {
-			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+			incomingHooks, err := app.Srv().Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
 			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan store.StoreResult, 1)
 		go func() {
-			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingHooks, err := app.Srv().Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
 			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
 			close(outgoingResult)
 		}()
@@ -448,6 +458,62 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	return errors.New("Webhook with id " + webhookId + " not found")
 }
 
+func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	newTeamId := args[0]
+	_, teamError := app.GetTeam(newTeamId)
+	if teamError != nil {
+		return teamError
+	}
+
+	webhookInformation := strings.Split(args[1], ":")
+	sourceTeam := webhookInformation[0]
+	_, teamErr := app.GetTeam(sourceTeam)
+	if teamErr != nil {
+		return teamErr
+	}
+
+	webhookId := webhookInformation[1]
+	webhook, appError := app.GetOutgoingWebhook(webhookId)
+	if appError != nil {
+		return appError
+	}
+
+	channelName, channelErr := command.Flags().GetString("channel")
+	if channelErr != nil {
+		return channelErr
+	}
+	channel, getChannelErr := app.GetChannelByName(channelName, newTeamId, false)
+
+	if webhook.ChannelId != "" {
+		if getChannelErr != nil {
+			return getChannelErr
+		}
+		webhook.ChannelId = channel.Id
+	} else if channelName != "" {
+		webhook.ChannelId = channel.Id
+	}
+
+	deleteErr := app.DeleteOutgoingWebhook(webhook.Id)
+	if deleteErr != nil {
+		return deleteErr
+	}
+
+	webhook.Id = ""
+	webhook.TeamId = newTeamId
+
+	_, createErr := app.CreateOutgoingWebhook(webhook)
+	if createErr != nil {
+		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
@@ -482,6 +548,8 @@ func init() {
 	WebhookModifyOutgoingCmd.Flags().StringArray("url", []string{}, "Callback URL")
 	WebhookModifyOutgoingCmd.Flags().String("content-type", "", "Content-type")
 
+	WebhookMoveOutgoingCmd.Flags().String("channel", "", "Channel name or ID")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
 		WebhookCreateIncomingCmd,
@@ -490,6 +558,7 @@ func init() {
 		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
 		WebhookShowCmd,
+		WebhookMoveOutgoingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

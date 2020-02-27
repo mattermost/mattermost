@@ -21,10 +21,10 @@ import (
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
+	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, a.Cluster.GetMyClusterInfo().Hostname)
+		lines = append(lines, a.Cluster().GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
@@ -36,8 +36,8 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
-		clines, err := a.Cluster.GetLogs(page, perPage)
+	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
+		clines, err := a.Cluster().GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -122,8 +122,8 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
-	if a.Cluster != nil {
-		infos = a.Cluster.GetClusterInfos()
+	if a.Cluster() != nil {
+		infos = a.Cluster().GetClusterInfos()
 	}
 
 	return infos
@@ -133,7 +133,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
 	a.InvalidateAllCachesSkipSend()
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 
 		msg := &model.ClusterMessage{
 			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
@@ -141,7 +141,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 			WaitForAllToSend: true,
 		}
 
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 
 	return nil
@@ -149,25 +149,25 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 
 func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.Srv.sessionCache.Purge()
-	ClearStatusCache()
-	a.Srv.Store.Team().ClearCaches()
-	a.Srv.Store.Channel().ClearCaches()
-	a.Srv.Store.User().ClearCaches()
-	a.Srv.Store.Post().ClearCaches()
-	a.Srv.Store.FileInfo().ClearCaches()
-	a.Srv.Store.Webhook().ClearCaches()
+	a.Srv().sessionCache.Purge()
+	a.Srv().statusCache.Purge()
+	a.Srv().Store.Team().ClearCaches()
+	a.Srv().Store.Channel().ClearCaches()
+	a.Srv().Store.User().ClearCaches()
+	a.Srv().Store.Post().ClearCaches()
+	a.Srv().Store.FileInfo().ClearCaches()
+	a.Srv().Store.Webhook().ClearCaches()
 	a.LoadLicense()
 }
 
 func (a *App) RecycleDatabaseConnection() {
-	oldStore := a.Srv.Store
+	oldStore := a.Srv().Store
 
 	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv.Store = a.Srv.newStore()
-	a.Srv.Jobs.Store = a.Srv.Store
+	a.Srv().Store = a.Srv().newStore()
+	a.Srv().Jobs.Store = a.Srv().Store
 
-	if a.Srv.Store != oldStore {
+	if a.Srv().Store != oldStore {
 		time.Sleep(20 * time.Second)
 		oldStore.Close()
 	}
@@ -221,7 +221,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 
 // ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
 func (a *App) ServerBusyStateChanged(sbs *model.ServerBusyState) {
-	a.Srv.Busy.ClusterEventChanged(sbs)
+	a.Srv().Busy.ClusterEventChanged(sbs)
 	if sbs.Busy {
 		mlog.Warn("server busy state activitated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
 	} else {

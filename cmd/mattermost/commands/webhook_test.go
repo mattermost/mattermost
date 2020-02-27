@@ -5,9 +5,11 @@ package commands
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
@@ -15,7 +17,7 @@ import (
 )
 
 func TestListWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -58,7 +60,7 @@ func TestListWebhooks(t *testing.T) {
 }
 
 func TestShowWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -124,7 +126,7 @@ func TestShowWebhook(t *testing.T) {
 }
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -172,7 +174,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestModifyIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -236,7 +238,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -301,7 +303,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestModifyOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -395,7 +397,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 }
 
 func TestDeleteWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -443,4 +445,90 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	assert.NotContains(t, hooksAfterDeletion, dispName, "Should not have incoming webhooks")
 	assert.NotContains(t, hooksAfterDeletion, dispName2, "Should not have outgoing webhooks")
+}
+
+func TestMoveOutgoingWebhook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	th.SetConfig(config)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	description := "myhookoutdesc"
+	displayName := "myhookoutname"
+	triggerWords := model.StringArray{"myhookoutword1"}
+	triggerWhen := 0
+	callbackURLs := model.StringArray{"http://myhookouturl1"}
+	iconURL := "myhookicon1"
+	contentType := "myhookcontent1"
+
+	outgoingWebhookWithChannel := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		ChannelId:    th.BasicChannel.Id,
+		DisplayName:  displayName,
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
+	}
+
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithChannel)
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook.Id)
+
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Id))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid-team", "webhook", "--channel"))
+
+	newTeam := th.CreateTeam()
+
+	webhookInformation := "oldTeam" + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	webhookInformation = th.BasicTeam.Id + ":" + "webhookId"
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, webhookInformation))
+
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", "invalid"))
+
+	channel := th.CreateChannelWithClientAndTeam(th.SystemAdminClient, model.CHANNEL_OPEN, newTeam.Id)
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook.Id, "--channel", channel.Name)
+
+	_, webhookErr := th.App.GetOutgoingWebhook(oldHook.Id)
+	assert.Error(t, webhookErr)
+
+	output := th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(output, displayName))
+
+	outgoingWebhookWithoutChannel := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		DisplayName:  displayName + "2",
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
+	}
+
+	oldHook2, err := th.App.CreateOutgoingWebhook(outgoingWebhookWithoutChannel)
+	require.Nil(t, err)
+	defer th.App.DeleteOutgoingWebhook(oldHook2.Id)
+
+	th.CheckCommand(t, "webhook", "move-outgoing", newTeam.Id, th.BasicTeam.Id+":"+oldHook2.Id)
+	output = th.CheckCommand(t, "webhook", "list", newTeam.Name)
+	assert.True(t, strings.Contains(output, displayName+"2"))
 }

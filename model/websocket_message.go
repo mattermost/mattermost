@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,6 +19,7 @@ const (
 	WEBSOCKET_EVENT_CHANNEL_CONVERTED       = "channel_converted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED         = "channel_created"
 	WEBSOCKET_EVENT_CHANNEL_DELETED         = "channel_deleted"
+	WEBSOCKET_EVENT_CHANNEL_RESTORED        = "channel_restored"
 	WEBSOCKET_EVENT_CHANNEL_UPDATED         = "channel_updated"
 	WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED  = "channel_member_updated"
 	WEBSOCKET_EVENT_DIRECT_ADDED            = "direct_added"
@@ -193,6 +195,15 @@ func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 		return nil
 	}
 	ev.Event = o.Event
+	if u, ok := o.Data["user"]; ok {
+		// We need to convert to and from JSON again
+		// because the user is in the form of a map[string]interface{}.
+		buf, err := json.Marshal(u)
+		if err != nil {
+			return nil
+		}
+		o.Data["user"] = UserFromJson(bytes.NewReader(buf))
+	}
 	ev.Data = o.Data
 	ev.Broadcast = o.Broadcast
 	ev.Sequence = o.Sequence
@@ -221,16 +232,16 @@ func NewWebSocketError(seqReply int64, err *AppError) *WebSocketResponse {
 	return &WebSocketResponse{Status: STATUS_FAIL, SeqReply: seqReply, Error: err}
 }
 
-func (o *WebSocketResponse) IsValid() bool {
-	return o.Status != ""
+func (m *WebSocketResponse) IsValid() bool {
+	return m.Status != ""
 }
 
-func (o *WebSocketResponse) EventType() string {
+func (m *WebSocketResponse) EventType() string {
 	return WEBSOCKET_EVENT_RESPONSE
 }
 
-func (o *WebSocketResponse) ToJson() string {
-	b, _ := json.Marshal(o)
+func (m *WebSocketResponse) ToJson() string {
+	b, _ := json.Marshal(m)
 	return string(b)
 }
 

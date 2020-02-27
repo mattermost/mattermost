@@ -13,12 +13,12 @@ import (
 )
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandler(loginWithSaml)).Methods("GET")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandlerTrustRequester(completeSaml)).Methods("POST")
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := c.App.Saml
+	samlInterface := c.App.Saml()
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -61,7 +61,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := c.App.Saml
+	samlInterface := c.App.Saml()
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -111,7 +111,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.OAUTH_ACTION_SIGNUP:
 		teamId := relayProps["team_id"]
 		if len(teamId) > 0 {
-			c.App.Srv.Go(func() {
+			c.App.Srv().Go(func() {
 				if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
 					mlog.Error(err.Error())
 				} else {
@@ -125,7 +125,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-		c.App.Srv.Go(func() {
+		c.App.Srv().Go(func() {
 			if err = c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}

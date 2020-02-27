@@ -41,7 +41,7 @@ func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestPostActionCookies(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -51,53 +51,100 @@ func TestPostActionCookies(t *testing.T) {
 
 	handler := &testHandler{t}
 	server := httptest.NewServer(handler)
-	action := model.PostAction{
-		Id:   model.NewId(),
-		Name: "Test-action",
-		Type: model.POST_ACTION_TYPE_BUTTON,
-		Integration: &model.PostActionIntegration{
-			URL: server.URL,
-			Context: map[string]interface{}{
-				"test-key": "test-value",
-			},
-		},
-	}
 
-	post := &model.Post{
-		Id:        model.NewId(),
-		Type:      model.POST_EPHEMERAL,
-		UserId:    th.BasicUser.Id,
-		ChannelId: th.BasicChannel.Id,
-		CreateAt:  model.GetMillis(),
-		UpdateAt:  model.GetMillis(),
-		Props: map[string]interface{}{
-			"attachments": []*model.SlackAttachment{
-				{
-					Title:     "some-title",
-					TitleLink: "https://some-url.com",
-					Text:      "some-text",
-					ImageURL:  "https://some-other-url.com",
-					Actions:   []*model.PostAction{&action},
+	for name, test := range map[string]struct {
+		Action             model.PostAction
+		ExpectedSucess     bool
+		ExpectedStatusCode int
+	}{
+		"32 character ID": {
+			Action: model.PostAction{
+				Id:   model.NewId(),
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
 				},
 			},
+			ExpectedSucess:     true,
+			ExpectedStatusCode: http.StatusOK,
 		},
+		"6 character ID": {
+			Action: model.PostAction{
+				Id:   "someID",
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
+				},
+			},
+			ExpectedSucess:     true,
+			ExpectedStatusCode: http.StatusOK,
+		},
+		"Empty ID": {
+			Action: model.PostAction{
+				Id:   "",
+				Name: "Test-action",
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					URL: server.URL,
+					Context: map[string]interface{}{
+						"test-key": "test-value",
+					},
+				},
+			},
+			ExpectedSucess:     false,
+			ExpectedStatusCode: http.StatusNotFound,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post := &model.Post{
+				Id:        model.NewId(),
+				Type:      model.POST_EPHEMERAL,
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				CreateAt:  model.GetMillis(),
+				UpdateAt:  model.GetMillis(),
+				Props: map[string]interface{}{
+					"attachments": []*model.SlackAttachment{
+						{
+							Title:     "some-title",
+							TitleLink: "https://some-url.com",
+							Text:      "some-text",
+							ImageURL:  "https://some-other-url.com",
+							Actions:   []*model.PostAction{&test.Action},
+						},
+					},
+				},
+			}
+
+			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
+
+			ok, resp := Client.DoPostActionWithCookie(post.Id, test.Action.Id, "", test.Action.Cookie)
+			require.NotNil(t, resp)
+			if test.ExpectedSucess {
+				assert.True(t, ok)
+				assert.Nil(t, resp.Error)
+			} else {
+				assert.False(t, ok)
+				assert.NotNil(t, resp.Error)
+			}
+			assert.Equal(t, test.ExpectedStatusCode, resp.StatusCode)
+			assert.NotNil(t, resp.RequestId)
+			assert.NotNil(t, resp.ServerVersion)
+		})
 	}
-
-	post.GenerateActionIds()
-	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
-	post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
-
-	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
-	assert.True(t, ok)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 200, resp.StatusCode)
-	assert.Nil(t, resp.Error)
-	assert.NotNil(t, resp.RequestId)
-	assert.NotNil(t, resp.ServerVersion)
 }
 
 func TestOpenDialog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -170,7 +217,7 @@ func TestOpenDialog(t *testing.T) {
 }
 
 func TestSubmitDialog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
