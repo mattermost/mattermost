@@ -16,9 +16,9 @@ type LocalCacheFileInfoStore struct {
 func (s *LocalCacheFileInfoStore) handleClusterInvalidateFileInfo(msg *model.ClusterMessage) {
 	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
 		s.rootStore.fileInfoCache.Purge()
-	} else {
-		s.rootStore.fileInfoCache.Remove(msg.Data)
+		return
 	}
+	s.rootStore.fileInfoCache.Remove(msg.Data)
 }
 
 func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
