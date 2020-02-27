@@ -155,15 +155,6 @@ func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHe
 	return setupTestHelper(dbStore, false, tb, configSet)
 }
 
-func SetupWithStoreMockAndCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, tb, configSet)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
-	return th
-}
-
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.SystemAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
