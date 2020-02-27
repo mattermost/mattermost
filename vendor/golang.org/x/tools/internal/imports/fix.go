@@ -537,7 +537,7 @@ func getFixes(fset *token.FileSet, f *ast.File, filename string, env *ProcessEnv
 	// derive package names from import paths, see if the file is already
 	// complete. We can't add any imports yet, because we don't know
 	// if missing references are actually package vars.
-	p := &pass{fset: fset, f: f, srcDir: srcDir}
+	p := &pass{fset: fset, f: f, srcDir: srcDir, env: env}
 	if fixes, done := p.load(); done {
 		return fixes, nil
 	}
@@ -559,8 +559,7 @@ func getFixes(fset *token.FileSet, f *ast.File, filename string, env *ProcessEnv
 	}
 
 	// Third pass: get real package names where we had previously used
-	// the naive algorithm. This is the first step that will use the
-	// environment, so we provide it here for the first time.
+	// the naive algorithm.
 	p = &pass{fset: fset, f: f, srcDir: srcDir, env: env}
 	p.loadRealPackageNames = true
 	p.otherFiles = otherFiles
@@ -750,6 +749,8 @@ type ProcessEnv struct {
 	LocalPrefix string
 	Debug       bool
 
+	BuildFlags []string
+
 	// If non-empty, these will be used instead of the
 	// process-wide values.
 	GOPATH, GOROOT, GO111MODULE, GOPROXY, GOFLAGS, GOSUMDB string
@@ -822,8 +823,13 @@ func (e *ProcessEnv) buildContext() *build.Context {
 	return &ctx
 }
 
-func (e *ProcessEnv) invokeGo(args ...string) (*bytes.Buffer, error) {
-	cmd := exec.Command("go", args...)
+func (e *ProcessEnv) invokeGo(verb string, args ...string) (*bytes.Buffer, error) {
+	goArgs := []string{verb}
+	if verb != "env" {
+		goArgs = append(goArgs, e.BuildFlags...)
+	}
+	goArgs = append(goArgs, args...)
+	cmd := exec.Command("go", goArgs...)
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 	cmd.Stdout = stdout
@@ -853,6 +859,10 @@ func cmdDebugStr(cmd *exec.Cmd) string {
 
 func addStdlibCandidates(pass *pass, refs references) {
 	add := func(pkg string) {
+		// Prevent self-imports.
+		if path.Base(pkg) == pass.f.Name.Name && filepath.Join(pass.env.GOROOT, "src", pkg) == pass.srcDir {
+			return
+		}
 		exports := copyExports(stdlib[pkg])
 		pass.addCandidate(
 			&ImportInfo{ImportPath: pkg},
