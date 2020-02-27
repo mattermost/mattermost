@@ -43,6 +43,14 @@ type MetricsInterface interface {
 
 	IncrementPostsSearchCounter()
 	ObservePostsSearchDuration(elapsed float64)
-	ObserveStoreMethodDuration(method string, success string, elapsed float64)
-	ObserveApiEndpointDuration(endpoint string, elapsed float64)
+	ObserveStoreMethodDuration(method, success string, elapsed float64)
+	ObserveApiEndpointDuration(endpoint, method string, elapsed float64)
+	IncrementPostIndexCounter()
+	IncrementUserIndexCounter()
+	IncrementChannelIndexCounter()
+
+	ObservePluginHookDuration(pluginID, hookName string, success bool, elapsed float64)
+	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
+	ObservePluginMultiHookDuration(elapsed float64)
+	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
 }

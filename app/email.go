@@ -55,7 +55,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	a.Srv.EmailRateLimiter = rateLimiter
+	a.Srv().EmailRateLimiter = rateLimiter
 	return nil
 }
 
@@ -170,6 +170,10 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 }
 
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+	if !*a.Config().EmailSettings.SendEmailNotifications && !*a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
+	}
+
 	T := utils.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
@@ -192,7 +196,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["AppDownloadLink"] = *a.Config().NativeAppSettings.AppDownloadLink
 	}
 
-	if !verified {
+	if !verified && *a.Config().EmailSettings.RequireEmailVerification {
 		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
@@ -298,18 +302,18 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 }
 
 func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	if a.Srv.EmailRateLimiter == nil {
-		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
+	if a.Srv().EmailRateLimiter == nil {
+		a.Log().Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
 		return
 	}
-	rateLimited, result, err := a.Srv.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := a.Srv().EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
-		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		a.Log().Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
 	}
 
 	if rateLimited {
-		a.Log.Error("Invite emails rate limited.",
+		a.Log().Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
@@ -345,7 +349,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			props["name"] = team.Name
 			data := model.MapToJson(props)
 
-			if err := a.Srv.Store.Token().Save(token); err != nil {
+			if err := a.Srv().Store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}
@@ -359,29 +363,29 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 }
 
 func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string) {
-	if a.Srv.EmailRateLimiter == nil {
-		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
+	if a.Srv().EmailRateLimiter == nil {
+		a.Log().Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
 		return
 	}
-	rateLimited, result, err := a.Srv.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := a.Srv().EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
-		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		a.Log().Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
 	}
 
 	sender, appErr := a.GetUser(senderUserId)
 	if appErr != nil {
-		a.Log.Error("Email invite not sent, unable to find the sender user.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
+		a.Log().Error("Email invite not sent, unable to find the sender user.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
 		return
 	}
 
 	senderProfileImage, _, appErr := a.GetProfileImage(sender)
 	if appErr != nil {
-		a.Log.Warn("Unable to get the sender user profile image.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
+		a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
 	}
 
 	if rateLimited {
-		a.Log.Error("Invite emails rate limited.",
+		a.Log().Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
@@ -433,7 +437,7 @@ func (a *App) SendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			props["name"] = team.Name
 			data := model.MapToJson(props)
 
-			if err := a.Srv.Store.Token().Save(token); err != nil {
+			if err := a.Srv().Store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
 				continue
 			}

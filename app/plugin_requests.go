@@ -24,7 +24,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		a.Log.Error(err.Error())
+		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(err.ToJson()))
@@ -34,7 +34,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		a.Log.Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
+		a.Log().Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
 		http.NotFound(w, r)
 		return
 	}
@@ -46,7 +46,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin enviroment not found.", http.StatusNotImplemented)
-		a.Log.Error(err.Error())
+		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(err.ToJson()))
@@ -55,8 +55,8 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
 	if err != nil {
-		a.Log.Error("Access to route for non-existent plugin in inter plugin request",
-			mlog.String("sourse_plugin_id", sourcePluginId),
+		a.Log().Error("Access to route for non-existent plugin in inter plugin request",
+			mlog.String("source_plugin_id", sourcePluginId),
 			mlog.String("destination_plugin_id", destinationPluginId),
 			mlog.Err(err),
 		)
@@ -166,9 +166,9 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 				}
 
 				if *a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-					a.Log.Warn(csrfErrorMessage, fields...)
+					a.Log().Warn(csrfErrorMessage, fields...)
 				} else {
-					a.Log.Debug(csrfErrorMessage, fields...)
+					a.Log().Debug(csrfErrorMessage, fields...)
 					csrfCheckPassed = true
 				}
 			}

@@ -33,7 +33,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
+func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -48,6 +48,9 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	config := memoryStore.Get()
+	if configSet != nil {
+		configSet(config)
+	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
@@ -78,7 +81,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	th.App.Srv.Store.MarkSystemRanUnitTests()
+	th.App.Srv().Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -105,11 +108,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, tb)
+	return setupTestHelper(true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, tb)
+	return setupTestHelper(false, tb, nil)
+}
+
+func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
+	return setupTestHelper(false, tb, configSet)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
@@ -192,6 +199,28 @@ func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	}
 	utils.EnableDebugLogForTest()
 	return user
+}
+
+func (me *TestHelper) CreateBot() *model.Bot {
+	id := model.NewId()
+
+	bot := &model.Bot{
+		Username:    "bot" + id,
+		DisplayName: "a bot",
+		Description: "bot",
+		OwnerId:     me.BasicUser.Id,
+	}
+
+	me.App.Log().SetConsoleLevel(mlog.LevelError)
+	bot, err := me.App.CreateBot(bot)
+	if err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	me.App.Log().SetConsoleLevel(mlog.LevelDebug)
+	return bot
 }
 
 func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
@@ -409,7 +438,7 @@ func (me *TestHelper) CreateGroup() *model.Group {
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
-	emoji, err := me.App.Srv.Store.Emoji().Save(&model.Emoji{
+	emoji, err := me.App.Srv().Store.Emoji().Save(&model.Emoji{
 		CreatorId: me.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
@@ -449,7 +478,7 @@ func (me *TestHelper) ShutdownApp() {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
 	}
@@ -500,13 +529,13 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount(false)
+	teamCount, err := me.App.Srv().Store.Team().AnalyticsTeamCount(false)
 	require.Nil(t, err, "Failed to get team count.")
 	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	count, err := me.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	require.Nilf(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }

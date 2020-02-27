@@ -923,7 +923,6 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 }
 
 func (ss *SqlSupplier) Close() {
-	mlog.Info("Closing SqlStore")
 	if ss.runner != nil {
 		ss.runner.WaitWithTimeout(1 * time.Second)
 	}
