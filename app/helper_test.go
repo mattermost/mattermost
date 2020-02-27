@@ -36,7 +36,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -48,6 +48,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB) *TestH
 	}
 
 	config := memoryStore.Get()
+	if configSet != nil {
+		configSet(config)
+	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
@@ -109,7 +112,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, true, tb)
+	return setupTestHelper(dbStore, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -120,12 +123,12 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, tb)
+	return setupTestHelper(dbStore, false, tb, nil)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, tb)
+	th := setupTestHelper(mockStore, false, tb, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -134,7 +137,27 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, tb)
+	th := setupTestHelper(mockStore, true, tb, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, tb, configSet)
+}
+
+func SetupWithStoreMockAndCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, true, tb, configSet)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
