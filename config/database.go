@@ -139,7 +139,7 @@ func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
 	if len(s) != 2 {
-		errors.New("failed to parse DSN as URL")
+		return "", "", errors.New("failed to parse DSN as URL")
 	}
 
 	scheme := s[0]
