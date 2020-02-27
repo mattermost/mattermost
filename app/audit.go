@@ -64,11 +64,11 @@ func NewAuditStoreTarget(filter logr.Filter, store store.AuditStore, maxQueue in
 // Write converts a log record to model.Audit and stores to database.
 func (t *AuditStoreTarget) Write(rec *logr.LogRec) error {
 	flds := rec.Fields()
-	infos := getExtraInfos(flds, MaxExtraInfoLen, audit.KeyUserID, audit.KeyUserID, audit.KeyAPIPath, audit.KeySessionID)
+	infos := getExtraInfos(flds, MaxExtraInfoLen, audit.KeyUserID, audit.KeyIPAddress, audit.KeyAPIPath, audit.KeySessionID)
 	for _, info := range infos {
 		audit := &model.Audit{
 			UserId:    getField(flds, audit.KeyUserID),
-			IpAddress: getField(flds, audit.KeyUserID),
+			IpAddress: getField(flds, audit.KeyIPAddress),
 			Action:    getField(flds, audit.KeyAPIPath),
 			SessionId: getField(flds, audit.KeySessionID),
 			ExtraInfo: info,

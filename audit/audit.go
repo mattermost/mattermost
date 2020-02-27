@@ -44,7 +44,6 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 // Log emits an audit record with complete info.
 func (a *Audit) LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
-	flds[KeyID] = IDGenerator()
 	flds[KeyAPIPath] = rec.APIPath
 	flds[KeyEvent] = rec.Event
 	flds[KeyStatus] = rec.Status

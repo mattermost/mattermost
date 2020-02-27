@@ -6,7 +6,6 @@ package audit
 const (
 	DefMaxQueueSize = 1000
 
-	KeyID        = "id"
 	KeyAPIPath   = "api_path"
 	KeyEvent     = "event"
 	KeyStatus    = "status"
