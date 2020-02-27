@@ -40,9 +40,7 @@ func TestGetOldClientLicense(t *testing.T) {
 	license, resp = th.SystemAdminClient.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	if len(license["IsLicensed"]) == 0 {
-		t.Fatal("license not returned correctly")
-	}
+	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
 }
 
 func TestUploadLicenseFile(t *testing.T) {
@@ -53,17 +51,13 @@ func TestUploadLicenseFile(t *testing.T) {
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 
 	t.Run("as system admin user", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
 		CheckBadRequestStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
@@ -71,9 +65,7 @@ func TestUploadLicenseFile(t *testing.T) {
 
 		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 }
 
@@ -85,17 +77,13 @@ func TestRemoveLicenseFile(t *testing.T) {
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 
 	t.Run("as system admin user", func(t *testing.T) {
 		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
 		CheckNoError(t, resp)
-		if !ok {
-			t.Fatal("should pass")
-		}
+		require.True(t, ok)
 	})
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
@@ -103,8 +91,6 @@ func TestRemoveLicenseFile(t *testing.T) {
 
 		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 }

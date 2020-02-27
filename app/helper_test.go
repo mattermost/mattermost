@@ -33,7 +33,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
+func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
@@ -48,6 +48,9 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	config := memoryStore.Get()
+	if configSet != nil {
+		configSet(config)
+	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
@@ -105,11 +108,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, tb)
+	return setupTestHelper(true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, tb)
+	return setupTestHelper(false, tb, nil)
+}
+
+func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
+	return setupTestHelper(false, tb, configSet)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
@@ -471,7 +478,7 @@ func (me *TestHelper) ShutdownApp() {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
 	}
