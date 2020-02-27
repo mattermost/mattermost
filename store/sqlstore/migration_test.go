@@ -74,11 +74,11 @@ func (m *mockMigration) Name() string {
 	return "sleep"
 }
 
-func (m *mockMigration) GetStatus(ss SqlStore) (asyncMigrationStatus, error) {
+func (m *mockMigration) GetStatus() (asyncMigrationStatus, error) {
 	return run, nil
 }
 
-func (m *mockMigration) Execute(ctx context.Context, ss SqlStore, conn *sql.Conn) (asyncMigrationStatus, error) {
+func (m *mockMigration) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrationStatus, error) {
 	select {
 	case <-m.Done: // if the first migration is complete, the second will return failed state here
 		m.SetResult(failed)

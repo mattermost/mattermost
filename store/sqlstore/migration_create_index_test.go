@@ -13,7 +13,7 @@ import (
 func createIndexTest(t *testing.T, r *MigrationRunner, ss *SqlSupplier) {
 	idxName := "idx_posts_root_id_delete_at"
 	defer ss.RemoveIndexIfExists(idxName, "Posts")
-	createIndex := NewCreateIndex(idxName, "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false)
+	createIndex := NewCreateIndex(ss, idxName, "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false)
 	err := r.Add(createIndex)
 	assert.Nil(t, err, "should have added migration")
 
@@ -36,7 +36,7 @@ func createIndexTestTableLocked(t *testing.T, r *MigrationRunner, ss *SqlSupplie
 	tx.SelectStr("SELECT '1' FROM Posts LIMIT 1")
 	defer tx.Rollback()
 
-	createIndex := NewCreateIndex(idxName, "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false)
+	createIndex := NewCreateIndex(ss, idxName, "Posts", []string{"RootId", "DeleteAt"}, INDEX_TYPE_DEFAULT, false)
 	err = r.Add(createIndex)
 	assert.Nil(t, err, "should have added migration")
 

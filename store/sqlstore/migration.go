@@ -38,9 +38,9 @@ type AsyncMigration interface {
 	// name of migration, must be unique among migrations - used for saving status in database
 	Name() string
 	// returns if migration should be run / was already executed
-	GetStatus(SqlStore) (asyncMigrationStatus, error)
+	GetStatus() (asyncMigrationStatus, error)
 	// exectutes migration, gets started transaction with lock timeouts set
-	Execute(context.Context, SqlStore, *sql.Conn) (asyncMigrationStatus, error)
+	Execute(context.Context, *sql.Conn) (asyncMigrationStatus, error)
 }
 
 // MigrationRunner runs queued async migrations
@@ -91,7 +91,7 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 		}
 	}
 	// get status from migration
-	status, err := m.GetStatus(r.supplier)
+	status, err := m.GetStatus()
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (r *MigrationRunner) Run() error {
 				defer releaseConnection(ctx, r.supplier, conn)
 
 				// run migration
-				status, err := m.Execute(ctx, r.supplier, conn)
+				status, err := m.Execute(ctx, conn)
 				if err != nil {
 					return errors.Wrap(err, "failed to execute migration")
 				}

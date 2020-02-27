@@ -11,7 +11,7 @@ import (
 
 func dropIndexTest(t *testing.T, r *MigrationRunner, ss *SqlSupplier) {
 	idxName := "idx_posts_channel_id"
-	dropIndex := NewDropIndex(idxName, "Posts")
+	dropIndex := NewDropIndex(ss, idxName, "Posts")
 	err := r.Add(dropIndex)
 	assert.Nil(t, err, "should have added migration")
 	defer ss.System().PermanentDeleteByName("migration_" + dropIndex.Name())
@@ -33,7 +33,7 @@ func dropIndexTestTableLocked(t *testing.T, r *MigrationRunner, ss *SqlSupplier)
 	tx.SelectStr("SELECT '1' FROM Posts LIMIT 1")
 	defer tx.Rollback()
 
-	dropIndex := NewDropIndex(idxName, "Posts")
+	dropIndex := NewDropIndex(ss, idxName, "Posts")
 	err = r.Add(dropIndex)
 	assert.Nil(t, err, "should have added migration")
 	defer ss.System().PermanentDeleteByName("migration_" + dropIndex.Name())
