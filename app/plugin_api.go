@@ -247,6 +247,18 @@ func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	return api.app.GetPreferencesForUser(userId)
+}
+
+func (api *PluginAPI) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.UpdatePreferences(userId, preferences)
+}
+
+func (api *PluginAPI) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.DeletePreferences(userId, preferences)
+}
+
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
 }

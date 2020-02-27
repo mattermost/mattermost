@@ -387,6 +387,22 @@ func (_m *API) DeletePost(postId string) *model.AppError {
 	return r0
 }
 
+// DeletePreferencesForUser provides a mock function with given fields: userId, preferences
+func (_m *API) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	ret := _m.Called(userId, preferences)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []model.Preference) *model.AppError); ok {
+		r0 = rf(userId, preferences)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteTeam provides a mock function with given fields: teamId
 func (_m *API) DeleteTeam(teamId string) *model.AppError {
 	ret := _m.Called(teamId)
@@ -1396,6 +1412,31 @@ func (_m *API) GetPostsSince(channelId string, time int64) (*model.PostList, *mo
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
 		r1 = rf(channelId, time)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPreferencesForUser provides a mock function with given fields: userId
+func (_m *API) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	ret := _m.Called(userId)
+
+	var r0 []model.Preference
+	if rf, ok := ret.Get(0).(func(string) []model.Preference); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Preference)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2859,6 +2900,22 @@ func (_m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	}
 
 	return r0, r1
+}
+
+// UpdatePreferencesForUser provides a mock function with given fields: userId, preferences
+func (_m *API) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	ret := _m.Called(userId, preferences)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []model.Preference) *model.AppError); ok {
+		r0 = rf(userId, preferences)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UpdateTeam provides a mock function with given fields: team

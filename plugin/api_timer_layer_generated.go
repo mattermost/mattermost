@@ -182,6 +182,27 @@ func (api *apiTimerLayer) GetUsersInTeam(teamId string, page int, perPage int) (
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPreferencesForUser(userId)
+	api.recordTime(startTime, "GetPreferencesForUser", true)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UpdatePreferencesForUser(userId, preferences)
+	api.recordTime(startTime, "UpdatePreferencesForUser", true)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeletePreferencesForUser(userId, preferences)
+	api.recordTime(startTime, "DeletePreferencesForUser", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetTeamIcon(teamId)
