@@ -33,38 +33,38 @@ func (m *DropIndex) Name() string {
 }
 
 // GetStatus returns if the migration should be executed or not
-func (m *DropIndex) GetStatus() (asyncMigrationStatus, error) {
+func (m *DropIndex) GetStatus() (model.AsyncMigrationStatus, error) {
 	if m.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, errExists := m.sqlStore.GetMaster().SelectStr("SELECT $1::regclass", m.name)
 		// It should fail if the index does not exist
 		if errExists != nil {
-			return skip, nil
+			return model.MigrationStatusSkip, nil
 		}
 	} else if m.sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		count, err := m.sqlStore.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", m.table, m.name)
 		if err != nil {
-			return unknown, err
+			return model.MigrationStatusUnknown, err
 		}
 		if count == 0 {
-			return skip, nil
+			return model.MigrationStatusSkip, nil
 		}
 	}
-	return run, nil
+	return model.MigrationStatusRun, nil
 }
 
 // Execute runs the migration
 // Explicit connection is passed so that all queries run in a single session
-func (m *DropIndex) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrationStatus, error) {
+func (m *DropIndex) Execute(ctx context.Context, conn *sql.Conn) (model.AsyncMigrationStatus, error) {
 	if m.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := conn.ExecContext(ctx, "DROP INDEX CONCURRENTLY "+m.name)
 		if err != nil {
-			return failed, err
+			return model.MigrationStatusFailed, err
 		}
 	} else if m.sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := conn.ExecContext(ctx, "DROP INDEX "+m.name+" ON "+m.table)
 		if err != nil {
-			return failed, err
+			return model.MigrationStatusFailed, err
 		}
 	}
-	return complete, nil
+	return model.MigrationStatusComplete, nil
 }

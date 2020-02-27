@@ -23,24 +23,14 @@ const (
 	migrationDefaultNumRetries      = 3
 )
 
-type asyncMigrationStatus string
-
-const (
-	unknown  asyncMigrationStatus = ""
-	run      asyncMigrationStatus = "run"      // migration should be run
-	skip     asyncMigrationStatus = "skip"     // migration should be skipped (not sure if needed?)
-	complete asyncMigrationStatus = "complete" // migration was already executed
-	failed   asyncMigrationStatus = "failed"   // migration has failed
-)
-
 // AsyncMigration executes a single database migration that allows concurrent DML
 type AsyncMigration interface {
 	// name of migration, must be unique among migrations - used for saving status in database
 	Name() string
 	// returns if migration should be run / was already executed
-	GetStatus() (asyncMigrationStatus, error)
+	GetStatus() (model.AsyncMigrationStatus, error)
 	// exectutes migration, gets started transaction with lock timeouts set
-	Execute(context.Context, *sql.Conn) (asyncMigrationStatus, error)
+	Execute(context.Context, *sql.Conn) (model.AsyncMigrationStatus, error)
 }
 
 // MigrationRunner runs queued async migrations
@@ -86,7 +76,7 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 	// check status in Systems table
 	currentStatus, appErr := r.supplier.System().GetByName("migration_" + m.Name())
 	if appErr == nil {
-		if currentStatus.Value == string(complete) || currentStatus.Value == string(skip) {
+		if currentStatus.Value == string(model.MigrationStatusComplete) || currentStatus.Value == string(model.MigrationStatusSkip) {
 			return nil
 		}
 	}
@@ -95,7 +85,7 @@ func (r *MigrationRunner) Add(m AsyncMigration) error {
 	if err != nil {
 		return err
 	}
-	if status == complete || status == skip {
+	if status == model.MigrationStatusComplete || status == model.MigrationStatusSkip {
 		return nil
 	}
 	r.migrations = append(r.migrations, m)
@@ -142,10 +132,10 @@ func (r *MigrationRunner) Run() error {
 					return errors.Wrap(err, "failed to execute migration")
 				}
 				switch status {
-				case complete, skip:
+				case model.MigrationStatusComplete, model.MigrationStatusSkip:
 					// save migration status
 					r.supplier.System().SaveOrUpdate(&model.System{Name: "migration_" + m.Name(), Value: string(status)})
-				case failed:
+				case model.MigrationStatusFailed:
 					return errors.New("failed migration " + m.Name())
 				default:
 					// should we return error here to retry?

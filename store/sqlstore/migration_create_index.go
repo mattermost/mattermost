@@ -59,15 +59,15 @@ func checkPostgreSQLIndex(ss SqlStore, name string) (*pgIndexData, error) {
 }
 
 // GetStatus returns if the migration should be executed or not
-func (m *CreateIndex) GetStatus() (asyncMigrationStatus, error) {
+func (m *CreateIndex) GetStatus() (model.AsyncMigrationStatus, error) {
 	if m.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		if m.indexType == INDEX_TYPE_FULL_TEXT && len(m.columns) != 1 {
-			return failed, errors.New("Unable to create multi column full text index")
+			return model.MigrationStatusFailed, errors.New("Unable to create multi column full text index")
 		}
 		idxData, err := checkPostgreSQLIndex(m.sqlStore, m.name)
 		// other error means something went wrong
 		if err != nil {
-			return unknown, err
+			return model.MigrationStatusUnknown, err
 		}
 		// check if the index is invalid, this can happen if create index concurrently was aborted
 		// in that case we have to drop this index and create it again
@@ -75,28 +75,28 @@ func (m *CreateIndex) GetStatus() (asyncMigrationStatus, error) {
 		if idxData != nil && !idxData.IsValid {
 			_, err = m.sqlStore.GetMaster().ExecNoTimeout("DROP INDEX " + m.name)
 			if err != nil {
-				return unknown, err
+				return model.MigrationStatusUnknown, err
 			}
 		}
-		return run, nil
+		return model.MigrationStatusRun, nil
 	} else if m.sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if m.indexType == INDEX_TYPE_FULL_TEXT {
-			return failed, errors.New("Unable to create full text index concurrently")
+			return model.MigrationStatusFailed, errors.New("Unable to create full text index concurrently")
 		}
 		count, err := m.sqlStore.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", m.table, m.name)
 		if err != nil {
-			return unknown, err
+			return model.MigrationStatusUnknown, err
 		}
 		if count > 0 {
-			return skip, nil
+			return model.MigrationStatusSkip, nil
 		}
 	}
-	return run, nil
+	return model.MigrationStatusRun, nil
 }
 
 // Execute runs the migration
 // Explicit connection is passed so that all queries run in a single session
-func (m *CreateIndex) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrationStatus, error) {
+func (m *CreateIndex) Execute(ctx context.Context, conn *sql.Conn) (model.AsyncMigrationStatus, error) {
 	uniqueStr := ""
 	if m.unique {
 		uniqueStr = "UNIQUE "
@@ -107,14 +107,14 @@ func (m *CreateIndex) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrati
 		// but I'm not sure if it's really necessary
 		idxData, err := checkPostgreSQLIndex(m.sqlStore, m.name)
 		if err != nil {
-			return unknown, err
+			return model.MigrationStatusUnknown, err
 		}
 		// check if the index is invalid
 		// in that case we have to drop this index and create it again
 		if idxData != nil && !idxData.IsValid {
 			_, err = conn.ExecContext(ctx, "DROP INDEX "+m.name)
 			if err != nil {
-				return unknown, err
+				return model.MigrationStatusUnknown, err
 			}
 		}
 		query := ""
@@ -128,13 +128,13 @@ func (m *CreateIndex) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrati
 
 		_, err = conn.ExecContext(ctx, query)
 		if err != nil {
-			return failed, err
+			return model.MigrationStatusFailed, err
 		}
 	} else if m.sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := conn.ExecContext(ctx, "CREATE  "+uniqueStr+" INDEX "+m.name+" ON "+m.table+" ("+strings.Join(m.columns, ", ")+")")
 		if err != nil {
-			return failed, err
+			return model.MigrationStatusFailed, err
 		}
 	}
-	return complete, nil
+	return model.MigrationStatusComplete, nil
 }

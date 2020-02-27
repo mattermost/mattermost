@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cluster"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -55,16 +56,16 @@ type mockMigration struct {
 	SleepTime time.Duration
 	Done      chan struct{}
 	mu        sync.Mutex
-	result    asyncMigrationStatus
+	result    model.AsyncMigrationStatus
 }
 
-func (m *mockMigration) SetResult(result asyncMigrationStatus) {
+func (m *mockMigration) SetResult(result model.AsyncMigrationStatus) {
 	m.mu.Lock()
 	m.result = result
 	m.mu.Unlock()
 }
 
-func (m *mockMigration) GetResult() asyncMigrationStatus {
+func (m *mockMigration) GetResult() model.AsyncMigrationStatus {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	return m.result
@@ -74,22 +75,22 @@ func (m *mockMigration) Name() string {
 	return "sleep"
 }
 
-func (m *mockMigration) GetStatus() (asyncMigrationStatus, error) {
-	return run, nil
+func (m *mockMigration) GetStatus() (model.AsyncMigrationStatus, error) {
+	return model.MigrationStatusRun, nil
 }
 
-func (m *mockMigration) Execute(ctx context.Context, conn *sql.Conn) (asyncMigrationStatus, error) {
+func (m *mockMigration) Execute(ctx context.Context, conn *sql.Conn) (model.AsyncMigrationStatus, error) {
 	select {
 	case <-m.Done: // if the first migration is complete, the second will return failed state here
-		m.SetResult(failed)
-		return failed, errors.New("failed")
+		m.SetResult(model.MigrationStatusFailed)
+		return model.MigrationStatusFailed, errors.New("failed")
 	case <-time.After(m.SleepTime):
 		close(m.Done)
-		m.SetResult(complete)
-		return complete, nil
+		m.SetResult(model.MigrationStatusComplete)
+		return model.MigrationStatusComplete, nil
 	case <-ctx.Done():
-		m.SetResult(unknown)
-		return unknown, errors.New("canceled")
+		m.SetResult(model.MigrationStatusUnknown)
+		return model.MigrationStatusUnknown, errors.New("canceled")
 	}
 }
 
@@ -124,6 +125,6 @@ func TestAsyncMigrationLocking(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	runner2.Cancel()
 
-	assert.Equal(t, complete, migration1.GetResult())
-	assert.Equal(t, failed, migration2.GetResult())
+	assert.Equal(t, model.MigrationStatusComplete, migration1.GetResult())
+	assert.Equal(t, model.MigrationStatusFailed, migration2.GetResult())
 }
