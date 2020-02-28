@@ -2522,6 +2522,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	result, appErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	require.Nil(t, appErr)
 	initialPostCount := result
+	initialDate := model.GetMillis()
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
 		data := &DirectPostImportData{
@@ -2575,7 +2576,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(123456),
+			CreateAt: ptrInt64(initialDate),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2600,7 +2601,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(123456),
+			CreateAt: ptrInt64(initialDate),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2625,7 +2626,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(123456 + 1),
+			CreateAt: ptrInt64(initialDate + 1),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2640,7 +2641,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message 2"),
-			CreateAt: ptrInt64(123456 + 1),
+			CreateAt: ptrInt64(initialDate + 1),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2655,7 +2656,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message 2 #hashtagmashupcity"),
-			CreateAt: ptrInt64(123456 + 2),
+			CreateAt: ptrInt64(initialDate + 2),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2787,7 +2788,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(654321),
+			CreateAt: ptrInt64(initialDate + 10),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2813,7 +2814,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(654321),
+			CreateAt: ptrInt64(initialDate + 10),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2839,7 +2840,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message"),
-			CreateAt: ptrInt64(654321 + 1),
+			CreateAt: ptrInt64(initialDate + 11),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2855,7 +2856,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message 2"),
-			CreateAt: ptrInt64(654321 + 1),
+			CreateAt: ptrInt64(initialDate + 11),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2871,7 +2872,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			},
 			User:     ptrStr(th.BasicUser.Username),
 			Message:  ptrStr("Message 2 #hashtagmashupcity"),
-			CreateAt: ptrInt64(654321 + 2),
+			CreateAt: ptrInt64(initialDate + 12),
 		}
 		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
 		require.Nil(t, err)
@@ -2920,8 +2921,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
-		reactionPostTime := ptrInt64(754321 + 2)
-		reactionTime := ptrInt64(754321 + 3)
+		reactionPostTime := ptrInt64(initialDate + 22)
+		reactionTime := ptrInt64(initialDate + 23)
 		data := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				th.BasicUser.Username,
@@ -2959,8 +2960,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Post with reply", func(t *testing.T) {
-		replyPostTime := ptrInt64(754321 + 5)
-		replyTime := ptrInt64(754321 + 6)
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 26)
 		data := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				th.BasicUser.Username,
@@ -3005,8 +3006,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Update post with replies", func(t *testing.T) {
-		replyPostTime := ptrInt64(754321 + 5)
-		replyTime := ptrInt64(754321 + 6)
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 26)
 		data := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				th.BasicUser.Username,
@@ -3029,8 +3030,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
-		replyPostTime := ptrInt64(754321 + 9)
-		replyTime := ptrInt64(754321 + 10)
+		replyPostTime := ptrInt64(initialDate + 27)
+		replyTime := ptrInt64(initialDate + 28)
 		data := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				th.BasicUser.Username,
@@ -3053,8 +3054,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 
 	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
-		replyPostTime := ptrInt64(754321 + 5)
-		replyTime := ptrInt64(754321 + 12)
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 29)
 		data := &DirectPostImportData{
 			ChannelMembers: &[]string{
 				th.BasicUser.Username,
