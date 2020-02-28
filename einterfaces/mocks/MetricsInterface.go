@@ -21,6 +21,16 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// DecrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, amount float64) {
+	_m.Called(hub, amount)
+}
+
+// IncrementChannelIndexCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementChannelIndexCounter() {
+	_m.Called()
+}
+
 // IncrementClusterEventType provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementClusterEventType(eventType string) {
 	_m.Called(eventType)
@@ -106,6 +116,11 @@ func (_m *MetricsInterface) IncrementPostFileAttachment(count int) {
 	_m.Called(count)
 }
 
+// IncrementPostIndexCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementPostIndexCounter() {
+	_m.Called()
+}
+
 // IncrementPostSentEmail provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementPostSentEmail() {
 	_m.Called()
@@ -121,9 +136,19 @@ func (_m *MetricsInterface) IncrementPostsSearchCounter() {
 	_m.Called()
 }
 
+// IncrementUserIndexCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementUserIndexCounter() {
+	_m.Called()
+}
+
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
 	_m.Called(eventType)
+}
+
+// IncrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) IncrementWebSocketBroadcastBufferSize(hub string, amount float64) {
+	_m.Called(hub, amount)
 }
 
 // IncrementWebhookPost provides a mock function with given fields:
@@ -136,6 +161,11 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
 	_m.Called(eventType)
 }
 
+// ObserveApiEndpointDuration provides a mock function with given fields: endpoint, method, elapsed
+func (_m *MetricsInterface) ObserveApiEndpointDuration(endpoint string, method string, elapsed float64) {
+	_m.Called(endpoint, method, elapsed)
+}
+
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
@@ -146,9 +176,34 @@ func (_m *MetricsInterface) ObserveHttpRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
+func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, success bool, elapsed float64) {
+	_m.Called(pluginID, apiName, success, elapsed)
+}
+
+// ObservePluginHookDuration provides a mock function with given fields: pluginID, hookName, success, elapsed
+func (_m *MetricsInterface) ObservePluginHookDuration(pluginID string, hookName string, success bool, elapsed float64) {
+	_m.Called(pluginID, hookName, success, elapsed)
+}
+
+// ObservePluginMultiHookDuration provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObservePluginMultiHookDuration(elapsed float64) {
+	_m.Called(elapsed)
+}
+
+// ObservePluginMultiHookIterationDuration provides a mock function with given fields: pluginID, elapsed
+func (_m *MetricsInterface) ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64) {
+	_m.Called(pluginID, elapsed)
+}
+
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed
+func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success string, elapsed float64) {
+	_m.Called(method, success, elapsed)
 }
 
 // StartServer provides a mock function with given fields:
