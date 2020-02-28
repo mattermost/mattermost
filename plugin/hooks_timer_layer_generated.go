@@ -150,3 +150,10 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	hooks.recordTime(startTime, "FileWillBeUploaded", true)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) OnPluginStatusesChanged(c *Context) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnPluginStatusesChanged(c)
+	hooks.recordTime(startTime, "OnPluginStatusesChanged", true)
+	return _returnsA
+}

@@ -1131,3 +1131,31 @@ func TestHookMetrics(t *testing.T) {
 		metricsMock.AssertExpectations(t)
 	})
 }
+
+func TestOnPluginStatusesChanged(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+		func (p *MyPlugin) OnPluginStatusesChanged(c *plugin.Context) {
+			p.API.GetPluginStatuses
+		}
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+
+	_, err := th.App.GetPluginStatuses()
+	require.Nil(t, err)
+}

@@ -475,6 +475,41 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["OnPluginStatusesChanged"] = OnPluginStatusesChangedId
+}
+
+type Z_OnPluginStatusesChangedArgs struct {
+	A *Context
+}
+
+type Z_OnPluginStatusesChangedReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnPluginStatusesChanged(c *Context) error {
+	_args := &Z_OnPluginStatusesChangedArgs{c}
+	_returns := &Z_OnPluginStatusesChangedReturns{}
+	if g.implemented[OnPluginStatusesChangedId] {
+		if err := g.client.Call("Plugin.OnPluginStatusesChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnPluginStatusesChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnPluginStatusesChanged(args *Z_OnPluginStatusesChangedArgs, returns *Z_OnPluginStatusesChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnPluginStatusesChanged(c *Context) error
+	}); ok {
+		returns.A = hook.OnPluginStatusesChanged(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnPluginStatusesChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

@@ -82,5 +82,15 @@ func (a *App) notifyPluginStatusesChanged() error {
 	message.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(message)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.OnPluginStatusesChanged(pluginContext, user)
+				return true
+			}, plugin.OnPluginStatusesChangedId)
+		})
+	}
+
 	return nil
 }

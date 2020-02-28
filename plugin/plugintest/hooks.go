@@ -194,6 +194,20 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// OnPluginStatusesChanged provides a mock function with given fields: c
+func (_m *Hooks) OnPluginStatusesChanged(c *plugin.Context) error {
+	ret := _m.Called(c)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*plugin.Context) error); ok {
+		r0 = rf(c)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
