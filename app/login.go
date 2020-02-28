@@ -80,6 +80,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// If we are given a userID then fail if we can't find a user with that ID
 	if len(id) != 0 {
+		a.Srv().Store.User().InvalidateProfileCacheForUser(id)
 		user, err := a.GetUser(id)
 		if err != nil {
 			if err.Id != store.MISSING_ACCOUNT_ERROR {

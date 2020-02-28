@@ -107,8 +107,8 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	for _, userId := range userIds {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
 			u := cacheItem.(*model.User)
-			cu := u.DeepCopy()
 			if options.Since == 0 || u.UpdateAt > options.Since {
+				cu := u.DeepCopy()
 				cu.Sanitize(map[string]bool{})
 				users = append(users, cu)
 			}
@@ -122,13 +122,15 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 	}
 
-	for _, id := range remainingUserIds {
-		user, err := s.Get(id)
+	if len(remainingUserIds) > 0 {
+		remainingUsers, err := s.UserStore.GetProfileByIds(remainingUserIds, options, false)
 		if err != nil {
-			continue // may not be found in the store
+			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		user.Sanitize(map[string]bool{})
-		users = append(users, user)
+		for _, user := range remainingUsers {
+			users = append(users, user.DeepCopy())
+			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+		}
 	}
 
 	return users, nil

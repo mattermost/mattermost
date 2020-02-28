@@ -31,10 +31,10 @@ func TestUserStoreCache(t *testing.T) {
 		gotUser, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.Nil(t, err)
 		assert.Equal(t, fakeUser, gotUser)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
 		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 	})
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
@@ -45,10 +45,10 @@ func TestUserStoreCache(t *testing.T) {
 		gotUser, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.Nil(t, err)
 		assert.Equal(t, fakeUser, gotUser)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
 		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, false)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
@@ -63,7 +63,7 @@ func TestUserStoreCache(t *testing.T) {
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
 		_, _ = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 2)
 	})
 
 	t.Run("should always return a copy of the stored data", func(t *testing.T) {
