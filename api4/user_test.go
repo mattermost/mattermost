@@ -690,6 +690,21 @@ func TestGetUserByUsername(t *testing.T) {
 		require.Nil(t, resp.Error)
 		require.Equal(t, ruser.Id, newUser.Id)
 	})
+
+	t.Run("Get user with a /../ quoted character sequence in the email", func(t *testing.T) {
+		user := &model.User{
+			Email:    "\"email/../with/slashes\"@example.com",
+			Username: GenerateTestUsername(),
+			Password: "Pa$$word11",
+		}
+
+		newUser, resp := th.SystemAdminClient.CreateUser(user)
+		require.Nil(t, resp.Error)
+
+		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, newUser.Id)
+	})
 }
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {

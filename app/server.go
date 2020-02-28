@@ -138,6 +138,7 @@ type Server struct {
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
+	rootRouter.SkipClean(true)
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
