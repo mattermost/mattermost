@@ -343,6 +343,9 @@ func (h *Hub) Unregister(webConn *WebConn) {
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	if h != nil && h.broadcast != nil && message != nil {
+		if metrics := h.app.Metrics(); metrics != nil {
+			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
+		}
 		select {
 		case h.broadcast <- message:
 		case <-h.didStop:
@@ -433,6 +436,9 @@ func (h *Hub) Start() {
 					}
 				}
 			case msg := <-h.broadcast:
+				if metrics := h.app.Metrics(); metrics != nil {
+					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
+				}
 				candidates := connections.All()
 				if msg.GetBroadcast().UserId != "" {
 					candidates = connections.ForUser(msg.GetBroadcast().UserId)
