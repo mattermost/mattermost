@@ -85,7 +85,7 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Failed to obtain metadata from Identity Provider URL."
+    "translation": "제공된 URL로부터 메타정보를 얻는데 실패했습니다."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
@@ -3572,7 +3572,7 @@
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "An error occurred extracting the plugin bundle."
+    "translation": "플러그인 번들을 추출하는 중에 오류가 발생했습니다."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -7604,7 +7604,7 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
-    "translation": "Google Chrome"
+    "translation": "구글 크롬"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
@@ -7632,11 +7632,11 @@
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
-    "translation": "Install Guide"
+    "translation": "설치 가이드"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.windows",
-    "translation": "Install Guide"
+    "translation": "설치 가이드"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -7664,7 +7664,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 7+"
+    "translation": "윈도우 7 이상"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
@@ -7684,7 +7684,7 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
-    "translation": "or"
+    "translation": "또는"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",

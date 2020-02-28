@@ -285,7 +285,7 @@
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "% v долучився до каналу"
+    "translation": "%v долучився до каналу."
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synched to this channel."
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "This team is managed by groups.  This user is not part of a group that is synched to this team."
+    "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Guests are restricted from joining a team with a invite link. Please request a guest email invitation to the team."
+    "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",

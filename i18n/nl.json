@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dit kanaal wordt beheerd door groepen. De gebruiker is geen lid van de groep die verbonden is met dit kanaal."
+    "translation": "Dit kanaal wordt beheerd door groepen.  De gebruiker is geen lid van een groep die verbonden is met dit kanaal."
   },
   {
     "id": "api.command_invite.hint",
@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Dit kanaal wordt beheerd door groepen. De gebruiker is geen lid van de groep die verbonden is met dit kanaal."
+    "translation": "Dit kanaal wordt beheerd door groepen.  De gebruiker is geen lid van een groep die verbonden is met dit kanaal."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Gasten kunnen enkel lid worden van het team via een uitnodigingslink. Vraag een uitnodingslink aan."
+    "translation": "Gasten kunnen enkel lid worden van het team via een uitnodigingslink. Vraag een gastuitnodingslink aan."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
