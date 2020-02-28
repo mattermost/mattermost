@@ -831,12 +831,12 @@ func TestGetChannelsForUser(t *testing.T) {
 	// Now we get all the non-archived channels for the user
 	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
 	require.Nil(t, err)
-	require.Equal(t, *channelList, 3)
+	require.Len(t, *channelList, 3)
 
 	// Now we get all the channels, even though are archived, for the user
 	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true)
 	require.Nil(t, err)
-	require.Equal(t, *channelList, 4)
+	require.Len(t, *channelList, 4)
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
