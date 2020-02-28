@@ -37,13 +37,16 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	scanner := bufio.NewScanner(fileReader)
 	lineNumber := 0
 
-	a.Srv().Store.LockToMaster()
-	defer a.Srv().Store.UnlockFromMaster()
+	// a.Srv.Store.LockToMaster()
+	// defer a.Srv.Store.UnlockFromMaster()
 
 	errorsChan := make(chan LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
+
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 4096*4096)
 
 	for scanner.Scan() {
 		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
@@ -104,7 +107,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	}
 
 	// No more lines. Clear out the worker queue before continuing.
-	close(linesChan)
+	if linesChan != nil {
+		close(linesChan)
+	}
 	wg.Wait()
 
 	// Check no errors occurred while waiting for the queue to empty.
@@ -117,10 +122,6 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 
 	if err := scanner.Err(); err != nil {
 		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
-	}
-
-	if err := a.finalizeImport(dryRun); err != nil {
-		return err, 0
 	}
 
 	return nil, 0
@@ -179,11 +180,4 @@ func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
 	}
-}
-
-func (a *App) finalizeImport(dryRun bool) *model.AppError {
-	if dryRun {
-		return nil
-	}
-	return nil
 }
