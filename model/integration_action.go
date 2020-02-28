@@ -52,8 +52,7 @@ type PostAction struct {
 	// are "users" and "channels".
 	DataSource string `json:"data_source,omitempty"`
 
-	// Options contains either the buttons that will be displayed on the post
-	// or the values listed in a select dropdowon on the post.
+	// Options contains the values listed in a select dropdown on the post.
 	Options []*PostActionOptions `json:"options,omitempty"`
 
 	// DefaultOption contains the option, if any, that will appear as the
