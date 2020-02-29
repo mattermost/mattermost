@@ -51,7 +51,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
-	mlog.Error("Audit Queue Full", mlog.String("qname", qname), mlog.Int("maxQSize", maxQSize))
+	mlog.Warn("Audit Queue Full", mlog.String("qname", qname), mlog.Int("maxQSize", maxQSize))
 }
 
 func (s *Server) onAuditError(err error) {
