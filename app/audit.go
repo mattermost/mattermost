@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 
@@ -44,6 +45,17 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 	filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
 	target := NewAuditStoreTarget(filter, s.Store.Audit(), audit.DefMaxQueueSize)
 	adt.AddTarget(target)
+
+	adt.OnQueueFull = s.onAuditTargetQueueFull
+	adt.OnError = s.onAuditError
+}
+
+func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
+	mlog.Error("Audit Queue Full", mlog.String("qname", qname), mlog.Int("maxQSize", maxQSize))
+}
+
+func (s *Server) onAuditError(err error) {
+	mlog.Error("Audit Error", mlog.String("err", err.Error()))
 }
 
 const MaxExtraInfoLen = 1024
