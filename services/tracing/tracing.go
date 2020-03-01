@@ -18,6 +18,7 @@ import (
 	"github.com/uber/jaeger-client-go/zipkin"
 )
 
+// Tracer is a wrapper around Jaeger OpenTracing client, used to properly de-initialize jaeger on exit
 type Tracer struct {
 	closer io.Closer
 }
@@ -26,18 +27,17 @@ type LogrusAdapter struct {
 }
 
 // Error - logrus adapter for span errors
-func (l LogrusAdapter) Error(msg string) {
+func (LogrusAdapter) Error(msg string) {
 	mlog.Error(msg)
 }
 
 // Infof - logrus adapter for span info logging
-func (l LogrusAdapter) Infof(msg string, args ...interface{}) {
+func (LogrusAdapter) Infof(msg string, args ...interface{}) {
 	// we ignore Info messages from opentracing
 }
 
 // New instantiates Jaeger opentracing client with default options
 // To override the defaults use environment variables listed here: https://github.com/jaegertracing/jaeger-client-go/blob/master/config/config.go
-
 func New() (*Tracer, error) {
 	cfg := jaegercfg.Configuration{
 		Sampler: &jaegercfg.SamplerConfig{
@@ -60,7 +60,6 @@ func New() (*Tracer, error) {
 		jaegercfg.Extractor(opentracing.HTTPHeaders, zipkinPropagator),
 		jaegercfg.ZipkinSharedRPCSpan(true),
 	)
-
 	if err != nil {
 		return nil, err
 	}

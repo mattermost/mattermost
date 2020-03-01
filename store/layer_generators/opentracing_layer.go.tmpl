@@ -8,6 +8,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
@@ -48,19 +49,17 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 		{{end}}
 	{{end}}
 	defer span.Finish()
-
-	{{if $element.Results | len | eq 0}}
+	{{- if $element.Results | len | eq 0}}
 	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{ else }}
-	{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{if $element.Results | errorPresent }}
-		if {{$element.Results | errorVar}} != nil {
-			span.LogFields(spanlog.Error({{$element.Results | errorVar}}))
-			ext.Error.Set(span, true)
-		}
-	{{end}}
-	
-	return {{ $element.Results | genResultsVars }}
+		{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
+		{{- if $element.Results | errorPresent }}
+			if {{$element.Results | errorVar}} != nil {
+				span.LogFields(spanlog.Error({{$element.Results | errorVar}}))
+				ext.Error.Set(span, true)
+			}
+		{{end}}	
+		return {{ $element.Results | genResultsVars -}}
 	{{ end }}
 }
 {{end}}

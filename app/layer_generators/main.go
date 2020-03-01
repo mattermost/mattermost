@@ -11,6 +11,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -19,75 +20,125 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-var reserved = []string{"AcceptLanguage", "AccountMigration", "Cluster", "Compliance", "Context", "DataRetention", "Elasticsearch", "HTTPService", "ImageProxy", "IpAddress", "Ldap", "Log", "MessageExport", "Metrics", "Notification", "NotificationsLog", "Path", "RequestId", "Saml", "Session", "SetIpAddress", "SetRequestId", "SetSession", "SetStore", "SetT", "Srv", "Store", "T", "Timezones", "UserAgent", "SetUserAgent", "SetAcceptLanguage", "SetPath", "SetContext", "SetServer", "GetT"}
+var (
+	reserved           = []string{"AcceptLanguage", "AccountMigration", "Cluster", "Compliance", "Context", "DataRetention", "Elasticsearch", "HTTPService", "ImageProxy", "IpAddress", "Ldap", "Log", "MessageExport", "Metrics", "Notification", "NotificationsLog", "Path", "RequestId", "Saml", "Session", "SetIpAddress", "SetRequestId", "SetSession", "SetStore", "SetT", "Srv", "Store", "T", "Timezones", "UserAgent", "SetUserAgent", "SetAcceptLanguage", "SetPath", "SetContext", "SetServer", "GetT"}
+	outputFile         string
+	inputFile          string
+	outputFileTemplate string
+)
 
-var outputFile string
-var inputFile string
-var outputFileTemplate string
+const (
+	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+	APP_ERROR_TYPE             = "*model.AppError"
+)
 
-const OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
-
-func main() {
+func init() {
 	flag.StringVar(&inputFile, "in", path.Join("..", "app_iface.go"), "App interface file")
 	flag.StringVar(&outputFile, "out", path.Join("..", "opentracing_layer.go"), "Output file")
 	flag.StringVar(&outputFileTemplate, "template", "opentracing_layer.go.tmpl", "Output template file")
 	flag.Parse()
-	BuildOpenTracingAppLayer()
 }
 
-func BuildOpenTracingAppLayer() {
-	code := GenerateLayer("OpenTracingAppLayer", outputFileTemplate)
-	formattedCode, err := imports.Process(outputFile, []byte(code), &imports.Options{Comments: true})
+func main() {
+	code, err := generateLayer("OpenTracingAppLayer", outputFileTemplate)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+	formattedCode, err := imports.Process(outputFile, code, &imports.Options{Comments: true})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	err = ioutil.WriteFile(outputFile, formattedCode, 0644)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
-type Param struct {
+type methodParam struct {
 	Name string
 	Type string
 }
 
-type Method struct {
+type methodData struct {
 	ParamsToTrace map[string]bool
-	Params        []Param
+	Params        []methodParam
 	Results       []string
 }
 
-type StoreMetadata struct {
+type storeMetadata struct {
 	Name    string
-	Methods map[string]Method
+	Methods map[string]methodData
 }
 
 func formatNode(src []byte, node ast.Expr) string {
 	return string(src[node.Pos()-1 : node.End()-1])
 }
 
-func ExtractStoreMetadata() StoreMetadata {
+func extractMethodMetadata(method *ast.Field, src []byte) methodData {
+	params := []methodParam{}
+	paramsToTrace := map[string]bool{}
+	results := []string{}
+	e := method.Type.(*ast.FuncType)
+	if method.Doc != nil {
+		for _, comment := range method.Doc.List {
+			s := comment.Text
+			if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
+				for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
+					paramsToTrace[strings.TrimSpace(p)] = true
+				}
+			}
+
+		}
+	}
+	if e.Params != nil {
+		for _, param := range e.Params.List {
+			for _, paramName := range param.Names {
+				paramType := (formatNode(src, param.Type))
+				params = append(params, methodParam{Name: paramName.Name, Type: paramType})
+			}
+		}
+	}
+	if e.Results != nil {
+		for _, result := range e.Results.List {
+			results = append(results, formatNode(src, result.Type))
+		}
+	}
+	for paramName := range paramsToTrace {
+		found := false
+		for _, param := range params {
+			if param.Name == paramName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Fatalf("Unable to find a parameter called '%s' (method '%s') that is mentioned in the '%s' comment. Maybe it was renamed?", paramName, method.Names[0].Name, OPEN_TRACING_PARAMS_MARKER)
+		}
+	}
+	return methodData{Params: params, Results: results, ParamsToTrace: paramsToTrace}
+}
+
+func extractStoreMetadata() (*storeMetadata, error) {
 
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 
 	file, err := os.Open(inputFile)
 	if err != nil {
-		panic(fmt.Sprintf("Unable to open %s file", inputFile))
+		return nil, fmt.Errorf("Unable to open %s file: %w", inputFile, err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer file.Close()
 	f, err := parser.ParseFile(fset, "../app_iface.go", src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	metadata := StoreMetadata{Methods: map[string]Method{}}
+	metadata := storeMetadata{Methods: map[string]methodData{}}
 
 	ast.Inspect(f, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -105,48 +156,22 @@ func ExtractStoreMetadata() StoreMetadata {
 					if found {
 						continue
 					}
-					params := []Param{}
-					paramsToTrace := map[string]bool{}
-					results := []string{}
-					e := method.Type.(*ast.FuncType)
-					if method.Doc != nil {
-						for _, comment := range method.Doc.List {
-							s := comment.Text
-							if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
-								for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
-									paramsToTrace[strings.TrimSpace(p)] = true
-								}
-							}
-
-						}
-					}
-					if e.Params != nil {
-						for _, param := range e.Params.List {
-							for _, paramName := range param.Names {
-								paramType := (formatNode(src, param.Type))
-								params = append(params, Param{Name: paramName.Name, Type: paramType})
-							}
-						}
-					}
-					if e.Results != nil {
-						for _, result := range e.Results.List {
-							results = append(results, formatNode(src, result.Type))
-						}
-					}
-					metadata.Methods[methodName] = Method{Params: params, Results: results, ParamsToTrace: paramsToTrace}
-
+					metadata.Methods[methodName] = extractMethodMetadata(method, src)
 				}
 			}
 		}
 
 		return true
 	})
-	return metadata
+	return &metadata, err
 }
 
-func GenerateLayer(name, templateFile string) string {
+func generateLayer(name, templateFile string) ([]byte, error) {
 	out := bytes.NewBufferString("")
-	metadata := ExtractStoreMetadata()
+	metadata, err := extractStoreMetadata()
+	if err != nil {
+		return nil, err
+	}
 	metadata.Name = name
 
 	myFuncs := template.FuncMap{
@@ -154,25 +179,25 @@ func GenerateLayer(name, templateFile string) string {
 			return strings.Join(results, ", ")
 		},
 		"joinResultsForSignature": func(results []string) string {
-			if len(results) == 0 {
+			switch len(results) {
+			case 0:
 				return ""
-			}
-			if len(results) == 1 {
+			case 1:
 				return strings.Join(results, ", ")
 			}
 			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
 		},
 		"genResultsVars": func(results []string) string {
-			vars := []string{}
-			for idx := range results {
-				vars = append(vars, fmt.Sprintf("resultVar%d", idx))
+			vars := make([]string, 0, len(results))
+			for i := range results {
+				vars = append(vars, fmt.Sprintf("resultVar%d", i))
 			}
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for idx, typeName := range results {
-				if typeName == "*model.AppError" {
-					return fmt.Sprintf("resultVar%d == nil", idx)
+			for i, typeName := range results {
+				if typeName == APP_ERROR_TYPE {
+					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
 			return "true"
@@ -186,14 +211,14 @@ func GenerateLayer(name, templateFile string) string {
 			return false
 		},
 		"errorVar": func(results []string) string {
-			for idx, typeName := range results {
+			for i, typeName := range results {
 				if typeName == "*model.AppError" {
-					return fmt.Sprintf("resultVar%d", idx)
+					return fmt.Sprintf("resultVar%d", i)
 				}
 			}
 			return ""
 		},
-		"joinParams": func(params []Param) string {
+		"joinParams": func(params []methodParam) string {
 			paramsNames := []string{}
 			for _, param := range params {
 				s := param.Name
@@ -204,7 +229,7 @@ func GenerateLayer(name, templateFile string) string {
 			}
 			return strings.Join(paramsNames, ", ")
 		},
-		"joinParamsWithType": func(params []Param) string {
+		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
 				paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
@@ -214,9 +239,9 @@ func GenerateLayer(name, templateFile string) string {
 	}
 
 	t := template.Must(template.New("opentracing_layer.go.tmpl").Funcs(myFuncs).ParseFiles(templateFile))
-	err := t.Execute(out, metadata)
+	err = t.Execute(out, metadata)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return out.String()
+	return out.Bytes(), nil
 }
