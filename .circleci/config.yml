@@ -92,6 +92,11 @@ jobs:
   test:
     executor:
       name: ubuntu
+    parameters:
+      dbdriver:
+        type: string
+      dbsource:
+        type: string
     steps:
       - attach_workspace:
           at: ~/mattermost
@@ -126,10 +131,11 @@ jobs:
               --env CI_INBUCKET_SMTP_PORT=10025 \
               --env CI_LDAP_HOST=openldap \
               --env IS_CI="true" \
-              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
+              --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
@@ -352,6 +358,15 @@ workflows:
           requires:
             - upload-s3-sha
       - test:
+          name: test-mysql
+          dbdriver: mysql
+          dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+          requires:
+            - setup
+      - test:
+          name: test-postgres
+          dbdriver: postgres
+          dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
           requires:
             - setup
       - test-schema:
@@ -360,7 +375,8 @@ workflows:
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
-            - test
+            - test-mysql
+            - test-postgres
             - test-schema
             - upload-s3
             - upload-s3-sha
