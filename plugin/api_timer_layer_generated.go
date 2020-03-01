@@ -797,6 +797,13 @@ func (api *apiTimerLayer) GetPluginStatus(id string) (*model.PluginStatus, *mode
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPluginStatuses()
+	api.recordTime(startTime, "GetPluginStatuses", true)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.InstallPlugin(file, replace)
