@@ -1148,7 +1148,7 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 		func (p *MyPlugin) OnPluginStatusesChanged(c *plugin.Context) {
-			p.API.GetPluginStatuses
+			p.API.GetPluginStatuses()
 		}
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
