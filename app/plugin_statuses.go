@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/plugins"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
@@ -86,7 +87,7 @@ func (a *App) notifyPluginStatusesChanged() error {
 		a.Srv.Go(func() {
 			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnPluginStatusesChanged(pluginContext, user)
+				hooks.OnPluginStatusesChanged(pluginContext)
 				return true
 			}, plugin.OnPluginStatusesChangedId)
 		})
