@@ -3643,10 +3643,6 @@
     "translation": "Could not find the requested marketplace plugin."
   },
   {
-    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "Could not find the requested marketplace plugin signature."
-  },
-  {
     "id": "app.plugin.marshal.app_error",
     "translation": "Failed to marshal marketplace plugins."
   },
