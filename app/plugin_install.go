@@ -174,12 +174,11 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStr
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	var pluginFile, signatureFile io.ReadSeeker
-
 	prepackagedPlugin, appErr := a.getPrepackagedPlugin(request.Id, request.Version)
 	if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
 		return nil, appErr
 	}
+
 	if prepackagedPlugin != nil {
 		fileReader, err := os.Open(prepackagedPlugin.Path)
 		if err != nil {
@@ -188,11 +187,16 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		}
 		defer fileReader.Close()
 
-		pluginFile = fileReader
-		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
+		var manifest *model.Manifest
+		manifest, appErr = a.InstallPluginWithSignature(fileReader, bytes.NewReader(prepackagedPlugin.Signature))
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		return manifest, nil
 	}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace {
 		var plugin *model.BaseMarketplacePlugin
 		plugin, appErr = a.getRemoteMarketplacePlugin(request.Id, request.Version)
 		if appErr != nil {
@@ -207,23 +211,14 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		}
-		pluginFile = bytes.NewReader(downloadedPluginBytes)
-		signatureFile = signature
+
+		manifest, appErr := a.InstallPluginWithSignature(bytes.NewReader(downloadedPluginBytes), signature)
+		if appErr != nil {
+			return manifest, appErr
+		}
 	}
 
-	if pluginFile == nil {
-		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
-	}
-	if signatureFile == nil {
-		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	manifest, appErr := a.InstallPluginWithSignature(pluginFile, signatureFile)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	return manifest, nil
+	return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, "", http.StatusInternalServerError)
 }
 
 type pluginInstallationStrategy int
