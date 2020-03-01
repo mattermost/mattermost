@@ -85,7 +85,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+TE_PACKAGES=$(shell $(GO) list ./... | grep -v layer_generators)
 
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
@@ -203,7 +203,7 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-	env GO111MODULE=off $(GO) get -u gopkg.in/reflog/struct2interface.v0
+	env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
 	$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
