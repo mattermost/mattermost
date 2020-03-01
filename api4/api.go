@@ -133,7 +133,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
+	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.ApiRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.ApiRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
