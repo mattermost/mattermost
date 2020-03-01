@@ -157,9 +157,10 @@ type Hooks interface {
 	// FileInfo.Size will be automatically set properly if you modify the file.
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
 
-	// OnPluginStatusesChanged is invoked whenever the statuses of a particular plugin is changed.
+	// OnPluginStatusesChanged is invoked whenever on or more plugin statuses changes.
 	//
-	// The hook event will not containt any payload since it will be the responsibility of the plugin
-	// to fetch the plugin statuses to avoid race conditions with notifications going out.
+	// No payload is included, making it the responsibility of the plugin to fetch the plugin statuses using the
+	// API. This approach avoids race conditions from concurrent status changes. Consider a backoff strategy
+	// to avoid making multiple requests early during server startup.
 	OnPluginStatusesChanged(c *Context) error
 }
