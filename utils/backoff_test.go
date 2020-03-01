@@ -5,6 +5,7 @@ package utils
 
 import (
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,9 @@ import (
 
 func TestProgressiveRetry(t *testing.T) {
 	var retries int
+	backoffTimeouts := []time.Duration{
+		50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond,
+		200 * time.Millisecond, 400 * time.Millisecond, 400 * time.Millisecond}
 
 	type args struct {
 		operation func() error
@@ -54,7 +58,7 @@ func TestProgressiveRetry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			retries = 0
 
-			err := ProgressiveRetry(tt.args.operation)
+			err := ProgressiveRetry(tt.args.operation, backoffTimeouts)
 			if !tt.wantErr {
 				require.Nil(t, err)
 			}

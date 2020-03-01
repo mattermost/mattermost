@@ -6,6 +6,7 @@ package plugin
 import (
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -211,13 +212,15 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) 
 			var err error
 			var botIDBytes []byte
 
+			durations := []time.Duration{50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond,
+				200 * time.Millisecond, 400 * time.Millisecond, 400 * time.Millisecond}
 			err = utils.ProgressiveRetry(func() error {
 				botIDBytes, err = p.API.KVGet(BOT_USER_KEY)
 				if err != nil {
 					return err
 				}
 				return nil
-			})
+			}, durations)
 
 			if err == nil && botIDBytes != nil {
 				retBotID = string(botIDBytes)

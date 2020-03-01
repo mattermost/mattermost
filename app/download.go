@@ -43,7 +43,7 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 			return errors.Wrapf(err, "failed to fetch from %s", downloadURL)
 		}
 		return nil
-	})
+	}, []time.Duration{100 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond})
 
 	defer resp.Body.Close()
 
