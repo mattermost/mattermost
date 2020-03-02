@@ -55,7 +55,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 }
 
 // Get obtains the license with the provided id parameter from the database.
-// If the license doesn't exists it returns a model.AppError with
+// If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
 func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
 	obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id)
