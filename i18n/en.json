@@ -1393,10 +1393,6 @@
     "translation": "Encountered an error writing to local server storage"
   },
   {
-    "id": "api.getGroups.invalid_or_missing_channel_or_team_id",
-    "translation": "Invalid/Missing channel ID or Team ID."
-  },
-  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },

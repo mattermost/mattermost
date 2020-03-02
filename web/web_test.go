@@ -17,6 +17,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,10 +42,28 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	store := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(tb, store)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
 func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
+	return setupTestHelper(tb, store)
+}
 
+func setupTestHelper(t testing.TB, store store.Store) *TestHelper {
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())

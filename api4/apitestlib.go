@@ -21,6 +21,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -34,6 +36,7 @@ type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
 	ConfigStore config.Store
+	SqlSupplier *sqlstore.SqlSupplier
 
 	Client               *model.Client4
 	BasicUser            *model.User
@@ -53,21 +56,9 @@ type TestHelper struct {
 	tempWorkspace     string
 }
 
-// testStore tracks the active test store.
-// This is a bridge between the new testlib ownership of the test store and the existing usage
-// of the api4 test helper by many packages. In the future, this test helper would ideally belong
-// to the testlib altogether.
-var testStore store.Store
-var sqlSupplier *sqlstore.SqlSupplier
+var mainHelper *testlib.MainHelper
 
-func UseTestStore(store store.Store, ss *sqlstore.SqlSupplier) {
-	testStore = store
-	sqlSupplier = ss
-}
-
-func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
-	testStore.DropAllTables()
-
+func setupTestHelper(dbStore store.Store, sqlSupplier *sqlstore.SqlSupplier, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -88,7 +79,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(testStore))
+	options = append(options, app.StoreOverride(dbStore))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -99,6 +90,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		App:         s.FakeApp(),
 		Server:      s,
 		ConfigStore: memoryStore,
+		SqlSupplier: sqlSupplier,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -121,7 +113,6 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
-	th.App.Srv().Store.MarkSystemRanUnitTests()
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -152,15 +143,72 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, nil)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, nil)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), false, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	return setupTestHelper(false, updateConfig)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), false, updateConfig)
+}
+
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, updateConfig)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func (me *TestHelper) ShutdownApp() {
@@ -227,7 +275,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	sqlSupplier.GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	me.SqlSupplier.GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
 	// restore non hashed password for login
 	me.SystemAdminUser.Password = "Pa$$word11"
 	me.TeamAdminUser.Password = "Pa$$word11"

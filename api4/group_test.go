@@ -801,7 +801,7 @@ func TestGetGroups(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	_, response = th.SystemAdminClient.GetGroups(opts)
-	CheckBadRequestStatus(t, response)
+	require.Nil(t, response.Error)
 
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.Nil(t, response.Error)
@@ -841,4 +841,9 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	opts.NotAssociatedToTeam = ""
+	opts.NotAssociatedToChannel = ""
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
 }
