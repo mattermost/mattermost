@@ -104,7 +104,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.47"
+	libraryVersion = "v6.0.45"
 )
 
 // User Agent should always following the below style.
@@ -669,23 +669,20 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 			case "InvalidRegion":
 				fallthrough
 			case "AccessDenied":
-				if errResponse.Region == "" {
-					// Region is empty we simply return the error.
-					return res, err
-				}
-				// Region is not empty figure out a way to
-				// handle this appropriately.
-				if metadata.bucketName != "" {
+				if metadata.bucketName != "" && errResponse.Region != "" {
 					// Gather Cached location only if bucketName is present.
 					if _, cachedOk := c.bucketLocCache.Get(metadata.bucketName); cachedOk {
 						c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 						continue // Retry.
 					}
 				} else {
-					// This is for ListBuckets() fallback.
+					// Most probably for ListBuckets()
 					if errResponse.Region != metadata.bucketLocation {
-						// Retry if the error response has a different region
-						// than the request we just made.
+						// Retry if the error
+						// response has a
+						// different region
+						// than the request we
+						// just made.
 						metadata.bucketLocation = errResponse.Region
 						continue // Retry
 					}

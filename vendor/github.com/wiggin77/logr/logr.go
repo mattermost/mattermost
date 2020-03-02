@@ -315,11 +315,13 @@ func (logr *Logr) Shutdown() error {
 	defer cancel()
 
 	// close the incoming channel and wait for read loop to exit.
-	close(logr.in)
-	select {
-	case <-ctx.Done():
-		errs.Append(newTimeoutError("logr queue shutdown timeout"))
-	case <-logr.done:
+	if logr.in != nil {
+		close(logr.in)
+		select {
+		case <-ctx.Done():
+			errs.Append(newTimeoutError("logr queue shutdown timeout"))
+		case <-logr.done:
+		}
 	}
 
 	// logr.in channel should now be drained to targets and no more log records

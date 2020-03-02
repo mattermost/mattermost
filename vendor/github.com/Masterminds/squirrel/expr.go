@@ -1,9 +1,9 @@
 package squirrel
 
 import (
-	"bytes"
 	"database/sql/driver"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 	"strings"
@@ -20,95 +20,35 @@ type expr struct {
 	args []interface{}
 }
 
-// Expr builds an expression from a SQL fragment and arguments.
+// Expr builds value expressions for InsertBuilder and UpdateBuilder.
 //
 // Ex:
-//     Expr("FROM_UNIXTIME(?)", t)
+//     .Values(Expr("FROM_UNIXTIME(?)", t))
 func Expr(sql string, args ...interface{}) expr {
 	return expr{sql: sql, args: args}
 }
 
 func (e expr) ToSql() (sql string, args []interface{}, err error) {
-	simple := true
-	for _, arg := range e.args {
-		if _, ok := arg.(Sqlizer); ok {
-			simple = false
-		}
-	}
-	if simple {
-		return e.sql, e.args, nil
-	}
-
-	buf := &bytes.Buffer{}
-	ap := e.args
-	sp := e.sql
-
-	var isql string
-	var iargs []interface{}
-
-	for err == nil && len(ap) > 0 && len(sp) > 0 {
-		i := strings.Index(sp, "?")
-		if i < 0 {
-			// no more placeholders
-			break
-		}
-		if len(sp) > i+1 && sp[i+1:i+2] == "?" {
-			// escaped "??"; append it and step past
-			buf.WriteString(sp[:i+2])
-			sp = sp[i+2:]
-			continue
-		}
-
-		if as, ok := ap[0].(Sqlizer); ok {
-			// sqlizer argument; expand it and append the result
-			isql, iargs, err = as.ToSql()
-			buf.WriteString(sp[:i])
-			buf.WriteString(isql)
-			args = append(args, iargs...)
-		} else {
-			// normal argument; append it and the placeholder
-			buf.WriteString(sp[:i+1])
-			args = append(args, ap[0])
-		}
-
-		// step past the argument and placeholder
-		ap = ap[1:]
-		sp = sp[i+1:]
-	}
-
-	// append the remaining sql and arguments
-	buf.WriteString(sp)
-	return buf.String(), append(args, ap...), err
+	return e.sql, e.args, nil
 }
 
-type concatExpr []interface{}
+type exprs []expr
 
-func (ce concatExpr) ToSql() (sql string, args []interface{}, err error) {
-	for _, part := range ce {
-		switch p := part.(type) {
-		case string:
-			sql += p
-		case Sqlizer:
-			pSql, pArgs, err := p.ToSql()
+func (es exprs) AppendToSql(w io.Writer, sep string, args []interface{}) ([]interface{}, error) {
+	for i, e := range es {
+		if i > 0 {
+			_, err := io.WriteString(w, sep)
 			if err != nil {
-				return "", nil, err
+				return nil, err
 			}
-			sql += pSql
-			args = append(args, pArgs...)
-		default:
-			return "", nil, fmt.Errorf("%#v is not a string or Sqlizer", part)
 		}
+		_, err := io.WriteString(w, e.sql)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, e.args...)
 	}
-	return
-}
-
-// ConcatExpr builds an expression by concatenating strings and other expressions.
-//
-// Ex:
-//     name_expr := Expr("CONCAT(?, ' ', ?)", firstName, lastName)
-//     ConcatExpr("COALESCE(full_name,", name_expr, ")")
-func ConcatExpr(parts ...interface{}) concatExpr {
-	return concatExpr(parts)
+	return args, nil
 }
 
 // aliasExpr helps to alias part of SQL query generated with underlying "expr"
@@ -226,8 +166,16 @@ func (neq NotEq) ToSql() (sql string, args []interface{}, err error) {
 //     .Where(Like{"name": "%irrel"})
 type Like map[string]interface{}
 
-func (lk Like) toSql(opr string) (sql string, args []interface{}, err error) {
-	var exprs []string
+func (lk Like) toSql(opposite bool) (sql string, args []interface{}, err error) {
+	var (
+		exprs []string
+		opr   = "LIKE"
+	)
+
+	if opposite {
+		opr = "NOT LIKE"
+	}
+
 	for key, val := range lk {
 		expr := ""
 
@@ -257,7 +205,7 @@ func (lk Like) toSql(opr string) (sql string, args []interface{}, err error) {
 }
 
 func (lk Like) ToSql() (sql string, args []interface{}, err error) {
-	return lk.toSql("LIKE")
+	return lk.toSql(false)
 }
 
 // NotLike is syntactic sugar for use with LIKE conditions.
@@ -266,25 +214,7 @@ func (lk Like) ToSql() (sql string, args []interface{}, err error) {
 type NotLike Like
 
 func (nlk NotLike) ToSql() (sql string, args []interface{}, err error) {
-	return Like(nlk).toSql("NOT LIKE")
-}
-
-// ILike is syntactic sugar for use with ILIKE conditions.
-// Ex:
-//    .Where(ILike{"name": "sq%"})
-type ILike Like
-
-func (ilk ILike) ToSql() (sql string, args []interface{}, err error) {
-	return Like(ilk).toSql("ILIKE")
-}
-
-// NotILike is syntactic sugar for use with ILIKE conditions.
-// Ex:
-//    .Where(NotILike{"name": "sq%"})
-type NotILike Like
-
-func (nilk NotILike) ToSql() (sql string, args []interface{}, err error) {
-	return Like(nilk).toSql("NOT ILIKE")
+	return Like(nlk).toSql(true)
 }
 
 // Lt is syntactic sugar for use with Where/Having/Set methods.
