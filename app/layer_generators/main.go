@@ -36,10 +36,11 @@ func init() {
 	flag.StringVar(&inputFile, "in", path.Join("..", "app_iface.go"), "App interface file")
 	flag.StringVar(&outputFile, "out", path.Join("..", "opentracing_layer.go"), "Output file")
 	flag.StringVar(&outputFileTemplate, "template", "opentracing_layer.go.tmpl", "Output template file")
-	flag.Parse()
 }
 
 func main() {
+	flag.Parse()
+
 	code, err := generateLayer("OpenTracingAppLayer", outputFileTemplate)
 	if err != nil {
 		log.Fatal(err)
