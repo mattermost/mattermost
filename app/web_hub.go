@@ -62,7 +62,7 @@ func (a *App) NewWebHub() *Hub {
 
 func (a *App) TotalWebsocketConnections() int {
 	count := int64(0)
-	for _, hub := range a.Srv().Hubs {
+	for _, hub := range a.Srv().GetHubs() {
 		count = count + atomic.LoadInt64(&hub.connectionCount)
 	}
 
@@ -74,13 +74,18 @@ func (a *App) HubStart() {
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
-	a.Srv().Hubs = make([]*Hub, numberOfHubs)
+	a.Srv().SetHubs(make([]*Hub, numberOfHubs))
 	a.Srv().HubsStopCheckingForDeadlock = make(chan bool, 1)
 
-	for i := 0; i < len(a.Srv().Hubs); i++ {
-		a.Srv().Hubs[i] = a.NewWebHub()
-		a.Srv().Hubs[i].connectionIndex = i
-		a.Srv().Hubs[i].Start()
+	for i := 0; i < len(a.Srv().GetHubs()); i++ {
+		newHub := a.NewWebHub()
+		newHub.connectionIndex = i
+		err := a.Srv().SetHub(i, newHub)
+		if err != nil {
+			mlog.Warn("Error starting hub", mlog.Err(err), mlog.Int("index", i))
+			continue
+		}
+		newHub.Start()
 	}
 
 	go func() {
@@ -93,7 +98,7 @@ func (a *App) HubStart() {
 		for {
 			select {
 			case <-ticker.C:
-				for _, hub := range a.Srv().Hubs {
+				for _, hub := range a.Srv().GetHubs() {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
 						mlog.Error(
 							"Hub processing might be deadlock with events in the buffer",
@@ -130,22 +135,27 @@ func (a *App) HubStop() {
 		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
 	}
 
-	for _, hub := range a.Srv().Hubs {
+	for _, hub := range a.Srv().GetHubs() {
 		hub.Stop()
 	}
 
-	a.Srv().Hubs = []*Hub{}
+	a.Srv().SetHubs([]*Hub{})
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
-	if len(a.Srv().Hubs) == 0 {
+	if len(a.Srv().GetHubs()) == 0 {
 		return nil
 	}
 
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(a.Srv().Hubs))
-	return a.Srv().Hubs[index]
+	index := hash.Sum32() % uint32(len(a.Srv().GetHubs()))
+	hub, err := a.Srv().GetHub(int(index))
+	if err != nil {
+		mlog.Warn("Requested hub doesn't exist", mlog.Int("hub_index", int(index)))
+		return nil
+	}
+	return hub
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
@@ -195,7 +205,7 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 			hub.Broadcast(message)
 		}
 	} else {
-		for _, hub := range a.Srv().Hubs {
+		for _, hub := range a.Srv().GetHubs() {
 			hub.Broadcast(message)
 		}
 	}
