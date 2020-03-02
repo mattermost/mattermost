@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/require"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 func TestGetMembers(t *testing.T) {

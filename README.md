@@ -1,7 +1,7 @@
 # mattermost-plugin-api
 
-[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/lieut-data/mattermost-plugin-api)
-[![Test Status](https://github.com/lieut-data/mattermost-plugin-api/workflows/Test/badge.svg)](https://github.com/lieut-data/mattermost-plugin-api/actions?query=workflow%3ATest)
+[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/mattermost/mattermost-plugin-api)
+[![Test Status](https://github.com/mattermost/mattermost-plugin-api/workflows/Test/badge.svg)](https://github.com/mattermost/mattermost-plugin-api/actions?query=workflow%3ATest)
 
 A hackathon project to explore reworking the Mattermost Plugin API.
 
@@ -32,7 +32,7 @@ import (
 
 Finally, add this package as a dependency:
 ```sh
-go get github.com/lieut-data/mattermost-plugin-api
+go get github.com/mattermost/mattermost-plugin-api
 ```
 
 ## Migration Guide

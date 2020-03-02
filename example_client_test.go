@@ -1,7 +1,7 @@
 package pluginapi_test
 
 import (
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	pluginapi "github.com/lieut-data/mattermost-plugin-api"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
 func newAppError() *model.AppError {

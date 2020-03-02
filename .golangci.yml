@@ -52,7 +52,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/lieut-data/mattermost-plugin-api
+    local-prefixes: github.com/mattermost/mattermost-plugin-api
   golint:
     min-confidence: 0
   govet:
