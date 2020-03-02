@@ -22,6 +22,9 @@ type ServerTestHelper struct {
 }
 
 func SetupServerTest(t testing.TB) *ServerTestHelper {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
 	// ...and sent it immediately a SIGINT value.
