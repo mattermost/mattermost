@@ -55,7 +55,7 @@ func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
 }
 
 func (s *Server) onAuditError(err error) {
-	mlog.Error("Audit Error", mlog.String("err", err.Error()))
+	mlog.Error("Audit Error", mlog.Err(err))
 }
 
 const MaxExtraInfoLen = 1024
