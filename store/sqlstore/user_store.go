@@ -1021,7 +1021,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 	} else {
 		query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
 		if options.ExcludeRegularUsers {
-			// Currenty this doesn't make sense because it will always return 0
+			// Currently this doesn't make sense because it will always return 0
 			return int64(0), model.NewAppError("SqlUserStore.Count", "store.sql_user.count.app_error", nil, "", http.StatusInternalServerError)
 		}
 	}

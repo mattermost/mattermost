@@ -373,7 +373,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
-		// created as a system admin unless explicity specified.
+		// created as a system admin unless explicitly specified.
 		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
