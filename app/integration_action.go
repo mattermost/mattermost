@@ -244,6 +244,11 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			RootId:    rootPostId,
 			UserId:    userId,
 		}
+
+		if response.SkipSlackParsing {
+			ephemeralPost.Message = response.EphemeralText
+		}
+
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
