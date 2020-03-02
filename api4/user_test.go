@@ -2483,7 +2483,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := th.Client.RevokeSession(user.Id, session.Id)
-	require.True(t, status, "user session revoke successfuly")
+	require.True(t, status, "user session revoke successfully")
 	CheckNoError(t, resp)
 
 	th.LoginBasic()

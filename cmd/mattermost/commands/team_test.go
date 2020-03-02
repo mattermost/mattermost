@@ -209,7 +209,7 @@ func TestRenameTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "rename", team2.Name, newTeamName, "--display_name", newDisplayName)
 
-	// No renaming should have occured
+	// No renaming should have occurred
 	require.Equal(t, team2.Name, n, "team was renamed when it should have not been")
 	require.Equal(t, team2.DisplayName, dn, "team display name was changed when it should have not been")
 
