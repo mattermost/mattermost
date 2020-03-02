@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+    "translation": "신원 공급자로부터 받은 메타데이터 정보를 인증서로 파싱하는 동안 오류가 발생 했습니다."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -97,15 +97,15 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+    "translation": "XML에 신원공급자 SSO디스크립터 노드를 찾을 수 없습니다."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+    "translation": "XML에 신원공급자 SSO디스크립터 노드를 찾을 수 없습니다."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Missing Identity Provider SSO Services node in the XML."
+    "translation": "XML에서 신원공급자 SSO 서비스 노드를 찾을 수 없습니다."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -117,15 +117,15 @@
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-    "translation": "Invalid certificate text."
+    "translation": "유효하지 않은 인증서 내용입니다."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "유효하지 않은 컨텐트 타입입니다."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "컨텐츠 타입을 찾을 수 없습니다."
   },
   {
     "id": "api.admin.test_email.body",
@@ -405,11 +405,11 @@
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "채널을 보관할 수 없습니다. 채널이 보관되지 않습니다."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "이 채널에 {{.Username}} 을 보관할 수 없습니다."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -417,7 +417,7 @@
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "잘못된 채널 이름입니다. DM 채널이 아닐경우 사용자 ID가 채널 이름에 허용되지 않습니다."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "이 채널은 그룹별로 관리한다. 이 사용자는 이 채널에 동기화되는 그룹의 일부가 아니다."
+    "translation": "이 채널은 그룹별로 관리합니다. 해당 사용자는 이 채널에 동기화 되는 그룹의 일부가 아닙니다."
   },
   {
     "id": "api.command_invite.hint",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "서버의 사용량이 많아서, 중요하지 않은 서비스를 일시적으로 사용할 수 없습니다."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "An error occurred building the push notification message"
+    "translation": "푸시 알림 메시지를 작성하는 중 오류가 발생했습니다"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "An error occurred building the push notification ack message"
+    "translation": "푸시 알림 ACK 메시지를 작성하는 중에 오류가 발생했습니다."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2860,19 +2860,19 @@
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Server is busy, non-critical services are temporarily unavailable"
+    "translation": "서버의 사용량이 많아서, 중요하지 않은 서비스는 일시적으로 사용할 수 없습니다."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+    "translation": "신원 공급자로부터 받은 XML 메타데이터를 디코드할 수 없습니다."
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+    "translation": "신원 공급자로부터 받은 응답 payload를 읽는 중에 오류가 발생 했습니다."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Could not read the response received from the Identity Provider."
+    "translation": "신원공급자로 부터 받은 응답을 읽을 수 없습니다. "
   },
   {
     "id": "app.admin.test_email.failure",
@@ -3636,7 +3636,7 @@
   },
   {
     "id": "app.plugin.marketplace_disabled.app_error",
-    "translation": "플러그인이 비활성화됐습니다. 로그에서 상세 사유를 확인하세요"
+    "translation": "마켓플레이스가 비활성화 됐습니다. 로그에서 상세 사유를 확인하세요."
   },
   {
     "id": "app.plugin.marketplace_plugin_request.app_error",
@@ -3648,7 +3648,7 @@
   },
   {
     "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-    "translation": "요청한 마켓플레이스 플러그인을 찾을수 없습니다."
+    "translation": "요청한 마켓플레이스 플러그인을 찾을 수 없습니다."
   },
   {
     "id": "app.plugin.marshal.app_error",
@@ -3708,11 +3708,11 @@
   },
   {
     "id": "app.plugin.write_file.read.app_error",
-    "translation": "채널에서 나가는 중 오류가 발생했습니다."
+    "translation": "파일을 읽는 중에 오류가 발생했습니다."
   },
   {
     "id": "app.plugin.write_file.saving.app_error",
-    "translation": "채널에서 나가는 중 오류가 발생했습니다."
+    "translation": "파일을 저장하는 중에 오류가 발생했습니다."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -3744,7 +3744,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+    "translation": "해당 팀은 최대 허용 인원수에 도달했습니다. 최대 인원수를 늘리려면 시스템 관리자에게 문의하세요."
   },
   {
     "id": "app.team.rename_team.name_occupied",
@@ -3792,7 +3792,7 @@
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+    "translation": "나가는 웹훅이 삭제되었지만, 오류가 발생해서 새 웹훅을 생성할 수 없습니다."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -3872,7 +3872,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "Your license does not support SAML authentication."
+    "translation": "당신의 라이선스는 데이터보존을 지원하지 않습니다."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3900,7 +3900,7 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "사용자를 위한 Elasticsearch 템플릿을 생성하지 못했습니다."
+    "translation": "메시지를 위한 Elasticsearch 템플릿을 생성하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
@@ -4276,7 +4276,7 @@
   },
   {
     "id": "groups.unsupported_syncable_type",
-    "translation": "Unsupported syncable type '{{.Value}}'."
+    "translation": "지원되지 않는 동기화 가능한 타입 '{{.Value}}' 입니다."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
@@ -4440,11 +4440,11 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "잘못된 제출자 ID"
+    "translation": "잘못된 생성 날짜"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "잘못된 제출자 ID"
+    "translation": "잘못된 생성자 아이디"
   },
   {
     "id": "model.bot.is_valid.description.app_error",
@@ -4452,7 +4452,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "잘못된 제출자 ID"
+    "translation": "잘못된 업데이트 날짜"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5700,7 +5700,7 @@
   },
   {
     "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Limit exceeded for paging"
+    "translation": "페이징 한도 초과"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5712,11 +5712,11 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "봇을 삭제할 수 없습니다."
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "봇을 가져올 수 없습니다."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6300,7 +6300,7 @@
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\""
+    "translation": "사용자ID가 \"{{.UserId}}\"인 그룹 멤버를 제거 할 수 없습니다."
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -6332,11 +6332,11 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "작업을 저장할 수 없습니다."
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "작업을 업데이트 할 수 없습니다."
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -6360,11 +6360,11 @@
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
+    "translation": "트랜잭션을 커밋 할 수 없습니다."
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
-    "translation": "Unable to open transaction to delete the OAuth2 app"
+    "translation": "OAuth2 앱을 삭제하기 위해 트렌젝션을 열 수 없습니다."
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -6376,7 +6376,7 @@
   },
   {
     "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "We encountered an error finding the access token"
+    "translation": "모든 엑세스 토큰을 찾는 중 오류가 발생 했습니다."
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
@@ -6420,7 +6420,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "액세스 토큰을 저장할 수 없습니다."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -6432,7 +6432,7 @@
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "인증 코드를 저장할 수 없습니다"
+    "translation": "인증 코드를 저장할 수 없습니다."
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
@@ -7180,7 +7180,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
+    "translation": "귀하의 자격 증명과 일치하는 여러 사용자가 발견되어 로그인 할 수 없습니다. 관리자에게 문의해주세요."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
@@ -7408,7 +7408,7 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "액세스 토큰을 활성화 할 수 없습니다"
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
@@ -7428,83 +7428,83 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "들어오는 웹훅을 셀 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "나가는 웹훅을 셀 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 가져올 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 삭제할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "들어오는 웹훅을 저장할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "기존에 있는 IncomingWebhook을 덮어쓸 수 없습니다"
+    "translation": "기존에 있는 들어오는 웹훅을 덮어쓸 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "나가는 웹훅을 저장할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "기존에 있는 OutgoingWebhook을 덮어쓸 수 없습니다"
+    "translation": "기존에 있는 나가는 웹훅을 덮어쓸 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "들어오는 웹훅을 업데이트 할 수 없습니다"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "웹훅을 업데이트 할 수 없습니다"
   },
   {
     "id": "store.update_error",
@@ -7516,23 +7516,23 @@
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "로컬 서버 저장소를 읽는 도중 에러가 발생했습니다."
+    "translation": "로컬 서버의 파일 저장소에서 디렉터리를 읽는 도중 에러가 발생했습니다."
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "S3에서 오류 목록 디렉토리가 발생했습니다."
+    "translation": "S3에서 디렉터리를 읽는 도중 에러가 발생했습니다."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
-    "translation": "로컬 서버 저장소를 읽는 도중 에러가 발생했습니다."
+    "translation": "로컬 서버의 파일 저장소를 읽는 도중 에러가 발생했습니다."
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "S3에서 오류 삭제 디렉토리가 발생했습니다."
+    "translation": "S3에서 디렉터리를 제거하는 중에 오류가 발생했습니다."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "로컬 서버 저장소를 읽는 도중 에러가 발생했습니다."
+    "translation": "로컬 서버의 파일 저장소를 삭제하는 도중 에러가 발생했습니다."
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
@@ -7544,11 +7544,11 @@
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection"
+    "translation": "연결에 성공하는데 실패했습니다"
   },
   {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLS 연결을 시작하지 못했습니다"
+    "translation": "TLS 연결을 시작하는 데 실패했습니다"
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
@@ -7556,11 +7556,11 @@
   },
   {
     "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "이메일에 첨부 파일을 쓰지 못했습니다"
+    "translation": "이메일에 첨부 파일을 보내지 못했습니다"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTP 서버와의 접속을 끊지 못했습니다"
+    "translation": "SMTP 서버와의 연결을 끊는데 실패했습니다"
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
@@ -7572,7 +7572,7 @@
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email messsage data"
+    "translation": "이메일 메시지 데이터를 추가하지 못했습니다"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
@@ -7580,27 +7580,27 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "채널을 찾을 수 없습니다"
+    "translation": "명령을 찾을 수 없습니다"
   },
   {
     "id": "web.command_webhook.invalid.app_error",
-    "translation": "잘못된 Webhook"
+    "translation": "유효하지 않은 웹훅"
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data"
+    "translation": "들어오는 웹훅을 파싱 하지 못했습니다"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-    "translation": "Get the latest Chrome browser"
+    "translation": "최신 Chrome 브라우저를 받습니다"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-    "translation": "Get the latest Firefox browser"
+    "translation": "최신 Firefox 브라우저를 받습니다"
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
-    "translation": "Get the latest Safari browser"
+    "translation": "최신 Safari 브라우저를 받습니다"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -7608,11 +7608,11 @@
   },
   {
     "id": "web.error.unsupported_browser.browser_title.edge",
-    "translation": "Microsoft Edge"
+    "translation": "마이크로소프트 엣지"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.firefox",
-    "translation": "Firefox"
+    "translation": "파이어폭스"
   },
   {
     "id": "web.error.unsupported_browser.browser_title.safari",
@@ -7620,15 +7620,15 @@
   },
   {
     "id": "web.error.unsupported_browser.download",
-    "translation": "Download the App"
+    "translation": "앱을 다운로드 받습니다"
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "더 나은 경험을 위해 Mattermost 앱을 다운로드하거나 지원되는 브라우저를 사용해 주세요."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
-    "translation": "Download the App"
+    "translation": "앱을 다운로드 받습니다"
   },
   {
     "id": "web.error.unsupported_browser.install_guide.mac",
@@ -7640,27 +7640,27 @@
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
-    "translation": "Learn more about supported browsers."
+    "translation": "지원되는 브라우저에 대해 자세히 알아보세요."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 61+"
+    "translation": "61버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "44버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "60버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 12+"
+    "translation": "12버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 10.9+"
+    "translation": "macOS 10.9버전 이상"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -7668,11 +7668,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "이 브라우저는 더 이상 Mattermost에서 지원되지 않습니다"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "해당 버전의 브라우저는 더 이상 Mattermost에서 지원하지 않습니다"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
@@ -7680,7 +7680,7 @@
   },
   {
     "id": "web.error.unsupported_browser.system_browser_make_default",
-    "translation": "Make default"
+    "translation": "기본값으로 설정합니다"
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",

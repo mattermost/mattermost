@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Este canal es administrado por grupos.  Este usuario no es parte de un grupo que se haya sincronizado para este canal."
+    "translation": "Este canal es administrado por grupos. Este usuario no es parte de un grupo que se haya sincronizado para este canal."
   },
   {
     "id": "api.command_invite.hint",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Los huéspedes no pueden unirse a un equipo con un enlace de invitación. Por favor envía una invitación al equipo al correo electrónico del huésped."
+    "translation": "Los huéspedes no pueden unirse a un equipo con un enlace de invitación. Por favor solicita al equipo un correo electrónico de invitación."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",

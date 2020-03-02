@@ -57,7 +57,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Нет файла 'certificate' в запросе."
+    "translation": "Нет файла под атрибутом 'certificate' в запросе."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -81,7 +81,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Возникла ошибка при удалении сертификата"
+    "translation": "Возникла ошибка при удалении сертификата."
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -1218,7 +1218,7 @@
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Пользовательские смайлики были отключены системным администратором."
+    "translation": "Пользовательские смайлы были отключены системным администратором."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
@@ -1876,7 +1876,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack пользователь слился с существующим пользователем Mattermost с соответствующим адресом электронной почты {{.Email}} и именем пользователя {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
@@ -2888,7 +2888,7 @@
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Для создания канала необходимо указать ID команды"
+    "translation": "Для создания канала необходимо указать идентификатор команды"
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3908,7 +3908,7 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Не удалось удалить индекс Elasticsearch"
+    "translation": "Не получилось удалить индекс Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
@@ -4808,7 +4808,7 @@
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
-    "translation": "Неверное максимальное количество пользователей на команду в настройках команд. Число должно быть положительным."
+    "translation": "Неверное максимальное количество каналов на команду в настройках команд. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.max_file_size.app_error",
@@ -4816,7 +4816,7 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "Неверное максимальное количество пользователей на команду. Число должно быть положительным."
+    "translation": "Неверное максимальное количество уведомлений на команду в настройках команд. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -4868,11 +4868,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Неверный размер хранилища памяти в настройках ограничения скорости. Должен быть положительным числом."
+    "translation": "Неверный размер хранилища в памяти в настройках ограничения скорости. Должен быть положительным числом."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Неверное значение \"В секунду\" в настройках ограничения скорости. Должно быть положительным числом"
+    "translation": "Неверное значение \"в секунду\" в настройках ограничения скорости. Должно быть положительным числом"
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -4880,7 +4880,7 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Неверное ограничение личных сообщений. Должно быть 'any', или 'team'"
+    "translation": "Неверное ограничение личных сообщений. Должно быть 'любому' или 'команде'"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -4960,7 +4960,7 @@
   },
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
-    "translation": "Неверное значение максимального количества открытых соединений в настройках SQL. Число должно быть положительным."
+    "translation": "Неверное значение максимального количества открытых соединений в настройках SQL. Должно быть положительным числом."
   },
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
@@ -5272,7 +5272,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Недопустимый тип"
+    "translation": "Недопустимый заголовок"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -5848,11 +5848,11 @@
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Мы не смогли получить канал для данного сообщения"
+    "translation": "Не удалось получить канал для данного сообщения"
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Не удалось добавить участников прямого канала"
+    "translation": "Не удалось получить участника канала"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -5860,11 +5860,11 @@
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Не удалось получить подсчет участников канала"
+    "translation": "Не удалось получить количество участников канала"
   },
   {
     "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Мы не смогли получить участника канала для данного сообщения"
+    "translation": "Не удалось получить участника канала для данного сообщения"
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -5876,15 +5876,15 @@
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Невозможно получить каналы"
+    "translation": "Не удалось получить каналы"
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Не удалось получить подсчет участников канала"
+    "translation": "Не удалось получить количество прикрепленных сообщений"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Невозможно получить каналы"
+    "translation": "Не удалось получить публичные каналы"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -5908,7 +5908,7 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Не удалось обновить заголовок канала"
+    "translation": "Не удалось обновить участника канала"
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
@@ -5944,7 +5944,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Не удалось обновить заголовок канала"
+    "translation": "Невозможно удалить участника канала"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
@@ -5956,7 +5956,7 @@
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Не удалось обновить заголовок канала"
+    "translation": "Невозможно удалить участника канала"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -6248,11 +6248,11 @@
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Мы не могли прикрепить информацию о файле к посту"
+    "translation": "Невозможно прикрепить информацию о файле к сообщению"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Мы не смогли удалить информацию о файле в посте"
+    "translation": "Невозможно удалить информацию о файле в сообщении"
   },
   {
     "id": "store.sql_file_info.get.app_error",
@@ -6260,15 +6260,15 @@
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Мы не смогли получить информацию о файле к сообщению"
+    "translation": "Не удалось получить информацию о файле по указанному пути"
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Мы не смогли получить информацию о файле к сообщению"
+    "translation": "Не удалось получить информацию о файле к сообщению"
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Мы не смогли получить информацию о файле к сообщению"
+    "translation": "Не удалось получить информацию о файле для пользователя"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -6388,7 +6388,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Не удалось найти действительную команду для обновления"
+    "translation": "Не удалось найти какие-либо существующие приложения"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -6632,7 +6632,7 @@
   },
   {
     "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Не удалось завершить транзакцию по сохранению настроек"
+    "translation": "Не удалось зафиксировать транзакцию по сохранению настроек"
   },
   {
     "id": "store.sql_preference.save.missing_driver.app_error",
@@ -6656,7 +6656,7 @@
   },
   {
     "id": "store.sql_reaction.delete.app_error",
-    "translation": "Не удалось удалить реакцию"
+    "translation": "Невозможно удалить реакцию"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -6664,7 +6664,7 @@
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Не удалось совершить транзакцию при удалении реакции"
+    "translation": "Не удалось зафиксировать транзакцию при удалении реакции"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
@@ -6688,7 +6688,7 @@
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Не удалось совершить транзакцию при сохранении реакции"
+    "translation": "Не удалось зафиксировать транзакцию при сохранении реакции"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
@@ -6996,7 +6996,7 @@
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "Не удалось получить список непрочтённых сообщений для команды"
+    "translation": "Не удалось получить список непрочтённых сообщений для команд"
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
@@ -7092,7 +7092,7 @@
   },
   {
     "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Не удалось получить условия использования."
+    "translation": "Не удалось получить Условия использования."
   },
   {
     "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
@@ -7236,7 +7236,7 @@
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Не удалось найти действительную команду для обновления"
+    "translation": "Не получилось удалить существующую учетную запись"
   },
   {
     "id": "store.sql_user.promote_guest.channel_members_update.app_error",
