@@ -87,7 +87,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-// MessageHasBeenPosted automatically replies to posts that plea for help
+// MessageHasBeenPosted automatically replies to posts that plea for help.
 func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	configuration := p.getConfiguration()
 
