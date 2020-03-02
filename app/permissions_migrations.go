@@ -15,17 +15,6 @@ type permissionTransformation struct {
 type permissionsMap []permissionTransformation
 
 const (
-	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT                     = "emoji_permissions_split"
-	MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT                   = "webhook_permissions_split"
-	MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS              = "list_join_public_private_teams"
-	MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER                = "remove_permanent_delete_user"
-	MIGRATION_KEY_ADD_BOT_PERMISSIONS                         = "add_bot_permissions"
-	MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER = "apply_channel_manage_delete_to_channel_user"
-	MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER = "remove_channel_manage_delete_from_team_user"
-	MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION                 = "view_members_new_permission"
-	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
-	MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION         = "add_use_channel_mentions_permission"
-
 	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
 	PERMISSION_MANAGE_OTHERS_EMOJIS              = "manage_others_emojis"
@@ -306,16 +295,16 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		Key       string
 		Migration func() permissionsMap
 	}{
-		{Key: MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
-		{Key: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
-		{Key: MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
-		{Key: MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
-		{Key: MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
-		{Key: MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: applyChannelManageDeleteToChannelUser},
-		{Key: MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
-		{Key: MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
-		{Key: MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
-		{Key: MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
+		{Key: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
+		{Key: model.MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
+		{Key: model.MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: applyChannelManageDeleteToChannelUser},
+		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
+		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
