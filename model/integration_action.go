@@ -173,9 +173,9 @@ type PostActionIntegrationRequest struct {
 }
 
 type PostActionIntegrationResponse struct {
-	Update        *Post  `json:"update"`
-	EphemeralText string `json:"ephemeral_text"`
-	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	Update           *Post  `json:"update"`
+	EphemeralText    string `json:"ephemeral_text"`
+	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
 }
 
 type PostActionAPIResponse struct {
