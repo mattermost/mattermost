@@ -118,7 +118,7 @@ func testJoinCommands(t *testing.T, alias string) {
 	rs6 := Client.Must(Client.ExecuteCommand(channel0.Id, "/"+alias+" "+channel3.Name)).(*model.CommandResponse)
 	require.False(t, strings.HasSuffix(rs6.GotoLocation, "/"+team.Name+"/channels/"+channel3.Name), "should not have joined direct message channel")
 
-	c1 := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")).([]*model.Channel)
+	c1 := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")).([]*model.Channel)
 
 	found := false
 	for _, c := range c1 {
@@ -261,7 +261,7 @@ func TestLeaveCommands(t *testing.T) {
 	_, err := Client.ExecuteCommand(channel3.Id, "/leave")
 	require.NotNil(t, err, "should fail leaving direct channel")
 
-	cdata := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")).([]*model.Channel)
+	cdata := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")).([]*model.Channel)
 
 	found := false
 	for _, c := range cdata {
