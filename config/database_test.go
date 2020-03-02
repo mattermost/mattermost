@@ -27,6 +27,9 @@ func getDsn(driver string, source string) string {
 }
 
 func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byte) (string, func()) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	t.Helper()
 	os.Clearenv()
 	truncateTables(t)
@@ -112,6 +115,9 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 }
 
 func TestDatabaseStoreNew(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("no existing configuration - initialization required", func(t *testing.T) {
@@ -331,6 +337,9 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 }
 
 func TestDatabaseStoreSet(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("set same pointer value", func(t *testing.T) {
@@ -540,6 +549,9 @@ func TestDatabaseStoreSet(t *testing.T) {
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("active configuration no longer exists", func(t *testing.T) {
@@ -979,6 +991,9 @@ func TestDatabaseRemoveFile(t *testing.T) {
 }
 
 func TestDatabaseStoreString(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()
 

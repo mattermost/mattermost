@@ -2828,7 +2828,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 	_, resp = th.Client.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// Test that a license is requried.
+	// Test that a license is required.
 	th.App.SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNotImplementedStatus(t, resp)
