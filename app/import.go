@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const maxScanTokenSize = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
+
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
 		mlog.Warn("Large image import error", mlog.Err(err.Error))
@@ -35,6 +37,9 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 
 func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
 	lineNumber := 0
 
 	a.Srv().Store.LockToMaster()
@@ -44,9 +49,6 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	var wg sync.WaitGroup
 	var linesChan chan LineImportWorkerData
 	lastLineType := ""
-
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 4096*4096)
 
 	for scanner.Scan() {
 		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
