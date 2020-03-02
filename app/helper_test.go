@@ -15,6 +15,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
@@ -33,10 +36,7 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	store := mainHelper.GetStore()
-	store.DropAllTables()
-
+func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -57,7 +57,7 @@ func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Confi
 
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
-	options = append(options, StoreOverride(mainHelper.Store))
+	options = append(options, StoreOverride(dbStore))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
@@ -80,9 +80,6 @@ func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Confi
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-
-	th.App.Srv().Store.MarkSystemRanUnitTests()
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	// Disable strict password requirements for test
@@ -108,15 +105,54 @@ func setupTestHelper(enterprise bool, tb testing.TB, configSet func(*model.Confi
 }
 
 func SetupEnterprise(tb testing.TB) *TestHelper {
-	return setupTestHelper(true, tb, nil)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
-	return setupTestHelper(false, tb, nil)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, tb, nil)
+}
+
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, false, tb, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, true, tb, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	return setupTestHelper(false, tb, configSet)
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, tb, configSet)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
