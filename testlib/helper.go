@@ -57,7 +57,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	utils.TranslationsPreInit()
 
 	if options != nil {
-		if options.EnableStore {
+		if options.EnableStore && !testing.Short() {
 			mainHelper.setupStore()
 		}
 
