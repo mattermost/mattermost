@@ -1063,6 +1063,7 @@ func (a *App) importPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
+			reaction := reaction
 			if err := a.importReaction(&reaction, post, dryRun); err != nil {
 				return err
 			}
@@ -1071,6 +1072,7 @@ func (a *App) importPost(data *PostImportData, dryRun bool) *model.AppError {
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
+			reply := reply
 			if err := a.importReply(&reply, post, team.Id, dryRun); err != nil {
 				return err
 			}
@@ -1088,6 +1090,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	}
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
+		attachment := attachment
 		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
 			return nil, err
@@ -1299,6 +1302,7 @@ func (a *App) importDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
+			reaction := reaction
 			if err := a.importReaction(&reaction, post, dryRun); err != nil {
 				return err
 			}
@@ -1307,6 +1311,7 @@ func (a *App) importDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
+			reply := reply
 			if err := a.importReply(&reply, post, "noteam", dryRun); err != nil {
 				return err
 			}
