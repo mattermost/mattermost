@@ -162,8 +162,10 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group_id", group.Id)
-	auditRec.AddMeta("group_name", group.Name)
+	if group != nil {
+		auditRec.AddMeta("group_id", group.Id)
+		auditRec.AddMeta("group_name", group.Name)
+	}
 
 	var status int
 	var newOrUpdatedGroup *model.Group
