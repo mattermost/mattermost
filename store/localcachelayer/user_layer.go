@@ -128,8 +128,10 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for _, user := range remainingUsers {
-			users = append(users, user.DeepCopy())
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			cu := user.DeepCopy()
+			cu.Sanitize(map[string]bool{})
+			users = append(users, cu)
 		}
 	}
 
