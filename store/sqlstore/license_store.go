@@ -10,11 +10,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+// SqlLicenseStore encapsulates the database writes and reads for
+// model.LicenseRecord objects.
 type SqlLicenseStore struct {
 	SqlStore
 }
 
-func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
+func newSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -26,9 +28,15 @@ func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	return ls
 }
 
-func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
+func (ls SqlLicenseStore) createIndexesIfNotExists() {
 }
 
+// Save validates and stores the license instance in the database. The Id
+// and Bytes fields are mandatory. The Bytes field is limited to a maximum
+// of 10000 bytes. If the license ID matches an existing license in the
+// database it returns the license stored in the database. If not, it saves the
+// new database and returns the created license with the CreateAt field
+// updated.
 func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
 	license.PreSave()
 	if err := license.IsValid(); err != nil {
@@ -46,6 +54,9 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 	return &storedLicense, nil
 }
 
+// Get obtains the license with the provided id parameter from the database.
+// If the license doesn't exist it returns a model.AppError with
+// http.StatusNotFound in the StatusCode field.
 func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
 	obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id)
 	if err != nil {

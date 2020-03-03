@@ -39,7 +39,7 @@ func (s *Server) RunOldAppInitialization() error {
 			s.FakeApp().Publish(message)
 		})
 	})
-	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func() {
+	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)

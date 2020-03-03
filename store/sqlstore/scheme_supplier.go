@@ -19,7 +19,7 @@ type SqlSchemeStore struct {
 	SqlStore
 }
 
-func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
+func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 	s := &SqlSchemeStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -40,7 +40,7 @@ func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 	return s
 }
 
-func (s SqlSchemeStore) CreateIndexesIfNotExists() {
+func (s SqlSchemeStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
