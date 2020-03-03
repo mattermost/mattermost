@@ -190,7 +190,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	var ephemeralPost *model.Post
-	if !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
 		mention := post.DisableMentionHighlights()
 		if mention != "" {
 			T := utils.GetUserTranslations(user.Locale)
