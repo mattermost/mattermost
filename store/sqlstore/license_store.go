@@ -16,7 +16,7 @@ type SqlLicenseStore struct {
 	SqlStore
 }
 
-func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
+func newSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -28,7 +28,7 @@ func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 	return ls
 }
 
-func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
+func (ls SqlLicenseStore) createIndexesIfNotExists() {
 }
 
 // Save validates and stores the license instance in the database. The Id

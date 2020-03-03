@@ -675,6 +675,21 @@ func TestGetUserByUsername(t *testing.T) {
 	require.NotEmpty(t, ruser.Email, "email should not be blank")
 	require.NotEmpty(t, ruser.FirstName, "first name should not be blank")
 	require.NotEmpty(t, ruser.LastName, "last name should not be blank")
+
+	t.Run("Get user with a / character in the email", func(t *testing.T) {
+		user := &model.User{
+			Email:    "email/with/slashes@example.com",
+			Username: GenerateTestUsername(),
+			Password: "Pa$$word11",
+		}
+
+		newUser, resp := th.SystemAdminClient.CreateUser(user)
+		require.Nil(t, resp.Error)
+
+		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, newUser.Id)
+	})
 }
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
@@ -2468,7 +2483,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := th.Client.RevokeSession(user.Id, session.Id)
-	require.True(t, status, "user session revoke successfuly")
+	require.True(t, status, "user session revoke successfully")
 	CheckNoError(t, resp)
 
 	th.LoginBasic()
