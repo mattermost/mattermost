@@ -70,6 +70,9 @@ func TestUnmarshalConfig_PluginSettings(t *testing.T) {
 					"abc.def.ghi": {
 						"abc": 456,
 						"def": "123"
+					},
+					"ff.gg": {
+						"kk": "vv"
 					}
  				}
 			},
@@ -113,6 +116,9 @@ func TestUnmarshalConfig_PluginSettings(t *testing.T) {
 				"abc": float64(456),
 				"def": "123",
 			},
+			"ff.gg": map[string]interface{}{
+				"kk": "vv",
+			},
 		}, config.PluginSettings.Plugins["jira"])
 	}
 	if assert.Contains(t, config.PluginSettings.PluginStates, "jira") {
@@ -122,7 +128,7 @@ func TestUnmarshalConfig_PluginSettings(t *testing.T) {
 	}
 }
 
-func TestConfigFromEnviroVars(t *testing.T) {
+func TestConfigFromEnvVars(t *testing.T) {
 	config := `{
 		"ServiceSettings": {
 			"EnableCommands": true,
@@ -145,6 +151,9 @@ func TestConfigFromEnviroVars(t *testing.T) {
 			},
 			"PluginStates": {
 				"jira": {
+					"Enable": true
+				},
+				"com.mattermost.nps": {
 					"Enable": true
 				}
 			}
@@ -289,10 +298,11 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.True(t, ok || clientDirectory, "ClientDirectory should be in envConfig")
 	})
 
-	t.Run("plugin specific settings cannot be overridden via environment", func(t *testing.T) {
+	t.Run("plugin specific settings except keys with a period should be overridden via environment", func(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED", "false")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE", "false")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_COM_MATTERMOST_NPS_ENABLE", "false")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE")
@@ -305,15 +315,19 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 		enabled, ok := pluginsJira["enabled"]
 		require.True(t, ok, "PluginSettings.Plugins.jira.enabled is missing from config")
-		assert.Equal(t, "true", enabled)
+		assert.Equal(t, "false", enabled)
 
 		secret, ok := pluginsJira["secret"]
 		require.True(t, ok, "PluginSettings.Plugins.jira.secret is missing from config")
-		assert.Equal(t, "config-secret", secret)
+		assert.Equal(t, "env-secret", secret)
 
 		pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]
 		require.True(t, ok, "PluginSettings.PluginStates.jira is missing from config")
-		require.Equal(t, true, pluginStatesJira.Enable)
+		require.Equal(t, false, pluginStatesJira.Enable)
+
+		pluginStatesNps, ok := cfg.PluginSettings.PluginStates["com.mattermost.nps"]
+		require.True(t, ok, "PluginSettings.PluginStates.com.mattermost.nps is missing from config")
+		require.Equal(t, true, pluginStatesNps.Enable)
 
 		pluginSettings, ok := envCfg["PluginSettings"]
 		require.True(t, ok, "PluginSettings is missing from envConfig")
