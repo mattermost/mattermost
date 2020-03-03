@@ -412,8 +412,8 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		team = &model.Team{}
 	}
 
-	a.InvalidateCacheForChannel(channel)
-	a.InvalidateCacheForChannelPosts(channel.Id)
+	a.invalidateCacheForChannel(channel)
+	a.invalidateCacheForChannelPosts(channel.Id)
 
 	if _, err := a.SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err
@@ -604,7 +604,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
 
-	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
+	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
 	return rpost, nil
 }
@@ -878,7 +878,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		})
 	}
 
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
+	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
 }

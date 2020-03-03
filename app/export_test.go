@@ -168,7 +168,7 @@ func TestExportCustomEmoji(t *testing.T) {
 	dirNameToExportEmoji := "exported_emoji_test"
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
-	err = th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	err = th.App.exportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
 	require.Nil(t, err, "should not have failed")
 }
 
