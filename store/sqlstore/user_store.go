@@ -42,7 +42,7 @@ func (us SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
-func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
+func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -76,7 +76,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	return us
 }
 
-func (us SqlUserStore) CreateIndexesIfNotExists() {
+func (us SqlUserStore) createIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_email", "Users", "Email")
 	us.CreateIndexIfNotExists("idx_users_update_at", "Users", "UpdateAt")
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")

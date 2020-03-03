@@ -14,7 +14,7 @@ type sqlClusterDiscoveryStore struct {
 	SqlStore
 }
 
-func NewSqlClusterDiscoveryStore(sqlStore SqlStore) store.ClusterDiscoveryStore {
+func newSqlClusterDiscoveryStore(sqlStore SqlStore) store.ClusterDiscoveryStore {
 	s := &sqlClusterDiscoveryStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

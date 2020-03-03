@@ -16,7 +16,7 @@ type SqlReactionStore struct {
 	SqlStore
 }
 
-func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
+func newSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -29,7 +29,7 @@ func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 	return s
 }
 
-func (s SqlReactionStore) CreateIndexesIfNotExists() {
+func (s SqlReactionStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
