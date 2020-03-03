@@ -232,9 +232,7 @@ func (wc *WebConn) writePump() {
 				}
 
 				if wc.App.Metrics() != nil {
-					wc.App.Srv().Go(func() {
-						wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
-					})
+					wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 				}
 			}
 
