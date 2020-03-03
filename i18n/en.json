@@ -2844,7 +2844,7 @@
   },
   {
     "id": "api.webhook.incoming.empty_webhook.app_error",
-    "translation": "Webhook payload is empty or cannot be read in."
+    "translation": "Webhook payload is empty or cannot be read."
   },
   {
     "id": "api.webhook.incoming.error",

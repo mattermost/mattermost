@@ -26,12 +26,10 @@ import (
 )
 
 const (
-	LOWERCASE_LETTERS     = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS               = "0123456789"
-	SYMBOLS               = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	TIMESTAMP_UPPER_LIMIT = 30 //in second
-	TIMESTAMP_LOWER_LIMIT = -30
+	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
 )
 
 type StringInterface map[string]interface{}

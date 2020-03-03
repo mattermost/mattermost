@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_20_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_21_0
+	VERSION_5_21_0           = "5.21.0"
 	VERSION_5_20_0           = "5.20.0"
 	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
@@ -171,6 +172,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion518(sqlStore)
 	upgradeDatabaseToVersion519(sqlStore)
 	upgradeDatabaseToVersion520(sqlStore)
+	upgradeDatabaseToVersion521(sqlStore)
 
 	return nil
 }
@@ -760,5 +762,18 @@ func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 		sqlStore.CreateIndexIfNotExists("idx_groupchannels_schemeadmin", "GroupChannels", "SchemeAdmin")
 
 		saveSchemaVersion(sqlStore, VERSION_5_20_0)
+	}
+}
+
+func upgradeDatabaseToVersion521(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_20_0, VERSION_5_21_0) {
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SecretToken", "varchar(26)", "varchar(26)", "")
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "HmacAlgorithm", "varchar(12)", "varchar(12)", "")
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "TimestampModel", "varchar(100)", "varchar(100)", "")
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "HmacModel", "varchar(100)", "varchar(100)", "")
+		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SignedContentModel", "varchar(48)", "varchar(48)", "")
+
+		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "SecretToken", "varchar(26)", "varchar(26)", "")
+		saveSchemaVersion(sqlStore, VERSION_5_21_0)
 	}
 }

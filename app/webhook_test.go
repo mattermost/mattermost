@@ -716,8 +716,8 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 			w.Header().Set("Content-Type", "application/json")
 			bodyBytes, _ := ioutil.ReadAll(r.Body)
-			digest := model.GenerateHmacSignature(&bodyBytes, r.Header.Get("Timestamp"), "secret")
-			assert.Equal(t, digest, r.Header.Get("Signature"))
+			digest := model.GenerateHmacSignature(&bodyBytes, r.Header.Get("Mattermost-Timestamp"), "secret")
+			assert.Equal(t, digest, r.Header.Get("Mattermost-Signature"))
 
 		}))
 		defer server.Close()

@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	TIMESTAMP_UPPER_LIMIT = 30 //in second
-	TIMESTAMP_LOWER_LIMIT = -30
+	webhookSigningTimestampDeltaUpperLimit = 30 //in second
+	webhookSigningTimestampDeltaLowerLimit = -30
 )
 
 type headerModel struct {
@@ -274,13 +274,13 @@ func isValidTimeWindow(signedTime string) bool {
 
 	timePassed := time.Now().Unix() - stampInt
 	if timePassed > 0 {
-		if timePassed > TIMESTAMP_UPPER_LIMIT {
+		if timePassed > webhookSigningTimestampDeltaUpperLimit {
 			return false
 		} else {
 			return true
 		}
 	} else {
-		if timePassed < TIMESTAMP_LOWER_LIMIT {
+		if timePassed < webhookSigningTimestampDeltaLowerLimit {
 			return false
 		} else {
 			return true

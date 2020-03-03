@@ -165,10 +165,12 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType, 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
-	now := strconv.FormatInt(time.Now().Unix(), 10)
-	hmacDigest := model.GenerateHmacSignature(&bodyBytes, now, secretToken)
-	req.Header.Set("Timestamp", now)
-	req.Header.Set("Signature", hmacDigest)
+	if len(secretToken) != 0 { //skip signing the outgoing hooks with no secretToken
+		now := strconv.FormatInt(time.Now().Unix(), 10)
+		hmacDigest := model.GenerateHmacSignature(&bodyBytes, now, secretToken)
+		req.Header.Set("Mattermost-Timestamp", now)
+		req.Header.Set("Mattermost-Signature", hmacDigest)
+	}
 
 	resp, err := a.HTTPService().MakeClient(false).Do(req)
 	if err != nil {
