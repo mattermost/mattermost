@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -36,7 +35,6 @@ type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
 	ConfigStore config.Store
-	SqlSupplier *sqlstore.SqlSupplier
 
 	Client               *model.Client4
 	BasicUser            *model.User
@@ -58,7 +56,7 @@ type TestHelper struct {
 
 var mainHelper *testlib.MainHelper
 
-func setupTestHelper(dbStore store.Store, sqlSupplier *sqlstore.SqlSupplier, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -90,7 +88,6 @@ func setupTestHelper(dbStore store.Store, sqlSupplier *sqlstore.SqlSupplier, ent
 		App:         s.FakeApp(),
 		Server:      s,
 		ConfigStore: memoryStore,
-		SqlSupplier: sqlSupplier,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -154,7 +151,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), true, nil)
+	return setupTestHelper(dbStore, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -169,7 +166,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), false, nil)
+	return setupTestHelper(dbStore, false, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -184,11 +181,11 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, mainHelper.GetSQLSupplier(), false, updateConfig)
+	return setupTestHelper(dbStore, false, updateConfig)
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -196,7 +193,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -204,7 +201,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -275,7 +272,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	me.SqlSupplier.GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
 	// restore non hashed password for login
 	me.SystemAdminUser.Password = "Pa$$word11"
 	me.TeamAdminUser.Password = "Pa$$word11"
