@@ -284,9 +284,9 @@ func (s *SqlRoleStore) higherScopedPermissionsQuery(roleNames []string) string {
 			Schemes
 			JOIN Channels ON Channels.SchemeId = Schemes.Id
 			JOIN Teams ON Teams.Id = Channels.TeamId
-			JOIN Roles AS GuestRoles ON GuestRoles.Name = 'channel_guest'
-			JOIN Roles AS UserRoles ON UserRoles.Name = 'channel_user'
-			JOIN Roles AS AdminRoles ON AdminRoles.Name = 'channel_admin'
+			JOIN Roles AS GuestRoles ON GuestRoles.Name = '%[2]s'
+			JOIN Roles AS UserRoles ON UserRoles.Name = '%[3]s'
+			JOIN Roles AS AdminRoles ON AdminRoles.Name = '%[4]s'
 		WHERE
 			(Schemes.DefaultChannelGuestRole IN ('%[1]s')
 			OR Schemes.DefaultChannelUserRole IN ('%[1]s')
@@ -295,7 +295,16 @@ func (s *SqlRoleStore) higherScopedPermissionsQuery(roleNames []string) string {
 			OR Teams.SchemeId IS NULL)
 	`
 
-	return fmt.Sprintf(sqlTmpl, strings.Join(roleNames, "', '"))
+	// The below three channel role names are referenced by their name value because there is no system scheme
+	// record that ships with Mattermost, otherwise the system scheme would be referenced by name and the channel
+	// roles would be referenced by their column names.
+	return fmt.Sprintf(
+		sqlTmpl,
+		strings.Join(roleNames, "', '"),
+		model.CHANNEL_GUEST_ROLE_ID,
+		model.CHANNEL_USER_ROLE_ID,
+		model.CHANNEL_ADMIN_ROLE_ID,
+	)
 }
 
 func (s *SqlRoleStore) HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
@@ -344,7 +353,8 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) 
 	return roles, nil
 }
 
-func (s *SqlRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError) {
+// ChannelRolesUnderTeamRole finds all of the channel-scheme roles under the team of the given team-scheme role.
+func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("ChannelSchemeRoles.*").
 		From("Roles AS HigherScopedRoles").
@@ -364,12 +374,12 @@ func (s *SqlRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.ChannelRolesUnderTeamRole", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var dbRoles []*Role
 	if _, err = s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlRoleStore.LowerScopedChannelSchemeRoles", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.ChannelRolesUnderTeamRole", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var roles []*model.Role

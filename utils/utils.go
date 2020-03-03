@@ -19,6 +19,7 @@ func StringInSlice(a string, slice []string) bool {
 	return false
 }
 
+// RemoveStringFromSlice removes the first occurrence of a from slice.
 func RemoveStringFromSlice(a string, slice []string) []string {
 	for i, str := range slice {
 		if str == a {
@@ -26,6 +27,19 @@ func RemoveStringFromSlice(a string, slice []string) []string {
 		}
 	}
 	return slice
+}
+
+// RemoveStringsFromSlice removes all occurrences of strings from slice.
+func RemoveStringsFromSlice(slice []string, strings ...string) []string {
+	newSlice := []string{}
+
+	for _, item := range slice {
+		if !StringInSlice(item, strings) {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	return newSlice
 }
 
 func StringArrayIntersection(arr1, arr2 []string) []string {

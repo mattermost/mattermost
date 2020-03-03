@@ -445,9 +445,9 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	defer ss.Channel().Delete(channel2.Id, 0)
 
-	t.Run("LowerScopedChannelSchemeRoles", func(t *testing.T) {
+	t.Run("ChannelRolesUnderTeamRole", func(t *testing.T) {
 		t.Run("guest role for the right team's channels are returned", func(t *testing.T) {
-			actualRoles, err := ss.Role().LowerScopedChannelSchemeRoles(teamScheme1.DefaultChannelGuestRole)
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelGuestRole)
 			require.Nil(t, err)
 
 			var actualRoleNames []string
@@ -460,7 +460,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("user role for the right team's channels are returned", func(t *testing.T) {
-			actualRoles, err := ss.Role().LowerScopedChannelSchemeRoles(teamScheme1.DefaultChannelUserRole)
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelUserRole)
 			require.Nil(t, err)
 
 			var actualRoleNames []string
@@ -473,7 +473,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("admin role for the right team's channels are returned", func(t *testing.T) {
-			actualRoles, err := ss.Role().LowerScopedChannelSchemeRoles(teamScheme1.DefaultChannelAdminRole)
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelAdminRole)
 			require.Nil(t, err)
 
 			var actualRoleNames []string

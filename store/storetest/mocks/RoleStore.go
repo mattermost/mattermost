@@ -189,8 +189,8 @@ func (_m *RoleStore) HigherScopedPermissions(roleNames []string) (map[string]*mo
 	return r0, r1
 }
 
-// LowerScopedChannelSchemeRoles provides a mock function with given fields: roleName
-func (_m *RoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError) {
+// ChannelRolesUnderTeamRole provides a mock function with given fields: roleName
+func (_m *RoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
 	ret := _m.Called(roleName)
 
 	var r0 []*model.Role

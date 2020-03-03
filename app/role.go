@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
@@ -111,24 +112,34 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	var impactedRoles []*model.Role
+	builtInChannelRoles := []string{
+		model.CHANNEL_GUEST_ROLE_ID,
+		model.CHANNEL_USER_ROLE_ID,
+		model.CHANNEL_ADMIN_ROLE_ID,
+	}
 
-	switch savedRole.Name {
-	case model.SYSTEM_GUEST_ROLE_ID, model.SYSTEM_USER_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_POST_ALL_ROLE_ID, model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, model.TEAM_POST_ALL_ROLE_ID, model.TEAM_POST_ALL_PUBLIC_ROLE_ID:
-		// do nothing
-	case model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID:
-		impactedRoles, err = a.Srv().Store.Role().AllChannelSchemeRoles()
-		if err != nil {
-			return nil, err
+	builtInRolesMinusChannelRoles := utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...)
+
+	if utils.StringInSlice(savedRole.Name, builtInRolesMinusChannelRoles) {
+		return savedRole, nil
+	}
+
+	var roleRetrievalFunc func() ([]*model.Role, *model.AppError)
+
+	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
+		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
+			return a.Srv().Store.Role().AllChannelSchemeRoles()
 		}
-	default:
-		impactedRoles, err = a.Srv().Store.Role().LowerScopedChannelSchemeRoles(savedRole.Name)
-		if err != nil {
-			return nil, err
+	} else {
+		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
+			return a.Srv().Store.Role().ChannelRolesUnderTeamRole(savedRole.Name)
 		}
 	}
 
-	impactedRoles = append(impactedRoles, savedRole)
+	impactedRoles, err := roleRetrievalFunc()
+	if err != nil {
+		return nil, err
+	}
 
 	err = a.mergeHigherScopedChannelPermissions(impactedRoles)
 	if err != nil {
@@ -140,7 +151,6 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	}
 
 	return savedRole, nil
-
 }
 
 func (a *App) CheckRolesExist(roleNames []string) *model.AppError {

@@ -569,9 +569,9 @@ type RoleStore interface {
 	// AllChannelSchemeRoles returns all of the roles associated to channel schemes.
 	AllChannelSchemeRoles() ([]*model.Role, *model.AppError)
 
-	// LowerScopedChannelSchemeRoles returns all of the non-deleted roles that are affected by updates to the
+	// ChannelRolesUnderTeamRole returns all of the non-deleted roles that are affected by updates to the
 	// given role.
-	LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError)
+	ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError)
 }
 
 type SchemeStore interface {

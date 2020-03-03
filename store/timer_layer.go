@@ -4779,10 +4779,10 @@ func (s *TimerLayerRoleStore) HigherScopedPermissions(roleNames []string) (map[s
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.RoleStore.LowerScopedChannelSchemeRoles(roleName)
+	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4790,7 +4790,7 @@ func (s *TimerLayerRoleStore) LowerScopedChannelSchemeRoles(roleName string) ([]
 		if resultVar1 == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.LowerScopedChannelSchemeRoles", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

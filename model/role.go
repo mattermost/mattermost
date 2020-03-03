@@ -9,6 +9,29 @@ import (
 	"strings"
 )
 
+var BuiltInSchemeManagedRoleIDs []string
+
+func init() {
+	BuiltInSchemeManagedRoleIDs = []string{
+		SYSTEM_GUEST_ROLE_ID,
+		SYSTEM_USER_ROLE_ID,
+		SYSTEM_ADMIN_ROLE_ID,
+		SYSTEM_POST_ALL_ROLE_ID,
+		SYSTEM_POST_ALL_PUBLIC_ROLE_ID,
+		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
+
+		TEAM_GUEST_ROLE_ID,
+		TEAM_USER_ROLE_ID,
+		TEAM_ADMIN_ROLE_ID,
+		TEAM_POST_ALL_ROLE_ID,
+		TEAM_POST_ALL_PUBLIC_ROLE_ID,
+
+		CHANNEL_GUEST_ROLE_ID,
+		CHANNEL_USER_ROLE_ID,
+		CHANNEL_ADMIN_ROLE_ID,
+	}
+}
+
 const (
 	SYSTEM_GUEST_ROLE_ID             = "system_guest"
 	SYSTEM_USER_ROLE_ID              = "system_user"
@@ -108,16 +131,22 @@ func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermiss
 
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
+		// For the channel admin role always look to the higher scope to determine if the role has ther permission.
+		// The channel admin is a special case because they're not part of the UI to be "channel moderated", only
+		// channel members and channel guests are.
 		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && presentOnHigherScope {
 			mergedPermissions = append(mergedPermissions, cp.Id)
 			continue
 		}
 
-		if _, ok := ModeratedPermissions[cp.Id]; ok {
+		_, permissionIsModerated := ModeratedPermissions[cp.Id]
+		if permissionIsModerated {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
 			if presentOnRole && presentOnHigherScope {
 				mergedPermissions = append(mergedPermissions, cp.Id)
 			}
+			// this 'continue' ensures the permission is not added when not present on role and not present on the
+			// higher scope.
 			continue
 		}
 
