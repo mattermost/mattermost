@@ -81,7 +81,7 @@ func (role Role) ToModel() *model.Role {
 	}
 }
 
-func NewSqlRoleStore(sqlStore SqlStore) store.RoleStore {
+func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
 	s := &SqlRoleStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -95,7 +95,7 @@ func NewSqlRoleStore(sqlStore SqlStore) store.RoleStore {
 	return s
 }
 
-func (s SqlRoleStore) CreateIndexesIfNotExists() {
+func (s SqlRoleStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {

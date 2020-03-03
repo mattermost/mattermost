@@ -19,7 +19,7 @@ type SqlSchemeStore struct {
 	SqlStore
 }
 
-func NewSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
+func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 	s := &SqlSchemeStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

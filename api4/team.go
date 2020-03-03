@@ -986,7 +986,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		// in graceful mode we return both the succesful ones and the failed ones
+		// in graceful mode we return both the successful ones and the failed ones
 		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithError)))
 	} else {
 		err := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.App.Session().UserId)
@@ -1035,7 +1035,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = err
 			return
 		}
-		// in graceful mode we return both the succesful ones and the failed ones
+		// in graceful mode we return both the successful ones and the failed ones
 		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithError)))
 	} else {
 		err := c.App.InviteGuestsToChannels(c.Params.TeamId, guestsInvite, c.App.Session().UserId)
