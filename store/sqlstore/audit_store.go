@@ -14,7 +14,7 @@ type SqlAuditStore struct {
 	SqlStore
 }
 
-func NewSqlAuditStore(sqlStore SqlStore) store.AuditStore {
+func newSqlAuditStore(sqlStore SqlStore) store.AuditStore {
 	s := &SqlAuditStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -30,7 +30,7 @@ func NewSqlAuditStore(sqlStore SqlStore) store.AuditStore {
 	return s
 }
 
-func (s SqlAuditStore) CreateIndexesIfNotExists() {
+func (s SqlAuditStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 

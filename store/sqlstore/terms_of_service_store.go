@@ -17,7 +17,7 @@ type SqlTermsOfServiceStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+func newSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -30,7 +30,7 @@ func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInt
 	return s
 }
 
-func (s SqlTermsOfServiceStore) CreateIndexesIfNotExists() {
+func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
