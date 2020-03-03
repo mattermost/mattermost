@@ -189,6 +189,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
+	var ephemeralPost *model.Post
+	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		mention := post.DisableMentionHighlights()
+		if mention != "" {
+			T := utils.GetUserTranslations(user.Locale)
+			ephemeralPost = &model.Post{
+				UserId:    user.Id,
+				RootId:    post.RootId,
+				ParentId:  post.ParentId,
+				ChannelId: channel.Id,
+				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
+				Props:     model.StringInterface{model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			}
+		}
+	}
+
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
@@ -309,6 +325,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		mlog.Error("Failed to handle post events", mlog.Err(err))
+	}
+
+	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
+	if ephemeralPost != nil {
+		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
 	return rpost, nil
@@ -602,6 +623,10 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	if channel.DeleteAt != 0 {
 		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
+	}
+
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		patch.DisableMentionHighlights()
 	}
 
 	post.Patch(patch)
