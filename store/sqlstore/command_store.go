@@ -14,7 +14,7 @@ type SqlCommandStore struct {
 	SqlStore
 }
 
-func NewSqlCommandStore(sqlStore SqlStore) store.CommandStore {
+func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
 	s := &SqlCommandStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -37,7 +37,7 @@ func NewSqlCommandStore(sqlStore SqlStore) store.CommandStore {
 	return s
 }
 
-func (s SqlCommandStore) CreateIndexesIfNotExists() {
+func (s SqlCommandStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_team_id", "Commands", "TeamId")
 	s.CreateIndexIfNotExists("idx_command_update_at", "Commands", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_command_create_at", "Commands", "CreateAt")

@@ -16,7 +16,7 @@ type SqlTokenStore struct {
 	SqlStore
 }
 
-func NewSqlTokenStore(sqlStore SqlStore) store.TokenStore {
+func newSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 	s := &SqlTokenStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -29,7 +29,7 @@ func NewSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 	return s
 }
 
-func (s SqlTokenStore) CreateIndexesIfNotExists() {
+func (s SqlTokenStore) createIndexesIfNotExists() {
 }
 
 func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
