@@ -40,7 +40,7 @@ func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 	return s
 }
 
-func (s SqlSchemeStore) CreateIndexesIfNotExists() {
+func (s SqlSchemeStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
 	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
 	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")

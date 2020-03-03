@@ -95,9 +95,6 @@ func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
 	return s
 }
 
-func (s SqlRoleStore) createIndexesIfNotExists() {
-}
-
 func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
