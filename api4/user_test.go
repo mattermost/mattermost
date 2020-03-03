@@ -1242,6 +1242,10 @@ func TestAutocompleteUsers(t *testing.T) {
 func TestGetProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// recreate basic user
+	th.BasicUser = th.CreateUser()
+	th.LoginBasic()
 	user := th.BasicUser
 
 	data, resp := th.Client.GetProfileImage(user.Id, "")

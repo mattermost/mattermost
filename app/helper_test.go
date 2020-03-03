@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"testing"
@@ -155,20 +156,41 @@ func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHe
 	return setupTestHelper(dbStore, false, tb, configSet)
 }
 
+var initBasicOnce sync.Once
+var userCache struct {
+	SystemAdminUser *model.User
+	BasicUser       *model.User
+	BasicUser2      *model.User
+}
+
 func (me *TestHelper) InitBasic() *TestHelper {
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+	// create users once and cache them because password hashing is slow
+	initBasicOnce.Do(func() {
+		me.SystemAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
+
+		me.BasicUser = me.CreateUser()
+		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
+		userCache.BasicUser = me.BasicUser.DeepCopy()
+
+		me.BasicUser2 = me.CreateUser()
+		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
+		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
+	})
+	// restore cached users
+	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	me.BasicUser = userCache.BasicUser.DeepCopy()
+	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
 
 	me.BasicTeam = me.CreateTeam()
-	me.BasicUser = me.CreateUser()
 
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
-
 	return me
 }
 
