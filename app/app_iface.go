@@ -43,7 +43,7 @@ type AppIface interface {
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int)
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
-	AddLicenseListener(listener func()) string
+	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	AddPublicKey(name string, key io.Reader) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
