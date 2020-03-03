@@ -31,7 +31,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
@@ -89,8 +88,6 @@ type AppIface interface {
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
 	ClearChannelMembersCache(channelID string)
-	ClearPushNotification(currentSessionId, userId, channelId string)
-	ClearPushNotificationSync(currentSessionId, userId, channelId string) *model.AppError
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
 	ClearSessionCacheForUser(userId string)
@@ -133,7 +130,6 @@ type AppIface interface {
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError)
 	CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)
-	CreatePushNotificationsHub()
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(session *model.Session) (*model.Session, *model.AppError)
@@ -202,16 +198,7 @@ type AppIface interface {
 	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
 	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
-	ExportAllChannels(writer io.Writer) *model.AppError
-	ExportAllDirectChannels(writer io.Writer) *model.AppError
-	ExportAllDirectPosts(writer io.Writer) *model.AppError
-	ExportAllPosts(writer io.Writer) *model.AppError
-	ExportAllTeams(writer io.Writer) *model.AppError
-	ExportAllUsers(writer io.Writer) *model.AppError
-	ExportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError
 	ExportPermissions(w io.Writer) error
-	ExportVersion(writer io.Writer) *model.AppError
-	ExportWriteLine(writer io.Writer, line *LineImportData) *model.AppError
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
@@ -289,6 +276,7 @@ type AppIface interface {
 	GetEnvironmentConfig() map[string]interface{}
 	GetFile(fileId string) ([]byte, *model.AppError)
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
@@ -489,17 +477,6 @@ type AppIface interface {
 	InvalidateAllCaches() *model.AppError
 	InvalidateAllCachesSkipSend()
 	InvalidateAllEmailInvites() *model.AppError
-	InvalidateCacheForChannel(channel *model.Channel)
-	InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string)
-	InvalidateCacheForChannelMembers(channelId string)
-	InvalidateCacheForChannelMembersNotifyProps(channelId string)
-	InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string)
-	InvalidateCacheForChannelPosts(channelId string)
-	InvalidateCacheForUser(userId string)
-	InvalidateCacheForUserSkipClusterSend(userId string)
-	InvalidateCacheForUserTeams(userId string)
-	InvalidateCacheForUserTeamsSkipClusterSend(userId string)
-	InvalidateCacheForWebhook(webhookId string)
 	InvalidateWebConnSessionCacheForUser(userId string)
 	InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
@@ -544,17 +521,11 @@ type AppIface interface {
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
-	NewEmailTemplate(name, locale string) *utils.HTMLTemplate
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
 	NewWebHub() *Hub
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	OldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel
-	OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error)
-	OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) string
-	OldImportPost(post *model.Post) string
-	OldImportUser(team *model.Team, user *model.User) *model.User
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -662,28 +633,16 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
-	SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError
 	SendDailyDiagnostics()
 	SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError
 	SendDiagnostic(event string, properties map[string]interface{})
-	SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.AppError
-	SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *model.AppError
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string)
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
-	SendMail(to, subject, htmlBody string) *model.AppError
-	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError
-	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *model.AppError
-	SendNotificationMail(to, subject, htmlBody string) *model.AppError
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
-	SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppError
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
-	SendUserAccessTokenAddedEmail(email, locale, siteURL string) *model.AppError
-	SendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError
-	SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
@@ -789,7 +748,6 @@ type AppIface interface {
 	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(activate bool, userId, token string) *model.AppError
 	UpdateMobileAppBadge(userId string)
-	UpdateMobileAppBadgeSync(userId string) *model.AppError
 	UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError
 	UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)

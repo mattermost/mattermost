@@ -134,7 +134,7 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
@@ -147,7 +147,7 @@ func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
 		return nil, err
 	}
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		mlog.Error("Failed to send welcome email on create admin user", mlog.Err(err))
 	}
 
@@ -171,7 +171,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 		return nil, err
 	}
 
-	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
 		mlog.Error("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
@@ -838,7 +838,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		mlog.Error("Failed to reset last picture update", mlog.Err(err))
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
@@ -982,7 +982,7 @@ func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError 
 		}
 
 		for _, channel := range *channelsForUser {
-			a.InvalidateCacheForChannelMembers(channel.Id)
+			a.invalidateCacheForChannelMembers(channel.Id)
 		}
 	}
 
@@ -1010,7 +1010,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	}
 
 	a.invalidateUserChannelMembersCaches(user.Id)
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
@@ -1175,7 +1175,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 				})
 			} else {
 				a.Srv().Go(func() {
-					if err := a.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+					if err := a.sendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 						mlog.Error("Failed to send email change email", mlog.Err(err))
 					}
 				})
@@ -1184,14 +1184,14 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv().Go(func() {
-				if err := a.SendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+				if err := a.sendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 					mlog.Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 
 	if a.IsESIndexingEnabled() {
 		a.Srv().Go(func() {
@@ -1251,7 +1251,7 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 			return
 		}
 
-		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.sendMfaChangeEmail(user.Email, activate, user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error("Failed to send mfa change email", mlog.Err(err))
 		}
 	})
@@ -1288,7 +1288,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 	}
 
 	a.Srv().Go(func() {
-		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.sendPasswordChangeEmail(user.Email, method, user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error("Failed to send password change email", mlog.Err(err))
 		}
 	})
@@ -1435,7 +1435,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -1582,9 +1582,9 @@ func (a *App) SendEmailVerification(user *model.User, newEmail string) *model.Ap
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
-		return a.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
+		return a.sendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
 	}
-	return a.SendEmailChangeVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
+	return a.sendEmailChangeVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
 }
 
 func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
@@ -1618,7 +1618,7 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 
 	if user.Email != tokenData.Email {
 		a.Srv().Go(func() {
-			if err := a.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
+			if err := a.sendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
 				mlog.Error("Failed to send email change email", mlog.Err(err))
 			}
 		})
@@ -2040,7 +2040,7 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 		}
 
 		user = users.New
-		a.InvalidateCacheForUser(user.Id)
+		a.invalidateCacheForUser(user.Id)
 
 		if a.IsESIndexingEnabled() {
 			a.Srv().Go(func() {
@@ -2250,7 +2250,7 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
 	err := a.Srv().Store.User().PromoteGuestToUser(user.Id)
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2288,7 +2288,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 		}
 
 		for _, member := range *channelMembers {
-			a.InvalidateCacheForChannelMembers(member.ChannelId)
+			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
@@ -2304,7 +2304,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	err := a.Srv().Store.User().DemoteUserToGuest(user.Id)
-	a.InvalidateCacheForUser(user.Id)
+	a.invalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2331,7 +2331,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		}
 
 		for _, member := range *channelMembers {
-			a.InvalidateCacheForChannelMembers(member.ChannelId)
+			a.invalidateCacheForChannelMembers(member.ChannelId)
 
 			evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", user.Id, nil)
 			evt.Add("channelMember", member.ToJson())
@@ -2346,7 +2346,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
 func (a *App) invalidateUserCacheAndPublish(userId string) {
-	a.InvalidateCacheForUser(userId)
+	a.invalidateCacheForUser(userId)
 
 	user, userErr := a.GetUser(userId)
 	if userErr != nil {
