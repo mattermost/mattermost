@@ -102,7 +102,7 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
 	// backwards-compatible migration for any existing schema.
-	// Also fix using the wrong encoding initally
+	// Also fix using the wrong encoding initially
 	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
 		if err != nil {
