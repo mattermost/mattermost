@@ -69,7 +69,8 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	Hubs                        []*Hub
+	hubsLock                    sync.RWMutex
+	hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
 	PushNotificationsHub PushNotificationsHub
@@ -817,5 +818,44 @@ func (s *Server) shutdownDiagnostics() error {
 		return s.diagnosticClient.Close()
 	}
 
+	return nil
+}
+
+// GetHubs returns the list of hubs. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) GetHubs() []*Hub {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	return s.hubs
+}
+
+// getHub gets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) GetHub(index int) (*Hub, error) {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	if index >= len(s.hubs) {
+		return nil, errors.New("Hub element doesn't exist")
+	}
+	return s.hubs[index], nil
+}
+
+// SetHubs sets a new list of hubs. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) SetHubs(hubs []*Hub) {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	s.hubs = hubs
+}
+
+// SetHub sets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) SetHub(index int, hub *Hub) error {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	if index >= len(s.hubs) {
+		return errors.New("Index is greater than the size of the hubs list")
+	}
+	s.hubs[index] = hub
 	return nil
 }
