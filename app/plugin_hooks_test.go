@@ -1136,7 +1136,7 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -1156,6 +1156,13 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 	`}, th.App, th.App.NewPluginAPI)
 	defer tearDown()
 
-	_, err := th.App.GetPluginStatuses()
-	require.Nil(t, err)
+	require.Len(t, pluginIds, 1)
+	pluginId := pluginIds[0]
+
+	require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
+	require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+
+	pluginStatuses, err := th.App.GetPluginStatuses()
+	require.NotNil(t, err)
+	require.Nil(t, pluginStatuses)
 }
