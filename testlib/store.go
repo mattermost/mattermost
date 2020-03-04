@@ -40,6 +40,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 
