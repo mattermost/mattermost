@@ -1279,6 +1279,8 @@ func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppErr
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	a.InvalidateCacheForUser(user.Id)
+
 	return nil
 }
 
@@ -1681,10 +1683,11 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 }
 
 func (a *App) VerifyUserEmail(userId, email string) *model.AppError {
-	_, err := a.Srv().Store.User().VerifyEmail(userId, email)
-	if err != nil {
+	if _, err := a.Srv().Store.User().VerifyEmail(userId, email); err != nil {
 		return err
 	}
+
+	a.InvalidateCacheForUser(userId)
 
 	user, err := a.GetUser(userId)
 
