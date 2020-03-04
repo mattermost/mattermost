@@ -567,6 +567,32 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
+func TestCreateUserWithInviteId(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+
+	t.Run("should create a user", func(t *testing.T) {
+		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		require.Nil(t, err)
+		require.Equal(t, u.Id, user.Id)
+	})
+
+	t.Run("invalid invite id", func(t *testing.T) {
+		_, err := th.App.CreateUserWithInviteId(&user, "")
+		require.NotNil(t, err)
+	})
+
+	t.Run("invalid domain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "mattermost.com"
+		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
+		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		require.NotNil(t, err)
+	})
+}
+
 func TestCreateUserWithToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

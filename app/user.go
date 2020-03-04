@@ -121,6 +121,10 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
+	if !CheckUserDomain(user, team.AllowedDomains) {
+		return nil, model.NewAppError("CreateUserWithInviteId", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": team.AllowedDomains}, "", http.StatusForbidden)
+	}
+
 	user.EmailVerified = false
 
 	ruser, err := a.CreateUser(user)
