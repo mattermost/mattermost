@@ -636,9 +636,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != numInitialChannelsForTeam+3 {
-		t.Fatal("should be 3 deleted channels")
-	}
+	require.Len(t, channels, numInitialChannelsForTeam+3)
 
 	// Login as different user and create private channel
 	th.LoginBasic2()
@@ -650,9 +648,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != numInitialChannelsForTeam+3 {
-		t.Fatal("should still be 3 deleted channels", len(channels), numInitialChannelsForTeam+3)
-	}
+	require.Len(t, channels, numInitialChannelsForTeam+3)
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
@@ -780,43 +776,64 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
+	t.Run("get channels for the team for user", func(t *testing.T) {
+		channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
 
-	found := make([]bool, 3)
-	for _, c := range channels {
-		if c.Id == th.BasicChannel.Id {
-			found[0] = true
-		} else if c.Id == th.BasicChannel2.Id {
-			found[1] = true
-		} else if c.Id == th.BasicPrivateChannel.Id {
-			found[2] = true
+		found := make([]bool, 3)
+		for _, c := range channels {
+			if c.Id == th.BasicChannel.Id {
+				found[0] = true
+			} else if c.Id == th.BasicChannel2.Id {
+				found[1] = true
+			} else if c.Id == th.BasicPrivateChannel.Id {
+				found[2] = true
+			}
+
+			require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
 		}
 
-		require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
-	}
+		for _, f := range found {
+			require.True(t, f, "missing a channel")
+		}
 
-	for _, f := range found {
-		require.True(t, f, "missing a channel")
-	}
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, resp.Etag)
+		CheckEtag(t, channels, resp)
 
-	channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, resp.Etag)
-	CheckEtag(t, channels, resp)
+		_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", false, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, false, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, false, "")
+		CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, "")
-	CheckForbiddenStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, false, "")
+		CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, "")
-	CheckForbiddenStatus(t, resp)
+		_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
+	t.Run("deleted channel could be retrieved using the proper flag", func(t *testing.T) {
+		testChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      th.BasicTeam.Id,
+			CreatorId:   th.BasicUser.Id,
+		}
+		th.App.CreateChannel(testChannel, true)
+		defer th.App.PermanentDeleteChannel(testChannel)
+		channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 6, len(channels))
+		th.App.DeleteChannel(testChannel, th.BasicUser.Id)
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 5, len(channels))
+	})
 }
 
 func TestGetAllChannels(t *testing.T) {
@@ -976,18 +993,14 @@ func TestSearchArchivedChannels(t *testing.T) {
 
 	found := false
 	for _, c := range channels {
-		if c.Type != model.CHANNEL_OPEN {
-			t.Fatal("should only return public channels")
-		}
+		require.Equal(t, model.CHANNEL_OPEN, c.Type)
 
 		if c.Id == th.BasicChannel.Id {
 			found = true
 		}
 	}
 
-	if !found {
-		t.Fatal("didn't find channel")
-	}
+	require.True(t, found)
 
 	search.Term = th.BasicPrivateChannel.Name
 	Client.DeleteChannel(th.BasicPrivateChannel.Id)
@@ -1002,9 +1015,7 @@ func TestSearchArchivedChannels(t *testing.T) {
 		}
 	}
 
-	if !found {
-		t.Fatal("couldn't find private channel")
-	}
+	require.True(t, found)
 
 	search.Term = ""
 	_, resp = Client.SearchArchivedChannels(th.BasicTeam.Id, search)
@@ -1298,7 +1309,7 @@ func TestDeleteChannel2(t *testing.T) {
 	// successful delete by channel admin
 	th.MakeUserChannelAdmin(user, publicChannel6)
 	th.MakeUserChannelAdmin(user, privateChannel7)
-	th.App.Srv.Store.Channel().ClearCaches()
+	th.App.Srv().Store.Channel().ClearCaches()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -2838,7 +2849,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 	_, resp = th.Client.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// Test that a license is requried.
+	// Test that a license is required.
 	th.App.SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNotImplementedStatus(t, resp)

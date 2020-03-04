@@ -236,10 +236,12 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	assert.NotNil(t, response.Error)
-
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	ok, response := th.Client.Logout()
+	assert.True(t, ok)
+	CheckOKStatus(t, response)
+	_, response = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	CheckOKStatus(t, response)
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)
@@ -801,7 +803,7 @@ func TestGetGroups(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	_, response = th.SystemAdminClient.GetGroups(opts)
-	CheckBadRequestStatus(t, response)
+	require.Nil(t, response.Error)
 
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.Nil(t, response.Error)
@@ -841,4 +843,9 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	opts.NotAssociatedToTeam = ""
+	opts.NotAssociatedToChannel = ""
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
 }

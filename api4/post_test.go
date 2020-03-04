@@ -112,6 +112,67 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
+	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		WebSocketClient, err := th.CreateWebSocketClient()
+		WebSocketClient.Listen()
+		require.Nil(t, err)
+
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with no channel mentions"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		// Message with no channel mentions should result in no ephemeral message
+		timeout := time.After(300 * time.Millisecond)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+			case <-timeout:
+				waiting = false
+			}
+		}
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @channel"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @all"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @here"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		timeout = time.After(600 * time.Millisecond)
+		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
+		for eventsToGo > 0 {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+					require.Equal(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.Event)
+					eventsToGo = eventsToGo - 1
+				}
+			case <-timeout:
+				require.Fail(t, "Should have received ephemeral message event and not timedout")
+				eventsToGo = 0
+			}
+		}
+	})
+
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC
@@ -1593,12 +1654,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
@@ -1614,12 +1675,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1638,12 +1699,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1665,12 +1726,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1690,12 +1751,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1730,12 +1791,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[post12.Id] = "post12 (reply to post4)"
 	postIdNames[post13.Id] = "post13"
 
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2)
 	CheckNoError(t, resp)

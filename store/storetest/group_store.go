@@ -2271,7 +2271,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            model.NewId(),
+		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
@@ -2322,7 +2322,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            model.NewId(),
+		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_INVITE,
 	}
@@ -2505,7 +2505,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            model.NewId(),
+		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
@@ -2566,7 +2566,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		CompanyName:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            model.NewId(),
+		Name:            "zz" + model.NewId(),
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_INVITE,
 	}
@@ -2811,7 +2811,7 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		CompanyName:      model.NewId(),
 		AllowOpenInvite:  false,
 		InviteId:         model.NewId(),
-		Name:             model.NewId(),
+		Name:             "zz" + model.NewId(),
 		Email:            model.NewId() + "@simulator.amazonses.com",
 		Type:             model.TEAM_OPEN,
 		GroupConstrained: model.NewBool(true),
@@ -3279,7 +3279,7 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 
 	team := &model.Team{
 		DisplayName: "A Name",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
 	team, err = ss.Team().Save(team)
@@ -3382,7 +3382,7 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 
 	team := &model.Team{
 		DisplayName: "A Name",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
 	team, err = ss.Team().Save(team)
@@ -3809,7 +3809,7 @@ func groupTestGroupTeamCount(t *testing.T, ss store.Store) {
 		Description:     model.NewId(),
 		AllowOpenInvite: false,
 		InviteId:        model.NewId(),
-		Name:            model.NewId(),
+		Name:            "zz" + model.NewId(),
 		Email:           model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	})

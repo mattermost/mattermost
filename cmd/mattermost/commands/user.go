@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -340,6 +341,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	if erre != nil || email == "" {
 		return errors.New("Email is required")
 	}
+	email = strings.ToLower((email))
 	password, errp := command.Flags().GetString("password")
 	if errp != nil || password == "" {
 		return errors.New("Password is required")
@@ -371,7 +373,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
-		// created as a system admin unless explicity specified.
+		// created as a system admin unless explicitly specified.
 		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
@@ -511,7 +513,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	appErr = a.Srv.Store.Bot().PermanentDelete(user.Id)
+	appErr = a.Srv().Store.Bot().PermanentDelete(user.Id)
 	if appErr != nil {
 		return fmt.Errorf("Unable to delete bot. Error: %s", appErr.Error())
 	}
@@ -572,6 +574,7 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 	}
 
 	email := args[0]
+	email = strings.ToLower(email)
 	if !model.IsValidEmail(email) {
 		return errors.New("Invalid email")
 	}
@@ -621,7 +624,7 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if err := a.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
+	if err := a.Srv().Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
 		return err
 	}
 
@@ -640,7 +643,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	}
 
 	newEmail := args[1]
-
+	newEmail = strings.ToLower(newEmail)
 	if !model.IsValidEmail(newEmail) {
 		return errors.New("Invalid email: '" + newEmail + "'")
 	}
@@ -806,7 +809,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	forceFlag, _ := command.Flags().GetBool("force")
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
@@ -862,7 +865,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if migrate := a.AccountMigration; migrate != nil {
+	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToSaml(fromAuth, matches, autoFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
@@ -891,7 +894,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := a.Srv.Store.User().VerifyEmail(user.Id, user.Email); err != nil {
+		if _, err := a.Srv().Store.User().VerifyEmail(user.Id, user.Email); err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + err.Error())
 		}
 	}
