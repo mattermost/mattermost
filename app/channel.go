@@ -757,6 +757,7 @@ func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleN
 	return
 }
 
+// PatchChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
 	memberRole, err := a.GetRoleByName(memberRoleName)
@@ -783,6 +784,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
 }
 
+// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
 	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
@@ -832,7 +834,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
 	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
 		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
-		if _, err := a.DeleteChannelScheme(channel); err != nil {
+		if _, err = a.DeleteChannelScheme(channel); err != nil {
 			return nil, err
 		}
 		memberRole = higherScopedMemberRole
