@@ -145,13 +145,10 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 			if presentOnRole && presentOnHigherScope {
 				mergedPermissions = append(mergedPermissions, cp.Id)
 			}
-			// this 'continue' ensures the permission is not added when not present on role and not present on the
-			// higher scope.
-			continue
-		}
-
-		if presentOnHigherScope {
-			mergedPermissions = append(mergedPermissions, cp.Id)
+		} else {
+			if presentOnHigherScope {
+				mergedPermissions = append(mergedPermissions, cp.Id)
+			}
 		}
 	}
 
