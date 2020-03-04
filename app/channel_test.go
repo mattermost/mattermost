@@ -1320,6 +1320,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		Name                          string
 		ChannelModerationsPatch       []*model.ChannelModerationPatch
 		PermissionsModeratedByPatch   map[string]*model.ChannelModeratedRoles
+		RevertChannelModerationsPatch []*model.ChannelModerationPatch
 		HigherScopedMemberPermissions []string
 		HigherScopedGuestPermissions  []string
 		ShouldError                   bool
@@ -1338,6 +1339,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
 		},
 		{
 			Name: "Removing create reactions from members role",
@@ -1350,6 +1357,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				createReactions: {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
 				},
 			},
 		},
@@ -1366,6 +1379,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
 		},
 		{
 			Name: "Removing manage members from members role",
@@ -1378,6 +1397,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				manageMembers: {
 					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
 				},
 			},
 		},
@@ -1394,6 +1419,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+				},
+			},
 		},
 		{
 			Name: "Removing create reactions from guests role",
@@ -1408,6 +1439,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
 				},
 			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+				},
+			},
 		},
 		{
 			Name: "Removing channel mentions from guests role",
@@ -1420,6 +1457,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
 				channelMentions: {
 					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
 				},
 			},
 		},
@@ -1568,16 +1611,14 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			if tc.ShouldError {
 				require.Error(t, err)
 				return
-			} else {
-				require.Nil(t, err)
 			}
+			require.Nil(t, err)
 
 			updatedChannel, _ := th.App.GetChannel(channel.Id)
 			if tc.ShouldHaveNoChannelScheme {
 				require.Nil(t, updatedChannel.SchemeId)
 			} else {
 				require.NotNil(t, updatedChannel.SchemeId)
-				th.App.DeleteChannelScheme(updatedChannel)
 			}
 
 			for _, moderation := range moderations {
@@ -1599,6 +1640,10 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 					require.Equal(t, moderation.Roles.Guests.Value, true)
 					require.Equal(t, moderation.Roles.Guests.Enabled, true)
 				}
+			}
+
+			if tc.RevertChannelModerationsPatch != nil {
+				th.App.PatchChannelModerationsForChannel(channel, tc.RevertChannelModerationsPatch)
 			}
 		})
 	}
