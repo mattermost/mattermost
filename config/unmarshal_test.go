@@ -146,7 +146,9 @@ func TestConfigFromEnvVars(t *testing.T) {
 			"Plugins": {
 				"jira": {
 					"enabled": "true",
-					"secret": "config-secret"
+					"secret": "config-secret",
+					"int": 2,
+					"bool": true
 				}
 			},
 			"PluginStates": {
@@ -301,6 +303,8 @@ func TestConfigFromEnvVars(t *testing.T) {
 	t.Run("plugin specific settings except keys with a period should be overridden via environment", func(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED", "false")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_INT", "5")
+		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_BOOL", "false")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE", "false")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_COM_MATTERMOST_NPS_ENABLE", "false")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED")
@@ -320,6 +324,14 @@ func TestConfigFromEnvVars(t *testing.T) {
 		secret, ok := pluginsJira["secret"]
 		require.True(t, ok, "PluginSettings.Plugins.jira.secret is missing from config")
 		assert.Equal(t, "env-secret", secret)
+
+		intVal, ok := pluginsJira["int"]
+		require.True(t, ok, "PluginSettings.Plugins.jira.int is missing from config")
+		assert.Equal(t, int64(5), intVal)
+
+		boolVal, ok := pluginsJira["bool"]
+		require.True(t, ok, "PluginSettings.Plugins.jira.bool is missing from config")
+		assert.Equal(t, false, boolVal)
 
 		pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]
 		require.True(t, ok, "PluginSettings.PluginStates.jira is missing from config")

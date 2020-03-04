@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/viper"
@@ -161,7 +162,11 @@ func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 		if plugins != nil {
 			pl := plugins.(map[string]interface{})
 			// Note the values which have a period in them.
-			for k := range pl {
+			for k, parentVal := range pl {
+				var castedVal map[string]interface{}
+				if _, ok := parentVal.(map[string]interface{}); ok {
+					castedVal = parentVal.(map[string]interface{})
+				}
 				if !strings.Contains(k, ".") {
 					flattened := flattenStructToMap(config.PluginSettings.Plugins[k])
 					// This contains all flattened keys. We need to unflatten one-level.
@@ -177,6 +182,37 @@ func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 					expanded := make(map[string]interface{})
 					tmpMap := make(map[string]map[string]interface{})
 					for k, val := range flattened {
+						if _, ok := castedVal[k]; ok {
+							// Handle the cases of number and boolean. By default, it is always a string.
+							switch castedVal[k].(type) {
+							case float64:
+								_, ok := val.(float64)
+								if ok {
+									val = val.(float64)
+								}
+								_, ok = val.(string)
+								if ok {
+									f, err := strconv.ParseInt(val.(string), 10, 64)
+									if err != nil {
+										continue
+									}
+									val = f
+								}
+							case bool:
+								_, ok := val.(bool)
+								if ok {
+									val = val.(bool)
+								}
+								_, ok = val.(string)
+								if ok {
+									b, err := strconv.ParseBool(val.(string))
+									if err != nil {
+										continue
+									}
+									val = b
+								}
+							}
+						}
 						if !strings.Contains(k, ".") {
 							expanded[k] = val
 						} else {
