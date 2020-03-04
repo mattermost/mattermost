@@ -16,7 +16,7 @@ type SqlUserAccessTokenStore struct {
 	SqlStore
 }
 
-func NewSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
+func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
 	s := &SqlUserAccessTokenStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -30,7 +30,7 @@ func NewSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
 	return s
 }
 
-func (s SqlUserAccessTokenStore) CreateIndexesIfNotExists() {
+func (s SqlUserAccessTokenStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_user_access_tokens_token", "UserAccessTokens", "Token")
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }

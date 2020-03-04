@@ -103,7 +103,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			a.postJoinMessageForDefaultChannel(user, requestor, channel)
 		}
 
-		a.InvalidateCacheForChannelMembers(channel.Id)
+		a.invalidateCacheForChannelMembers(channel.Id)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 		message.Add("user_id", user.Id)
@@ -254,7 +254,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			return nil, err
 		}
 
-		a.InvalidateCacheForUser(channel.CreatorId)
+		a.invalidateCacheForUser(channel.CreatorId)
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -301,8 +301,8 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			a.WaitForChannelMembership(channel.Id, userId)
 
-			a.InvalidateCacheForUser(userId)
-			a.InvalidateCacheForUser(otherUserId)
+			a.invalidateCacheForUser(userId)
+			a.invalidateCacheForUser(otherUserId)
 
 			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 				a.Srv().Go(func() {
@@ -424,7 +424,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 			a.WaitForChannelMembership(channel.Id, creatorId)
 		}
 
-		a.InvalidateCacheForUser(userId)
+		a.invalidateCacheForUser(userId)
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", channel.Id, "", nil)
@@ -530,7 +530,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 		return nil, err
 	}
 
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
 	messageWs.Add("channel", channel.ToJson())
@@ -581,7 +581,7 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 		return channel, err
 	}
 
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CONVERTED, channel.TeamId, "", "", nil)
 	messageWs.Add("channel_id", channel.Id)
@@ -621,7 +621,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		return nil, err
 	}
 	channel.DeleteAt = 0
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -777,7 +777,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	a.InvalidateCacheForUser(userId)
+	a.invalidateCacheForUser(userId)
 	return member, nil
 }
 
@@ -810,7 +810,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 	message.Add("channelMember", member.ToJson())
 	a.Publish(message)
 
-	a.InvalidateCacheForUser(userId)
+	a.invalidateCacheForUser(userId)
 	return member, nil
 }
 
@@ -847,8 +847,8 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		return nil, err
 	}
 
-	a.InvalidateCacheForUser(userId)
-	a.InvalidateCacheForChannelMembersNotifyProps(channelId)
+	a.invalidateCacheForUser(userId)
+	a.invalidateCacheForChannelMembersNotifyProps(channelId)
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
 	evt.Add("channelMember", member.ToJson())
@@ -927,7 +927,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		if err := a.Srv().Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
-		a.InvalidateCacheForWebhook(hook.Id)
+		a.invalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
@@ -941,7 +941,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
 		return err
 	}
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -1003,8 +1003,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		return nil, err
 	}
 
-	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForChannelMembers(channel.Id)
+	a.invalidateCacheForUser(user.Id)
+	a.invalidateCacheForChannelMembers(channel.Id)
 
 	return newMember, nil
 }
@@ -1735,8 +1735,8 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 	}
 
-	a.InvalidateCacheForUser(userIdToRemove)
-	a.InvalidateCacheForChannelMembers(channel.Id)
+	a.invalidateCacheForUser(userIdToRemove)
+	a.invalidateCacheForChannelMembers(channel.Id)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actorUser *model.User
@@ -2044,7 +2044,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 		}
 	}
 	for _, channelId := range channelsToClearPushNotifications {
-		a.ClearPushNotification(currentSessionId, userId, channelId)
+		a.clearPushNotification(currentSessionId, userId, channelId)
 	}
 	return times, nil
 }
