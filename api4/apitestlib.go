@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -53,13 +52,11 @@ type TestHelper struct {
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
 	tempWorkspace     string
-
-	IncludeCacheLayer bool
 }
 
 var mainHelper *testlib.MainHelper
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -86,16 +83,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 	if err != nil {
 		panic(err)
 	}
-	if includeCache {
-		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
-	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
-		Server:            s,
-		ConfigStore:       memoryStore,
-		IncludeCacheLayer: includeCache,
+		App:         s.FakeApp(),
+		Server:      s,
+		ConfigStore: memoryStore,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -159,7 +151,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, true, true, nil)
+	return setupTestHelper(dbStore, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -174,7 +166,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, true, nil)
+	return setupTestHelper(dbStore, false, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -189,11 +181,11 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, true, updateConfig)
+	return setupTestHelper(dbStore, false, updateConfig)
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -201,7 +193,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -209,7 +201,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -234,10 +226,6 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
-	if me.IncludeCacheLayer {
-		// Clean all the caches
-		me.App.InvalidateAllCaches()
-	}
 
 	me.ShutdownApp()
 
