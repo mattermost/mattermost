@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/plugins"
+	"github.com/mattermost/mattermost-server/v5/plugins"
 )
 
 // GetPluginStatus returns the status for a plugin installed on this server.
