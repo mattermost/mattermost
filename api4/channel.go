@@ -757,7 +757,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, false)
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted)
 	if err != nil {
 		c.Err = err
 		return
@@ -1167,7 +1167,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate view struct
-	// Check IDs are valid or blank. Blank IDs are used to denote focus loss or inital channel view.
+	// Check IDs are valid or blank. Blank IDs are used to denote focus loss or initial channel view.
 	if view.ChannelId != "" && !model.IsValidId(view.ChannelId) {
 		c.SetInvalidParam("channel_view.channel_id")
 		return

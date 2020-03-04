@@ -36,7 +36,7 @@ func (fs SqlFileInfoStore) ClearCaches() {
 	}
 }
 
-func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
+func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -58,7 +58,7 @@ func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
+func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_update_at", "FileInfo", "UpdateAt")
 	fs.CreateIndexIfNotExists("idx_fileinfo_create_at", "FileInfo", "CreateAt")
 	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")

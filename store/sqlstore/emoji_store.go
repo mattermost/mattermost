@@ -18,7 +18,7 @@ type SqlEmojiStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-func NewSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
+func newSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	s := &SqlEmojiStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -36,7 +36,7 @@ func NewSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) s
 	return s
 }
 
-func (es SqlEmojiStore) CreateIndexesIfNotExists() {
+func (es SqlEmojiStore) createIndexesIfNotExists() {
 	es.CreateIndexIfNotExists("idx_emoji_update_at", "Emoji", "UpdateAt")
 	es.CreateIndexIfNotExists("idx_emoji_create_at", "Emoji", "CreateAt")
 	es.CreateIndexIfNotExists("idx_emoji_delete_at", "Emoji", "DeleteAt")

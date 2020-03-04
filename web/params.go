@@ -74,6 +74,7 @@ type Params struct {
 	LimitBefore            int
 	GroupIDs               string
 	IncludeTotalCount      bool
+	IncludeDeleted         bool
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -294,6 +295,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
 		params.IncludeTotalCount = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
+		params.IncludeDeleted = val
 	}
 
 	return params

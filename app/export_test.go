@@ -44,7 +44,7 @@ func TestReactionsOfPost(t *testing.T) {
 }
 
 func TestExportUserNotifyProps(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
@@ -112,7 +112,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestDirCreationForEmoji(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
@@ -122,7 +122,7 @@ func TestDirCreationForEmoji(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	emoji := &model.Emoji{
@@ -168,7 +168,7 @@ func TestExportCustomEmoji(t *testing.T) {
 	dirNameToExportEmoji := "exported_emoji_test"
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
-	err = th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	err = th.App.exportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
 	require.Nil(t, err, "should not have failed")
 }
 
