@@ -236,10 +236,12 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	assert.NotNil(t, response.Error)
-
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	ok, response := th.Client.Logout()
+	assert.True(t, ok)
+	CheckOKStatus(t, response)
+	_, response = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	CheckOKStatus(t, response)
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)

@@ -14,7 +14,7 @@ type SqlSystemStore struct {
 	SqlStore
 }
 
-func NewSqlSystemStore(sqlStore SqlStore) store.SystemStore {
+func newSqlSystemStore(sqlStore SqlStore) store.SystemStore {
 	s := &SqlSystemStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -26,7 +26,7 @@ func NewSqlSystemStore(sqlStore SqlStore) store.SystemStore {
 	return s
 }
 
-func (s SqlSystemStore) CreateIndexesIfNotExists() {
+func (s SqlSystemStore) createIndexesIfNotExists() {
 }
 
 func (s SqlSystemStore) Save(system *model.System) *model.AppError {
