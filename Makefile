@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -80,9 +80,6 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 
 # Tests
 TESTS=.
-
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
@@ -311,6 +308,15 @@ else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: ## Runs only quick tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
+else
+	@echo Running only TE tests
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+endif
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
