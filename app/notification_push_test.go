@@ -981,7 +981,7 @@ func TestSendPushNotifications(t *testing.T) {
 	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
 		err := th.App.sendPushNotificationToAllSessions(nil, th.BasicUser.Id, "")
 		assert.NotNil(t, err)
-		assert.Equal(t, "pushNotification: An error occurred building the push notification message, ", err.Error())
+		assert.Equal(t, "pushNotification: An error occurred building the push notification message., ", err.Error())
 		// Errors derived of using an empty object are handled internally through the notifications log
 		err = th.App.sendPushNotificationToAllSessions(&model.PushNotification{}, th.BasicUser.Id, "")
 		assert.Nil(t, err)
