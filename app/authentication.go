@@ -54,6 +54,9 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return passErr
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
@@ -65,12 +68,17 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 				return passErr
 			}
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
 	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return passErr
 	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
@@ -89,12 +97,17 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return passErr
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
 	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return passErr
 	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	return nil
 }

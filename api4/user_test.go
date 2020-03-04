@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -4365,8 +4364,6 @@ func TestLoginLockout(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
 		th := Setup(t).InitBasic()
-		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
-			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -4413,15 +4410,12 @@ func TestDemoteUserToGuest(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_guest", eventUser.Roles)
 		})
-		th.App.InvalidateAllCaches()
 	})
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
 		th := Setup(t).InitBasic()
-		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
-			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -4469,6 +4463,5 @@ func TestPromoteGuestToUser(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_user", eventUser.Roles)
 		})
-		th.App.InvalidateAllCaches()
 	})
 }
