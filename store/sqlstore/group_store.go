@@ -978,6 +978,10 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		Offset(uint64(page * perPage)).
 		OrderBy("g.DisplayName")
 
+	if opts.FilterAllowReferences {
+		groupsQuery = groupsQuery.Where("g.AllowReferences = 0")
+	}
+
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"

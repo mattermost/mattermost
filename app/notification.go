@@ -58,6 +58,15 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
+	groupsWithSchemeAdmin, err := a.Srv().Store.Group().GetGroupsByChannel(channel.Id, model.GroupSearchOpts{})
+	if err != nil {
+		return nil, err
+	}
+	groups := make(map[string]bool)
+	for _, entry := range groupsWithSchemeAdmin {
+		groups[entry.Group.Id] = true
+	}
+
 	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
 
@@ -76,7 +85,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
 		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
-		mentions = getExplicitMentions(post, keywords)
+		mentions = getExplicitMentions(post, keywords, groups)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -551,6 +560,9 @@ const (
 	// The post contains an at-channel, at-all, or at-here
 	ChannelMention
 
+	// The post contains an at-group
+	GroupMention
+
 	// The post is a DM
 	DMMention
 
@@ -582,7 +594,7 @@ func (m *ExplicitMentions) removeMention(userId string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]bool) *ExplicitMentions {
 	ret := &ExplicitMentions{}
 
 	buf := ""
@@ -591,7 +603,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				ret.processText(buf, keywords)
+				ret.processText(buf, keywords, groups)
 				buf = ""
 				return true
 			}
@@ -599,7 +611,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 			return false
 		})
 	}
-	ret.processText(buf, keywords)
+	ret.processText(buf, keywords, groups)
 
 	return ret
 }
@@ -742,20 +754,22 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
+func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string, groups map[string]bool) bool {
 	var mentionType MentionType
 
-	switch strings.ToLower(word) {
-	case "@here":
+	lcWord := strings.ToLower(word)
+	if lcWord == "@here" {
 		m.HereMentioned = true
 		mentionType = ChannelMention
-	case "@channel":
+	} else if lcWord == "@channel" {
 		m.ChannelMentioned = true
 		mentionType = ChannelMention
-	case "@all":
+	} else if lcWord == "@all" {
 		m.AllMentioned = true
 		mentionType = ChannelMention
-	default:
+	} else if groups[word] {
+		mentionType = GroupMention
+	} else {
 		mentionType = KeywordMention
 	}
 
@@ -795,7 +809,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 }
 
 // Processes text to filter mentioned users and other potential mentions
-func (m *ExplicitMentions) processText(text string, keywords map[string][]string) {
+func (m *ExplicitMentions) processText(text string, keywords map[string][]string, groups map[string]bool) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -809,7 +823,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if m.checkForMention(word, keywords) {
+		if m.checkForMention(word, keywords, groups) {
 			continue
 		}
 
@@ -818,7 +832,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if m.checkForMention(wordWithoutSuffix, keywords) {
+			if m.checkForMention(wordWithoutSuffix, keywords, groups) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -837,7 +851,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if m.checkForMention(splitWord, keywords) {
+				if m.checkForMention(splitWord, keywords, groups) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {

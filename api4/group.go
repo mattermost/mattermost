@@ -581,14 +581,15 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
-	if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
+	// if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	// 	c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	// 	return
+	// }
 
 	opts := model.GroupSearchOpts{
-		Q:                  c.Params.Q,
-		IncludeMemberCount: c.Params.IncludeMemberCount,
+		Q:                     c.Params.Q,
+		IncludeMemberCount:    c.Params.IncludeMemberCount,
+		FilterAllowReferences: c.Params.FilterAllowReferences,
 	}
 
 	if teamID != "" {
@@ -597,10 +598,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.PERMISSION_MANAGE_TEAM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
-			return
-		}
+		// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.PERMISSION_MANAGE_TEAM) {
+		// 	c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		// 	return
+		// }
 		opts.NotAssociatedToTeam = teamID
 	}
 
