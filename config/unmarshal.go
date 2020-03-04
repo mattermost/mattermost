@@ -161,12 +161,12 @@ func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 		preserveMap := make(map[string]map[string]interface{})
 		if plugins != nil {
 			pl := plugins.(map[string]interface{})
-			// Note the values which have a period in them.
 			for k, parentVal := range pl {
 				var castedVal map[string]interface{}
 				if _, ok := parentVal.(map[string]interface{}); ok {
 					castedVal = parentVal.(map[string]interface{})
 				}
+				// Note the values which don't have a period in them.
 				if !strings.Contains(k, ".") {
 					flattened := flattenStructToMap(config.PluginSettings.Plugins[k])
 					// This contains all flattened keys. We need to unflatten one-level.
@@ -248,7 +248,7 @@ func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 		preserveMap := make(map[string]*model.PluginState)
 		if states != nil {
 			st := states.(map[string]interface{})
-			// Note the values which have a period in them.
+			// Note the values which don't have a period in them.
 			for k := range st {
 				if !strings.Contains(k, ".") {
 					preserveMap[k] = config.PluginSettings.PluginStates[k]
