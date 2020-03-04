@@ -23,7 +23,7 @@ import (
 // Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
-	s.FakeApp().CreatePushNotificationsHub()
+	s.FakeApp().createPushNotificationsHub()
 
 	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
