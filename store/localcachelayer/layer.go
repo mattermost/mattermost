@@ -113,7 +113,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Roles
 	localCacheStore.roleCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
-	localCacheStore.rolePermissionsCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "RolePermissions", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLE_PERMISSIONS)
+	localCacheStore.rolePermissionsCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "RolePermission", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLE_PERMISSIONS)
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 
 	// Schemes
