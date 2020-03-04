@@ -56,6 +56,8 @@ func (s *Server) RunOldAppInitialization() error {
 
 	mlog.Info("Server is initializing...")
 
+	s.initEnterprise()
+
 	if s.FakeApp().Srv().newStore == nil {
 		s.FakeApp().Srv().newStore = func() store.Store {
 			return store.NewTimerLayer(
@@ -74,8 +76,6 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
 	s.FakeApp().StartPushNotificationsHubWorkers()
-
-	s.initEnterprise()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
