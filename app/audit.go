@@ -114,11 +114,19 @@ func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) []string {
 	infos := []string{}
 	sb := strings.Builder{}
 
-	keys := make([]string, 0, len(fields))
+	tmp := make([]string, 0, len(fields))
 	for k := range fields {
-		keys = append(keys, k)
+		if k != audit.KeyEvent && k != audit.KeyStatus && k != audit.KeyClient {
+			tmp = append(tmp, k)
+		}
 	}
-	sort.Strings(keys)
+	sort.Strings(tmp)
+
+	// event and status are pre-pended, client is appended, everything else gets sorted.
+	keys := make([]string, 0, len(fields))
+	keys = append(keys, audit.KeyEvent, audit.KeyStatus)
+	keys = append(keys, tmp...)
+	keys = append(keys, audit.KeyClient)
 
 top:
 	for _, k := range keys {
@@ -128,7 +136,11 @@ top:
 			}
 		}
 		// a single entry cannot be greater than maxlen; truncate if needed.
-		field := fmt.Sprintf("%s=%v", k, fields[k])
+		val, ok := fields[k]
+		if !ok {
+			continue top
+		}
+		field := fmt.Sprintf("%s=%v", k, val)
 		if len(field) > maxlen {
 			field = field[:maxlen-3]
 			field = field + "..."

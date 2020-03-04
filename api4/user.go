@@ -1446,15 +1446,14 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("login", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("login_id", loginId)
-	auditRec.AddMeta("login_user_id", id)
 	auditRec.AddMeta("device_id", deviceId)
 
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
-
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta(audit.KeyUserID, user.Id)
 
 	if user.IsGuest() {
 		if c.App.License() == nil {

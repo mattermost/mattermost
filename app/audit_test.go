@@ -16,12 +16,13 @@ const (
 )
 
 func Test_getExtraInfos(t *testing.T) {
-	fieldsOk := logr.Fields{"prop1": "Hello", "prop2": "there"}
-	wantOk := []string{"prop1=Hello | prop2=there"}
+	fieldsOk := logr.Fields{"event": "makeSomething", "status": "success", "prop2": "there", "prop1": "Hello", "client": "chrome32.22"}
+	wantOk := []string{"event=makeSomething | status=success | prop1=Hello", "prop2=there | client=chrome32.22"}
+	//                  --------------------------------------------------|50
 
 	fldTooLong, wantFldTooLong := makeString("prop1", TestMaxExtraInfoLen+1)
-	fieldsTooLong := logr.Fields{"prop1": fldTooLong, "prop2": "test data"}
-	wantTooLong := []string{wantFldTooLong, "prop2=test data"}
+	fieldsTooLong := logr.Fields{"prop1": fldTooLong, "prop2": "test data", "client": "chrome32.22"}
+	wantTooLong := []string{wantFldTooLong, "prop2=test data | client=chrome32.22"}
 
 	fieldsEmpty := logr.Fields{}
 	wantEmpty := []string{""}
@@ -29,12 +30,14 @@ func Test_getExtraInfos(t *testing.T) {
 	fldMany0, wantFldMany0 := makeString("prop0", TestMaxExtraInfoLen+2)
 	fldManyZ, wantFldManyZ := makeString("propZ", TestMaxExtraInfoLen+2)
 
-	fieldsMany := logr.Fields{"prop0": fldMany0, "prop1": "one", "prop2": "two", "prop3": "three", "prop4": "four", "prop5": "five",
+	fieldsMany := logr.Fields{"event": "makeSomething", "status": "success", "prop0": fldMany0, "prop1": "one",
+		"prop2": "two", "prop3": "three", "prop4": "four", "prop5": "five",
 		"prop6": "six", "prop7": "seven", "prop8": "eight", "prop9": "nine", "prop10": "ten", "prop11": "eleven",
 		"prop12": "twelve", "prop13": "thirteen", "prop14": "fourteen", "prop15": "fifteen", "prop16": "sixteen",
 		"prop17": "seventeen", "prop18": "eighteen", "prop19": "nineteen", "prop20": "twenty", "propZ": fldManyZ}
 	wantMany := []string{
-		//                                                |50
+		// ------------------------------------------------|50
+		"event=makeSomething | status=success",
 		wantFldMany0,
 		"prop1=one | prop10=ten | prop11=eleven",
 		"prop12=twelve | prop13=thirteen | prop14=fourteen",
