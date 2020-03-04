@@ -563,6 +563,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
 		model.PERMISSION_VIEW_MEMBERS.Id,
 		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expectedSystemAdmin)
 
