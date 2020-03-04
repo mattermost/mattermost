@@ -2462,6 +2462,22 @@ func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.FileInfoStore.GetWithOptions(page, perPage, opt)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetWithOptions", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	start := timemodule.Now()
 
@@ -4683,6 +4699,38 @@ func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.App
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelHigherScopedPermissions", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
 	start := timemodule.Now()
 
@@ -4759,38 +4807,6 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.GetByNames", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerRoleStore) HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.RoleStore.HigherScopedPermissions(roleNames)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.HigherScopedPermissions", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

@@ -39,6 +39,56 @@ func (_m *RoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
 	return r0, r1
 }
 
+// ChannelHigherScopedPermissions provides a mock function with given fields: roleNames
+func (_m *RoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+	ret := _m.Called(roleNames)
+
+	var r0 map[string]*model.RolePermissions
+	if rf, ok := ret.Get(0).(func([]string) map[string]*model.RolePermissions); ok {
+		r0 = rf(roleNames)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.RolePermissions)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(roleNames)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// ChannelRolesUnderTeamRole provides a mock function with given fields: roleName
+func (_m *RoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+	ret := _m.Called(roleName)
+
+	var r0 []*model.Role
+	if rf, ok := ret.Get(0).(func(string) []*model.Role); ok {
+		r0 = rf(roleName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Role)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(roleName)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: roleId
 func (_m *RoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
 	ret := _m.Called(roleId)
@@ -155,56 +205,6 @@ func (_m *RoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError)
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
 		r1 = rf(names)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// HigherScopedPermissions provides a mock function with given fields: roleNames
-func (_m *RoleStore) HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
-	ret := _m.Called(roleNames)
-
-	var r0 map[string]*model.RolePermissions
-	if rf, ok := ret.Get(0).(func([]string) map[string]*model.RolePermissions); ok {
-		r0 = rf(roleNames)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]*model.RolePermissions)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
-		r1 = rf(roleNames)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// ChannelRolesUnderTeamRole provides a mock function with given fields: roleName
-func (_m *RoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
-	ret := _m.Called(roleName)
-
-	var r0 []*model.Role
-	if rf, ok := ret.Get(0).(func(string) []*model.Role); ok {
-		r0 = rf(roleName)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Role)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(roleName)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -26,7 +26,7 @@ func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	err = a.mergeHigherScopedChannelPermissions([]*model.Role{role})
+	err = a.mergeChannelHigherScopedPermissions([]*model.Role{role})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	err = a.mergeHigherScopedChannelPermissions(roles)
+	err = a.mergeChannelHigherScopedPermissions(roles)
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +48,9 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
-// mergeHigherScopedChannelPermissions updates the permissions based on the role type, whether the permission is
+// mergeChannelHigherScopedPermissions updates the permissions based on the role type, whether the permission is
 // moderated, and the value of the permission on the higher-scoped scheme.
-func (a *App) mergeHigherScopedChannelPermissions(roles []*model.Role) *model.AppError {
+func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
 	var higherScopeNamesToQuery []string
 
 	for _, role := range roles {
@@ -63,7 +63,7 @@ func (a *App) mergeHigherScopedChannelPermissions(roles []*model.Role) *model.Ap
 		return nil
 	}
 
-	higherScopedPermissionsMap, err := a.Srv().Store.Role().HigherScopedPermissions(higherScopeNamesToQuery)
+	higherScopedPermissionsMap, err := a.Srv().Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (a *App) mergeHigherScopedChannelPermissions(roles []*model.Role) *model.Ap
 	for _, role := range roles {
 		if role.SchemeManaged {
 			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
-				role.MergeHigherScopedPermissions(higherScopedPermissions)
+				role.MergeChannelHigherScopedPermissions(higherScopedPermissions)
 			}
 		}
 	}
@@ -141,7 +141,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 		return nil, err
 	}
 
-	err = a.mergeHigherScopedChannelPermissions(impactedRoles)
+	err = a.mergeChannelHigherScopedPermissions(impactedRoles)
 	if err != nil {
 		return nil, err
 	}

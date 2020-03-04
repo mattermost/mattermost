@@ -248,7 +248,7 @@ func (s *SqlRoleStore) PermanentDeleteAll() *model.AppError {
 	return nil
 }
 
-func (s *SqlRoleStore) higherScopedPermissionsQuery(roleNames []string) string {
+func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) string {
 	sqlTmpl := `
 		SELECT
 			RoleSchemes.DefaultChannelGuestRole AS GuestRoleName,
@@ -304,8 +304,8 @@ func (s *SqlRoleStore) higherScopedPermissionsQuery(roleNames []string) string {
 	)
 }
 
-func (s *SqlRoleStore) HigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
-	sql := s.higherScopedPermissionsQuery(roleNames)
+func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+	sql := s.channelHigherScopedPermissionsQuery(roleNames)
 
 	var rolesPermissions []*channelRolesPermissions
 	if _, err := s.GetReplica().Select(&rolesPermissions, sql); err != nil {

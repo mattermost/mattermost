@@ -116,9 +116,9 @@ func (r *Role) Patch(patch *RolePatch) {
 	}
 }
 
-// MergeHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
+// MergeChannelHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
 // channel role's permissions.
-func (r *Role) MergeHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
+func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
 	mergedPermissions := []string{}
 
 	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
