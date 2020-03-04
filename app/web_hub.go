@@ -269,7 +269,7 @@ func (a *App) invalidateCacheForChannelPosts(channelId string) {
 	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
-func (a *App) invalidateCacheForUser(userId string) {
+func (a *App) InvalidateCacheForUser(userId string) {
 	a.invalidateCacheForUserSkipClusterSend(userId)
 
 	a.Srv().Store.User().InvalidateProfilesInChannelCacheByUser(userId)
