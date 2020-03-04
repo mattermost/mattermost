@@ -838,8 +838,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
 	} else {
-		memberRole.Patch(memberRolePatch)
-		guestRole.Patch(guestRolePatch)
+		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
+		if err != nil {
+			return nil, err
+		}
+		guestRole, err = a.PatchRole(guestRole, guestRolePatch)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
