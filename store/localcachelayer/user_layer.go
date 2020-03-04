@@ -108,9 +108,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
 			u := cacheItem.(*model.User)
 			if options.Since == 0 || u.UpdateAt > options.Since {
-				cu := u.DeepCopy()
-				cu.Sanitize(map[string]bool{})
-				users = append(users, cu)
+				users = append(users, u.DeepCopy())
 			}
 		} else {
 			remainingUserIds = append(remainingUserIds, userId)
@@ -129,9 +127,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		}
 		for _, user := range remainingUsers {
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
-			cu := user.DeepCopy()
-			cu.Sanitize(map[string]bool{})
-			users = append(users, cu)
+			users = append(users, user.DeepCopy())
 		}
 	}
 
