@@ -1577,6 +1577,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				require.Nil(t, updatedChannel.SchemeId)
 			} else {
 				require.NotNil(t, updatedChannel.SchemeId)
+				th.App.DeleteChannelScheme(updatedChannel)
 			}
 
 			for _, moderation := range moderations {
