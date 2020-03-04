@@ -16,7 +16,7 @@ type SqlCommandWebhookStore struct {
 	SqlStore
 }
 
-func NewSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
+func newSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
 	s := &SqlCommandWebhookStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -32,7 +32,7 @@ func NewSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
 	return s
 }
 
-func (s SqlCommandWebhookStore) CreateIndexesIfNotExists() {
+func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
 }
 

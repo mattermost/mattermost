@@ -13,8 +13,6 @@ import (
 )
 
 func (a *App) LoadLicense() {
-	a.SetLicense(nil)
-
 	licenseId := ""
 	props, err := a.Srv().Store.System().Get()
 	if err == nil {
@@ -37,6 +35,7 @@ func (a *App) LoadLicense() {
 	record, err := a.Srv().Store.License().Get(licenseId)
 	if err != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
+		a.SetLicense(nil)
 		return
 	}
 
@@ -108,9 +107,15 @@ func (a *App) License() *model.License {
 }
 
 func (a *App) SetLicense(license *model.License) bool {
+	oldLicense := a.Srv().licenseValue.Load()
+
 	defer func() {
 		for _, listener := range a.Srv().licenseListeners {
-			listener()
+			if oldLicense == nil {
+				listener(nil, license)
+			} else {
+				listener(oldLicense.(*model.License), license)
+			}
 		}
 	}()
 
@@ -169,13 +174,13 @@ func (a *App) RemoveLicense() *model.AppError {
 	return nil
 }
 
-func (s *Server) AddLicenseListener(listener func()) string {
+func (s *Server) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
 	id := model.NewId()
 	s.licenseListeners[id] = listener
 	return id
 }
 
-func (a *App) AddLicenseListener(listener func()) string {
+func (a *App) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
 	id := model.NewId()
 	a.Srv().licenseListeners[id] = listener
 	return id

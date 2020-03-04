@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -51,11 +53,13 @@ type TestHelper struct {
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
 	tempWorkspace     string
+
+	IncludeCacheLayer bool
 }
 
 var mainHelper *testlib.MainHelper
 
-func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -82,11 +86,16 @@ func setupTestHelper(dbStore store.Store, enterprise bool, updateConfig func(*mo
 	if err != nil {
 		panic(err)
 	}
+	if includeCache {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
 
 	th := &TestHelper{
-		App:         s.FakeApp(),
-		Server:      s,
-		ConfigStore: memoryStore,
+		App:               s.FakeApp(),
+		Server:            s,
+		ConfigStore:       memoryStore,
+		IncludeCacheLayer: includeCache,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -150,7 +159,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, true, nil)
+	return setupTestHelper(dbStore, true, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -165,7 +174,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, nil)
+	return setupTestHelper(dbStore, false, true, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -180,11 +189,11 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, updateConfig)
+	return setupTestHelper(dbStore, false, true, updateConfig)
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -192,7 +201,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -200,7 +209,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -225,6 +234,10 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
+	if me.IncludeCacheLayer {
+		// Clean all the caches
+		me.App.InvalidateAllCaches()
+	}
 
 	me.ShutdownApp()
 
@@ -235,15 +248,50 @@ func (me *TestHelper) TearDown() {
 	}
 }
 
+var initBasicOnce sync.Once
+var userCache struct {
+	SystemAdminUser *model.User
+	TeamAdminUser   *model.User
+	BasicUser       *model.User
+	BasicUser2      *model.User
+}
+
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.LoginSystemAdmin()
+	// create users once and cache them because password hashing is slow
+	initBasicOnce.Do(func() {
+		me.SystemAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
 
-	me.TeamAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+		me.TeamAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+		me.TeamAdminUser, _ = me.App.GetUser(me.TeamAdminUser.Id)
+		userCache.TeamAdminUser = me.TeamAdminUser.DeepCopy()
+
+		me.BasicUser = me.CreateUser()
+		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
+		userCache.BasicUser = me.BasicUser.DeepCopy()
+
+		me.BasicUser2 = me.CreateUser()
+		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
+		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
+	})
+	// restore cached users
+	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
+	me.BasicUser = userCache.BasicUser.DeepCopy()
+	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	// restore non hashed password for login
+	me.SystemAdminUser.Password = "Pa$$word11"
+	me.TeamAdminUser.Password = "Pa$$word11"
+	me.BasicUser.Password = "Pa$$word11"
+	me.BasicUser2.Password = "Pa$$word11"
+
+	me.LoginSystemAdmin()
 	me.LoginTeamAdmin()
 
 	me.BasicTeam = me.CreateTeam()
@@ -253,9 +301,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
-	me.BasicUser = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel)

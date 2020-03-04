@@ -15,7 +15,7 @@ type SqlLinkMetadataStore struct {
 	SqlStore
 }
 
-func NewSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
+func newSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
 	s := &SqlLinkMetadataStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -28,7 +28,7 @@ func NewSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
 	return s
 }
 
-func (s SqlLinkMetadataStore) CreateIndexesIfNotExists() {
+func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
 	} else {
