@@ -23,11 +23,11 @@ linters:
     - gosimple
     - govet
     - ineffassign
+    - scopelint
     - structcheck
     - unconvert
     - unused
     - varcheck
-    - scopelint
     # TODO: enable this later
     # - errcheck
 
