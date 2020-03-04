@@ -590,6 +590,24 @@ func TestGetServerBusy(t *testing.T) {
 	})
 }
 
+func TestGetServerBusyExpires(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().Busy.Set(time.Second * 30)
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := th.Client.GetServerBusyExpires()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		expires, resp := th.SystemAdminClient.GetServerBusyExpires()
+		CheckNoError(t, resp)
+		require.Greater(t, expires.Unix(), time.Now().Unix())
+	})
+}
+
 func TestServerBusy503(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
