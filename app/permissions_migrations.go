@@ -281,12 +281,22 @@ func getAddManageGuestsPermissionsMigration() permissionsMap {
 }
 
 func getAddUseMentionChannelsPermissionMigration() permissionsMap {
-	return permissionsMap{
-		permissionTransformation{
-			On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
-			Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
-		},
+	transformations := permissionsMap{}
+
+	for perm := range model.ModeratedPermissions {
+		trans := permissionTransformation{
+			On:  permissionAnd(isRole(model.CHANNEL_ADMIN_ROLE_ID), onOtherRole(model.CHANNEL_USER_ROLE_ID, permissionExists(perm))),
+			Add: []string{perm},
+		}
+		transformations = append(transformations, trans)
 	}
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+		Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+	})
+
+	return transformations
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
