@@ -525,9 +525,9 @@ func TestUploadFiles(t *testing.T) {
 				}
 
 				// Set the default values
-				var client model.Client4
+				client := th.Client
 				if tc.client != nil {
-					client = *tc.client
+					client = tc.client
 				}
 				channelId := channel.Id
 				if tc.channelId != "" {
@@ -544,9 +544,9 @@ func TestUploadFiles(t *testing.T) {
 				var fileResp *model.FileUploadResponse
 				var resp *model.Response
 				if useMultipart {
-					fileResp, resp = testUploadFilesMultipart(t, &client, channelId, tc.names, blobs, tc.clientIds)
+					fileResp, resp = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
 				} else {
-					fileResp, resp = testUploadFilesPost(t, &client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+					fileResp, resp = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
 				}
 
 				if tc.checkResponse != nil {
