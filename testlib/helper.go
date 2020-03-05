@@ -45,7 +45,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	flag.Parse()
 
 	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing.
+	// The global logger will be stomped by apps initializing but that's fine for testing.
 	// Ideally this won't happen.
 	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
@@ -57,7 +57,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	utils.TranslationsPreInit()
 
 	if options != nil {
-		if options.EnableStore {
+		if options.EnableStore && !testing.Short() {
 			mainHelper.setupStore()
 		}
 

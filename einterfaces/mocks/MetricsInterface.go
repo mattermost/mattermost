@@ -21,6 +21,11 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// DecrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, amount float64) {
+	_m.Called(hub, amount)
+}
+
 // IncrementChannelIndexCounter provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
@@ -139,6 +144,11 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
 func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
 	_m.Called(eventType)
+}
+
+// IncrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) IncrementWebSocketBroadcastBufferSize(hub string, amount float64) {
+	_m.Called(hub, amount)
 }
 
 // IncrementWebhookPost provides a mock function with given fields:
