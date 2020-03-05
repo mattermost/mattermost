@@ -129,7 +129,7 @@ func testUploadFilesPost(
 			}
 		}
 	}
-	t.Log(fileUploadResponse.ToJson())
+
 	return fileUploadResponse, nil
 }
 
