@@ -129,7 +129,7 @@ func testUploadFilesPost(
 			}
 		}
 	}
-
+	t.Log(fileUploadResponse.ToJson())
 	return fileUploadResponse, nil
 }
 
@@ -357,8 +357,19 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 9",
 			names:                       []string{"test.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_thumb.tiff"},
-			expectedImagePreviewNames:   []string{"test_expected_preview.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{701},
+			expectedImageHeights:        []int{701},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		{
+			title:                       "Happy image thumbnail/preview 10",
+			names:                       []string{"test_raw.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_preview.jpeg"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{701},
 			expectedImageHeights:        []int{701},
@@ -514,9 +525,9 @@ func TestUploadFiles(t *testing.T) {
 				}
 
 				// Set the default values
-				client := th.Client
+				client := *th.Client
 				if tc.client != nil {
-					client = tc.client
+					client = *tc.client
 				}
 				channelId := channel.Id
 				if tc.channelId != "" {
@@ -533,9 +544,9 @@ func TestUploadFiles(t *testing.T) {
 				var fileResp *model.FileUploadResponse
 				var resp *model.Response
 				if useMultipart {
-					fileResp, resp = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
+					fileResp, resp = testUploadFilesMultipart(t, &client, channelId, tc.names, blobs, tc.clientIds)
 				} else {
-					fileResp, resp = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+					fileResp, resp = testUploadFilesPost(t, &client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
 				}
 
 				if tc.checkResponse != nil {
@@ -609,10 +620,12 @@ func TestUploadFiles(t *testing.T) {
 							require.Nil(t, err)
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								defer tf.Close()
 								require.Nil(t, err)
-								_, _ = io.Copy(tf, bytes.NewReader(data))
-								tf.Close()
-								t.Errorf("Actual data mismatched %s, written to %q", name, tf.Name())
+								wBytes, err := io.Copy(tf, bytes.NewReader(data))
+								require.Nil(t, err)
+								require.Equal(t, int64(len(data)), wBytes)
+								t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v", name, tf.Name(), len(expected), len(data))
 							}
 						}
 						if len(tc.expectedPayloadNames) == 0 {
