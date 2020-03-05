@@ -33,7 +33,7 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	preferences, err := a.Srv.Store.Preference().GetCategory(userId, category)
+	preferences, err := a.Srv().Store.Preference().GetCategory(userId, category)
 	require.Nilf(t, err, "Failed to get preferences for user %v with category %v", userId, category)
 	found := false
 	for _, preference := range preferences {
@@ -61,13 +61,13 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false)
+	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
 	require.Nil(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	count, err := a.Srv.Store.Channel().AnalyticsTypeCount("", channelType)
+	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.Nil(t, err, "Failed to get channel count.")
 }
@@ -219,7 +219,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv.Store.FileInfo().GetForUser(userId)
+	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userId)
 	require.Nil(t, err)
 	return fileInfos
 }
@@ -228,7 +228,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postId := files[0].PostId
 	assert.NotNil(t, postId)
 
-	posts, err := th.App.Srv.Store.Post().GetPostsByIds([]string{postId})
+	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
 	require.Nil(t, err)
 
 	assert.Equal(t, len(posts), 1)

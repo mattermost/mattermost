@@ -33,7 +33,7 @@ func (m *MigrationsJobInterfaceImpl) MakeWorker() model.Worker {
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
-		jobServer: m.App.Srv.Jobs,
+		jobServer: m.App.Srv().Jobs,
 		app:       m.App,
 	}
 
@@ -83,7 +83,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan interface{}, 1)
-	go worker.app.Srv.Jobs.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
+	go worker.app.Srv().Jobs.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
 
 	defer cancelCancelWatcher()
 
@@ -111,7 +111,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 				return
 			} else {
 				job.Data[JOB_DATA_KEY_MIGRATION_LAST_DONE] = progress
-				if err := worker.app.Srv.Jobs.UpdateInProgressJobData(job); err != nil {
+				if err := worker.app.Srv().Jobs.UpdateInProgressJobData(job); err != nil {
 					mlog.Error("Worker: Failed to update migration status data for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 					worker.setJobError(job, err)
 					return
@@ -122,20 +122,20 @@ func (worker *Worker) DoJob(job *model.Job) {
 }
 
 func (worker *Worker) setJobSuccess(job *model.Job) {
-	if err := worker.app.Srv.Jobs.SetJobSuccess(job); err != nil {
+	if err := worker.app.Srv().Jobs.SetJobSuccess(job); err != nil {
 		mlog.Error("Worker: Failed to set success for job", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 	}
 }
 
 func (worker *Worker) setJobError(job *model.Job, appError *model.AppError) {
-	if err := worker.app.Srv.Jobs.SetJobError(job, appError); err != nil {
+	if err := worker.app.Srv().Jobs.SetJobError(job, appError); err != nil {
 		mlog.Error("Worker: Failed to set job error", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
 
 func (worker *Worker) setJobCanceled(job *model.Job) {
-	if err := worker.app.Srv.Jobs.SetJobCanceled(job); err != nil {
+	if err := worker.app.Srv().Jobs.SetJobCanceled(job); err != nil {
 		mlog.Error("Worker: Failed to mark job as canceled", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 	}
 }
@@ -157,7 +157,7 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	}
 
 	if done {
-		if saveErr := worker.app.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); saveErr != nil {
+		if saveErr := worker.app.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); saveErr != nil {
 			return false, "", saveErr
 		}
 	}

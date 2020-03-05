@@ -212,6 +212,15 @@ func (c *Client4) GetChannelByNameRoute(channelName, teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/channels/name/%v", channelName)
 }
 
+func (c *Client4) GetChannelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	if includeDeleted {
+		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
+		return route + query
+	}
+	return route
+}
+
 func (c *Client4) GetChannelByNameForTeamNameRoute(channelName, teamName string) string {
 	return fmt.Sprintf(c.GetTeamByNameRoute(teamName)+"/channels/name/%v", channelName)
 }
@@ -2282,8 +2291,8 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []stri
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) ([]*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag)
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response) {
+	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

@@ -15,7 +15,7 @@ import (
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)
-	text = replaceUserIds(a.Srv.Store.User(), text)
+	text = replaceUserIds(a.Srv().Store.User(), text)
 
 	return text
 }

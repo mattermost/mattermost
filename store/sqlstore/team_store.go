@@ -150,7 +150,7 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		sqlStore,
 	}
@@ -175,7 +175,7 @@ func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	return s
 }
 
-func (s SqlTeamStore) CreateIndexesIfNotExists() {
+func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 	s.RemoveIndexIfExists("idx_teams_description", "Teams")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")

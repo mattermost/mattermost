@@ -12,10 +12,10 @@ import (
 )
 
 func (a *App) SyncLdap() {
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 
 		if license := a.License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
-			if ldapI := a.Ldap; ldapI != nil {
+			if ldapI := a.Ldap(); ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
 				mlog.Error("Not executing ldap sync because ldap is not available")
@@ -26,7 +26,7 @@ func (a *App) SyncLdap() {
 
 func (a *App) TestLdap() *model.AppError {
 	license := a.License()
-	if ldapI := a.Ldap; ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
+	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
 			return err
@@ -43,9 +43,9 @@ func (a *App) TestLdap() *model.AppError {
 func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 	var group *model.Group
 
-	if a.Ldap != nil {
+	if a.Ldap() != nil {
 		var err *model.AppError
-		group, err = a.Ldap.GetGroup(ldapGroupID)
+		group, err = a.Ldap().GetGroup(ldapGroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -64,9 +64,9 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 	var groups []*model.Group
 	var total int
 
-	if a.Ldap != nil {
+	if a.Ldap() != nil {
 		var err *model.AppError
-		groups, total, err = a.Ldap.GetAllGroupsPage(page, perPage, opts)
+		groups, total, err = a.Ldap().GetAllGroupsPage(page, perPage, opts)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -97,7 +97,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 		return "", err
 	}
 
-	ldapInterface := a.Ldap
+	ldapInterface := a.Ldap()
 	if ldapInterface == nil {
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -106,7 +106,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 		return "", err
 	}
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
@@ -129,7 +129,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	ldapInterface := a.Ldap
+	ldapInterface := a.Ldap()
 	if ldapInterface == nil || user.AuthData == nil {
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -152,7 +152,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	T := utils.GetUserTranslations(user.Locale)
 
-	a.Srv.Go(func() {
+	a.Srv().Go(func() {
 		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}

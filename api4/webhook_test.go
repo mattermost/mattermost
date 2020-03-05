@@ -13,7 +13,7 @@ import (
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -67,7 +67,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -101,7 +101,7 @@ func TestCreateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -172,7 +172,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 }
 
 func TestGetIncomingWebhooksListByUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
 	th.LoginBasic()
@@ -213,7 +213,7 @@ func TestGetIncomingWebhooksListByUser(t *testing.T) {
 }
 
 func TestGetIncomingWebhooksByTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
 
@@ -254,7 +254,7 @@ func TestGetIncomingWebhooksByTeam(t *testing.T) {
 }
 
 func TestGetIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -293,7 +293,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 }
 
 func TestDeleteIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -343,7 +343,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -389,7 +389,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -480,7 +480,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksByTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
 
@@ -521,7 +521,7 @@ func TestGetOutgoingWebhooksByTeam(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksByChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
 
@@ -562,7 +562,7 @@ func TestGetOutgoingWebhooksByChannel(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooksListByUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	BasicClient := th.Client
 	th.LoginBasic()
@@ -603,7 +603,7 @@ func TestGetOutgoingWebhooksListByUser(t *testing.T) {
 
 }
 func TestGetOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -632,7 +632,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -808,7 +808,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 }
 
 func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -842,7 +842,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -872,7 +872,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestUpdateOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1025,7 +1025,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 }
 
 func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -1057,7 +1057,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 }
 
 func TestDeleteOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

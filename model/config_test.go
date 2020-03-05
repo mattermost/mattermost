@@ -181,9 +181,7 @@ func TestConfigOverwriteAdminSettings(t *testing.T) {
 
 	c1.SetDefaults()
 
-	if *c1.SamlSettings.AdminAttribute != attribute {
-		t.Fatal("SamlSettings.AdminAttribute should be overwritten")
-	}
+	require.Equal(t, *c1.SamlSettings.AdminAttribute, attribute)
 }
 
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {

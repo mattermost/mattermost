@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetTermsOfService(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -29,7 +29,7 @@ func TestGetTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfService(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -38,7 +38,7 @@ func TestCreateTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfServiceAdminUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

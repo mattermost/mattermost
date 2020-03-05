@@ -77,7 +77,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
-	hub := th.App.Srv.Hubs[0]
+	hub := th.App.Srv().GetHubs()[0]
 	th.App.HubStop()
 	time.Sleep(5 * time.Second)
 
