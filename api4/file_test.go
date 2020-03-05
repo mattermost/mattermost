@@ -231,8 +231,8 @@ func TestUploadFiles(t *testing.T) {
 			clientIds:         []string{"1", "2", "3", "4", "5"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
-		// // Upload a bunch of images. testgif.gif is an animated GIF,
-		// // so it does not have HasPreviewImage set.
+		// Upload a bunch of images. testgif.gif is an animated GIF,
+		// so it does not have HasPreviewImage set.
 		{
 			title:                   "Happy images",
 			names:                   []string{"test.png", "testgif.gif"},
