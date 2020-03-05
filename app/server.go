@@ -83,7 +83,7 @@ type Server struct {
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func()
+	licenseListeners   map[string]func(*model.License, *model.License)
 
 	timezones *timezones.Timezones
 
@@ -146,7 +146,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
-		licenseListeners:    map[string]func(){},
+		licenseListeners:    map[string]func(*model.License, *model.License){},
 		clientConfig:        make(map[string]string),
 	}
 
@@ -792,14 +792,14 @@ func (s *Server) StartElasticsearch() {
 		}
 	})
 
-	s.AddLicenseListener(func() {
-		if s.License() != nil {
+	s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if oldLicense == nil && newLicense != nil {
 			s.Go(func() {
 				if err := s.Elasticsearch.Start(); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
-		} else {
+		} else if oldLicense != nil && newLicense == nil {
 			s.Go(func() {
 				if err := s.Elasticsearch.Stop(); err != nil {
 					mlog.Error(err.Error())
