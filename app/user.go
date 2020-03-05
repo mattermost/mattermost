@@ -842,7 +842,7 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		mlog.Error("Failed to reset last picture update", mlog.Err(err))
 	}
 
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 
 	updatedUser, appErr := a.GetUser(user.Id)
 	if appErr != nil {
@@ -1014,7 +1014,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	}
 
 	a.invalidateUserChannelMembersCaches(user.Id)
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 
 	a.sendUpdatedUserEvent(*ruser)
 
@@ -1195,7 +1195,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		}
 	}
 
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 
 	if a.IsESIndexingEnabled() {
 		a.Srv().Go(func() {
@@ -1441,7 +1441,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -2047,7 +2047,7 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 		}
 
 		user = users.New
-		a.invalidateCacheForUser(user.Id)
+		a.InvalidateCacheForUser(user.Id)
 
 		if a.IsESIndexingEnabled() {
 			a.Srv().Go(func() {
@@ -2257,7 +2257,7 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
 	err := a.Srv().Store.User().PromoteGuestToUser(user.Id)
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2311,7 +2311,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	err := a.Srv().Store.User().DemoteUserToGuest(user.Id)
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -2353,7 +2353,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
 func (a *App) invalidateUserCacheAndPublish(userId string) {
-	a.invalidateCacheForUser(userId)
+	a.InvalidateCacheForUser(userId)
 
 	user, userErr := a.GetUser(userId)
 	if userErr != nil {

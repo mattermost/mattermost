@@ -254,7 +254,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			return nil, err
 		}
 
-		a.invalidateCacheForUser(channel.CreatorId)
+		a.InvalidateCacheForUser(channel.CreatorId)
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -301,8 +301,8 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			a.WaitForChannelMembership(channel.Id, userId)
 
-			a.invalidateCacheForUser(userId)
-			a.invalidateCacheForUser(otherUserId)
+			a.InvalidateCacheForUser(userId)
+			a.InvalidateCacheForUser(otherUserId)
 
 			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 				a.Srv().Go(func() {
@@ -424,7 +424,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 			a.WaitForChannelMembership(channel.Id, creatorId)
 		}
 
-		a.invalidateCacheForUser(userId)
+		a.InvalidateCacheForUser(userId)
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", channel.Id, "", nil)
@@ -777,7 +777,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	a.invalidateCacheForUser(userId)
+	a.InvalidateCacheForUser(userId)
 	return member, nil
 }
 
@@ -810,7 +810,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 	message.Add("channelMember", member.ToJson())
 	a.Publish(message)
 
-	a.invalidateCacheForUser(userId)
+	a.InvalidateCacheForUser(userId)
 	return member, nil
 }
 
@@ -847,7 +847,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		return nil, err
 	}
 
-	a.invalidateCacheForUser(userId)
+	a.InvalidateCacheForUser(userId)
 	a.invalidateCacheForChannelMembersNotifyProps(channelId)
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
@@ -1003,7 +1003,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		return nil, err
 	}
 
-	a.invalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	return newMember, nil
@@ -1735,7 +1735,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 	}
 
-	a.invalidateCacheForUser(userIdToRemove)
+	a.InvalidateCacheForUser(userIdToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
