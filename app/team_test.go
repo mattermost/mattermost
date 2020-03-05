@@ -298,6 +298,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		guestEmail := rguest.Email
 		rguest.Email = "test@restricted.com"
 		_, err := th.App.Srv().Store.User().Update(rguest, false)
+		th.App.InvalidateCacheForUser(rguest.Id)
 		require.Nil(t, err)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
