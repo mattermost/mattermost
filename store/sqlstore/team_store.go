@@ -533,7 +533,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
-// SaveMember adds a team member using the team Id of the member 
+// SaveMember adds a team member using the team Id of the member
 // if the member does not already exist in the database and if the number
 // of existing team members are less than the maximum allowed users per team.
 // It returns the team member added if the operation is successful.
