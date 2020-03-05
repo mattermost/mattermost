@@ -84,7 +84,7 @@ func (a *App) notifyPluginStatusesChanged() error {
 	a.Publish(message)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv.Go(func() {
+		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.OnPluginStatusesChanged(pluginContext)
