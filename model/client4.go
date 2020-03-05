@@ -4912,3 +4912,22 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, err := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
