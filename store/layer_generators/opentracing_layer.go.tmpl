@@ -51,7 +51,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 	defer span.Finish()
 	{{- if $element.Results | len | eq 0}}
 	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}
+	{{else}}
 		{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 		{{- if $element.Results | errorPresent }}
 			if {{$element.Results | errorVar}} != nil {
@@ -60,7 +60,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 			}
 		{{end}}	
 		return {{ $element.Results | genResultsVars -}}
-	{{ end }}
+	{{end}}
 }
 {{end}}
 {{end}}
@@ -68,8 +68,8 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 {{range $index, $element := .Methods}}
 func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
 	{{if $element.Results | len | eq 0}}s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}return s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ end}}}
+	{{else}}return s.Store.{{$index}}({{$element.Params | joinParams}})
+	{{end}}}
 {{end}}
 
 func New{{.Name}}(childStore Store, ctx context.Context) *{{.Name}} {

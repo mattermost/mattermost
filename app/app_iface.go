@@ -35,14 +35,10 @@ import (
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
-	/**
-	 * Returns a list with the channel ids that the user has permissions to view on a
-	 * team. If the result is an empty list, the user can't view any channel; if it's
-	 * nil, there are no restrictions for the user in the specified team.
-	 */
+	// GetViewUsersRestrictionsForTeam returns a list with the channel ids that the user has permissions to view on a
+	// team. If the result is an empty list, the user can't view any channel; if it's
+	// nil, there are no restrictions for the user in the specified team.
 	GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError)
-	// @openTracingParams args
-	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	// @openTracingParams teamId
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -71,7 +67,6 @@ type AppIface interface {
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
 	// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-	//
 	CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
@@ -95,7 +90,6 @@ type AppIface interface {
 	// However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 	// 'off-topic' and be included in the return results in addition to 'town-square'. For example:
 	//	['town-square', 'game-of-thrones', 'wow']
-	//
 	DefaultChannelNames() []string
 	// DeleteBotIconImage deletes LHS icon for a bot.
 	DeleteBotIconImage(botUserId string) *model.AppError
@@ -423,6 +417,7 @@ type AppIface interface {
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
+	// @openTracingParams args
 	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	ExportPermissions(w io.Writer) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)

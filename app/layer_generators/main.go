@@ -121,7 +121,6 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 }
 
 func extractStoreMetadata() (*storeMetadata, error) {
-
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 

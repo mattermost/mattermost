@@ -386,8 +386,9 @@ func (s *Server) Shutdown() error {
 	s.RunOldAppShutdown()
 
 	if s.tracer != nil {
-		err := s.tracer.Close()
-		mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+		if err := s.tracer.Close(); err != nil {
+			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+		}
 	}
 
 	err := s.shutdownDiagnostics()

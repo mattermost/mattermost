@@ -40,9 +40,9 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 	start := timemodule.Now()
 	{{if $element.Results | len | eq 0}}
 	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}
+	{{else}}
 	{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{ end }}
+	{{end}}
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
@@ -63,8 +63,8 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 {{range $index, $element := .Methods}}
 func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
 	{{if $element.Results | len | eq 0}}s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}return s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ end}}}
+	{{else}}return s.Store.{{$index}}({{$element.Params | joinParams}})
+	{{end}}}
 {{end}}
 
 func New{{.Name}}(childStore Store, metrics einterfaces.MetricsInterface) *{{.Name}} {
