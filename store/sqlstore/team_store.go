@@ -188,7 +188,7 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
-// Save adds the team to the database if the a team with the same name does not already 
+// Save adds the team to the database if the a team with the same name does not already
 // exist in the database and returns the team added.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	if len(team.Id) > 0 {
