@@ -1133,7 +1133,7 @@ func TestHookMetrics(t *testing.T) {
 }
 
 func TestOnPluginStatusesChanged(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
