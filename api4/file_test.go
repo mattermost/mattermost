@@ -50,8 +50,8 @@ func randomBytes(t *testing.T, n int) []byte {
 func fileBytes(t *testing.T, path string) []byte {
 	path = filepath.Join(testDir, path)
 	f, err := os.Open(path)
-	require.NoError(t, err)
 	defer f.Close()
+	require.NoError(t, err)
 	bb, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
 	return bb
@@ -71,9 +71,9 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 	}
 
 	resp, err := c.HttpClient.Do(req)
+	defer closeBody(resp)
 	require.Nil(t, err)
 	require.NotNil(t, resp)
-	defer closeBody(resp)
 
 	if resp.StatusCode >= 300 {
 		return nil, model.BuildErrorResponse(resp, model.AppErrorFromJson(resp.Body))
@@ -231,8 +231,8 @@ func TestUploadFiles(t *testing.T) {
 			clientIds:         []string{"1", "2", "3", "4", "5"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
-		// Upload a bunch of images. testgif.gif is an animated GIF,
-		// so it does not have HasPreviewImage set.
+		// // Upload a bunch of images. testgif.gif is an animated GIF,
+		// // so it does not have HasPreviewImage set.
 		{
 			title:                   "Happy images",
 			names:                   []string{"test.png", "testgif.gif"},
@@ -610,7 +610,9 @@ func TestUploadFiles(t *testing.T) {
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
 								require.Nil(t, err)
-								_, _ = io.Copy(tf, bytes.NewReader(data))
+								written, err := io.Copy(tf, bytes.NewReader(data))
+								require.Nil(t, err)
+								require.Greater(t, 1, written)
 								tf.Close()
 								t.Errorf("Actual data mismatched %s, written to %q", name, tf.Name())
 							}
