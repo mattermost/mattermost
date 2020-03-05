@@ -111,6 +111,7 @@ type SqlSupplier struct {
 	stores         SqlSupplierStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
+	context        context.Context
 }
 
 type TraceOnAdapter struct{}
@@ -262,6 +263,14 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	return dbmap
+}
+
+func (ss *SqlSupplier) SetContext(context context.Context) {
+	ss.context = context
+}
+
+func (ss *SqlSupplier) Context() context.Context {
+	return ss.context
 }
 
 func (ss *SqlSupplier) initConnection() {
