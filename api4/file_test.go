@@ -525,7 +525,7 @@ func TestUploadFiles(t *testing.T) {
 				}
 
 				// Set the default values
-				client := *th.Client
+				var client model.Client4
 				if tc.client != nil {
 					client = *tc.client
 				}
