@@ -188,7 +188,7 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
-// Save adds the team to the database if the a team with the same name does not already 
+// Save adds the team to the database if the a team with the same name does not already
 // exist in the database and returns the team added.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	if len(team.Id) > 0 {
@@ -533,7 +533,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
-// SaveMember adds a team member using the team Id of the member 
+// SaveMember adds a team member using the team Id of the member
 // if the member does not already exist in the database and if the number
 // of existing team members are less than the maximum allowed users per team.
 // It returns the team member added if the operation is successful.
