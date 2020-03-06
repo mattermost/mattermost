@@ -56,9 +56,7 @@ jobs:
           at: ~/mattermost/
       - run:
           name: Install Go
-          command: |
-            mkdir ~/bin
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
+          command: sudo apt-get install golang
       - owasp/with_commandline:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
@@ -73,7 +71,6 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
-                  export PATH=~/bin:$PATH
                   ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
                     --format ALL --noupdate --enableExperimental --scan './**/*'
             - owasp/collect_reports:
