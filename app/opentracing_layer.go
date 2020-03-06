@@ -3059,11 +3059,6 @@ func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
 	defer span.Finish()
 	resultVar0 := a.app.DoPermissionsMigrations()
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0
 }
 
