@@ -3045,7 +3045,7 @@ func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, us
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoPermissionsMigrations() *model.AppError {
+func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPermissionsMigrations")
 

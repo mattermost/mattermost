@@ -105,7 +105,7 @@ type AppIface interface {
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
 	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
-	DoPermissionsMigrations() *model.AppError
+	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.
