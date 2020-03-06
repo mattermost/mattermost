@@ -293,16 +293,13 @@ func getAddUseMentionChannelsPermissionMigration(a *App) (permissionsMap, error)
 	}
 
 	var allTeamSchemes []*model.Scheme
-	offset := 0
 	const limit = 100
-	i := 1
-	if teamSchemesBatch, err := a.GetSchemes(model.SCHEME_SCOPE_TEAM, offset, limit); len(teamSchemesBatch) > 0 {
+	i := 0
+	for teamSchemesBatch, err := a.GetSchemes(model.SCHEME_SCOPE_TEAM, limit*i, limit); len(teamSchemesBatch) > 0; i++ {
 		if err != nil {
 			return nil, err
 		}
 		allTeamSchemes = append(allTeamSchemes, teamSchemesBatch...)
-		offset = limit * i
-		i++
 	}
 
 	for _, ts := range allTeamSchemes {
