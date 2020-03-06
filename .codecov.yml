@@ -1,0 +1,11 @@
+comment: true
+#  branches: "!release*"
+
+ignore:
+  - store/storetest
+
+coverage:
+  status:
+    project:
+      default:
+        informational: true
