@@ -116,6 +116,12 @@ func getMockCacheProvider() *mocks.CacheProvider {
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(lru.New(128))
 
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"FileInfo",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
 	return &mockCacheProvider
 }
 
