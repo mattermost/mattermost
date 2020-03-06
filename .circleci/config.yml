@@ -49,13 +49,11 @@ jobs:
     working_directory: ~/mattermost/mattermost-server
     executor: owasp/default
     environment:
-      BASH_ENV: /home/circleci/.bashrc
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
     steps:
       - attach_workspace:
           at: ~/mattermost/
-      - run: mkdir ~/bin && echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
       - run:
           name: Install Go
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
@@ -72,7 +70,10 @@ jobs:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
                 name: Run OWASP Dependency-Check Analyzer
-                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental --scan './**/*'
+                command: |
+                  export PATH=~/bin:$PATH
+                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
+                    --format ALL --noupdate --enableExperimental --scan './**/*'
             - owasp/collect_reports:
                 persist_to_workspace: false
 
