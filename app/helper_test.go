@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -34,9 +36,11 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	tempWorkspace string
+
+	IncludeCacheLayer bool
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -65,9 +69,15 @@ func setupTestHelper(dbStore store.Store, enterprise bool, tb testing.TB, config
 		panic(err)
 	}
 
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
+
 	th := &TestHelper{
-		App:    s.FakeApp(),
-		Server: s,
+		App:               s.FakeApp(),
+		Server:            s,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -112,7 +122,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, true, tb, nil)
+	return setupTestHelper(dbStore, true, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -123,12 +133,12 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, tb, nil)
+	return setupTestHelper(dbStore, false, true, tb, nil)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, tb, nil)
+	th := setupTestHelper(mockStore, false, false, tb, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -137,7 +147,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, tb, nil)
+	th := setupTestHelper(mockStore, true, false, tb, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -152,23 +162,44 @@ func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, tb, configSet)
+	return setupTestHelper(dbStore, false, true, tb, configSet)
+}
+
+var initBasicOnce sync.Once
+var userCache struct {
+	SystemAdminUser *model.User
+	BasicUser       *model.User
+	BasicUser2      *model.User
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+	// create users once and cache them because password hashing is slow
+	initBasicOnce.Do(func() {
+		me.SystemAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
+
+		me.BasicUser = me.CreateUser()
+		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
+		userCache.BasicUser = me.BasicUser.DeepCopy()
+
+		me.BasicUser2 = me.CreateUser()
+		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
+		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
+	})
+	// restore cached users
+	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	me.BasicUser = userCache.BasicUser.DeepCopy()
+	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
 
 	me.BasicTeam = me.CreateTeam()
-	me.BasicUser = me.CreateUser()
 
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
-
 	return me
 }
 
@@ -521,6 +552,10 @@ func (me *TestHelper) ShutdownApp() {
 }
 
 func (me *TestHelper) TearDown() {
+	if me.IncludeCacheLayer {
+		// Clean all the caches
+		me.App.InvalidateAllCaches()
+	}
 	me.ShutdownApp()
 	if err := recover(); err != nil {
 		panic(err)

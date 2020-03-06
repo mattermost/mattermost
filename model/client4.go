@@ -212,6 +212,15 @@ func (c *Client4) GetChannelByNameRoute(channelName, teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/channels/name/%v", channelName)
 }
 
+func (c *Client4) GetChannelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	if includeDeleted {
+		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
+		return route + query
+	}
+	return route
+}
+
 func (c *Client4) GetChannelByNameForTeamNameRoute(channelName, teamName string) string {
 	return fmt.Sprintf(c.GetTeamByNameRoute(teamName)+"/channels/name/%v", channelName)
 }
@@ -2282,8 +2291,8 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []stri
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) ([]*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag)
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response) {
+	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -4743,8 +4752,23 @@ func (c *Client4) ClearServerBusy() (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetServerBusy returns the current ServerBusyState including the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusy() (*ServerBusyState, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	return sbs, BuildResponse(r)
+}
+
 // GetServerBusyExpires returns the time when a server marked busy
 // will automatically have the flag cleared.
+//
+// Deprecated: Use GetServerBusy instead.
 func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
 	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
 	if err != nil {
@@ -4902,4 +4926,23 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, err := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
 }
