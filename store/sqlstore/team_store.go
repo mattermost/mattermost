@@ -189,7 +189,7 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 }
 
 // Save adds the team to the database if a team with the same name does not already
-// exist in the database and returns the team added.
+// exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	if len(team.Id) > 0 {
 		return nil, model.NewAppError("SqlTeamStore.Save",
