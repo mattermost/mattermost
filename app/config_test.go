@@ -12,9 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -127,7 +124,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			sqlStore := th.App.Srv().Store.(*localcachelayer.LocalCacheStore).Store.(*searchlayer.SearchStore).Store.(*sqlstore.SqlSupplier)
+			sqlStore := th.GetSqlSupplier()
 			sqlStore.GetMaster().Exec("DELETE FROM Users")
 
 			for _, createAt := range tc.UsersCreationDates {

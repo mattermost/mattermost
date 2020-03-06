@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -568,6 +569,10 @@ func (me *TestHelper) TearDown() {
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}
+}
+
+func (me *TestHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
+	return mainHelper.GetSQLSupplier()
 }
 
 func (me *TestHelper) ResetRoleMigration() {
