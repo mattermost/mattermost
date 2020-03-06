@@ -4752,8 +4752,23 @@ func (c *Client4) ClearServerBusy() (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetServerBusy returns the current ServerBusyState including the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusy() (*ServerBusyState, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	return sbs, BuildResponse(r)
+}
+
 // GetServerBusyExpires returns the time when a server marked busy
 // will automatically have the flag cleared.
+//
+// Deprecated: Use GetServerBusy instead.
 func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
 	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
 	if err != nil {
