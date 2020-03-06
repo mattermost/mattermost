@@ -294,7 +294,7 @@ func getAddUseMentionChannelsPermissionMigration(a *App) (permissionsMap, error)
 
 	var allTeamSchemes []*model.Scheme
 
-	next := a.SchemesIterator(model.SCHEME_SCOPE_TEAM, permissionsExportBatchSize)
+	next := a.SchemesIterator(model.SCHEME_SCOPE_TEAM, 100)
 	var schemeBatch []*model.Scheme
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
 		allTeamSchemes = append(allTeamSchemes, schemeBatch...)

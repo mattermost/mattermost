@@ -57,6 +57,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	channelStore := mocks.ChannelStore{}
 	channelStore.On("ClearCaches").Return(nil)
 
+	schemeStore := mocks.SchemeStore{}
+	schemeStore.On("GetAllPage", model.SCHEME_SCOPE_TEAM, mock.Anything, 100).Return([]*model.Scheme{}, nil)
+
 	teamStore := mocks.TeamStore{}
 
 	mockStore.On("System").Return(&systemStore)
@@ -65,6 +68,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Status").Return(&statusStore)
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
+	mockStore.On("Scheme").Return(&schemeStore)
 	mockStore.On("Close").Return(nil)
 	mockStore.On("DropAllTables").Return(nil)
 	mockStore.On("MarkSystemRanUnitTests").Return(nil)
