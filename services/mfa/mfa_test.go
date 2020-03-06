@@ -37,6 +37,7 @@ func TestGenerateSecret(t *testing.T) {
 		mfa := New(wrongConfigService, nil)
 		_, _, err := mfa.GenerateSecret(user)
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.mfa_disabled.app_error")
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
@@ -50,6 +51,7 @@ func TestGenerateSecret(t *testing.T) {
 		mfa := New(configService, &storeMock)
 		_, _, err := mfa.GenerateSecret(user)
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.generate_qr_code.save_secret.app_error")
 	})
 
 	t.Run("Successful generate secret", func(t *testing.T) {
@@ -108,18 +110,21 @@ func TestActivate(t *testing.T) {
 		mfa := New(wrongConfigService, nil)
 		err := mfa.Activate(user, "not-important")
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.mfa_disabled.app_error")
 	})
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
 		mfa := New(configService, nil)
 		err := mfa.Activate(user, "invalid-token")
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.activate.authenticate.app_error")
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
 		mfa := New(configService, nil)
 		err := mfa.Activate(user, "000000")
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.activate.bad_token.app_error")
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
@@ -133,6 +138,7 @@ func TestActivate(t *testing.T) {
 		mfa := New(configService, &storeMock)
 		err := mfa.Activate(user, fmt.Sprintf("%06d", token))
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.activate.save_active.app_error")
 	})
 
 	t.Run("Successful activate", func(t *testing.T) {
@@ -165,6 +171,7 @@ func TestDeactivate(t *testing.T) {
 		mfa := New(wrongConfigService, nil)
 		err := mfa.Deactivate(user.Id)
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.mfa_disabled.app_error")
 	})
 
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
@@ -181,6 +188,7 @@ func TestDeactivate(t *testing.T) {
 		mfa := New(configService, &storeMock)
 		err := mfa.Deactivate(user.Id)
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.deactivate.save_active.app_error")
 	})
 
 	t.Run("fail on store UpdateMfaSecret action fail", func(t *testing.T) {
@@ -197,6 +205,7 @@ func TestDeactivate(t *testing.T) {
 		mfa := New(configService, &storeMock)
 		err := mfa.Deactivate(user.Id)
 		require.NotNil(t, err)
+		require.Equal(t, err.Id, "mfa.deactivate.save_secret.app_error")
 	})
 
 	t.Run("Successful deactivate", func(t *testing.T) {
@@ -234,6 +243,7 @@ func TestValidateToken(t *testing.T) {
 		ok, err := mfa.ValidateToken(secret, fmt.Sprintf("%06d", token))
 		require.NotNil(t, err)
 		require.False(t, ok)
+		require.Equal(t, err.Id, "mfa.mfa_disabled.app_error")
 	})
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
@@ -241,6 +251,7 @@ func TestValidateToken(t *testing.T) {
 		ok, err := mfa.ValidateToken(secret, "invalid-token")
 		require.NotNil(t, err)
 		require.False(t, ok)
+		require.Equal(t, err.Id, "mfa.validate_token.authenticate.app_error")
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
