@@ -152,7 +152,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 		return channelIds, nil
 	}
 
-	channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels)
+	channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
 	if err != nil {
 		return nil, err
 	}

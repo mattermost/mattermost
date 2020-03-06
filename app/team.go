@@ -489,7 +489,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, err
 		}
@@ -1126,7 +1126,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	}()
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels, false)
 		cchan <- store.StoreResult{Data: channels, Err: err}
 		close(cchan)
 	}()

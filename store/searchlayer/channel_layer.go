@@ -142,14 +142,11 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 
 	channelList := model.ChannelList{}
 	if len(channelIds) > 0 {
-		channels, err := c.ChannelStore.GetChannelsByIds(channelIds)
+		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
 			return nil, err
 		}
 		for _, ch := range channels {
-			if ch.DeleteAt > 0 && !includeDeleted {
-				continue
-			}
 			channelList = append(channelList, ch)
 		}
 	}
