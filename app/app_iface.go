@@ -789,7 +789,7 @@ type AppIface interface {
 	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
-	SchemesIterator(batchSize int) func() []*model.Scheme
+	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
 	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError)

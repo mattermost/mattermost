@@ -11619,7 +11619,7 @@ func (a *OpenTracingAppLayer) SaveUserTermsOfService(userId string, termsOfServi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Scheme {
+func (a *OpenTracingAppLayer) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SchemesIterator")
 
@@ -11631,7 +11631,7 @@ func (a *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Sch
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SchemesIterator(batchSize)
+	resultVar0 := a.app.SchemesIterator(scope, batchSize)
 
 	return resultVar0
 }
