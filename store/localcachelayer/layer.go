@@ -59,34 +59,44 @@ const (
 
 type LocalCacheStore struct {
 	store.Store
-	metrics                      einterfaces.MetricsInterface
-	cluster                      einterfaces.ClusterInterface
-	reaction                     LocalCacheReactionStore
-	reactionCache                cache.Cache
-	role                         LocalCacheRoleStore
-	roleCache                    cache.Cache
-	scheme                       LocalCacheSchemeStore
-	schemeCache                  cache.Cache
-	emoji                        LocalCacheEmojiStore
-	emojiCacheById               cache.Cache
-	emojiIdCacheByName           cache.Cache
+	metrics einterfaces.MetricsInterface
+	cluster einterfaces.ClusterInterface
+
+	reaction      LocalCacheReactionStore
+	reactionCache cache.Cache
+
+	role      LocalCacheRoleStore
+	roleCache cache.Cache
+
+	scheme      LocalCacheSchemeStore
+	schemeCache cache.Cache
+
+	emoji              LocalCacheEmojiStore
+	emojiCacheById     cache.Cache
+	emojiIdCacheByName cache.Cache
+
 	channel                      LocalCacheChannelStore
 	channelMemberCountsCache     cache.Cache
 	channelGuestCountCache       cache.Cache
 	channelPinnedPostCountsCache cache.Cache
 	channelByIdCache             cache.Cache
-	webhook                      LocalCacheWebhookStore
-	webhookCache                 cache.Cache
-	post                         LocalCachePostStore
-	postLastPostsCache           cache.Cache
-	lastPostTimeCache            cache.Cache
-	user                         LocalCacheUserStore
-	userProfileByIdsCache        cache.Cache
-	profilesInChannelCache       cache.Cache
-	team                         LocalCacheTeamStore
-	teamAllTeamIdsForUserCache   cache.Cache
-	termsOfService               LocalCacheTermsOfServiceStore
-	termsOfServiceCache          cache.Cache
+
+	webhook      LocalCacheWebhookStore
+	webhookCache cache.Cache
+
+	post               LocalCachePostStore
+	postLastPostsCache cache.Cache
+	lastPostTimeCache  cache.Cache
+
+	user                   LocalCacheUserStore
+	userProfileByIdsCache  cache.Cache
+	profilesInChannelCache cache.Cache
+
+	team                       LocalCacheTeamStore
+	teamAllTeamIdsForUserCache cache.Cache
+
+	termsOfService      LocalCacheTermsOfServiceStore
+	termsOfServiceCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider) LocalCacheStore {
@@ -96,35 +106,49 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster: cluster,
 		metrics: metrics,
 	}
+	// Reactions
 	localCacheStore.reactionCache = cacheProvider.NewCacheWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS)
 	localCacheStore.reaction = LocalCacheReactionStore{ReactionStore: baseStore.Reaction(), rootStore: &localCacheStore}
+
+	// Roles
 	localCacheStore.roleCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
+
+	// Schemes
 	localCacheStore.schemeCache = cacheProvider.NewCacheWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
+
+	// Webhooks
 	localCacheStore.webhookCache = cacheProvider.NewCacheWithParams(WEBHOOK_CACHE_SIZE, "Webhook", WEBHOOK_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS)
 	localCacheStore.webhook = LocalCacheWebhookStore{WebhookStore: baseStore.Webhook(), rootStore: &localCacheStore}
+
+	// Emojis
 	localCacheStore.emojiCacheById = cacheProvider.NewCacheWithParams(EMOJI_CACHE_SIZE, "EmojiById", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID)
 	localCacheStore.emojiIdCacheByName = cacheProvider.NewCacheWithParams(EMOJI_CACHE_SIZE, "EmojiByName", EMOJI_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME)
 	localCacheStore.emoji = LocalCacheEmojiStore{EmojiStore: baseStore.Emoji(), rootStore: &localCacheStore}
 
+	// Channels
 	localCacheStore.channelPinnedPostCountsCache = cacheProvider.NewCacheWithParams(CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE, "ChannelPinnedPostsCounts", CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS)
 	localCacheStore.channelMemberCountsCache = cacheProvider.NewCacheWithParams(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE, "ChannelMemberCounts", CHANNEL_MEMBERS_COUNTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS)
 	localCacheStore.channelGuestCountCache = cacheProvider.NewCacheWithParams(CHANNEL_GUEST_COUNT_CACHE_SIZE, "ChannelGuestsCount", CHANNEL_GUEST_COUNT_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT)
 	localCacheStore.channelByIdCache = cacheProvider.NewCacheWithParams(model.CHANNEL_CACHE_SIZE, "channelById", CHANNEL_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL)
-
 	localCacheStore.channel = LocalCacheChannelStore{ChannelStore: baseStore.Channel(), rootStore: &localCacheStore}
 
+	// Posts
 	localCacheStore.postLastPostsCache = cacheProvider.NewCacheWithParams(LAST_POSTS_CACHE_SIZE, "LastPost", LAST_POSTS_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS)
 	localCacheStore.lastPostTimeCache = cacheProvider.NewCacheWithParams(LAST_POST_TIME_CACHE_SIZE, "LastPostTime", LAST_POST_TIME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME)
-
 	localCacheStore.post = LocalCachePostStore{PostStore: baseStore.Post(), rootStore: &localCacheStore}
 
+	// TOS
 	localCacheStore.termsOfServiceCache = cacheProvider.NewCacheWithParams(TERMS_OF_SERVICE_CACHE_SIZE, "TermsOfService", TERMS_OF_SERVICE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE)
 	localCacheStore.termsOfService = LocalCacheTermsOfServiceStore{TermsOfServiceStore: baseStore.TermsOfService(), rootStore: &localCacheStore}
+
+	// Users
 	localCacheStore.userProfileByIdsCache = cacheProvider.NewCacheWithParams(USER_PROFILE_BY_ID_CACHE_SIZE, "UserProfileByIds", USER_PROFILE_BY_ID_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS)
 	localCacheStore.profilesInChannelCache = cacheProvider.NewCacheWithParams(PROFILES_IN_CHANNEL_CACHE_SIZE, "ProfilesInChannel", PROFILES_IN_CHANNEL_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_IN_CHANNEL)
 	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
+
+	// Teams
 	localCacheStore.teamAllTeamIdsForUserCache = cacheProvider.NewCacheWithParams(TEAM_CACHE_SIZE, "Team", TEAM_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS)
 	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 

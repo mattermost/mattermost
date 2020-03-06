@@ -56,6 +56,19 @@ jobs:
   #           make i18n-extract
   #           diff /tmp/en.json i18n/en.json
 
+  check-app-layers:
+    docker:
+      - image: mattermost/mattermost-build-server:oct-18-2019
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make app-layers
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
   build:
     docker:
       - image: mattermost/mattermost-build-server:oct-18-2019
@@ -92,6 +105,11 @@ jobs:
   test:
     executor:
       name: ubuntu
+    parameters:
+      dbdriver:
+        type: string
+      dbsource:
+        type: string
     steps:
       - attach_workspace:
           at: ~/mattermost
@@ -126,10 +144,11 @@ jobs:
               --env CI_INBUCKET_SMTP_PORT=10025 \
               --env CI_LDAP_HOST=openldap \
               --env IS_CI="true" \
-              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
+              --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
@@ -336,9 +355,12 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - build:
+      - check-app-layers:
           requires:
             - setup
+      - build:
+          requires:
+            - check-app-layers
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -352,15 +374,25 @@ workflows:
           requires:
             - upload-s3-sha
       - test:
+          name: test-mysql
+          dbdriver: mysql
+          dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
           requires:
-            - setup
+            - check-app-layers
+      - test:
+          name: test-postgres
+          dbdriver: postgres
+          dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          requires:
+            - check-app-layers
       - test-schema:
           requires:
-            - setup
+            - check-app-layers
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:
-            - test
+            - test-mysql
+            - test-postgres
             - test-schema
             - upload-s3
             - upload-s3-sha
