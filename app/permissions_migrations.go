@@ -280,7 +280,7 @@ func getAddManageGuestsPermissionsMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getAddUseMentionChannelsPermissionMigration(a *App) (permissionsMap, error) {
+func channelModerationPermissionsMigration(a *App) (permissionsMap, error) {
 	transformations := permissionsMap{}
 
 	type rolePair struct {
@@ -312,11 +312,12 @@ func getAddUseMentionChannelsPermissionMigration(a *App) (permissionsMap, error)
 			}
 			transformations = append(transformations, trans)
 		}
-		transformations = append(transformations, permissionTransformation{
-			On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
-			Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
-		})
 	}
+
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+		Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+	})
 
 	return transformations, nil
 }
@@ -336,7 +337,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
+		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: channelModerationPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
