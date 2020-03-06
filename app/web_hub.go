@@ -160,6 +160,9 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 
 func (a *App) HubRegister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
+	if metrics := a.Metrics(); metrics != nil {
+		metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
+	}
 	if hub != nil {
 		hub.Register(webConn)
 	}
@@ -167,6 +170,9 @@ func (a *App) HubRegister(webConn *WebConn) {
 
 func (a *App) HubUnregister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
+	if metrics := a.Metrics(); metrics != nil {
+		metrics.DecrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
+	}
 	if hub != nil {
 		hub.Unregister(webConn)
 	}
