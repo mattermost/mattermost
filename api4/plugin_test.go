@@ -33,7 +33,8 @@ func TestPlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	require.Nil(t, err)
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -66,6 +67,11 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
+	// Stored in File Store: Install Plugin from URL case
+	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
+
 	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	require.True(t, ok)
@@ -87,11 +93,6 @@ func TestPlugin(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.Equal(t, "testplugin", manifest.Id)
 	})
-
-	// Stored in File Store: Install Plugin from URL case
-	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-	assert.Nil(t, err)
-	assert.True(t, pluginStored)
 
 	th.App.RemovePlugin(manifest.Id)
 
