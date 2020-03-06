@@ -337,7 +337,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.SearchEngine.UpdateConfig(s.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
+	searchConfigListenerId, searchLicenseListenerId := s.startSearchEngine()
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
@@ -394,8 +394,7 @@ func (s *Server) Shutdown() error {
 
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
-	s.RemoveConfigListener(s.searchConfigListenerId)
-	s.RemoveLicenseListener(s.searchLicenseListenerId)
+	s.stopSearchEngine()
 
 	s.configStore.Close()
 
@@ -750,7 +749,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func (s *Server) StartSearchEngine() (string, string) {
+func (s *Server) startSearchEngine() (string, string) {
 	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
@@ -809,6 +808,14 @@ func (s *Server) StartSearchEngine() (string, string) {
 	})
 
 	return configListenerId, licenseListenerId
+}
+
+func (s *Server) stopSearchEngine() {
+	s.RemoveConfigListener(s.searchConfigListenerId)
+	s.RemoveLicenseListener(s.searchLicenseListenerId)
+	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
+		s.SearchEngine.ElasticsearchEngine.Stop()
+	}
 }
 
 func (s *Server) initDiagnostics(endpoint string) {
