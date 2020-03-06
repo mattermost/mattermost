@@ -54,7 +54,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/mattermost/
-      - run: echo 'export PATH=~/bin:$PATH' >> ~/.bashrc
+      - run: mkdir ~/bin && echo 'export PATH=~/bin:$PATH' >> ~/.bashrc
       - run:
           name: Install Go
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
