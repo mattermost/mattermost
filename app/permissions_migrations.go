@@ -305,7 +305,7 @@ func channelModerationPermissionsMigration(a *App) (permissionsMap, error) {
 	}
 
 	for _, rolePair := range rolePairs {
-		for perm := range model.ModeratedPermissions {
+		for perm := range model.CHANNEL_MODERATED_PERMISSIONS_MAP {
 			trans := permissionTransformation{
 				On:  permissionAnd(isRole(rolePair.targetRole), onOtherRole(rolePair.otherRole, permissionExists(perm))),
 				Add: []string{perm},

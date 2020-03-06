@@ -139,7 +139,7 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 			continue
 		}
 
-		_, permissionIsModerated := ModeratedPermissions[cp.Id]
+		_, permissionIsModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[cp.Id]
 		if permissionIsModerated {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
 			if presentOnRole && presentOnHigherScope {
