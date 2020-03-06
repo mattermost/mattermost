@@ -1159,14 +1159,14 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 	pluginId := pluginIds[0]
 
 	pluginStatusesInitial, err := th.App.GetPluginStatuses()
-	require.NotNil(t, err)
+	require.Nil(t, err)
 
 	require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
 	require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
 
 	pluginStatusesChanged, err := th.App.GetPluginStatuses()
 
-	require.NotNil(t, err)
+	require.Nil(t, err)
 	require.Equal(t, pluginStatusesInitial[0].PluginId, pluginStatusesChanged[0].PluginId)
 	require.NotEqual(t, pluginStatusesInitial[0].State, pluginStatusesChanged[0].State)
 }
