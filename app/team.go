@@ -648,7 +648,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForUserTeams(user.Id)
+	a.invalidateCacheForUserTeams(user.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
 	message.Add("team_id", team.Id)
@@ -955,7 +955,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForUserTeams(user.Id)
+	a.invalidateCacheForUserTeams(user.Id)
 
 	return nil
 }
@@ -978,7 +978,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
-			a.InvalidateCacheForChannelMembers(channel.Id)
+			a.invalidateCacheForChannelMembers(channel.Id)
 			if err = a.Srv().Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
 				return err
 			}
@@ -1190,7 +1190,7 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
 	}
 
 	return inviteListWithErrors, nil
@@ -1256,7 +1256,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
+	a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
 
 	return nil
 }
@@ -1593,7 +1593,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	for {
 		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
 		if err != nil {
-			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID))
+			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
 		}
 

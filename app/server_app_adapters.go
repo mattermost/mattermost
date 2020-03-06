@@ -24,7 +24,7 @@ import (
 // Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
-	s.FakeApp().CreatePushNotificationsHub()
+	s.FakeApp().createPushNotificationsHub()
 
 	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -40,7 +40,7 @@ func (s *Server) RunOldAppInitialization() error {
 			s.FakeApp().Publish(message)
 		})
 	})
-	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func() {
+	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
@@ -56,6 +56,8 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	mlog.Info("Server is initializing...")
+
+	s.initEnterprise()
 
 	if s.FakeApp().Srv().newStore == nil {
 		s.FakeApp().Srv().newStore = func() store.Store {
@@ -82,8 +84,6 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
 	s.FakeApp().StartPushNotificationsHubWorkers()
-
-	s.initEnterprise()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")

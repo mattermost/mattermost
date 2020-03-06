@@ -36,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -70,7 +71,8 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	Hubs                        []*Hub
+	hubsLock                    sync.RWMutex
+	hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
 	PushNotificationsHub PushNotificationsHub
@@ -82,7 +84,7 @@ type Server struct {
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
-	licenseListeners   map[string]func()
+	licenseListeners   map[string]func(*model.License, *model.License)
 
 	timezones *timezones.Timezones
 
@@ -138,6 +140,8 @@ type Server struct {
 	Saml             einterfaces.SamlInterface
 
 	CacheProvider cache.Provider
+
+	tracer *tracing.Tracer
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -146,7 +150,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
-		licenseListeners:    map[string]func(){},
+		licenseListeners:    map[string]func(*model.License, *model.License){},
 		clientConfig:        make(map[string]string),
 	}
 
@@ -180,6 +184,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
+
+	if *s.Config().ServiceSettings.EnableOpenTracing {
+		tracer, err := tracing.New()
+		if err != nil {
+			return nil, err
+		}
+		s.tracer = tracer
+	}
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
 		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
@@ -337,7 +349,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.SearchEngine.UpdateConfig(s.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.startSearchEngine()
+	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
@@ -379,6 +391,12 @@ func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
 	s.RunOldAppShutdown()
+
+	if s.tracer != nil {
+		if err := s.tracer.Close(); err != nil {
+			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+		}
+	}
 
 	err := s.shutdownDiagnostics()
 	if err != nil {
@@ -749,7 +767,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func (s *Server) startSearchEngine() (string, string) {
+func (s *Server) StartSearchEngine() (string, string) {
 	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.Go(func() {
 			if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
@@ -759,6 +777,9 @@ func (s *Server) startSearchEngine() (string, string) {
 	}
 
 	configListenerId := s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if s.SearchEngine == nil {
+			return
+		}
 		s.SearchEngine.UpdateConfig(newConfig)
 
 		if s.SearchEngine.ElasticsearchEngine != nil && !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
@@ -787,8 +808,11 @@ func (s *Server) startSearchEngine() (string, string) {
 		}
 	})
 
-	licenseListenerId := s.AddLicenseListener(func() {
-		if s.License() != nil {
+	licenseListenerId := s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if s.SearchEngine == nil {
+			return
+		}
+		if oldLicense == nil && newLicense != nil {
 			if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 				s.Go(func() {
 					if err := s.SearchEngine.ElasticsearchEngine.Start(); err != nil {
@@ -796,7 +820,7 @@ func (s *Server) startSearchEngine() (string, string) {
 					}
 				})
 			}
-		} else {
+		} else if oldLicense != nil && newLicense == nil {
 			if s.SearchEngine.ElasticsearchEngine != nil {
 				s.Go(func() {
 					if err := s.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
@@ -813,7 +837,7 @@ func (s *Server) startSearchEngine() (string, string) {
 func (s *Server) stopSearchEngine() {
 	s.RemoveConfigListener(s.searchConfigListenerId)
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
-	if s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
+	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
 	}
 }
@@ -843,5 +867,44 @@ func (s *Server) shutdownDiagnostics() error {
 		return s.diagnosticClient.Close()
 	}
 
+	return nil
+}
+
+// GetHubs returns the list of hubs. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) GetHubs() []*Hub {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	return s.hubs
+}
+
+// getHub gets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) GetHub(index int) (*Hub, error) {
+	s.hubsLock.RLock()
+	defer s.hubsLock.RUnlock()
+	if index >= len(s.hubs) {
+		return nil, errors.New("Hub element doesn't exist")
+	}
+	return s.hubs[index], nil
+}
+
+// SetHubs sets a new list of hubs. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) SetHubs(hubs []*Hub) {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	s.hubs = hubs
+}
+
+// SetHub sets the element at the given index in the hubs list. This method is safe
+// for concurrent use by multiple goroutines.
+func (s *Server) SetHub(index int, hub *Hub) error {
+	s.hubsLock.Lock()
+	defer s.hubsLock.Unlock()
+	if index >= len(s.hubs) {
+		return errors.New("Index is greater than the size of the hubs list")
+	}
+	s.hubs[index] = hub
 	return nil
 }

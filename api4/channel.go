@@ -43,6 +43,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("/pinned", api.ApiSessionRequired(getPinnedPosts)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/timezones", api.ApiSessionRequired(getChannelMembersTimezones)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/members_minus_group_members", api.ApiSessionRequired(channelMembersMinusGroupMembers)).Methods("GET")
+
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.ApiSessionRequired(getChannelUnread)).Methods("GET")
 
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiSessionRequired(getChannelByName)).Methods("GET")
@@ -57,6 +58,9 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.ApiSessionRequired(updateChannelMemberSchemeRoles)).Methods("PUT")
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.ApiSessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
+
+	api.BaseRoutes.ChannelModerations.Handle("", api.ApiSessionRequired(getChannelModerations)).Methods("GET")
+	api.BaseRoutes.ChannelModerations.Handle("/patch", api.ApiSessionRequired(patchChannelModerations)).Methods("PUT")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -753,7 +757,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, false)
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted)
 	if err != nil {
 		c.Err = err
 		return
@@ -1163,7 +1167,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate view struct
-	// Check IDs are valid or blank. Blank IDs are used to denote focus loss or inital channel view.
+	// Check IDs are valid or blank. Blank IDs are used to denote focus loss or initial channel view.
 	if view.ChannelId != "" && !model.IsValidId(view.ChannelId) {
 		c.SetInvalidParam("channel_view.channel_id")
 		return
@@ -1453,7 +1457,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -1530,6 +1534,81 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 	})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.channelMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.GetChannelModerations", "api.channel.get_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelModerations, err := c.App.GetChannelModerationsForChannel(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(channelModerations)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channelModerationsPatch := model.ChannelModerationsPatchFromJson(r.Body)
+	channelModerations, err := c.App.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(channelModerations)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

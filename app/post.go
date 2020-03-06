@@ -189,6 +189,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
+	var ephemeralPost *model.Post
+	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		mention := post.DisableMentionHighlights()
+		if mention != "" {
+			T := utils.GetUserTranslations(user.Locale)
+			ephemeralPost = &model.Post{
+				UserId:    user.Id,
+				RootId:    post.RootId,
+				ParentId:  post.ParentId,
+				ChannelId: channel.Id,
+				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
+				Props:     model.StringInterface{model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			}
+		}
+	}
+
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
@@ -303,6 +319,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		mlog.Error("Failed to handle post events", mlog.Err(err))
 	}
 
+	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
+	if ephemeralPost != nil {
+		a.SendEphemeralPost(post.UserId, ephemeralPost)
+	}
+
 	return rpost, nil
 }
 
@@ -383,8 +404,8 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		team = &model.Team{}
 	}
 
-	a.InvalidateCacheForChannel(channel)
-	a.InvalidateCacheForChannelPosts(channel.Id)
+	a.invalidateCacheForChannel(channel)
+	a.invalidateCacheForChannelPosts(channel.Id)
 
 	if _, err := a.SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err
@@ -562,7 +583,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
 
-	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
+	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
 	return rpost, nil
 }
@@ -581,6 +602,10 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	if channel.DeleteAt != 0 {
 		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
+	}
+
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		patch.DisableMentionHighlights()
 	}
 
 	post.Patch(patch)
@@ -824,7 +849,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		a.DeleteFlaggedPosts(post.Id)
 	})
 
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
+	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
 }

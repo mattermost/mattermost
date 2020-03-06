@@ -7,6 +7,7 @@
 package store
 
 import (
+	"context"
 	timemodule "time"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -7859,6 +7860,10 @@ func (s *TimerLayer) LockToMaster() {
 
 func (s *TimerLayer) MarkSystemRanUnitTests() {
 	s.Store.MarkSystemRanUnitTests()
+}
+
+func (s *TimerLayer) SetContext(context context.Context) {
+	s.Store.SetContext(context)
 }
 
 func (s *TimerLayer) TotalMasterDbConnections() int {
