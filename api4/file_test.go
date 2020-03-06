@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -356,9 +357,9 @@ func TestUploadFiles(t *testing.T) {
 		// TIFF preview test
 		{
 			title:                       "Happy image thumbnail/preview 9",
-			names:                       []string{"test.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"test_expected_preview.jpeg"},
+			names:                       []string{"test_compressed_tiff.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{701},
 			expectedImageHeights:        []int{701},
@@ -367,9 +368,9 @@ func TestUploadFiles(t *testing.T) {
 		},
 		{
 			title:                       "Happy image thumbnail/preview 10",
-			names:                       []string{"test_raw.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"test_expected_preview.jpeg"},
+			names:                       []string{"test_raw_tiff.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{701},
 			expectedImageHeights:        []int{701},
@@ -625,7 +626,11 @@ func TestUploadFiles(t *testing.T) {
 								wBytes, err := io.Copy(tf, bytes.NewReader(data))
 								require.Nil(t, err)
 								require.Equal(t, int64(len(data)), wBytes)
-								t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v", name, tf.Name(), len(expected), len(data))
+								if strings.Contains(name, "test_expected_tiff") {
+									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
+								} else {
+									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v.", name, tf.Name(), len(expected), len(data))
+								}
 							}
 						}
 						if len(tc.expectedPayloadNames) == 0 {
