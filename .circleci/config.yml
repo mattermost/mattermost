@@ -49,13 +49,12 @@ jobs:
     working_directory: ~/mattermost/mattermost-server
     executor: owasp/default
     environment:
-      BASH_ENV: ~/.bashrc
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
     steps:
       - attach_workspace:
           at: ~/mattermost/
-      - run: touch $BASH_ENV && echo 'export PATH=~/bin:$PATH' >> $BASH_ENV
+      - run: echo 'export PATH=~/bin:$PATH' >> ~/.bashrc
       - run:
           name: Install Go
           command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
