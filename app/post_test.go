@@ -947,6 +947,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil)
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().SearchEngine.ElasticsearchEngine = es
@@ -974,6 +975,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
 		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil)
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().SearchEngine.ElasticsearchEngine = es
@@ -997,6 +999,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
 		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil)
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().SearchEngine.ElasticsearchEngine = es
@@ -1028,6 +1031,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
 		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil)
 		es.On("IsActive").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().SearchEngine.ElasticsearchEngine = es
