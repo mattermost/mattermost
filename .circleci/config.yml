@@ -56,7 +56,9 @@ jobs:
           at: ~/mattermost/
       - run:
           name: Install Go
-          command: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
+          command: |
+            mkdir ~/bin
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=~/bin sh
       - owasp/with_commandline:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
