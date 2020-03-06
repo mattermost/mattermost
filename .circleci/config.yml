@@ -56,7 +56,7 @@ jobs:
           at: ~/mattermost/
       - run:
           name: Install Go
-          command: sudo apt-get install -y golang
+          command: sudo apt-get update && sudo apt-get install golang
       - owasp/with_commandline:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
