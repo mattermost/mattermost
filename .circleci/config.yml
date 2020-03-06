@@ -47,7 +47,8 @@ jobs:
         type: string
         default: "~/.owasp/dependency-check-data"
     working_directory: ~/mattermost/mattermost-server
-    executor: owasp/default
+    docker:
+      - image: mattermost/mattermost-build-server:oct-18-2019
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
