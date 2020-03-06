@@ -8,7 +8,7 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	th.CheckCommand(t, "version")

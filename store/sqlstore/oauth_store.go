@@ -16,7 +16,7 @@ type SqlOAuthStore struct {
 	SqlStore
 }
 
-func NewSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
+func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
 	as := &SqlOAuthStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -51,7 +51,7 @@ func NewSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
 	return as
 }
 
-func (as SqlOAuthStore) CreateIndexesIfNotExists() {
+func (as SqlOAuthStore) createIndexesIfNotExists() {
 	as.CreateIndexIfNotExists("idx_oauthapps_creator_id", "OAuthApps", "CreatorId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_client_id", "OAuthAccessData", "ClientId")
 	as.CreateIndexIfNotExists("idx_oauthaccessdata_user_id", "OAuthAccessData", "UserId")

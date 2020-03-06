@@ -291,7 +291,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
-	require.Nil(t, err, "Unable to retreive outgoing webhooks")
+	require.Nil(t, err, "Unable to retrieve outgoing webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
