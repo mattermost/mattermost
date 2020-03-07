@@ -77,7 +77,7 @@ type GroupSearchOpts struct {
 	NotAssociatedToTeam    string
 	NotAssociatedToChannel string
 	IncludeMemberCount     bool
-	FilterAllowReferences  bool
+	FilterAllowReference   bool
 	PageOpts               *PageOpts
 }
 
