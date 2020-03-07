@@ -49,6 +49,16 @@ type GroupWithSchemeAdmin struct {
 	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
 }
 
+type GroupsAssociatedToChannelWithSchemeAdmin struct {
+	ChannelId string `json:"channel_id"`
+	Group
+	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
+}
+type GroupsAssociatedToChannel struct {
+	ChannelId string                  `json:"channel_id"`
+	Groups    []*GroupWithSchemeAdmin `json:"groups"`
+}
+
 type GroupPatch struct {
 	Name           *string `json:"name"`
 	DisplayName    *string `json:"display_name"`

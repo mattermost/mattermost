@@ -921,6 +921,26 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
+func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
+	query := s.getQueryBuilder().
+		Select(fmt.Sprintf("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin")).Distinct().
+		From("UserGroups ug").
+		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE  GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0) AS gc ON gc.GroupId = ug.Id"), syncableID).
+		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).
+		OrderBy("ug.DisplayName")
+
+	if len(opts.Q) > 0 {
+		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
+		}
+		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+	}
+
+	return query
+}
+
 func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
 	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
 
@@ -955,6 +975,43 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 	_, err = s.GetReplica().Select(&groups, queryString, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}
+
+func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+	query := s.getGroupsAssociatedToChannelsByTeam(model.GroupSyncableTypeTeam, teamId, opts)
+
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var ngroups []*model.GroupsAssociatedToChannelWithSchemeAdmin
+
+	_, err = s.GetReplica().Select(&ngroups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	//convert GroupsAssociatedToChannelWithSchemeAdmin to groups
+	groups := map[string][]*model.GroupWithSchemeAdmin{}
+	for _, ngroup := range ngroups {
+		var group = model.GroupWithSchemeAdmin{}
+		group.Group = ngroup.Group
+		group.SchemeAdmin = ngroup.SchemeAdmin
+
+		if val, ok := groups[ngroup.ChannelId]; ok {
+			groups[ngroup.ChannelId] = append(val, &group)
+		} else {
+			groups[ngroup.ChannelId] = []*model.GroupWithSchemeAdmin{&group}
+		}
 	}
 
 	return groups, nil

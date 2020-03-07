@@ -3713,6 +3713,30 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 	return responseData.Groups, responseData.Count, BuildResponse(r)
 }
 
+// GetGroupsAssociatedToChannelsByTeam retrieves the Mattermost Groups associated with channels in a given team
+func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, int, *Response) {
+	path := fmt.Sprintf("%s/groupsforchannels?q=%v&include_member_count=%v", c.GetTeamRoute(teamId), opts.Q, opts.IncludeMemberCount)
+	if opts.PageOpts != nil {
+		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+	}
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, 0, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	responseData := struct {
+		GroupsAssociatedToChannels map[string][]*GroupWithSchemeAdmin `json:"groups"`
+		Count                      int                                `json:"total_group_count"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+		appErr := NewAppError("Api4.GetGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, BuildErrorResponse(r, appErr)
+	}
+
+	return responseData.GroupsAssociatedToChannels, responseData.Count, BuildResponse(r)
+}
+
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	path := fmt.Sprintf(

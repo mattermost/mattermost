@@ -60,6 +60,10 @@ func (api *API) InitGroup() {
 	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
 		api.ApiSessionRequired(getGroupsByTeam)).Methods("GET")
+
+	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groupsforchannels",
+		api.ApiSessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -556,6 +560,47 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}{
 		Groups: groups,
 		Count:  totalCount,
+	})
+
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.GetGroupsAssociatedToChannelByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	opts := model.GroupSearchOpts{
+		Q:                  c.Params.Q,
+		IncludeMemberCount: c.Params.IncludeMemberCount,
+	}
+	if c.Params.Paginate == nil || *c.Params.Paginate {
+		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
+	}
+
+	groupsAssociatedByChannelId, totalCount, err := c.App.GetGroupsAssociatedToChannelsByTeam(c.Params.TeamId, opts)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(struct {
+		GroupsAssociatedToChannels map[string][]*model.GroupWithSchemeAdmin `json:"groups"`
+		Count                      int                                      `json:"total_group_count"`
+	}{
+		GroupsAssociatedToChannels: groupsAssociatedByChannelId,
+		Count:                      totalCount,
 	})
 
 	if marshalErr != nil {
