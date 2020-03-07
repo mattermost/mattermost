@@ -24,7 +24,7 @@ type Audit struct {
 }
 
 func (a *Audit) Init(maxQueueSize int) {
-	a.lgr = &logr.Logr{MaxQueueSize: DefMaxQueueSize}
+	a.lgr = &logr.Logr{MaxQueueSize: maxQueueSize}
 	a.logger = a.lgr.NewLogger()
 
 	a.lgr.OnQueueFull = a.onQueueFull
@@ -41,7 +41,7 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 	return filter
 }
 
-// Log emits an audit record with complete info.
+// LogRecord emits an audit record with complete info.
 func (a *Audit) LogRecord(level Level, rec Record) {
 	flds := logr.Fields{}
 	flds[KeyAPIPath] = rec.APIPath

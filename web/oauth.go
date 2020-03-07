@@ -60,6 +60,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("authorizeOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
 
 	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
 
@@ -69,6 +70,8 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
 }
 
@@ -91,6 +94,8 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
 
@@ -208,6 +213,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("grant_type", grantType)
 	auditRec.AddMeta("client_id", clientId)
+	c.LogAudit("attempt")
 
 	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
 	if err != nil {
@@ -220,6 +226,8 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	w.Write([]byte(accessRsp.ToJson()))
 }
 

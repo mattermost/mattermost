@@ -45,6 +45,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("addLicense", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -90,6 +91,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	license, appErr := c.App.SaveLicense(buf.Bytes())
 	if appErr != nil {
+		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
+			c.LogAudit("failed - expired or non-started license")
+		} else if appErr.Id == model.INVALID_LICENSE_ERROR {
+			c.LogAudit("failed - invalid license")
+		} else {
+			c.LogAudit("failed - unable to save license")
+		}
 		c.Err = appErr
 		return
 	}
@@ -100,12 +108,15 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("removeLicense", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -123,5 +134,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }

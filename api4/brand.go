@@ -72,6 +72,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
 	ReturnStatusOK(w)

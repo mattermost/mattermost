@@ -74,7 +74,6 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 	}
 }
 
-/*
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
@@ -93,7 +92,6 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 		c.LogError(err)
 	}
 }
-*/
 
 func (c *Context) LogError(err *model.AppError) {
 	// Filter out 404s, endless reconnects and browser compatibility errors

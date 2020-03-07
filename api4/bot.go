@@ -343,6 +343,7 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
 
 	ReturnStatusOK(w)
 }
@@ -371,6 +372,7 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
 
 	ReturnStatusOK(w)
 }

@@ -154,5 +154,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	w.Write([]byte(role.ToJson()))
 }

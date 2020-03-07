@@ -113,6 +113,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg = c.App.GetSanitizedConfig()
 
 	auditRec.Success()
+	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))

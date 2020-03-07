@@ -45,6 +45,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.Success()
 	auditRec.AddMeta("compliance_id", rjob.Id)
 	auditRec.AddMeta("compliance_desc", rjob.Desc)
+	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rjob.ToJson()))
@@ -113,6 +114,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec.AddMeta("compliance_desc", job.Desc)
+	c.LogAudit("downloaded " + job.Desc)
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Header().Set("Content-Length", strconv.Itoa(len(reportBytes)))

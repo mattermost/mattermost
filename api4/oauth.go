@@ -55,6 +55,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("oauth_app_id", rapp.Id)
 	auditRec.AddMeta("client_id", rapp.Id)
+	c.LogAudit("client_id=" + rapp.Id)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rapp.ToJson()))
@@ -69,6 +70,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("oauth_app_id", c.Params.AppId)
+	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
@@ -110,6 +112,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
 
 	w.Write([]byte(updatedOauthApp.ToJson()))
 }
@@ -189,6 +192,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deleteOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("oauth_app_id", c.Params.AppId)
+	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
@@ -214,6 +218,8 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
 
@@ -251,6 +257,8 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec.Success()
+	c.LogAudit("success")
+
 	w.Write([]byte(oauthApp.ToJson()))
 }
 

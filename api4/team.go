@@ -226,6 +226,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("team_name", patchedTeam.Name)
 	auditRec.AddMeta("team_display", patchedTeam.DisplayName)
+	c.LogAudit("")
 
 	w.Write([]byte(patchedTeam.ToJson()))
 }
@@ -256,6 +257,7 @@ func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.Success()
 	auditRec.AddMeta("team_name", patchedTeam.Name)
 	auditRec.AddMeta("team_display", patchedTeam.DisplayName)
+	c.LogAudit("")
 
 	w.Write([]byte(patchedTeam.ToJson()))
 }
@@ -1282,6 +1284,8 @@ func setTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 
@@ -1306,6 +1310,8 @@ func removeTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 

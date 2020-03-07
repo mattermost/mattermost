@@ -42,12 +42,14 @@ func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits,
 func (s *Server) configureAudit(adt *audit.Audit) {
 	// For now just send audit records to database. When implemented, use config store
 	// to configure where audit records are written, and which filter is used.
-	filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
-	target := NewAuditStoreTarget(filter, s.Store.Audit(), audit.DefMaxQueueSize)
-	adt.AddTarget(target)
+	/*
+		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
+		target := NewAuditStoreTarget(filter, s.Store.Audit(), audit.DefMaxQueueSize)
+		adt.AddTarget(target)
 
-	adt.OnQueueFull = s.onAuditTargetQueueFull
-	adt.OnError = s.onAuditError
+		adt.OnQueueFull = s.onAuditTargetQueueFull
+		adt.OnError = s.onAuditError
+	*/
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {

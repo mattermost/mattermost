@@ -93,6 +93,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("channel_id", sc.Id)
+	c.LogAudit("name=" + channel.Name)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(sc.ToJson()))
@@ -202,6 +203,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + channel.Name)
 
 	w.Write([]byte(oldChannel.ToJson()))
 }
@@ -253,6 +255,7 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + rchannel.Name)
 
 	w.Write([]byte(rchannel.ToJson()))
 }
@@ -308,6 +311,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + updatedChannel.Name)
 
 	w.Write([]byte(updatedChannel.ToJson()))
 }
@@ -374,6 +378,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
 
 	w.Write([]byte(rchannel.ToJson()))
 }
@@ -408,6 +413,7 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + channel.Name)
 
 	w.Write([]byte(channel.ToJson()))
 }
@@ -1031,6 +1037,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + channel.Name)
 
 	ReturnStatusOK(w)
 }
@@ -1473,6 +1480,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("add_user_id", cm.UserId)
+	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(cm.ToJson()))
@@ -1530,6 +1538,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
 	ReturnStatusOK(w)
 }
