@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 
@@ -52,6 +51,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 	*/
 }
 
+/*
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
 	mlog.Warn("Audit Queue Full", mlog.String("qname", qname), mlog.Int("maxQSize", maxQSize))
 }
@@ -59,6 +59,7 @@ func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
 func (s *Server) onAuditError(err error) {
 	mlog.Error("Audit Error", mlog.Err(err))
 }
+*/
 
 const MaxExtraInfoLen = 1024
 
