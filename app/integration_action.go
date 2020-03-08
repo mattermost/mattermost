@@ -239,7 +239,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{
-			Message:   model.ParseSlackLinksToMarkdown(response.EphemeralText),
 			ChannelId: upstreamRequest.ChannelId,
 			RootId:    rootPostId,
 			UserId:    userId,
@@ -247,6 +246,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		if response.SkipSlackParsing {
 			ephemeralPost.Message = response.EphemeralText
+		} else {
+			ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
 		}
 
 		for key, value := range retain {
