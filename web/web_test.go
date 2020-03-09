@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -40,6 +41,8 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	tempWorkspace string
+
+	IncludeCacheLayer bool
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
@@ -47,7 +50,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 	store := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(tb, store)
+	th := setupTestHelper(tb, store, false)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -60,10 +63,10 @@ func Setup(tb testing.TB) *TestHelper {
 	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
-	return setupTestHelper(tb, store)
+	return setupTestHelper(tb, store, true)
 }
 
-func setupTestHelper(t testing.TB, store store.Store) *TestHelper {
+func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *TestHelper {
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
@@ -77,6 +80,11 @@ func setupTestHelper(t testing.TB, store store.Store) *TestHelper {
 	if err != nil {
 		panic(err)
 	}
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
+
 	a := s.FakeApp()
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
@@ -108,9 +116,10 @@ func setupTestHelper(t testing.TB, store store.Store) *TestHelper {
 	})
 
 	th := &TestHelper{
-		App:    a,
-		Server: s,
-		Web:    web,
+		App:               a,
+		Server:            s,
+		Web:               web,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 
 	return th
@@ -144,6 +153,10 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
+	if th.IncludeCacheLayer {
+		// Clean all the caches
+		th.App.InvalidateAllCaches()
+	}
 	th.Server.Shutdown()
 	if err := recover(); err != nil {
 		panic(err)
