@@ -4386,6 +4386,28 @@ func (a *OpenTracingAppLayer) GetChannelMembersTimezones(channelId string) ([]st
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelModerationsForChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetChannelModerationsForChannel(channel)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetChannelPinnedPostCount(channelId string) (int64, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelPinnedPostCount")
@@ -10025,6 +10047,28 @@ func (a *OpenTracingAppLayer) PatchChannel(channel *model.Channel, patch *model.
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.PatchChannel(channel, patch, userId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchChannelModerationsForChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.PatchChannelModerationsForChannel(channel, channelModerationsPatch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
