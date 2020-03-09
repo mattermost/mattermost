@@ -25,41 +25,32 @@ func (s *stdlogAdapter) Write(data []byte) (int, error) {
 		_, str := s.pickLevel(str)
 
 		// Log at the forced level
-		switch s.forceLevel {
-		case Trace:
-			s.log.Trace(str)
-		case Debug:
-			s.log.Debug(str)
-		case Info:
-			s.log.Info(str)
-		case Warn:
-			s.log.Warn(str)
-		case Error:
-			s.log.Error(str)
-		default:
-			s.log.Info(str)
-		}
+		s.dispatch(str, s.forceLevel)
 	} else if s.inferLevels {
 		level, str := s.pickLevel(str)
-		switch level {
-		case Trace:
-			s.log.Trace(str)
-		case Debug:
-			s.log.Debug(str)
-		case Info:
-			s.log.Info(str)
-		case Warn:
-			s.log.Warn(str)
-		case Error:
-			s.log.Error(str)
-		default:
-			s.log.Info(str)
-		}
+		s.dispatch(str, level)
 	} else {
 		s.log.Info(str)
 	}
 
 	return len(data), nil
+}
+
+func (s *stdlogAdapter) dispatch(str string, level Level) {
+	switch level {
+	case Trace:
+		s.log.Trace(str)
+	case Debug:
+		s.log.Debug(str)
+	case Info:
+		s.log.Info(str)
+	case Warn:
+		s.log.Warn(str)
+	case Error:
+		s.log.Error(str)
+	default:
+		s.log.Info(str)
+	}
 }
 
 // Detect, based on conventions, what log level this is.

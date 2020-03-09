@@ -26,17 +26,6 @@ func TestTeamMemberIsValid(t *testing.T) {
 	o.TeamId = NewId()
 
 	require.Error(t, o.IsValid(), "should be invalid")
-
-	/*o.UserId = NewId()
-	o.Roles = "blahblah"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.Roles = ""
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}*/
 }
 
 func TestUnreadMemberJson(t *testing.T) {

@@ -24,14 +24,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+		props, err := a.Srv().Store.User().GetAllProfilesInChannel(channel.Id, true)
 		pchan <- store.StoreResult{Data: props, Err: err}
 		close(pchan)
 	}()
 
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		props, err := a.Srv().Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 		cmnchan <- store.StoreResult{Data: props, Err: err}
 		close(cmnchan)
 	}()
@@ -40,7 +40,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
-			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
+			fileInfos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
 			fchan <- store.StoreResult{Data: fileInfos, Err: err}
 			close(fchan)
 		}()
@@ -133,7 +133,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
-			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, userId)
+			umc <- a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			close(umc)
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
@@ -258,7 +258,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				)
 			} else {
 				// register that a notification was not sent
-				a.NotificationsLog.Warn("Notification not sent",
+				a.NotificationsLog().Warn("Notification not sent",
 					mlog.String("ackId", ""),
 					mlog.String("type", model.PUSH_TYPE_MESSAGE),
 					mlog.String("userId", id),
@@ -290,7 +290,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					)
 				} else {
 					// register that a notification was not sent
-					a.NotificationsLog.Warn("Notification not sent",
+					a.NotificationsLog().Warn("Notification not sent",
 						mlog.String("ackId", ""),
 						mlog.String("type", model.PUSH_TYPE_MESSAGE),
 						mlog.String("userId", id),
@@ -403,7 +403,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		return nil, nil, nil
 	}
 
-	users, err := a.Srv.Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
+	users, err := a.Srv().Store.User().GetProfilesByUsernames(potentialMentions, &model.ViewUsersRestrictions{Teams: []string{channel.TeamId}})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -624,6 +624,10 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
 func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
+		return false
+	}
+
 	if post.Type == model.POST_HEADER_CHANGE || post.Type == model.POST_PURPOSE_CHANGE {
 		return false
 	}
@@ -645,7 +649,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 			keywords,
 			profile,
 			channelMemberNotifyPropsMap[profile.Id],
-			GetStatusFromCache(profile.Id),
+			a.GetStatusFromCache(profile.Id),
 			allowChannelMentions,
 		)
 	}
@@ -699,7 +703,7 @@ type PostNotification struct {
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
-// preceeded by an at sign. For group messages, this is a comma-separated list of the members of the
+// preceded by an at sign. For group messages, this is a comma-separated list of the members of the
 // channel, with an option to exclude the recipient of the message from that list.
 func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) string {
 	switch n.Channel.Type {
@@ -853,7 +857,7 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 		return model.SHOW_USERNAME
 	}
 
-	data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
+	data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT)
 	if err != nil {
 		return *a.Config().TeamSettings.TeammateNameDisplay
 	}

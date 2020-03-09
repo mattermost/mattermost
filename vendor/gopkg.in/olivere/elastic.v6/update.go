@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,7 +18,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docs-update.html
 // for details.
 type UpdateService struct {
-	client              *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index               string
 	typ                 string
 	id                  string
@@ -39,157 +47,189 @@ type UpdateService struct {
 	timeout             string
 	ifSeqNo             *int64
 	ifPrimaryTerm       *int64
-	pretty              bool
 }
 
 // NewUpdateService creates the service to update documents in Elasticsearch.
 func NewUpdateService(client *Client) *UpdateService {
-	builder := &UpdateService{
+	return &UpdateService{
 		client: client,
 		fields: make([]string, 0),
 	}
-	return builder
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *UpdateService) Pretty(pretty bool) *UpdateService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *UpdateService) Human(human bool) *UpdateService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *UpdateService) ErrorTrace(errorTrace bool) *UpdateService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *UpdateService) FilterPath(filterPath ...string) *UpdateService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *UpdateService) Header(name string, value string) *UpdateService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *UpdateService) Headers(headers http.Header) *UpdateService {
+	s.headers = headers
+	return s
 }
 
 // Index is the name of the Elasticsearch index (required).
-func (b *UpdateService) Index(name string) *UpdateService {
-	b.index = name
-	return b
+func (s *UpdateService) Index(name string) *UpdateService {
+	s.index = name
+	return s
 }
 
 // Type is the type of the document (required).
-func (b *UpdateService) Type(typ string) *UpdateService {
-	b.typ = typ
-	return b
+func (s *UpdateService) Type(typ string) *UpdateService {
+	s.typ = typ
+	return s
 }
 
 // Id is the identifier of the document to update (required).
-func (b *UpdateService) Id(id string) *UpdateService {
-	b.id = id
-	return b
+func (s *UpdateService) Id(id string) *UpdateService {
+	s.id = id
+	return s
 }
 
 // Routing specifies a specific routing value.
-func (b *UpdateService) Routing(routing string) *UpdateService {
-	b.routing = routing
-	return b
+func (s *UpdateService) Routing(routing string) *UpdateService {
+	s.routing = routing
+	return s
 }
 
 // Parent sets the id of the parent document.
-func (b *UpdateService) Parent(parent string) *UpdateService {
-	b.parent = parent
-	return b
+func (s *UpdateService) Parent(parent string) *UpdateService {
+	s.parent = parent
+	return s
 }
 
 // Script is the script definition.
-func (b *UpdateService) Script(script *Script) *UpdateService {
-	b.script = script
-	return b
+func (s *UpdateService) Script(script *Script) *UpdateService {
+	s.script = script
+	return s
 }
 
 // RetryOnConflict specifies how many times the operation should be retried
 // when a conflict occurs (default: 0).
-func (b *UpdateService) RetryOnConflict(retryOnConflict int) *UpdateService {
-	b.retryOnConflict = &retryOnConflict
-	return b
+func (s *UpdateService) RetryOnConflict(retryOnConflict int) *UpdateService {
+	s.retryOnConflict = &retryOnConflict
+	return s
 }
 
 // Fields is a list of fields to return in the response.
-func (b *UpdateService) Fields(fields ...string) *UpdateService {
-	b.fields = make([]string, 0, len(fields))
-	b.fields = append(b.fields, fields...)
-	return b
+func (s *UpdateService) Fields(fields ...string) *UpdateService {
+	s.fields = make([]string, 0, len(fields))
+	s.fields = append(s.fields, fields...)
+	return s
 }
 
 // Version defines the explicit version number for concurrency control.
-func (b *UpdateService) Version(version int64) *UpdateService {
-	b.version = &version
-	return b
+func (s *UpdateService) Version(version int64) *UpdateService {
+	s.version = &version
+	return s
 }
 
 // VersionType is e.g. "internal".
-func (b *UpdateService) VersionType(versionType string) *UpdateService {
-	b.versionType = versionType
-	return b
+func (s *UpdateService) VersionType(versionType string) *UpdateService {
+	s.versionType = versionType
+	return s
 }
 
 // Refresh the index after performing the update.
 //
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docs-refresh.html
 // for details.
-func (b *UpdateService) Refresh(refresh string) *UpdateService {
-	b.refresh = refresh
-	return b
+func (s *UpdateService) Refresh(refresh string) *UpdateService {
+	s.refresh = refresh
+	return s
 }
 
 // WaitForActiveShards sets the number of shard copies that must be active before
 // proceeding with the update operation. Defaults to 1, meaning the primary shard only.
 // Set to `all` for all shard copies, otherwise set to any non-negative value less than
 // or equal to the total number of copies for the shard (number of replicas + 1).
-func (b *UpdateService) WaitForActiveShards(waitForActiveShards string) *UpdateService {
-	b.waitForActiveShards = waitForActiveShards
-	return b
+func (s *UpdateService) WaitForActiveShards(waitForActiveShards string) *UpdateService {
+	s.waitForActiveShards = waitForActiveShards
+	return s
 }
 
 // Doc allows for updating a partial document.
-func (b *UpdateService) Doc(doc interface{}) *UpdateService {
-	b.doc = doc
-	return b
+func (s *UpdateService) Doc(doc interface{}) *UpdateService {
+	s.doc = doc
+	return s
 }
 
 // Upsert can be used to index the document when it doesn't exist yet.
 // Use this e.g. to initialize a document with a default value.
-func (b *UpdateService) Upsert(doc interface{}) *UpdateService {
-	b.upsert = doc
-	return b
+func (s *UpdateService) Upsert(doc interface{}) *UpdateService {
+	s.upsert = doc
+	return s
 }
 
 // DocAsUpsert can be used to insert the document if it doesn't already exist.
-func (b *UpdateService) DocAsUpsert(docAsUpsert bool) *UpdateService {
-	b.docAsUpsert = &docAsUpsert
-	return b
+func (s *UpdateService) DocAsUpsert(docAsUpsert bool) *UpdateService {
+	s.docAsUpsert = &docAsUpsert
+	return s
 }
 
 // DetectNoop will instruct Elasticsearch to check if changes will occur
 // when updating via Doc. It there aren't any changes, the request will
 // turn into a no-op.
-func (b *UpdateService) DetectNoop(detectNoop bool) *UpdateService {
-	b.detectNoop = &detectNoop
-	return b
+func (s *UpdateService) DetectNoop(detectNoop bool) *UpdateService {
+	s.detectNoop = &detectNoop
+	return s
 }
 
 // ScriptedUpsert should be set to true if the referenced script
 // (defined in Script or ScriptId) should be called to perform an insert.
 // The default is false.
-func (b *UpdateService) ScriptedUpsert(scriptedUpsert bool) *UpdateService {
-	b.scriptedUpsert = &scriptedUpsert
-	return b
+func (s *UpdateService) ScriptedUpsert(scriptedUpsert bool) *UpdateService {
+	s.scriptedUpsert = &scriptedUpsert
+	return s
 }
 
 // Timeout is an explicit timeout for the operation, e.g. "1000", "1s" or "500ms".
-func (b *UpdateService) Timeout(timeout string) *UpdateService {
-	b.timeout = timeout
-	return b
+func (s *UpdateService) Timeout(timeout string) *UpdateService {
+	s.timeout = timeout
+	return s
 }
 
 // IfSeqNo indicates to only perform the update operation if the last
 // operation that has changed the document has the specified sequence number.
-func (b *UpdateService) IfSeqNo(seqNo int64) *UpdateService {
-	b.ifSeqNo = &seqNo
-	return b
+func (s *UpdateService) IfSeqNo(seqNo int64) *UpdateService {
+	s.ifSeqNo = &seqNo
+	return s
 }
 
 // IfPrimaryTerm indicates to only perform the update operation if the
 // last operation that has changed the document has the specified primary term.
-func (b *UpdateService) IfPrimaryTerm(primaryTerm int64) *UpdateService {
-	b.ifPrimaryTerm = &primaryTerm
-	return b
-}
-
-// Pretty instructs to return human readable, prettified JSON.
-func (b *UpdateService) Pretty(pretty bool) *UpdateService {
-	b.pretty = pretty
-	return b
+func (s *UpdateService) IfPrimaryTerm(primaryTerm int64) *UpdateService {
+	s.ifPrimaryTerm = &primaryTerm
+	return s
 }
 
 // FetchSource asks Elasticsearch to return the updated _source in the response.
@@ -210,54 +250,63 @@ func (s *UpdateService) FetchSourceContext(fetchSourceContext *FetchSourceContex
 }
 
 // url returns the URL part of the document request.
-func (b *UpdateService) url() (string, url.Values, error) {
+func (s *UpdateService) url() (string, url.Values, error) {
 	// Build url
 	path := "/{index}/{type}/{id}/_update"
 	path, err := uritemplates.Expand(path, map[string]string{
-		"index": b.index,
-		"type":  b.typ,
-		"id":    b.id,
+		"index": s.index,
+		"type":  s.typ,
+		"id":    s.id,
 	})
 	if err != nil {
 		return "", url.Values{}, err
 	}
 
 	// Parameters
-	params := make(url.Values)
-	if b.pretty {
-		params.Set("pretty", "true")
+	params := url.Values{}
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
 	}
-	if b.routing != "" {
-		params.Set("routing", b.routing)
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
 	}
-	if b.parent != "" {
-		params.Set("parent", b.parent)
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
 	}
-	if b.timeout != "" {
-		params.Set("timeout", b.timeout)
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
-	if b.refresh != "" {
-		params.Set("refresh", b.refresh)
+	if s.routing != "" {
+		params.Set("routing", s.routing)
 	}
-	if b.waitForActiveShards != "" {
-		params.Set("wait_for_active_shards", b.waitForActiveShards)
+	if s.parent != "" {
+		params.Set("parent", s.parent)
 	}
-	if len(b.fields) > 0 {
-		params.Set("fields", strings.Join(b.fields, ","))
+	if s.timeout != "" {
+		params.Set("timeout", s.timeout)
 	}
-	if b.version != nil {
-		params.Set("version", fmt.Sprintf("%d", *b.version))
+	if s.refresh != "" {
+		params.Set("refresh", s.refresh)
 	}
-	if b.versionType != "" {
-		params.Set("version_type", b.versionType)
+	if s.waitForActiveShards != "" {
+		params.Set("wait_for_active_shards", s.waitForActiveShards)
 	}
-	if b.retryOnConflict != nil {
-		params.Set("retry_on_conflict", fmt.Sprintf("%v", *b.retryOnConflict))
+	if len(s.fields) > 0 {
+		params.Set("fields", strings.Join(s.fields, ","))
 	}
-	if v := b.ifSeqNo; v != nil {
+	if s.version != nil {
+		params.Set("version", fmt.Sprintf("%d", *s.version))
+	}
+	if s.versionType != "" {
+		params.Set("version_type", s.versionType)
+	}
+	if s.retryOnConflict != nil {
+		params.Set("retry_on_conflict", fmt.Sprintf("%v", *s.retryOnConflict))
+	}
+	if v := s.ifSeqNo; v != nil {
 		params.Set("if_seq_no", fmt.Sprintf("%d", *v))
 	}
-	if v := b.ifPrimaryTerm; v != nil {
+	if v := s.ifPrimaryTerm; v != nil {
 		params.Set("if_primary_term", fmt.Sprintf("%d", *v))
 	}
 
@@ -265,36 +314,36 @@ func (b *UpdateService) url() (string, url.Values, error) {
 }
 
 // body returns the body part of the document request.
-func (b *UpdateService) body() (interface{}, error) {
+func (s *UpdateService) body() (interface{}, error) {
 	source := make(map[string]interface{})
 
-	if b.script != nil {
-		src, err := b.script.Source()
+	if s.script != nil {
+		src, err := s.script.Source()
 		if err != nil {
 			return nil, err
 		}
 		source["script"] = src
 	}
 
-	if b.scriptedUpsert != nil {
-		source["scripted_upsert"] = *b.scriptedUpsert
+	if s.scriptedUpsert != nil {
+		source["scripted_upsert"] = *s.scriptedUpsert
 	}
 
-	if b.upsert != nil {
-		source["upsert"] = b.upsert
+	if s.upsert != nil {
+		source["upsert"] = s.upsert
 	}
 
-	if b.doc != nil {
-		source["doc"] = b.doc
+	if s.doc != nil {
+		source["doc"] = s.doc
 	}
-	if b.docAsUpsert != nil {
-		source["doc_as_upsert"] = *b.docAsUpsert
+	if s.docAsUpsert != nil {
+		source["doc_as_upsert"] = *s.docAsUpsert
 	}
-	if b.detectNoop != nil {
-		source["detect_noop"] = *b.detectNoop
+	if s.detectNoop != nil {
+		source["detect_noop"] = *s.detectNoop
 	}
-	if b.fsc != nil {
-		src, err := b.fsc.Source()
+	if s.fsc != nil {
+		src, err := s.fsc.Source()
 		if err != nil {
 			return nil, err
 		}
@@ -305,24 +354,25 @@ func (b *UpdateService) body() (interface{}, error) {
 }
 
 // Do executes the update operation.
-func (b *UpdateService) Do(ctx context.Context) (*UpdateResponse, error) {
-	path, params, err := b.url()
+func (s *UpdateService) Do(ctx context.Context) (*UpdateResponse, error) {
+	path, params, err := s.url()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get body of the request
-	body, err := b.body()
+	body, err := s.body()
 	if err != nil {
 		return nil, err
 	}
 
 	// Get response
-	res, err := b.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -330,7 +380,7 @@ func (b *UpdateService) Do(ctx context.Context) (*UpdateResponse, error) {
 
 	// Return result
 	ret := new(UpdateResponse)
-	if err := b.client.decoder.Decode(res.Body, ret); err != nil {
+	if err := s.client.decoder.Decode(res.Body, ret); err != nil {
 		return nil, err
 	}
 	return ret, nil

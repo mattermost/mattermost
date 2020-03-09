@@ -31,7 +31,12 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store)
+		})
 	}
 }
 
@@ -44,11 +49,19 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store, st.SqlSupplier)
+		})
 	}
 }
 
 func initStores() {
+	if testing.Short() {
+		return
+	}
 	storeTypes = append(storeTypes, &storeType{
 		Name:        "LocalCache+MySQL",
 		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
@@ -71,7 +84,7 @@ func initStores() {
 		go func() {
 			defer wg.Done()
 			st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
-			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil)
+			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
@@ -82,6 +95,9 @@ func initStores() {
 var tearDownStoresOnce sync.Once
 
 func tearDownStores() {
+	if testing.Short() {
+		return
+	}
 	tearDownStoresOnce.Do(func() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
@@ -90,6 +106,9 @@ func tearDownStores() {
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
+				}
+				if st.SqlSettings != nil {
+					storetest.CleanupSqlSettings(st.SqlSettings)
 				}
 				wg.Done()
 			}()

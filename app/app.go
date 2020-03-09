@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -20,33 +21,35 @@ import (
 )
 
 type App struct {
-	Srv *Server
+	srv *Server
 
-	Log              *mlog.Logger
-	NotificationsLog *mlog.Logger
+	log              *mlog.Logger
+	notificationsLog *mlog.Logger
 
-	T              goi18n.TranslateFunc
-	Session        model.Session
-	RequestId      string
-	IpAddress      string
-	Path           string
-	UserAgent      string
-	AcceptLanguage string
+	t              goi18n.TranslateFunc
+	session        model.Session
+	requestId      string
+	ipAddress      string
+	path           string
+	userAgent      string
+	acceptLanguage string
 
-	AccountMigration einterfaces.AccountMigrationInterface
-	Cluster          einterfaces.ClusterInterface
-	Compliance       einterfaces.ComplianceInterface
-	DataRetention    einterfaces.DataRetentionInterface
-	Elasticsearch    einterfaces.ElasticsearchInterface
-	Ldap             einterfaces.LdapInterface
-	MessageExport    einterfaces.MessageExportInterface
-	Metrics          einterfaces.MetricsInterface
-	Notification     einterfaces.NotificationInterface
-	Saml             einterfaces.SamlInterface
+	accountMigration einterfaces.AccountMigrationInterface
+	cluster          einterfaces.ClusterInterface
+	compliance       einterfaces.ComplianceInterface
+	dataRetention    einterfaces.DataRetentionInterface
+	elasticsearch    einterfaces.ElasticsearchInterface
+	ldap             einterfaces.LdapInterface
+	messageExport    einterfaces.MessageExportInterface
+	metrics          einterfaces.MetricsInterface
+	notification     einterfaces.NotificationInterface
+	saml             einterfaces.SamlInterface
 
-	HTTPService httpservice.HTTPService
-	ImageProxy  *imageproxy.ImageProxy
-	Timezones   *timezones.Timezones
+	httpService httpservice.HTTPService
+	imageProxy  *imageproxy.ImageProxy
+	timezones   *timezones.Timezones
+
+	context context.Context
 }
 
 func New(options ...AppOption) *App {
@@ -63,8 +66,8 @@ func New(options ...AppOption) *App {
 // This is to avoid having to change all the code in cmd/mattermost/commands/* for now
 // shutdown should be called directly on the server
 func (a *App) Shutdown() {
-	a.Srv.Shutdown()
-	a.Srv = nil
+	a.Srv().Shutdown()
+	a.srv = nil
 }
 
 func (a *App) configOrLicenseListener() {
@@ -99,18 +102,18 @@ func (s *Server) initJobs() {
 }
 
 func (a *App) DiagnosticId() string {
-	return a.Srv.diagnosticId
+	return a.Srv().diagnosticId
 }
 
 func (a *App) SetDiagnosticId(id string) {
-	a.Srv.diagnosticId = id
+	a.Srv().diagnosticId = id
 }
 
 func (a *App) EnsureDiagnosticId() {
-	if a.Srv.diagnosticId != "" {
+	if a.Srv().diagnosticId != "" {
 		return
 	}
-	props, err := a.Srv.Store.System().Get()
+	props, err := a.Srv().Store.System().Get()
 	if err != nil {
 		return
 	}
@@ -119,15 +122,15 @@ func (a *App) EnsureDiagnosticId() {
 	if len(id) == 0 {
 		id = model.NewId()
 		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		a.Srv.Store.System().Save(systemId)
+		a.Srv().Store.System().Save(systemId)
 	}
 
-	a.Srv.diagnosticId = id
+	a.Srv().diagnosticId = id
 }
 
 func (a *App) HTMLTemplates() *template.Template {
-	if a.Srv.htmlTemplateWatcher != nil {
-		return a.Srv.htmlTemplateWatcher.Templates()
+	if a.Srv().htmlTemplateWatcher != nil {
+		return a.Srv().htmlTemplateWatcher.Templates()
 	}
 
 	return nil
@@ -146,7 +149,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -155,4 +158,112 @@ func (a *App) getSystemInstallDate() (int64, *model.AppError) {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return value, nil
+}
+
+func (a *App) Srv() *Server {
+	return a.srv
+}
+func (a *App) Log() *mlog.Logger {
+	return a.log
+}
+func (a *App) NotificationsLog() *mlog.Logger {
+	return a.notificationsLog
+}
+func (a *App) T(translationID string, args ...interface{}) string {
+	return a.t(translationID, args...)
+}
+func (a *App) Session() *model.Session {
+	return &a.session
+}
+func (a *App) RequestId() string {
+	return a.requestId
+}
+func (a *App) IpAddress() string {
+	return a.ipAddress
+}
+func (a *App) Path() string {
+	return a.path
+}
+func (a *App) UserAgent() string {
+	return a.userAgent
+}
+func (a *App) AcceptLanguage() string {
+	return a.acceptLanguage
+}
+func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
+	return a.accountMigration
+}
+func (a *App) Cluster() einterfaces.ClusterInterface {
+	return a.cluster
+}
+func (a *App) Compliance() einterfaces.ComplianceInterface {
+	return a.compliance
+}
+func (a *App) DataRetention() einterfaces.DataRetentionInterface {
+	return a.dataRetention
+}
+func (a *App) Elasticsearch() einterfaces.ElasticsearchInterface {
+	return a.elasticsearch
+}
+func (a *App) Ldap() einterfaces.LdapInterface {
+	return a.ldap
+}
+func (a *App) MessageExport() einterfaces.MessageExportInterface {
+	return a.messageExport
+}
+func (a *App) Metrics() einterfaces.MetricsInterface {
+	return a.metrics
+}
+func (a *App) Notification() einterfaces.NotificationInterface {
+	return a.notification
+}
+func (a *App) Saml() einterfaces.SamlInterface {
+	return a.saml
+}
+func (a *App) HTTPService() httpservice.HTTPService {
+	return a.httpService
+}
+func (a *App) ImageProxy() *imageproxy.ImageProxy {
+	return a.imageProxy
+}
+func (a *App) Timezones() *timezones.Timezones {
+	return a.timezones
+}
+func (a *App) Context() context.Context {
+	return a.context
+}
+
+func (a *App) SetSession(s *model.Session) {
+	a.session = *s
+}
+
+func (a *App) SetT(t goi18n.TranslateFunc) {
+	a.t = t
+}
+func (a *App) SetRequestId(s string) {
+	a.requestId = s
+}
+func (a *App) SetIpAddress(s string) {
+	a.ipAddress = s
+}
+func (a *App) SetUserAgent(s string) {
+	a.userAgent = s
+}
+func (a *App) SetAcceptLanguage(s string) {
+	a.acceptLanguage = s
+}
+func (a *App) SetPath(s string) {
+	a.path = s
+}
+func (a *App) SetContext(c context.Context) {
+	a.context = c
+}
+func (a *App) SetServer(srv *Server) {
+	a.srv = srv
+}
+func (a *App) GetT() goi18n.TranslateFunc {
+	return a.t
+}
+func (a *App) SetLog(l *mlog.Logger) {
+	a.log = l
 }

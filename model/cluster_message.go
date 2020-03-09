@@ -25,6 +25,7 @@ const (
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER                      = "clear_session_user"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES                        = "inv_roles"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS               = "inv_profile_ids"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_IN_CHANNEL           = "inv_profile_in_channel"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES                      = "inv_schemes"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS                     = "inv_webhooks"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID                 = "inv_emojis_by_id"

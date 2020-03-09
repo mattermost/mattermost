@@ -93,6 +93,7 @@ const (
 	SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE       = ""
 	SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT       = 300
 	SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT      = 300
+	SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT       = 60
 	SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS = 10
 	SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM    = ""
 	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
@@ -132,6 +133,7 @@ const (
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
+	SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE      = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
 	SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
 	SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
@@ -255,6 +257,7 @@ type ServiceSettings struct {
 	TrustedProxyIPHeader                              []string `restricted:"true"`
 	ReadTimeout                                       *int     `restricted:"true"`
 	WriteTimeout                                      *int     `restricted:"true"`
+	IdleTimeout                                       *int     `restricted:"true"`
 	MaximumLoginAttempts                              *int     `restricted:"true"`
 	GoroutineHealthThreshold                          *int     `restricted:"true"`
 	GoogleDeveloperKey                                *string  `restricted:"true"`
@@ -268,6 +271,7 @@ type ServiceSettings struct {
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     *bool   `restricted:"true"`
 	EnableDeveloper                                   *bool   `restricted:"true"`
+	EnableOpenTracing                                 *bool   `restricted:"true"`
 	EnableSecurityFixAlert                            *bool   `restricted:"true"`
 	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
 	AllowedUntrustedInternalConnections               *string `restricted:"true"`
@@ -366,6 +370,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableDeveloper = NewBool(false)
 	}
 
+	if s.EnableOpenTracing == nil {
+		s.EnableOpenTracing = NewBool(false)
+	}
+
 	if s.EnableSecurityFixAlert == nil {
 		s.EnableSecurityFixAlert = NewBool(true)
 	}
@@ -456,6 +464,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.WriteTimeout == nil {
 		s.WriteTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT)
+	}
+
+	if s.IdleTimeout == nil {
+		s.IdleTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT)
 	}
 
 	if s.MaximumLoginAttempts == nil {
@@ -873,6 +885,63 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
+}
+
+type Office365Settings struct {
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
+	DirectoryId     *string
+}
+
+func (s *Office365Settings) setDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
+	}
+
+	if s.Scope == nil {
+		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.AuthEndpoint == nil {
+		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
+	}
+
+	if s.TokenEndpoint == nil {
+		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+	}
+
+	if s.UserApiEndpoint == nil {
+		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	}
+
+	if s.DirectoryId == nil {
+		s.DirectoryId = NewString("")
+	}
+}
+
+func (s *Office365Settings) SSOSettings() *SSOSettings {
+	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	return &ssoSettings
 }
 
 type SqlSettings struct {
@@ -1700,9 +1769,11 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter  *string
-	GroupFilter *string
-	GuestFilter *string
+	UserFilter        *string
+	GroupFilter       *string
+	GuestFilter       *string
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string
@@ -1746,6 +1817,10 @@ func (s *LdapSettings) SetDefaults() {
 		s.EnableSync = NewBool(*s.Enable)
 	}
 
+	if s.EnableAdminFilter == nil {
+		s.EnableAdminFilter = NewBool(false)
+	}
+
 	if s.LdapServer == nil {
 		s.LdapServer = NewString("")
 	}
@@ -1776,6 +1851,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.GuestFilter == nil {
 		s.GuestFilter = NewString("")
+	}
+
+	if s.AdminFilter == nil {
+		s.AdminFilter = NewString("")
 	}
 
 	if s.GroupFilter == nil {
@@ -1913,6 +1992,7 @@ type SamlSettings struct {
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
+	IdpMetadataUrl              *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -1926,15 +2006,17 @@ type SamlSettings struct {
 	PrivateKeyFile        *string
 
 	// User Mapping
-	IdAttribute        *string
-	GuestAttribute     *string
-	FirstNameAttribute *string
-	LastNameAttribute  *string
-	EmailAttribute     *string
-	UsernameAttribute  *string
-	NicknameAttribute  *string
-	LocaleAttribute    *string
-	PositionAttribute  *string
+	IdAttribute          *string
+	GuestAttribute       *string
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
+	FirstNameAttribute   *string
+	LastNameAttribute    *string
+	EmailAttribute       *string
+	UsernameAttribute    *string
+	NicknameAttribute    *string
+	LocaleAttribute      *string
+	PositionAttribute    *string
 
 	LoginButtonText *string
 
@@ -1954,6 +2036,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.EnableAdminAttribute == nil {
+		s.EnableAdminAttribute = NewBool(false)
 	}
 
 	if s.Verify == nil {
@@ -1982,6 +2068,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.IdpMetadataUrl == nil {
+		s.IdpMetadataUrl = NewString("")
 	}
 
 	if s.IdpCertificateFile == nil {
@@ -2018,6 +2108,9 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.GuestAttribute == nil {
 		s.GuestAttribute = NewString(SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE)
+	}
+	if s.AdminAttribute == nil {
+		s.AdminAttribute = NewString(SAML_SETTINGS_DEFAULT_ADMIN_ATTRIBUTE)
 	}
 	if s.FirstNameAttribute == nil {
 		s.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
@@ -2240,18 +2333,20 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                   *bool
-	EnableUploads            *bool   `restricted:"true"`
-	AllowInsecureDownloadUrl *bool   `restricted:"true"`
-	EnableHealthCheck        *bool   `restricted:"true"`
-	Directory                *string `restricted:"true"`
-	ClientDirectory          *string `restricted:"true"`
-	Plugins                  map[string]map[string]interface{}
-	PluginStates             map[string]*PluginState
-	EnableMarketplace        *bool
-	RequirePluginSignature   *bool
-	MarketplaceUrl           *string
-	SignaturePublicKeyFiles  []string
+	Enable                      *bool
+	EnableUploads               *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl    *bool   `restricted:"true"`
+	EnableHealthCheck           *bool   `restricted:"true"`
+	Directory                   *string `restricted:"true"`
+	ClientDirectory             *string `restricted:"true"`
+	Plugins                     map[string]map[string]interface{}
+	PluginStates                map[string]*PluginState
+	EnableMarketplace           *bool
+	EnableRemoteMarketplace     *bool
+	AutomaticPrepackagedPlugins *bool
+	RequirePluginSignature      *bool
+	MarketplaceUrl              *string
+	SignaturePublicKeyFiles     []string
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2294,6 +2389,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
+	}
+
+	if s.EnableRemoteMarketplace == nil {
+		s.EnableRemoteMarketplace = NewBool(true)
+	}
+
+	if s.AutomaticPrepackagedPlugins == nil {
+		s.AutomaticPrepackagedPlugins = NewBool(true)
 	}
 
 	if s.MarketplaceUrl == nil || *s.MarketplaceUrl == "" || *s.MarketplaceUrl == PLUGIN_SETTINGS_OLD_MARKETPLACE_URL {
@@ -2470,7 +2573,7 @@ type Config struct {
 	ThemeSettings           ThemeSettings
 	GitLabSettings          SSOSettings
 	GoogleSettings          SSOSettings
-	Office365Settings       SSOSettings
+	Office365Settings       Office365Settings
 	LdapSettings            LdapSettings
 	ComplianceSettings      ComplianceSettings
 	LocalizationSettings    LocalizationSettings
@@ -2510,7 +2613,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
-		return &o.Office365Settings
+		return o.Office365Settings.SSOSettings()
 	}
 
 	return nil
@@ -2545,7 +2648,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
@@ -2646,7 +2749,6 @@ func (o *Config) IsValid() *AppError {
 	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -2669,10 +2771,6 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !(*s.TeammateNameDisplay == SHOW_FULLNAME || *s.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *s.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(*s.SiteName) == 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*s.SiteName) > SITENAME_MAX_LENGTH {
@@ -2815,6 +2913,12 @@ func (s *LdapSettings) isValid() *AppError {
 				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_guest_filter.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
+
+		if *s.AdminFilter != "" {
+			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2875,6 +2979,15 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 			if len(strings.Split(*s.GuestAttribute, "=")) != 2 {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if len(*s.AdminAttribute) > 0 {
+			if !(strings.Contains(*s.AdminAttribute, "=")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
+			}
+			if len(strings.Split(*s.AdminAttribute, "=")) != 2 {
+				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}

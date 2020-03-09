@@ -6,29 +6,22 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
-
-func ClearStatusCache() {
-	statusCache.Purge()
-}
-
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
-	statusCache.Add(status.UserId, status)
+	a.Srv().statusCache.Add(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     status.ToClusterJson(),
 		}
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
@@ -37,15 +30,13 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 		return map[string]*model.Status{}
 	}
 
-	userIds := statusCache.Keys()
+	userIds := a.Srv().statusCache.Keys()
 	statusMap := map[string]*model.Status{}
 
 	for _, userId := range userIds {
-		if id, ok := userId.(string); ok {
-			status := GetStatusFromCache(id)
-			if status != nil {
-				statusMap[id] = status
-			}
+		status := a.GetStatusFromCache(userId)
+		if status != nil {
+			statusMap[userId] = status
 		}
 	}
 
@@ -58,11 +49,11 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	statusMap := map[string]interface{}{}
-	metrics := a.Metrics
+	metrics := a.Metrics()
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
+		if result, ok := a.Srv().statusCache.Get(userId); ok {
 			statusMap[userId] = result.(*model.Status).Status
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
@@ -76,7 +67,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, err
 		}
@@ -105,11 +96,11 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	var statusMap []*model.Status
-	metrics := a.Metrics
+	metrics := a.Metrics()
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
+		if result, ok := a.Srv().statusCache.Get(userId); ok {
 			statusMap = append(statusMap, result.(*model.Status))
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
@@ -123,7 +114,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
 			return nil, err
 		}
@@ -212,11 +203,11 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
 		if broadcast {
-			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		} else {
-			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
 				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		}
@@ -228,7 +219,7 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 }
 
 func (a *App) BroadcastStatus(status *model.Status) {
-	if a.Srv.Busy.IsBusy() {
+	if a.Srv().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
 	}
@@ -305,7 +296,7 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
 		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
@@ -329,8 +320,8 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func GetStatusFromCache(userId string) *model.Status {
-	if result, ok := statusCache.Get(userId); ok {
+func (a *App) GetStatusFromCache(userId string) *model.Status {
+	if result, ok := a.Srv().statusCache.Get(userId); ok {
 		status := result.(*model.Status)
 		statusCopy := &model.Status{}
 		*statusCopy = *status
@@ -345,12 +336,12 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return &model.Status{}, nil
 	}
 
-	status := GetStatusFromCache(userId)
+	status := a.GetStatusFromCache(userId)
 	if status != nil {
 		return status, nil
 	}
 
-	return a.Srv.Store.Status().Get(userId)
+	return a.Srv().Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

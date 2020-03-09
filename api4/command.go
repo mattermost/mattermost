@@ -16,7 +16,9 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(listCommands)).Methods("GET")
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")
 
+	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(getCommand)).Methods("GET")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
+	api.BaseRoutes.Command.Handle("/move", api.ApiSessionRequired(moveCommand)).Methods("PUT")
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
@@ -32,12 +34,12 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
 		return
 	}
 
-	cmd.CreatorId = c.App.Session.UserId
+	cmd.CreatorId = c.App.Session().UserId
 
 	rcmd, err := c.App.CreateCommand(cmd)
 	if err != nil {
@@ -66,22 +68,24 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
 	if cmd.TeamId != oldCmd.TeamId {
-		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.App.Session.UserId, http.StatusBadRequest)
+		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.App.Session().UserId, http.StatusBadRequest)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), oldCmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
-	if c.App.Session.UserId != oldCmd.CreatorId && !c.App.SessionHasPermissionToTeam(c.App.Session, oldCmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+	if c.App.Session().UserId != oldCmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.App.Session(), oldCmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
 		return
@@ -98,6 +102,55 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(rcmd.ToJson()))
 }
 
+func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	cmr, err := model.CommandMoveRequestFromJson(r.Body)
+	if err != nil {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	newTeam, appErr := c.App.GetTeam(cmr.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		return
+	}
+
+	cmd, appErr := c.App.GetCommand(c.Params.CommandId)
+	if appErr != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		c.LogAudit("fail - inappropriate permissions")
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.LogAudit("success")
+	ReturnStatusOK(w)
+}
+
 func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireCommandId()
 	if c.Err != nil {
@@ -108,17 +161,19 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
-	if c.App.Session.UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+	if c.App.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
 		return
@@ -142,13 +197,12 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamId := r.URL.Query().Get("team_id")
-
 	if len(teamId) == 0 {
 		c.SetInvalidParam("team_id")
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -156,7 +210,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	var commands []*model.Command
 	var err *model.AppError
 	if customOnly {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
 			return
 		}
@@ -167,7 +221,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		//User with no permission should see only system commands
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 			commands, err = c.App.ListAutocompleteCommands(teamId, c.App.T)
 			if err != nil {
 				c.Err = err
@@ -185,6 +239,35 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.CommandListToJson(commands)))
 }
 
+func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireCommandId()
+	if c.Err != nil {
+		return
+	}
+
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
+	if err != nil {
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	// check for permissions to view this command; must have perms to view team and
+	// PERMISSION_MANAGE_SLASH_COMMANDS for the team the command belongs to.
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_VIEW_TEAM) {
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		// again, return not_found to ensure id existence does not leak.
+		c.SetCommandNotFoundError()
+		return
+	}
+	w.Write([]byte(cmd.ToJson()))
+}
+
 func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs := model.CommandArgsFromJson(r.Body)
 	if commandArgs == nil {
@@ -198,7 +281,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
-	if !c.App.SessionHasPermissionToChannel(c.App.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 		return
 	}
@@ -216,17 +299,17 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
-		if c.App.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
-			if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_USE_SLASH_COMMANDS) {
+		if c.App.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
+			if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_USE_SLASH_COMMANDS) {
 				c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 				return
 			}
 		}
 	}
 
-	commandArgs.UserId = c.App.Session.UserId
+	commandArgs.UserId = c.App.Session().UserId
 	commandArgs.T = c.App.T
-	commandArgs.Session = c.App.Session
+	commandArgs.Session = *c.App.Session()
 	commandArgs.SiteURL = c.GetSiteURLHeader()
 
 	response, err := c.App.ExecuteCommand(commandArgs)
@@ -244,7 +327,7 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -267,17 +350,19 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("attempt")
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		c.Err = err
+		c.SetCommandNotFoundError()
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
+		// here we return Not_found instead of a permissions error so we don't leak the existence of
+		// a command to someone without permissions for the team it belongs to.
+		c.SetCommandNotFoundError()
 		return
 	}
 
-	if c.App.Session.UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(c.App.Session, cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
+	if c.App.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS)
 		return

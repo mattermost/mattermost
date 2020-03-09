@@ -29,11 +29,12 @@ type GroupSyncable struct {
 	// TeamId.
 	SyncableId string `db:"-" json:"-"`
 
-	AutoAdd  bool              `json:"auto_add"`
-	CreateAt int64             `json:"create_at"`
-	DeleteAt int64             `json:"delete_at"`
-	UpdateAt int64             `json:"update_at"`
-	Type     GroupSyncableType `db:"-" json:"-"`
+	AutoAdd     bool              `json:"auto_add"`
+	SchemeAdmin bool              `json:"scheme_admin"`
+	CreateAt    int64             `json:"create_at"`
+	DeleteAt    int64             `json:"delete_at"`
+	UpdateAt    int64             `json:"update_at"`
+	Type        GroupSyncableType `db:"-" json:"-"`
 
 	// Values joined in from the associated team and/or channel
 	ChannelDisplayName string `db:"-" json:"-"`
@@ -123,12 +124,16 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 }
 
 type GroupSyncablePatch struct {
-	AutoAdd *bool `json:"auto_add"`
+	AutoAdd     *bool `json:"auto_add"`
+	SchemeAdmin *bool `json:"scheme_admin"`
 }
 
 func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
 	if patch.AutoAdd != nil {
 		syncable.AutoAdd = *patch.AutoAdd
+	}
+	if patch.SchemeAdmin != nil {
+		syncable.SchemeAdmin = *patch.SchemeAdmin
 	}
 }
 

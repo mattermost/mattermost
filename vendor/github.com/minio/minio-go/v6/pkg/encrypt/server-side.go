@@ -188,7 +188,9 @@ func (s kms) Type() Type { return KMS }
 
 func (s kms) Marshal(h http.Header) {
 	h.Set(sseGenericHeader, "aws:kms")
-	h.Set(sseKmsKeyID, s.key)
+	if s.key != "" {
+		h.Set(sseKmsKeyID, s.key)
+	}
 	if s.hasContext {
 		h.Set(sseEncryptionContext, base64.StdEncoding.EncodeToString(s.context))
 	}

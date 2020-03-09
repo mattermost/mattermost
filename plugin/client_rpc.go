@@ -108,7 +108,7 @@ var _ plugin.Plugin = &hooksPlugin{}
 var _ Hooks = &hooksRPCClient{}
 
 //
-// Below are specal cases for hooks or APIs that can not be auto generated
+// Below are special cases for hooks or APIs that can not be auto generated
 //
 
 func (g *hooksRPCClient) Implemented() (impl []string, err error) {

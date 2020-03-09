@@ -21,7 +21,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -76,7 +76,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("CreateWithTokenHappyPath", func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		ruser, resp := th.Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
@@ -164,7 +164,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after being used")
 
 		teams, err := th.App.GetTeamsForUser(ruser.Id)
@@ -179,7 +179,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, "")
@@ -196,7 +196,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, token.Token)
@@ -225,7 +225,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -243,7 +243,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		require.Nil(t, th.App.Srv.Store.Token().Save(token))
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
 		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
 		defer func() {
@@ -260,13 +260,13 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Equal(t, user.Nickname, ruser.Nickname)
 		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
-		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
 
 func TestCreateUserWebSocketEvent(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
@@ -342,7 +342,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 }
 
 func TestCreateUserWithInviteId(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("CreateWithInviteIdHappyPath", func(t *testing.T) {
@@ -453,7 +453,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 }
 
 func TestGetMe(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	ruser, resp := th.Client.GetMe("")
@@ -467,7 +467,7 @@ func TestGetMe(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -517,7 +517,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -547,7 +547,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 }
 
 func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -575,7 +575,7 @@ func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 }
 
 func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	th.LoginSystemAdmin()
 	defer th.TearDown()
 
@@ -604,7 +604,7 @@ func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 }
 
 func TestGetBotUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
@@ -633,7 +633,7 @@ func TestGetBotUser(t *testing.T) {
 }
 
 func TestGetUserByUsername(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -674,10 +674,25 @@ func TestGetUserByUsername(t *testing.T) {
 	require.NotEmpty(t, ruser.Email, "email should not be blank")
 	require.NotEmpty(t, ruser.FirstName, "first name should not be blank")
 	require.NotEmpty(t, ruser.LastName, "last name should not be blank")
+
+	t.Run("Get user with a / character in the email", func(t *testing.T) {
+		user := &model.User{
+			Email:    "email/with/slashes@example.com",
+			Username: GenerateTestUsername(),
+			Password: "Pa$$word11",
+		}
+
+		newUser, resp := th.SystemAdminClient.CreateUser(user)
+		require.Nil(t, resp.Error)
+
+		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, newUser.Id)
+	})
 }
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -701,7 +716,7 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -816,7 +831,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestSearchUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
@@ -968,7 +983,7 @@ func findUserInList(id string, users []*model.User) bool {
 }
 
 func TestAutocompleteUsersInChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
@@ -1090,7 +1105,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 }
 
 func TestAutocompleteUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	username := th.BasicUser.Username
@@ -1159,7 +1174,7 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 }
 
 func TestAutocompleteUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	username := th.BasicUser.Username
 	newUser := th.CreateUser()
@@ -1224,8 +1239,12 @@ func TestAutocompleteUsers(t *testing.T) {
 }
 
 func TestGetProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// recreate basic user
+	th.BasicUser = th.CreateUser()
+	th.LoginBasic()
 	user := th.BasicUser
 
 	data, resp := th.Client.GetProfileImage(user.Id, "")
@@ -1254,7 +1273,7 @@ func TestGetProfileImage(t *testing.T) {
 }
 
 func TestGetUsersByIds(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("should return the user", func(t *testing.T) {
@@ -1297,7 +1316,7 @@ func TestGetUsersByIds(t *testing.T) {
 
 func TestGetUsersByIdsWithOptions(t *testing.T) {
 	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
@@ -1322,7 +1341,7 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 }
 
 func TestGetUsersByGroupChannelIds(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	gc1, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
@@ -1353,7 +1372,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 }
 
 func TestGetUsersByUsernames(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	users, resp := th.Client.GetUsersByUsernames([]string{th.BasicUser.Username})
@@ -1379,7 +1398,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 }
 
 func TestGetTotalUsersStat(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
@@ -1394,7 +1413,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1455,7 +1474,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestPatchUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1549,7 +1568,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUpdateUserAuth(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeamWithClient(th.SystemAdminClient)
@@ -1557,7 +1576,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	_, err := th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
+	_, err := th.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
 	require.Nil(t, err)
 
 	userAuth := &model.UserAuth{}
@@ -1590,7 +1609,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	_, err = th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email)
+	_, err = th.App.Srv().Store.User().VerifyEmail(user2.Id, user2.Email)
 	require.Nil(t, err)
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
@@ -1603,7 +1622,7 @@ func TestUpdateUserAuth(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -1648,7 +1667,7 @@ func TestDeleteUser(t *testing.T) {
 }
 
 func TestUpdateUserRoles(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID)
@@ -1680,24 +1699,22 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 				return
 			}
 		case <-time.After(5 * time.Second):
-			t.Fatalf("failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
+			require.Failf(t, "failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
 		}
 	}
 }
 
 func assertWebsocketEventUserUpdatedWithEmail(t *testing.T, client *model.WebSocketClient, email string) {
 	assertExpectedWebsocketEvent(t, client, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
-		eventUser, ok := event.GetData()["user"].(map[string]interface{})
+		eventUser, ok := event.GetData()["user"].(*model.User)
 		require.True(t, ok, "expected user")
-		userEmail, ok := eventUser["email"].(string)
-		require.Truef(t, ok, "expected email %s, but got nil", email)
-		assert.Equal(t, email, userEmail)
+		assert.Equal(t, email, eventUser.Email)
 	})
 }
 
 func TestUpdateUserActive(t *testing.T) {
 	t.Run("basic tests", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -1743,7 +1760,7 @@ func TestUpdateUserActive(t *testing.T) {
 		CheckNoError(t, resp)
 
 		authData := model.NewId()
-		_, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+		_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 		require.Nil(t, err)
 
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
@@ -1751,7 +1768,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("websocket events", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		user := th.BasicUser2
@@ -1796,7 +1813,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		id := model.NewId()
@@ -1818,7 +1835,7 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		id := model.NewId()
@@ -1840,7 +1857,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestGetUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	rusers, resp := th.Client.GetUsers(0, 60, "")
@@ -1848,9 +1865,6 @@ func TestGetUsers(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-
-	rusers, resp = th.Client.GetUsers(0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
 
 	rusers, resp = th.Client.GetUsers(0, 1, "")
 	CheckNoError(t, resp)
@@ -1874,7 +1888,7 @@ func TestGetUsers(t *testing.T) {
 }
 
 func TestGetNewUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -1898,7 +1912,7 @@ func TestGetNewUsersInTeam(t *testing.T) {
 }
 
 func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -1922,7 +1936,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersWithoutTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUsersWithoutTeam(0, 100, "")
@@ -1937,7 +1951,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	CheckNoError(t, resp)
 	th.LinkUserToTeam(user, th.BasicTeam)
-	defer th.App.Srv.Store.User().PermanentDelete(user.Id)
+	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
 
 	user2, resp := th.Client.CreateUser(&model.User{
 		Username: "a000000001" + model.NewId(),
@@ -1945,7 +1959,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	CheckNoError(t, resp)
-	defer th.App.Srv.Store.User().PermanentDelete(user2.Id)
+	defer th.App.Srv().Store.User().PermanentDelete(user2.Id)
 
 	rusers, resp := th.SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
 	CheckNoError(t, resp)
@@ -1966,7 +1980,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 }
 
 func TestGetUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -2005,7 +2019,7 @@ func TestGetUsersInTeam(t *testing.T) {
 }
 
 func TestGetUsersNotInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 
@@ -2045,7 +2059,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 }
 
 func TestGetUsersInChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	channelId := th.BasicChannel.Id
 
@@ -2081,7 +2095,7 @@ func TestGetUsersInChannel(t *testing.T) {
 }
 
 func TestGetUsersNotInChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
@@ -2116,7 +2130,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 }
 
 func TestUpdateUserMfa(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("mfa"))
@@ -2132,7 +2146,7 @@ func TestUpdateUserMfa(t *testing.T) {
 
 // CheckUserMfa is deprecated and should not be used anymore, it will be disabled by default in version 6.0
 func TestCheckUserMfa(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -2180,7 +2194,7 @@ func TestCheckUserMfa(t *testing.T) {
 }
 
 func TestUserLoginMFAFlow(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(c *model.Config) {
@@ -2246,7 +2260,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 }
 
 func TestGenerateMfaSecret(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
@@ -2280,7 +2294,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 }
 
 func TestUpdateUserPassword(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	password := "newpassword1"
@@ -2345,7 +2359,7 @@ func TestUpdateUserPassword(t *testing.T) {
 func TestResetPassword(t *testing.T) {
 	t.Skip("test disabled during old build server changes, should be investigated")
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.Client.Logout()
 	user := th.BasicUser
@@ -2381,7 +2395,7 @@ func TestResetPassword(t *testing.T) {
 		loc += 6
 		recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
 	}
-	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
+	recoveryToken, err := th.App.Srv().Store.Token().GetByToken(recoveryTokenString)
 	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
@@ -2406,14 +2420,14 @@ func TestResetPassword(t *testing.T) {
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	_, err = th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+	_, err = th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 	require.Nil(t, err)
 	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
 }
 
 func TestGetSessions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -2450,7 +2464,7 @@ func TestGetSessions(t *testing.T) {
 }
 
 func TestRevokeSessions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -2472,7 +2486,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := th.Client.RevokeSession(user.Id, session.Id)
-	require.True(t, status, "user session revoke successfuly")
+	require.True(t, status, "user session revoke successfully")
 	CheckNoError(t, resp)
 
 	th.LoginBasic()
@@ -2502,7 +2516,7 @@ func TestRevokeSessions(t *testing.T) {
 }
 
 func TestRevokeAllSessions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -2538,7 +2552,7 @@ func TestRevokeAllSessions(t *testing.T) {
 }
 
 func TestRevokeSessionsFromAllUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -2578,7 +2592,7 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 }
 
 func TestAttachDeviceId(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
@@ -2628,7 +2642,7 @@ func TestAttachDeviceId(t *testing.T) {
 }
 
 func TestGetUserAudits(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -2650,7 +2664,7 @@ func TestGetUserAudits(t *testing.T) {
 }
 
 func TestVerifyUserEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	email := th.GenerateTestEmail()
@@ -2672,7 +2686,7 @@ func TestVerifyUserEmail(t *testing.T) {
 }
 
 func TestSendVerificationEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	pass, resp := th.Client.SendVerificationEmail(th.BasicUser.Email)
@@ -2693,7 +2707,7 @@ func TestSendVerificationEmail(t *testing.T) {
 }
 
 func TestSetProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -2717,7 +2731,7 @@ func TestSetProfileImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	buser, err := th.App.GetUser(user.Id)
@@ -2736,7 +2750,7 @@ func TestSetProfileImage(t *testing.T) {
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.BasicUser
 
@@ -2757,7 +2771,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	} else if resp.StatusCode == http.StatusUnauthorized {
 		CheckUnauthorizedStatus(t, resp)
 	} else {
-		t.Fatal("Should have failed either forbidden or unauthorized")
+		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
 	_, resp = th.SystemAdminClient.SetDefaultProfileImage(user.Id)
@@ -2773,7 +2787,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.Client.Logout()
 
@@ -2835,7 +2849,7 @@ func TestLogin(t *testing.T) {
 
 func TestLoginCookies(t *testing.T) {
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
@@ -2864,7 +2878,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2873,7 +2887,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should include subpath in path", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
@@ -2906,7 +2920,7 @@ func TestLoginCookies(t *testing.T) {
 
 func TestCBALogin(t *testing.T) {
 	t.Run("primary", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.App.SetLicense(model.NewTestLicense("saml"))
 
@@ -2964,7 +2978,7 @@ func TestCBALogin(t *testing.T) {
 	})
 
 	t.Run("secondary", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 		th.App.SetLicense(model.NewTestLicense("saml"))
 
@@ -3015,7 +3029,7 @@ func TestCBALogin(t *testing.T) {
 }
 
 func TestSwitchAccount(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
@@ -3078,7 +3092,7 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	_, err := th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
+	_, err := th.App.Srv().Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
 	require.Nil(t, err)
 
 	sr = &model.SwitchRequest{
@@ -3161,7 +3175,7 @@ func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessTok
 
 func TestCreateUserAccessToken(t *testing.T) {
 	t.Run("create token without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3171,7 +3185,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token for invalid user id", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3181,7 +3195,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token with invalid value", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3191,7 +3205,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create token with user access tokens disabled", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
@@ -3202,7 +3216,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3221,7 +3235,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token as second user, without permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3231,7 +3245,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create user access token for basic user as as system admin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3247,7 +3261,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token as oauth session", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3261,7 +3275,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3300,7 +3314,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("create access token for bot created by another user, only having MANAGE_BOTS permission", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3341,7 +3355,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 func TestGetUserAccessToken(t *testing.T) {
 	t.Run("get for invalid user id", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3351,7 +3365,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get for unknown user id", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3361,7 +3375,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get my token", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3380,7 +3394,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get user token as system admin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3400,7 +3414,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get token for bot created by user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3446,7 +3460,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("get token for bot created by another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3492,7 +3506,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 func TestGetUserAccessTokensForUser(t *testing.T) {
 	t.Run("multiple tokens, offset 0, limit 100", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3515,7 +3529,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 	})
 
 	t.Run("multiple tokens as system admin, offset 0, limit 100", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3538,7 +3552,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 	})
 
 	t.Run("multiple tokens, offset 1, limit 1", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3563,7 +3577,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 func TestGetUserAccessTokens(t *testing.T) {
 	t.Run("GetUserAccessTokens, not a system admin", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3575,7 +3589,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 
 	t.Run("GetUserAccessTokens, as a system admin, page 1, perPage 1", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3595,7 +3609,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 
 	t.Run("GetUserAccessTokens, as a system admin, page 0, perPage 2", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3616,7 +3630,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 }
 
 func TestSearchUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -3653,7 +3667,7 @@ func TestSearchUserAccessToken(t *testing.T) {
 
 func TestRevokeUserAccessToken(t *testing.T) {
 	t.Run("revoke user token", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3671,7 +3685,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3685,7 +3699,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token for bot created by user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3728,7 +3742,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("revoke token for bot created by another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3771,7 +3785,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 func TestDisableUserAccessToken(t *testing.T) {
 	t.Run("disable user token", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3789,7 +3803,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token belonging to another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3803,7 +3817,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token for bot created by user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3846,7 +3860,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token for bot created by another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3889,7 +3903,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 func TestEnableUserAccessToken(t *testing.T) {
 	t.Run("enable user token", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3913,7 +3927,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token belonging to another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3931,7 +3945,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token for bot created by user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -3978,7 +3992,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("enable token for bot created by another user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
@@ -4024,7 +4038,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 }
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -4046,7 +4060,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 }
 
 func TestUserAccessTokenDisableConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	testDescription := "test token"
@@ -4073,7 +4087,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 }
 
 func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4097,7 +4111,7 @@ func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
 }
 
 func TestGetUsersByStatus(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team, err := th.App.CreateTeam(&model.Team{
@@ -4204,7 +4218,7 @@ func TestGetUsersByStatus(t *testing.T) {
 }
 
 func TestRegisterTermsOfServiceAction(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, "st_1", true)
@@ -4223,7 +4237,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 }
 
 func TestGetUserTermsOfService(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
@@ -4245,7 +4259,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 }
 
 func TestLoginErrorMessage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.Logout()
@@ -4282,6 +4296,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.Encrypt = false
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
+		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
@@ -4299,7 +4314,7 @@ func TestLoginErrorMessage(t *testing.T) {
 }
 
 func TestLoginLockout(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	_, resp := th.Client.Logout()
@@ -4344,4 +4359,109 @@ func TestLoginLockout(t *testing.T) {
 	//Check if lock is active
 	_, resp = th.Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+}
+
+func TestDemoteUserToGuest(t *testing.T) {
+	t.Run("websocket update user event", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user := th.BasicUser
+
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.Nil(t, err)
+		defer adminWebSocketClient.Close()
+
+		adminWebSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp = <-adminWebSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+			th.App.RemoveLicense()
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.SetLicense(model.NewTestLicense())
+		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
+		CheckNoError(t, respErr)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_guest", eventUser.Roles)
+		})
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_guest", eventUser.Roles)
+		})
+	})
+}
+
+func TestPromoteGuestToUser(t *testing.T) {
+	t.Run("websocket update user event", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user := th.BasicUser
+		th.App.UpdateUserRoles(user.Id, model.SYSTEM_GUEST_ROLE_ID, false)
+
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		adminWebSocketClient, err := th.CreateWebSocketSystemAdminClient()
+		assert.Nil(t, err)
+		defer adminWebSocketClient.Close()
+
+		adminWebSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		resp = <-adminWebSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, resp.Status)
+
+		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+			th.App.RemoveLicense()
+		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.SetLicense(model.NewTestLicense())
+		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
+		CheckNoError(t, respErr)
+		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)
+		CheckNoError(t, respErr)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_user", eventUser.Roles)
+		})
+		assertExpectedWebsocketEvent(t, adminWebSocketClient, model.WEBSOCKET_EVENT_USER_UPDATED, func(event *model.WebSocketEvent) {
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			require.True(t, ok, "expected user")
+			assert.Equal(t, "system_user", eventUser.Roles)
+		})
+	})
 }

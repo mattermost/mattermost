@@ -1127,6 +1127,29 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mod
 	return r0, r1
 }
 
+// GroupSyncedChannelCount provides a mock function with given fields:
+func (_m *ChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // IncrementMentionCount provides a mock function with given fields: channelId, userId
 func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {
 	ret := _m.Called(channelId, userId)
@@ -1705,6 +1728,22 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.Channe
 	}
 
 	return r0, r1
+}
+
+// UpdateMembersRole provides a mock function with given fields: channelID, userIDs
+func (_m *ChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	ret := _m.Called(channelID, userIDs)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(channelID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds

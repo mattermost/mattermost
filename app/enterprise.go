@@ -120,6 +120,9 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 }
 
 func (s *Server) initEnterprise() {
+	if metricsInterface != nil {
+		s.Metrics = metricsInterface(s.FakeApp())
+	}
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}
@@ -134,9 +137,6 @@ func (s *Server) initEnterprise() {
 	}
 	if messageExportInterface != nil {
 		s.MessageExport = messageExportInterface(s.FakeApp())
-	}
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s.FakeApp())
 	}
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s.FakeApp())

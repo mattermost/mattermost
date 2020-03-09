@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -38,6 +39,7 @@ const (
 	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_CHANNEL_RESTORED       = "system_channel_restored"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
@@ -57,6 +59,8 @@ const (
 	POST_PROPS_DELETE_BY           = "deleteBy"
 	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
+
+	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 )
 
 type Post struct {
@@ -264,6 +268,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_DISPLAYNAME_CHANGE,
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
+		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
 		POST_ADD_BOT_TEAMS_CHANNELS:
@@ -428,6 +433,34 @@ func SearchParameterFromJson(data io.Reader) *SearchParameter {
 
 func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
+}
+
+// DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
+func (o *Post) DisableMentionHighlights() string {
+	mention, hasMentions := findAtChannelMention(o.Message)
+	if hasMentions {
+		o.AddProp(POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
+	}
+	return mention
+}
+
+// DisableMentionHighlights disables mention highlighting for a post patch if required.
+func (o *PostPatch) DisableMentionHighlights() {
+	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
+		if o.Props == nil {
+			o.Props = &StringInterface{}
+		}
+		(*o.Props)[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
+	}
+}
+
+func findAtChannelMention(message string) (mention string, found bool) {
+	re := regexp.MustCompile(`(?i)\B@(channel|all|here)\b`)
+	matched := re.FindStringSubmatch(message)
+	if found = (len(matched) > 0); found {
+		mention = strings.ToLower(matched[0])
+	}
+	return
 }
 
 func (o *Post) Attachments() []*SlackAttachment {

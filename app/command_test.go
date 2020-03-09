@@ -70,9 +70,8 @@ func TestCreateCommandPost(t *testing.T) {
 
 	skipSlackParsing := false
 	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
-	if err == nil || err.Id != "api.context.invalid_param.app_error" {
-		t.Fatal("should have failed - bad post type")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.context.invalid_param.app_error")
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
@@ -208,9 +207,8 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	args.UserId = th.BasicUser2.Id
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 
-	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
-		t.Fatal("should have failed - forbidden channel post")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
 
 	// Test that /code text is not converted with the Slack text conversion.
 	command.Trigger = "code"
@@ -221,7 +219,11 @@ func TestHandleCommandResponsePost(t *testing.T) {
 			Text: "<!here>",
 		},
 	}
+
+	// set and unset SkipSlackParsing here seems the nicest way as no separate response objects are created for every testcase.
+	resp.SkipSlackParsing = true
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	resp.SkipSlackParsing = false
 
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")
@@ -248,9 +250,8 @@ func TestHandleCommandResponse(t *testing.T) {
 	builtIn := true
 
 	_, err := th.App.HandleCommandResponse(command, args, resp, builtIn)
-	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
-		t.Fatal("should have failed - invalid post type")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
 	resp = &model.CommandResponse{
 		Text: "message 1",
@@ -273,9 +274,8 @@ func TestHandleCommandResponse(t *testing.T) {
 	}
 
 	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
-	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
-		t.Fatal("should have failed - invalid post type on extra response")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
 	resp = &model.CommandResponse{
 		ExtraResponses: []*model.CommandResponse{
@@ -372,9 +372,9 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
 		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
 
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})

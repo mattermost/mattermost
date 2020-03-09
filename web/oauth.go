@@ -51,7 +51,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.IsOAuth {
+	if c.App.Session().IsOAuth {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		c.Err.DetailedError += ", attempted access by oauth app"
 		return
@@ -59,7 +59,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session.UserId, authRequest)
+	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
 
 	if err != nil {
 		c.Err = err
@@ -80,7 +80,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.DeauthorizeOAuthAppForUser(c.App.Session.UserId, clientId)
+	err := c.App.DeauthorizeOAuthAppForUser(c.App.Session().UserId, clientId)
 	if err != nil {
 		c.Err = err
 		return
@@ -119,7 +119,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// here we should check if the user is logged in
-	if len(c.App.Session.UserId) == 0 {
+	if len(c.App.Session().UserId) == 0 {
 		if loginHint == model.USER_AUTH_SERVICE_SAML {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		} else {
@@ -136,14 +136,14 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.App.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.App.Session().UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session.UserId, authRequest)
+		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())

@@ -123,6 +123,115 @@ func PermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 	return result
 }
 
+func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
+	var result []string
+
+	if patch.Permissions == nil {
+		return result
+	}
+
+	roleMap := make(map[string]bool)
+	patchMap := make(map[string]bool)
+
+	for _, permission := range role.Permissions {
+		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+			roleMap[channelModeratedPermissionName] = true
+		}
+	}
+
+	for _, permission := range *patch.Permissions {
+		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+			patchMap[channelModeratedPermissionName] = true
+		}
+	}
+
+	for permissionKey := range roleMap {
+		if !patchMap[permissionKey] {
+			result = append(result, permissionKey)
+		}
+	}
+
+	for permissionKey := range patchMap {
+		if !roleMap[permissionKey] {
+			result = append(result, permissionKey)
+		}
+	}
+
+	return result
+}
+
+// GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
+func (r *Role) GetChannelModeratedPermissions() map[string]bool {
+	moderatedPermissions := make(map[string]bool)
+	for _, permission := range r.Permissions {
+		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
+			continue
+		}
+
+		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+			if moderated == permission {
+				moderatedPermissions[moderatedPermissionValue] = true
+			}
+		}
+	}
+
+	return moderatedPermissions
+}
+
+// RolePatchFromChannelModerationsPatch Creates and returns a RolePatch based on a slice of ChannelModerationPatchs, roleName is expected to be either "members" or "guests".
+func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*ChannelModerationPatch, roleName string) *RolePatch {
+	permissionsToAddToPatch := make(map[string]bool)
+
+	// Iterate through the list of existing permissions on the role and append permissions that we want to keep.
+	for _, permission := range r.Permissions {
+		// Permission is not moderated so dont add it to the patch and skip the channelModerationsPatch
+		if _, isModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !isModerated {
+			continue
+		}
+
+		permissionEnabled := true
+		// Check if permission has a matching moderated permission name inside the channel moderation patch
+		for _, channelModerationPatch := range channelModerationsPatch {
+			if *channelModerationPatch.Name == CHANNEL_MODERATED_PERMISSIONS_MAP[permission] {
+				// Permission key exists in patch with a value of false so skip over it
+				if roleName == "members" {
+					if channelModerationPatch.Roles.Members != nil && !*channelModerationPatch.Roles.Members {
+						permissionEnabled = false
+					}
+				} else if roleName == "guests" {
+					if channelModerationPatch.Roles.Guests != nil && !*channelModerationPatch.Roles.Guests {
+						permissionEnabled = false
+					}
+				}
+			}
+		}
+
+		if permissionEnabled {
+			permissionsToAddToPatch[permission] = true
+		}
+	}
+
+	// Iterate through the patch and add any permissions that dont already exist on the role
+	for _, channelModerationPatch := range channelModerationsPatch {
+		for permission, moderatedPermissionName := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+			if roleName == "members" && channelModerationPatch.Roles.Members != nil && *channelModerationPatch.Roles.Members && *channelModerationPatch.Name == moderatedPermissionName {
+				permissionsToAddToPatch[permission] = true
+			}
+
+			if roleName == "guests" && channelModerationPatch.Roles.Guests != nil && *channelModerationPatch.Roles.Guests && *channelModerationPatch.Name == moderatedPermissionName {
+				permissionsToAddToPatch[permission] = true
+			}
+		}
+	}
+
+	patchPermissions := make([]string, 0, len(permissionsToAddToPatch))
+	for permission := range permissionsToAddToPatch {
+		patchPermissions = append(patchPermissions, permission)
+	}
+
+	return &RolePatch{Permissions: &patchPermissions}
+}
+
 func (r *Role) IsValid() bool {
 	if len(r.Id) != 26 {
 		return false
@@ -187,6 +296,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_EDIT_POST.Id,
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 		SchemeManaged: true,
@@ -205,6 +315,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_GET_PUBLIC_LINK.Id,
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 		SchemeManaged: true,
@@ -253,6 +364,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.team_post_all.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -264,6 +376,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.team_post_all_public.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -323,6 +436,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.system_post_all.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,
@@ -334,6 +448,7 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.system_post_all_public.description",
 		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
+			PERMISSION_USE_CHANNEL_MENTIONS.Id,
 		},
 		SchemeManaged: false,
 		BuiltIn:       true,

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/stretchr/testify/require"
@@ -29,8 +30,8 @@ func TestMain(m *testing.M) {
 // truncateTable clears the given table
 func truncateTable(t *testing.T, table string) {
 	t.Helper()
-	sqlSetting := mainHelper.GetSqlSettings()
-	sqlSupplier := mainHelper.GetSqlSupplier()
+	sqlSetting := mainHelper.GetSQLSettings()
+	sqlSupplier := mainHelper.GetSQLSupplier()
 
 	switch *sqlSetting.DriverName {
 	case model.DATABASE_DRIVER_MYSQL:
@@ -47,6 +48,14 @@ func truncateTable(t *testing.T, table string) {
 
 	case model.DATABASE_DRIVER_POSTGRES:
 		_, err := sqlSupplier.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		if err != nil {
+			if driverErr, ok := err.(*pq.Error); ok {
+				// Ignore if the Configurations table does not exist.
+				if driverErr.Code == "42P01" {
+					return
+				}
+			}
+		}
 		require.NoError(t, err)
 
 	default:

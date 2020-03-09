@@ -44,8 +44,8 @@ type SqlBotStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-// NewSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
-func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
+// newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
+func newSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
 	us := &SqlBotStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -61,7 +61,7 @@ func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) sto
 	return us
 }
 
-func (us SqlBotStore) CreateIndexesIfNotExists() {
+func (us SqlBotStore) createIndexesIfNotExists() {
 }
 
 // traceBot is a helper function for adding to a bot trace when logging.
@@ -91,7 +91,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 			u.FirstName AS DisplayName,
 			b.Description,
 			b.OwnerId,
-			b.LastIconUpdate,
+			COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			b.CreateAt,
 			b.UpdateAt,
 			b.DeleteAt
@@ -148,7 +148,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 			    u.FirstName AS DisplayName,
 			    b.Description,
 			    b.OwnerId,
-				b.LastIconUpdate,
+			    COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt

@@ -1,6 +1,12 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+ifeq ($(OS),Windows_NT)
+	PLATFORM := Windows
+else
+	PLATFORM := $(shell uname)
+endif
 
 IS_CI ?= false
 MM_NO_DOCKER ?= false
@@ -45,9 +51,11 @@ else
 	BUILD_CLIENT = false
 endif
 
-# Golang Flags
-GOPATH ?= $(shell go env GOPATH)
+# Go Flags
 GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
@@ -73,24 +81,22 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
-
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.1
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.2.2
+PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
+
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -111,6 +117,8 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
+# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
+MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -151,6 +159,31 @@ endif
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./plugin/checker
 
+prepackaged-plugins: ## Populate the prepackaged-plugins directory
+	@echo Downloading prepackaged plugins
+	mkdir -p prepackaged_plugins
+	@cd prepackaged_plugins && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -f -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
+	done
+
+prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+# Externally built binaries
+ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
+	@echo mmctl installed
+else ifeq ($(PLATFORM),Darwin)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Linux)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+else ifeq ($(PLATFORM),Windows)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+else
+	@echo "mmctl error: can't detect OS"
+endif
+
 golangci-lint: ## Run golangci-lint on codebase
 # https://stackoverflow.com/a/677212/1027058 (check if a command exists or not)
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
@@ -166,34 +199,40 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
+app-layers: ## Extract interface from App struct
+    # The following commented commands can be used to re-generate the AppIface from the App struct
+	# env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
+	# $(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
+
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
-	$(GOPATH)/bin/mmgotool i18n extract
+	$(GOBIN)/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 filesstore-mocks: ## Creates mock files.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
+	$(GOBIN)/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
-	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOBIN)/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -253,13 +292,33 @@ test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
+gomodtidy:
+	@cp go.mod go.mod.orig
+	@cp go.sum go.sum.orig
+	$(GO) mod tidy
+	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
+		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
+		rm go.*.orig; \
+		exit 1; \
+	fi;
+	@rm go.*.orig;
+
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
-	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: ## Runs only quick tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
+else
+	@echo Running only TE tests
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+endif
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -301,7 +360,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 		exit 1; \
 	fi
 
-run-server: validate-go-version start-docker ## Starts the server.
+run-server: prepackaged-binaries validate-go-version start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -442,7 +501,7 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
-	$(GO) get -u
+	$(GO) get -u ./...
 
 	# Tidy up
 	$(GO) mod tidy
@@ -451,15 +510,15 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	$(GO) mod vendor
 
 vet: ## Run mattermost go vet specific checks
-	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
-		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
+	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
+		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi; \
 
-	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
 

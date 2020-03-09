@@ -23,14 +23,13 @@ import (
 // Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
-	s.FakeApp().CreatePushNotificationsHub()
-	s.FakeApp().StartPushNotificationsHubWorkers()
+	s.FakeApp().createPushNotificationsHub()
 
 	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.FakeApp().Srv.configListenerId = s.FakeApp().AddConfigListener(func(_, _ *model.Config) {
+	s.FakeApp().Srv().configListenerId = s.FakeApp().AddConfigListener(func(_, _ *model.Config) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
@@ -40,7 +39,7 @@ func (s *Server) RunOldAppInitialization() error {
 			s.FakeApp().Publish(message)
 		})
 	})
-	s.FakeApp().Srv.licenseListenerId = s.FakeApp().AddLicenseListener(func() {
+	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
@@ -59,12 +58,12 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.initEnterprise()
 
-	if s.FakeApp().Srv.newStore == nil {
-		s.FakeApp().Srv.newStore = func() store.Store {
+	if s.FakeApp().Srv().newStore == nil {
+		s.FakeApp().Srv().newStore = func() store.Store {
 			return store.NewTimerLayer(
 				localcachelayer.NewLocalCacheLayer(
 					sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
-					s.Metrics, s.Cluster),
+					s.Metrics, s.Cluster, s.CacheProvider),
 				s.Metrics)
 		}
 	}
@@ -72,10 +71,11 @@ func (s *Server) RunOldAppInitialization() error {
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
 		mlog.Error("Failed to parse server templates", mlog.Err(err))
 	} else {
-		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
+		s.FakeApp().Srv().htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	s.FakeApp().Srv.Store = s.FakeApp().Srv.newStore()
+	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
+	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -92,10 +92,10 @@ func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().EnsureDiagnosticId()
 	s.FakeApp().regenerateClientConfig()
 
-	s.FakeApp().Srv.clusterLeaderListenerId = s.FakeApp().Srv.AddClusterLeaderChangedListener(func() {
+	s.FakeApp().Srv().clusterLeaderListenerId = s.FakeApp().Srv().AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
-		if s.FakeApp().Srv.Jobs != nil {
-			s.FakeApp().Srv.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
+		if s.FakeApp().Srv().Jobs != nil {
+			s.FakeApp().Srv().Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
 		}
 	})
 
@@ -103,22 +103,22 @@ func (s *Server) RunOldAppInitialization() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
-	s.FakeApp().Srv.Router = s.FakeApp().Srv.RootRouter.PathPrefix(subpath).Subrouter()
-	pluginsRoute := s.FakeApp().Srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	s.FakeApp().Srv().Router = s.FakeApp().Srv().RootRouter.PathPrefix(subpath).Subrouter()
+	pluginsRoute := s.FakeApp().Srv().Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", s.FakeApp().ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.FakeApp().ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
-		s.FakeApp().Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.FakeApp().Srv().RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path = path.Join(subpath, r.URL.Path)
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-	s.FakeApp().Srv.Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
+	s.FakeApp().Srv().Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
 
-	s.FakeApp().Srv.WebSocketRouter = &WebSocketRouter{
+	s.FakeApp().Srv().WebSocketRouter = &WebSocketRouter{
 		app:      s.FakeApp(),
 		handlers: make(map[string]webSocketHandler),
 	}

@@ -33,7 +33,7 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	preferences, err := a.Srv.Store.Preference().GetCategory(userId, category)
+	preferences, err := a.Srv().Store.Preference().GetCategory(userId, category)
 	require.Nilf(t, err, "Failed to get preferences for user %v with category %v", userId, category)
 	found := false
 	for _, preference := range preferences {
@@ -61,13 +61,13 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false)
+	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
 	require.Nil(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	count, err := a.Srv.Store.Channel().AnalyticsTypeCount("", channelType)
+	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.Nil(t, err, "Failed to get channel count.")
 }
@@ -81,42 +81,42 @@ func TestImportImportLine(t *testing.T) {
 		Type: "gibberish",
 	}
 
-	err := th.App.ImportLine(line, false)
+	err := th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
 	// Try import line with scheme type but nil scheme.
 	line.Type = "scheme"
-	err = th.App.ImportLine(line, false)
+	err = th.App.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
 }
 
@@ -190,6 +190,19 @@ func TestImportBulkImport(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 
+	// Run bulk import using a valid and large input and a \r\n line break.
+	t.Run("", func(t *testing.T) {
+		posts := `{"type": "post"` + strings.Repeat(`, "post": {"team": "`+teamName+`", "channel": "`+channelName+`", "user": "`+username+`", "message": "Repeat after me", "create_at": 193456789012}`, 1E4) + "}"
+		data4 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
+		err, line = th.App.BulkImport(strings.NewReader(data4+"\r\n"+posts), false, 2)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
+
 	t.Run("First item after version without type", func(t *testing.T) {
 		data := `{"type": "version", "version": 1}
 {"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
@@ -219,7 +232,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv.Store.FileInfo().GetForUser(userId)
+	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userId)
 	require.Nil(t, err)
 	return fileInfos
 }
@@ -228,7 +241,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postId := files[0].PostId
 	assert.NotNil(t, postId)
 
-	posts, err := th.App.Srv.Store.Post().GetPostsByIds([]string{postId})
+	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
 	require.Nil(t, err)
 
 	assert.Equal(t, len(posts), 1)
