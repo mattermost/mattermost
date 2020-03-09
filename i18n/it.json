@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Questa squadra è gestita dai gruppi.  Questo utente non appartiene a un gruppo sincronizzato con questa squadra."
+    "translation": "Questa squadra è gestita dai gruppi. Questo utente non appartiene a un gruppo sincronizzato con questa squadra."
   },
   {
     "id": "api.team.add_user_to_team.added",
