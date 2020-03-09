@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -48,8 +50,10 @@ func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
+	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	us.usersQuery = us.getQueryBuilder().
-		Select("u.*", "b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
+		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
+			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -592,9 +596,30 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
 	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+	rows, err := us.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var user model.User
+		var propsBytes []uint8
+		var notifyPropsBytes []uint8
+		var timezoneBytes []uint8
+		err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &propsBytes, &notifyPropsBytes, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezoneBytes, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+		if err != nil {
+			mlog.Debug("Cannot scan sql row into struct fields", mlog.Err(err))
+			continue
+		}
+		json.Unmarshal(propsBytes, &user.Props)
+		json.Unmarshal(notifyPropsBytes, &user.NotifyProps)
+		json.Unmarshal(timezoneBytes, &user.Timezone)
+		users = append(users, &user)
+	}
+	err = rows.Err()
+	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
