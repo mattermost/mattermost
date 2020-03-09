@@ -19,7 +19,7 @@ func TestAutocompleteData(t *testing.T) {
 	ad.AddDynamicListArgument("", "help", "/some/url")
 	assert.Nil(t, ad.IsValid())
 	ad.AddTextInputArgument("name", "help", "[text]", "")
-	assert.NotNil(t, ad.IsValid())
+	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	assert.Nil(t, ad.IsValid())
@@ -32,7 +32,7 @@ func TestAutocompleteData(t *testing.T) {
 	command.AddTextInputArgument("", "help", "[text]", "")
 	command.AddTextInputArgument("some", "help", "[text]", "")
 	ad.AddCommand(command)
-	assert.NotNil(t, ad.IsValid())
+	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "disconnect")
