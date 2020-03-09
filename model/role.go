@@ -53,6 +53,10 @@ const (
 	ROLE_NAME_MAX_LENGTH         = 64
 	ROLE_DISPLAY_NAME_MAX_LENGTH = 128
 	ROLE_DESCRIPTION_MAX_LENGTH  = 1024
+
+	RoleTypeGuest = "guest"
+	RoleTypeUser  = "user"
+	RoleTypeAdmin = "admin"
 )
 
 type Role struct {
