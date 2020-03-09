@@ -312,6 +312,33 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 	return count, nil
 }
 
+func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+	var groupMembers []*model.User
+
+	query := `
+		SELECT
+			Users.*
+		FROM
+			GroupMembers
+			JOIN Users ON Users.Id = GroupMembers.UserId
+		WHERE
+			GroupMembers.DeleteAt = 0
+			AND Users.DeleteAt = 0
+			AND GroupId = :GroupId
+			AND GroupMembers.UserId NOT IN (
+				SELECT ChannelMembers.UserId
+				FROM ChannelMembers
+				WHERE ChannelMembers.ChannelId = :ChannelId
+			)
+		`
+
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "ChannelId": channelID}); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupMembers, nil
+}
+
 func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
 	member := &model.GroupMember{
 		GroupId:  groupID,
@@ -974,9 +1001,13 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	groupsQuery = groupsQuery.
 		From("UserGroups g").
 		Where("g.DeleteAt = 0").
-		Limit(uint64(perPage)).
-		Offset(uint64(page * perPage)).
 		OrderBy("g.DisplayName")
+
+	if perPage != 0 {
+		groupsQuery = groupsQuery.
+			Limit(uint64(perPage)).
+			Offset(uint64(page * perPage))
+	}
 
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
@@ -1017,6 +1048,11 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 					AND GroupChannels.ChannelId = ?
 			)
 		`, opts.NotAssociatedToChannel)
+	}
+
+	if opts.FilterAllowReference {
+		// Todo uncomment after column has been added
+		// 	groupsQuery = groupsQuery.Where("g.AllowReference = 1")
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
