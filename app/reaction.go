@@ -42,7 +42,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
+	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
@@ -119,7 +119,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
+	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
