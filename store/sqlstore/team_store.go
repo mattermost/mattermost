@@ -189,6 +189,8 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
+// Save adds the team to the database if a team with the same name does not already
+// exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	if len(team.Id) > 0 {
 		return nil, model.NewAppError("SqlTeamStore.Save",
@@ -210,6 +212,9 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+// Update updates the details of the team passed as the parameter using the team Id
+// if the team exists in the database.
+// It returns the updated team if the operation is successful.
 func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 
 	team.PreUpdate()
@@ -529,6 +534,10 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
+// SaveMember adds a team member using the team Id of the member
+// if the member does not already exist in the database and if the number
+// of existing team members are less than the maximum allowed users per team.
+// It returns the team member added if the operation is successful.
 func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
 	defer s.InvalidateAllTeamIdsForUser(member.UserId)
 	if err := member.IsValid(); err != nil {
@@ -587,6 +596,8 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) 
 	return retrievedMember.ToModel(), nil
 }
 
+// UpdateMember updates the team member if the team member exists in the database.
+// It returns the updated team member if the operation is successful.
 func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError) {
 	member.PreUpdate()
 
