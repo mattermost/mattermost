@@ -265,7 +265,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "Fuera de Tópico"
+    "translation": "Fuera de Tema"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
