@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+type RoleType string
+
 const (
 	SYSTEM_GUEST_ROLE_ID             = "system_guest"
 	SYSTEM_USER_ROLE_ID              = "system_user"
@@ -30,6 +32,9 @@ const (
 	ROLE_NAME_MAX_LENGTH         = 64
 	ROLE_DISPLAY_NAME_MAX_LENGTH = 128
 	ROLE_DESCRIPTION_MAX_LENGTH  = 1024
+
+	RoleTypeChannelGuest RoleType = "ChannelGuest"
+	RoleTypeChannelUser  RoleType = "ChannelUser"
 )
 
 type Role struct {

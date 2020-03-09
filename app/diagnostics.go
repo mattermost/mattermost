@@ -54,6 +54,7 @@ const (
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
+	TRACK_CHANNEL_MODERATION        = "channel_moderation"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -76,6 +77,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackPermissions()
 		a.trackElasticsearch()
 		a.trackGroups()
+		a.trackChannelModeration()
 	}
 }
 
@@ -967,5 +969,64 @@ func (a *App) trackGroups() {
 		"group_synced_channel_count":  groupSyncedChannelCount,
 		"group_member_count":          groupMemberCount,
 		"distinct_group_member_count": distinctGroupMemberCount,
+	})
+}
+
+func (a *App) trackChannelModeration() {
+	channelSchemeCount, err := a.Srv().Store.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	createPostUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleTypeChannelUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	createPostGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleTypeChannelGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
+	postReactionsUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleTypeChannelUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	postReactionsGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleTypeChannelGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
+	manageMembersUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleTypeChannelUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	useChannelMentionsUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleTypeChannelUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	useChannelMentionsGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleTypeChannelGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	a.SendDiagnostic(TRACK_CHANNEL_MODERATION, map[string]interface{}{
+		"channel_scheme_count": channelSchemeCount,
+
+		"create_post_user_disabled_count":  createPostUser,
+		"create_post_guest_disabled_count": createPostGuest,
+
+		"post_reactions_user_disabled_count":  postReactionsUser,
+		"post_reactions_guest_disabled_count": postReactionsGuest,
+
+		"manage_members_user_disabled_count": manageMembersUser, // the UI does not allow this to be removed for guests
+
+		"use_channel_mentions_user_disabled_count":  useChannelMentionsUser,
+		"use_channel_mentions_guest_disabled_count": useChannelMentionsGuest,
 	})
 }
