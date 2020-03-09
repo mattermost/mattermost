@@ -348,29 +348,3 @@ func (s *SqlSchemeStore) PermanentDeleteAll() *model.AppError {
 
 	return nil
 }
-
-func (s *SqlSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
-	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Schemes WHERE Scope = :Scope AND DeleteAt = 0", map[string]interface{}{"Scope": scope})
-	if err != nil {
-		return int64(0), model.NewAppError("SqlSchemeStore.CountByScope", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return count, nil
-}
-
-func (s *SqlSchemeStore) CountWithoutPermission(scope, permissionID, roleType string) (int64, *model.AppError) {
-	joinCol := fmt.Sprintf("Default%s%sRole", strings.Title(scope), strings.Title(roleType))
-	query := fmt.Sprintf(`
-		SELECT
-			count(*)
-		FROM Schemes
-			JOIN Roles ON Roles.Name = Schemes.%s
-		WHERE
-			Schemes.DeleteAt = 0 AND
-			Roles.Permissions NOT LIKE '%%%s%%'
-	`, joinCol, permissionID)
-	count, err := s.GetReplica().SelectInt(query)
-	if err != nil {
-		return int64(0), model.NewAppError("SqlSchemeStore.CountWithoutPermission", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return count, nil
-}
