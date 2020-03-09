@@ -608,6 +608,9 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
+
+	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError)
+
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	PermanentDeleteMembersByUser(userId string) *model.AppError

@@ -209,8 +209,6 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 	// Reset these properties, don't update them based on input
 	group.CreateAt = retrievedGroup.CreateAt
 	group.UpdateAt = model.GetMillis()
-	
-	group.UpdateAt = model.GetMillis()
 
 	if err := group.IsValidForUpdate(); err != nil {
 		return nil, err
@@ -262,7 +260,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.Ap
 			AND GroupId = :GroupId`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
-		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GetMemberUsers", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groupMembers, nil
@@ -312,6 +310,41 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 	}
 
 	return count, nil
+}
+
+func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+	var groupMembers []*model.User
+
+	query := `
+		SELECT
+			Users.*
+		FROM
+			GroupMembers
+			JOIN Users ON Users.Id = GroupMembers.UserId
+		WHERE
+			GroupMembers.DeleteAt = 0
+			AND Users.DeleteAt = 0
+			AND GroupId = :GroupId
+			AND GroupMembers.UserId NOT IN (
+				SELECT ChannelMembers.UserId
+				FROM ChannelMembers
+				WHERE ChannelMembers.ChannelId = :ChannelId
+			)
+			AND GroupMembers.UserId IN (
+				SELECT TeamMembers.UserId
+				FROM TeamMembers
+				JOIN Channels ON Channels.Id = :ChannelId
+				JOIN Teams ON Teams.Id = Channels.TeamId
+				WHERE TeamMembers.TeamId = Teams.Id
+				AND TeamMembers.DeleteAt = 0
+			)
+		`
+
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "ChannelId": channelID}); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetMemberUsersNotInChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupMembers, nil
 }
 
 func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
@@ -1083,9 +1116,13 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	groupsQuery = groupsQuery.
 		From("UserGroups g").
 		Where("g.DeleteAt = 0").
-		Limit(uint64(perPage)).
-		Offset(uint64(page * perPage)).
 		OrderBy("g.DisplayName")
+
+	if perPage != 0 {
+		groupsQuery = groupsQuery.
+			Limit(uint64(perPage)).
+			Offset(uint64(page * perPage))
+	}
 
 	if opts.FilterAllowReference {
 		groupsQuery = groupsQuery.Where("g.AllowReference = true")
