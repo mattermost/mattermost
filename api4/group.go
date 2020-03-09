@@ -581,8 +581,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
-	if teamID == "" && channelID == "" {
-		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
+	if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 

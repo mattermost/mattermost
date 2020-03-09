@@ -271,6 +271,7 @@ type ServiceSettings struct {
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     *bool   `restricted:"true"`
 	EnableDeveloper                                   *bool   `restricted:"true"`
+	EnableOpenTracing                                 *bool   `restricted:"true"`
 	EnableSecurityFixAlert                            *bool   `restricted:"true"`
 	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
 	AllowedUntrustedInternalConnections               *string `restricted:"true"`
@@ -367,6 +368,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDeveloper == nil {
 		s.EnableDeveloper = NewBool(false)
+	}
+
+	if s.EnableOpenTracing == nil {
+		s.EnableOpenTracing = NewBool(false)
 	}
 
 	if s.EnableSecurityFixAlert == nil {
