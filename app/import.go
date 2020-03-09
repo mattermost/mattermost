@@ -16,7 +16,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const importMultiplePostsThreshold = 1000
+const (
+	importMultiplePostsThreshold = 1000
+	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
+)
 
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
@@ -67,6 +70,9 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 
 func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
 	lineNumber := 0
 
 	a.Srv().Store.LockToMaster()
@@ -136,7 +142,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	}
 
 	// No more lines. Clear out the worker queue before continuing.
-	close(linesChan)
+	if linesChan != nil {
+		close(linesChan)
+	}
 	wg.Wait()
 
 	// Check no errors occurred while waiting for the queue to empty.
@@ -149,10 +157,6 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 
 	if err := scanner.Err(); err != nil {
 		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
-	}
-
-	if err := a.finalizeImport(dryRun); err != nil {
-		return err, 0
 	}
 
 	return nil, 0
@@ -201,11 +205,4 @@ func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
 	}
-}
-
-func (a *App) finalizeImport(dryRun bool) *model.AppError {
-	if dryRun {
-		return nil
-	}
-	return nil
 }
