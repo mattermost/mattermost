@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "ゲストが招待リンクによりチームに参加することはできません。チームに招待メールをリクエストしてください。"
+    "translation": "ゲストが招待リンクからチームに参加することはできません。チームに招待メールをリクエストしてください。"
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
