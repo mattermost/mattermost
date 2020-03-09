@@ -116,7 +116,7 @@ func TestSuggestions(t *testing.T) {
 	jira := model.CreateJiraAutocompleteData()
 	suggestions := th.App.GetSuggestions([]*model.AutocompleteData{jira}, "ji", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
-	assert.Equal(t, jira.CommandName, suggestions[0].Hint)
+	assert.Equal(t, jira.Trigger, suggestions[0].Hint)
 	assert.Equal(t, jira.HelpText, suggestions[0].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira crea", model.SYSTEM_ADMIN_ROLE_ID)

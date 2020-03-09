@@ -13,19 +13,19 @@ import (
 func (a *App) GetSuggestions(commands []*model.AutocompleteData, userInput, roleID string) []model.Suggestion {
 	suggestions := []model.Suggestion{}
 	index := strings.Index(userInput, " ")
-	if index == -1 {
+	if index == -1 { // no space in user input
 		for _, command := range commands {
-			if strings.HasPrefix(command.CommandName, userInput) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
-				suggestions = append(suggestions, model.Suggestion{Hint: command.CommandName, Description: command.HelpText})
+			if strings.HasPrefix(command.Trigger, userInput) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+				suggestions = append(suggestions, model.Suggestion{Hint: command.Trigger, Description: command.HelpText})
 			}
 		}
 		return suggestions
 	}
 	for _, command := range commands {
 		input := userInput[index+1:]
-		if command.CommandName == userInput[:index] && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+		if command.Trigger == userInput[:index] && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
 			if len(command.Arguments) > 0 { //seek in arguments
-				if command.Arguments[0].Name == "" { //Positional arguments
+				if command.Arguments[0].Name == "" { //Positional argument
 					for _, arg := range command.Arguments {
 						if arg.Type == model.TextInputArgumentType {
 							found, changedInput, suggestion := parseInputTextArgument(arg, input)
@@ -45,7 +45,7 @@ func (a *App) GetSuggestions(commands []*model.AutocompleteData, userInput, role
 							// TODO
 						}
 					}
-				} else { // named arguments
+				} else { // Named argument
 					//TODO
 				}
 			} else { //No arguments, we should seek recursively in subcommands

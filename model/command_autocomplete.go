@@ -22,8 +22,8 @@ const (
 
 // AutocompleteData describes slash command autocomplete information.
 type AutocompleteData struct {
-	// Name of the command
-	CommandName string
+	// Trigger of the command
+	Trigger string
 	// Text displayed to the user to help with the autocomplete
 	HelpText string
 	// Role of the user who should be able to see the autocomplete info of this command
@@ -84,9 +84,9 @@ type Suggestion struct {
 }
 
 // NewAutocompleteData returns new Autocomplete data.
-func NewAutocompleteData(name string, helpText string) *AutocompleteData {
+func NewAutocompleteData(trigger string, helpText string) *AutocompleteData {
 	return &AutocompleteData{
-		CommandName: name,
+		Trigger:     trigger,
 		HelpText:    helpText,
 		RoleID:      SYSTEM_USER_ROLE_ID,
 		Arguments:   []*Argument{},
@@ -134,7 +134,7 @@ func (ad *AutocompleteData) AddDynamicListArgument(name, helpText, url string) {
 
 // Equals method checks if command is the same.
 func (ad *AutocompleteData) Equals(command *AutocompleteData) bool {
-	if !(ad.CommandName == command.CommandName && ad.HelpText == command.HelpText && ad.RoleID == command.RoleID) {
+	if !(ad.Trigger == command.Trigger && ad.HelpText == command.HelpText && ad.RoleID == command.RoleID) {
 		return false
 	}
 	if len(ad.Arguments) != len(command.Arguments) || len(ad.SubCommands) != len(command.SubCommands) {
@@ -158,7 +158,7 @@ func (ad *AutocompleteData) Equals(command *AutocompleteData) bool {
 
 // IsValid method checks if autocomplete data is valid.
 func (ad *AutocompleteData) IsValid() error {
-	if ad.CommandName == "" {
+	if ad.Trigger == "" {
 		return errors.New("An empty command name in the autocomplete data")
 	}
 	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID}
@@ -166,10 +166,16 @@ func (ad *AutocompleteData) IsValid() error {
 		return errors.New("Wrong role in the autocomplete data")
 	}
 	if len(ad.Arguments) > 0 {
-		isPositional := ad.Arguments[0].Name == ""
-		for _, arg := range ad.Arguments {
-			if isPositional != (arg.Name == "") {
-				return errors.New("All arguments should be either positional or named")
+		namedArgumentIndex := -1
+		for i, arg := range ad.Arguments {
+			if !(arg.Name == "") { // it's a named argument
+				if namedArgumentIndex == -1 { // first named argument
+					namedArgumentIndex = i
+				}
+			} else { // it's a positional argument
+				if namedArgumentIndex != -1 {
+					return errors.New("Named argument should not be before positional argument")
+				}
 			}
 			if arg.Type == DynamicListArgumentType {
 				DynamicList, ok := arg.Data.(*DynamicListArgument)
@@ -210,7 +216,7 @@ func (ad *AutocompleteData) IsValid() error {
 func (ad *AutocompleteData) ToJSON() ([]byte, error) {
 	b, err := json.Marshal(ad)
 	if err != nil {
-		return nil, errors.Wrapf(err, "can't marshal slash command %s", ad.CommandName)
+		return nil, errors.Wrapf(err, "can't marshal slash command %s", ad.Trigger)
 	}
 	return b, nil
 }
