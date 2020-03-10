@@ -103,7 +103,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		IncludeCacheLayer: includeCache,
 	}
 
-	th.App.SetSearchEngine(searchEngine)
+	if searchEngine != nil {
+		th.App.SetSearchEngine(searchEngine)
+	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
@@ -203,8 +205,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), searchEngine, false, false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -212,8 +213,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), searchEngine, false, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -221,8 +221,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), searchEngine, true, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
