@@ -262,11 +262,15 @@ pipeline {
 
 			parallel {
 				stage('Test-Mysql') {
+					environment {
+						COMPOSE_PROJECT_NAME="${UUID.randomUUID()}-${env.BUILD_NUMBER}"
+					}
+
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/build') {
 							ansiColor('xterm') {
 								sh """
-								/usr/local/bin/docker-compose --no-ansi run --rm --name `cat /proc/sys/kernel/random/uuid` start_dependencies
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
 								/usr/local/bin/docker-compose --no-ansi ps
 								"""
 							}
@@ -351,11 +355,15 @@ pipeline {
 					}
 				}
 				stage('Test-Postgres') {
+					environment {
+						COMPOSE_PROJECT_NAME="${UUID.randomUUID()}-${env.BUILD_NUMBER}"
+					}
+
 					steps {
 						dir('src/github.com/mattermost/mattermost-server/build') {
 							ansiColor('xterm') {
 								sh """
-								/usr/local/bin/docker-compose --no-ansi run --rm --name `cat /proc/sys/kernel/random/uuid` start_dependencies
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
 								/usr/local/bin/docker-compose --no-ansi ps
 								"""
 							}
