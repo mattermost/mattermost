@@ -304,6 +304,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		Message     string
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
+		Groups      map[string]*model.Group
 		Expected    *ExplicitMentions
 	}{
 		"Nobody": {
@@ -808,7 +809,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, tc.Keywords)
+			m := getExplicitMentions(post, tc.Keywords, tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, m)
 		})
@@ -861,14 +862,14 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	for message, shouldMention := range cases {
 		post := &model.Post{Message: message}
-		m := getExplicitMentions(post, nil)
+		m := getExplicitMentions(post, nil, nil)
 		require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
 		require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
 	}
 
 	// mentioning @here and someone
 	id := model.NewId()
-	m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
+	m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}, nil)
 	require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
 	require.Len(t, m.Mentions, 1)
 	require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
@@ -1656,6 +1657,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 		Message     string
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
+		Groups      map[string]*model.Group
 		Expected    *ExplicitMentions
 	}{
 		"MultibyteCharacter": {
@@ -1747,10 +1749,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, tc.Keywords)
-			// if tc.Expected.MentionedUserIds == nil {
-			// 	tc.Expected.MentionedUserIds = make(map[string]bool)
-			// }
+			m := getExplicitMentions(post, tc.Keywords, tc.Groups)
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
@@ -1817,6 +1816,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		Word        string
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
+		Groups      map[string]*model.Group
 		Expected    *ExplicitMentions
 	}{
 		"Nobody": {
@@ -1900,7 +1900,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			e := &ExplicitMentions{}
-			e.checkForMention(tc.Word, tc.Keywords)
+			e.checkForMention(tc.Word, tc.Keywords, tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, e)
 		})
@@ -1912,6 +1912,7 @@ func TestProcessText(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Text     string
 		Keywords map[string][]string
+		Groups   map[string]*model.Group
 		Expected *ExplicitMentions
 	}{
 		"Mention user in text": {
@@ -1991,7 +1992,7 @@ func TestProcessText(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			e := &ExplicitMentions{}
-			e.processText(tc.Text, tc.Keywords)
+			e.processText(tc.Text, tc.Keywords, tc.Groups)
 
 			assert.EqualValues(t, tc.Expected, e)
 		})
