@@ -184,7 +184,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 		}
 
 		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
-			channelUserRole.Permissions = s.filterModerated(channelUserRole.Permissions)
+			channelUserRole.Permissions = filterModerated(channelUserRole.Permissions)
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
@@ -202,7 +202,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 		}
 
 		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
-			channelGuestRole.Permissions = s.filterModerated(channelGuestRole.Permissions)
+			channelGuestRole.Permissions = filterModerated(channelGuestRole.Permissions)
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
@@ -231,7 +231,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) filterModerated(permissions []string) []string {
+func filterModerated(permissions []string) []string {
 	filteredPermissions := []string{}
 	for _, perm := range permissions {
 		if _, ok := model.CHANNEL_MODERATED_PERMISSIONS_MAP[perm]; ok {

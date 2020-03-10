@@ -152,7 +152,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	return nil
 }
 
-func getEmojisPermissionsSplitMigration(a *App) (permissionsMap, error) {
+func (a *App) getEmojisPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_EMOJIS),
@@ -167,7 +167,7 @@ func getEmojisPermissionsSplitMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getWebhooksPermissionsSplitMigration(a *App) (permissionsMap, error) {
+func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_WEBHOOKS),
@@ -182,7 +182,7 @@ func getWebhooksPermissionsSplitMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getListJoinPublicPrivateTeamsPermissionsMigration(a *App) (permissionsMap, error) {
+func (a *App) getListJoinPublicPrivateTeamsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
@@ -197,7 +197,7 @@ func getListJoinPublicPrivateTeamsPermissionsMigration(a *App) (permissionsMap, 
 	}, nil
 }
 
-func removePermanentDeleteUserMigration(a *App) (permissionsMap, error) {
+func (a *App) removePermanentDeleteUserMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_PERMANENT_DELETE_USER),
@@ -206,7 +206,7 @@ func removePermanentDeleteUserMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getAddBotPermissionsMigration(a *App) (permissionsMap, error) {
+func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
@@ -216,7 +216,7 @@ func getAddBotPermissionsMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func applyChannelManageDeleteToChannelUser(a *App) (permissionsMap, error) {
+func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES))),
@@ -237,7 +237,7 @@ func applyChannelManageDeleteToChannelUser(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func removeChannelManageDeleteFromTeamUser(a *App) (permissionsMap, error) {
+func (a *App) removeChannelManageDeleteFromTeamUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)),
@@ -258,7 +258,7 @@ func removeChannelManageDeleteFromTeamUser(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getViewMembersPermissionMigration(a *App) (permissionsMap, error) {
+func (a *App) getViewMembersPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_USER_ROLE_ID),
@@ -271,7 +271,7 @@ func getViewMembersPermissionMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func getAddManageGuestsPermissionsMigration(a *App) (permissionsMap, error) {
+func (a *App) getAddManageGuestsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
@@ -280,7 +280,7 @@ func getAddManageGuestsPermissionsMigration(a *App) (permissionsMap, error) {
 	}, nil
 }
 
-func channelModerationPermissionsMigration(a *App) (permissionsMap, error) {
+func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	transformations := permissionsMap{}
 
 	type rolePair struct {
@@ -326,22 +326,22 @@ func channelModerationPermissionsMigration(a *App) (permissionsMap, error) {
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
 		Key       string
-		Migration func(*App) (permissionsMap, error)
+		Migration func() (permissionsMap, error)
 	}{
-		{Key: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
-		{Key: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
-		{Key: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
-		{Key: model.MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
-		{Key: model.MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: applyChannelManageDeleteToChannelUser},
-		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
-		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
-		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
-		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: channelModerationPermissionsMigration},
+		{Key: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: a.getEmojisPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: a.getWebhooksPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: a.getListJoinPublicPrivateTeamsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: a.removePermanentDeleteUserMigration},
+		{Key: model.MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: a.getAddBotPermissionsMigration},
+		{Key: model.MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: a.applyChannelManageDeleteToChannelUser},
+		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: a.removeChannelManageDeleteFromTeamUser},
+		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
-		migMap, err := migration.Migration(a)
+		migMap, err := migration.Migration()
 		if err != nil {
 			return err
 		}
