@@ -3715,7 +3715,7 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 
 // GetGroupsAssociatedToChannelsByTeam retrieves the Mattermost Groups associated with channels in a given team
 func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, *Response) {
-	path := fmt.Sprintf("%s/groupsforchannels?q=%v&filter_allow_reference=%v", c.GetTeamRoute(teamId), opts.Q, opts.FilterAllowReference)
+	path := fmt.Sprintf("%s/groupsbychannels?q=%v&filter_allow_reference=%v", c.GetTeamRoute(teamId), opts.Q, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
