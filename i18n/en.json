@@ -3971,6 +3971,10 @@
     "translation": "Failed to delete Elasticsearch index"
   },
   {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Failed to refresh Elasticsearch indexes"
+  },
+  {
     "id": "ent.elasticsearch.search_channels.disabled",
     "translation": "Elasticsearch searching is disabled on this server"
   },
@@ -5683,12 +5687,12 @@
     "translation": "insert error"
   },
   {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.search_user_store.empty_team_id",
     "translation": "Failed to get list of allowed channels for team: empty teamId"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
   },
   {
     "id": "store.sql.build_query.app_error",
