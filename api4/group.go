@@ -535,10 +535,11 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
-		return
-	}
+	// uncomment when MM-23019 is checked-in
+	// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.USE_GROUP_MENTIONS) {
+	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
+	// 	return
+	// }
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
@@ -580,6 +581,12 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		c.Err = model.NewAppError("Api4.GetGroupsAssociatedToChannelByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
+
+	// uncomment when MM-23019 is checked-in
+	// if !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
+	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
+	// 	return
+	// }
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
