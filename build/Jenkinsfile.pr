@@ -266,7 +266,7 @@ pipeline {
 						dir('src/github.com/mattermost/mattermost-server/build') {
 							ansiColor('xterm') {
 								sh """
-								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies --name `cat /proc/sys/kernel/random/uuid`
 								/usr/local/bin/docker-compose --no-ansi ps
 								"""
 							}
@@ -355,7 +355,7 @@ pipeline {
 						dir('src/github.com/mattermost/mattermost-server/build') {
 							ansiColor('xterm') {
 								sh """
-								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies --name `cat /proc/sys/kernel/random/uuid`
 								/usr/local/bin/docker-compose --no-ansi ps
 								"""
 							}
