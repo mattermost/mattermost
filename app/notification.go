@@ -635,7 +635,7 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 
 	group, groupFound := groups[word]
 	if !groupFound {
-		group, _ = groups[strings.ToLower(word)]
+		group = groups[strings.ToLower(word)]
 	}
 
 	if group == nil {

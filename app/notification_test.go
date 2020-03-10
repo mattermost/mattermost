@@ -800,6 +800,62 @@ func TestGetExplicitMentions(t *testing.T) {
 				OtherPotentialMentions: []string{"other-one", "other", "other-two"},
 			},
 		},
+		"No groups": {
+			Message: "@nothing",
+			Groups:  map[string]*model.Group{},
+			Expected: &ExplicitMentions{
+				Mentions:               nil,
+				OtherPotentialMentions: []string{"nothing"},
+			},
+		},
+		"No matching groups": {
+			Message: "@nothing",
+			Groups: map[string]*model.Group{
+				"engineering": {DisplayName: "engineering"},
+			},
+			Expected: &ExplicitMentions{
+				Mentions:               nil,
+				GroupMentions:          nil,
+				OtherPotentialMentions: []string{"nothing"},
+			},
+		},
+		"matching group with no @": {
+			Message: "engineering",
+			Groups: map[string]*model.Group{
+				"engineering": {DisplayName: "engineering"},
+			},
+			Expected: &ExplicitMentions{
+				Mentions:               nil,
+				GroupMentions:          nil,
+				OtherPotentialMentions: nil,
+			},
+		},
+		"matching group with preceeding @": {
+			Message: "@engineering",
+			Groups: map[string]*model.Group{
+				"engineering": {DisplayName: "engineering"},
+			},
+			Expected: &ExplicitMentions{
+				Mentions: nil,
+				GroupMentions: map[string]*model.Group{
+					"engineering": {DisplayName: "engineering"},
+				},
+				OtherPotentialMentions: []string{"engineering"},
+			},
+		},
+		"matching upper case group with preceeding @": {
+			Message: "@Engineering",
+			Groups: map[string]*model.Group{
+				"engineering": {DisplayName: "engineering"},
+			},
+			Expected: &ExplicitMentions{
+				Mentions: nil,
+				GroupMentions: map[string]*model.Group{
+					"engineering": {DisplayName: "engineering"},
+				},
+				OtherPotentialMentions: []string{"Engineering"},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			post := &model.Post{
@@ -1921,28 +1977,28 @@ func TestAddGroupMention(t *testing.T) {
 		"No matching groups": {
 			Word: "nothing",
 			Groups: map[string]*model.Group{
-				"engineering": &model.Group{DisplayName: "engineering"},
+				"engineering": {DisplayName: "engineering"},
 			},
 			Expected: false,
 		},
 		"matching group with no @": {
 			Word: "engineering",
 			Groups: map[string]*model.Group{
-				"engineering": &model.Group{DisplayName: "engineering"},
+				"engineering": {DisplayName: "engineering"},
 			},
 			Expected: false,
 		},
 		"matching group with preceeding @": {
 			Word: "@engineering",
 			Groups: map[string]*model.Group{
-				"engineering": &model.Group{DisplayName: "engineering"},
+				"engineering": {DisplayName: "engineering"},
 			},
 			Expected: true,
 		},
 		"matching upper case group with preceeding @": {
 			Word: "@Engineering",
 			Groups: map[string]*model.Group{
-				"engineering": &model.Group{DisplayName: "engineering"},
+				"engineering": {DisplayName: "engineering"},
 			},
 			Expected: true,
 		},
