@@ -4,7 +4,6 @@
 package searchlayer
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -50,7 +49,6 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			fmt.Printf("UserIds: %+v\n", usersIds)
 
 			users, err := s.UserStore.GetProfileByIds(usersIds, nil, false)
 			if err != nil {
@@ -59,7 +57,6 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 			}
 
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
-			fmt.Printf("Users: %+v\n", users)
 			return users, nil
 		}
 	}

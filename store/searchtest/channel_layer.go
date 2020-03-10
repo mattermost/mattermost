@@ -400,5 +400,3 @@ func testSearchESSearchChannels(t *testing.T, s store.Store) {
 		})
 	}
 }
-
-// ToDo: Migrate db channel
