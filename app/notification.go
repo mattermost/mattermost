@@ -745,17 +745,17 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 	var mentionType MentionType
 
-	lcWord := strings.ToLower(word)
-	if lcWord == "@here" {
+	switch strings.ToLower(word) {
+	case "@here":
 		m.HereMentioned = true
 		mentionType = ChannelMention
-	} else if lcWord == "@channel" {
+	case "@channel":
 		m.ChannelMentioned = true
 		mentionType = ChannelMention
-	} else if lcWord == "@all" {
+	case "@all":
 		m.AllMentioned = true
 		mentionType = ChannelMention
-	} else {
+	default:
 		mentionType = KeywordMention
 	}
 
