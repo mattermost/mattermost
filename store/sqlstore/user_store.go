@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/gorp"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -586,6 +585,9 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 }
 
 func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
+	failure := func(e error) (map[string]*model.User, *model.AppError) {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, e.Error(), http.StatusInternalServerError)
+	}
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
@@ -594,33 +596,35 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return failure(err)
 	}
 	var users []*model.User
 	rows, err := us.GetReplica().Db.Query(queryString, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return failure(err)
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		var user model.User
-		var propsBytes []uint8
-		var notifyPropsBytes []uint8
-		var timezoneBytes []uint8
-		err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &propsBytes, &notifyPropsBytes, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezoneBytes, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
-		if err != nil {
-			mlog.Debug("Cannot scan sql row into struct fields", mlog.Err(err))
-			continue
+		var props, notifyProps, timezone []byte
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
+			return failure(err)
 		}
-		json.Unmarshal(propsBytes, &user.Props)
-		json.Unmarshal(notifyPropsBytes, &user.NotifyProps)
-		json.Unmarshal(timezoneBytes, &user.Timezone)
+		if err = json.Unmarshal(props, &user.Props); err != nil {
+			return failure(err)
+		}
+		if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
+			return failure(err)
+		}
+		if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
+			return failure(err)
+		}
 		users = append(users, &user)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return failure(err)
 	}
 
 	userMap := make(map[string]*model.User)
