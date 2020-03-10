@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dieser Kanal wird durch Gruppen verwaltet. Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
+    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
   },
   {
     "id": "api.command_invite.hint",
@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Team synchronisiert ist."
+    "translation": "Dieses Team wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Team synchronisiert ist."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "Gäste dürfen nicht durch einen Einladungslink einem Team beitreten. Bitte fordern Sie eine Einladung in das Team per E-Mail an."
+    "translation": "Gäste dürfen einem Team nicht durch einen Einladungslink beitreten. Bitte fordern Sie eine Einladung in das Team per E-Mail an."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
