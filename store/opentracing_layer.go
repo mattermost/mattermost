@@ -2694,7 +2694,7 @@ func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, op
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
+func (s *OpenTracingLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.InvalidateFileInfosForPostCache")
 	s.Root.Store.SetContext(newCtx)
@@ -2703,7 +2703,7 @@ func (s *OpenTracingLayerFileInfoStore) InvalidateFileInfosForPostCache(postId s
 	}()
 
 	defer span.Finish()
-	s.FileInfoStore.InvalidateFileInfosForPostCache(postId)
+	s.FileInfoStore.InvalidateFileInfosForPostCache(postId, deleted)
 
 }
 
