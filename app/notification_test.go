@@ -1906,6 +1906,60 @@ func TestCheckForMentionUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestAddGroupMention(t *testing.T) {
+	for name, tc := range map[string]struct {
+		Word     string
+		Groups   map[string]*model.Group
+		Expected bool
+	}{
+		"No groups": {
+			Word:     "nothing",
+			Groups:   map[string]*model.Group{},
+			Expected: false,
+		},
+		"No matching groups": {
+			Word: "nothing",
+			Groups: map[string]*model.Group{
+				"engineering": &model.Group{DisplayName: "engineering"},
+			},
+			Expected: false,
+		},
+		"matching group with no @": {
+			Word: "engineering",
+			Groups: map[string]*model.Group{
+				"engineering": &model.Group{DisplayName: "engineering"},
+			},
+			Expected: false,
+		},
+		"matching group with preceeding @": {
+			Word: "@engineering",
+			Groups: map[string]*model.Group{
+				"engineering": &model.Group{DisplayName: "engineering"},
+			},
+			Expected: true,
+		},
+		"matching upper case group with preceeding @": {
+			Word: "@Engineering",
+			Groups: map[string]*model.Group{
+				"engineering": &model.Group{DisplayName: "engineering"},
+			},
+			Expected: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			e := &ExplicitMentions{}
+			groupFound := e.addGroupMention(tc.Word, tc.Groups)
+
+			if groupFound {
+				require.Equal(t, len(e.GroupMentions), 1)
+			}
+
+			require.Equal(t, tc.Expected, groupFound)
+		})
+	}
+}
+
 func TestProcessText(t *testing.T) {
 	id1 := model.NewId()
 
@@ -2117,4 +2171,75 @@ func TestUserAllowsEmail(t *testing.T) {
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
 	})
 
+}
+
+func TestInsertGroupMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	channel := th.BasicChannel
+	group := th.CreateGroup()
+	group.DisplayName = "engineering"
+	group, err := th.App.UpdateGroup(group)
+	require.Nil(t, err)
+
+	groupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(groupChannelMember, team)
+	th.App.AddUserToChannel(groupChannelMember, channel)
+	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
+	require.Nil(t, err)
+
+	nonGroupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(nonGroupChannelMember, team)
+	th.App.AddUserToChannel(nonGroupChannelMember, channel)
+
+	nonChannelGroupMember := th.CreateUser()
+	th.LinkUserToTeam(nonChannelGroupMember, team)
+	_, err = th.App.UpsertGroupMember(group.Id, nonChannelGroupMember.Id)
+	require.Nil(t, err)
+
+	groupWithNoMembers := th.CreateGroup()
+	groupWithNoMembers.DisplayName = "marketing"
+	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
+	require.Nil(t, err)
+
+	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
+
+	t.Run("should add expected mentions for users part of the mentioned group", func(t *testing.T) {
+		mentions := &ExplicitMentions{}
+		usersMentioned, err := th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, true)
+
+		// Ensure group member that is also a channel member is added to the mentions list.
+		require.Equal(t, len(mentions.Mentions), 1)
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
+
+		// Ensure group member that is not a channel member is added to the other potential mentions list.
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
+	})
+
+	t.Run("should add no expected or potential mentions if the group has no users ", func(t *testing.T) {
+		mentions := &ExplicitMentions{}
+		usersMentioned, err := th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, false)
+
+		// Ensure no mentions are added for a group with no users
+		require.Equal(t, len(mentions.Mentions), 0)
+		require.Equal(t, len(mentions.OtherPotentialMentions), 0)
+	})
+
+	t.Run("should keep existing mentions", func(t *testing.T) {
+		mentions := &ExplicitMentions{}
+		th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+
+		// Ensure mentions from group are kept after running with groupWithNoMembers
+		require.Equal(t, len(mentions.Mentions), 1)
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+	})
 }
