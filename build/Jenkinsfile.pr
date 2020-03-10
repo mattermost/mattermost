@@ -239,31 +239,29 @@ pipeline {
 
 		stage('Test') {
 			failFast true
-			environment {
-				GOPATH = "/go"
-				GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
-				TEST_DATABASE_MYSQL_DSN = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
-				TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-				TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
-				MM_SQLSETTINGS_DRIVERNAME = "mysql"
-				MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
-				CI_INBUCKET_HOST = "inbucket"
-				CI_MINIO_HOST = "minio"
-				CI_INBUCKET_PORT = "10080"
-				CI_MINIO_PORT = "9000"
-				CI_INBUCKET_SMTP_PORT = "10025"
-				CI_LDAP_HOST = "openldap"
-				IS_CI = true
-				MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
-				MM_EMAILSETTINGS_SMTPPORT = "10025"
-				MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
-				LDAP_DATA = "test"
-			}
 
 			parallel {
 				stage('Test-Mysql') {
 					environment {
 						COMPOSE_PROJECT_NAME="${UUID.randomUUID()}-${env.BUILD_NUMBER}"
+						GOPATH = "/go"
+						GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
+						TEST_DATABASE_MYSQL_DSN = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
+						TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+						TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
+						MM_SQLSETTINGS_DRIVERNAME = "mysql"
+						MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+						CI_INBUCKET_HOST = "inbucket"
+						CI_MINIO_HOST = "minio"
+						CI_INBUCKET_PORT = "10080"
+						CI_MINIO_PORT = "9000"
+						CI_INBUCKET_SMTP_PORT = "10025"
+						CI_LDAP_HOST = "openldap"
+						IS_CI = true
+						MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
+						MM_EMAILSETTINGS_SMTPPORT = "10025"
+						MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
+						LDAP_DATA = "test"
 					}
 
 					steps {
@@ -357,6 +355,24 @@ pipeline {
 				stage('Test-Postgres') {
 					environment {
 						COMPOSE_PROJECT_NAME="${UUID.randomUUID()}-${env.BUILD_NUMBER}"
+						GOPATH = "/go"
+						GOBIN = "/go/src/github.com/mattermost/mattermost-server/bin"
+						TEST_DATABASE_MYSQL_DSN = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
+						TEST_DATABASE_POSTGRESQL_DSN = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+						TEST_DATABASE_MYSQL_ROOT_PASSWD = "mostest"
+						MM_SQLSETTINGS_DRIVERNAME = "postgres"
+						MM_SQLSETTINGS_DATASOURCE = "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+						CI_INBUCKET_HOST = "inbucket"
+						CI_MINIO_HOST = "minio"
+						CI_INBUCKET_PORT = "10080"
+						CI_MINIO_PORT = "9000"
+						CI_INBUCKET_SMTP_PORT = "10025"
+						CI_LDAP_HOST = "openldap"
+						IS_CI = true
+						MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
+						MM_EMAILSETTINGS_SMTPPORT = "10025"
+						MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
+						LDAP_DATA = "test"
 					}
 
 					steps {
