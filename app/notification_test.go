@@ -810,9 +810,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Groups:  map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
 			Expected: &ExplicitMentions{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -821,9 +819,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Groups:  map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
 			Expected: &ExplicitMentions{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -832,9 +828,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceeding @": {
 			Message: "@engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Groups:  map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
 			Expected: &ExplicitMentions{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
@@ -845,9 +839,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching upper case group with preceeding @": {
 			Message: "@Engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Groups:  map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
 			Expected: &ExplicitMentions{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
@@ -965,6 +957,38 @@ func TestAllowChannelMentions(t *testing.T) {
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
+	})
+}
+
+func TestAllowGroupMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
+
+	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.True(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a channel header post", func(t *testing.T) {
+		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
+		allowGroupMentions := th.App.allowGroupMentions(headerChangePost)
+		assert.False(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a channel purpose post", func(t *testing.T) {
+		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
+		allowGroupMentions := th.App.allowGroupMentions(purposeChangePost)
+		assert.False(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a post where the post user does not have USE_GROUP_MENTIONS permission", func(t *testing.T) {
+		PERMISSION_USE_GROUP_MENTIONS := model.PERMISSION_USE_CHANNEL_MENTIONS
+		defer th.AddPermissionToRole(PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
 	})
 }
 
@@ -1872,7 +1896,6 @@ func TestCheckForMentionUsers(t *testing.T) {
 		Word        string
 		Attachments []*model.SlackAttachment
 		Keywords    map[string][]string
-		Groups      map[string]*model.Group
 		Expected    *ExplicitMentions
 	}{
 		"Nobody": {
@@ -1956,7 +1979,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			e := &ExplicitMentions{}
-			e.checkForMention(tc.Word, tc.Keywords, tc.Groups)
+			e.checkForMention(tc.Word, tc.Keywords, nil)
 
 			assert.EqualValues(t, tc.Expected, e)
 		})
@@ -1975,31 +1998,23 @@ func TestAddGroupMention(t *testing.T) {
 			Expected: false,
 		},
 		"No matching groups": {
-			Word: "nothing",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Word:     "nothing",
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: false,
 		},
 		"matching group with no @": {
-			Word: "engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Word:     "engineering",
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: false,
 		},
 		"matching group with preceeding @": {
-			Word: "@engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Word:     "@engineering",
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: true,
 		},
 		"matching upper case group with preceeding @": {
-			Word: "@Engineering",
-			Groups: map[string]*model.Group{
-				"engineering": {DisplayName: "engineering"},
-			},
+			Word:     "@Engineering",
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: true,
 		},
 	} {
@@ -2028,6 +2043,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user in text": {
 			Text:     "hello user @user1",
 			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2037,6 +2053,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user after ending a sentence with full stop": {
 			Text:     "hello user.@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2055,6 +2072,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user after colon": {
 			Text:     "hello user:@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2064,6 +2082,7 @@ func TestProcessText(t *testing.T) {
 		"Mention here after colon": {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				HereMentioned: true,
 			},
@@ -2071,6 +2090,7 @@ func TestProcessText(t *testing.T) {
 		"Mention all after hyphen": {
 			Text:     "hello all-@all",
 			Keywords: map[string][]string{},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				AllMentioned: true,
 			},
@@ -2078,6 +2098,7 @@ func TestProcessText(t *testing.T) {
 		"Mention channel after full stop": {
 			Text:     "hello channel.@channel",
 			Keywords: map[string][]string{},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				ChannelMentioned: true,
 			},
@@ -2085,6 +2106,7 @@ func TestProcessText(t *testing.T) {
 		"Mention other pontential users or system calls": {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
 			},
@@ -2092,11 +2114,33 @@ func TestProcessText(t *testing.T) {
 		"Mention a real user and another potential user": {
 			Text:     "@user1, you can use @systembot to get help",
 			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
 				OtherPotentialMentions: []string{"systembot"},
+			},
+		},
+		"Mention a group": {
+			Text:     "@engineering",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
+			Expected: &ExplicitMentions{
+				GroupMentions:          map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
+				OtherPotentialMentions: []string{"engineering"},
+			},
+		},
+		"Mention a real user and another potential user and a group": {
+			Text:     "@engineering @user1, you can use @systembot to get help from",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Groups:   map[string]*model.Group{"engineering": {DisplayName: "engineering"}, "developers": {DisplayName: "developers"}},
+			Expected: &ExplicitMentions{
+				Mentions: map[string]MentionType{
+					id1: KeywordMention,
+				},
+				GroupMentions:          map[string]*model.Group{"engineering": {DisplayName: "engineering"}},
+				OtherPotentialMentions: []string{"engineering", "systembot"},
 			},
 		},
 	} {
