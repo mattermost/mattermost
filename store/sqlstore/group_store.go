@@ -909,6 +909,10 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 			OrderBy("ug.DisplayName")
 	}
 
+	if opts.FilterAllowReference && t == selectGroups {
+		query = query.Where("ug.AllowReference = 1")
+	}
+
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
@@ -921,13 +925,24 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
-func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
+func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
-		Select(fmt.Sprintf("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin")).Distinct().
+		Select(fmt.Sprintf("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin")).
 		From("UserGroups ug").
-		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE  GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0) AS gc ON gc.GroupId = ug.Id"), syncableID).
-		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).
-		OrderBy("ug.DisplayName")
+		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).OrderBy("ug.DisplayName")
+
+	if opts.IncludeMemberCount {
+		query = s.getQueryBuilder().
+			Select(fmt.Sprintf("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin")).
+			From("UserGroups ug").
+			LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
+			Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).OrderBy("ug.DisplayName")
+	}
+
+	if opts.FilterAllowReference {
+		query = query.Where("ug.AllowReference = 1")
+	}
 
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
@@ -993,24 +1008,23 @@ func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts 
 		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	var ngroups []*model.GroupsAssociatedToChannelWithSchemeAdmin
+	var tgroups []*model.GroupsAssociatedToChannelWithSchemeAdmin
 
-	_, err = s.GetReplica().Select(&ngroups, queryString, args...)
+	_, err = s.GetReplica().Select(&tgroups, queryString, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	//convert GroupsAssociatedToChannelWithSchemeAdmin to groups
 	groups := map[string][]*model.GroupWithSchemeAdmin{}
-	for _, ngroup := range ngroups {
+	for _, tgroup := range tgroups {
 		var group = model.GroupWithSchemeAdmin{}
-		group.Group = ngroup.Group
-		group.SchemeAdmin = ngroup.SchemeAdmin
+		group.Group = tgroup.Group
+		group.SchemeAdmin = tgroup.SchemeAdmin
 
-		if val, ok := groups[ngroup.ChannelId]; ok {
-			groups[ngroup.ChannelId] = append(val, &group)
+		if val, ok := groups[tgroup.ChannelId]; ok {
+			groups[tgroup.ChannelId] = append(val, &group)
 		} else {
-			groups[ngroup.ChannelId] = []*model.GroupWithSchemeAdmin{&group}
+			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{&group}
 		}
 	}
 
@@ -1036,7 +1050,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		OrderBy("g.DisplayName")
 
 	if opts.FilterAllowReference {
-		groupsQuery = groupsQuery.Where("g.AllowReference = 0")
+		groupsQuery = groupsQuery.Where("g.AllowReference = 1")
 	}
 
 	if len(opts.Q) > 0 {

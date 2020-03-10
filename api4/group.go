@@ -589,7 +589,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
 	}
 
-	groupsAssociatedByChannelId, totalCount, err := c.App.GetGroupsAssociatedToChannelsByTeam(c.Params.TeamId, opts)
+	groupsAssociatedByChannelId, err := c.App.GetGroupsAssociatedToChannelsByTeam(c.Params.TeamId, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -597,10 +597,8 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 
 	b, marshalErr := json.Marshal(struct {
 		GroupsAssociatedToChannels map[string][]*model.GroupWithSchemeAdmin `json:"groups"`
-		Count                      int                                      `json:"total_group_count"`
 	}{
 		GroupsAssociatedToChannels: groupsAssociatedByChannelId,
-		Count:                      totalCount,
 	})
 
 	if marshalErr != nil {
@@ -626,8 +624,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
-	// if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-	// 	c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	// uncomment when MM-23019 is checked-in
+	// if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
+	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
 	// 	return
 	// }
 
@@ -643,8 +642,9 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.PERMISSION_MANAGE_TEAM) {
-		// 	c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		// uncomment when MM-23019 is checked-in
+		// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.USE_GROUP_MENTIONS) {
+		// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
 		// 	return
 		// }
 		opts.NotAssociatedToTeam = teamID
