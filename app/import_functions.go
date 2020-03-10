@@ -1008,6 +1008,7 @@ func (a *App) importPost(data *PostImportData, dryRun bool) *model.AppError {
 	post.ChannelId = channel.Id
 	post.Message = *data.Message
 	post.UserId = user.Id
+	post.Props = *data.Props
 	post.CreateAt = *data.CreateAt
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
@@ -1244,6 +1245,7 @@ func (a *App) importDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	post.ChannelId = channel.Id
 	post.Message = *data.Message
 	post.UserId = user.Id
+	post.Props = *data.Props
 	post.CreateAt = *data.CreateAt
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
