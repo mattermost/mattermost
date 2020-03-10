@@ -623,13 +623,13 @@ func TestUploadFiles(t *testing.T) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
 								defer tf.Close()
 								require.Nil(t, err)
-								wBytes, err := io.Copy(tf, bytes.NewReader(data))
+								_, err = io.Copy(tf, bytes.NewReader(data))
 								require.Nil(t, err)
-								require.Equal(t, int64(len(data)), wBytes)
 								if strings.Contains(name, "test_expected_tiff") {
-									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
+									// TODO: remove this once MM-22056 is fixed.
+									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %d. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
 								} else {
-									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %v.", name, tf.Name(), len(expected), len(data))
+									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %d.", name, tf.Name(), len(expected), len(data))
 								}
 							}
 						}
