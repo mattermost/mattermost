@@ -210,6 +210,19 @@ func TestGet(t *testing.T) {
 	assert.Equal(t, "2", out)
 }
 
+func TestGetNilKey(t *testing.T) {
+	api := &plugintest.API{}
+	defer api.AssertExpectations(t)
+	client := pluginapi.NewClient(api)
+
+	api.On("KVGet", "1").Return(nil, nil)
+
+	var out string
+	err := client.KV.Get("1", &out)
+	require.NoError(t, err)
+	assert.Empty(t, out)
+}
+
 func TestGetInBytes(t *testing.T) {
 	api := &plugintest.API{}
 	defer api.AssertExpectations(t)

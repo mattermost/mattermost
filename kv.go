@@ -150,6 +150,10 @@ func (k *KVService) Get(key string, o interface{}) error {
 		return normalizeAppErr(appErr)
 	}
 
+	if len(data) == 0 {
+		return nil
+	}
+
 	if bytesOut, ok := o.(*[]byte); ok {
 		*bytesOut = data
 		return nil
