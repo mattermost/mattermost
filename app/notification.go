@@ -119,7 +119,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				return nil, err
 			}
 
-			if anyUsersMentionedByGroup {
+			if !anyUsersMentionedByGroup {
 				a.sendNoUsersNotifiedByGroupInChannel(sender, post, channel, group)
 			}
 		}
@@ -788,7 +788,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 		mentions.OtherPotentialMentions = append(mentions.OtherPotentialMentions, potentialGroupMembersMentioned...)
 	}
 
-	return (userMentioned && len(potentialGroupMembersMentioned) > 0), nil
+	return (userMentioned || len(potentialGroupMembersMentioned) > 0), nil
 }
 
 // addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
