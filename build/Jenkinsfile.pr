@@ -260,20 +260,18 @@ pipeline {
 				LDAP_DATA = "test"
 			}
 
-			steps {
-				dir('src/github.com/mattermost/mattermost-server/build') {
-					ansiColor('xterm') {
-						sh """
-						/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
-						/usr/local/bin/docker-compose --no-ansi ps
-						"""
-					}
-				}
-			}
-
 			parallel {
 				stage('Test-Mysql') {
 					steps {
+						dir('src/github.com/mattermost/mattermost-server/build') {
+							ansiColor('xterm') {
+								sh """
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+								/usr/local/bin/docker-compose --no-ansi ps
+								"""
+							}
+						}
+
 						dir('src/github.com/mattermost/mattermost-server') {
 							ansiColor('xterm') {
 								sh """
@@ -354,6 +352,15 @@ pipeline {
 				}
 				stage('Test-Postgres') {
 					steps {
+						dir('src/github.com/mattermost/mattermost-server/build') {
+							ansiColor('xterm') {
+								sh """
+								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
+								/usr/local/bin/docker-compose --no-ansi ps
+								"""
+							}
+						}
+
 						dir('src/github.com/mattermost/mattermost-server') {
 							ansiColor('xterm') {
 								sh """
