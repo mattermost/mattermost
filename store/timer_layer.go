@@ -2479,10 +2479,10 @@ func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
+func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 	start := timemodule.Now()
 
-	s.FileInfoStore.InvalidateFileInfosForPostCache(postId)
+	s.FileInfoStore.InvalidateFileInfosForPostCache(postId, deleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
