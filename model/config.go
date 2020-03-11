@@ -1250,6 +1250,7 @@ type EmailSettings struct {
 	SMTPPassword                      *string `restricted:"true"`
 	SMTPServer                        *string `restricted:"true"`
 	SMTPPort                          *string `restricted:"true"`
+	SMTPServerTimeout                 *int
 	ConnectionSecurity                *string `restricted:"true"`
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
@@ -1328,6 +1329,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
 		s.SMTPPort = NewString("10025")
+	}
+
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(10)
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
