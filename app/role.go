@@ -140,6 +140,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
+	impactedRoles = append(impactedRoles, role)
 
 	err = a.mergeChannelHigherScopedPermissions(impactedRoles)
 	if err != nil {
