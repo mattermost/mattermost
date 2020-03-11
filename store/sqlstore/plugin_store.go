@@ -21,7 +21,7 @@ type SqlPluginStore struct {
 	SqlStore
 }
 
-func NewSqlPluginStore(sqlStore SqlStore) store.PluginStore {
+func newSqlPluginStore(sqlStore SqlStore) store.PluginStore {
 	s := &SqlPluginStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -34,7 +34,7 @@ func NewSqlPluginStore(sqlStore SqlStore) store.PluginStore {
 	return s
 }
 
-func (ps SqlPluginStore) CreateIndexesIfNotExists() {
+func (ps SqlPluginStore) createIndexesIfNotExists() {
 }
 
 func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {

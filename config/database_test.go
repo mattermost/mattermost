@@ -155,6 +155,9 @@ func TestDatabaseStoreNew(t *testing.T) {
 	t.Run("invalid url", func(t *testing.T) {
 		_, err := config.NewDatabaseStore("")
 		require.Error(t, err)
+
+		_, err = config.NewDatabaseStore("mysql")
+		require.Error(t, err)
 	})
 
 	t.Run("unsupported scheme", func(t *testing.T) {
