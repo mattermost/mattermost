@@ -910,7 +910,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	}
 
 	if opts.FilterAllowReference && t == selectGroups {
-		query = query.Where("ug.AllowReference = 1")
+		query = query.Where("ug.AllowReference = true")
 	}
 
 	if len(opts.Q) > 0 {
@@ -927,21 +927,22 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 
 func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
-		Select(fmt.Sprintf("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin")).
+		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
 		From("UserGroups ug").
-		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).OrderBy("ug.DisplayName")
+		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).
+		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").OrderBy("ug.DisplayName")
 
 	if opts.IncludeMemberCount {
 		query = s.getQueryBuilder().
-			Select(fmt.Sprintf("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin")).
+			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
 			From("UserGroups ug").
 			LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			Where(fmt.Sprintf("ug.DeleteAt = 0 AND gc.DeleteAt = 0")).OrderBy("ug.DisplayName")
+			Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").OrderBy("ug.DisplayName")
 	}
 
 	if opts.FilterAllowReference {
-		query = query.Where("ug.AllowReference = 1")
+		query = query.Where("ug.AllowReference = true")
 	}
 
 	if len(opts.Q) > 0 {
@@ -1050,7 +1051,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		OrderBy("g.DisplayName")
 
 	if opts.FilterAllowReference {
-		groupsQuery = groupsQuery.Where("g.AllowReference = 1")
+		groupsQuery = groupsQuery.Where("g.AllowReference = true")
 	}
 
 	if len(opts.Q) > 0 {

@@ -62,7 +62,7 @@ func (api *API) InitGroup() {
 		api.ApiSessionRequired(getGroupsByTeam)).Methods("GET")
 
 	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groupsbychannels",
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
 		api.ApiSessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
 }
 
@@ -578,7 +578,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.GetGroupsAssociatedToChannelByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -609,7 +609,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 	})
 
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
