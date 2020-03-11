@@ -1141,7 +1141,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 		post := result.Data.(*model.Post)
 
 		if len(post.Filenames) > 0 {
-			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postId)
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postId, false)
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(postId, true)
 			// The post has Filenames that need to be replaced with FileInfos
 			infos = a.MigrateFilenamesToFileInfos(post)
 		}

@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -135,6 +136,8 @@ type Server struct {
 	Saml             einterfaces.SamlInterface
 
 	CacheProvider cache.Provider
+
+	tracer *tracing.Tracer
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -177,6 +180,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
+
+	if *s.Config().ServiceSettings.EnableOpenTracing {
+		tracer, err := tracing.New()
+		if err != nil {
+			return nil, err
+		}
+		s.tracer = tracer
+	}
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
 		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
@@ -373,6 +384,12 @@ func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
 	s.RunOldAppShutdown()
+
+	if s.tracer != nil {
+		if err := s.tracer.Close(); err != nil {
+			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+		}
+	}
 
 	err := s.shutdownDiagnostics()
 	if err != nil {

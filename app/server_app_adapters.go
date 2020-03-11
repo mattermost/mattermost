@@ -56,6 +56,8 @@ func (s *Server) RunOldAppInitialization() error {
 
 	mlog.Info("Server is initializing...")
 
+	s.initEnterprise()
+
 	if s.FakeApp().Srv().newStore == nil {
 		s.FakeApp().Srv().newStore = func() store.Store {
 			return store.NewTimerLayer(
@@ -74,8 +76,6 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
 	s.FakeApp().StartPushNotificationsHubWorkers()
-
-	s.initEnterprise()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -123,7 +123,9 @@ func (s *Server) RunOldAppInitialization() error {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	mailservice.TestConnection(s.FakeApp().Config())
+	if err := mailservice.TestConnection(s.FakeApp().Config()); err != nil {
+		mlog.Error("Mail server connection test is failed: " + err.Message)
+	}
 
 	if _, err := url.ParseRequestURI(*s.FakeApp().Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")

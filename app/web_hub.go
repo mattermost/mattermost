@@ -161,6 +161,9 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 func (a *App) HubRegister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
 	if hub != nil {
+		if metrics := a.Metrics(); metrics != nil {
+			metrics.IncrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
+		}
 		hub.Register(webConn)
 	}
 }
@@ -168,6 +171,9 @@ func (a *App) HubRegister(webConn *WebConn) {
 func (a *App) HubUnregister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
 	if hub != nil {
+		if metrics := a.Metrics(); metrics != nil {
+			metrics.DecrementWebSocketBroadcastUsersRegistered(strconv.Itoa(hub.connectionIndex), 1)
+		}
 		hub.Unregister(webConn)
 	}
 }
@@ -269,7 +275,7 @@ func (a *App) invalidateCacheForChannelPosts(channelId string) {
 	a.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
-func (a *App) invalidateCacheForUser(userId string) {
+func (a *App) InvalidateCacheForUser(userId string) {
 	a.invalidateCacheForUserSkipClusterSend(userId)
 
 	a.Srv().Store.User().InvalidateProfilesInChannelCacheByUser(userId)
