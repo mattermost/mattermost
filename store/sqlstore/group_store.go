@@ -260,7 +260,7 @@ func (s *SqlGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.Ap
 			AND GroupId = :GroupId`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
-		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GetMemberUsers", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groupMembers, nil
@@ -340,7 +340,7 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 		`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "ChannelId": channelID}); err != nil {
-		return nil, model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlGroupStore.GetMemberUsersNotInChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return groupMembers, nil
