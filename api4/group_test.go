@@ -750,6 +750,9 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
+	_, response = th.Client.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	CheckForbiddenStatus(t, response)
+
 	groups, response := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
 
