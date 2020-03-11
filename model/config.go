@@ -271,6 +271,7 @@ type ServiceSettings struct {
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     *bool   `restricted:"true"`
 	EnableDeveloper                                   *bool   `restricted:"true"`
+	EnableOpenTracing                                 *bool   `restricted:"true"`
 	EnableSecurityFixAlert                            *bool   `restricted:"true"`
 	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
 	AllowedUntrustedInternalConnections               *string `restricted:"true"`
@@ -367,6 +368,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableDeveloper == nil {
 		s.EnableDeveloper = NewBool(false)
+	}
+
+	if s.EnableOpenTracing == nil {
+		s.EnableOpenTracing = NewBool(false)
 	}
 
 	if s.EnableSecurityFixAlert == nil {
@@ -1240,6 +1245,7 @@ type EmailSettings struct {
 	SMTPPassword                      *string `restricted:"true"`
 	SMTPServer                        *string `restricted:"true"`
 	SMTPPort                          *string `restricted:"true"`
+	SMTPServerTimeout                 *int
 	ConnectionSecurity                *string `restricted:"true"`
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
@@ -1318,6 +1324,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
 		s.SMTPPort = NewString("10025")
+	}
+
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(10)
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {

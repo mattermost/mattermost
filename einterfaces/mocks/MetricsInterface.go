@@ -26,6 +26,11 @@ func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, am
 	_m.Called(hub, amount)
 }
 
+// DecrementWebSocketBroadcastUsersRegistered provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64) {
+	_m.Called(hub, amount)
+}
+
 // IncrementChannelIndexCounter provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
@@ -148,6 +153,11 @@ func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
 
 // IncrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
 func (_m *MetricsInterface) IncrementWebSocketBroadcastBufferSize(hub string, amount float64) {
+	_m.Called(hub, amount)
+}
+
+// IncrementWebSocketBroadcastUsersRegistered provides a mock function with given fields: hub, amount
+func (_m *MetricsInterface) IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64) {
 	_m.Called(hub, amount)
 }
 

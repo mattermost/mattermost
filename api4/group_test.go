@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -236,6 +237,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	assert.NotNil(t, response.Error)
+	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	ok, response := th.Client.Logout()
 	assert.True(t, ok)
