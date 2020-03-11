@@ -757,7 +757,7 @@ func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleN
 	return
 }
 
-// PatchChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
+// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
 	memberRole, err := a.GetRoleByName(memberRoleName)
@@ -814,6 +814,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if _, err = a.CreateChannelScheme(channel); err != nil {
 			return nil, err
 		}
+		mlog.Info("Permission scheme created for channel id: " + channel.Id)
 	}
 
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
@@ -830,6 +831,25 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
 	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
 
+	for _, channelModerationPatch := range channelModerationsPatch {
+		permissionModified := *channelModerationPatch.Name
+		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
+			if *channelModerationPatch.Roles.Guests {
+				mlog.Info(permissionModified + ": enabled for Guests in channel id: " + channel.Id)
+			} else {
+				mlog.Info(permissionModified + ": disabled for Guests in channel id: " + channel.Id)
+			}
+		}
+
+		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
+			if *channelModerationPatch.Roles.Members {
+				mlog.Info(permissionModified + ": enabled for Members in channel id: " + channel.Id)
+			} else {
+				mlog.Info(permissionModified + ": disabled for Members in channel id: " + channel.Id)
+			}
+		}
+	}
+
 	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedMemberRole, memberRolePatch)) == 0
 	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
 	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
@@ -839,6 +859,8 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
+
+		mlog.Info("Permission scheme deleted for channel id: " + channel.Id)
 	} else {
 		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
 		if err != nil {
