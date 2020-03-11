@@ -1352,15 +1352,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 			channel = ch
 		}
 
-<<<<<<< HEAD
-	post.ChannelId = channel.Id
-	post.Message = *data.Message
-	post.UserId = user.Id
-	post.Props = *data.Props
-	post.CreateAt = *data.CreateAt
-=======
 		user := users[*postData.User]
->>>>>>> master
 
 		// Check if this post already exists.
 		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *postData.CreateAt)
@@ -1382,6 +1374,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 
 		post.ChannelId = channel.Id
 		post.Message = *postData.Message
+		post.Props = *postData.Props
 		post.UserId = user.Id
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
