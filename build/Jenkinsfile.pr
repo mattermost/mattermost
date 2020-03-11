@@ -240,14 +240,6 @@ pipeline {
 		stage('Test') {
 			failFast true
 
-			steps {
-				ansiColor('xterm') {
-					sh """
-					cp -r ${WORKSPACE}/src ${WORKSPACE}/src-copy
-					"""
-				}
-			}
-
 			parallel {
 				stage('Test-Mysql') {
 					environment {
@@ -384,6 +376,12 @@ pipeline {
 					}
 
 					steps {
+						ansiColor('xterm') {
+							sh """
+							cp -r ${WORKSPACE}/src ${WORKSPACE}/src-copy
+							"""
+						}
+
 						dir('src/github.com/mattermost/mattermost-server/build') {
 							ansiColor('xterm') {
 								sh """
