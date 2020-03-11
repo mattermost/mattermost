@@ -547,7 +547,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenOutgoingHookToken", audit.Fail)
+	auditRec := c.MakeAuditRecord("deleteOutgoingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("hook_id", hook.Id)
 	auditRec.AddMeta("hook_display", hook.DisplayName)
