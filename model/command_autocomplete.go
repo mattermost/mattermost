@@ -11,12 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Argument types
 const (
-	// TextInputArgumentType represents TextInputArgument type
-	TextInputArgumentType = "TextInput"
-	// StaticListArgumentType represents StaticListArgument type
-	StaticListArgumentType = "StaticList"
-	// DynamicListArgumentType represents DynamicListArgument type
+	TextInputArgumentType   = "TextInput"
+	StaticListArgumentType  = "StaticList"
 	DynamicListArgumentType = "DynamicList"
 )
 
