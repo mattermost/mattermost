@@ -434,7 +434,7 @@ func testSearchESSearchPosts_MarkdownUnderscores(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -479,7 +479,7 @@ func testSearchESSearchPosts_EmailAddresses(t *testing.T, s store.Store) {
 	require.Nil(t, err)
 
 	ids := []string{}
-	for id, _ := range res.Posts {
+	for id := range res.Posts {
 		ids = append(ids, id)
 	}
 
@@ -554,12 +554,12 @@ func testSearchESSearchPosts_ChineseWords(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -627,12 +627,12 @@ func testSearchESSearchPosts_AlternativeSpellings(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -678,7 +678,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 1)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -704,7 +704,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 2)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -731,7 +731,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 2)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -759,7 +759,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 1)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -783,7 +783,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 1)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -807,7 +807,7 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 		require.Len(t, res.Posts, 3)
 
 		ids := []string{}
-		for id, _ := range res.Posts {
+		for id := range res.Posts {
 			ids = append(ids, id)
 		}
 
@@ -893,12 +893,12 @@ func testSearchESSearchPosts_Paging(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -975,12 +975,12 @@ func testSearchESSearchPosts_QuotedTerms(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1067,12 +1067,12 @@ func testSearchESSearchPosts_StopWords(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1140,12 +1140,12 @@ func testSearchESSearchPosts_Stemming(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1205,12 +1205,12 @@ func testSearchESSearchPosts_Wildcard(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1278,12 +1278,12 @@ func testSearchESSearchPosts_AlternativeUnicodeForms(t *testing.T, s store.Store
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1411,12 +1411,12 @@ func testSearchESSearchPosts_FromAndIn(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1729,7 +1729,7 @@ func testSearchESSearchPosts_AfterBeforeOn(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1833,12 +1833,12 @@ func testSearchESSearchPosts_Hashtags(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -1916,7 +1916,7 @@ func testSearchESSearchPosts_HashtagsAndOrWords(t *testing.T, s store.Store) {
 			require.Nil(t, err)
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
@@ -2004,12 +2004,12 @@ func testSearchESSearchPosts_HashtagsCaseInsensitive(t *testing.T, s store.Store
 			require.Nil(t, err)
 
 			expectedIds := []string{}
-			for id, _ := range tc.Matches {
+			for id := range tc.Matches {
 				expectedIds = append(expectedIds, id)
 			}
 
 			ids := []string{}
-			for id, _ := range res.Posts {
+			for id := range res.Posts {
 				ids = append(ids, id)
 			}
 
