@@ -657,14 +657,16 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session().UserId, graceful)
 
-	if err != nil {
-		if graceful {
-			errList := make([]string, 0, len(membersWithErrors))
-			for _, m := range membersWithErrors {
+	if membersWithErrors != nil {
+		errList := make([]string, 0, len(membersWithErrors))
+		for _, m := range membersWithErrors {
+			if m.Error != nil {
 				errList = append(errList, model.TeamMemberWithErrorToString(m))
 			}
-			auditRec.AddMeta("errors", errList)
 		}
+		auditRec.AddMeta("errors", errList)
+	}
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1092,12 +1094,16 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if graceful {
 		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
-		if err != nil {
+		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
-				errList = append(errList, model.EmailInviteWithErrorToString(inv))
+				if inv.Error != nil {
+					errList = append(errList, model.EmailInviteWithErrorToString(inv))
+				}
 			}
 			auditRec.AddMeta("errors", errList)
+		}
+		if err != nil {
 			c.Err = err
 			return
 		}
