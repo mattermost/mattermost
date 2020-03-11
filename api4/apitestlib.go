@@ -59,6 +59,10 @@ type TestHelper struct {
 
 var mainHelper *testlib.MainHelper
 
+func SetMainHelper(mh *testlib.MainHelper) {
+	mainHelper = mh
+}
+
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
