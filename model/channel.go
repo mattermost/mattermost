@@ -243,6 +243,10 @@ func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
 }
 
+func (o *Channel) IsOpen() bool {
+	return o.Type == CHANNEL_OPEN
+}
+
 func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.DisplayName != nil {
 		o.DisplayName = *patch.DisplayName
