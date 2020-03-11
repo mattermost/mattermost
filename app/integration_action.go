@@ -239,7 +239,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{
-			Message:   response.EphemeralText
+			Message:   response.EphemeralText,
 			ChannelId: upstreamRequest.ChannelId,
 			RootId:    rootPostId,
 			UserId:    userId,
