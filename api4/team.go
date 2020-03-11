@@ -609,6 +609,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, member := range members {
 		memberIDs = append(memberIDs, member.UserId)
 	}
+	auditRec.AddMeta("user_ids", memberIDs)
 
 	team, err := c.App.GetTeam(c.Params.TeamId)
 	if err != nil {
@@ -657,6 +658,13 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	membersWithErrors, err := c.App.AddTeamMembers(c.Params.TeamId, userIds, c.App.Session().UserId, graceful)
 
 	if err != nil {
+		if graceful {
+			errList := make([]string, 0, len(membersWithErrors))
+			for _, m := range membersWithErrors {
+				errList = append(errList, model.TeamMemberWithErrorToString(m))
+			}
+			auditRec.AddMeta("errors", errList)
+		}
 		c.Err = err
 		return
 	}
@@ -1080,10 +1088,16 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("count", len(emailList))
+	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
 		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
 		if err != nil {
+			errList := make([]string, 0, len(invitesWithError))
+			for _, inv := range invitesWithError {
+				errList = append(errList, model.EmailInviteWithErrorToString(inv))
+			}
+			auditRec.AddMeta("errors", errList)
 			c.Err = err
 			return
 		}
@@ -1135,11 +1149,18 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	auditRec.AddMeta("email_count", len(guestsInvite.Emails))
+	auditRec.AddMeta("emails", guestsInvite.Emails)
 	auditRec.AddMeta("channel_count", len(guestsInvite.Channels))
+	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	if graceful {
 		invitesWithError, err := c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.App.Session().UserId)
 		if err != nil {
+			errList := make([]string, 0, len(invitesWithError))
+			for _, inv := range invitesWithError {
+				errList = append(errList, model.EmailInviteWithErrorToString(inv))
+			}
+			auditRec.AddMeta("errors", errList)
 			c.Err = err
 			return
 		}

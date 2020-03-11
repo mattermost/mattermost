@@ -111,10 +111,6 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createEphemeralPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("channel_id", ephRequest.Post.ChannelId)
-
 	ephRequest.Post.UserId = c.App.Session().UserId
 	ephRequest.Post.CreateAt = model.GetMillis()
 
@@ -124,9 +120,6 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
-
-	auditRec.Success()
-	auditRec.AddMeta("post_id", rp.Id)
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
