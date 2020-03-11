@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -382,4 +383,175 @@ func TestDoCommandRequest(t *testing.T) {
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 		close(done)
 	})
+}
+
+func TestMentionsToTeamMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	otherTeam := th.CreateTeam()
+	otherUser := th.CreateUser()
+	th.LinkUserToTeam(otherUser, otherTeam)
+
+	fixture := []struct {
+		message     string
+		inTeam      string
+		expectedMap model.UserMentionMap
+	}{
+		{
+			fmt.Sprintf(""),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger"),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 0 mentions"),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 1 valid user @%s", th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{th.BasicUser.Username: th.BasicUser.Id},
+		},
+		{
+			fmt.Sprintf("/trigger 2 valid users @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username,
+			),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger 1 user from another team @%s", otherUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 2 valid users + 1 from another team @%s @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username, otherUser.Username,
+			),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger a valid channel ~%s", th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger channel and mentions ~%s @%s",
+				th.BasicChannel.Name, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{th.BasicUser.Username: th.BasicUser.Id},
+		},
+		{
+			fmt.Sprintf("/trigger repeated users @%s @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+	}
+
+	for _, data := range fixture {
+		actualMap := th.App.mentionsToTeamMembers(data.message, data.inTeam)
+		require.Equal(t, actualMap, data.expectedMap)
+	}
+}
+
+func TestMentionsToPublicChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	otherPublicChannel := th.CreateChannel(th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+
+	fixture := []struct {
+		message     string
+		inTeam      string
+		expectedMap model.ChannelMentionMap
+	}{
+		{
+			fmt.Sprintf(""),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger"),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 0 mentions"),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 1 public channel ~%s", th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{th.BasicChannel.Name: th.BasicChannel.Id},
+		},
+		{
+			fmt.Sprintf("/trigger 2 public channels ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name,
+			),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger 1 private channel ~%s", privateChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 2 public channel + 1 private ~%s ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name, privateChannel.Name,
+			),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger a valid user @%s", th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger channel and mentions ~%s @%s",
+				th.BasicChannel.Name, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{th.BasicChannel.Name: th.BasicChannel.Id},
+		},
+		{
+			fmt.Sprintf("/trigger repeated channels ~%s ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name, th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+	}
+
+	for _, data := range fixture {
+		actualMap := th.App.mentionsToPublicChannels(data.message, data.inTeam)
+		require.Equal(t, actualMap, data.expectedMap)
+	}
 }
