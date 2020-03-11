@@ -1565,7 +1565,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	}
 }
 
-func TestImportImportPost(t *testing.T) {
+func TestImportimportMultiplePosts(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1609,7 +1609,7 @@ func TestImportImportPost(t *testing.T) {
 		Channel: &channelName,
 		User:    &username,
 	}
-	err = th.App.importPost(data, true)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, true)
 	assert.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1621,7 +1621,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Hello"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	err = th.App.importPost(data, true)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, true)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1632,7 +1632,7 @@ func TestImportImportPost(t *testing.T) {
 		User:     &username,
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1644,7 +1644,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1656,7 +1656,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1668,7 +1668,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.NotNil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
@@ -1681,7 +1681,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &time,
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
@@ -1703,7 +1703,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &time,
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
@@ -1726,7 +1726,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &newTime,
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
 
@@ -1738,7 +1738,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message 2"),
 		CreateAt: &time,
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
 
@@ -1751,7 +1751,7 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message 2 #hashtagmashupcity"),
 		CreateAt: &hashtagTime,
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
@@ -1788,7 +1788,7 @@ func TestImportImportPost(t *testing.T) {
 		},
 	}
 
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
@@ -1821,7 +1821,7 @@ func TestImportImportPost(t *testing.T) {
 			CreateAt:  &reactionTime,
 		}},
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
@@ -1856,7 +1856,7 @@ func TestImportImportPost(t *testing.T) {
 			CreateAt: &replyTime,
 		}},
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
@@ -1896,7 +1896,7 @@ func TestImportImportPost(t *testing.T) {
 			CreateAt: &replyTime,
 		}},
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
@@ -1914,7 +1914,7 @@ func TestImportImportPost(t *testing.T) {
 			CreateAt: &replyTime,
 		}},
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 10, team.Id)
@@ -1932,10 +1932,401 @@ func TestImportImportPost(t *testing.T) {
 			CreateAt: &replyTime,
 		}},
 	}
-	err = th.App.importPost(data, false)
+	err = th.App.importMultiplePosts([]*PostImportData{data}, false)
 	require.Nil(t, err, "Expected success.")
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+}
+
+func TestImportImportPost(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Create a Team.
+	teamName := model.NewRandomTeamName()
+	th.App.importTeam(&TeamImportData{
+		Name:        &teamName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
+
+	// Create a Channel.
+	channelName := model.NewId()
+	th.App.importChannel(&ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database.")
+
+	// Create a user.
+	username := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user, appErr := th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
+
+	username2 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user2, appErr := th.App.GetUserByUsername(username2)
+	require.Nil(t, appErr, "Failed to get user from database.")
+
+	// Count the number of posts in the testing team.
+	initialPostCount, appErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	require.Nil(t, appErr)
+
+	time := model.GetMillis()
+	hashtagTime := time + 2
+	replyPostTime := hashtagTime + 4
+	replyTime := hashtagTime + 5
+
+	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:    &teamName,
+			Channel: &channelName,
+			User:    &username,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, true)
+		assert.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Hello"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, true)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding a valid post with invalid team in apply mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     ptrStr(model.NewId()),
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding a valid post with invalid channel in apply mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  ptrStr(model.NewId()),
+			User:     &username,
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding a valid post with invalid user in apply mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     ptrStr(model.NewId()),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	})
+
+	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message"),
+			CreateAt: &time,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id
+		require.False(t, postBool, "Post properties not as expected")
+	})
+
+	t.Run("Update the post", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username2,
+			Message:  ptrStr("Message"),
+			CreateAt: &time,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user2.Id
+		require.False(t, postBool, "Post properties not as expected")
+	})
+
+	t.Run("Save the post with a different time", func(t *testing.T) {
+		newTime := time + 1
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message"),
+			CreateAt: &newTime,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
+	})
+
+	t.Run("Save the post with a different message", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message 2"),
+			CreateAt: &time,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
+	})
+
+	t.Run("Test with hashtag", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message 2 #hashtagmashupcity"),
+			CreateAt: &hashtagTime,
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		assert.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
+
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id
+		require.False(t, postBool, "Post properties not as expected")
+
+		require.Equal(t, "#hashtagmashupcity", post.Hashtags, "Hashtags not as expected: %s", post.Hashtags)
+	})
+
+	t.Run("Post with flags", func(t *testing.T) {
+		flagsTime := hashtagTime + 1
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message with Favorites"),
+			CreateAt: &flagsTime,
+			FlaggedBy: &[]string{
+				username,
+				username2,
+			},
+		}
+
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id
+		require.False(t, postBool, "Post properties not as expected")
+
+		checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	})
+
+	t.Run("Post with reaction", func(t *testing.T) {
+		reactionPostTime := hashtagTime + 2
+		reactionTime := hashtagTime + 3
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message with reaction"),
+			CreateAt: &reactionPostTime,
+			Reactions: &[]ReactionImportData{{
+				User:      &user2.Username,
+				EmojiName: ptrStr("+1"),
+				CreateAt:  &reactionTime,
+			}},
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id || !post.HasReactions
+		require.False(t, postBool, "Post properties not as expected")
+
+		reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err, "Can't get reaction")
+
+		require.Len(t, reactions, 1, "Invalid number of reactions")
+	})
+
+	t.Run("Post with reply", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &username,
+			Message:  ptrStr("Message with reply"),
+			CreateAt: &replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     &user2.Username,
+				Message:  ptrStr("Message reply"),
+				CreateAt: &replyTime,
+			}},
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id
+		require.False(t, postBool, "Post properties not as expected")
+
+		// Check the reply values.
+		replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+		require.Nil(t, err)
+
+		require.Len(t, replies, 1, "Unexpected number of posts found.")
+
+		reply := replies[0]
+		replyBool := reply.Message != *(*data.Replies)[0].Message || reply.CreateAt != *(*data.Replies)[0].CreateAt || reply.UserId != user2.Id
+		require.False(t, replyBool, "Post properties not as expected")
+
+		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
+	})
+
+	t.Run("Update post with replies", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &user2.Username,
+			Message:  ptrStr("Message with reply"),
+			CreateAt: &replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     &username,
+				Message:  ptrStr("Message reply"),
+				CreateAt: &replyTime,
+			}},
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+	})
+
+	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &user2.Username,
+			Message:  ptrStr("Message with reply 2"),
+			CreateAt: &replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     &username,
+				Message:  ptrStr("Message reply"),
+				CreateAt: &replyTime,
+			}},
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 10, team.Id)
+	})
+
+	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
+		data := &PostImportData{
+			Team:     &teamName,
+			Channel:  &channelName,
+			User:     &user2.Username,
+			Message:  ptrStr("Message with reply"),
+			CreateAt: &replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     &username,
+				Message:  ptrStr("Message reply 2"),
+				CreateAt: &replyTime,
+			}},
+		}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+	})
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
@@ -2117,156 +2508,198 @@ func TestImportImportDirectPost(t *testing.T) {
 			th.BasicUser2.Username,
 		},
 	}
-	err := th.App.importDirectChannel(&channelData, false)
-	require.Nil(t, err)
+	appErr := th.App.importDirectChannel(&channelData, false)
+	require.Nil(t, appErr)
 
 	// Get the channel.
 	var directChannel *model.Channel
-	channel, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
-	require.Nil(t, err)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
 	require.NotEmpty(t, channel)
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, err)
+	result, appErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, appErr)
 	initialPostCount := result
+	initialDate := model.GetMillis()
 
-	// Try adding an invalid post in dry run mode.
-	data := &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, true)
-	require.NotNil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, true)
+		require.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding a valid post in dry run mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, true)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, true)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding an invalid post in apply mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			model.NewId(),
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, false)
-	require.NotNil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				model.NewId(),
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding a valid post in apply mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
-	// Check the post values.
-	posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post := posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+	})
 
-	// Import the post again.
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+	t.Run("Import the post again", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
-	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+	})
 
-	// Save the post with a different time.
-	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+	t.Run("Save the post with a different time", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate + 1),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+	})
 
-	// Save the post with a different message.
-	data.Message = ptrStr("Message 2")
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+	t.Run("Save the post with a different message", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message 2"),
+			CreateAt: ptrInt64(initialDate + 1),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+	})
 
-	// Test with hashtags
-	data.Message = ptrStr("Message 2 #hashtagmashupcity")
-	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
+	t.Run("Test with hashtag", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message 2 #hashtagmashupcity"),
+			CreateAt: ptrInt64(initialDate + 2),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
-	require.Equal(t, post.Hashtags, "#hashtagmashupcity")
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+		require.Equal(t, post.Hashtags, "#hashtagmashupcity")
+	})
 
-	// Test with some flags.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		FlaggedBy: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
+	t.Run("Test with some flags", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			FlaggedBy: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
 
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
 
-	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		post := posts[0]
+		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	})
 
 	// ------------------ Group Channel -------------------------
 
@@ -2279,8 +2712,8 @@ func TestImportImportDirectPost(t *testing.T) {
 			user3.Username,
 		},
 	}
-	err = th.App.importDirectChannel(&channelData, false)
-	require.Nil(t, err)
+	appErr = th.App.importDirectChannel(&channelData, false)
+	require.Nil(t, appErr)
 
 	// Get the channel.
 	var groupChannel *model.Channel
@@ -2289,157 +2722,360 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, err = th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, err.Id, store.CHANNEL_EXISTS_ERROR)
+	channel, appErr = th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, err)
+	result, appErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, appErr)
 	initialPostCount = result
 
-	// Try adding an invalid post in dry run mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, true)
-	require.NotNil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, true)
+		require.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding a valid post in dry run mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, true)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, true)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding an invalid post in apply mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
-			model.NewId(),
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, false)
-	require.NotNil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+				model.NewId(),
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.NotNil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+	})
 
-	// Try adding a valid post in apply mode.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate + 10),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
-	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+	})
 
-	// Import the post again.
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+	t.Run("Import the post again", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate + 10),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
-	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+	})
 
-	// Save the post with a different time.
-	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+	t.Run("Save the post with a different time", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(initialDate + 11),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+	})
 
-	// Save the post with a different message.
-	data.Message = ptrStr("Message 2")
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+	t.Run("Save the post with a different message", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message 2"),
+			CreateAt: ptrInt64(initialDate + 11),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+	})
 
-	// Test with hashtags
-	data.Message = ptrStr("Message 2 #hashtagmashupcity")
-	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
-	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
+	t.Run("Test with hashtag", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message 2 #hashtagmashupcity"),
+			CreateAt: ptrInt64(initialDate + 12),
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
+		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
-	post = posts[0]
-	require.Equal(t, post.Message, *data.Message)
-	require.Equal(t, post.CreateAt, *data.CreateAt)
-	require.Equal(t, post.UserId, th.BasicUser.Id)
-	require.Equal(t, post.Hashtags, "#hashtagmashupcity")
+		post := posts[0]
+		require.Equal(t, post.Message, *data.Message)
+		require.Equal(t, post.CreateAt, *data.CreateAt)
+		require.Equal(t, post.UserId, th.BasicUser.Id)
+		require.Equal(t, post.Hashtags, "#hashtagmashupcity")
+	})
 
-	// Test with some flags.
-	data = &DirectPostImportData{
-		ChannelMembers: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-			user3.Username,
-		},
-		FlaggedBy: &[]string{
-			th.BasicUser.Username,
-			th.BasicUser2.Username,
-		},
-		User:     ptrStr(th.BasicUser.Username),
-		Message:  ptrStr("Message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
+	t.Run("Test with some flags", func(t *testing.T) {
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			FlaggedBy: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
 
-	err = th.App.importDirectPost(data, false)
-	require.Nil(t, err)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err)
 
-	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, err)
-	require.Len(t, posts, 1)
+		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
 
-	post = posts[0]
-	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+		require.Len(t, posts, 1)
 
+		post := posts[0]
+		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	})
+
+	t.Run("Post with reaction", func(t *testing.T) {
+		reactionPostTime := ptrInt64(initialDate + 22)
+		reactionTime := ptrInt64(initialDate + 23)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message with reaction"),
+			CreateAt: reactionPostTime,
+			Reactions: &[]ReactionImportData{{
+				User:      ptrStr(th.BasicUser2.Username),
+				EmojiName: ptrStr("+1"),
+				CreateAt:  reactionTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id || !post.HasReactions
+		require.False(t, postBool, "Post properties not as expected")
+
+		reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err, "Can't get reaction")
+
+		require.Len(t, reactions, 1, "Invalid number of reactions")
+	})
+
+	t.Run("Post with reply", func(t *testing.T) {
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 26)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser2.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+
+		// Check the post values.
+		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+		require.Nil(t, err)
+
+		require.Len(t, posts, 1, "Unexpected number of posts found.")
+
+		post := posts[0]
+		postBool := post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id
+		require.False(t, postBool, "Post properties not as expected")
+
+		// Check the reply values.
+		replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		require.Nil(t, err)
+
+		require.Len(t, replies, 1, "Unexpected number of posts found.")
+
+		reply := replies[0]
+		replyBool := reply.Message != *(*data.Replies)[0].Message || reply.CreateAt != *(*data.Replies)[0].CreateAt || reply.UserId != th.BasicUser2.Id
+		require.False(t, replyBool, "Post properties not as expected")
+
+		require.Equal(t, post.Id, reply.RootId, "Unexpected reply RootId")
+	})
+
+	t.Run("Update post with replies", func(t *testing.T) {
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 26)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+	})
+
+	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
+		replyPostTime := ptrInt64(initialDate + 27)
+		replyTime := ptrInt64(initialDate + 28)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply 2"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 10, "")
+	})
+
+	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
+		replyPostTime := ptrInt64(initialDate + 25)
+		replyTime := ptrInt64(initialDate + 29)
+		data := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				th.BasicUser.Username,
+				th.BasicUser2.Username,
+				user3.Username,
+			},
+			User:     ptrStr(th.BasicUser2.Username),
+			Message:  ptrStr("Message with reply"),
+			CreateAt: replyPostTime,
+			Replies: &[]ReplyImportData{{
+				User:     ptrStr(th.BasicUser.Username),
+				Message:  ptrStr("Message reply 2"),
+				CreateAt: replyTime,
+			}},
+		}
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{data}, false)
+		require.Nil(t, err, "Expected success.")
+
+		AssertAllPostsCount(t, th.App, initialPostCount, 11, "")
+	})
 }
 
 func TestImportImportEmoji(t *testing.T) {
@@ -2516,8 +3152,8 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := th.App.GetTeamByName(teamName)
-	require.Nil(t, err, "Failed to get team from database.")
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
 
 	// Create a Channel.
 	channelName := model.NewId()
@@ -2527,8 +3163,8 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	_, err = th.App.GetChannelByName(channelName, team.Id, false)
-	require.Nil(t, err, "Failed to get channel from database.")
+	_, appErr = th.App.GetChannelByName(channelName, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	// Create a user3.
 	username := model.NewId()
@@ -2536,18 +3172,36 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user3, err := th.App.GetUserByUsername(username)
-	require.Nil(t, err, "Failed to get user3 from database.")
+	user3, appErr := th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
 
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user4, err := th.App.GetUserByUsername(username2)
-	require.Nil(t, err, "Failed to get user3 from database.")
+	user2, appErr := th.App.GetUserByUsername(username2)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
 
-	// Post with attachments.
+	// Create direct post users.
+	username3 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username3,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user3, appErr = th.App.GetUserByUsername(username3)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	username4 := model.NewId()
+	th.App.importUser(&UserImportData{
+		Username: &username4,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+
+	user4, appErr := th.App.GetUserByUsername(username4)
+	require.Nil(t, appErr, "Failed to get user3 from database.")
+
+	// Post with attachments
 	time := model.GetMillis()
 	attachmentsPostTime := time
 	attachmentsReplyTime := time + 1
@@ -2557,7 +3211,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	data := &PostImportData{
 		Team:        &teamName,
 		Channel:     &channelName,
-		User:        &username,
+		User:        &username3,
 		Message:     ptrStr("Message with reply"),
 		CreateAt:    &attachmentsPostTime,
 		Attachments: &[]AttachmentImportData{{Path: &testImage}, {Path: &testMarkDown}},
@@ -2569,75 +3223,63 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		}},
 	}
 
-	// import with attachments
-	err = th.App.importPost(data, false)
-	assert.Nil(t, err)
+	t.Run("import with attachment", func(t *testing.T) {
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err)
 
-	attachments := GetAttachments(user3.Id, th, t)
-	assert.Len(t, attachments, 2)
-	assert.Contains(t, attachments[0].Path, team.Id)
-	assert.Contains(t, attachments[1].Path, team.Id)
-	AssertFileIdsInPost(attachments, th, t)
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 2)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		assert.Contains(t, attachments[1].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
 
-	// import existing post with new attachments
-	data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
-	err = th.App.importPost(data, false)
-	assert.Nil(t, err)
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
 
-	attachments = GetAttachments(user3.Id, th, t)
-	assert.Len(t, attachments, 1)
-	assert.Contains(t, attachments[0].Path, team.Id)
-	AssertFileIdsInPost(attachments, th, t)
+	t.Run("import existing post with new attachment", func(t *testing.T) {
+		data.Attachments = &[]AttachmentImportData{{Path: &testImage}}
+		err := th.App.importMultiplePosts([]*PostImportData{data}, false)
+		require.Nil(t, err)
 
-	attachments = GetAttachments(user4.Id, th, t)
-	assert.Len(t, attachments, 1)
-	assert.Contains(t, attachments[0].Path, team.Id)
-	AssertFileIdsInPost(attachments, th, t)
+		attachments := GetAttachments(user3.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
 
-	// Reply with Attachments in Direct Post
+		attachments = GetAttachments(user4.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, team.Id)
+		AssertFileIdsInPost(attachments, th, t)
+	})
 
-	// Create direct post users.
+	t.Run("Reply with Attachments in Direct Pos", func(t *testing.T) {
+		directImportData := &DirectPostImportData{
+			ChannelMembers: &[]string{
+				user3.Username,
+				user2.Username,
+			},
+			User:     &user3.Username,
+			Message:  ptrStr("Message with Replies"),
+			CreateAt: ptrInt64(model.GetMillis()),
+			Replies: &[]ReplyImportData{{
+				User:        &user2.Username,
+				Message:     ptrStr("Message reply with attachment"),
+				CreateAt:    ptrInt64(model.GetMillis()),
+				Attachments: &[]AttachmentImportData{{Path: &testImage}},
+			}},
+		}
 
-	username3 := model.NewId()
-	th.App.importUser(&UserImportData{
-		Username: &username3,
-		Email:    ptrStr(model.NewId() + "@example.com"),
-	}, false)
-	user3, err = th.App.GetUserByUsername(username3)
-	require.Nil(t, err, "Failed to get user3 from database.")
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{directImportData}, false)
+		require.Nil(t, err, "Expected success.")
 
-	username4 := model.NewId()
-	th.App.importUser(&UserImportData{
-		Username: &username4,
-		Email:    ptrStr(model.NewId() + "@example.com"),
-	}, false)
-
-	user4, err = th.App.GetUserByUsername(username4)
-	require.Nil(t, err, "Failed to get user3 from database.")
-
-	directImportData := &DirectPostImportData{
-		ChannelMembers: &[]string{
-			user3.Username,
-			user4.Username,
-		},
-		User:     &user3.Username,
-		Message:  ptrStr("Message with Replies"),
-		CreateAt: ptrInt64(model.GetMillis()),
-		Replies: &[]ReplyImportData{{
-			User:        &user4.Username,
-			Message:     ptrStr("Message reply with attachment"),
-			CreateAt:    ptrInt64(model.GetMillis()),
-			Attachments: &[]AttachmentImportData{{Path: &testImage}},
-		}},
-	}
-
-	err = th.App.importDirectPost(directImportData, false)
-	require.Nil(t, err, "Expected success.")
-
-	attachments = GetAttachments(user4.Id, th, t)
-	assert.Len(t, attachments, 1)
-	assert.Contains(t, attachments[0].Path, "noteam")
-	AssertFileIdsInPost(attachments, th, t)
+		attachments := GetAttachments(user2.Id, th, t)
+		require.Len(t, attachments, 1)
+		assert.Contains(t, attachments[0].Path, "noteam")
+		AssertFileIdsInPost(attachments, th, t)
+	})
 }
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
@@ -2662,8 +3304,8 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user1, err := th.App.GetUserByUsername(username)
-	require.Nil(t, err, "Failed to get user1 from database.")
+	user1, appErr := th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user1 from database.")
 
 	username2 := model.NewId()
 	th.App.importUser(&UserImportData{
@@ -2671,8 +3313,8 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
 
-	user2, err := th.App.GetUserByUsername(username2)
-	require.Nil(t, err, "Failed to get user2 from database.")
+	user2, appErr := th.App.GetUserByUsername(username2)
+	require.Nil(t, appErr, "Failed to get user2 from database.")
 
 	directImportData := &DirectPostImportData{
 		ChannelMembers: &[]string{
@@ -2686,21 +3328,21 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	}
 
 	t.Run("Regular import of attachment", func(t *testing.T) {
-		err := th.App.importDirectPost(directImportData, false)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Len(t, attachments, 1)
+		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
 		AssertFileIdsInPost(attachments, th, t)
 	})
 
 	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
-		err := th.App.importDirectPost(directImportData, false)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{directImportData}, false)
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Len(t, attachments, 1)
+		require.Len(t, attachments, 1)
 	})
 
 	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
@@ -2715,11 +3357,11 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 			Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
 		}
 
-		err := th.App.importDirectPost(directImportDataFake, false)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{directImportDataFake}, false)
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Len(t, attachments, 2)
+		require.Len(t, attachments, 2)
 	})
 
 	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
@@ -2734,10 +3376,10 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 			Attachments: &[]AttachmentImportData{{Path: &testImage2}},
 		}
 
-		err := th.App.importDirectPost(directImportData2, false)
+		err := th.App.importMultipleDirectPosts([]*DirectPostImportData{directImportData2}, false)
 		require.Nil(t, err, "Expected success.")
 
 		attachments := GetAttachments(user1.Id, th, t)
-		assert.Len(t, attachments, 3)
+		require.Len(t, attachments, 3)
 	})
 }

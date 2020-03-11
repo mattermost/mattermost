@@ -353,7 +353,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	if err != nil {
 		return nil, err
 	}
-	a.InvalidateCacheForWebhook(oldHook.Id)
+	a.invalidateCacheForWebhook(oldHook.Id)
 	return newWebhook, nil
 }
 
@@ -366,7 +366,7 @@ func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
 		return err
 	}
 
-	a.InvalidateCacheForWebhook(hookId)
+	a.invalidateCacheForWebhook(hookId)
 
 	return nil
 }
