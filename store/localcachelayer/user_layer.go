@@ -4,8 +4,6 @@
 package localcachelayer
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -123,7 +121,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	if len(remainingUserIds) > 0 {
 		remainingUsers, err := s.UserStore.GetProfileByIds(remainingUserIds, options, false)
 		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
 		for _, user := range remainingUsers {
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
@@ -152,7 +150,7 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	}
 	user, err := s.UserStore.Get(id)
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 	u := user.DeepCopy()
 	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, u)
