@@ -240,6 +240,14 @@ pipeline {
 		stage('Test') {
 			failFast true
 
+			steps {
+				ansiColor('xterm') {
+					sh """
+					cp -r ${WORKSPACE}/src ${WORKSPACE}/src-copy
+					"""
+				}
+			}
+
 			parallel {
 				stage('Test-Mysql') {
 					environment {
@@ -396,7 +404,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server
@@ -440,7 +448,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:oct-18-2019') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server
