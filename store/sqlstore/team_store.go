@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -286,6 +287,33 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return &team, nil
+}
+
+func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError) {
+	uniqueNames := utils.RemoveDuplicatesFromStringArray(names)
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(sq.Eq{"Name": uniqueNames})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	teams := []*model.Team{}
+	_, err = s.GetReplica().Select(&teams, queryString, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.missing.app_error", nil, err.Error(), http.StatusNotFound)
+		}
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if len(teams) != len(uniqueNames) {
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.missing.app_error", nil, "", http.StatusNotFound)
+	}
+	return teams, nil
 }
 
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
