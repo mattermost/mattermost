@@ -42,6 +42,7 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 	return filter
 }
 
+// MakeJSONFormatter creates a formatter that outputs JSON suitable for audit records.
 func (a *Audit) MakeJSONFormatter() *format.JSON {
 	f := &format.JSON{
 		DisableTimestamp:  true,

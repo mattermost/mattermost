@@ -2066,7 +2066,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("token_id")
 	}
 
-	auditRec := c.MakeAuditRecord("enabledUserAccessToken", audit.Fail)
+	auditRec := c.MakeAuditRecord("enableUserAccessToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("token_id", tokenId)
 	c.LogAudit("")

@@ -212,6 +212,14 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("getIncomingHook", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("hook_id", hook.Id)
+	auditRec.AddMeta("hook_display", hook.DisplayName)
+	auditRec.AddMeta("channel_id", hook.ChannelId)
+	auditRec.AddMeta("team_id", hook.TeamId)
+	c.LogAudit("attempt")
+
 	channel, err = c.App.GetChannel(hook.ChannelId)
 	if err != nil {
 		c.Err = err
@@ -230,6 +238,9 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	w.Write([]byte(hook.ToJson()))
 }
