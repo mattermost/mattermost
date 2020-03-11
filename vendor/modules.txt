@@ -4,6 +4,8 @@ github.com/BurntSushi/toml
 github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
 github.com/NYTimes/gziphandler
+# github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
+github.com/RackSec/srslog
 # github.com/armon/go-metrics v0.3.0
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -225,6 +227,8 @@ github.com/sean-/seed
 github.com/segmentio/analytics-go
 # github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c
 github.com/segmentio/backo-go
+# github.com/shinji62/logrus-syslog-ng v0.0.0-20180605090607-3974ebb047a0
+github.com/shinji62/logrus-syslog-ng
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
@@ -252,15 +256,6 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tylerb/graceful v1.2.15
 github.com/tylerb/graceful
-# github.com/wiggin77/cfg v1.0.2
-github.com/wiggin77/cfg
-github.com/wiggin77/cfg/ini
-github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.3
-github.com/wiggin77/logr
-github.com/wiggin77/logr/format
-# github.com/wiggin77/merror v1.0.2
-github.com/wiggin77/merror
 # github.com/uber/jaeger-client-go v2.22.1+incompatible
 github.com/uber/jaeger-client-go
 github.com/uber/jaeger-client-go/config
@@ -283,6 +278,17 @@ github.com/uber/jaeger-client-go/utils
 github.com/uber/jaeger-client-go/zipkin
 # github.com/uber/jaeger-lib v2.2.0+incompatible
 github.com/uber/jaeger-lib/metrics
+# github.com/wiggin77/cfg v1.0.2
+github.com/wiggin77/cfg
+github.com/wiggin77/cfg/ini
+github.com/wiggin77/cfg/timeconv
+# github.com/wiggin77/logr v1.0.3
+github.com/wiggin77/logr
+github.com/wiggin77/logr/format
+# github.com/wiggin77/logrus4logr v1.0.2
+github.com/wiggin77/logrus4logr
+# github.com/wiggin77/merror v1.0.2
+github.com/wiggin77/merror
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 github.com/xtgo/uuid
 # go.uber.org/atomic v1.5.1

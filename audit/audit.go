@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/wiggin77/logr"
+	"github.com/wiggin77/logr/format"
 )
 
 type Level logr.Level
@@ -39,6 +40,15 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 		filter.Add(logr.Level(l))
 	}
 	return filter
+}
+
+func (a *Audit) MakeJSONFormatter() *format.JSON {
+	f := &format.JSON{
+		DisableTimestamp:  true,
+		DisableStacktrace: true,
+		DisableLevel:      true,
+	}
+	return f
 }
 
 // LogRecord emits an audit record with complete info.

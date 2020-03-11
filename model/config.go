@@ -1055,6 +1055,46 @@ func (s *LogSettings) SetDefaults() {
 	}
 }
 
+type AuditSettings struct {
+	Enabled  *bool   `restricted:"true"`
+	IP       *string `restricted:"true"`
+	Port     *int    `restricted:"true"`
+	Tag      *string `restricted:"true"`
+	Cert     *string `restricted:"true"`
+	Insecure *bool   `restricted:"true"`
+	MaxQSize *int    `restricted:"true"`
+}
+
+func (s *AuditSettings) SetDefaults() {
+	if s.Enabled == nil {
+		s.Enabled = NewBool(false)
+	}
+
+	if s.IP == nil {
+		s.IP = NewString("localhost")
+	}
+
+	if s.Port == nil {
+		s.Port = NewInt(6514)
+	}
+
+	if s.Tag == nil {
+		s.Tag = NewString("")
+	}
+
+	if s.Cert == nil {
+		s.Cert = NewString("")
+	}
+
+	if s.Insecure == nil {
+		s.Insecure = NewBool(false)
+	}
+
+	if s.MaxQSize == nil {
+		s.MaxQSize = NewInt(1000)
+	}
+}
+
 type NotificationLogSettings struct {
 	EnableConsole *bool   `restricted:"true"`
 	ConsoleLevel  *string `restricted:"true"`
@@ -2562,6 +2602,7 @@ type Config struct {
 	ClientRequirements      ClientRequirements
 	SqlSettings             SqlSettings
 	LogSettings             LogSettings
+	AuditSettings           AuditSettings
 	NotificationLogSettings NotificationLogSettings
 	PasswordSettings        PasswordSettings
 	FileSettings            FileSettings
@@ -2669,6 +2710,7 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
+	o.AuditSettings.SetDefaults()
 	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()

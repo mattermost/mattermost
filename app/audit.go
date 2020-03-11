@@ -5,15 +5,10 @@ package app
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/format"
 )
 
 const (
@@ -39,126 +34,49 @@ func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits,
 }
 
 func (s *Server) configureAudit(adt *audit.Audit) {
-	// For now just send audit records to database. When implemented, use config store
-	// to configure where audit records are written, and which filter is used.
-	/*
-		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
-		target := NewAuditStoreTarget(filter, s.Store.Audit(), audit.DefMaxQueueSize)
-		adt.AddTarget(target)
+	adt.OnQueueFull = s.onAuditTargetQueueFull
+	adt.OnError = s.onAuditError
 
-		adt.OnQueueFull = s.onAuditTargetQueueFull
-		adt.OnError = s.onAuditError
-	*/
+	// For now we only support sending audit records to Syslog via TLS.
+	// See https://www.rsyslog.com/doc/v8-stable/tutorials/tls_cert_summary.html
+	if *s.Config().AuditSettings.Enabled {
+		IP := *s.Config().AuditSettings.IP
+		if IP == "" {
+			IP = "localhost"
+		}
+		port := *s.Config().AuditSettings.Port
+		if port <= 0 {
+			port = 6514
+		}
+		raddr := fmt.Sprintf("%s:%d", IP, port)
+		maxQSize := *s.Config().AuditSettings.MaxQSize
+		if maxQSize <= 0 {
+			maxQSize = audit.DefMaxQueueSize
+		}
+
+		params := &audit.SyslogParams{
+			Raddr:    raddr,
+			Cert:     *s.Config().AuditSettings.Cert,
+			Tag:      *s.Config().AuditSettings.Tag,
+			Insecure: *s.Config().AuditSettings.Insecure,
+		}
+
+		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
+		formatter := adt.MakeJSONFormatter()
+		target, err := audit.NewSyslogTLSTarget(filter, formatter, params, maxQSize)
+		if err != nil {
+			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
+			return
+		}
+		mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddy", raddr))
+		adt.AddTarget(target)
+	}
 }
 
-/*
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) {
 	mlog.Warn("Audit Queue Full", mlog.String("qname", qname), mlog.Int("maxQSize", maxQSize))
 }
 
 func (s *Server) onAuditError(err error) {
 	mlog.Error("Audit Error", mlog.Err(err))
-}
-*/
-
-const MaxExtraInfoLen = 1024
-
-// AuditStoreTarget outputs log records to a database via store.AuditStore.
-type AuditStoreTarget struct {
-	logr.Basic
-	store store.AuditStore
-}
-
-// NewAuditStoreTarget creates a target that outputs audit records to a database.
-func NewAuditStoreTarget(filter logr.Filter, store store.AuditStore, maxQueue int) *AuditStoreTarget {
-	w := &AuditStoreTarget{store: store}
-	w.Basic.Start(w, w, filter, &format.Plain{}, maxQueue)
-	return w
-}
-
-// Write converts a log record to model.Audit and stores to database.
-func (t *AuditStoreTarget) Write(rec *logr.LogRec) error {
-	flds := rec.Fields()
-	infos := getExtraInfos(flds, MaxExtraInfoLen, audit.KeyUserID, audit.KeyIPAddress, audit.KeyAPIPath, audit.KeySessionID)
-	for _, info := range infos {
-		audit := &model.Audit{
-			UserId:    getField(flds, audit.KeyUserID),
-			IpAddress: getField(flds, audit.KeyIPAddress),
-			Action:    getField(flds, audit.KeyAPIPath),
-			SessionId: getField(flds, audit.KeySessionID),
-			ExtraInfo: info,
-		}
-		if err := t.store.Save(audit); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// String returns a string representation of this target.
-func (t *AuditStoreTarget) String() string {
-	return "AuditStoreTarget"
-}
-
-func getField(fields logr.Fields, name string) string {
-	data, ok := fields[name]
-	var out string
-	if ok {
-		out = fmt.Sprintf("%v", data)
-	}
-	return out
-}
-
-// getExtraInfos returns an array of strings containing extra info fields
-// such that no string exceeds maxlen and at least one string is returned,
-// even if empty. Fields are sorted.
-func getExtraInfos(fields logr.Fields, maxlen int, skips ...string) []string {
-	const sep = " | "
-	infos := []string{}
-	sb := strings.Builder{}
-
-	tmp := make([]string, 0, len(fields))
-	for k := range fields {
-		if k != audit.KeyEvent && k != audit.KeyStatus && k != audit.KeyClient {
-			tmp = append(tmp, k)
-		}
-	}
-	sort.Strings(tmp)
-
-	// event and status are pre-pended, client is appended, everything else gets sorted.
-	keys := make([]string, 0, len(fields))
-	keys = append(keys, audit.KeyEvent, audit.KeyStatus)
-	keys = append(keys, tmp...)
-	keys = append(keys, audit.KeyClient)
-
-top:
-	for _, k := range keys {
-		for _, sk := range skips {
-			if sk == k {
-				continue top
-			}
-		}
-		// a single entry cannot be greater than maxlen; truncate if needed.
-		val, ok := fields[k]
-		if !ok {
-			continue top
-		}
-		field := fmt.Sprintf("%s=%v", k, val)
-		if len(field) > maxlen {
-			field = field[:maxlen-3]
-			field = field + "..."
-		}
-		// if adding the new field will exceed maxlen then flush buffer and
-		// start a new one.
-		if sb.Len() > 0 && sb.Len()+len(field)+len(sep) > maxlen {
-			infos = append(infos, sb.String())
-			sb = strings.Builder{}
-		}
-		if sb.Len() > 0 {
-			sb.WriteString(sep)
-		}
-		sb.WriteString(field)
-	}
-	infos = append(infos, sb.String())
-	return infos
 }

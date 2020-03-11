@@ -223,12 +223,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	model.AppErrorInit(utils.T)
 
-	if s.Audit == nil {
-		s.Audit = &audit.Audit{}
-		s.Audit.Init(audit.DefMaxQueueSize)
-		s.configureAudit(s.Audit)
-	}
-
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
 	s.InitEmailBatching()
@@ -285,6 +279,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.ReloadConfig()
+
+	if s.Audit == nil {
+		s.Audit = &audit.Audit{}
+		s.Audit.Init(audit.DefMaxQueueSize)
+		s.configureAudit(s.Audit)
+	}
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
