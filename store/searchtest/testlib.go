@@ -4,6 +4,7 @@
 package searchtest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -113,6 +114,18 @@ func createUser(username, nickname, firstName, lastName string) *model.User {
 	return user
 }
 
+func createPost(userId string, channelId string, message string) *model.Post {
+	post := &model.Post{
+		Message:       message,
+		ChannelId:     channelId,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        userId,
+		CreateAt:      1000000,
+	}
+
+	return post
+}
+
 func addUserToTeamsAndChannels(s store.Store, user *model.User, teamIds []string, channelIds []string) error {
 	for _, teamId := range teamIds {
 		_, err := s.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id}, -1)
@@ -143,4 +156,49 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 	}
 
 	return s[i].Id < s[j].Id
+}
+
+func checkPostInSearchResults(t *testing.T, postId string, searchResults []string) {
+	t.Helper()
+	assert.Contains(t, searchResults, postId, "Did not find expected post in search results.")
+}
+
+func checkPostNotInSearchResults(t *testing.T, postId string, searchResults []string) {
+	t.Helper()
+	assert.NotContains(t, searchResults, postId, "Found post in search results that should not be there.")
+}
+
+func checkMatchesEqual(t *testing.T, expected model.PostSearchMatches, actual map[string][]string) {
+	a := assert.New(t)
+
+	a.Len(actual, len(expected), "Received matches for a different number of posts")
+
+	for postId, expectedMatches := range expected {
+		a.ElementsMatch(expectedMatches, actual[postId], fmt.Sprintf("%v: expected %v, got %v", postId, expectedMatches, actual[postId]))
+	}
+}
+
+func createPostWithHashtags(userId string, channelId string, message string, hashtags string) *model.Post {
+	post := &model.Post{
+		Message:       message,
+		ChannelId:     channelId,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        userId,
+		CreateAt:      1000000,
+		Hashtags:      hashtags,
+	}
+
+	return post
+}
+
+func createPostAtTime(userId string, channelId string, message string, createAt int64) *model.Post {
+	post := &model.Post{
+		Message:       message,
+		ChannelId:     channelId,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        userId,
+		CreateAt:      createAt,
+	}
+
+	return post
 }
