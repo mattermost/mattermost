@@ -680,9 +680,10 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 
 func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
+		LeftJoin("Users ON TeamMembers.UserId = Users.Id").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
-		OrderBy("UserId").
+		OrderBy("Username").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
