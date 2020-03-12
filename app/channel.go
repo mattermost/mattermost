@@ -757,7 +757,7 @@ func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleN
 	return
 }
 
-// PatchChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
+// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
 func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
 	memberRole, err := a.GetRoleByName(memberRoleName)
