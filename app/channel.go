@@ -547,6 +547,34 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	return channel, nil
 }
 
+// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
+func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+	scheme, err := a.CreateScheme(&model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	channel.SchemeId = &scheme.Id
+	if _, err := a.UpdateChannelScheme(channel); err != nil {
+		return nil, err
+	}
+	return scheme, nil
+}
+
+// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
+func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+		return nil, err
+	}
+	channel.SchemeId = nil
+	return a.UpdateChannelScheme(channel)
+}
+
+// UpdateChannelScheme saves the new SchemeId of the channel passed.
 func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
 	var oldChannel *model.Channel
 	var err *model.AppError
@@ -555,13 +583,7 @@ func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *mode
 	}
 
 	oldChannel.SchemeId = channel.SchemeId
-
-	newChannel, err := a.UpdateChannel(oldChannel)
-	if err != nil {
-		return nil, err
-	}
-
-	return newChannel, nil
+	return a.UpdateChannel(oldChannel)
 }
 
 func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
@@ -685,35 +707,185 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, nil
 }
 
-func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
+// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
+func (a *App) GetSchemeRolesForChannel(channelId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(channelId)
 	if err != nil {
-		return "", "", "", err
+		return
 	}
 
 	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			return "", "", "", err
+			return
 		}
-		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+
+		guestRoleName = scheme.DefaultChannelGuestRole
+		userRoleName = scheme.DefaultChannelUserRole
+		adminRoleName = scheme.DefaultChannelAdminRole
+
+		return
 	}
 
-	team, err := a.GetTeam(channel.TeamId)
+	return a.GetTeamSchemeChannelRoles(channel.TeamId)
+}
+
+// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
+func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+	team, err := a.GetTeam(teamId)
 	if err != nil {
-		return "", "", "", err
+		return
 	}
 
 	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
-		scheme, err := a.GetScheme(*team.SchemeId)
+		var scheme *model.Scheme
+		scheme, err = a.GetScheme(*team.SchemeId)
 		if err != nil {
-			return "", "", "", err
+			return
 		}
-		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+
+		guestRoleName = scheme.DefaultChannelGuestRole
+		userRoleName = scheme.DefaultChannelUserRole
+		adminRoleName = scheme.DefaultChannelAdminRole
+	} else {
+		guestRoleName = model.CHANNEL_GUEST_ROLE_ID
+		userRoleName = model.CHANNEL_USER_ROLE_ID
+		adminRoleName = model.CHANNEL_ADMIN_ROLE_ID
 	}
 
-	return model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+	return
+}
+
+// PatchChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
+func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	memberRole, err := a.GetRoleByName(memberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	guestRole, err := a.GetRoleByName(guestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+}
+
+// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
+func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions()
+	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions()
+
+	for _, moderationPatch := range channelModerationsPatch {
+		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !higherScopedGuestPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+	}
+
+	// Channel has no scheme so create one
+	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+		if _, err = a.CreateChannelScheme(channel); err != nil {
+			return nil, err
+		}
+	}
+
+	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	memberRole, err := a.GetRoleByName(memberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	guestRole, err := a.GetRoleByName(guestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
+	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
+
+	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedMemberRole, memberRolePatch)) == 0
+	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
+	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
+		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
+		if _, err = a.DeleteChannelScheme(channel); err != nil {
+			return nil, err
+		}
+		memberRole = higherScopedMemberRole
+		guestRole = higherScopedGuestRole
+	} else {
+		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
+		if err != nil {
+			return nil, err
+		}
+		guestRole, err = a.PatchRole(guestRole, guestRolePatch)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buildChannelModerations(memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+}
+
+func buildChannelModerations(memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
+	memberPermissions := memberRole.GetChannelModeratedPermissions()
+	guestPermissions := guestRole.GetChannelModeratedPermissions()
+	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions()
+	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions()
+
+	var channelModerations []*model.ChannelModeration
+	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
+		roles := &model.ChannelModeratedRoles{}
+
+		roles.Members = &model.ChannelModeratedRole{
+			Value:   memberPermissions[permissionKey],
+			Enabled: higherScopedMemberPermissions[permissionKey],
+		}
+
+		if permissionKey == "manage_members" {
+			roles.Guests = nil
+		} else {
+			roles.Guests = &model.ChannelModeratedRole{
+				Value:   guestPermissions[permissionKey],
+				Enabled: higherScopedGuestPermissions[permissionKey],
+			}
+		}
+
+		moderation := &model.ChannelModeration{
+			Name:  permissionKey,
+			Roles: roles,
+		}
+
+		channelModerations = append(channelModerations, moderation)
+	}
+
+	return channelModerations
 }
 
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -992,7 +1164,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if _, err = a.Srv().Store.Channel().SaveMember(newMember); err != nil {
+	newMember, err = a.Srv().Store.Channel().SaveMember(newMember)
+	if err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}

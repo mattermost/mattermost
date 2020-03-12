@@ -123,7 +123,9 @@ func (s *Server) RunOldAppInitialization() error {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	mailservice.TestConnection(s.FakeApp().Config())
+	if err := mailservice.TestConnection(s.FakeApp().Config()); err != nil {
+		mlog.Error("Mail server connection test is failed: " + err.Message)
+	}
 
 	if _, err := url.ParseRequestURI(*s.FakeApp().Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
