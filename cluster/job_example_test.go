@@ -1,10 +1,14 @@
 package cluster
 
-import "time"
+import (
+	"time"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
+)
 
 func ExampleSchedule() {
 	// Use p.API from your plugin instead.
-	pluginAPI := NewMockMutexPluginAPI(nil)
+	pluginAPI := plugin.API(nil)
 
 	callback := func() {
 		// periodic work to do

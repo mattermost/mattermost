@@ -1,8 +1,7 @@
 package cluster
 
 import (
-	"bytes"
-	"sync"
+	"context"
 	"testing"
 	"time"
 
@@ -11,82 +10,43 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type MockMutexPluginAPI struct {
-	t *testing.T
-
-	lock      sync.Mutex
-	keyValues map[string][]byte
-	failing   bool
-}
-
-func NewMockMutexPluginAPI(t *testing.T) *MockMutexPluginAPI {
-	return &MockMutexPluginAPI{
-		t:         t,
-		keyValues: make(map[string][]byte),
-	}
-}
-
-func (pluginAPI *MockMutexPluginAPI) setFailing(failing bool) {
-	pluginAPI.lock.Lock()
-	defer pluginAPI.lock.Unlock()
-
-	pluginAPI.failing = failing
-}
-
-func (pluginAPI *MockMutexPluginAPI) clear() {
-	pluginAPI.lock.Lock()
-	defer pluginAPI.lock.Unlock()
-
-	for k := range pluginAPI.keyValues {
-		delete(pluginAPI.keyValues, k)
-	}
-}
-
-func (pluginAPI *MockMutexPluginAPI) KVGet(key string) ([]byte, *model.AppError) {
-	pluginAPI.lock.Lock()
-	defer pluginAPI.lock.Unlock()
-
-	if pluginAPI.failing {
-		return nil, &model.AppError{Message: "fake error"}
+func mustMakeLockKey(key string) string {
+	key, err := makeLockKey(key)
+	if err != nil {
+		panic(err)
 	}
 
-	return pluginAPI.keyValues[key], nil
+	return key
 }
 
-func (pluginAPI *MockMutexPluginAPI) KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
-	pluginAPI.lock.Lock()
-	defer pluginAPI.lock.Unlock()
-
-	if pluginAPI.failing {
-		return false, &model.AppError{Message: "fake error"}
+func mustNewMutex(pluginAPI MutexPluginAPI, key string) *Mutex {
+	m, err := NewMutex(pluginAPI, key)
+	if err != nil {
+		panic(err)
 	}
 
-	if options.Atomic {
-		if actualValue := pluginAPI.keyValues[key]; !bytes.Equal(actualValue, options.OldValue) {
-			return false, nil
+	return m
+}
+
+func TestMakeLockKey(t *testing.T) {
+	t.Run("fails when empty", func(t *testing.T) {
+		key, err := makeLockKey("")
+		assert.Error(t, err)
+		assert.Empty(t, key)
+	})
+
+	t.Run("not-empty", func(t *testing.T) {
+		testCases := map[string]string{
+			"key":   mutexPrefix + "key",
+			"other": mutexPrefix + "other",
 		}
-	}
 
-	if value == nil {
-		delete(pluginAPI.keyValues, key)
-	} else {
-		pluginAPI.keyValues[key] = value
-	}
-
-	return true, nil
-}
-
-func (pluginAPI *MockMutexPluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
-	if pluginAPI.t == nil {
-		return
-	}
-
-	pluginAPI.t.Helper()
-
-	params := []interface{}{msg}
-	params = append(params, keyValuePairs...)
-
-	pluginAPI.t.Log(params...)
+		for key, expected := range testCases {
+			actual, err := makeLockKey(key)
+			require.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
 }
 
 func lock(t *testing.T, m *Mutex) {
@@ -94,6 +54,8 @@ func lock(t *testing.T, m *Mutex) {
 
 	done := make(chan bool)
 	go func() {
+		t.Helper()
+
 		defer close(done)
 		m.Lock()
 	}()
@@ -110,6 +72,8 @@ func unlock(t *testing.T, m *Mutex, panics bool) {
 
 	done := make(chan bool)
 	go func() {
+		t.Helper()
+
 		defer close(done)
 		if panics {
 			assert.Panics(t, m.Unlock)
@@ -126,10 +90,18 @@ func unlock(t *testing.T, m *Mutex, panics bool) {
 }
 
 func TestMutex(t *testing.T) {
-	t.Run("successful lock/unlock cycle", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+	t.Parallel()
 
-		m := NewMutex(mockPluginAPI, "key")
+	makeKey := func() string {
+		return model.NewId()
+	}
+
+	t.Run("successful lock/unlock cycle", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
 		lock(t, m)
 		unlock(t, m, false)
 		lock(t, m)
@@ -137,16 +109,20 @@ func TestMutex(t *testing.T) {
 	})
 
 	t.Run("unlock when not locked", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+		t.Parallel()
 
-		m := NewMutex(mockPluginAPI, "key")
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
 		unlock(t, m, true)
 	})
 
 	t.Run("blocking lock", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+		t.Parallel()
 
-		m := NewMutex(mockPluginAPI, "key")
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
 		lock(t, m)
 
 		done := make(chan bool)
@@ -171,9 +147,11 @@ func TestMutex(t *testing.T) {
 	})
 
 	t.Run("failed lock", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+		t.Parallel()
 
-		m := NewMutex(mockPluginAPI, "key")
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
 
 		mockPluginAPI.setFailing(true)
 
@@ -199,9 +177,12 @@ func TestMutex(t *testing.T) {
 	})
 
 	t.Run("failed unlock", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+		t.Parallel()
 
-		m := NewMutex(mockPluginAPI, "key")
+		mockPluginAPI := newMockPluginAPI(t)
+
+		key := makeKey()
+		m := mustNewMutex(mockPluginAPI, key)
 		lock(t, m)
 
 		mockPluginAPI.setFailing(true)
@@ -216,15 +197,17 @@ func TestMutex(t *testing.T) {
 	})
 
 	t.Run("discrete keys", func(t *testing.T) {
-		mockPluginAPI := NewMockMutexPluginAPI(t)
+		t.Parallel()
 
-		m1 := NewMutex(mockPluginAPI, "key1")
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m1 := mustNewMutex(mockPluginAPI, makeKey())
 		lock(t, m1)
 
-		m2 := NewMutex(mockPluginAPI, "key2")
+		m2 := mustNewMutex(mockPluginAPI, makeKey())
 		lock(t, m2)
 
-		m3 := NewMutex(mockPluginAPI, "key3")
+		m3 := mustNewMutex(mockPluginAPI, makeKey())
 		lock(t, m3)
 
 		unlock(t, m1, false)
@@ -234,5 +217,70 @@ func TestMutex(t *testing.T) {
 
 		unlock(t, m2, false)
 		unlock(t, m1, false)
+	})
+
+	t.Run("with uncancelled context", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		key := makeKey()
+		m := mustNewMutex(mockPluginAPI, key)
+
+		m.Lock()
+
+		ctx := context.Background()
+		done := make(chan bool)
+		go func() {
+			defer close(done)
+			err := m.LockWithContext(ctx)
+			require.Nil(t, err)
+		}()
+
+		select {
+		case <-time.After(ttl + pollWaitInterval*2):
+		case <-done:
+			require.Fail(t, "goroutine should not have locked")
+		}
+
+		m.Unlock()
+
+		select {
+		case <-time.After(pollWaitInterval * 2):
+			require.Fail(t, "goroutine should have locked after unlock")
+		case <-done:
+		}
+	})
+
+	t.Run("with cancelled context", func(t *testing.T) {
+		t.Parallel()
+
+		mockPluginAPI := newMockPluginAPI(t)
+
+		m := mustNewMutex(mockPluginAPI, makeKey())
+
+		m.Lock()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		done := make(chan bool)
+		go func() {
+			defer close(done)
+			err := m.LockWithContext(ctx)
+			require.NotNil(t, err)
+		}()
+
+		select {
+		case <-time.After(ttl + pollWaitInterval*2):
+		case <-done:
+			require.Fail(t, "goroutine should not have locked")
+		}
+
+		cancel()
+
+		select {
+		case <-time.After(pollWaitInterval * 2):
+			require.Fail(t, "goroutine should have aborted after cancellation")
+		case <-done:
+		}
 	})
 }

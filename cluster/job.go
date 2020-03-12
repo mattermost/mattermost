@@ -58,10 +58,15 @@ func Schedule(pluginAPI JobPluginAPI, key string, config JobConfig, callback fun
 
 	key = cronPrefix + key
 
+	mutex, err := NewMutex(pluginAPI, key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create job mutex")
+	}
+
 	job := &Job{
 		pluginAPI: pluginAPI,
 		key:       key,
-		mutex:     NewMutex(pluginAPI, key),
+		mutex:     mutex,
 		config:    config,
 		callback:  callback,
 		stop:      make(chan bool),

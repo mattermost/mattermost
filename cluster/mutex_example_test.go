@@ -10,7 +10,10 @@ func ExampleMutex() {
 	// Use p.API from your plugin instead.
 	pluginAPI := plugin.API(nil)
 
-	m := cluster.NewMutex(pluginAPI, "key")
+	m, err := cluster.NewMutex(pluginAPI, "key")
+	if err != nil {
+		panic(err)
+	}
 	m.Lock()
 	// critical section
 	m.Unlock()

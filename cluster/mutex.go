@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -20,18 +21,6 @@ const (
 
 	// refreshInterval is the interval on which the mutex will be refreshed when locked
 	refreshInterval = ttl / 2
-
-	// minWaitInterval is the minimum amount of time to wait between locking attempts
-	minWaitInterval = 1 * time.Second
-
-	// maxWaitInterval is the maximum amount of time to wait between locking attempts
-	maxWaitInterval = 5 * time.Minute
-
-	// pollWaitInterval is the usual time to wait between unsuccessful locking attempts
-	pollWaitInterval = 1 * time.Second
-
-	// jitterWaitInterval is the amount of jitter to add when waiting to avoid thundering herds
-	jitterWaitInterval = minWaitInterval / 2
 )
 
 // MutexPluginAPI is the plugin API interface required to manage mutexes.
@@ -60,14 +49,28 @@ type Mutex struct {
 	refreshDone chan bool
 }
 
-// NewMutex creates a mutex with the given name.
-func NewMutex(pluginAPI MutexPluginAPI, key string) *Mutex {
-	key = mutexPrefix + key
+// NewMutex creates a mutex with the given key name.
+//
+// Panics if key is empty.
+func NewMutex(pluginAPI MutexPluginAPI, key string) (*Mutex, error) {
+	key, err := makeLockKey(key)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Mutex{
 		pluginAPI: pluginAPI,
 		key:       key,
+	}, nil
+}
+
+// makeLockKey returns the prefixed key used to namespace mutex keys.
+func makeLockKey(key string) (string, error) {
+	if len(key) == 0 {
+		return "", errors.New("must specify valid mutex key")
 	}
+
+	return mutexPrefix + key, nil
 }
 
 // lock makes a single attempt to atomically lock the mutex, returning true only if successful.
@@ -85,8 +88,6 @@ func (m *Mutex) tryLock() (bool, error) {
 }
 
 // refreshLock rewrites the lock key value with a new expiry, returning true only if successful.
-//
-// Only call this while holding the lock.
 func (m *Mutex) refreshLock() error {
 	ok, err := m.pluginAPI.KVSetWithOptions(m.key, []byte{1}, model.PluginKVSetOptions{
 		Atomic:          true,
@@ -105,10 +106,23 @@ func (m *Mutex) refreshLock() error {
 // Lock locks m. If the mutex is already locked by any plugin instance, including the current one,
 // the calling goroutine blocks until the mutex can be locked.
 func (m *Mutex) Lock() {
+	m.LockWithContext(context.Background())
+}
+
+// LockWithContext locks m unless the context is cancelled. If the mutex is already locked by any plugin
+// instance, including the current one, the calling goroutine blocks until the mutex can be locked,
+// or the context is cancelled.
+//
+// The mutex is locked only if a nil error is returned.
+func (m *Mutex) LockWithContext(ctx context.Context) error {
 	var waitInterval time.Duration
 
 	for {
-		time.Sleep(waitInterval)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(waitInterval):
+		}
 
 		locked, err := m.tryLock()
 		if err != nil {
@@ -144,7 +158,7 @@ func (m *Mutex) Lock() {
 		m.refreshDone = done
 		m.lock.Unlock()
 
-		return
+		return nil
 	}
 }
 
