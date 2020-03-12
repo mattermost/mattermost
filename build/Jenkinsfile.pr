@@ -228,8 +228,8 @@ pipeline {
 					withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
 						sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
 						sh """
-							docker build --no-cache --build-arg MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT} build
-							docker push mattermost/mattermost-enterprise-edition:${GIT_COMMIT_SHORT}
+							docker build --no-cache --build-arg MM_PACKAGE=https://pr-builds.mattermost.com/mattermost-server/${CHANGE_ID}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-test-enterprise:${GIT_COMMIT_SHORT} build
+							docker push mattermost/mattermost-test-enterprise:${GIT_COMMIT_SHORT}
 							docker logout
 						"""
 					}
