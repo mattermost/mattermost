@@ -1,4 +1,6 @@
 comment:
+  layout: "diff, flags, files"
+  require_changes: true
   branches: "!release*"
 
 ignore:
