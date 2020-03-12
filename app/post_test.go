@@ -694,7 +694,7 @@ func TestCreatePost(t *testing.T) {
 			}
 			rpost, err := th.App.CreatePost(postWithNoMention, th.BasicChannel, false)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			postWithMention := &model.Post{
 				ChannelId: th.BasicChannel.Id,
@@ -703,7 +703,7 @@ func TestCreatePost(t *testing.T) {
 			}
 			rpost, err = th.App.CreatePost(postWithMention, th.BasicChannel, false)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 		})
 
 		t.Run("Sets prop when post has mentions and user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
@@ -716,7 +716,7 @@ func TestCreatePost(t *testing.T) {
 			}
 			rpost, err := th.App.CreatePost(postWithNoMention, th.BasicChannel, false)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			postWithMention := &model.Post{
 				ChannelId: th.BasicChannel.Id,
@@ -725,7 +725,7 @@ func TestCreatePost(t *testing.T) {
 			}
 			rpost, err = th.App.CreatePost(postWithMention, th.BasicChannel, false)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props[model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED], true)
+			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
 
 			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
 		})
@@ -787,13 +787,13 @@ func TestPatchPost(t *testing.T) {
 
 			rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
 
 			rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 		})
 
 		t.Run("Sets prop when user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
@@ -802,13 +802,13 @@ func TestPatchPost(t *testing.T) {
 			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch still does not have a mention")}
 			rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props, model.StringInterface{})
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
 
 			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
 
 			rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
 			require.Nil(t, err)
-			assert.Equal(t, rpost.Props[model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED], true)
+			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
 
 			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
 		})
