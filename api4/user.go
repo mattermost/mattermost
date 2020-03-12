@@ -1607,6 +1607,8 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 
@@ -1631,6 +1633,8 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 
@@ -1649,6 +1653,8 @@ func revokeAllSessionsAllUsers(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	auditRec.Success()
+	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 
