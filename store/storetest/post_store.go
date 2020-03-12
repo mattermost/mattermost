@@ -88,6 +88,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		_, err := ss.Post().Save(&rootPost)
 		require.Nil(t, err)
 
+		time.Sleep(2 * time.Millisecond)
+
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
