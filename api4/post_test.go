@@ -112,10 +112,32 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
-	t.Run("creates a post that has channel mentions without the USE_CHANNEL_MENTIONS Permission", func(t *testing.T) {
+	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		WebSocketClient, err := th.CreateWebSocketClient()
+		WebSocketClient.Listen()
+		require.Nil(t, err)
+
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with no channel mentions"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		// Message with no channel mentions should result in no ephemeral message
+		timeout := time.After(300 * time.Millisecond)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+			case <-timeout:
+				waiting = false
+			}
+		}
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
@@ -134,6 +156,21 @@ func TestCreatePost(t *testing.T) {
 		post.Message = "a post with @here"
 		_, resp = Client.CreatePost(post)
 		CheckNoError(t, resp)
+
+		timeout = time.After(600 * time.Millisecond)
+		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
+		for eventsToGo > 0 {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+					require.Equal(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.Event)
+					eventsToGo = eventsToGo - 1
+				}
+			case <-timeout:
+				require.Fail(t, "Should have received ephemeral message event and not timedout")
+				eventsToGo = 0
+			}
+		}
 	})
 
 	post.RootId = ""
@@ -834,7 +871,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body, ")
+		require.EqualError(t, err, ": Invalid or missing post in request body., ")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}

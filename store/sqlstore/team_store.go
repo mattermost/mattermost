@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -150,7 +151,7 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		sqlStore,
 	}
@@ -175,7 +176,7 @@ func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	return s
 }
 
-func (s SqlTeamStore) CreateIndexesIfNotExists() {
+func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
 	s.RemoveIndexIfExists("idx_teams_description", "Teams")
 	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
@@ -188,6 +189,8 @@ func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
+// Save adds the team to the database if a team with the same name does not already
+// exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	if len(team.Id) > 0 {
 		return nil, model.NewAppError("SqlTeamStore.Save",
@@ -209,6 +212,9 @@ func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+// Update updates the details of the team passed as the parameter using the team Id
+// if the team exists in the database.
+// It returns the updated team if the operation is successful.
 func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 
 	team.PreUpdate()
@@ -280,6 +286,33 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return &team, nil
+}
+
+func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError) {
+	uniqueNames := utils.RemoveDuplicatesFromStringArray(names)
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(sq.Eq{"Name": uniqueNames})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	teams := []*model.Team{}
+	_, err = s.GetReplica().Select(&teams, queryString, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.missing.app_error", nil, err.Error(), http.StatusNotFound)
+		}
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if len(teams) != len(uniqueNames) {
+		return nil, model.NewAppError("SqlTeamStore.GetByNames", "store.sql_team.get_by_names.missing.app_error", nil, "", http.StatusNotFound)
+	}
+	return teams, nil
 }
 
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
@@ -528,6 +561,10 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
 }
 
+// SaveMember adds a team member using the team Id of the member
+// if the member does not already exist in the database and if the number
+// of existing team members are less than the maximum allowed users per team.
+// It returns the team member added if the operation is successful.
 func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
 	defer s.InvalidateAllTeamIdsForUser(member.UserId)
 	if err := member.IsValid(); err != nil {
@@ -586,6 +623,8 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) 
 	return retrievedMember.ToModel(), nil
 }
 
+// UpdateMember updates the team member if the team member exists in the database.
+// It returns the updated team member if the operation is successful.
 func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError) {
 	member.PreUpdate()
 

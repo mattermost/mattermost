@@ -6,6 +6,8 @@
 package store
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -56,6 +58,8 @@ type Store interface {
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
 	CheckIntegrity() <-chan IntegrityCheckResult
+	SetContext(context context.Context)
+	Context() context.Context
 }
 
 type TeamStore interface {
@@ -63,6 +67,7 @@ type TeamStore interface {
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
+	GetByNames(name []string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
 	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
@@ -214,6 +219,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
+	SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
@@ -223,6 +229,7 @@ type PostStore interface {
 	PermanentDeleteByChannel(channelId string) *model.AppError
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
+	// @openTracingParams userId, teamId, offset, limit
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
@@ -240,6 +247,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
+	OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
@@ -495,7 +503,7 @@ type FileInfoStore interface {
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
 	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
-	InvalidateFileInfosForPostCache(postId string)
+	InvalidateFileInfosForPostCache(postId string, deleted bool)
 	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
 	DeleteForPost(postId string) (string, *model.AppError)
 	PermanentDelete(fileId string) *model.AppError

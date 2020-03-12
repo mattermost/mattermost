@@ -57,6 +57,28 @@ func Setup(t testing.TB) *testHelper {
 	return testHelper
 }
 
+// Setup creates an instance of testHelper.
+func SetupWithStoreMock(t testing.TB) *testHelper {
+	dir, err := ioutil.TempDir("", "testHelper")
+	if err != nil {
+		panic("failed to create temporary directory: " + err.Error())
+	}
+
+	api4TestHelper := api4.SetupWithStoreMock(t)
+
+	testHelper := &testHelper{
+		TestHelper:     api4TestHelper,
+		tempDir:        dir,
+		configFilePath: filepath.Join(dir, "config-helper.json"),
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+	testHelper.SetConfig(config)
+
+	return testHelper
+}
+
 // InitBasic simply proxies to api4.InitBasic, while still returning a testHelper.
 func (h *testHelper) InitBasic() *testHelper {
 	h.TestHelper.InitBasic()
@@ -80,7 +102,9 @@ func (h *testHelper) ConfigPath() string {
 
 // SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
-	config.SqlSettings = *mainHelper.GetSQLSettings()
+	if !testing.Short() {
+		config.SqlSettings = *mainHelper.GetSQLSettings()
+	}
 
 	// Disable strict password requirements for test
 	*config.PasswordSettings.MinimumLength = 5
