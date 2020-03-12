@@ -39,26 +39,26 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 
 	// For now we only support sending audit records to Syslog via TLS.
 	// See https://www.rsyslog.com/doc/v8-stable/tutorials/tls_cert_summary.html
-	if *s.Config().AuditSettings.Enabled {
-		IP := *s.Config().AuditSettings.IP
+	if *s.Config().ExperimentalAuditSettings.Enabled {
+		IP := *s.Config().ExperimentalAuditSettings.IP
 		if IP == "" {
 			IP = "localhost"
 		}
-		port := *s.Config().AuditSettings.Port
+		port := *s.Config().ExperimentalAuditSettings.Port
 		if port <= 0 {
 			port = 6514
 		}
 		raddr := fmt.Sprintf("%s:%d", IP, port)
-		maxQSize := *s.Config().AuditSettings.MaxQSize
+		maxQSize := *s.Config().ExperimentalAuditSettings.MaxQSize
 		if maxQSize <= 0 {
 			maxQSize = audit.DefMaxQueueSize
 		}
 
 		params := &audit.SyslogParams{
 			Raddr:    raddr,
-			Cert:     *s.Config().AuditSettings.Cert,
-			Tag:      *s.Config().AuditSettings.Tag,
-			Insecure: *s.Config().AuditSettings.Insecure,
+			Cert:     *s.Config().ExperimentalAuditSettings.Cert,
+			Tag:      *s.Config().ExperimentalAuditSettings.Tag,
+			Insecure: *s.Config().ExperimentalAuditSettings.Insecure,
 		}
 
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
