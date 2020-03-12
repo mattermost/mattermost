@@ -502,3 +502,173 @@ func BenchmarkRewriteImageURLs(b *testing.B) {
 		})
 	}
 }
+func Test_findAtChannelMention(t *testing.T) {
+	testCases := []struct {
+		Name    string
+		Message string
+		Mention string
+		Found   bool
+	}{
+		{
+			"Returns mention for @here wrapped by spaces",
+			"hi guys @here wrapped by spaces",
+			"@here",
+			true,
+		},
+		{
+			"Returns mention for @all wrapped by spaces",
+			"hi guys @all wrapped by spaces",
+			"@all",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by spaces",
+			"hi guys @channel wrapped by spaces",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention for @here wrapped by dash",
+			"-@here-",
+			"@here",
+			true,
+		},
+		{
+			"Returns mention for @all wrapped by back tick",
+			"`@all`",
+			"@all",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by tags",
+			"<@channel>",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by asterisks",
+			"*@channel*",
+			"@channel",
+			true,
+		},
+		{
+			"Does not return mention when prefixed by letters",
+			"hi@channel",
+			"",
+			false,
+		},
+		{
+			"Does not return mention when suffixed by letters",
+			"hi @channelanotherword",
+			"",
+			false,
+		},
+		{
+			"Returns mention when prefixed by word ending in special character",
+			"hi-@channel",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention when suffixed by word starting in special character",
+			"hi @channel-guys",
+			"@channel",
+			true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mention, found := findAtChannelMention(tc.Message)
+			assert.Equal(t, tc.Mention, mention)
+			assert.Equal(t, tc.Found, found)
+		})
+	}
+}
+
+func TestPostDisableMentionHighlights(t *testing.T) {
+	post := &Post{}
+
+	testCases := []struct {
+		Name            string
+		Message         string
+		ExpectedProps   StringInterface
+		ExpectedMention string
+	}{
+		{
+			"Does nothing for post with no mentions",
+			"Sample message with no mentions",
+			StringInterface(nil),
+			"",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @here",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@here",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @channel",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@channel",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @all",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@all",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			post.Message = tc.Message
+			mention := post.DisableMentionHighlights()
+			assert.Equal(t, tc.ExpectedMention, mention)
+			assert.Equal(t, tc.ExpectedProps, post.Props)
+			post.Props = StringInterface{}
+		})
+	}
+}
+
+func TestPostPatchDisableMentionHighlights(t *testing.T) {
+	patch := &PostPatch{}
+
+	testCases := []struct {
+		Name          string
+		Message       string
+		ExpectedProps *StringInterface
+	}{
+		{
+			"Does nothing for post with no mentions",
+			"Sample message with no mentions",
+			nil,
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @here",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @channel",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @all",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			patch.Message = &tc.Message
+			patch.DisableMentionHighlights()
+			if tc.ExpectedProps == nil {
+				assert.Nil(t, patch.Props)
+			} else {
+				assert.Equal(t, *tc.ExpectedProps, *patch.Props)
+			}
+			patch.Props = nil
+		})
+	}
+}

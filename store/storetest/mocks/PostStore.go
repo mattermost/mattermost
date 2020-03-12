@@ -637,6 +637,31 @@ func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) 
 	return r0, r1
 }
 
+// OverwriteMultiple provides a mock function with given fields: posts
+func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+		r1 = rf(posts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	ret := _m.Called(endTime, limit)
@@ -708,6 +733,31 @@ func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
 		r1 = rf(post)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveMultiple provides a mock function with given fields: posts
+func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+		r1 = rf(posts)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
