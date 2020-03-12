@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"unicode"
 	"sync"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
