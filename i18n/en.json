@@ -6979,6 +6979,14 @@
     "translation": "Unable to find some of the requested teams"
   },
   {
+    "id": "store.sql_team.get_by_names.app_error",
+    "translation": "Unable to get the teams by names"
+  },
+  {
+    "id": "store.sql_team.get_by_names.missing.app_error",
+    "translation": "Unable to find some of the requested teams"
+  },
+  {
     "id": "store.sql_team.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },

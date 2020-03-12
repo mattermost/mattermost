@@ -931,6 +931,31 @@ func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (
 	return r0, r1
 }
 
+// SaveMultipleMembers provides a mock function with given fields: members, maxUsersPerTeam
+func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(members, maxUsersPerTeam)
+
+	var r0 []*model.TeamMember
+	if rf, ok := ret.Get(0).(func([]*model.TeamMember, int) []*model.TeamMember); ok {
+		r0 = rf(members, maxUsersPerTeam)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.TeamMember, int) *model.AppError); ok {
+		r1 = rf(members, maxUsersPerTeam)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchAll provides a mock function with given fields: term
 func (_m *TeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	ret := _m.Called(term)
@@ -1118,6 +1143,31 @@ func (_m *TeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.A
 	}
 
 	return r0
+}
+
+// UpdateMultipleMembers provides a mock function with given fields: members
+func (_m *TeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(members)
+
+	var r0 []*model.TeamMember
+	if rf, ok := ret.Get(0).(func([]*model.TeamMember) []*model.TeamMember); ok {
+		r0 = rf(members)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.TeamMember) *model.AppError); ok {
+		r1 = rf(members)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UserBelongsToTeams provides a mock function with given fields: userId, teamIds

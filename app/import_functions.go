@@ -649,16 +649,42 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		return nil
 	}
 
-	var teamThemePreferences model.Preferences
+	teamNames := []string{}
 	for _, tdata := range *data {
-		team, err := a.GetTeamByName(*tdata.Name)
-		if err != nil {
-			return err
+		teamNames = append(teamNames, *tdata.Name)
+	}
+	allTeams, err := a.getTeamsByNames(teamNames)
+	if err != nil {
+		return err
+	}
+
+	teamThemePreferencesByID := map[string]model.Preferences{}
+	channels := map[string][]UserChannelImportData{}
+	teamsByID := map[string]*model.Team{}
+	teamMemberByTeamID := map[string]*model.TeamMember{}
+	newTeamMembers := []*model.TeamMember{}
+	oldTeamMembers := []*model.TeamMember{}
+	rolesByTeamId := map[string]string{}
+	isGuestByTeamId := map[string]bool{}
+	isUserByTeamId := map[string]bool{}
+	isAdminByTeamId := map[string]bool{}
+	existingMemberships, err := a.Srv().Store.Team().GetTeamsForUser(user.Id)
+	if err != nil {
+		return err
+	}
+	existingMembershipsByTeamId := map[string]*model.TeamMember{}
+	for _, teamMembership := range existingMemberships {
+		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
+	}
+	for _, tdata := range *data {
+		team, ok := allTeams[*tdata.Name]
+		if !ok {
+			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		// Team-specific theme Preferences.
 		if tdata.Theme != nil {
-			teamThemePreferences = append(teamThemePreferences, model.Preference{
+			teamThemePreferencesByID[team.Id] = append(teamThemePreferencesByID[team.Id], model.Preference{
 				UserId:   user.Id,
 				Category: model.PREFERENCE_CATEGORY_THEME,
 				Name:     team.Id,
@@ -666,63 +692,102 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			})
 		}
 
-		var roles string
-		isSchemeGuest := false
-		isSchemeUser := true
-		isSchemeAdmin := false
+		isGuestByTeamId[team.Id] = false
+		isUserByTeamId[team.Id] = true
+		isAdminByTeamId[team.Id] = false
 
 		if tdata.Roles == nil {
-			isSchemeUser = true
+			isUserByTeamId[team.Id] = true
 		} else {
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.TEAM_GUEST_ROLE_ID {
-					isSchemeGuest = true
-					isSchemeUser = false
+					isGuestByTeamId[team.Id] = true
+					isUserByTeamId[team.Id] = false
 				} else if role == model.TEAM_USER_ROLE_ID {
-					isSchemeUser = true
+					isUserByTeamId[team.Id] = true
 				} else if role == model.TEAM_ADMIN_ROLE_ID {
-					isSchemeAdmin = true
+					isAdminByTeamId[team.Id] = true
 				} else {
 					explicitRoles = append(explicitRoles, role)
 				}
 			}
-			roles = strings.Join(explicitRoles, " ")
+			rolesByTeamId[team.Id] = strings.Join(explicitRoles, " ")
 		}
 
-		var member *model.TeamMember
-		if member, _, err = a.joinUserToTeam(team, user); err != nil {
-			return err
+		member := &model.TeamMember{
+			TeamId:      team.Id,
+			UserId:      user.Id,
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
+			SchemeAdmin: team.Email == user.Email,
 		}
-
-		if member.ExplicitRoles != roles {
-			if _, err = a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
+		if !user.IsGuest() {
+			userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			if err != nil {
 				return err
 			}
+			member.SchemeAdmin = userShouldBeAdmin
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
-			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
+		channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DEFAULT_CHANNEL)})
+		if tdata.Channels != nil {
+			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
+		teamsByID[team.Id] = team
+		teamMemberByTeamID[team.Id] = member
+		if _, ok := existingMembershipsByTeamId[team.Id]; !ok {
+			newTeamMembers = append(newTeamMembers, member)
+		} else {
+			oldTeamMembers = append(oldTeamMembers, member)
+		}
+	}
 
-		defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, true)
+	oldMembers, err := a.Srv().Store.Team().UpdateMultipleMembers(oldTeamMembers)
+	if err != nil {
+		return err
+	}
+
+	newMembers := []*model.TeamMember{}
+	if len(newTeamMembers) > 0 {
+		newMembers, err = a.Srv().Store.Team().SaveMultipleMembers(newTeamMembers, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if err != nil {
-			return err
-		}
-
-		if _, err = a.addUserToChannel(user, defaultChannel, member); err != nil {
-			return err
-		}
-
-		if err := a.importUserChannels(user, team, member, tdata.Channels); err != nil {
 			return err
 		}
 	}
 
-	if len(teamThemePreferences) > 0 {
-		if err := a.Srv().Store.Preference().Save(&teamThemePreferences); err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
+	for _, member := range newMembers {
+		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
+			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+				return err
+			}
+		}
+
+		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+	}
+
+	// TODO: Remove the loop duplication
+	for _, member := range oldMembers {
+		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
+			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+				return err
+			}
+		}
+
+		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+	}
+
+	for _, team := range allTeams {
+		if len(teamThemePreferencesByID[team.Id]) > 0 {
+			pref := teamThemePreferencesByID[team.Id]
+			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		channelsToImport := channels[team.Id]
+		if err := a.importUserChannels(user, team, teamMemberByTeamID[team.Id], &channelsToImport); err != nil {
+			return err
 		}
 	}
 
@@ -783,9 +848,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 			}
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
-			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
-		}
+		a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 
 		if cdata.NotifyProps != nil {
 			notifyProps := member.NotifyProps
