@@ -85,7 +85,7 @@ type rolesInfo struct {
 	schemeAdmin   bool
 }
 
-func getRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole string, roles []string) rolesInfo {
+func getTeamRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole string, roles []string) rolesInfo {
 	result := rolesInfo{
 		roles:         []string{},
 		explicitRoles: []string{},
@@ -177,7 +177,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 		defaultTeamAdminRole = db.TeamSchemeDefaultAdminRole.String
 	}
 
-	rolesResult := getRoles(schemeGuest, schemeUser, schemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(db.Roles))
+	rolesResult := getTeamRoles(schemeGuest, schemeUser, schemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(db.Roles))
 
 	tm := &model.TeamMember{
 		TeamId:        db.TeamId,
@@ -728,7 +728,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		defaultTeamGuestRole := defaultTeamRolesByTeam[member.TeamId].Guest.String
 		defaultTeamUserRole := defaultTeamRolesByTeam[member.TeamId].User.String
 		defaultTeamAdminRole := defaultTeamRolesByTeam[member.TeamId].Admin.String
-		rolesResult := getRoles(member.SchemeGuest, member.SchemeUser, member.SchemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(member.ExplicitRoles))
+		rolesResult := getTeamRoles(member.SchemeGuest, member.SchemeUser, member.SchemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(member.ExplicitRoles))
 		newMember := *member
 		newMember.SchemeGuest = rolesResult.schemeGuest
 		newMember.SchemeUser = rolesResult.schemeUser
@@ -806,7 +806,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 		defaultTeamGuestRole := defaultTeamRolesByTeam[member.TeamId].Guest.String
 		defaultTeamUserRole := defaultTeamRolesByTeam[member.TeamId].User.String
 		defaultTeamAdminRole := defaultTeamRolesByTeam[member.TeamId].Admin.String
-		rolesResult := getRoles(member.SchemeGuest, member.SchemeUser, member.SchemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(member.ExplicitRoles))
+		rolesResult := getTeamRoles(member.SchemeGuest, member.SchemeUser, member.SchemeAdmin, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, strings.Fields(member.ExplicitRoles))
 		updatedMember := *member
 		updatedMember.SchemeGuest = rolesResult.schemeGuest
 		updatedMember.SchemeUser = rolesResult.schemeUser
