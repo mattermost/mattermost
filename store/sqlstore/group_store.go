@@ -929,7 +929,18 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 	query := s.getQueryBuilder().
 		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
 		From("UserGroups ug").
-		LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).
+		LeftJoin(fmt.Sprintf(`(
+			SELECT
+				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
+			FROM
+				GroupChannels
+			LEFT JOIN
+				Channels ON (Channels.Id = GroupChannels.ChannelId)
+			WHERE
+				GroupChannels.DeleteAt = 0
+				AND Channels.DeleteAt = 0
+				AND Channels.TeamId = "%s") AS gc
+			ON gc.GroupId = ug.Id`, teamID)).
 		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
 		OrderBy("ug.DisplayName")
 
@@ -937,8 +948,30 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 		query = s.getQueryBuilder().
 			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
 			From("UserGroups ug").
-			LeftJoin(fmt.Sprintf("(SELECT GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin FROM GroupChannels LEFT JOIN Channels ON Channels.TeamId = ? WHERE GroupChannels.DeleteAt = 0 AND Channels.DeleteAt = 0 AND GroupChannels.ChannelId = Channels.Id) AS gc ON gc.GroupId = ug.Id"), teamID).
-			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers LEFT JOIN Users ON Users.Id = GroupMembers.UserId WHERE GroupMembers.DeleteAt = 0 AND Users.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
+			LeftJoin(fmt.Sprintf(`(
+				SELECT
+					GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
+				FROM
+					GroupChannels
+				LEFT JOIN
+					Channels ON (Channels.Id = GroupChannels.ChannelId)
+				WHERE
+					GroupChannels.DeleteAt = 0
+					AND Channels.DeleteAt = 0
+					AND GroupChannels.TeamId = "%s") AS gc
+			ON gc.GroupId = ug.Id`, teamID)).
+			LeftJoin(`(
+				SELECT
+					GroupMembers.GroupId, COUNT(*) AS MemberCount
+				FROM
+					GroupMembers
+				LEFT JOIN
+					Users ON Users.Id = GroupMembers.UserId
+				WHERE
+					GroupMembers.DeleteAt = 0
+					AND Users.DeleteAt = 0
+				GROUP BY GroupId) AS Members
+			ON Members.GroupId = ug.Id`).
 			Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
 			OrderBy("ug.DisplayName")
 	}
