@@ -27,17 +27,73 @@ type JobConfig struct {
 	Interval time.Duration
 }
 
+// NextWaitInterval is a callback computing the next wait interval for a job.
+type NextWaitInterval func(now time.Time, metadata jobMetadata) time.Duration
+
+// MakeWaitForInterval creates a function to scheduling a job to run on the given interval relative
+// to the last finished timestamp.
+//
+// For example, if the job first starts at 12:01 PM, and is configured with interval 5 minutes,
+// it will next run at:
+//     12:06, 12:11, 12:16, ...
+//
+// If the job has not previously started, it will run immediately.
+func MakeWaitForInterval(interval time.Duration) NextWaitInterval {
+	if interval == 0 {
+		panic("must specify non-zero ready interval")
+	}
+
+	return func(now time.Time, metadata jobMetadata) time.Duration {
+		sinceLastFinished := now.Sub(metadata.LastFinished)
+		if sinceLastFinished < interval {
+			return interval - sinceLastFinished
+		}
+
+		return 0
+	}
+}
+
+// MakeWaitForRoundedInterval creates a function, scheduling a job to run on the nearest rounded
+// interval relative to the last finished timestamp.
+//
+// For example, if the job first starts at 12:04 PM, and is configured with interval 5 minutes,
+// and is configured to round to 5 minute intervals, it will next run at:
+//	12:05 PM, 12:10 PM, 12:15 PM, ...
+//
+// If the job has not previously started, it will run immediately. Note that this wait interval
+// strategy does not guarantee a minimum interval between runs, only that subsequent runs will be
+// scheduled on the rounded interval.
+func MakeWaitForRoundedInterval(interval time.Duration) NextWaitInterval {
+	if interval == 0 {
+		panic("must specify non-zero ready interval")
+	}
+
+	return func(now time.Time, metadata jobMetadata) time.Duration {
+		if metadata.LastFinished.IsZero() {
+			return 0
+		}
+
+		target := metadata.LastFinished.Add(interval).Truncate(interval)
+		untilTarget := target.Sub(now)
+		if untilTarget > 0 {
+			return untilTarget
+		}
+
+		return 0
+	}
+}
+
 // Job is a scheduled job whose callback function is executed on a configured interval by at most
 // one plugin instance at a time.
 //
 // Use scheduled jobs to perform background activity on a regular interval without having to
 // explicitly coordinate with other instances of the same plugin that might repeat that effort.
 type Job struct {
-	pluginAPI JobPluginAPI
-	key       string
-	mutex     *Mutex
-	config    JobConfig
-	callback  func()
+	pluginAPI        JobPluginAPI
+	key              string
+	mutex            *Mutex
+	nextWaitInterval NextWaitInterval
+	callback         func()
 
 	stopOnce sync.Once
 	stop     chan bool
@@ -51,11 +107,7 @@ type jobMetadata struct {
 }
 
 // Schedule creates a scheduled job.
-func Schedule(pluginAPI JobPluginAPI, key string, config JobConfig, callback func()) (*Job, error) {
-	if config.Interval == 0 {
-		return nil, errors.Errorf("must specify non-zero job config interval")
-	}
-
+func Schedule(pluginAPI JobPluginAPI, key string, nextWaitInterval NextWaitInterval, callback func()) (*Job, error) {
 	key = cronPrefix + key
 
 	mutex, err := NewMutex(pluginAPI, key)
@@ -64,13 +116,13 @@ func Schedule(pluginAPI JobPluginAPI, key string, config JobConfig, callback fun
 	}
 
 	job := &Job{
-		pluginAPI: pluginAPI,
-		key:       key,
-		mutex:     mutex,
-		config:    config,
-		callback:  callback,
-		stop:      make(chan bool),
-		done:      make(chan bool),
+		pluginAPI:        pluginAPI,
+		key:              key,
+		mutex:            mutex,
+		nextWaitInterval: nextWaitInterval,
+		callback:         callback,
+		stop:             make(chan bool),
+		done:             make(chan bool),
 	}
 
 	go job.run()
@@ -141,9 +193,8 @@ func (j *Job) run() {
 			}
 
 			// Is it time to run the job?
-			sinceLastFinished := time.Since(metadata.LastFinished)
-			if sinceLastFinished < j.config.Interval {
-				waitInterval = j.config.Interval - sinceLastFinished
+			waitInterval = j.nextWaitInterval(time.Now(), metadata)
+			if waitInterval > 0 {
 				return
 			}
 
@@ -157,7 +208,7 @@ func (j *Job) run() {
 				j.pluginAPI.LogError("failed to write job data", "err", err, "key", j.key)
 			}
 
-			waitInterval = j.config.Interval
+			waitInterval = j.nextWaitInterval(time.Now(), metadata)
 		}()
 	}
 }
