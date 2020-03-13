@@ -845,30 +845,45 @@ func (a *App) oldImportUser(team *model.Team, user *model.User) *model.User {
 }
 
 func (a *App) oldImportChannel(channel *model.Channel, sChannel SlackChannel, users map[string]*model.User) *model.Channel {
-	if channel.Type == model.CHANNEL_DIRECT {
-		sc, err := a.createDirectChannel(users[sChannel.Members[0]].Id, users[sChannel.Members[1]].Id)
+	switch {
+	case channel.Type == model.CHANNEL_DIRECT:
+		if len(sChannel.Members) < 2 {
+			return nil
+		}
+		u1 := users[sChannel.Members[0]]
+		u2 := users[sChannel.Members[1]]
+		if u1 == nil || u2 == nil {
+			return nil
+		}
+		sc, err := a.createDirectChannel(u1.Id, u2.Id)
 		if err != nil {
 			return nil
 		}
 
 		return sc
-	}
-
 	// check if direct channel has less than 8 members and if not import as private channel instead
-	if channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8 {
+	case channel.Type == model.CHANNEL_GROUP && len(sChannel.Members) < 8:
 		members := make([]string, len(sChannel.Members))
 
 		for i := range sChannel.Members {
-			members[i] = users[sChannel.Members[i]].Id
+			u := users[sChannel.Members[i]]
+			if u == nil {
+				continue
+			}
+			members[i] = u.Id
 		}
 
-		sc, err := a.createGroupChannel(members, users[sChannel.Creator].Id)
+		creator := users[sChannel.Creator]
+		if creator == nil {
+			return nil
+		}
+		sc, err := a.createGroupChannel(members, creator.Id)
 		if err != nil {
 			return nil
 		}
 
 		return sc
-	} else if channel.Type == model.CHANNEL_GROUP {
+	case channel.Type == model.CHANNEL_GROUP:
 		channel.Type = model.CHANNEL_PRIVATE
 		sc, err := a.CreateChannel(channel, false)
 		if err != nil {
