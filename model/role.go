@@ -228,7 +228,7 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 }
 
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
-func (r *Role) GetChannelModeratedPermissions() map[string]bool {
+func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
 		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
@@ -236,8 +236,20 @@ func (r *Role) GetChannelModeratedPermissions() map[string]bool {
 		}
 
 		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+			// the moderated permission has already been found to be true so skip this iteration
+			if moderatedPermissions[moderatedPermissionValue] {
+				continue
+			}
+
 			if moderated == permission {
-				moderatedPermissions[moderatedPermissionValue] = true
+				// Special case where the channel moderated permission for `manage_members` is different depending on whether the channel is private or public
+				if moderated == PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id || moderated == PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id {
+					canManagePublic := channelType == CHANNEL_OPEN && moderated == PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id
+					canManagePrivate := channelType == CHANNEL_PRIVATE && moderated == PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+				} else {
+					moderatedPermissions[moderatedPermissionValue] = true
+				}
 			}
 		}
 	}
