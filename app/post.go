@@ -297,14 +297,6 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err = a.Elasticsearch().IndexPost(rpost, channel.TeamId); err != nil {
-				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	if a.Metrics() != nil {
 		a.Metrics().IncrementPostCreate()
 	}
@@ -585,19 +577,6 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			channel, chanErr := a.Srv().Store.Channel().GetForPost(rpost.Id)
-			if chanErr != nil {
-				mlog.Error("Couldn't get channel for post for Elasticsearch indexing.", mlog.String("channel_id", rpost.ChannelId), mlog.String("post_id", rpost.Id))
-				return
-			}
-			if err := a.Elasticsearch().IndexPost(rpost, channel.TeamId); err != nil {
-				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	rpost = a.PreparePostForClient(rpost, false, true)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
@@ -870,14 +849,6 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		a.DeleteFlaggedPosts(post.Id)
 	})
 
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err := a.Elasticsearch().DeletePost(post); err != nil {
-				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
@@ -1006,9 +977,17 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	finalParamsList := []*model.SearchParams{}
+func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	var postSearchResults *model.PostSearchResults
+	var err *model.AppError
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+	}
+
+	finalParamsList := []*model.SearchParams{}
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
@@ -1031,88 +1010,9 @@ func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userI
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	// We only allow the user to search in channels they are a member of.
-	userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
-	if err != nil {
-		mlog.Error("error getting channel for user", mlog.Err(err))
-		return nil, err
-	}
-
-	postIds, matches, err := a.Elasticsearch().SearchPosts(userChannels, finalParamsList, page, perPage)
+	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)
 	if err != nil {
 		return nil, err
-	}
-
-	// Get the posts
-	postList := model.NewPostList()
-	if len(postIds) > 0 {
-		posts, err := a.Srv().Store.Post().GetPostsByIds(postIds)
-		if err != nil {
-			return nil, err
-		}
-		for _, p := range posts {
-			if p.DeleteAt == 0 {
-				postList.AddPost(p)
-				postList.AddOrder(p.Id)
-			}
-		}
-	}
-
-	return model.MakePostSearchResults(postList, matches), nil
-}
-
-func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	var postSearchResults *model.PostSearchResults
-	var err *model.AppError
-	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
-
-	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
-	}
-
-	if a.IsESSearchEnabled() {
-		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
-		if err != nil {
-			mlog.Error("Encountered error on SearchPostsInTeamForUser through Elasticsearch. Falling back to default search.", mlog.Err(err))
-		}
-	}
-
-	if !a.IsESSearchEnabled() || err != nil {
-		// Since we don't support paging for DB search, we just return nothing for later pages
-		if page > 0 {
-			return model.MakePostSearchResults(model.NewPostList(), nil), nil
-		}
-
-		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
-			params.IncludeDeletedChannels = includeDeleted
-			params.OrTerms = isOrSearch
-			for idx, channelName := range params.InChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error("error getting channel_id by name from in filter", mlog.Err(err))
-						continue
-					}
-					params.InChannels[idx] = channel.Name
-				}
-			}
-			for idx, channelName := range params.ExcludedChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error("error getting channel_id by name from in filter", mlog.Err(err))
-						continue
-					}
-					params.ExcludedChannels[idx] = channel.Name
-				}
-			}
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		postSearchResults = model.MakePostSearchResults(posts, nil)
 	}
 
 	return postSearchResults, nil
