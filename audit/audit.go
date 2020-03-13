@@ -46,6 +46,7 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 func (a *Audit) MakeJSONFormatter() *format.JSON {
 	f := &format.JSON{
 		DisableTimestamp:  true,
+		DisableMsg:        true,
 		DisableStacktrace: true,
 		DisableLevel:      true,
 	}
