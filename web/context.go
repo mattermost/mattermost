@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -21,6 +22,56 @@ type Context struct {
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
+}
+
+// LogAuditRec logs an audit record using default RestLevel.
+func (c *Context) LogAuditRec(rec *audit.Record) {
+	c.LogAuditRecWithLevel(rec, app.RestLevel)
+}
+
+// LogAuditRec logs an audit record using specificed Level.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
+	if rec == nil {
+		return
+	}
+	if c.Err != nil {
+		rec.AddMeta("err", c.Err.Id)
+		rec.AddMeta("code", c.Err.StatusCode)
+		if c.Err.Id == "api.context.permissions.app_error" {
+			level = app.RestPermsLevel
+		}
+		rec.Fail()
+	}
+	c.App.Srv().Audit.LogRecord(level, *rec)
+}
+
+// LogAuditMeta creates an audit record and logs it.
+func (c *Context) LogAuditEx(event string, status string) {
+	rec := c.MakeAuditRecord(event, status)
+	c.LogAuditRec(rec)
+}
+
+// LogAuditMeta creates an audit record with metadata and logs it.
+func (c *Context) LogAuditMeta(event string, status string, meta audit.Meta) {
+	rec := c.MakeAuditRecord(event, status)
+	if meta != nil {
+		rec.Meta = meta
+	}
+	c.LogAuditRec(rec)
+}
+
+// MakeAuditRecord creates a audit record pre-populated with data from this context.
+func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+	return &audit.Record{
+		APIPath:   c.App.Path(),
+		Event:     event,
+		Status:    initialStatus,
+		UserID:    c.App.Session().UserId,
+		SessionID: c.App.Session().Id,
+		Client:    c.App.UserAgent(),
+		IPAddress: c.App.IpAddress(),
+		Meta:      audit.Meta{},
+	}
 }
 
 func (c *Context) LogAudit(extraInfo string) {

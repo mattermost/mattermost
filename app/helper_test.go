@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -34,11 +35,11 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
-	SystemAdminUser *model.User
+	SystemAdminUser   *model.User
+	LogBuffer         *bytes.Buffer
+	IncludeCacheLayer bool
 
 	tempWorkspace string
-
-	IncludeCacheLayer bool
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
@@ -60,10 +61,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
 
+	buffer := &bytes.Buffer{}
+
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
 	options = append(options, StoreOverride(dbStore))
-	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
+	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -78,6 +81,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th := &TestHelper{
 		App:               s.FakeApp(),
 		Server:            s,
+		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,
 	}
 

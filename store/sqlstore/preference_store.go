@@ -63,6 +63,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 
 	defer finalizeTransaction(transaction)
 	for _, preference := range *preferences {
+		preference := preference
 		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}

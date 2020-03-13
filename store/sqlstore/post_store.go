@@ -30,6 +30,33 @@ type SqlPostStore struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
+func postSliceColumns() []string {
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+}
+
+func postToSlice(post *model.Post) []interface{} {
+	return []interface{}{
+		post.Id,
+		post.CreateAt,
+		post.UpdateAt,
+		post.EditAt,
+		post.DeleteAt,
+		post.IsPinned,
+		post.UserId,
+		post.ChannelId,
+		post.RootId,
+		post.ParentId,
+		post.OriginalId,
+		post.Message,
+		post.Type,
+		model.StringInterfaceToJson(post.Props),
+		post.Hashtags,
+		model.ArrayToJson(post.Filenames),
+		model.ArrayToJson(post.FileIds),
+		post.HasReactions,
+	}
+}
+
 func newSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
@@ -72,48 +99,97 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
-	if len(post.Id) > 0 {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	channelNewPosts := make(map[string]int)
+	maxDateNewPosts := make(map[string]int64)
+	rootIds := make(map[string]int)
+	maxDateRootIds := make(map[string]int64)
+	for _, post := range posts {
+		if len(post.Id) > 0 {
+			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		}
+		post.PreSave()
+		maxPostSize := s.GetMaxPostSize()
+		if err := post.IsValid(maxPostSize); err != nil {
+			return nil, err
+		}
+
+		currentChannelCount, ok := channelNewPosts[post.ChannelId]
+		if !ok {
+			if post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = 0
+			} else {
+				channelNewPosts[post.ChannelId] = 1
+			}
+			maxDateNewPosts[post.ChannelId] = post.CreateAt
+		} else {
+			if !post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = currentChannelCount + 1
+			}
+			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
+				maxDateNewPosts[post.ChannelId] = post.CreateAt
+			}
+		}
+
+		if len(post.RootId) == 0 {
+			continue
+		}
+
+		currentRootCount, ok := rootIds[post.RootId]
+		if !ok {
+			rootIds[post.RootId] = 1
+			maxDateRootIds[post.RootId] = post.CreateAt
+		} else {
+			rootIds[post.RootId] = currentRootCount + 1
+			if post.CreateAt > maxDateRootIds[post.RootId] {
+				maxDateRootIds[post.RootId] = post.CreateAt
+			}
+		}
 	}
 
-	maxPostSize := s.GetMaxPostSize()
-
-	post.PreSave()
-	if err := post.IsValid(maxPostSize); err != nil {
-		return nil, err
+	query := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+	for _, post := range posts {
+		query = query.Values(postToSlice(post)...)
+	}
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := s.GetMaster().Insert(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	time := post.UpdateAt
-
-	if !post.IsJoinLeaveMessage() {
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
+	for channelId, count := range channelNewPosts {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
-	} else {
-		// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
-			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
-		}
 	}
 
-	if len(post.RootId) > 0 {
-		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
+	for rootId := range rootIds {
+		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
-	} else {
-		if count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM Posts WHERE RootId = :Id", map[string]interface{}{"Id": post.Id}); err != nil {
-			mlog.Error("Error fetching post's thread.", mlog.Err(err))
-		} else {
-			post.ReplyCount = count
+	}
+
+	for _, post := range posts {
+		if len(post.RootId) == 0 {
+			count, ok := rootIds[post.Id]
+			if ok {
+				post.ReplyCount += int64(count)
+			}
 		}
 	}
 
-	return post, nil
+	return posts, nil
+}
+
+func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.SaveMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
@@ -149,19 +225,45 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
-	post.UpdateAt = model.GetMillis()
-
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
-	if appErr := post.IsValid(maxPostSize); appErr != nil {
-		return nil, appErr
+	for _, post := range posts {
+		post.UpdateAt = updateAt
+		if appErr := post.IsValid(maxPostSize); appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	if _, err := s.GetMaster().Update(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		if _, err = tx.Update(post); err != nil {
+			txErr := tx.Rollback()
+			if txErr != nil {
+				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
+			}
+
+			return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return post, nil
+	return posts, nil
+}
+
+func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.OverwriteMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
