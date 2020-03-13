@@ -369,8 +369,8 @@ func (r *SubmitDialogResponse) ToJson() []byte {
 
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = attachments
+	if o.GetProp("attachments") != nil {
+		o.AddProp("attachments", attachments)
 	}
 	for _, attachment := range attachments {
 		for _, action := range attachment.Actions {
@@ -391,10 +391,10 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = o.Attachments()
+	if o.GetProp("attachments") != nil {
+		o.AddProp("attachments", o.Attachments())
 	}
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action.Id == "" {
@@ -412,7 +412,7 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	retainProps := map[string]interface{}{}
 	removeProps := []string{}
 	for _, key := range PostActionRetainPropKeys {
-		value, ok := p.Props[key]
+		value, ok := p.GetProps()[key]
 		if ok {
 			retainProps[key] = value
 		} else {

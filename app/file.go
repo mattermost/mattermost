@@ -330,7 +330,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Copy and save the updated post
 	newPost := &model.Post{}
-	*newPost = *post
+	newPost = post.Clone()
 
 	newPost.Filenames = []string{}
 	newPost.FileIds = fileIds

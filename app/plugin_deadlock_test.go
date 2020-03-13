@@ -46,7 +46,7 @@ func TestPluginDeadlock(t *testing.T) {
 			}
 
 			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-				if _, from_plugin := post.Props["from_plugin"]; from_plugin {
+				if _, from_plugin := post.GetProps()["from_plugin"]; from_plugin {
 					return nil, ""
 				}
 
@@ -121,7 +121,7 @@ func TestPluginDeadlock(t *testing.T) {
 			}
 
 			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-				if _, from_plugin := post.Props["from_plugin"]; from_plugin {
+				if _, from_plugin := post.GetProps()["from_plugin"]; from_plugin {
 					return nil, ""
 				}
 

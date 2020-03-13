@@ -51,7 +51,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("newly created post shouldn't have EditAt set")
 	}
 
-	if rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+	if rpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER) != nil {
 		t.Fatal("newly created post shouldn't have Props['add_channel_member'] set")
 	}
 
@@ -565,7 +565,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 			}
 
 			wpost := model.PostFromJson(strings.NewReader(event.Data["post"].(string)))
-			if acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{}); !ok {
+			if acm, ok := wpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER).(map[string]interface{}); !ok {
 				t.Fatal("should have received ephemeral post with 'add_channel_member' in props")
 			} else {
 				if acm["post_id"] == nil || acm["user_ids"] == nil || acm["usernames"] == nil {
@@ -635,20 +635,20 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
-		rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
+		rpost.AddProp(model.PROPS_ADD_CHANNEL_MEMBER, "no good")
 		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
-		assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, rrupost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, actual.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
-		assert.Nil(t, actual.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, actual.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 	})
 
 	t.Run("join/leave post", func(t *testing.T) {
@@ -806,7 +806,7 @@ func TestPatchPost(t *testing.T) {
 
 		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
-		assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
 		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
@@ -823,7 +823,7 @@ func TestPatchPost(t *testing.T) {
 
 		rpost2, resp := Client.PatchPost(post.Id, patch2)
 		CheckNoError(t, resp)
-		assert.NotEmpty(t, rpost2.Props["attachments"])
+		assert.NotEmpty(t, rpost2.GetProp("attachments"))
 		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 	})
 

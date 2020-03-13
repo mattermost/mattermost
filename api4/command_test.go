@@ -498,7 +498,6 @@ func TestExecuteGetCommand(t *testing.T) {
 	assert.True(t, len(commandResponse.TriggerId) == 26)
 
 	expectedCommandResponse.TriggerId = commandResponse.TriggerId
-	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 }
 
@@ -557,9 +556,7 @@ func TestExecutePostCommand(t *testing.T) {
 	assert.True(t, len(commandResponse.TriggerId) == 26)
 
 	expectedCommandResponse.TriggerId = commandResponse.TriggerId
-	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
-
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
