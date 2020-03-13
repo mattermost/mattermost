@@ -117,7 +117,8 @@ func (r *MigrationRunner) Run() error {
 		}
 		defer mutex.Unlock()
 
-		for _, m := range r.migrations {
+		for idx := range r.migrations {
+			m := r.migrations[idx]
 			// function that will try to execute migration
 			migrate := func() error {
 				conn, err := createConnectionWithLockTimeout(ctx, r.supplier, r.options.LockTimeoutSecs)
