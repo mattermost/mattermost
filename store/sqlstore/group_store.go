@@ -102,6 +102,7 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppErro
 	group.Id = model.NewId()
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
+	group.GroupName = strings.ReplaceAll(group.DisplayName, " ", "-")
 
 	if err := s.GetMaster().Insert(group); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -939,8 +940,8 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 			WHERE
 				GroupChannels.DeleteAt = 0
 				AND Channels.DeleteAt = 0
-				AND Channels.TeamId = "%s") AS gc
-			ON gc.GroupId = ug.Id`, teamID)).
+				AND Channels.TeamId = ?) AS gc
+			ON gc.GroupId = ug.Id`), teamID).
 		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
 		OrderBy("ug.DisplayName")
 
@@ -950,7 +951,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 			From("UserGroups ug").
 			LeftJoin(fmt.Sprintf(`(
 				SELECT
-					GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
+					GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.GroupId, GroupChannels.SchemeAdmin
 				FROM
 					GroupChannels
 				LEFT JOIN
@@ -958,8 +959,8 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 				WHERE
 					GroupChannels.DeleteAt = 0
 					AND Channels.DeleteAt = 0
-					AND GroupChannels.TeamId = "%s") AS gc
-			ON gc.GroupId = ug.Id`, teamID)).
+					AND Channels.TeamId = ?) AS gc
+			ON gc.GroupId = ug.Id`), teamID).
 			LeftJoin(`(
 				SELECT
 					GroupMembers.GroupId, COUNT(*) AS MemberCount
