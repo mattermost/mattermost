@@ -78,8 +78,8 @@ func StartMetrics(s *Server) error {
 	return nil
 }
 
-func StartElasticsearch(s *Server) error {
-	s.startElasticsearch = true
+func StartSearchEngine(s *Server) error {
+	s.startSearchEngine = true
 
 	return nil
 }
@@ -104,7 +104,7 @@ func ServerConnector(s *Server) AppOption {
 		a.cluster = s.Cluster
 		a.compliance = s.Compliance
 		a.dataRetention = s.DataRetention
-		a.elasticsearch = s.Elasticsearch
+		a.searchEngine = s.SearchEngine
 		a.ldap = s.Ldap
 		a.messageExport = s.MessageExport
 		a.metrics = s.Metrics
