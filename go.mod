@@ -7,5 +7,4 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.5.1
-	google.golang.org/appengine v1.6.4 // indirect
 )
