@@ -24,6 +24,7 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/jobs"
@@ -120,6 +121,7 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
+	Audit            *audit.Audit
 	Log              *mlog.Logger
 	NotificationsLog *mlog.Logger
 
@@ -284,6 +286,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ReloadConfig()
 
+	if s.Audit == nil {
+		s.Audit = &audit.Audit{}
+		s.Audit.Init(audit.DefMaxQueueSize)
+		s.configureAudit(s.Audit)
+	}
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
@@ -413,6 +421,8 @@ func (s *Server) Shutdown() error {
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
 	s.stopSearchEngine()
+
+	s.Audit.Shutdown()
 
 	s.configStore.Close()
 

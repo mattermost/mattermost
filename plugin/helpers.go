@@ -83,6 +83,12 @@ type Helpers interface {
 	//
 	// Minimum server version: 5.18
 	InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error)
+
+	// GetPluginAssetURL builds a URL to the given asset in the assets directory.
+	// Use this URL to link to assets from the webapp, or for third-party integrations with your plugin.
+	//
+	// Minimum server version: 5.2
+	GetPluginAssetURL(pluginID, asset string) (string, error)
 }
 
 // HelpersImpl implements the helpers interface with an API that retrieves data on behalf of the plugin.
