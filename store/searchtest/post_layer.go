@@ -379,10 +379,6 @@ func testSearchDatabasePostSearch(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_MarkdownUnderscores(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -447,10 +443,6 @@ func testSearchESSearchPosts_MarkdownUnderscores(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_EmailAddresses(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -491,10 +483,6 @@ func testSearchESSearchPosts_EmailAddresses(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_ChineseWords(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -570,10 +558,6 @@ func testSearchESSearchPosts_ChineseWords(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_AlternativeSpellings(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -643,10 +627,6 @@ func testSearchESSearchPosts_AlternativeSpellings(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -823,10 +803,6 @@ func testSearchESSearchPosts_AndOrTerms(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_Paging(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -909,10 +885,6 @@ func testSearchESSearchPosts_Paging(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_QuotedTerms(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -991,10 +963,6 @@ func testSearchESSearchPosts_QuotedTerms(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_StopWords(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1083,10 +1051,6 @@ func testSearchESSearchPosts_StopWords(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_Stemming(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1156,10 +1120,6 @@ func testSearchESSearchPosts_Stemming(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_Wildcard(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1221,10 +1181,6 @@ func testSearchESSearchPosts_Wildcard(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_AlternativeUnicodeForms(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1294,10 +1250,6 @@ func testSearchESSearchPosts_AlternativeUnicodeForms(t *testing.T, s store.Store
 }
 
 func testSearchESSearchPosts_FromAndIn(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1427,10 +1379,6 @@ func testSearchESSearchPosts_FromAndIn(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_AfterBeforeOn(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1739,10 +1687,6 @@ func testSearchESSearchPosts_AfterBeforeOn(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_Hashtags(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1849,10 +1793,6 @@ func testSearchESSearchPosts_Hashtags(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_HashtagsAndOrWords(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
@@ -1926,10 +1866,6 @@ func testSearchESSearchPosts_HashtagsAndOrWords(t *testing.T, s store.Store) {
 }
 
 func testSearchESSearchPosts_HashtagsCaseInsensitive(t *testing.T, s store.Store) {
-	if testing.Short() {
-		t.Skip("Skipping advanced search test")
-	}
-
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team.Id)) }()
