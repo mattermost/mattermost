@@ -94,6 +94,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		replyPost.Message = "zz" + model.NewId() + "b"
 		replyPost.RootId = rootPost.Id
 
+		// We need to sleep here to be sure the post is not created during the same millisecond
+		time.Sleep(time.Millisecond)
 		_, err = ss.Post().Save(&replyPost)
 		require.Nil(t, err)
 
@@ -116,6 +118,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		post.UserId = model.NewId()
 		post.Message = "zz" + model.NewId() + "b"
 
+		// We need to sleep here to be sure the post is not created during the same millisecond
+		time.Sleep(time.Millisecond)
 		_, err = ss.Post().Save(&post)
 		require.Nil(t, err)
 
@@ -130,6 +134,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		post.Message = "zz" + model.NewId() + "b"
 		post.CreateAt = 5
 
+		// We need to sleep here to be sure the post is not created during the same millisecond
+		time.Sleep(time.Millisecond)
 		_, err = ss.Post().Save(&post)
 		require.Nil(t, err)
 
@@ -143,6 +149,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		post.UserId = model.NewId()
 		post.Message = "zz" + model.NewId() + "b"
 
+		// We need to sleep here to be sure the post is not created during the same millisecond
+		time.Sleep(time.Millisecond)
 		_, err = ss.Post().Save(&post)
 		require.Nil(t, err)
 
