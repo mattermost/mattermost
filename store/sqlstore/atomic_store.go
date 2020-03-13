@@ -17,7 +17,7 @@ type SqlAtomicStore struct {
 	SqlStore
 }
 
-func NewSqlAtomicStore(sqlStore SqlStore) store.AtomicStore {
+func newSqlAtomicStore(sqlStore SqlStore) store.AtomicStore {
 	s := &SqlAtomicStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -29,7 +29,7 @@ func NewSqlAtomicStore(sqlStore SqlStore) store.AtomicStore {
 	return s
 }
 
-func (ps SqlAtomicStore) CreateIndexesIfNotExists() {
+func (ps SqlAtomicStore) createIndexesIfNotExists() {
 }
 
 func (ps SqlAtomicStore) SaveOrUpdate(kv *model.AtomicKeyValue) (*model.AtomicKeyValue, *model.AppError) {

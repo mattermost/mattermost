@@ -290,7 +290,7 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -328,7 +328,7 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 	return s
 }
 
-func (s SqlChannelStore) CreateIndexesIfNotExists() {
+func (s SqlChannelStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
 	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
 	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
@@ -1865,9 +1865,12 @@ func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppErro
 	return data, nil
 }
 
-func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
+func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	keys, params := MapStringsToQueryParams(channelIds, "Channel")
 	query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
+	if !includeDeleted {
+		query = `SELECT * FROM Channels WHERE DeleteAt=0 AND Id IN ` + keys + ` ORDER BY Name`
+	}
 
 	var channels []*model.Channel
 	_, err := s.GetReplica().Select(&channels, query, params)
@@ -2545,7 +2548,8 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 		return nil, nil
 	}
 
-	for _, member := range channelMembers {
+	for i := range channelMembers {
+		member := channelMembers[i]
 		roles := strings.Fields(member.Roles)
 		var newRoles []string
 		if !member.SchemeAdmin.Valid {

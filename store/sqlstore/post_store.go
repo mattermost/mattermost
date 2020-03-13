@@ -30,7 +30,34 @@ type SqlPostStore struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
+func postSliceColumns() []string {
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+}
+
+func postToSlice(post *model.Post) []interface{} {
+	return []interface{}{
+		post.Id,
+		post.CreateAt,
+		post.UpdateAt,
+		post.EditAt,
+		post.DeleteAt,
+		post.IsPinned,
+		post.UserId,
+		post.ChannelId,
+		post.RootId,
+		post.ParentId,
+		post.OriginalId,
+		post.Message,
+		post.Type,
+		model.StringInterfaceToJson(post.Props),
+		post.Hashtags,
+		model.ArrayToJson(post.Filenames),
+		model.ArrayToJson(post.FileIds),
+		post.HasReactions,
+	}
+}
+
+func newSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
@@ -56,7 +83,7 @@ func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	return s
 }
 
-func (s *SqlPostStore) CreateIndexesIfNotExists() {
+func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
@@ -72,48 +99,97 @@ func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
-	if len(post.Id) > 0 {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	channelNewPosts := make(map[string]int)
+	maxDateNewPosts := make(map[string]int64)
+	rootIds := make(map[string]int)
+	maxDateRootIds := make(map[string]int64)
+	for _, post := range posts {
+		if len(post.Id) > 0 {
+			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		}
+		post.PreSave()
+		maxPostSize := s.GetMaxPostSize()
+		if err := post.IsValid(maxPostSize); err != nil {
+			return nil, err
+		}
+
+		currentChannelCount, ok := channelNewPosts[post.ChannelId]
+		if !ok {
+			if post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = 0
+			} else {
+				channelNewPosts[post.ChannelId] = 1
+			}
+			maxDateNewPosts[post.ChannelId] = post.CreateAt
+		} else {
+			if !post.IsJoinLeaveMessage() {
+				channelNewPosts[post.ChannelId] = currentChannelCount + 1
+			}
+			if post.CreateAt > maxDateNewPosts[post.ChannelId] {
+				maxDateNewPosts[post.ChannelId] = post.CreateAt
+			}
+		}
+
+		if len(post.RootId) == 0 {
+			continue
+		}
+
+		currentRootCount, ok := rootIds[post.RootId]
+		if !ok {
+			rootIds[post.RootId] = 1
+			maxDateRootIds[post.RootId] = post.CreateAt
+		} else {
+			rootIds[post.RootId] = currentRootCount + 1
+			if post.CreateAt > maxDateRootIds[post.RootId] {
+				maxDateRootIds[post.RootId] = post.CreateAt
+			}
+		}
 	}
 
-	maxPostSize := s.GetMaxPostSize()
-
-	post.PreSave()
-	if err := post.IsValid(maxPostSize); err != nil {
-		return nil, err
+	query := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+	for _, post := range posts {
+		query = query.Values(postToSlice(post)...)
+	}
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := s.GetMaster().Insert(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	time := post.UpdateAt
-
-	if !post.IsJoinLeaveMessage() {
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
+	for channelId, count := range channelNewPosts {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
-	} else {
-		// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
-			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
-		}
 	}
 
-	if len(post.RootId) > 0 {
-		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
+	for rootId := range rootIds {
+		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
-	} else {
-		if count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM Posts WHERE RootId = :Id", map[string]interface{}{"Id": post.Id}); err != nil {
-			mlog.Error("Error fetching post's thread.", mlog.Err(err))
-		} else {
-			post.ReplyCount = count
+	}
+
+	for _, post := range posts {
+		if len(post.RootId) == 0 {
+			count, ok := rootIds[post.Id]
+			if ok {
+				post.ReplyCount += int64(count)
+			}
 		}
 	}
 
-	return post, nil
+	return posts, nil
+}
+
+func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.SaveMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
@@ -149,19 +225,45 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
-	post.UpdateAt = model.GetMillis()
-
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
-	if appErr := post.IsValid(maxPostSize); appErr != nil {
-		return nil, appErr
+	for _, post := range posts {
+		post.UpdateAt = updateAt
+		if appErr := post.IsValid(maxPostSize); appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	if _, err := s.GetMaster().Update(post); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		if _, err = tx.Update(post); err != nil {
+			txErr := tx.Rollback()
+			if txErr != nil {
+				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
+			}
+
+			return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return post, nil
+	return posts, nil
+}
+
+func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	posts, err := s.OverwriteMultiple([]*model.Post{post})
+	if err != nil {
+		return nil, err
+	}
+
+	return posts[0], nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -897,7 +999,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 	return searchQuery, queryParams
 }
 
-func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool) (string, map[string]interface{}) {
 	if len(channels) == 0 {
 		return "", queryParams
 	}
@@ -909,13 +1011,20 @@ func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPr
 		queryParams[paramName] = channel
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Name NOT IN (" + clause + ")", queryParams
+	if byName {
+		if exclusion {
+			return "AND Name NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Name IN (" + clause + ")", queryParams
 	}
-	return "AND Name IN (" + clause + ")", queryParams
+
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
 	if len(users) == 0 {
 		return "", queryParams
 	}
@@ -926,13 +1035,19 @@ func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix s
 		queryParams[paramName] = user
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Username NOT IN (" + clause + ")", queryParams
+	if byUsername {
+		if exclusion {
+			return "AND Username NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Username IN (" + clause + ")", queryParams
 	}
-	return "AND Username IN (" + clause + ")", queryParams
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool) (string, map[string]interface{}) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
 		return "", queryParams
 	}
@@ -950,16 +1065,20 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 				FROM_USER_FILTER
 				EXCLUDED_USER_FILTER)`
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
+	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
 
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
+	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
 
 	return filterQuery, queryParams
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+	return s.search(teamId, userId, params, true, true)
+}
+
+func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, *model.AppError) {
 	queryParams := map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
@@ -1012,13 +1131,13 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams)
+	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "IN_CHANNEL_FILTER", inChannelClause, 1)
 
-	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams)
+	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "EXCLUDED_CHANNEL_FILTER", excludedChannelClause, 1)
 
-	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
+	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername)
 	searchQuery = strings.Replace(searchQuery, "POST_FILTER", postFilterClause, 1)
 
 	createDateFilterClause, queryParams := s.buildCreateDateFilterClause(params, queryParams)
@@ -1563,4 +1682,50 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 	}
 	return posts, nil
+}
+
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	// Since we don't support paging for DB search, we just return nothing for later pages
+	if page > 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	var wg sync.WaitGroup
+
+	pchan := make(chan store.StoreResult, len(paramsList))
+
+	for _, params := range paramsList {
+		// Don't allow users to search for everything.
+		if params.Terms == "*" {
+			continue
+		}
+
+		params.IncludeDeletedChannels = includeDeletedChannels
+		params.OrTerms = isOrSearch
+
+		wg.Add(1)
+
+		go func(params *model.SearchParams) {
+			defer wg.Done()
+			postList, err := s.search(teamId, userId, params, false, false)
+			pchan <- store.StoreResult{Data: postList, Err: err}
+		}(params)
+	}
+
+	wg.Wait()
+	close(pchan)
+
+	posts := model.NewPostList()
+
+	for result := range pchan {
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data := result.Data.(*model.PostList)
+		posts.Extend(data)
+	}
+
+	posts.SortByCreateAt()
+
+	return model.MakePostSearchResults(posts, nil), nil
 }

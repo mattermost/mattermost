@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -46,6 +47,9 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("uploadPlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -68,6 +72,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
+	auditRec.AddMeta("filename", pluginArray[0].Filename)
 
 	file, err := pluginArray[0].Open()
 	if err != nil {
@@ -82,6 +87,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	installPlugin(c, w, file, force)
+	auditRec.Success()
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -92,6 +98,9 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -99,6 +108,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	force := r.URL.Query().Get("force") == "true"
 	downloadURL := r.URL.Query().Get("plugin_download_url")
+	auditRec.AddMeta("url", downloadURL)
 
 	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
@@ -107,6 +117,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	auditRec.Success()
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -120,6 +131,9 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("installMarketplacePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -130,12 +144,17 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
+	auditRec.AddMeta("plugin_id", pluginRequest.Id)
 
 	manifest, appErr := c.App.InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("plugin_name", manifest.Name)
+	auditRec.AddMeta("plugin_desc", manifest.Description)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
@@ -192,6 +211,10 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("removePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -203,6 +226,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -280,6 +304,10 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("enablePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -290,6 +318,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -304,6 +333,10 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("disablePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -314,6 +347,7 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 

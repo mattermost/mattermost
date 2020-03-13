@@ -64,6 +64,27 @@ func (_m *Helpers) EnsureBot(bot *model.Bot, options ...plugin.EnsureBotOption) 
 	return r0, r1
 }
 
+// GetPluginAssetURL provides a mock function with given fields: pluginID, asset
+func (_m *Helpers) GetPluginAssetURL(pluginID string, asset string) (string, error) {
+	ret := _m.Called(pluginID, asset)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(pluginID, asset)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(pluginID, asset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // InstallPluginFromURL provides a mock function with given fields: downloadURL, replace
 func (_m *Helpers) InstallPluginFromURL(downloadURL string, replace bool) (*model.Manifest, error) {
 	ret := _m.Called(downloadURL, replace)

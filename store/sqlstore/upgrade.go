@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_20_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_21_0
+	VERSION_5_21_0           = "5.21.0"
 	VERSION_5_20_0           = "5.20.0"
 	VERSION_5_19_0           = "5.19.0"
 	VERSION_5_18_0           = "5.18.0"
@@ -172,6 +173,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion518(sqlStore)
 	upgradeDatabaseToVersion519(sqlStore)
 	upgradeDatabaseToVersion520(sqlStore)
+	upgradeDatabaseToVersion521(sqlStore)
+	upgradeDatabaseToVersion522(sqlStore)
 
 	return nil
 }
@@ -781,4 +784,18 @@ func asyncMigrations(ss *SqlSupplier) (*MigrationRunner, error) {
 	// }
 	runner.Run()
 	return runner, nil
+}
+
+func upgradeDatabaseToVersion521(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_20_0, VERSION_5_21_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_21_0)
+	}
+}
+
+func upgradeDatabaseToVersion522(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.22.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	// }
 }
