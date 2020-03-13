@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -36,6 +37,9 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createTermsOfService", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
 	userId := c.App.Session().UserId
@@ -62,4 +66,5 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(oldTermsOfService.ToJson()))
 	}
+	auditRec.Success()
 }
