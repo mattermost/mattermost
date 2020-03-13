@@ -29,16 +29,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
-	// GetViewUsersRestrictionsForTeam returns a list with the channel ids that the user has permissions to view on a
-	// team. If the result is an empty list, the user can't view any channel; if it's
-	// nil, there are no restrictions for the user in the specified team.
-	GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError)
 	// @openTracingParams teamId
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -413,7 +410,6 @@ type AppIface interface {
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
-	Elasticsearch() einterfaces.ElasticsearchInterface
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
@@ -677,9 +673,6 @@ type AppIface interface {
 	InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	IpAddress() string
-	IsESAutocompletionEnabled() bool
-	IsESIndexingEnabled() bool
-	IsESSearchEnabled() bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
@@ -795,6 +788,7 @@ type AppIface interface {
 	SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError)
 	SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError)
 	SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
+	SearchEngine() *searchengine.Broker
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
 	SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError)
