@@ -1164,7 +1164,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if _, err = a.Srv().Store.Channel().SaveMember(newMember); err != nil {
+	newMember, err = a.Srv().Store.Channel().SaveMember(newMember)
+	if err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -1556,6 +1557,7 @@ func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page
 	members := make([]*model.ChannelMember, 0)
 	if m != nil {
 		for _, member := range *m {
+			member := member
 			members = append(members, &member)
 		}
 	}
