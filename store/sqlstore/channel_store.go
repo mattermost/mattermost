@@ -238,9 +238,9 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		MentionCount:  db.MentionCount,
 		NotifyProps:   db.NotifyProps,
 		LastUpdateAt:  db.LastUpdateAt,
-		SchemeAdmin:   schemeAdmin,
-		SchemeUser:    schemeUser,
-		SchemeGuest:   schemeGuest,
+		SchemeAdmin:   rolesResult.schemeAdmin,
+		SchemeUser:    rolesResult.schemeUser,
+		SchemeGuest:   rolesResult.schemeGuest,
 		ExplicitRoles: strings.Join(rolesResult.explicitRoles, " "),
 	}
 }
@@ -1312,8 +1312,10 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 		Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 `
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	defer s.InvalidateAllChannelMembersForUser(member.UserId)
+func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	for _, member := range members {
+		defer s.InvalidateAllChannelMembersForUser(member.UserId)
+	}
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -1321,7 +1323,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	}
 	defer finalizeTransaction(transaction)
 
-	newMember, appErr := s.saveMemberT(transaction, member)
+	newMembers, appErr := s.saveMultipleMembersT(transaction, members)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1330,7 +1332,15 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 		return nil, model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return newMember, nil
+	return newMembers, nil
+}
+
+func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	newMembers, appErr := s.SaveMultipleMembers([]*model.ChannelMember{member})
+	if appErr != nil {
+		return nil, appErr
+	}
+	return newMembers[0], nil
 }
 
 func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
@@ -1482,26 +1492,52 @@ func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *mode
 	return members[0], nil
 }
 
-func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
-	member.PreUpdate()
+func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	for _, member := range members {
+		member.PreUpdate()
 
-	if err := member.IsValid(); err != nil {
+		if err := member.IsValid(); err != nil {
+			return nil, err
+		}
+	}
+
+	var transaction *gorp.Transaction
+	var err error
+
+	if transaction, err = s.GetMaster().Begin(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	updatedMembers := []*model.ChannelMember{}
+	for _, member := range members {
+		if _, err := transaction.Update(NewChannelMemberFromModel(member)); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.UpdateMember", "store.sql_channel.update_member.app_error", nil, "channel_id="+member.ChannelId+", "+"user_id="+member.UserId+", "+err.Error(), http.StatusInternalServerError)
+		}
+
+		// TODO: Get this out of the transaction when is possible
+		var dbMember channelMemberWithSchemeRoles
+		if err := transaction.SelectOne(&dbMember, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": member.ChannelId, "UserId": member.UserId}); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, model.NewAppError("SqlChannelStore.GetMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+member.ChannelId+"user_id="+member.UserId+","+err.Error(), http.StatusNotFound)
+			}
+			return nil, model.NewAppError("SqlChannelStore.GetMember", "store.sql_channel.get_member.app_error", nil, "channel_id="+member.ChannelId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
+		}
+		updatedMembers = append(updatedMembers, dbMember.ToModel())
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateChannelMembers", "store.sql_channel.migrate_channel_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return updatedMembers, nil
+}
+
+func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	updatedMembers, err := s.UpdateMultipleMembers([]*model.ChannelMember{member})
+	if err != nil {
 		return nil, err
 	}
-
-	if _, err := s.GetMaster().Update(NewChannelMemberFromModel(member)); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.UpdateMember", "store.sql_channel.update_member.app_error", nil, "channel_id="+member.ChannelId+", "+"user_id="+member.UserId+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	var dbMember channelMemberWithSchemeRoles
-
-	if err := s.GetReplica().SelectOne(&dbMember, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": member.ChannelId, "UserId": member.UserId}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlChannelStore.GetMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, "channel_id="+member.ChannelId+"user_id="+member.UserId+","+err.Error(), http.StatusNotFound)
-		}
-		return nil, model.NewAppError("SqlChannelStore.GetMember", "store.sql_channel.get_member.app_error", nil, "channel_id="+member.ChannelId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
-	}
-	return dbMember.ToModel(), nil
+	return updatedMembers[0], nil
 }
 
 func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError) {

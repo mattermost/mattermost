@@ -679,7 +679,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	for _, tdata := range *data {
 		team, ok := allTeams[*tdata.Name]
 		if !ok {
-			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, "", http.StatusInternalServerError)
 		}
 
 		// Team-specific theme Preferences.
@@ -799,90 +799,150 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		return nil
 	}
 
-	var preferences model.Preferences
+	channelNames := []string{}
+	for _, tdata := range *data {
+		channelNames = append(channelNames, *tdata.Name)
+	}
+	allChannels, err := a.getChannelsByNames(channelNames, team.Id)
+	if err != nil {
+		return err
+	}
 
-	// Loop through all channels.
+	channelsByID := map[string]*model.Channel{}
+	channelMemberByChannelID := map[string]*model.ChannelMember{}
+	newChannelMembers := []*model.ChannelMember{}
+	oldChannelMembers := []*model.ChannelMember{}
+	rolesByChannelId := map[string]string{}
+	channelPreferencesByID := map[string]model.Preferences{}
+	isGuestByChannelId := map[string]bool{}
+	isUserByChannelId := map[string]bool{}
+	isAdminByChannelId := map[string]bool{}
+	existingMemberships, err := a.Srv().Store.Channel().GetMembersForUser(team.Id, user.Id)
+	if err != nil {
+		return err
+	}
+	existingMembershipsByChannelId := map[string]*model.ChannelMember{}
+	for _, channelMembership := range *existingMemberships {
+		existingMembershipsByChannelId[channelMembership.ChannelId] = &channelMembership
+	}
 	for _, cdata := range *data {
-		channel, err := a.GetChannelByName(*cdata.Name, team.Id, true)
-		if err != nil {
-			return err
+		channel, ok := allChannels[*cdata.Name]
+		if !ok {
+			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
 		}
 
-		var roles string
-		isSchemeGuest := false
-		isSchemeUser := true
-		isSchemeAdmin := false
+		isGuestByChannelId[channel.Id] = false
+		isUserByChannelId[channel.Id] = true
+		isAdminByChannelId[channel.Id] = false
 
 		if cdata.Roles == nil {
-			isSchemeUser = true
+			isUserByChannelId[channel.Id] = true
 		} else {
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.CHANNEL_GUEST_ROLE_ID {
-					isSchemeGuest = true
-					isSchemeUser = false
+					isGuestByChannelId[channel.Id] = true
+					isUserByChannelId[channel.Id] = false
 				} else if role == model.CHANNEL_USER_ROLE_ID {
-					isSchemeUser = true
+					isUserByChannelId[channel.Id] = true
 				} else if role == model.CHANNEL_ADMIN_ROLE_ID {
-					isSchemeAdmin = true
+					isAdminByChannelId[channel.Id] = true
 				} else {
 					explicitRoles = append(explicitRoles, role)
 				}
 			}
-			roles = strings.Join(explicitRoles, " ")
-		}
-
-		var member *model.ChannelMember
-		member, err = a.GetChannelMember(channel.Id, user.Id)
-		if err != nil {
-			member, err = a.addUserToChannel(user, channel, teamMember)
-			if err != nil {
-				return err
-			}
-		}
-
-		if member.ExplicitRoles != roles {
-			if _, err := a.UpdateChannelMemberRoles(channel.Id, user.Id, roles); err != nil {
-				return err
-			}
-		}
-
-		a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
-
-		if cdata.NotifyProps != nil {
-			notifyProps := member.NotifyProps
-
-			if cdata.NotifyProps.Desktop != nil {
-				notifyProps[model.DESKTOP_NOTIFY_PROP] = *cdata.NotifyProps.Desktop
-			}
-
-			if cdata.NotifyProps.Mobile != nil {
-				notifyProps[model.PUSH_NOTIFY_PROP] = *cdata.NotifyProps.Mobile
-			}
-
-			if cdata.NotifyProps.MarkUnread != nil {
-				notifyProps[model.MARK_UNREAD_NOTIFY_PROP] = *cdata.NotifyProps.MarkUnread
-			}
-
-			if _, err := a.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id); err != nil {
-				return err
-			}
+			rolesByChannelId[channel.Id] = strings.Join(explicitRoles, " ")
 		}
 
 		if cdata.Favorite != nil && *cdata.Favorite {
-			preferences = append(preferences, model.Preference{
+			channelPreferencesByID[channel.Id] = append(channelPreferencesByID[channel.Id], model.Preference{
 				UserId:   user.Id,
 				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 				Name:     channel.Id,
 				Value:    "true",
 			})
 		}
+
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
+			SchemeAdmin: false,
+		}
+		if !user.IsGuest() {
+			userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			if err != nil {
+				return err
+			}
+			member.SchemeAdmin = userShouldBeAdmin
+		}
+
+		if cdata.NotifyProps != nil {
+			if cdata.NotifyProps.Desktop != nil {
+				member.NotifyProps[model.DESKTOP_NOTIFY_PROP] = *cdata.NotifyProps.Desktop
+			}
+
+			if cdata.NotifyProps.Mobile != nil {
+				member.NotifyProps[model.PUSH_NOTIFY_PROP] = *cdata.NotifyProps.Mobile
+			}
+
+			if cdata.NotifyProps.MarkUnread != nil {
+				member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = *cdata.NotifyProps.MarkUnread
+			}
+		}
+
+		channelsByID[channel.Id] = channel
+		channelMemberByChannelID[channel.Id] = member
+		if _, ok := existingMembershipsByChannelId[channel.Id]; !ok {
+			newChannelMembers = append(newChannelMembers, member)
+		} else {
+			oldChannelMembers = append(oldChannelMembers, member)
+		}
 	}
 
-	if len(preferences) > 0 {
-		if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
+	oldMembers, err := a.Srv().Store.Channel().UpdateMultipleMembers(oldChannelMembers)
+	if err != nil {
+		return err
+	}
+
+	newMembers := []*model.ChannelMember{}
+	if len(newChannelMembers) > 0 {
+		newMembers, err = a.Srv().Store.Channel().SaveMultipleMembers(newChannelMembers)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, member := range newMembers {
+		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
+			if _, err = a.UpdateChannelMemberRoles(member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
+				return err
+			}
+		}
+
+		a.UpdateChannelMemberSchemeRoles(member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
+	}
+
+	// TODO: Remove the loop duplication
+	for _, member := range oldMembers {
+		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
+			if _, err = a.UpdateChannelMemberRoles(member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
+				return err
+			}
+		}
+
+		a.UpdateChannelMemberSchemeRoles(member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
+	}
+
+	for _, channel := range allChannels {
+		if len(channelPreferencesByID[channel.Id]) > 0 {
+			pref := channelPreferencesByID[channel.Id]
+			if err := a.Srv().Store.Preference().Save(&pref); err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -1081,6 +1141,19 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 		teams[team.Name] = team
 	}
 	return teams, nil
+}
+
+func (a *App) getChannelsByNames(names []string, teamId string) (map[string]*model.Channel, *model.AppError) {
+	allChannels, err := a.Srv().Store.Channel().GetByNames(teamId, names, true)
+	if err != nil {
+		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	channels := make(map[string]*model.Channel)
+	for _, channel := range allChannels {
+		channels[channel.Name] = channel
+	}
+	return channels, nil
 }
 
 func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]*model.Channel, *model.AppError) {

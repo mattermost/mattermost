@@ -1569,6 +1569,22 @@ func (s *TimerLayerChannelStore) SaveMember(member *model.ChannelMember) (*model
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.SaveMultipleMembers(members)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SaveMultipleMembers", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
 	start := timemodule.Now()
 
@@ -1759,6 +1775,22 @@ func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []s
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMembersRole", success, elapsed)
 	}
 	return resultVar0
+}
+
+func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.UpdateMultipleMembers(members)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMultipleMembers", success, elapsed)
+	}
+	return resultVar0, resultVar1
 }
 
 func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
