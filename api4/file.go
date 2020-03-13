@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -153,12 +154,20 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		return nil
 	}
 
+	auditRec := c.MakeAuditRecord("uploadFileSimple", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channel_id", c.Params.ChannelId)
+	auditRec.AddMeta("filename", c.Params.Filename)
+
 	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return nil
 	}
 
 	clientId := r.Form.Get("client_id")
+	auditRec.AddMeta("client_id", clientId)
+	auditRec.AddMeta("content_length", r.ContentLength)
+
 	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FILE_TEAM_ID),
 		app.UploadFileSetUserId(c.App.Session().UserId),
@@ -176,6 +185,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	if clientId != "" {
 		fileUploadResponse.ClientIds = []string{clientId}
 	}
+	auditRec.Success()
 	return fileUploadResponse
 }
 
@@ -316,6 +326,11 @@ NEXT_PART:
 			clientId = clientIds[nFiles]
 		}
 
+		auditRec := c.MakeAuditRecord("uploadFileMultipart", audit.Fail)
+		auditRec.AddMeta("channel_id", c.Params.ChannelId)
+		auditRec.AddMeta("filename", filename)
+		auditRec.AddMeta("client_id", clientId)
+
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
 			app.UploadFileSetTeamId(FILE_TEAM_ID),
 			app.UploadFileSetUserId(c.App.Session().UserId),
@@ -324,8 +339,11 @@ NEXT_PART:
 			app.UploadFileSetClientId(clientId))
 		if appErr != nil {
 			c.Err = appErr
+			c.LogAuditRec(auditRec)
 			return nil
 		}
+		auditRec.Success()
+		c.LogAuditRec(auditRec)
 
 		// add to the response
 		resp.FileInfos = append(resp.FileInfos, info)
@@ -409,6 +427,12 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			clientId = clientIds[i]
 		}
 
+		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", audit.Fail)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("channel_id", channelId)
+		auditRec.AddMeta("filename", fileHeader.Filename)
+		auditRec.AddMeta("client_id", clientId)
+
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
 			app.UploadFileSetTeamId(FILE_TEAM_ID),
 			app.UploadFileSetUserId(c.App.Session().UserId),
@@ -418,8 +442,12 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		f.Close()
 		if appErr != nil {
 			c.Err = appErr
+			c.LogAuditRec(auditRec)
 			return nil
 		}
+
+		auditRec.Success()
+		c.LogAuditRec(auditRec)
 
 		resp.FileInfos = append(resp.FileInfos, info)
 		if clientId != "" {
