@@ -1105,10 +1105,13 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 
 		post.ChannelId = channel.Id
 		post.Message = *postData.Message
-		post.Props = *postData.Props
 		post.UserId = user.Id
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
 
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, team.Id, dryRun)
 		if err != nil {
@@ -1374,10 +1377,13 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 
 		post.ChannelId = channel.Id
 		post.Message = *postData.Message
-		post.Props = *postData.Props
 		post.UserId = user.Id
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
 
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, "noteam", dryRun)
 		if err != nil {
