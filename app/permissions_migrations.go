@@ -290,6 +290,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 
 	rolePairs := []rolePair{
 		{targetRole: model.CHANNEL_ADMIN_ROLE_ID, otherRole: model.CHANNEL_USER_ROLE_ID},
+		{targetRole: model.TEAM_ADMIN_ROLE_ID, otherRole: model.CHANNEL_ADMIN_ROLE_ID},
 	}
 
 	var allTeamSchemes []*model.Scheme
@@ -302,6 +303,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 
 	for _, ts := range allTeamSchemes {
 		rolePairs = append(rolePairs, rolePair{targetRole: ts.DefaultChannelAdminRole, otherRole: ts.DefaultChannelUserRole})
+		rolePairs = append(rolePairs, rolePair{targetRole: ts.DefaultTeamAdminRole, otherRole: ts.DefaultChannelAdminRole})
 	}
 
 	for _, rolePair := range rolePairs {
@@ -338,6 +340,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
+		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS2, Migration: a.channelModerationPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
