@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -42,6 +43,8 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("addLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
@@ -74,6 +77,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
+	auditRec.AddMeta("filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {
@@ -103,11 +107,15 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.Srv().Jobs.StartWorkers()
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("removeLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
@@ -125,6 +133,8 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
