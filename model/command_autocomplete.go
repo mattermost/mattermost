@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"io"
 	"net/url"
 	"reflect"
 
@@ -322,6 +323,19 @@ func (a *AutocompleteStaticListArg) AddArgument(text, helpText string) {
 		HelpText: helpText,
 	}
 	a.PossibleArguments = append(a.PossibleArguments, argument)
+}
+
+// AutocompleteSuggestionsToJSON returns json for a list of AutocompleteSuggestion objects
+func AutocompleteSuggestionsToJSON(suggestions []AutocompleteSuggestion) []byte {
+	b, _ := json.Marshal(suggestions)
+	return b
+}
+
+// AutocompleteSuggestionsFromJSON returns list of AutocompleteSuggestions from json.
+func AutocompleteSuggestionsFromJSON(data io.Reader) []AutocompleteSuggestion {
+	var o []AutocompleteSuggestion
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func stringNotInSlice(a string, slice []string) bool {

@@ -23,6 +23,7 @@ func (api *API) InitCommand() {
 	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.ApiSessionRequired(listCommandAutocompleteSuggestions)).Methods("GET")
 	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
 }
 
@@ -360,6 +361,55 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	roleId := model.SYSTEM_USER_ROLE_ID
+	if c.IsSystemAdmin() {
+		roleId = model.SYSTEM_ADMIN_ROLE_ID
+	}
+
+	userInput := r.URL.Query().Get("user_input")
+	if len(userInput) == 0 {
+		c.SetInvalidParam("userInput")
+		return
+	}
+	userInput = strings.TrimPrefix(userInput, "/")
+
+	commands, err := c.App.ListAutocompleteCommands(c.Params.TeamId, c.App.T)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	suggestions := []model.AutocompleteSuggestion{}
+
+	autocompleteData := []*model.AutocompleteData{}
+	for _, command := range commands {
+		if !command.AutoComplete {
+			continue
+		}
+		if command.AutocompleteData == nil {
+			if strings.HasPrefix(command.Trigger, userInput) {
+				suggestions = append(suggestions, model.AutocompleteSuggestion{Description: command.AutoCompleteDesc, Hint: command.Trigger})
+			}
+			continue
+		}
+		autocompleteData = append(autocompleteData, command.AutocompleteData)
+	}
+	sug := c.App.GetSuggestions(autocompleteData, userInput, roleId)
+	suggestions = append(suggestions, sug...)
+
+	w.Write(model.AutocompleteSuggestionsToJSON(suggestions))
 }
 
 func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
