@@ -4,7 +4,7 @@
 package app
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -18,7 +18,14 @@ type PluginCommand struct {
 
 func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) error {
 	if command.Trigger == "" {
-		return fmt.Errorf("invalid command")
+		return errors.New("invalid command")
+	}
+	if command.AutocompleteData != nil && command.AutocompleteData.IsValid() != nil {
+		return errors.New("invalid autocomplete data in command")
+	}
+
+	if command.AutocompleteData == nil {
+		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteDesc)
 	}
 
 	command = &model.Command{
@@ -28,6 +35,7 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 		AutoCompleteDesc: command.AutoCompleteDesc,
 		AutoCompleteHint: command.AutoCompleteHint,
 		DisplayName:      command.DisplayName,
+		AutocompleteData: command.AutocompleteData,
 	}
 
 	a.Srv().pluginCommandsLock.Lock()
