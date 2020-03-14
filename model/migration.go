@@ -16,5 +16,4 @@ const (
 	MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION                 = "view_members_new_permission"
 	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
 	MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS             = "channel_moderations_permissions"
-	MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS2            = "channel_moderations_permissions2"
 )

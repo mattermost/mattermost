@@ -49,6 +49,10 @@ const (
 	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
 	PERMISSION_CREATE_POST                       = "create_post"
 	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
+	PERMISSION_ADD_REACTION                      = "add_reaction"
+	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
+	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
+	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
 )
 
 func isRole(role string) func(string, map[string]map[string]bool) bool {
@@ -283,39 +287,73 @@ func (a *App) getAddManageGuestsPermissionsMigration() (permissionsMap, error) {
 func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	transformations := permissionsMap{}
 
-	type rolePair struct {
-		targetRole string
-		otherRole  string
-	}
-
-	rolePairs := []rolePair{
-		{targetRole: model.CHANNEL_ADMIN_ROLE_ID, otherRole: model.CHANNEL_USER_ROLE_ID},
-		{targetRole: model.TEAM_ADMIN_ROLE_ID, otherRole: model.CHANNEL_ADMIN_ROLE_ID},
-	}
-
 	var allTeamSchemes []*model.Scheme
-
 	next := a.SchemesIterator(model.SCHEME_SCOPE_TEAM, 100)
 	var schemeBatch []*model.Scheme
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
 		allTeamSchemes = append(allTeamSchemes, schemeBatch...)
 	}
 
-	for _, ts := range allTeamSchemes {
-		rolePairs = append(rolePairs, rolePair{targetRole: ts.DefaultChannelAdminRole, otherRole: ts.DefaultChannelUserRole})
-		rolePairs = append(rolePairs, rolePair{targetRole: ts.DefaultTeamAdminRole, otherRole: ts.DefaultChannelAdminRole})
+	moderatedPermissionsMinusCreatePost := []string{
+		PERMISSION_ADD_REACTION,
+		PERMISSION_REMOVE_REACTION,
+		PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS,
+		PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS,
+		PERMISSION_USE_CHANNEL_MENTIONS,
 	}
 
-	for _, rolePair := range rolePairs {
-		for perm := range model.CHANNEL_MODERATED_PERMISSIONS_MAP {
-			trans := permissionTransformation{
-				On:  permissionAnd(isRole(rolePair.targetRole), onOtherRole(rolePair.otherRole, permissionExists(perm))),
+	for _, ts := range allTeamSchemes {
+		var trans permissionTransformation
+
+		for _, perm := range moderatedPermissionsMinusCreatePost {
+			// add each moderated permission to the channel admin if channel user or guest has the permission
+			trans = permissionTransformation{
+				On: permissionAnd(
+					isRole(ts.DefaultChannelAdminRole),
+					permissionOr(
+						onOtherRole(ts.DefaultChannelUserRole, permissionExists(perm)),
+						onOtherRole(ts.DefaultChannelGuestRole, permissionExists(perm)),
+					),
+				),
+				Add: []string{perm},
+			}
+			transformations = append(transformations, trans)
+
+			// add each moderated permission to the team admin if channel admin, user, or guest has the permission
+			trans = permissionTransformation{
+				On: permissionAnd(
+					isRole(ts.DefaultTeamAdminRole),
+					permissionOr(
+						onOtherRole(ts.DefaultChannelAdminRole, permissionExists(perm)),
+						onOtherRole(ts.DefaultChannelUserRole, permissionExists(perm)),
+						onOtherRole(ts.DefaultChannelGuestRole, permissionExists(perm)),
+					),
+				),
 				Add: []string{perm},
 			}
 			transformations = append(transformations, trans)
 		}
+
+		// ensure all channel admins and team admins have create_post because it's not exposed via the UI
+		trans = permissionTransformation{
+			On: permissionOr(
+				isRole(model.CHANNEL_ADMIN_ROLE_ID),
+				isRole(model.TEAM_ADMIN_ROLE_ID),
+				isRole(ts.DefaultChannelAdminRole),
+				isRole(ts.DefaultTeamAdminRole),
+			),
+			Add: []string{PERMISSION_CREATE_POST},
+		}
+		transformations = append(transformations, trans)
 	}
 
+	// ensure system admin has all of the moderated permissions
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+		Add: append(moderatedPermissionsMinusCreatePost, PERMISSION_CREATE_POST),
+	})
+
+	// add the new use_channel_mentions permission to everyone who has create_post
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
 		Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
@@ -340,7 +378,6 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
-		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS2, Migration: a.channelModerationPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
