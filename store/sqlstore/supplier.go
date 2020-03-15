@@ -64,6 +64,7 @@ const (
 	EXIT_REMOVE_INDEX_SQLITE         = 136
 	EXIT_TABLE_EXISTS_SQLITE         = 137
 	EXIT_DOES_COLUMN_EXISTS_SQLITE   = 138
+	EXIT_ALTER_PRIMARY_KEY           = 139
 )
 
 type SqlSupplierStores struct {
@@ -760,7 +761,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 	var err error
 	// get the current primary key as a comma separated list of columns
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		sql := `
+		query := `
 			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
 		FROM
 			information_schema.statistics
@@ -770,9 +771,9 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		AND index_name = 'PRIMARY'
 		GROUP BY
 			index_name`
-		currentPrimaryKey, err = ss.GetMaster().SelectStr(sql, tableName)
+		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sql := `
+		query := `
 			SELECT string_agg(a.attname, ',') AS pk
 		FROM
 			pg_constraint AS c
@@ -784,7 +785,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		WHERE
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
-		currentPrimaryKey, err = ss.GetMaster().SelectStr(sql)
+		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		// SQLite doesn't support altering primary key
 		return true
@@ -792,8 +793,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 	if err != nil {
 		mlog.Critical("Failed to get current primary key", mlog.String("table", tableName), mlog.Err(err))
 		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
-		return false
+		os.Exit(EXIT_ALTER_PRIMARY_KEY)
 	}
 
 	primaryKey := strings.Join(columnNames, ",")
@@ -801,18 +801,17 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		return false
 	}
 	// alter primary key
-	var alter string
+	var alterQuery string
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		alter = "ALTER TABLE " + tableName + " DROP PRIMARY KEY, ADD PRIMARY KEY (" + primaryKey + ")"
+		alterQuery = "ALTER TABLE " + tableName + " DROP PRIMARY KEY, ADD PRIMARY KEY (" + primaryKey + ")"
 	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		alter = "ALTER TABLE " + tableName + " DROP CONSTRAINT " + strings.ToLower(tableName) + "_pkey, ADD PRIMARY KEY (" + strings.ToLower(primaryKey) + ")"
+		alterQuery = "ALTER TABLE " + tableName + " DROP CONSTRAINT " + strings.ToLower(tableName) + "_pkey, ADD PRIMARY KEY (" + strings.ToLower(primaryKey) + ")"
 	}
-	_, err = ss.GetMaster().ExecNoTimeout(alter)
+	_, err = ss.GetMaster().ExecNoTimeout(alterQuery)
 	if err != nil {
 		mlog.Critical("Failed to alter primary key", mlog.String("table", tableName), mlog.Err(err))
 		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
-		return false
+		os.Exit(EXIT_ALTER_PRIMARY_KEY)
 	}
 	return true
 }
