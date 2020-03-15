@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package einterfaces
+package searchengine
 
 import (
 	"time"
@@ -9,10 +9,16 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type ElasticsearchInterface interface {
+type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
 	GetVersion() int
+	UpdateConfig(cfg *model.Config)
+	GetName() string
+	IsActive() bool
+	IsIndexingEnabled() bool
+	IsSearchEnabled() bool
+	IsAutocompletionEnabled() bool
 	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError)
 	DeletePost(post *model.Post) *model.AppError
