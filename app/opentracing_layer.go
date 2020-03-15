@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -56,7 +57,7 @@ type OpenTracingAppLayer struct {
 	cluster          einterfaces.ClusterInterface
 	compliance       einterfaces.ComplianceInterface
 	dataRetention    einterfaces.DataRetentionInterface
-	elasticsearch    einterfaces.ElasticsearchInterface
+	searchEngine     *searchengine.Broker
 	ldap             einterfaces.LdapInterface
 	messageExport    einterfaces.MessageExportInterface
 	metrics          einterfaces.MetricsInterface
@@ -8610,28 +8611,6 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(userId string) (*model.Vi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetViewUsersRestrictionsForTeam")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetViewUsersRestrictionsForTeam(userId, teamId)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) HTMLTemplates() *template.Template {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HTMLTemplates")
@@ -9249,57 +9228,6 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(emailList []string,
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) IsESAutocompletionEnabled() bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESAutocompletionEnabled")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsESAutocompletionEnabled()
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) IsESIndexingEnabled() bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESIndexingEnabled")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsESIndexingEnabled()
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) IsESSearchEnabled() bool {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.IsESSearchEnabled")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.IsESSearchEnabled()
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) IsFirstUserAccount() bool {
@@ -11810,6 +11738,23 @@ func (a *OpenTracingAppLayer) SearchEmoji(name string, prefixOnly bool, limit in
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) SearchEngine() *searchengine.Broker {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchEngine")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SearchEngine()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -14936,7 +14881,7 @@ func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *OpenTracing
 	newApp.cluster = childApp.Cluster()
 	newApp.compliance = childApp.Compliance()
 	newApp.dataRetention = childApp.DataRetention()
-	newApp.elasticsearch = childApp.Elasticsearch()
+	newApp.searchEngine = childApp.SearchEngine()
 	newApp.ldap = childApp.Ldap()
 	newApp.messageExport = childApp.MessageExport()
 	newApp.metrics = childApp.Metrics()
@@ -14991,9 +14936,6 @@ func (a *OpenTracingAppLayer) Compliance() einterfaces.ComplianceInterface {
 }
 func (a *OpenTracingAppLayer) DataRetention() einterfaces.DataRetentionInterface {
 	return a.dataRetention
-}
-func (a *OpenTracingAppLayer) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return a.elasticsearch
 }
 func (a *OpenTracingAppLayer) Ldap() einterfaces.LdapInterface {
 	return a.ldap

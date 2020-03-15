@@ -239,12 +239,12 @@ func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileIn
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
 	postId := files[0].PostId
-	assert.NotNil(t, postId)
+	require.NotNil(t, postId)
 
 	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
 	require.Nil(t, err)
 
-	assert.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 	for _, file := range files {
 		assert.Contains(t, posts[0].FileIds, file.Id)
 	}

@@ -31,7 +31,7 @@ type {{.Name}} struct {
 	cluster          einterfaces.ClusterInterface
 	compliance       einterfaces.ComplianceInterface
 	dataRetention    einterfaces.DataRetentionInterface
-	elasticsearch    einterfaces.ElasticsearchInterface
+	searchEngine     *searchengine.Broker
 	ldap             einterfaces.LdapInterface
 	messageExport    einterfaces.MessageExportInterface
 	metrics          einterfaces.MetricsInterface
@@ -99,7 +99,7 @@ func NewOpenTracingAppLayer(childApp AppIface, ctx context.Context) *{{.Name}} {
 	newApp.cluster = childApp.Cluster()
 	newApp.compliance = childApp.Compliance()
 	newApp.dataRetention = childApp.DataRetention()
-	newApp.elasticsearch = childApp.Elasticsearch()
+	newApp.searchEngine = childApp.SearchEngine()
 	newApp.ldap = childApp.Ldap()
 	newApp.messageExport = childApp.MessageExport()
 	newApp.metrics = childApp.Metrics()
@@ -155,9 +155,6 @@ func (a *{{.Name}}) Compliance() einterfaces.ComplianceInterface {
 }
 func (a *{{.Name}}) DataRetention() einterfaces.DataRetentionInterface {
 	return a.dataRetention
-}
-func (a *{{.Name}}) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return a.elasticsearch
 }
 func (a *{{.Name}}) Ldap() einterfaces.LdapInterface {
 	return a.ldap
