@@ -247,7 +247,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Nil(t, outOfGroupUsers)
 	})
 
-	t.Run("should not return results for non-existant users", func(t *testing.T) {
+	t.Run("should not return results for non-existent users", func(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
@@ -1613,7 +1613,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.Props["override_username"].(string),
+			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},

@@ -6,6 +6,7 @@ package model
 import (
 	"io/ioutil"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,7 @@ func TestPostToJson(t *testing.T) {
 	ro := PostFromJson(strings.NewReader(j))
 
 	assert.NotNil(t, ro)
-	assert.Equal(t, o, *ro)
+	assert.Equal(t, &o, ro.Clone())
 }
 
 func TestPostFromJsonError(t *testing.T) {
@@ -124,7 +125,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post1.SanitizeProps()
 
-	require.Nil(t, post1.Props[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post1.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
 	post2 := &Post{
 		Message: "test",
@@ -135,7 +136,7 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post2.SanitizeProps()
 
-	require.Nil(t, post2.Props[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post2.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
 	post3 := &Post{
 		Message: "test",
@@ -147,9 +148,9 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	post3.SanitizeProps()
 
-	require.Nil(t, post3.Props[PROPS_ADD_CHANNEL_MEMBER])
+	require.Nil(t, post3.GetProp(PROPS_ADD_CHANNEL_MEMBER))
 
-	require.NotNil(t, post3.Props["attachments"])
+	require.NotNil(t, post3.GetProp("attachments"))
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
@@ -499,6 +500,352 @@ func BenchmarkRewriteImageURLs(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		rewriteImageURLsSink = RewriteImageURLs(markdownSample, func(url string) string {
 			return "rewritten:" + url
+		})
+	}
+}
+
+func TestPostShallowCopy(t *testing.T) {
+	var dst *Post
+	p := &Post{
+		Id: NewId(),
+	}
+
+	err := p.ShallowCopy(dst)
+	require.Error(t, err)
+
+	dst = &Post{}
+	err = p.ShallowCopy(dst)
+	require.NoError(t, err)
+	require.Equal(t, p, dst)
+	require.Condition(t, func() bool {
+		return p != dst
+	})
+}
+
+func TestPostClone(t *testing.T) {
+	p := &Post{
+		Id: NewId(),
+	}
+
+	pp := p.Clone()
+	require.Equal(t, p, pp)
+	require.Condition(t, func() bool {
+		return p != pp
+	})
+	require.Condition(t, func() bool {
+		return &p.propsMu != &pp.propsMu
+	})
+}
+
+func BenchmarkClonePost(b *testing.B) {
+	p := Post{}
+	for i := 0; i < b.N; i++ {
+		_ = p.Clone()
+	}
+}
+
+func BenchmarkPostPropsGet_indirect(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	for i := 0; i < b.N; i++ {
+		_ = p.GetProps()
+	}
+}
+
+func BenchmarkPostPropsGet_direct(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	for i := 0; i < b.N; i++ {
+		_ = p.Props
+	}
+}
+
+func BenchmarkPostPropsAdd_indirect(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	for i := 0; i < b.N; i++ {
+		p.AddProp("test", "somevalue")
+	}
+}
+
+func BenchmarkPostPropsAdd_direct(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	for i := 0; i < b.N; i++ {
+		p.Props["test"] = "somevalue"
+	}
+}
+
+func BenchmarkPostPropsDel_indirect(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	p.AddProp("test", "somevalue")
+	for i := 0; i < b.N; i++ {
+		p.DelProp("test")
+	}
+}
+
+func BenchmarkPostPropsDel_direct(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	for i := 0; i < b.N; i++ {
+		delete(p.Props, "test")
+	}
+}
+
+func BenchmarkPostPropGet_direct(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	p.Props["somekey"] = "somevalue"
+	for i := 0; i < b.N; i++ {
+		_ = p.Props["somekey"]
+	}
+}
+
+func BenchmarkPostPropGet_indirect(b *testing.B) {
+	p := Post{
+		Props: make(StringInterface),
+	}
+	p.Props["somekey"] = "somevalue"
+	for i := 0; i < b.N; i++ {
+		_ = p.GetProp("somekey")
+	}
+}
+
+// TestPostPropsDataRace tries to trigger data race conditions related to Post.Props.
+// It's meant to be run with the -race flag.
+func TestPostPropsDataRace(t *testing.T) {
+	p := Post{Message: "test"}
+
+	wg := sync.WaitGroup{}
+	wg.Add(7)
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			p.AddProp("test", "test")
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			_ = p.GetProp("test")
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			p.AddProp("test", "test2")
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			_ = p.GetProps()["test"]
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			p.DelProp("test")
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			p.SetProps(make(StringInterface))
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			_ = p.Clone()
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+
+func Test_findAtChannelMention(t *testing.T) {
+	testCases := []struct {
+		Name    string
+		Message string
+		Mention string
+		Found   bool
+	}{
+		{
+			"Returns mention for @here wrapped by spaces",
+			"hi guys @here wrapped by spaces",
+			"@here",
+			true,
+		},
+		{
+			"Returns mention for @all wrapped by spaces",
+			"hi guys @all wrapped by spaces",
+			"@all",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by spaces",
+			"hi guys @channel wrapped by spaces",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention for @here wrapped by dash",
+			"-@here-",
+			"@here",
+			true,
+		},
+		{
+			"Returns mention for @all wrapped by back tick",
+			"`@all`",
+			"@all",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by tags",
+			"<@channel>",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention for @channel wrapped by asterisks",
+			"*@channel*",
+			"@channel",
+			true,
+		},
+		{
+			"Does not return mention when prefixed by letters",
+			"hi@channel",
+			"",
+			false,
+		},
+		{
+			"Does not return mention when suffixed by letters",
+			"hi @channelanotherword",
+			"",
+			false,
+		},
+		{
+			"Returns mention when prefixed by word ending in special character",
+			"hi-@channel",
+			"@channel",
+			true,
+		},
+		{
+			"Returns mention when suffixed by word starting in special character",
+			"hi @channel-guys",
+			"@channel",
+			true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			mention, found := findAtChannelMention(tc.Message)
+			assert.Equal(t, tc.Mention, mention)
+			assert.Equal(t, tc.Found, found)
+		})
+	}
+}
+
+func TestPostDisableMentionHighlights(t *testing.T) {
+	post := &Post{}
+
+	testCases := []struct {
+		Name            string
+		Message         string
+		ExpectedProps   StringInterface
+		ExpectedMention string
+	}{
+		{
+			"Does nothing for post with no mentions",
+			"Sample message with no mentions",
+			StringInterface(nil),
+			"",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @here",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@here",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @channel",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@channel",
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED and returns mention",
+			"Sample message with @all",
+			StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+			"@all",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			post.Message = tc.Message
+			mention := post.DisableMentionHighlights()
+			assert.Equal(t, tc.ExpectedMention, mention)
+			assert.Equal(t, tc.ExpectedProps, post.Props)
+			post.Props = StringInterface{}
+		})
+	}
+}
+
+func TestPostPatchDisableMentionHighlights(t *testing.T) {
+	patch := &PostPatch{}
+
+	testCases := []struct {
+		Name          string
+		Message       string
+		ExpectedProps *StringInterface
+	}{
+		{
+			"Does nothing for post with no mentions",
+			"Sample message with no mentions",
+			nil,
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @here",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @channel",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+		{
+			"Sets POST_PROPS_MENTION_HIGHLIGHT_DISABLED",
+			"Sample message with @all",
+			&StringInterface{POST_PROPS_MENTION_HIGHLIGHT_DISABLED: true},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			patch.Message = &tc.Message
+			patch.DisableMentionHighlights()
+			if tc.ExpectedProps == nil {
+				assert.Nil(t, patch.Props)
+			} else {
+				assert.Equal(t, *tc.ExpectedProps, *patch.Props)
+			}
+			patch.Props = nil
 		})
 	}
 }

@@ -489,7 +489,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, err
 		}
@@ -648,7 +648,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForUserTeams(user.Id)
+	a.invalidateCacheForUserTeams(user.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
 	message.Add("team_id", team.Id)
@@ -944,15 +944,6 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		})
 	}
 
-	esInterface := a.Elasticsearch()
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Srv().Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	if _, err := a.Srv().Store.User().UpdateUpdateAt(user.Id); err != nil {
 		return err
 	}
@@ -964,7 +955,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForUserTeams(user.Id)
+	a.invalidateCacheForUserTeams(user.Id)
 
 	return nil
 }
@@ -987,7 +978,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
-			a.InvalidateCacheForChannelMembers(channel.Id)
+			a.invalidateCacheForChannelMembers(channel.Id)
 			if err = a.Srv().Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
 				return err
 			}
@@ -1135,7 +1126,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	}()
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels, false)
 		cchan <- store.StoreResult{Data: channels, Err: err}
 		close(cchan)
 	}()
@@ -1199,7 +1190,7 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
 	}
 
 	return inviteListWithErrors, nil
@@ -1265,7 +1256,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.SendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
+	a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
 
 	return nil
 }
@@ -1602,7 +1593,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	for {
 		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
 		if err != nil {
-			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID))
+			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
 		}
 

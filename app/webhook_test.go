@@ -302,9 +302,9 @@ func TestCreateWebhookPost(t *testing.T) {
 	}, model.POST_SLACK_ATTACHMENT, "")
 	require.Nil(t, err)
 
-	assert.Contains(t, post.Props, "from_webhook", "missing from_webhook prop")
-	assert.Contains(t, post.Props, "attachments", "missing attachments prop")
-	assert.Contains(t, post.Props, "webhook_display_name", "missing webhook_display_name prop")
+	assert.Contains(t, post.GetProps(), "from_webhook", "missing from_webhook prop")
+	assert.Contains(t, post.GetProps(), "attachments", "missing attachments prop")
+	assert.Contains(t, post.GetProps(), "webhook_display_name", "missing webhook_display_name prop")
 
 	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.POST_SYSTEM_GENERIC, "")
 	require.NotNil(t, err, "Should have failed - bad post type")
@@ -449,7 +449,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			for i, split := range splits {
 				if i < len(tc.Expected) {
 					assert.Equal(t, tc.Expected[i].Message, split.Message)
-					assert.Equal(t, tc.Expected[i].Props["attachments"], split.Props["attachments"])
+					assert.Equal(t, tc.Expected[i].GetProp("attachments"), split.GetProp("attachments"))
 				}
 			}
 		})
@@ -610,17 +610,17 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			select {
 			case webhookPost := <-createdPost:
 				assert.Equal(t, webhookPost.Message, "sample response text from test server")
-				assert.Equal(t, webhookPost.Props["from_webhook"], "true")
+				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
 				if testCase.ExpectedIconUrl != "" {
-					assert.Equal(t, webhookPost.Props["override_icon_url"], testCase.ExpectedIconUrl)
+					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconUrl)
 				} else {
-					assert.Nil(t, webhookPost.Props["override_icon_url"])
+					assert.Nil(t, webhookPost.GetProp("override_icon_url"))
 				}
 
 				if testCase.ExpectedUsername != "" {
-					assert.Equal(t, webhookPost.Props["override_username"], testCase.ExpectedUsername)
+					assert.Equal(t, webhookPost.GetProp("override_username"), testCase.ExpectedUsername)
 				} else {
-					assert.Nil(t, webhookPost.Props["override_username"])
+					assert.Nil(t, webhookPost.GetProp("override_username"))
 				}
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")

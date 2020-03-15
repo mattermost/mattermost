@@ -20,6 +20,7 @@ linters:
     - gosimple
     - govet
     - ineffassign
+    - scopelint
     - structcheck
     - unconvert
     - unused
@@ -34,6 +35,11 @@ issues:
       # add more as required.
       - unused
       text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+
+    - linters:
+      - scopelint
+      # ignore warnings from table tests. https://github.com/kyoh86/scopelint/issues/4
+      path: ".*_test.go|store/storetest"
 
     - linters:
       # ignore golint error for a lot of packages for now
