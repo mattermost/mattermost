@@ -280,7 +280,7 @@ github.com/uber/jaeger-lib/metrics
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.3
+# github.com/wiggin77/logr v1.0.4
 github.com/wiggin77/logr
 github.com/wiggin77/logr/format
 github.com/wiggin77/logr/target
