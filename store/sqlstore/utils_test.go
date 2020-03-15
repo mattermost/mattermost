@@ -33,6 +33,24 @@ func TestMapStringsToQueryParams(t *testing.T) {
 	})
 }
 
+var keys string
+var params map[string]interface{}
+
+func BenchmarkMapStringsToQueryParams(b *testing.B) {
+	b.Run("one item", func(b *testing.B) {
+		input := []string{"apple"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Fruit")
+		}
+	})
+	b.Run("multiple items", func(b *testing.B) {
+		input := []string{"carrot", "tomato", "potato"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Vegetable")
+		}
+	})
+}
+
 func TestSanitizeSearchTerm(t *testing.T) {
 	term := "test"
 	result := sanitizeSearchTerm(term, "\\")

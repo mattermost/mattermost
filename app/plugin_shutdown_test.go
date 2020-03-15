@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPluginShutdownTest(t *testing.T) {
@@ -67,6 +69,6 @@ func TestPluginShutdownTest(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(15 * time.Second):
-		t.Fatal("failed to force plugin shutdown after 10 seconds")
+		require.Fail(t, "failed to force plugin shutdown after 10 seconds")
 	}
 }

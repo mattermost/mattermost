@@ -16,8 +16,14 @@ import (
 
 // UpdateByQueryService is documented at https://www.elastic.co/guide/en/elasticsearch/plugins/master/plugins-reindex.html.
 type UpdateByQueryService struct {
-	client                 *Client
-	pretty                 bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index                  []string
 	typ                    []string
 	script                 *Script
@@ -76,6 +82,46 @@ func NewUpdateByQueryService(client *Client) *UpdateByQueryService {
 	}
 }
 
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *UpdateByQueryService) Pretty(pretty bool) *UpdateByQueryService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *UpdateByQueryService) Human(human bool) *UpdateByQueryService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *UpdateByQueryService) ErrorTrace(errorTrace bool) *UpdateByQueryService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *UpdateByQueryService) FilterPath(filterPath ...string) *UpdateByQueryService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *UpdateByQueryService) Header(name string, value string) *UpdateByQueryService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *UpdateByQueryService) Headers(headers http.Header) *UpdateByQueryService {
+	s.headers = headers
+	return s
+}
+
 // Index is a list of index names to search; use `_all` or empty string to
 // perform the operation on all indices.
 func (s *UpdateByQueryService) Index(index ...string) *UpdateByQueryService {
@@ -87,12 +133,6 @@ func (s *UpdateByQueryService) Index(index ...string) *UpdateByQueryService {
 // the operation on all types.
 func (s *UpdateByQueryService) Type(typ ...string) *UpdateByQueryService {
 	s.typ = append(s.typ, typ...)
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *UpdateByQueryService) Pretty(pretty bool) *UpdateByQueryService {
-	s.pretty = pretty
 	return s
 }
 
@@ -461,8 +501,17 @@ func (s *UpdateByQueryService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if len(s.xSource) > 0 {
 		params.Set("_source", strings.Join(s.xSource, ","))
@@ -660,6 +709,7 @@ func (s *UpdateByQueryService) Do(ctx context.Context) (*BulkIndexByScrollRespon
 		Params:       params,
 		Body:         body,
 		IgnoreErrors: []int{http.StatusConflict},
+		Headers:      s.headers,
 	})
 	if err != nil {
 		return nil, err

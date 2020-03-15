@@ -13,10 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -192,13 +193,13 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
 		require.Nil(t, err)
 
-		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -219,14 +220,14 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
 		})
 		require.Nil(t, err)
 
-		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
@@ -255,13 +256,13 @@ func TestUpdatePostEditAt(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{}
-	*post = *th.BasicPost
+	post = th.BasicPost.Clone()
 
 	post.IsPinned = true
 	saved, err := th.App.UpdatePost(post, true)
 	require.Nil(t, err)
 	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
-	*post = *saved
+	post = saved.Clone()
 
 	time.Sleep(time.Millisecond * 100)
 
@@ -278,7 +279,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{}
-	*post = *th.BasicPost
+	post = th.BasicPost.Clone()
 
 	th.App.SetLicense(model.NewTestLicense())
 
@@ -432,7 +433,7 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.Props["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err = th.App.UpdatePost(post, false)
@@ -441,12 +442,23 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.Props["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*storemocks.Store)
+	mockUserStore := storemocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockPostStore := storemocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -577,7 +589,7 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
-				Srv: &Server{
+				srv: &Server{
 					Store: mockStore,
 				},
 			}
@@ -601,7 +613,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
 		th.App.RemoveFile(info1.Path)
 	}()
 
@@ -668,6 +680,56 @@ func TestCreatePost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
+
+	t.Run("Sets prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
+			postWithNoMention := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "This post does not have mentions",
+				UserId:    th.BasicUser.Id,
+			}
+			rpost, err := th.App.CreatePost(postWithNoMention, th.BasicChannel, false)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+
+			postWithMention := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "This post has @here mention @all",
+				UserId:    th.BasicUser.Id,
+			}
+			rpost, err = th.App.CreatePost(postWithMention, th.BasicChannel, false)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+		})
+
+		t.Run("Sets prop when post has mentions and user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
+			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+			postWithNoMention := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "This post does not have mentions",
+				UserId:    th.BasicUser.Id,
+			}
+			rpost, err := th.App.CreatePost(postWithNoMention, th.BasicChannel, false)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+
+			postWithMention := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				Message:   "This post has @here mention @all",
+				UserId:    th.BasicUser.Id,
+			}
+			rpost, err = th.App.CreatePost(postWithMention, th.BasicChannel, false)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
+
+			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		})
+	})
 }
 
 func TestPatchPost(t *testing.T) {
@@ -703,6 +765,53 @@ func TestPatchPost(t *testing.T) {
 		rpost, err = th.App.PatchPost(rpost.Id, patch)
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+
+	t.Run("Sets Prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "This post does not have mentions",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+
+		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
+			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch has no channel mention")}
+
+			rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+
+			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+
+			rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+		})
+
+		t.Run("Sets prop when user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
+			th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+			patchWithNoMention := &model.PostPatch{Message: model.NewString("This patch still does not have a mention")}
+			rpost, err = th.App.PatchPost(rpost.Id, patchWithNoMention)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProps(), model.StringInterface{})
+
+			patchWithMention := &model.PostPatch{Message: model.NewString("This patch has a mention now @here")}
+
+			rpost, err = th.App.PatchPost(rpost.Id, patchWithMention)
+			require.Nil(t, err)
+			assert.Equal(t, rpost.GetProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED), true)
+
+			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		})
 	})
 }
 
@@ -835,9 +944,16 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			posts[2].Id,
 		}
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -856,9 +972,16 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 			posts[0].Id,
 		}
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil, nil)
-		th.App.Elasticsearch = es
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -873,9 +996,16 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
@@ -898,9 +1028,16 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		es := &mocks.ElasticsearchInterface{}
+		es := &mocks.SearchEngineInterface{}
 		es.On("SearchPosts", mock.Anything, mock.Anything, page, perPage).Return(nil, nil, &model.AppError{})
-		th.App.Elasticsearch = es
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
 
 		results, err := th.App.SearchPostsInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 

@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"io/ioutil"
+	"mime"
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -22,6 +25,8 @@ func (api *API) InitSaml() {
 	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
 
 	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
+
+	api.BaseRoutes.SAML.Handle("/metadatafromidp", api.ApiHandler(getSamlMetadataFromIdp)).Methods("POST")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -57,7 +62,7 @@ func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -67,16 +72,21 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("addSamlPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
 
 	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -86,81 +96,154 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		c.Err = err
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("addSamlPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("filename", fileData.Filename)
 
 	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+	v := r.Header.Get("Content-Type")
+	if v == "" {
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	d, _, err := mime.ParseMediaType(v)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
-		c.Err = err
+	auditRec := c.MakeAuditRecord("addSamlIdpCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("type", d)
+
+	if d == "application/x-pem-file" {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := c.App.SetSamlIdpCertificateFromMetadata(body); err != nil {
+			c.Err = err
+			return
+		}
+	} else if d == "multipart/form-data" {
+		fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		auditRec.AddMeta("filename", fileData.Filename)
+
+		if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
+			c.Err = err
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("addSamlIdpCertificate", "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("removeSamlPublicCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("removeSamlPrivateCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("removeSamlIdpCertificate", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.RemoveSamlIdpCertificate(); err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	status := c.App.GetSamlCertificateStatus()
 	w.Write([]byte(status.ToJson()))
+}
+
+func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	props := model.MapFromJson(r.Body)
+	url := props["saml_metadata_url"]
+	if url == "" {
+		c.SetInvalidParam("saml_metadata_url")
+		return
+	}
+
+	metadata, err := c.App.GetSamlMetadataFromIdp(url)
+	if err != nil {
+		c.Err = model.NewAppError("getSamlMetadataFromIdp", "api.admin.saml.failure_get_metadata_from_idp.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte(metadata.ToJson()))
 }

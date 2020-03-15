@@ -162,5 +162,17 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 	})
 }
 
+func TestRemoveEnvironmentOverrides(t *testing.T) {
+	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+	base, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	oldCfg := base.Get()
+	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
+	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
+	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
+}
+
 func newBool(b bool) *bool       { return &b }
 func newString(s string) *string { return &s }

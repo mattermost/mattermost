@@ -8,17 +8,18 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (w *Web) InitSaml() {
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(loginWithSaml)).Methods("GET")
-	w.MainRouter.Handle("/login/sso/saml", w.NewHandler(completeSaml)).Methods("POST")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandler(loginWithSaml)).Methods("GET")
+	w.MainRouter.Handle("/login/sso/saml", w.ApiHandlerTrustRequester(completeSaml)).Methods("POST")
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := c.App.Saml
+	samlInterface := c.App.Saml()
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -61,7 +62,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := c.App.Saml
+	samlInterface := c.App.Saml()
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -84,13 +85,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
+	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	action := relayProps["action"]
+	auditRec.AddMeta("action", action)
+
 	user, err := samlInterface.DoLogin(encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
-
 		if action == model.OAUTH_ACTION_MOBILE {
 			err.Translate(c.App.T)
 			w.Write([]byte(err.ToJson()))
@@ -111,7 +115,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.OAUTH_ACTION_SIGNUP:
 		teamId := relayProps["team_id"]
 		if len(teamId) > 0 {
-			c.App.Srv.Go(func() {
+			c.App.Srv().Go(func() {
 				if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
 					mlog.Error(err.Error())
 				} else {
@@ -124,14 +128,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+		auditRec.AddMeta("revoked_user_id", user.Id)
+		auditRec.AddMeta("revoked", "Revoked all sessions for user")
+
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-		c.App.Srv.Go(func() {
+		c.App.Srv().Go(func() {
 			if err = c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
 	}
 
+	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
 	err = c.App.DoLogin(w, r, user, "")
@@ -140,6 +148,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)

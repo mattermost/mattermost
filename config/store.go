@@ -20,6 +20,10 @@ type Store interface {
 	// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 	GetEnvironmentOverrides() map[string]interface{}
 
+	// RemoveEnvironmentOverrides returns a new config without the environment
+	// overrides
+	RemoveEnvironmentOverrides(cfg *model.Config) *model.Config
+
 	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) (*model.Config, error)
 

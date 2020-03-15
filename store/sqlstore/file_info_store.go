@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -12,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlFileInfoStore struct {
@@ -20,21 +20,10 @@ type SqlFileInfoStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-const (
-	FILE_INFO_CACHE_SIZE = 25000
-	FILE_INFO_CACHE_SEC  = 1800 // 30 minutes
-)
-
-var fileInfoCache *utils.Cache = utils.NewLru(FILE_INFO_CACHE_SIZE)
-
 func (fs SqlFileInfoStore) ClearCaches() {
-	fileInfoCache.Purge()
-	if fs.metrics != nil {
-		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Purge")
-	}
 }
 
-func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
+func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -56,7 +45,7 @@ func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface
 	return s
 }
 
-func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
+func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_update_at", "FileInfo", "UpdateAt")
 	fs.CreateIndexIfNotExists("idx_fileinfo_create_at", "FileInfo", "CreateAt")
 	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")
@@ -94,6 +83,75 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 	return info, nil
 }
 
+func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	if perPage < 0 || page < 0 {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, fmt.Sprintf("page=%d and perPage=%d must be non-negative", page, perPage), http.StatusBadRequest)
+	}
+	if perPage == 0 {
+		return nil, nil
+	}
+
+	if opt == nil {
+		opt = &model.GetFileInfosOptions{}
+	}
+
+	query := fs.getQueryBuilder().
+		Select("FileInfo.*").
+		From("FileInfo")
+
+	if len(opt.ChannelIds) > 0 {
+		query = query.Join("Posts ON FileInfo.PostId = Posts.Id").
+			Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
+	}
+
+	if len(opt.UserIds) > 0 {
+		query = query.Where(sq.Eq{"FileInfo.CreatorId": opt.UserIds})
+	}
+
+	if opt.Since > 0 {
+		query = query.Where(sq.GtOrEq{"FileInfo.CreateAt": opt.Since})
+	}
+
+	if !opt.IncludeDeleted {
+		query = query.Where("FileInfo.DeleteAt = 0")
+	}
+
+	if opt.SortBy == "" {
+		opt.SortBy = model.FILEINFO_SORT_BY_CREATED
+	}
+	sortDirection := "ASC"
+	if opt.SortDescending {
+		sortDirection = "DESC"
+	}
+
+	switch opt.SortBy {
+	case model.FILEINFO_SORT_BY_CREATED:
+		query = query.OrderBy("FileInfo.CreateAt " + sortDirection)
+	case model.FILEINFO_SORT_BY_SIZE:
+		query = query.OrderBy("FileInfo.Size " + sortDirection)
+	default:
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
+	}
+
+	query = query.OrderBy("FileInfo.Id ASC") // secondary sort for sort stability
+
+	query = query.Limit(uint64(perPage)).Offset(uint64(perPage * page))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var infos []*model.FileInfo
+	if _, err := fs.GetReplica().Select(&infos, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
+			"store.sql_file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return infos, nil
+}
+
 func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
 	info := &model.FileInfo{}
 
@@ -111,35 +169,10 @@ func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppEr
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
-	fileInfoCache.Remove(postId)
-	if fs.metrics != nil {
-		fs.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
-	}
+func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
-	cacheKey := postId
-	if includeDeleted {
-		cacheKey += "_deleted"
-	}
-	if allowFromCache {
-		if cacheItem, ok := fileInfoCache.Get(cacheKey); ok {
-			if fs.metrics != nil {
-				fs.metrics.IncrementMemCacheHitCounter("File Info Cache")
-			}
-
-			return cacheItem.([]*model.FileInfo), nil
-		}
-		if fs.metrics != nil {
-			fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
-		}
-	} else {
-		if fs.metrics != nil {
-			fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
-		}
-	}
-
 	var infos []*model.FileInfo
 
 	dbmap := fs.GetReplica()
@@ -167,10 +200,6 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 		return nil, model.NewAppError("SqlFileInfoStore.GetForPost",
 			"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error(), http.StatusInternalServerError)
 	}
-	if len(infos) > 0 {
-		fileInfoCache.AddWithExpiresInSecs(cacheKey, infos, FILE_INFO_CACHE_SEC)
-	}
-
 	return infos, nil
 }
 
@@ -254,15 +283,15 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
 	return nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	var query string
-	if s.DriverName() == "postgres" {
+	if fs.DriverName() == "postgres" {
 		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
 	} else {
 		query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
 	}
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
@@ -275,10 +304,10 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int6
 	return rowsAffected, nil
 }
 
-func (s SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
 	query := "DELETE from FileInfo WHERE CreatorId = :CreatorId"
 
-	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
+	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
 	if err != nil {
 		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}

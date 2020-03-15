@@ -21,7 +21,6 @@ type CompletionSuggester struct {
 	size           *int
 	shardSize      *int
 	contextQueries []SuggesterContextQuery
-	payload        interface{}
 
 	fuzzyOptions   *FuzzyCompletionSuggesterOptions
 	regexOptions   *RegexCompletionSuggesterOptions

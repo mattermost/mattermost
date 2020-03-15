@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -73,7 +74,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -105,12 +106,16 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -120,6 +125,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("old_group_name", group.Name)
+	auditRec.AddMeta("old_group_display", group.DisplayName)
+	auditRec.AddMeta("old_group_desc", group.Description)
 
 	group.Patch(groupPatch)
 
@@ -129,11 +137,17 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("new_group_name", group.Name)
+	auditRec.AddMeta("new_group_display", group.DisplayName)
+	auditRec.AddMeta("new_group_desc", group.Description)
+
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.Success()
 
 	w.Write(b)
 }
@@ -161,6 +175,12 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.io_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("syncable_id", syncableID)
+	auditRec.AddMeta("syncable_type", syncableType)
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -192,6 +212,10 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
 	w.WriteHeader(http.StatusCreated)
 
 	b, marshalErr := json.Marshal(groupSyncable)
@@ -199,7 +223,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	auditRec.Success()
 	w.Write(b)
 }
 
@@ -226,7 +250,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -263,7 +287,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -307,6 +331,12 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("old_syncable_id", syncableID)
+	auditRec.AddMeta("old_syncable_type", syncableType)
+
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
 	if err != nil || patch == nil {
@@ -320,8 +350,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -339,12 +370,19 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
+	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
+
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	auditRec.Success()
 	w.Write(b)
 }
 
@@ -366,6 +404,12 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
+	auditRec := c.MakeAuditRecord("unlinkGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("syncable_id", syncableID)
+	auditRec.AddMeta("syncable_type", syncableType)
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -383,13 +427,19 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
+	// persists the execution status to the jobs table.
+	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
+	auditRec.Success()
+
 	ReturnStatusOK(w)
 }
 
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, syncableID, model.PERMISSION_MANAGE_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), syncableID, model.PERMISSION_MANAGE_TEAM) {
 			return c.App.MakePermissionError(model.PERMISSION_MANAGE_TEAM)
 		}
 	case model.GroupSyncableTypeChannel:
@@ -405,7 +455,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
 
-		if !c.App.SessionHasPermissionToChannel(c.App.Session, syncableID, permission) {
+		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), syncableID, permission) {
 			return c.App.MakePermissionError(permission)
 		}
 	}
@@ -424,7 +474,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -472,7 +522,7 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 	}
-	if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, permission) {
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, permission) {
 		c.SetPermissionError(permission)
 		return
 	}
@@ -492,8 +542,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -518,7 +568,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 		return
 	}
@@ -538,8 +588,8 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Groups []*model.Group `json:"groups"`
-		Count  int            `json:"total_group_count"`
+		Groups []*model.GroupWithSchemeAdmin `json:"groups"`
+		Count  int                           `json:"total_group_count"`
 	}{
 		Groups: groups,
 		Count:  totalCount,
@@ -568,8 +618,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
-	if teamID == "" && channelID == "" {
-		c.Err = model.NewAppError("Api4.getGroups", "api.getGroups.invalid_or_missing_channel_or_team_id", nil, "", http.StatusBadRequest)
+	if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
@@ -584,7 +634,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_MANAGE_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.PERMISSION_MANAGE_TEAM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 			return
 		}
@@ -603,7 +653,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
-		if !c.App.SessionHasPermissionToChannel(c.App.Session, channelID, permission) {
+		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelID, permission) {
 			c.SetPermissionError(permission)
 			return
 		}

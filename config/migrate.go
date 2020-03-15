@@ -5,6 +5,7 @@ package config
 
 import "github.com/pkg/errors"
 
+// Migrate migrates SAML keys and certificates from one store to another given their data source names.
 func Migrate(from, to string) error {
 	source, err := NewStore(from, false)
 	if err != nil {

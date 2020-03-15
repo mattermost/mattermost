@@ -243,7 +243,8 @@
         "Scope": "User.Read",
         "AuthEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
         "TokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me"
+        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me",
+        "DirectoryId": ""
     },
     "LdapSettings": {
         "Enable": false,
@@ -289,6 +290,7 @@
         "Encrypt": true,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
+        "IdpMetadataUrl": "",
         "AssertionConsumerServiceURL": "",
         "ScopingIDPProviderId": "",
         "ScopingIDPName": "",

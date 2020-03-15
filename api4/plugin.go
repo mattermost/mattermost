@@ -9,20 +9,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
+	"strconv"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
-	// INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT defines a high timeout for installing plugins
-	// from an external URL to avoid slow connections or large plugins from failing to install.
-	INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT = 60 * time.Minute
 )
 
 func (api *API) InitPlugin() {
@@ -50,7 +47,10 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("uploadPlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -72,6 +72,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
+	auditRec.AddMeta("filename", pluginArray[0].Filename)
 
 	file, err := pluginArray[0].Open()
 	if err != nil {
@@ -86,29 +87,37 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	installPlugin(c, w, file, force)
+	auditRec.Success()
 }
 
 func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().PluginSettings.Enable || *c.App.Config().PluginSettings.RequirePluginSignature {
+	if !*c.App.Config().PluginSettings.Enable ||
+		*c.App.Config().PluginSettings.RequirePluginSignature ||
+		!*c.App.Config().PluginSettings.EnableUploads {
 		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	force := r.URL.Query().Get("force") == "true"
-	downloadUrl := r.URL.Query().Get("plugin_download_url")
+	downloadURL := r.URL.Query().Get("plugin_download_url")
+	auditRec.AddMeta("url", downloadURL)
 
-	pluginFile, err := downloadFromUrl(c, downloadUrl)
+	pluginFileBytes, err := c.App.DownloadFromURL(downloadURL)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	installPlugin(c, w, pluginFile, force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	auditRec.Success()
 }
 
 func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -122,7 +131,10 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("installMarketplacePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -132,28 +144,18 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.marketplace_plugin_request.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
-	plugin, appErr := c.App.GetMarketplacePlugin(pluginRequest)
+	auditRec.AddMeta("plugin_id", pluginRequest.Id)
+
+	manifest, appErr := c.App.InstallMarketplacePlugin(pluginRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	pluginFile, appErr := downloadFromUrl(c, plugin.DownloadURL)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	signature, err := plugin.DecodeSignature()
-	if err != nil {
-		c.Err = model.NewAppError("installMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
-		return
-	}
+	auditRec.Success()
+	auditRec.AddMeta("plugin_name", manifest.Name)
+	auditRec.AddMeta("plugin_desc", manifest.Description)
 
-	manifest, appErr := c.App.InstallPluginWithSignature(pluginFile, signature)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(manifest.ToJson()))
 }
@@ -164,7 +166,7 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -184,7 +186,7 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -209,7 +211,11 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("removePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -220,6 +226,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -260,7 +267,7 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -297,7 +304,11 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("enablePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -307,6 +318,7 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -321,7 +333,11 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("disablePlugin", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("plugin_id", c.Params.PluginId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -331,6 +347,7 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -347,43 +364,18 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
+	localOnly, err := strconv.ParseBool(u.Query().Get("local_only"))
+	if err != nil {
+		localOnly = false
+	}
 
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,
 		Filter:        filter,
 		ServerVersion: serverVersion,
+		LocalOnly:     localOnly,
 	}, nil
-}
-
-func downloadFromUrl(c *Context, downloadUrl string) (io.ReadSeeker, *model.AppError) {
-	if !model.IsValidHttpUrl(downloadUrl) {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	u, err := url.ParseRequestURI(downloadUrl)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
-	}
-	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	client := c.App.HTTPService.MakeClient(true)
-	client.Timeout = INSTALL_PLUGIN_FROM_URL_HTTP_REQUEST_TIMEOUT
-
-	resp, err := client.Get(downloadUrl)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-	defer resp.Body.Close()
-
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, model.NewAppError("downloadFromUrl", "api.plugin.install.reading_stream_failed.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	return bytes.NewReader(fileBytes), nil
 }
 
 func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {

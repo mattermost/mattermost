@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -16,11 +17,16 @@ import (
 // ClusterStatsService is documented at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/cluster-stats.html.
 type ClusterStatsService struct {
-	client       *Client
-	pretty       bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	nodeId       []string
 	flatSettings *bool
-	human        *bool
 }
 
 // NewClusterStatsService creates a new ClusterStatsService.
@@ -29,6 +35,46 @@ func NewClusterStatsService(client *Client) *ClusterStatsService {
 		client: client,
 		nodeId: make([]string, 0),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *ClusterStatsService) Pretty(pretty bool) *ClusterStatsService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *ClusterStatsService) Human(human bool) *ClusterStatsService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *ClusterStatsService) ErrorTrace(errorTrace bool) *ClusterStatsService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *ClusterStatsService) FilterPath(filterPath ...string) *ClusterStatsService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *ClusterStatsService) Header(name string, value string) *ClusterStatsService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *ClusterStatsService) Headers(headers http.Header) *ClusterStatsService {
+	s.headers = headers
+	return s
 }
 
 // NodeId is documented as: A comma-separated list of node IDs or names to limit the returned information; use `_local` to return information from the node you're connecting to, leave empty to get information from all nodes.
@@ -40,18 +86,6 @@ func (s *ClusterStatsService) NodeId(nodeId []string) *ClusterStatsService {
 // FlatSettings is documented as: Return settings in flat format (default: false).
 func (s *ClusterStatsService) FlatSettings(flatSettings bool) *ClusterStatsService {
 	s.flatSettings = &flatSettings
-	return s
-}
-
-// Human is documented as: Whether to return time and byte values in human-readable format..
-func (s *ClusterStatsService) Human(human bool) *ClusterStatsService {
-	s.human = &human
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *ClusterStatsService) Pretty(pretty bool) *ClusterStatsService {
-	s.pretty = pretty
 	return s
 }
 
@@ -77,14 +111,20 @@ func (s *ClusterStatsService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.flatSettings != nil {
 		params.Set("flat_settings", fmt.Sprintf("%v", *s.flatSettings))
-	}
-	if s.human != nil {
-		params.Set("human", fmt.Sprintf("%v", *s.human))
 	}
 	return path, params, nil
 }
@@ -109,9 +149,10 @@ func (s *ClusterStatsService) Do(ctx context.Context) (*ClusterStatsResponse, er
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

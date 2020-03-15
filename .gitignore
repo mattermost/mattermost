@@ -26,6 +26,7 @@ imports/imports.go
 .prebuild
 .npminstall
 .yarninstall
+/prepackaged_plugins
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -53,9 +54,8 @@ _testmain.go
 *.prof
 
 # Log files
-*mattermost.log*
-*mattermost.log.jsonl
-*npm-debug.log*
+*.log
+*.log.jsonl
 
 .tmp
 
@@ -92,6 +92,7 @@ ecover.out
 cprofile.out
 *.test
 webapp/coverage
+/report.xml
 
 .agignore
 .ctags
@@ -100,3 +101,6 @@ tags
 
 debug
 client
+__debug_bin
+report.xml
+go.*.orig

@@ -4,10 +4,11 @@
 package storetest
 
 import (
-	"github.com/stretchr/testify/mock"
+	"context"
 
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/stretchr/testify/mock"
 )
 
 // Store can be used to provide mock stores for testing.
@@ -43,8 +44,11 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	context                   context.Context
 }
 
+func (s *Store) SetContext(context context.Context)                { s.context = context }
+func (s *Store) Context() context.Context                          { return s.context }
 func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }

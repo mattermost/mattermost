@@ -53,7 +53,7 @@ func (c Core) ListObjects(bucket, prefix, marker, delimiter string, maxKeys int)
 // ListObjectsV2 - Lists all the objects at a prefix, similar to ListObjects() but uses
 // continuationToken instead of marker to support iteration over the results.
 func (c Core) ListObjectsV2(bucketName, objectPrefix, continuationToken string, fetchOwner bool, delimiter string, maxkeys int, startAfter string) (ListBucketV2Result, error) {
-	return c.listObjectsV2Query(bucketName, objectPrefix, continuationToken, fetchOwner, delimiter, maxkeys, startAfter)
+	return c.listObjectsV2Query(bucketName, objectPrefix, continuationToken, fetchOwner, false, delimiter, maxkeys, startAfter)
 }
 
 // CopyObjectWithContext - copies an object from source object to destination object on server side.
@@ -171,7 +171,13 @@ func (c Core) GetBucketPolicy(bucket string) (string, error) {
 
 // PutBucketPolicy - applies a new bucket access policy for a given bucket.
 func (c Core) PutBucketPolicy(bucket, bucketPolicy string) error {
-	return c.putBucketPolicy(bucket, bucketPolicy)
+	return c.PutBucketPolicyWithContext(context.Background(), bucket, bucketPolicy)
+}
+
+// PutBucketPolicyWithContext - applies a new bucket access policy for a given bucket with a context to control
+// cancellations and timeouts.
+func (c Core) PutBucketPolicyWithContext(ctx context.Context, bucket, bucketPolicy string) error {
+	return c.putBucketPolicy(ctx, bucket, bucketPolicy)
 }
 
 // GetObjectWithContext is a lower level API implemented to support reading

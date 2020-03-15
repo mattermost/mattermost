@@ -19,6 +19,7 @@ import (
 )
 
 var (
+	// ErrReadOnlyConfiguration is returned when an attempt to modify a read-only configuration is made.
 	ErrReadOnlyConfiguration = errors.New("configuration is read-only")
 )
 

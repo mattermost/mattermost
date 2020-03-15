@@ -7,7 +7,9 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -17,8 +19,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-open-close.html
 // for details.
 type IndicesCloseService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index             string
 	timeout           string
 	masterTimeout     string
@@ -30,6 +38,46 @@ type IndicesCloseService struct {
 // NewIndicesCloseService creates and initializes a new IndicesCloseService.
 func NewIndicesCloseService(client *Client) *IndicesCloseService {
 	return &IndicesCloseService{client: client}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesCloseService) Pretty(pretty bool) *IndicesCloseService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesCloseService) Human(human bool) *IndicesCloseService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesCloseService) ErrorTrace(errorTrace bool) *IndicesCloseService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesCloseService) FilterPath(filterPath ...string) *IndicesCloseService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesCloseService) Header(name string, value string) *IndicesCloseService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesCloseService) Headers(headers http.Header) *IndicesCloseService {
+	s.headers = headers
+	return s
 }
 
 // Index is the name of the index to close.
@@ -71,12 +119,6 @@ func (s *IndicesCloseService) ExpandWildcards(expandWildcards string) *IndicesCl
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesCloseService) Pretty(pretty bool) *IndicesCloseService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *IndicesCloseService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -89,6 +131,18 @@ func (s *IndicesCloseService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
+	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
 	}
@@ -135,9 +189,10 @@ func (s *IndicesCloseService) Do(ctx context.Context) (*IndicesCloseResponse, er
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

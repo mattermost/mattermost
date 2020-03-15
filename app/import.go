@@ -16,6 +16,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const (
+	importMultiplePostsThreshold = 1000
+	maxScanTokenSize             = 16 * 1024 * 1024 // Need to set a higher limit than default because some customers cross the limit. See MM-22314
+)
+
 func stopOnError(err LineImportWorkerError) bool {
 	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
 		mlog.Warn("Large image import error", mlog.Err(err.Error))
@@ -25,20 +30,53 @@ func stopOnError(err LineImportWorkerError) bool {
 }
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
+	posts := []*PostImportData{}
+	directPosts := []*DirectPostImportData{}
 	for line := range lines {
-		if err := a.ImportLine(line.LineImportData, dryRun); err != nil {
-			errors <- LineImportWorkerError{err, line.LineNumber}
+		switch {
+		case line.LineImportData.Type == "post":
+			posts = append(posts, line.Post)
+			if line.Post == nil {
+				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+			}
+			if len(posts) >= importMultiplePostsThreshold {
+				a.importMultiplePosts(posts, dryRun)
+				posts = []*PostImportData{}
+			}
+		case line.LineImportData.Type == "direct_post":
+			directPosts = append(directPosts, line.DirectPost)
+			if line.DirectPost == nil {
+				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
+			}
+			if len(directPosts) >= importMultiplePostsThreshold {
+				a.importMultipleDirectPosts(directPosts, dryRun)
+				directPosts = []*DirectPostImportData{}
+			}
+		default:
+			if err := a.importLine(line.LineImportData, dryRun); err != nil {
+				errors <- LineImportWorkerError{err, line.LineNumber}
+			}
 		}
+	}
+
+	if len(posts) > 0 {
+		a.importMultiplePosts(posts, dryRun)
+	}
+	if len(directPosts) > 0 {
+		a.importMultipleDirectPosts(directPosts, dryRun)
 	}
 	wg.Done()
 }
 
 func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
 	lineNumber := 0
 
-	a.Srv.Store.LockToMaster()
-	defer a.Srv.Store.UnlockFromMaster()
+	a.Srv().Store.LockToMaster()
+	defer a.Srv().Store.UnlockFromMaster()
 
 	errorsChan := make(chan LineImportWorkerError, (2*workers)+1) // size chosen to ensure it never gets filled up completely.
 	var wg sync.WaitGroup
@@ -104,7 +142,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	}
 
 	// No more lines. Clear out the worker queue before continuing.
-	close(linesChan)
+	if linesChan != nil {
+		close(linesChan)
+	}
 	wg.Wait()
 
 	// Check no errors occurred while waiting for the queue to empty.
@@ -119,10 +159,6 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
 	}
 
-	if err := a.finalizeImport(dryRun); err != nil {
-		return err, 0
-	}
-
 	return nil, 0
 }
 
@@ -134,56 +170,39 @@ func processImportDataFileVersionLine(line LineImportData) (int, *model.AppError
 	return *line.Version, nil
 }
 
-func (a *App) ImportLine(line LineImportData, dryRun bool) *model.AppError {
+func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "scheme":
 		if line.Scheme == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_scheme.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportScheme(line.Scheme, dryRun)
+		return a.importScheme(line.Scheme, dryRun)
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportTeam(line.Team, dryRun)
+		return a.importTeam(line.Team, dryRun)
 	case line.Type == "channel":
 		if line.Channel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportChannel(line.Channel, dryRun)
+		return a.importChannel(line.Channel, dryRun)
 	case line.Type == "user":
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportUser(line.User, dryRun)
-	case line.Type == "post":
-		if line.Post == nil {
-			return model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest)
-		}
-		return a.ImportPost(line.Post, dryRun)
+		return a.importUser(line.User, dryRun)
 	case line.Type == "direct_channel":
 		if line.DirectChannel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportDirectChannel(line.DirectChannel, dryRun)
-	case line.Type == "direct_post":
-		if line.DirectPost == nil {
-			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest)
-		}
-		return a.ImportDirectPost(line.DirectPost, dryRun)
+		return a.importDirectChannel(line.DirectChannel, dryRun)
 	case line.Type == "emoji":
 		if line.Emoji == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_emoji.error", nil, "", http.StatusBadRequest)
 		}
-		return a.ImportEmoji(line.Emoji, dryRun)
+		return a.importEmoji(line.Emoji, dryRun)
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
 	}
-}
-
-func (a *App) finalizeImport(dryRun bool) *model.AppError {
-	if dryRun {
-		return nil
-	}
-	return nil
 }

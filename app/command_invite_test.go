@@ -27,6 +27,34 @@ func TestInviteProvider(t *testing.T) {
 	deactivatedUser := th.CreateUser()
 	th.App.UpdateActive(deactivatedUser, false)
 
+	var err *model.AppError
+	_, err = th.App.CreateBot(&model.Bot{
+		Username:    "bot1",
+		OwnerId:     basicUser3.Id,
+		Description: "a test bot",
+	})
+	require.Nil(t, err)
+
+	bot2, err := th.App.CreateBot(&model.Bot{
+		Username:    "bot2",
+		OwnerId:     basicUser3.Id,
+		Description: "a test bot",
+	})
+	require.Nil(t, err)
+	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot2.UserId, basicUser3.Id)
+	require.Nil(t, err)
+
+	bot3, err := th.App.CreateBot(&model.Bot{
+		Username:    "bot3",
+		OwnerId:     basicUser3.Id,
+		Description: "a test bot",
+	})
+	require.Nil(t, err)
+	_, err = th.App.AddUserToTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	require.Nil(t, err)
+	err = th.App.RemoveUserFromTeam(th.BasicTeam.Id, bot3.UserId, basicUser3.Id)
+	require.Nil(t, err)
+
 	InviteP := InviteProvider{}
 	args := &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -44,7 +72,6 @@ func TestInviteProvider(t *testing.T) {
 	deactivatedUserPublicChannel := "@" + deactivatedUser.Username + " ~" + channel.Name
 
 	groupChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
-	var err *model.AppError
 	_, err = th.App.AddChannelMember(th.BasicUser.Id, groupChannel, "", "")
 	require.Nil(t, err)
 	groupChannel.GroupConstrained = model.NewBool(true)
@@ -121,6 +148,21 @@ func TestInviteProvider(t *testing.T) {
 			desc:     "try to add a deleted user to a public channel",
 			expected: "api.command_invite.missing_user.app_error",
 			msg:      deactivatedUserPublicChannel,
+		},
+		{
+			desc:     "try to add bot to a public channel",
+			expected: "api.command_invite.user_not_in_team.app_error",
+			msg:      "@bot1",
+		},
+		{
+			desc:     "add bot to a public channel",
+			expected: "",
+			msg:      "@bot2",
+		},
+		{
+			desc:     "try to add bot removed from a team to a public channel",
+			expected: "api.command_invite.user_not_in_team.app_error",
+			msg:      "@bot3",
 		},
 	}
 

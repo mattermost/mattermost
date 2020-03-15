@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -539,8 +541,19 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 }
 
 func TestGetPushNotificationMessage(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
 
 	for name, tc := range map[string]struct {
 		Message                  string
@@ -954,4 +967,23 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 			assert.Equal(t, tc.expectedBadge, msg.Badge)
 		})
 	}
+}
+
+func TestSendPushNotifications(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.App.CreateSession(&model.Session{
+		UserId:    th.BasicUser.Id,
+		DeviceId:  "test",
+		ExpiresAt: model.GetMillis() + 100000,
+	})
+	defer th.TearDown()
+
+	t.Run("should return error if data is not valid or nil", func(t *testing.T) {
+		err := th.App.sendPushNotificationToAllSessions(nil, th.BasicUser.Id, "")
+		assert.NotNil(t, err)
+		assert.Equal(t, "pushNotification: An error occurred building the push notification message., ", err.Error())
+		// Errors derived of using an empty object are handled internally through the notifications log
+		err = th.App.sendPushNotificationToAllSessions(&model.PushNotification{}, th.BasicUser.Id, "")
+		assert.Nil(t, err)
+	})
 }

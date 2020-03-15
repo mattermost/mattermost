@@ -18,7 +18,7 @@ func TestGetClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticId   string
+		diagnosticID   string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -177,7 +177,7 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			configMap := config.GenerateClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -193,7 +193,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticId   string
+		diagnosticID   string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -235,7 +235,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {

@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -18,8 +19,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/cluster-state.html
 // for details.
 type ClusterStateService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	indices           []string
 	metrics           []string
 	allowNoIndices    *bool
@@ -37,6 +44,46 @@ func NewClusterStateService(client *Client) *ClusterStateService {
 		indices: make([]string, 0),
 		metrics: make([]string, 0),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *ClusterStateService) Pretty(pretty bool) *ClusterStateService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *ClusterStateService) Human(human bool) *ClusterStateService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *ClusterStateService) ErrorTrace(errorTrace bool) *ClusterStateService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *ClusterStateService) FilterPath(filterPath ...string) *ClusterStateService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *ClusterStateService) Header(name string, value string) *ClusterStateService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *ClusterStateService) Headers(headers http.Header) *ClusterStateService {
+	s.headers = headers
+	return s
 }
 
 // Index is a list of index names. Use _all or an empty string to
@@ -95,12 +142,6 @@ func (s *ClusterStateService) MasterTimeout(masterTimeout string) *ClusterStateS
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *ClusterStateService) Pretty(pretty bool) *ClusterStateService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *ClusterStateService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -122,8 +163,17 @@ func (s *ClusterStateService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -166,9 +216,10 @@ func (s *ClusterStateService) Do(ctx context.Context) (*ClusterStateResponse, er
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -185,6 +236,7 @@ func (s *ClusterStateService) Do(ctx context.Context) (*ClusterStateResponse, er
 // ClusterStateResponse is the response of ClusterStateService.Do.
 type ClusterStateResponse struct {
 	ClusterName  string                    `json:"cluster_name"`
+	ClusterUUID  string                    `json:"cluster_uuid"`
 	Version      int64                     `json:"version"`
 	StateUUID    string                    `json:"state_uuid"`
 	MasterNode   string                    `json:"master_node"`

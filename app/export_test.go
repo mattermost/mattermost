@@ -44,8 +44,7 @@ func TestReactionsOfPost(t *testing.T) {
 }
 
 func TestExportUserNotifyProps(t *testing.T) {
-
-	th := Setup(t).InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
@@ -90,7 +89,7 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	err := th.App.Srv.Store.Preference().Save(&preferences)
+	err := th.App.Srv().Store.Preference().Save(&preferences)
 	require.Nil(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
@@ -113,7 +112,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestDirCreationForEmoji(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
@@ -123,11 +122,11 @@ func TestDirCreationForEmoji(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	emoji := &model.Emoji{
-		Id: th.BasicUser.Id,
+		Id: model.NewId(),
 	}
 
 	// Creating a dir named `exported_emoji_test` in the root of the repo
@@ -169,7 +168,7 @@ func TestExportCustomEmoji(t *testing.T) {
 	dirNameToExportEmoji := "exported_emoji_test"
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
-	err = th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	err = th.App.exportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
 	require.Nil(t, err, "should not have failed")
 }
 
@@ -232,7 +231,7 @@ func TestExportDMChannel(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(channels))
 
@@ -241,7 +240,7 @@ func TestExportDMChannel(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(channels))
 
@@ -251,7 +250,7 @@ func TestExportDMChannel(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	// Ensure the Members of the imported DM channel is the same was from the exported
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
@@ -268,14 +267,14 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(channels))
 
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(channels))
 
@@ -284,7 +283,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(channels))
 	assert.Equal(t, 1, len((*channels[0].Members)))
@@ -306,7 +305,7 @@ func TestExportGMChannel(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(channels))
 
@@ -315,7 +314,7 @@ func TestExportGMChannel(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(channels))
 }
@@ -338,7 +337,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(channels))
 
@@ -347,7 +346,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(channels))
 
@@ -357,7 +356,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	// Ensure the Members of the imported GM channel is the same was from the exported
-	channels, err = th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, err)
 
 	// Adding some deteminism so its possible to assert on slice index
@@ -413,7 +412,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	}
 	th1.App.CreatePost(p4, gmChannel, false)
 
-	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 	assert.Equal(t, 4, len(posts))
 
@@ -426,7 +425,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
@@ -435,7 +434,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 
 	// Adding some deteminism so its possible to assert on slice index
@@ -459,7 +458,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(posts))
 
@@ -468,7 +467,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
@@ -477,7 +476,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))

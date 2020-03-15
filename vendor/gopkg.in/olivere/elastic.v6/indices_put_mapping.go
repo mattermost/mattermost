@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -19,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-put-mapping.html
 // for details.
 type IndicesPutMappingService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	typ               string
 	index             []string
 	masterTimeout     string
@@ -46,6 +53,46 @@ func NewIndicesPutMappingService(client *Client) *IndicesPutMappingService {
 		client: client,
 		index:  make([]string, 0),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesPutMappingService) Pretty(pretty bool) *IndicesPutMappingService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesPutMappingService) Human(human bool) *IndicesPutMappingService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesPutMappingService) ErrorTrace(errorTrace bool) *IndicesPutMappingService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesPutMappingService) FilterPath(filterPath ...string) *IndicesPutMappingService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesPutMappingService) Header(name string, value string) *IndicesPutMappingService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesPutMappingService) Headers(headers http.Header) *IndicesPutMappingService {
+	s.headers = headers
+	return s
 }
 
 // Index is a list of index names the mapping should be added to
@@ -109,12 +156,6 @@ func (s *IndicesPutMappingService) UpdateAllTypes(update bool) *IndicesPutMappin
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesPutMappingService) Pretty(pretty bool) *IndicesPutMappingService {
-	s.pretty = pretty
-	return s
-}
-
 // BodyJson contains the mapping definition.
 func (s *IndicesPutMappingService) BodyJson(mapping map[string]interface{}) *IndicesPutMappingService {
 	s.bodyJson = mapping
@@ -149,8 +190,17 @@ func (s *IndicesPutMappingService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
@@ -187,7 +237,7 @@ func (s *IndicesPutMappingService) buildURL() (string, url.Values, error) {
 // Validate checks if the operation is valid.
 func (s *IndicesPutMappingService) Validate() error {
 	var invalid []string
-	if s.typ == "" {
+	if s.includeTypeName != nil && *s.includeTypeName && s.typ == "" {
 		invalid = append(invalid, "Type")
 	}
 	if s.bodyString == "" && s.bodyJson == nil {
@@ -222,10 +272,11 @@ func (s *IndicesPutMappingService) Do(ctx context.Context) (*PutMappingResponse,
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "PUT",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

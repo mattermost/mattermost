@@ -12,7 +12,7 @@ import (
 )
 
 func TestPermissionsExport_rejectsUnlicensed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	actual, _ := th.RunCommandWithOutput(t, "permissions", "export")
@@ -20,7 +20,7 @@ func TestPermissionsExport_rejectsUnlicensed(t *testing.T) {
 }
 
 func TestPermissionsImport_rejectsUnlicensed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	actual, _ := th.RunCommandWithOutput(t, "permissions", "import")

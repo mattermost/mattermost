@@ -257,7 +257,7 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		commands, err := a.Srv.Store.Command().GetByTeam(team.Id)
+		commands, err := a.Srv().Store.Command().GetByTeam(team.Id)
 		if err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
 			continue

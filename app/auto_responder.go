@@ -13,6 +13,10 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, nil
 	}
 
+	if sender.IsBot {
+		return false, nil
+	}
+
 	receiverId := channel.GetOtherUserIdForDM(sender.Id)
 
 	receiver, err := a.GetUser(receiverId)

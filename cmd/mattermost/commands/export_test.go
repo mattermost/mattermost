@@ -16,7 +16,7 @@ import (
 // fails fast if invalid flags are supplied
 
 func TestMessageExportNotEnabled(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -28,7 +28,7 @@ func TestMessageExportNotEnabled(t *testing.T) {
 }
 
 func TestMessageExportInvalidFormat(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -40,7 +40,7 @@ func TestMessageExportInvalidFormat(t *testing.T) {
 }
 
 func TestMessageExportNegativeExportFrom(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()
@@ -52,7 +52,7 @@ func TestMessageExportNegativeExportFrom(t *testing.T) {
 }
 
 func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	config := th.Config()

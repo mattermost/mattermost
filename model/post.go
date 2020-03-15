@@ -5,10 +5,13 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
@@ -38,6 +41,7 @@ const (
 	POST_CONVERT_CHANNEL        = "system_convert_channel"
 	POST_PURPOSE_CHANGE         = "system_purpose_change"
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_CHANNEL_RESTORED       = "system_channel_restored"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
@@ -57,6 +61,8 @@ const (
 	POST_PROPS_DELETE_BY           = "deleteBy"
 	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
+
+	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 )
 
 type Post struct {
@@ -79,7 +85,8 @@ type Post struct {
 	MessageSource string `json:"message_source,omitempty" db:"-"`
 
 	Type          string          `json:"type"`
-	Props         StringInterface `json:"props"`
+	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
@@ -152,10 +159,46 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-// Clone shallowly copies the post.
+// ShallowCopy is an utility function to shallow copy a Post to the given
+// destination without touching the internal RWMutex.
+func (o *Post) ShallowCopy(dst *Post) error {
+	if dst == nil {
+		return errors.New("dst cannot be nil")
+	}
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	dst.propsMu.Lock()
+	defer dst.propsMu.Unlock()
+	dst.Id = o.Id
+	dst.CreateAt = o.CreateAt
+	dst.UpdateAt = o.UpdateAt
+	dst.EditAt = o.EditAt
+	dst.DeleteAt = o.DeleteAt
+	dst.IsPinned = o.IsPinned
+	dst.UserId = o.UserId
+	dst.ChannelId = o.ChannelId
+	dst.RootId = o.RootId
+	dst.ParentId = o.ParentId
+	dst.OriginalId = o.OriginalId
+	dst.Message = o.Message
+	dst.MessageSource = o.MessageSource
+	dst.Type = o.Type
+	dst.Props = o.Props
+	dst.Hashtags = o.Hashtags
+	dst.Filenames = o.Filenames
+	dst.FileIds = o.FileIds
+	dst.PendingPostId = o.PendingPostId
+	dst.HasReactions = o.HasReactions
+	dst.ReplyCount = o.ReplyCount
+	dst.Metadata = o.Metadata
+	return nil
+}
+
+// Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := *o
-	return &copy
+	copy := &Post{}
+	o.ShallowCopy(copy)
+	return copy
 }
 
 func (o *Post) ToJson() string {
@@ -195,7 +238,6 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-
 	if len(o.Id) != 26 {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -264,6 +306,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_DISPLAYNAME_CHANGE,
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
+		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
 		POST_ADD_BOT_TEAMS_CHANNELS:
@@ -281,7 +324,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > POST_PROPS_MAX_RUNES {
+	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -294,8 +337,8 @@ func (o *Post) SanitizeProps() {
 	}
 
 	for _, member := range membersToSanitize {
-		if _, ok := o.Props[member]; ok {
-			delete(o.Props, member)
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
 		}
 	}
 }
@@ -316,8 +359,8 @@ func (o *Post) PreSave() {
 }
 
 func (o *Post) PreCommit() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 
 	if o.Filenames == nil {
@@ -335,16 +378,49 @@ func (o *Post) PreCommit() {
 }
 
 func (o *Post) MakeNonNil() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 }
 
+func (o *Post) DelProp(key string) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	delete(propsCopy, key)
+	o.Props = propsCopy
+}
+
 func (o *Post) AddProp(key string, value interface{}) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	propsCopy[key] = value
+	o.Props = propsCopy
+}
 
-	o.MakeNonNil()
+func (o *Post) GetProps() StringInterface {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props
+}
 
-	o.Props[key] = value
+func (o *Post) SetProps(props StringInterface) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	o.Props = props
+}
+
+func (o *Post) GetProp(key string) interface{} {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props[key]
 }
 
 func (o *Post) IsSystemMessage() bool {
@@ -364,25 +440,26 @@ func (o *Post) IsJoinLeaveMessage() bool {
 		o.Type == POST_REMOVE_FROM_TEAM
 }
 
-func (p *Post) Patch(patch *PostPatch) {
+func (o *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
-		p.IsPinned = *patch.IsPinned
+		o.IsPinned = *patch.IsPinned
 	}
 
 	if patch.Message != nil {
-		p.Message = *patch.Message
+		o.Message = *patch.Message
 	}
 
 	if patch.Props != nil {
-		p.Props = *patch.Props
+		newProps := *patch.Props
+		o.SetProps(newProps)
 	}
 
 	if patch.FileIds != nil {
-		p.FileIds = *patch.FileIds
+		o.FileIds = *patch.FileIds
 	}
 
 	if patch.HasReactions != nil {
-		p.HasReactions = *patch.HasReactions
+		o.HasReactions = *patch.HasReactions
 	}
 }
 
@@ -430,12 +507,40 @@ func (o *Post) ChannelMentions() []string {
 	return ChannelMentions(o.Message)
 }
 
+// DisableMentionHighlights disables a posts mention highlighting and returns the first channel mention that was present in the message.
+func (o *Post) DisableMentionHighlights() string {
+	mention, hasMentions := findAtChannelMention(o.Message)
+	if hasMentions {
+		o.AddProp(POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
+	}
+	return mention
+}
+
+// DisableMentionHighlights disables mention highlighting for a post patch if required.
+func (o *PostPatch) DisableMentionHighlights() {
+	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
+		if o.Props == nil {
+			o.Props = &StringInterface{}
+		}
+		(*o.Props)[POST_PROPS_MENTION_HIGHLIGHT_DISABLED] = true
+	}
+}
+
+func findAtChannelMention(message string) (mention string, found bool) {
+	re := regexp.MustCompile(`(?i)\B@(channel|all|here)\b`)
+	matched := re.FindStringSubmatch(message)
+	if found = (len(matched) > 0); found {
+		mention = strings.ToLower(matched[0])
+	}
+	return
+}
+
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
