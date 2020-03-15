@@ -134,7 +134,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single word",
 			Input: "word",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "word",
 					exclude: false,
 				},
@@ -145,7 +145,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single word with a - prefix",
 			Input: "-word",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "word",
 					exclude: true,
 				},
@@ -156,15 +156,15 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words all with - prefix",
 			Input: "-apple -banana -cherry",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "cherry",
 					exclude: true,
 				},
@@ -175,15 +175,15 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words with a single - prefix",
 			Input: "apple -banana cherry",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "cherry",
 					exclude: false,
 				},
@@ -194,11 +194,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a :",
 			Input: "apple banana from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -214,11 +214,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : and a - prefix",
 			Input: "apple -banana from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: true,
 				},
@@ -234,11 +234,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : and multiple - prefixes",
 			Input: "-apple -banana from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: true,
 				},
@@ -254,11 +254,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : and multiple # prefixes",
 			Input: "#apple #banana from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -274,11 +274,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : with a single - and multiple # prefixes",
 			Input: "-#apple #banana from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -294,11 +294,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : prefixed with - and multiple # prefixes",
 			Input: "#apple #banana -from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -315,11 +315,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : prefixed with multiple - and multiple # prefixes",
 			Input: "-#apple -#banana -from:chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: true,
 				},
@@ -336,11 +336,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a : with a space",
 			Input: "apple banana from: chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -356,11 +356,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a in: with a space",
 			Input: "apple banana in: chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -376,11 +376,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words containing a channel: with a space",
 			Input: "apple banana channel: chan",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -396,11 +396,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is only fruit: with a space",
 			Input: "fruit: cherry",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "fruit",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "cherry",
 					exclude: false,
 				},
@@ -411,7 +411,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single word with a : postfix",
 			Input: "channel:",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "channel",
 					exclude: false,
 				},
@@ -445,7 +445,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words which results in multiple unexcluded flags and a single search word",
 			Input: "channel: first in: second from:",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "from",
 					exclude: false,
 				},
@@ -467,7 +467,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words which results in multiple unexcluded and excluded flags and a single search word",
 			Input: "channel: first -in: second from:",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "from",
 					exclude: false,
 				},
@@ -489,7 +489,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple words which results in multiple excluded and unexcluded flags and a single search word",
 			Input: "-channel: first in: second from:",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "from",
 					exclude: false,
 				},
@@ -538,7 +538,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single quoted word which results in a single search word which is quoted",
 			Input: "\"quoted\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "\"quoted\"",
 					exclude: false,
 				},
@@ -549,7 +549,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single quoted word prefixed with a - which results in a single search word which is quoted",
 			Input: "\"-quoted\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "\"-quoted\"",
 					exclude: false,
 				},
@@ -560,7 +560,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single quoted word prefixed with a - which results in a single search word which is quoted and exported",
 			Input: "-\"quoted\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "\"quoted\"",
 					exclude: true,
 				},
@@ -571,7 +571,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple quoted words which results in a single search word which is quoted and unexported",
 			Input: "\"quoted multiple words\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "\"quoted multiple words\"",
 					exclude: false,
 				},
@@ -582,7 +582,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple quoted words prefixed with - which results in a single search word which is quoted and unexported",
 			Input: "\"quoted -multiple words\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "\"quoted -multiple words\"",
 					exclude: false,
 				},
@@ -593,23 +593,23 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple quoted words and unquoted words",
 			Input: "some \"stuff\" \"quoted multiple words\" some \"more stuff\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "some",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"stuff\"",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"quoted multiple words\"",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "some",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"more stuff\"",
 					exclude: false,
 				},
@@ -620,23 +620,23 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple quoted words and unquoted words some being prefixed with -",
 			Input: "some -\"stuff\" \"quoted multiple words\" some -\"more stuff\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "some",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"stuff\"",
 					exclude: true,
 				},
-				searchWord{
+				{
 					value:   "\"quoted multiple words\"",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "some",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"more stuff\"",
 					exclude: true,
 				},
@@ -647,19 +647,19 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple quoted words and unquoted words some being flags",
 			Input: "some in:here \"stuff\" \"quoted multiple words\" from:someone \"more stuff\"",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "some",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"stuff\"",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"quoted multiple words\"",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "\"more stuff\"",
 					exclude: false,
 				},
@@ -705,11 +705,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single flag with multiple - prefixed with two words",
 			Input: "apple banana before:2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -726,11 +726,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single before flag with multiple - prefixed with - and two words",
 			Input: "apple banana -before:2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -747,11 +747,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple before/after flags with two words before",
 			Input: "apple banana after:2018-1-1 before:2018-1-10",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -773,11 +773,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is multiple before/after flags prefixed with - with two words before",
 			Input: "apple banana -after:2018-1-1 -before:2018-1-10",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -799,11 +799,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single after flag with two words before which are prefixed with #",
 			Input: "#apple #banana after:2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -820,11 +820,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single after flag with two words before which are prefixed with #",
 			Input: "#apple #banana before:2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -841,11 +841,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is two after and before flags with two words before which are prefixed with #",
 			Input: "#apple #banana after:2018-1-1 before:2018-1-10",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "#apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#banana",
 					exclude: false,
 				},
@@ -867,11 +867,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single after flag with two words before",
 			Input: "apple banana after: 2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -888,11 +888,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is a single before flag with two words before",
 			Input: "apple banana before: 2018-1-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -909,11 +909,11 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is two after and before flags with two words before",
 			Input: "apple banana after: 2018-1-1 before: 2018-1-10",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
@@ -935,15 +935,15 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is two after and before flags with two words before and a single after",
 			Input: "apple banana after: 2018-1-1 before: 2018-1-10 #fruit",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "apple",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "banana",
 					exclude: false,
 				},
-				searchWord{
+				{
 					value:   "#fruit",
 					exclude: false,
 				},
@@ -965,7 +965,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is one after flag with one word before",
 			Input: "test after:2018-7-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "test",
 					exclude: false,
 				},
@@ -982,7 +982,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is one on flag with one word before",
 			Input: "test on:2018-7-1",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "test",
 					exclude: false,
 				},
@@ -999,7 +999,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Name:  "string is one excluded on flag with one word after",
 			Input: "-on:2018-7-1 test",
 			Words: []searchWord{
-				searchWord{
+				{
 					value:   "test",
 					exclude: false,
 				},
