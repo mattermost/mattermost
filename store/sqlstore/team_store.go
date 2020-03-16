@@ -616,11 +616,11 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	newTeamMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
-		if val, ok := newTeamMembers[member.TeamId]; val < 1 || !ok {
-			newTeamMembers[member.TeamId] = 1
-		} else {
-			newTeamMembers[member.TeamId]++
-		}
+		newTeamMembers[member.TeamId] = 0
+	}
+
+	for _, member := range members {
+		newTeamMembers[member.TeamId]++
 		users[member.UserId] = true
 
 		if err := member.IsValid(); err != nil {
@@ -640,38 +640,38 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		Admin sql.NullString
 	}{}
 
+	queryRoles := s.getQueryBuilder().
+		Select(
+			"Teams.Id as Id",
+			"TeamScheme.DefaultTeamGuestRole as Guest",
+			"TeamScheme.DefaultTeamUserRole as User",
+			"TeamScheme.DefaultTeamAdminRole as Admin",
+		).
+		From("Teams").
+		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
+		Where(sq.Eq{"Teams.Id": teams})
+
+	sqlRolesQuery, argsRoles, err := queryRoles.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var defaultTeamsRoles []struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}
+	_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, defaultRoles := range defaultTeamsRoles {
+		defaultTeamRolesByTeam[defaultRoles.Id] = defaultRoles
+	}
+
 	if maxUsersPerTeam >= 0 {
-		query := s.getQueryBuilder().
-			Select(
-				"Teams.Id as Id",
-				"TeamScheme.DefaultTeamGuestRole as Guest",
-				"TeamScheme.DefaultTeamUserRole as User",
-				"TeamScheme.DefaultTeamAdminRole as Admin",
-			).
-			From("Teams").
-			LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-			Where(sq.Eq{"Teams.Id": teams})
-
-		sqlQuery, args, err := query.ToSql()
-		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		var defaultTeamsRoles []struct {
-			Id    string
-			Guest sql.NullString
-			User  sql.NullString
-			Admin sql.NullString
-		}
-		_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlQuery, args...)
-		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		for _, defaultRoles := range defaultTeamsRoles {
-			defaultTeamRolesByTeam[defaultRoles.Id] = defaultRoles
-		}
-
-		query = s.getQueryBuilder().
+		queryCount := s.getQueryBuilder().
 			Select(
 				"COUNT(0) as Count, TeamMembers.TeamId as TeamId",
 			).
@@ -682,7 +682,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			Where(sq.Eq{"Users.DeleteAt": 0}).
 			GroupBy("TeamMembers.TeamId")
 
-		sqlQuery, args, err = query.ToSql()
+		sqlCountQuery, argsCount, err := queryCount.ToSql()
 		if err != nil {
 			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -692,17 +692,22 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			TeamId string `db:"TeamId"`
 		}
 
-		_, err = s.GetMaster().Select(&counters, sqlQuery, args...)
+		_, err = s.GetMaster().Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
 			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		for _, counter := range counters {
-			if counter.Count+newTeamMembers[counter.TeamId] > maxUsersPerTeam {
+		for teamId, newMembers := range newTeamMembers {
+			existingMembers := 0
+			for _, counter := range counters {
+				if counter.TeamId == teamId {
+					existingMembers = counter.Count
+				}
+			}
+			if existingMembers+newMembers > maxUsersPerTeam {
 				return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
-
 	}
 
 	query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)

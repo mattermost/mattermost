@@ -46,6 +46,8 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("TeamPublicCount", func(t *testing.T) { testPublicTeamCount(t, ss) })
 	t.Run("TeamPrivateCount", func(t *testing.T) { testPrivateTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
+	t.Run("SaveMember", func(t *testing.T) { testTeamSaveMember(t, ss) })
+	t.Run("SaveMultipleMembers", func(t *testing.T) { testTeamSaveMultipleMembers(t, ss) })
 	t.Run("GetMembersOrder", func(t *testing.T) { testGetMembersOrder(t, ss) })
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, ss) })
@@ -880,17 +882,7 @@ func testGetMembersOrder(t *testing.T, ss store.Store) {
 	m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
 	m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m6, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
 	require.Nil(t, err)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -911,11 +903,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 	require.Nil(t, err)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -953,9 +941,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, err)
 
 	ms, err = ss.Team().GetTeamsForUser(uid)
@@ -970,6 +956,281 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Empty(t, ms)
 }
 
+func testTeamSaveMember(t *testing.T, ss store.Store) {
+	user, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("not valid team member", func(t *testing.T) {
+		member := &model.TeamMember{TeamId: "wrong", UserId: user.Id}
+		_, err := ss.Team().SaveMember(member, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("too many members", func(t *testing.T) {
+		member := &model.TeamMember{TeamId: model.NewId(), UserId: user.Id}
+		_, err := ss.Team().SaveMember(member, 0)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members because previous existing members", func(t *testing.T) {
+		m1 := &model.TeamMember{TeamId: model.NewId(), UserId: model.NewId()}
+		_, err := ss.Team().SaveMember(m1, 1)
+		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: model.NewId()}
+		_, err = ss.Team().SaveMember(m2, 1)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		teamID1 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: user.Id}
+		_, err := ss.Team().SaveMember(m1, -1)
+		require.Nil(t, err)
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: user.Id}
+		_, err = ss.Team().SaveMember(m2, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly", func(t *testing.T) {
+		u1 := user
+		u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+		require.Nil(t, err)
+		u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+		require.Nil(t, err)
+
+		s1 := &model.Scheme{
+			Name:                 model.NewId(),
+			DisplayName:          model.NewId(),
+			Description:          model.NewId(),
+			Scope:                model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole: model.TEAM_GUEST_ROLE_ID,
+			DefaultTeamUserRole:  model.TEAM_USER_ROLE_ID,
+			DefaultTeamAdminRole: model.TEAM_ADMIN_ROLE_ID,
+		}
+		s1, err = ss.Scheme().Save(s1)
+		require.Nil(t, err)
+
+		s2 := &model.Scheme{
+			Name:                 model.NewId(),
+			DisplayName:          model.NewId(),
+			Description:          model.NewId(),
+			Scope:                model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole: "test_guest",
+			DefaultTeamUserRole:  "test_user",
+			DefaultTeamAdminRole: "test_admin",
+		}
+		s2, err = ss.Scheme().Save(s2)
+		require.Nil(t, err)
+
+		team1, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.TEAM_OPEN,
+		})
+		require.Nil(t, err)
+		defer func() { ss.Team().PermanentDelete(team1.Id) }()
+		team2, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.TEAM_OPEN,
+		})
+		require.Nil(t, err)
+		defer func() { ss.Team().PermanentDelete(team2.Id) }()
+
+		m1 := &model.TeamMember{TeamId: team1.Id, UserId: u1.Id, ExplicitRoles: model.TEAM_USER_ROLE_ID}
+		m1, err = ss.Team().SaveMember(m1, -1)
+		require.Nil(t, err)
+		assert.Equal(t, "team_user", m1.Roles)
+		assert.Equal(t, "", m1.ExplicitRoles)
+		assert.False(t, m1.SchemeGuest)
+		assert.True(t, m1.SchemeUser)
+		assert.False(t, m1.SchemeAdmin)
+
+		m2 := &model.TeamMember{TeamId: team1.Id, UserId: u2.Id, ExplicitRoles: model.TEAM_ADMIN_ROLE_ID + " " + model.TEAM_USER_ROLE_ID}
+		m2, err = ss.Team().SaveMember(m2, -1)
+		require.Nil(t, err)
+		assert.Equal(t, "team_admin team_user", m2.Roles)
+		assert.Equal(t, "", m2.ExplicitRoles)
+		assert.False(t, m2.SchemeGuest)
+		assert.True(t, m2.SchemeUser)
+		assert.True(t, m2.SchemeAdmin)
+
+		m3 := &model.TeamMember{TeamId: team1.Id, UserId: u3.Id, ExplicitRoles: model.TEAM_GUEST_ROLE_ID}
+		m3, err = ss.Team().SaveMember(m3, -1)
+		require.Nil(t, err)
+		assert.Equal(t, "team_guest", m3.Roles)
+		assert.Equal(t, "", m3.ExplicitRoles)
+		assert.True(t, m3.SchemeGuest)
+		assert.False(t, m3.SchemeUser)
+		assert.False(t, m3.SchemeAdmin)
+
+		m4 := &model.TeamMember{TeamId: team2.Id, UserId: u1.Id, ExplicitRoles: "test_user other_role"}
+		m4, err = ss.Team().SaveMember(m4, -1)
+		require.Nil(t, err)
+		assert.Equal(t, "test_user other_role", m4.Roles)
+		assert.Equal(t, "test_user other_role", m4.ExplicitRoles)
+		assert.False(t, m4.SchemeGuest)
+		assert.False(t, m4.SchemeUser)
+		assert.False(t, m4.SchemeAdmin)
+
+		m5 := &model.TeamMember{TeamId: team2.Id, UserId: u2.Id, ExplicitRoles: model.TEAM_ADMIN_ROLE_ID + " test_admin"}
+		m5, err = ss.Team().SaveMember(m5, -1)
+		require.Nil(t, err)
+		assert.Equal(t, "team_admin test_admin", m5.Roles)
+		assert.Equal(t, "test_admin", m5.ExplicitRoles)
+		assert.False(t, m5.SchemeGuest)
+		assert.False(t, m5.SchemeUser)
+		assert.True(t, m5.SchemeAdmin)
+	})
+}
+
+func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("any not valid team member", func(t *testing.T) {
+		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("too many members in one team", func(t *testing.T) {
+		teamID := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members in one team because previous existing members", func(t *testing.T) {
+		teamID := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 3)
+		require.Nil(t, err)
+
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members, but in different teams", func(t *testing.T) {
+		teamID1 := model.NewId()
+		teamID2 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamID1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamID2, UserId: u1.Id}
+		m5 := &model.TeamMember{TeamId: teamID2, UserId: u2.Id}
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		teamID1 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert multiple members correctly", func(t *testing.T) {
+		s1 := &model.Scheme{
+			Name:                 model.NewId(),
+			DisplayName:          model.NewId(),
+			Description:          model.NewId(),
+			Scope:                model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole: model.TEAM_GUEST_ROLE_ID,
+			DefaultTeamUserRole:  model.TEAM_USER_ROLE_ID,
+			DefaultTeamAdminRole: model.TEAM_ADMIN_ROLE_ID,
+		}
+		s1, err := ss.Scheme().Save(s1)
+		require.Nil(t, err)
+
+		s2 := &model.Scheme{
+			Name:                 model.NewId(),
+			DisplayName:          model.NewId(),
+			Description:          model.NewId(),
+			Scope:                model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole: "test_guest",
+			DefaultTeamUserRole:  "test_user",
+			DefaultTeamAdminRole: "test_admin",
+		}
+		s2, err = ss.Scheme().Save(s2)
+		require.Nil(t, err)
+
+		team1, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.TEAM_OPEN,
+		})
+		require.Nil(t, err)
+		defer func() { ss.Team().PermanentDelete(team1.Id) }()
+		team2, err := ss.Team().Save(&model.Team{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.TEAM_OPEN,
+		})
+		require.Nil(t, err)
+		defer func() { ss.Team().PermanentDelete(team2.Id) }()
+
+		m1 := &model.TeamMember{TeamId: team1.Id, UserId: u1.Id, ExplicitRoles: model.TEAM_USER_ROLE_ID}
+		m2 := &model.TeamMember{TeamId: team1.Id, UserId: u2.Id, ExplicitRoles: model.TEAM_ADMIN_ROLE_ID + " " + model.TEAM_USER_ROLE_ID}
+		m3 := &model.TeamMember{TeamId: team1.Id, UserId: u3.Id, ExplicitRoles: model.TEAM_GUEST_ROLE_ID}
+		m4 := &model.TeamMember{TeamId: team2.Id, UserId: u1.Id, ExplicitRoles: "test_user other_role"}
+		m5 := &model.TeamMember{TeamId: team2.Id, UserId: u2.Id, ExplicitRoles: model.TEAM_ADMIN_ROLE_ID + " test_admin"}
+
+		newMembers, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 10)
+		require.Nil(t, err)
+		require.Len(t, newMembers, 5)
+		assert.Equal(t, "team_user", newMembers[0].Roles)
+		assert.Equal(t, "", newMembers[0].ExplicitRoles)
+		assert.False(t, newMembers[0].SchemeGuest)
+		assert.True(t, newMembers[0].SchemeUser)
+		assert.False(t, newMembers[0].SchemeAdmin)
+
+		assert.Equal(t, "team_admin team_user", newMembers[1].Roles)
+		assert.Equal(t, "", newMembers[1].ExplicitRoles)
+		assert.False(t, newMembers[1].SchemeGuest)
+		assert.True(t, newMembers[1].SchemeUser)
+		assert.True(t, newMembers[1].SchemeAdmin)
+
+		assert.Equal(t, "team_guest", newMembers[2].Roles)
+		assert.Equal(t, "", newMembers[2].ExplicitRoles)
+		assert.True(t, newMembers[2].SchemeGuest)
+		assert.False(t, newMembers[2].SchemeUser)
+		assert.False(t, newMembers[2].SchemeAdmin)
+
+		assert.Equal(t, "test_user other_role", newMembers[3].Roles)
+		assert.Equal(t, "test_user other_role", newMembers[3].ExplicitRoles)
+		assert.False(t, newMembers[3].SchemeGuest)
+		assert.False(t, newMembers[3].SchemeUser)
+		assert.False(t, newMembers[3].SchemeAdmin)
+
+		assert.Equal(t, "team_admin test_admin", newMembers[4].Roles)
+		assert.Equal(t, "test_admin", newMembers[4].ExplicitRoles)
+		assert.False(t, newMembers[4].SchemeGuest)
+		assert.False(t, newMembers[4].SchemeUser)
+		assert.True(t, newMembers[4].SchemeAdmin)
+	})
+}
+
 func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
@@ -978,12 +1239,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 	require.Nil(t, err)
 
 	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
@@ -1010,9 +1266,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, err)
 
 	result, err := ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
@@ -1477,12 +1731,12 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		ExplicitRoles: "something_else",
 	}
 
-	tm1, err = ss.Team().SaveMember(tm1, -1)
+	memberships, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{tm1, tm2, tm3}, -1)
 	require.Nil(t, err)
-	tm2, err = ss.Team().SaveMember(tm2, -1)
-	require.Nil(t, err)
-	tm3, err = ss.Team().SaveMember(tm3, -1)
-	require.Nil(t, err)
+	require.Len(t, memberships, 3)
+	tm1 = memberships[0]
+	tm2 = memberships[1]
+	tm3 = memberships[2]
 
 	lastDoneTeamId := strings.Repeat("0", 26)
 	lastDoneUserId := strings.Repeat("0", 26)
@@ -1586,13 +1840,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 		ExplicitRoles: "custom_only",
 	}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m4, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
 	require.Nil(t, err)
 
 	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
@@ -1731,11 +1979,8 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
-	_, err = ss.Team().SaveMember(m2, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 	require.Nil(t, err)
 
 	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
