@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -133,6 +134,13 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("old_group_display", group.DisplayName)
 	auditRec.AddMeta("old_group_desc", group.Description)
 
+	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
+		tmp := model.NewId()
+		if groupPatch.Name == nil {
+			tmp = strings.ReplaceAll(group.DisplayName, " ", "-")
+		}
+		groupPatch.Name = &tmp
+	}
 	group.Patch(groupPatch)
 
 	group, err = c.App.UpdateGroup(group)

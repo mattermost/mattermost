@@ -42,7 +42,6 @@ type Group struct {
 	HasSyncables   bool        `db:"-" json:"has_syncables"`
 	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
 	AllowReference bool        `json:"allow_reference"`
-	GroupName      string      `json:"groupname"`
 }
 
 type GroupWithSchemeAdmin struct {

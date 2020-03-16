@@ -102,7 +102,6 @@ func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, *model.AppErro
 	group.Id = model.NewId()
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
-	group.GroupName = strings.ReplaceAll(group.DisplayName, " ", "-")
 
 	if err := s.GetMaster().Insert(group); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
@@ -210,10 +209,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 	// Reset these properties, don't update them based on input
 	group.CreateAt = retrievedGroup.CreateAt
 	group.UpdateAt = model.GetMillis()
-	if group.GroupName == "" {
-		group.GroupName = strings.ReplaceAll(group.DisplayName, " ", "-")
-	}
-
+	
 	group.UpdateAt = model.GetMillis()
 
 	if err := group.IsValidForUpdate(); err != nil {

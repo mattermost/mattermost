@@ -99,7 +99,6 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	require.NotZero(t, d1.CreateAt)
 	require.NotZero(t, d1.UpdateAt)
 	require.Zero(t, d1.DeleteAt)
-	require.NotEmpty(t, d1.GroupName)
 
 	// Requires name and display name
 	g2 := &model.Group{
@@ -173,17 +172,6 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewId(),
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
-
-	// Groupname is of the right format
-	g7 := &model.Group{
-		Name:        model.NewId(),
-		DisplayName: "test group",
-		Description: model.NewId(),
-		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
-	}
-	data, err = ss.Group().Create(g7)
-	require.Equal(t, g7.GroupName, "test-group")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
