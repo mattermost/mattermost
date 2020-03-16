@@ -157,7 +157,7 @@ func (ps SqlAtomicStore) CompareAndDelete(key string, oldValue []byte) (bool, *m
 		},
 	)
 	if err != nil {
-		return false, model.NewAppError("SqlAtomicStore.CompareAndDelete", "store.sql_atomi_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SqlAtomicStore.CompareAndDelete", "store.sql_atomic_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if rowsAffected, err := deleteResult.RowsAffected(); err != nil {
