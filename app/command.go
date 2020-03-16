@@ -520,7 +520,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.ParentId = args.ParentId
 	post.UserId = args.UserId
 	post.Type = response.Type
-	post.Props = response.Props
+	post.SetProps(response.Props)
 
 	if len(response.ChannelId) != 0 {
 		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
