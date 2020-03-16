@@ -510,6 +510,9 @@ func testSchemeStoreCountByScope(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
+	err := ss.Scheme().PermanentDeleteAll()
+	require.Nil(t, err)
+
 	createScheme(model.SCHEME_SCOPE_CHANNEL)
 	createScheme(model.SCHEME_SCOPE_TEAM)
 	testCounts(1, 1)
