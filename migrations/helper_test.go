@@ -250,9 +250,6 @@ func (me *TestHelper) TearDown() {
 	// Clean all the caches
 	me.App.InvalidateAllCaches()
 	me.Server.Shutdown()
-	if err := recover(); err != nil {
-		panic(err)
-	}
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}
