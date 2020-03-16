@@ -627,9 +627,9 @@ func TestUploadFiles(t *testing.T) {
 								require.Nil(t, err)
 								if strings.Contains(name, "test_expected_tiff") {
 									// TODO: remove this once MM-22056 is fixed.
-									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %d. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
+									t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
 								} else {
-									t.Errorf("Actual data mismatched %s, written to %q - expected %v bytes, got %d.", name, tf.Name(), len(expected), len(data))
+									t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 								}
 							}
 						}
