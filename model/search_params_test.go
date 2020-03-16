@@ -204,7 +204,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -224,7 +224,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -244,7 +244,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -264,7 +264,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -284,7 +284,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -304,7 +304,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "from",
 					value:   "chan",
 					exclude: true,
@@ -325,7 +325,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "from",
 					value:   "chan",
 					exclude: true,
@@ -346,7 +346,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "from",
 					value: "chan",
 				},
@@ -366,7 +366,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "in",
 					value: "chan",
 				},
@@ -386,7 +386,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:  "channel",
 					value: "chan",
 				},
@@ -423,7 +423,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Input: "channel:first",
 			Words: []searchWord{},
 			Flags: []flag{
-				flag{
+				{
 					name:  "channel",
 					value: "first",
 				},
@@ -434,7 +434,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Input: "-channel:first",
 			Words: []searchWord{},
 			Flags: []flag{
-				flag{
+				{
 					name:    "channel",
 					value:   "first",
 					exclude: true,
@@ -451,12 +451,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "channel",
 					value:   "first",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "in",
 					value:   "second",
 					exclude: false,
@@ -473,12 +473,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "channel",
 					value:   "first",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "in",
 					value:   "second",
 					exclude: true,
@@ -495,12 +495,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "channel",
 					value:   "first",
 					exclude: true,
 				},
-				flag{
+				{
 					name:    "in",
 					value:   "second",
 					exclude: false,
@@ -512,22 +512,22 @@ func TestParseSearchFlags2(t *testing.T) {
 			Input: "channel: first channel: second from: third from: fourth",
 			Words: []searchWord{},
 			Flags: []flag{
-				flag{
+				{
 					name:    "channel",
 					value:   "first",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "channel",
 					value:   "second",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "from",
 					value:   "third",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "from",
 					value:   "fourth",
 					exclude: false,
@@ -665,12 +665,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "in",
 					value:   "here",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "from",
 					value:   "someone",
 					exclude: false,
@@ -682,7 +682,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Input: "after:2018-1-1",
 			Words: []searchWord{},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
@@ -694,7 +694,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Input: "-after:2018-1-1",
 			Words: []searchWord{},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: true,
@@ -715,7 +715,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-1",
 					exclude: false,
@@ -736,7 +736,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-1",
 					exclude: true,
@@ -757,12 +757,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-10",
 					exclude: false,
@@ -783,12 +783,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: true,
 				},
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-10",
 					exclude: true,
@@ -809,7 +809,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
@@ -830,7 +830,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-1",
 					exclude: false,
@@ -851,12 +851,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-10",
 					exclude: false,
@@ -877,7 +877,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
@@ -898,7 +898,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-1",
 					exclude: false,
@@ -919,12 +919,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-10",
 					exclude: false,
@@ -949,12 +949,12 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-1-1",
 					exclude: false,
 				},
-				flag{
+				{
 					name:    "before",
 					value:   "2018-1-10",
 					exclude: false,
@@ -971,7 +971,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "after",
 					value:   "2018-7-1",
 					exclude: false,
@@ -988,7 +988,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "on",
 					value:   "2018-7-1",
 					exclude: false,
@@ -1005,7 +1005,7 @@ func TestParseSearchFlags2(t *testing.T) {
 				},
 			},
 			Flags: []flag{
-				flag{
+				{
 					name:    "on",
 					value:   "2018-7-1",
 					exclude: true,
@@ -1042,7 +1042,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words should result in one param",
 			Input: "words words",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "words words",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1057,7 +1057,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words should result in one param with two excluded terms",
 			Input: "-word1 -word2",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "word1 word2",
 					IsHashtag:        false,
@@ -1072,7 +1072,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two quoted words should result in one term",
 			Input: "\"my stuff\"",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "\"my stuff\"",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1087,7 +1087,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two quoted words should result in one excluded term",
 			Input: "-\"my stuff\"",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "\"my stuff\"",
 					IsHashtag:        false,
@@ -1102,7 +1102,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words prefixed with hashtags should result in one term",
 			Input: "#words #words",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "#words #words",
 					ExcludedTerms:    "",
 					IsHashtag:        true,
@@ -1117,7 +1117,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words one is prefixed with a hashtag should result in two terms",
 			Input: "#words words",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "words",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1126,7 +1126,7 @@ func TestParseSearchParams(t *testing.T) {
 					FromUsers:        []string{},
 					ExcludedUsers:    []string{},
 				},
-				&SearchParams{
+				{
 					Terms:            "#words",
 					ExcludedTerms:    "",
 					IsHashtag:        true,
@@ -1141,7 +1141,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is one word prefixed with hashtag and a dash should result in one excluded term",
 			Input: "-#hashtag",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "#hashtag",
 					IsHashtag:        true,
@@ -1156,7 +1156,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words prefixed with hashtags and dashes should result in excluded term",
 			Input: "-#hashtag1 -#hashtag2",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "#hashtag1 #hashtag2",
 					IsHashtag:        true,
@@ -1171,7 +1171,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words prefixed with hashtags and one dash should result in excluded and nonexcluded term",
 			Input: "#hashtag1 -#hashtag2",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "#hashtag1",
 					ExcludedTerms:    "#hashtag2",
 					IsHashtag:        true,
@@ -1186,7 +1186,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is 4 words prefixed with hashtags and a dash should result in excluded and nonexcluded multiple SearchParams",
 			Input: "word1 #hashtag1 -#hashtag2 -word2",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "word1",
 					ExcludedTerms:    "word2",
 					IsHashtag:        false,
@@ -1195,7 +1195,7 @@ func TestParseSearchParams(t *testing.T) {
 					FromUsers:        []string{},
 					ExcludedUsers:    []string{},
 				},
-				&SearchParams{
+				{
 					Terms:            "#hashtag1",
 					ExcludedTerms:    "#hashtag2",
 					IsHashtag:        true,
@@ -1210,7 +1210,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words seperated with : and should result in a single InChannel",
 			Input: "in:channel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1225,7 +1225,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words seperated with :, prefied with - and should result in a single ExcludedChannel",
 			Input: "-in:channel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1240,7 +1240,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words seperated with : with a prefixed word should result in a single InChannel and a term",
 			Input: "testing in:channel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1255,7 +1255,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words seperated with : with a prefixed word should result in a single ExcludedChannel and a term",
 			Input: "testing -in:channel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1270,7 +1270,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words seperated with : with a postfix word should result in a single InChannel and a term",
 			Input: "in:channel testing",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1285,7 +1285,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is four words seperated with : should result in a two InChannels",
 			Input: "in:channel in:otherchannel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1300,7 +1300,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is four words seperated with : prefixed with a word should result in two InChannels and one term",
 			Input: "testing in:channel in:otherchannel",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1315,7 +1315,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is four words seperated with : prefixed with a word should result in one InChannel, one FromUser and one term",
 			Input: "testing in:channel from:someone",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1330,7 +1330,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is four words seperated with : prefixed with a word should result in one InChannel, one ExcludedUser and one term",
 			Input: "testing in:channel -from:someone",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1345,7 +1345,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is six words seperated with : prefixed with a word should result in one InChannel, one FromUser, one ExcludedUser and one term",
 			Input: "testing in:channel from:someone -from:someoneelse",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1360,7 +1360,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is two words first one is prefixed with two #, should result in one term with IsHashtag = true, pluses should be removed",
 			Input: "##hashtag +#plus+",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "#hashtag #plus",
 					ExcludedTerms:    "",
 					IsHashtag:        true,
@@ -1375,7 +1375,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is a wilrdcar with a *, should result in one term with a *",
 			Input: "wildcar*",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "wildcar*",
 					ExcludedTerms:    "",
 					IsHashtag:        false,
@@ -1390,7 +1390,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an after date with one word, should in one AfterDate and one term",
 			Input: "after:2018-8-1 testing",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:             "testing",
 					ExcludedTerms:     "",
 					AfterDate:         "2018-8-1",
@@ -1406,7 +1406,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an after date with one word, should in one ExcludedAfterDate and one term",
 			Input: "-after:2018-8-1 testing",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:             "testing",
 					ExcludedTerms:     "",
 					AfterDate:         "",
@@ -1422,7 +1422,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an on date with one word, should in one OnDate and one term",
 			Input: "on:2018-8-1 testing",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:             "testing",
 					ExcludedTerms:     "",
 					OnDate:            "2018-8-1",
@@ -1439,7 +1439,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an on date with one word, should in one ExcludedDate and one term",
 			Input: "-on:2018-8-1 testing",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "testing",
 					ExcludedTerms:    "",
 					AfterDate:        "",
@@ -1455,7 +1455,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an after date, should in one AfterDate",
 			Input: "after:2018-8-1",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "",
 					AfterDate:        "2018-8-1",
@@ -1471,7 +1471,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an before date, should in one BeforeDate",
 			Input: "before:2018-8-1",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:            "",
 					ExcludedTerms:    "",
 					BeforeDate:       "2018-8-1",
@@ -1488,7 +1488,7 @@ func TestParseSearchParams(t *testing.T) {
 			Name:  "input is an before date, should in one ExcludedBeforeDate",
 			Input: "-before:2018-8-1",
 			Output: []*SearchParams{
-				&SearchParams{
+				{
 					Terms:              "",
 					ExcludedTerms:      "",
 					BeforeDate:         "",
