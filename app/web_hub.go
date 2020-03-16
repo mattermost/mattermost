@@ -101,7 +101,7 @@ func (a *App) HubStart() {
 				for _, hub := range a.Srv().GetHubs() {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
 						mlog.Error(
-							"Hub queue is almost full. It might be caused by a deadlock with events in the buffer",
+							"Websocket hub queue is full at 99% of its capacity",
 							mlog.Int("hub", hub.connectionIndex),
 							mlog.Int("goroutine", hub.goroutineId),
 							mlog.Int("events", len(hub.broadcast)),
