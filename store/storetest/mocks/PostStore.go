@@ -637,6 +637,31 @@ func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) 
 	return r0, r1
 }
 
+// OverwriteMultiple provides a mock function with given fields: posts
+func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+		r1 = rf(posts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
 func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
 	ret := _m.Called(endTime, limit)
@@ -717,6 +742,31 @@ func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// SaveMultiple provides a mock function with given fields: posts
+func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+		r1 = rf(posts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Search provides a mock function with given fields: teamId, userId, params
 func (_m *PostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
 	ret := _m.Called(teamId, userId, params)
@@ -733,6 +783,31 @@ func (_m *PostStore) Search(teamId string, userId string, params *model.SearchPa
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, *model.SearchParams) *model.AppError); ok {
 		r1 = rf(teamId, userId, params)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage
+func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+	ret := _m.Called(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+
+	var r0 *model.PostSearchResults
+	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, bool, bool, int, int) *model.PostSearchResults); ok {
+		r0 = rf(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostSearchResults)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, bool, bool, int, int) *model.AppError); ok {
+		r1 = rf(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

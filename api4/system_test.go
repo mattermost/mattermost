@@ -571,6 +571,25 @@ func TestClearServerBusy(t *testing.T) {
 	})
 }
 
+func TestGetServerBusy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().Busy.Set(time.Second * 30)
+
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := th.Client.GetServerBusy()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system admin", func(t *testing.T) {
+		sbs, resp := th.SystemAdminClient.GetServerBusy()
+		expires := time.Unix(sbs.Expires, 0)
+		CheckNoError(t, resp)
+		require.Greater(t, expires.Unix(), time.Now().Unix())
+	})
+}
+
 func TestGetServerBusyExpires(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
