@@ -44,7 +44,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			groupsMap := make(map[string]*model.Group)
 			if err == nil {
 				for _, group := range groups {
-					groupsMap[group.DisplayName] = group
+					groupsMap[group.Name] = group
 				}
 			}
 			gchan <- store.StoreResult{Data: groupsMap, Err: err}
@@ -646,7 +646,7 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 		m.GroupMentions = make(map[string]*model.Group)
 	}
 
-	m.GroupMentions[group.DisplayName] = group
+	m.GroupMentions[group.Name] = group
 
 	return true
 }
@@ -788,7 +788,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 		mentions.OtherPotentialMentions = append(mentions.OtherPotentialMentions, potentialGroupMembersMentioned...)
 	}
 
-	return (userMentioned || len(potentialGroupMembersMentioned) > 0), nil
+	return (userMentioned || len(outOfChannelGroupMembers) > 0), nil
 }
 
 // addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.

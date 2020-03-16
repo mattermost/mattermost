@@ -336,6 +336,7 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 				JOIN Channels ON Channels.Id = :ChannelId
 				JOIN Teams ON Teams.Id = Channels.TeamId
 				WHERE TeamMembers.TeamId = Teams.Id
+				AND TeamMembers.DeleteAt = 0
 			)
 		`
 
