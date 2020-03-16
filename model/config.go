@@ -414,10 +414,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableIncomingWebhooks = NewBool(true)
 	}
 
-	if s.EnableIncomingWebhooks == nil {
-		s.EnableIncomingWebhooks = NewBool(true)
-	}
-
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
 	}
