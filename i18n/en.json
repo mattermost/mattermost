@@ -1968,7 +1968,7 @@
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
-    "translation": "You don't have enough permissions to list all teams"
+    "translation": "You don't have the appropriate permissions to list all teams"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
