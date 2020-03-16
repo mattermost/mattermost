@@ -863,3 +863,41 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.Len(t, pluginStatus, 0)
 	})
 }
+
+func TestPluginDeactivation(t *testing.T) {
+	t.Run("deactivate should not update env.registeredPlugins", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		tearDown, ids, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+		assert.Len(t, ids, 1)
+
+		pluginID := ids[0]
+		assert.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		_, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+		assert.NoError(t, err)
+
+		th.App.GetPluginsEnvironment().Deactivate(pluginID)
+
+		// Really hacky way to check if a pluginID exists in the Env.registeredPlugins map.
+		_, err = th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+		assert.NoError(t, err)
+	})
+}

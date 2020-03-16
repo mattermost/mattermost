@@ -321,7 +321,8 @@ func (env *Environment) Deactivate(id string) bool {
 		rp.supervisor.Shutdown()
 	}
 
-	env.registeredPlugins.Delete(id)
+	// Do not remove this PluginID from env.registeredPlugins as PluginHealthCheckJob
+	// relies upon updating failTimeStamps externally when restarting plugins.
 
 	return true
 }

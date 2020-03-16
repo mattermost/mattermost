@@ -1026,10 +1026,10 @@ func TestActiveHooks(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, hooks)
 
-		// Should fail to find pluginId as it was deleted when deactivated
+		// Should not return any error as deactivated plugins still exist in registeredPlugins.
 		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginId)
-		require.Error(t, err)
-		require.Empty(t, path)
+		require.NoError(t, err)
+		require.NotEmpty(t, path)
 	})
 }
 
