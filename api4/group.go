@@ -694,6 +694,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+
 		// uncomment when MM-23019 is checked-in
 		// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.USE_GROUP_MENTIONS) {
 		// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)

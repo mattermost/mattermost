@@ -750,9 +750,6 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.Client.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
-	CheckForbiddenStatus(t, response)
-
 	groups, response := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
 
@@ -827,9 +824,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, _, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, opts)
-	CheckForbiddenStatus(t, response)
-
 	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
@@ -889,9 +883,6 @@ func TestGetGroups(t *testing.T) {
 
 	opts.NotAssociatedToChannel = th.BasicChannel.Id
 
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
-
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 	require.Nil(t, response.Error)
 
@@ -914,17 +905,10 @@ func TestGetGroups(t *testing.T) {
 	require.Nil(t, response.Error)
 
 	opts.NotAssociatedToTeam = th.BasicTeam.Id
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
 
 	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.Nil(t, response.Error)
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
-
-	opts.NotAssociatedToTeam = ""
-	opts.NotAssociatedToChannel = ""
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
 }
