@@ -433,9 +433,9 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *mod
 		return appErr(err.Error())
 	}
 
-	post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
+	post.AddProp(model.POST_PROPS_DELETE_BY, deleteByID)
 
-	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
+	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
 		return appErr(err.Error())
 	}
