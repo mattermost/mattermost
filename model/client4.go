@@ -2551,8 +2551,12 @@ func (c *Client4) AutocompleteChannelsForTeamForSearch(teamId, name string) (*Ch
 // Post Section
 
 // CreatePost creates a post based on the provided post struct.
-func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
-	r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson())
+func (c *Client4) CreatePost(post *Post, online bool) (*Post, *Response) {
+	url := c.GetPostsRoute()
+	if !online {
+		url += "?set_online=false"
+	}
+	r, err := c.DoApiPost(url, post.ToUnsanitizedJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

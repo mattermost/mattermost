@@ -428,7 +428,7 @@ func (me *LoadTestProvider) PostCommand(a *App, args *model.CommandArgs, message
 		ChannelId: channel.Id,
 		Message:   textMessage,
 	}
-	_, resp = client.CreatePost(post)
+	_, resp = client.CreatePost(post, false)
 	if resp != nil && resp.Error != nil {
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

@@ -1193,7 +1193,7 @@ func TestDeleteChannel(t *testing.T) {
 	require.True(t, err != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
 
 	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
-	_, resp = Client.CreatePost(post1)
+	_, resp = Client.CreatePost(post1, false)
 	require.NotNil(t, resp, "expected response to not be nil")
 
 	// successful delete of private channel
@@ -2174,7 +2174,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to private channel")
 
 	post := &model.Post{ChannelId: publicChannel.Id, Message: "a" + GenerateTestId() + "a"}
-	rpost, err := Client.CreatePost(post)
+	rpost, err := Client.CreatePost(post, false)
 	require.NotNil(t, err)
 
 	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)

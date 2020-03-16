@@ -476,7 +476,7 @@ func (me *TestHelper) CreatePostWithClient(client *model.Client4, channel *model
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp := client.CreatePost(post, false)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -494,7 +494,7 @@ func (me *TestHelper) CreatePinnedPostWithClient(client *model.Client4, channel 
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp := client.CreatePost(post, false)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
@@ -509,7 +509,7 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 	}
 
 	utils.DisableDebugLogForTest()
-	rpost, resp := client.CreatePost(post)
+	rpost, resp := client.CreatePost(post, false)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}

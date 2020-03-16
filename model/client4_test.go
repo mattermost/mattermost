@@ -54,7 +54,7 @@ func TestClient4CreatePost(t *testing.T) {
 	}))
 
 	client := NewAPIv4Client(server.URL)
-	_, resp := client.CreatePost(post)
+	_, resp := client.CreatePost(post, false)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 

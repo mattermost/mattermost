@@ -558,11 +558,11 @@ func TestGetBulkReactions(t *testing.T) {
 	post4 := &model.Post{UserId: user2Id, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
 	post5 := &model.Post{UserId: user2Id, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
 
-	post1, _ = Client.CreatePost(post1)
-	post2, _ = Client.CreatePost(post2)
-	post3, _ = Client.CreatePost(post3)
-	post4, _ = Client.CreatePost(post4)
-	post5, _ = Client.CreatePost(post5)
+	post1, _ = Client.CreatePost(post1, false)
+	post2, _ = Client.CreatePost(post2, false)
+	post3, _ = Client.CreatePost(post3, false)
+	post4, _ = Client.CreatePost(post4, false)
+	post5, _ = Client.CreatePost(post5, false)
 
 	expectedPostIdsReactionsMap := make(map[string][]*model.Reaction)
 	expectedPostIdsReactionsMap[post1.Id] = []*model.Reaction{}

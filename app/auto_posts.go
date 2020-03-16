@@ -92,7 +92,7 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 		RootId:    rootId,
 		Message:   postText,
 		FileIds:   fileIds}
-	rpost, resp := cfg.client.CreatePost(post)
+	rpost, resp := cfg.client.CreatePost(post, false)
 	if resp != nil && resp.Error != nil {
 		return nil, false
 	}

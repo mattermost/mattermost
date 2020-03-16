@@ -30,7 +30,7 @@ func TestCreatePost(t *testing.T) {
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
-	rpost, resp := Client.CreatePost(post)
+	rpost, resp := Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -40,22 +40,26 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
 	require.Nil(t, rpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "newly created post shouldn't have Props['add_channel_member'] set")
 
+	s, resp := Client.GetUserStatus(rpost.UserId, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, model.STATUS_OFFLINE, s.Status)
+
 	post.RootId = rpost.Id
 	post.ParentId = rpost.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.RootId = "junk"
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = rpost.Id
 	post.ParentId = "junk"
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckBadRequestStatus(t, resp)
 
 	post2 := &model.Post{ChannelId: th.BasicChannel2.Id, Message: "zz" + model.NewId() + "a", CreateAt: 123}
-	rpost2, _ := Client.CreatePost(post2)
+	rpost2, _ := Client.CreatePost(post2, false)
 	require.NotEqual(t, post2.CreateAt, rpost2.CreateAt, "create at should not match")
 
 	t.Run("with file uploaded by same user", func(t *testing.T) {
@@ -67,7 +71,7 @@ func TestCreatePost(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
-		})
+		}, false)
 		CheckNoError(t, subResponse)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
@@ -85,13 +89,26 @@ func TestCreatePost(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
-		})
+		}, false)
 		CheckNoError(t, subResponse)
 		assert.Empty(t, postWithFiles.FileIds)
 
 		actualPostWithFiles, subResponse := Client.GetPost(postWithFiles.Id, "")
 		CheckNoError(t, subResponse)
 		assert.Empty(t, actualPostWithFiles.FileIds)
+	})
+
+	t.Run("user status should be online", func(t *testing.T) {
+		p, resp := Client.CreatePost(&model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "i'm online",
+		}, true)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		s, resp := Client.GetUserStatus(p.UserId, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, model.STATUS_ONLINE, s.Status)
 	})
 
 	t.Run("with file uploaded by nouser", func(t *testing.T) {
@@ -103,7 +120,7 @@ func TestCreatePost(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "with files",
 			FileIds:   model.StringArray{fileId},
-		})
+		}, false)
 		CheckNoError(t, subResponse)
 		assert.Equal(t, model.StringArray{fileId}, postWithFiles.FileIds)
 
@@ -124,7 +141,7 @@ func TestCreatePost(t *testing.T) {
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
 		post.Message = "a post with no channel mentions"
-		_, resp = Client.CreatePost(post)
+		_, resp = Client.CreatePost(post, false)
 		CheckNoError(t, resp)
 
 		// Message with no channel mentions should result in no ephemeral message
@@ -142,19 +159,19 @@ func TestCreatePost(t *testing.T) {
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
 		post.Message = "a post with @channel"
-		_, resp = Client.CreatePost(post)
+		_, resp = Client.CreatePost(post, false)
 		CheckNoError(t, resp)
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
 		post.Message = "a post with @all"
-		_, resp = Client.CreatePost(post)
+		_, resp = Client.CreatePost(post, false)
 		CheckNoError(t, resp)
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
 		post.Message = "a post with @here"
-		_, resp = Client.CreatePost(post)
+		_, resp = Client.CreatePost(post, false)
 		CheckNoError(t, resp)
 
 		timeout = time.After(600 * time.Millisecond)
@@ -176,23 +193,23 @@ func TestCreatePost(t *testing.T) {
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckBadRequestStatus(t, resp)
 
 	post.Type = ""
 	post.RootId = rpost2.Id
 	post.ParentId = rpost2.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckBadRequestStatus(t, resp)
 
 	post.RootId = ""
 	post.ParentId = ""
 	post.ChannelId = "junk"
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	post.ChannelId = model.NewId()
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	r, err := Client.DoApiPost("/posts", "garbage")
@@ -200,12 +217,12 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, r.StatusCode)
 
 	Client.Logout()
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckUnauthorizedStatus(t, resp)
 
 	post.ChannelId = th.BasicChannel.Id
 	post.CreateAt = 123
-	rpost, resp = th.SystemAdminClient.CreatePost(post)
+	rpost, resp = th.SystemAdminClient.CreatePost(post, false)
 	CheckNoError(t, resp)
 	require.Equal(t, post.CreateAt, rpost.CreateAt, "create at should match")
 }
@@ -370,7 +387,7 @@ func testCreatePostWithOutgoingHook(
 		FileIds:   fileIds,
 	}
 
-	post, resp = th.SystemAdminClient.CreatePost(post)
+	post, resp = th.SystemAdminClient.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	wait <- true
@@ -439,7 +456,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	Client.Login(user.Email, user.Password)
 
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, false)
@@ -447,11 +464,11 @@ func TestCreatePostPublic(t *testing.T) {
 
 	Client.Login(user.Email, user.Password)
 
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
@@ -462,11 +479,11 @@ func TestCreatePostPublic(t *testing.T) {
 	Client.Login(user.Email, user.Password)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	post.ChannelId = th.BasicChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 }
 
@@ -486,7 +503,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	Client.Login(user.Email, user.Password)
 
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_ROLE_ID, false)
@@ -494,15 +511,15 @@ func TestCreatePostAll(t *testing.T) {
 
 	Client.Login(user.Email, user.Password)
 
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.ChannelId = directChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
@@ -513,15 +530,15 @@ func TestCreatePostAll(t *testing.T) {
 	Client.Login(user.Email, user.Password)
 
 	post.ChannelId = th.BasicPrivateChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.ChannelId = th.BasicChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.ChannelId = directChannel.Id
-	_, resp = Client.CreatePost(post)
+	_, resp = Client.CreatePost(post, false)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -539,7 +556,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	th.App.AddUserToChannel(inChannelUser, th.BasicChannel)
 
 	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
-	_, resp := Client.CreatePost(post1)
+	_, resp := Client.CreatePost(post1, false)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -558,7 +575,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	th.LinkUserToTeam(outOfChannelUser, th.BasicTeam)
 
 	post2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + outOfChannelUser.Username}
-	_, resp = Client.CreatePost(post2)
+	_, resp = Client.CreatePost(post2, false)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -796,7 +813,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	post, resp := th.Client.CreatePost(post)
+	post, resp := th.Client.CreatePost(post, false)
 	CheckNoError(t, resp)
 
 	post.Message = "changed"
@@ -829,7 +846,7 @@ func TestPatchPost(t *testing.T) {
 		FileIds:      fileIds[0:2],
 		HasReactions: true,
 	}
-	post, _ = Client.CreatePost(post)
+	post, _ = Client.CreatePost(post, false)
 
 	var rpost *model.Post
 	t.Run("new message, props, files, HasReactions bit", func(t *testing.T) {
@@ -995,7 +1012,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	post1 := th.CreatePost()
 	post2 := th.CreatePost()
 	post3 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: post1.Id}
-	post3, _ = Client.CreatePost(post3)
+	post3, _ = Client.CreatePost(post3, false)
 
 	time.Sleep(300 * time.Millisecond)
 	since := model.GetMillis()
@@ -1586,15 +1603,15 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	post4 := th.CreatePost()
 	post5 := th.CreatePost()
 	replyPost := &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post4.Id, ParentId: post4.Id}
-	post6, resp := Client.CreatePost(replyPost)
+	post6, resp := Client.CreatePost(replyPost, false)
 	CheckNoError(t, resp)
-	post7, resp := Client.CreatePost(replyPost)
+	post7, resp := Client.CreatePost(replyPost, false)
 	CheckNoError(t, resp)
-	post8, resp := Client.CreatePost(replyPost)
+	post8, resp := Client.CreatePost(replyPost, false)
 	CheckNoError(t, resp)
-	post9, resp := Client.CreatePost(replyPost)
+	post9, resp := Client.CreatePost(replyPost, false)
 	CheckNoError(t, resp)
-	post10, resp := Client.CreatePost(replyPost)
+	post10, resp := Client.CreatePost(replyPost, false)
 	CheckNoError(t, resp)
 
 	postIdNames := map[string]string{
@@ -1783,7 +1800,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		Message:   model.NewId(),
 		RootId:    post4.Id,
 		ParentId:  post4.Id,
-	})
+	}, false)
 	CheckNoError(t, resp)
 	post13 := th.CreatePost()
 
@@ -1908,7 +1925,7 @@ func TestGetPostThread(t *testing.T) {
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: th.BasicPost.Id}
-	post, _ = Client.CreatePost(post)
+	post, _ = Client.CreatePost(post, false)
 
 	list, resp := Client.GetPostThread(th.BasicPost.Id, "")
 	CheckNoError(t, resp)
@@ -2284,7 +2301,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	}
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
-	post, _ = Client.CreatePost(post)
+	post, _ = Client.CreatePost(post, false)
 
 	infos, resp := Client.GetFileInfosForPost(post.Id, "")
 	CheckNoError(t, resp)
