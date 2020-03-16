@@ -936,7 +936,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsBatchForIndexing(startTime int
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -945,7 +945,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string) ([]
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByIds(channelIds)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
@@ -4945,6 +4945,24 @@ func (s *OpenTracingLayerPostStore) Search(teamId string, userId string, params 
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SearchPostsInTeamForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Update")
@@ -7023,6 +7041,24 @@ func (s *OpenTracingLayerUserStore) AnalyticsGetSystemAdminCount() (int64, *mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.UserStore.AnalyticsGetSystemAdminCount()
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerUserStore) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.AutocompleteUsersInChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)

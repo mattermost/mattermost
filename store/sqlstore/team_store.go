@@ -1097,7 +1097,8 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 		return nil, nil
 	}
 
-	for _, member := range teamMembers {
+	for i := range teamMembers {
+		member := teamMembers[i]
 		roles := strings.Fields(member.Roles)
 		var newRoles []string
 		if !member.SchemeAdmin.Valid {

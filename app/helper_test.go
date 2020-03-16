@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -94,6 +95,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+
+	th.App.Srv().SearchEngine = mainHelper.SearchEngine
+
+	th.App.Srv().Store.MarkSystemRanUnitTests()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	// Disable strict password requirements for test
@@ -572,6 +578,10 @@ func (me *TestHelper) TearDown() {
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}
+}
+
+func (me *TestHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
+	return mainHelper.GetSQLSupplier()
 }
 
 func (me *TestHelper) ResetRoleMigration() {

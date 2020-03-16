@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -89,6 +90,10 @@ func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
 	}
 }
 
+func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
+	return fmt.Sprintf("%s:%s", o.Email, o.Error.Error())
+}
+
 func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 	var ret []*TeamMember
 	for _, o := range o {
@@ -105,6 +110,10 @@ func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
 	} else {
 		return string(b)
 	}
+}
+
+func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
+	return fmt.Sprintf("%s:%s", o.UserId, o.Error.Error())
 }
 
 func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
