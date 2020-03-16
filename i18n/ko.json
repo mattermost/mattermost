@@ -101,7 +101,7 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "XML에 신원공급자 SSO디스크립터 노드를 찾을 수 없습니다."
+    "translation": "XML에 신원 공급자 키 디스크립터 노드가 없습니다."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
@@ -1940,7 +1940,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "이 채널은 그룹별로 관리한다. 이 사용자는 이 채널에 동기화되는 그룹의 일부가 아니다."
+    "translation": "이 채널은 그룹별로 관리됩니다. 해당 사용자는 이 채널에 동기화되는 그룹의 구성원이 아닙니다."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-    "translation": "게스트는 초대 링크로 팀에 가입하는데 제한됩니다. 게스트 이메일 초대를 다시 요청하세요."
+    "translation": "게스트는 초대 링크로 팀에 가입하는데 제한됩니다. 게스트 전자우편 초대를 다시 요청하세요."
   },
   {
     "id": "api.team.demote_user_to_guest.disabled.error",
@@ -3468,7 +3468,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-    "translation": "유효하지 않은 사용자의 채널 멤버쉽을 위한 역할."
+    "translation": "사용자의 팀 멤버십 역할이 유효하지 않습니다."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
@@ -3476,7 +3476,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-    "translation": "사용자의 채널 멤버쉽에서 채널 이름이 누락되었습니다."
+    "translation": "사용자의 팀 멤버십에서 채널 이름이 누락되었습니다."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -3888,7 +3888,7 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch 애그리 게이터 작업자가 인덱싱 작업을 생성하지 못했습니다."
+    "translation": "색인 작업 실패로 인해 Elasticsearch 애그리게이터 작업자가 실패했습니다"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3936,7 +3936,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "내용을 가져올수 없습니다."
+    "translation": "게시글 색인이 실패했습니다."
   },
   {
     "id": "ent.elasticsearch.index_user.error",
@@ -3964,11 +3964,11 @@
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Elasticsearch 색인을 삭제하지 못했습니다"
+    "translation": "Elasticsearch 인덱스를 삭제하지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다"
+    "translation": "이 서버에서 Elasticsearch 검색이 비활성화 되었습니다."
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -3980,7 +3980,7 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다"
+    "translation": "이 서버에서 Elasticsearch 검색을 사용할 수 없습니다."
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -4012,11 +4012,11 @@
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Failed to get Elasticsearch server version"
+    "translation": "Elasticsearch 서버 버전을 가져오지 못했습니다."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Failed to parse Elasticsearch server version"
+    "translation": "Elasticsearch 서버 버전 파싱이 실패했습니다."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4040,7 +4040,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
-    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+    "translation": "Elasticsearch 서버 URL이나 사용자 이름이 변경되었습니다. 연결상태를 테스트하려면 당신의 Elasticsearch 비밀번호를 입력해 주세요."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -4116,7 +4116,7 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "잘못된 AD/LDAP 필터"
+    "translation": "잘못된 AD/LDAP 어드민 필터 입니다."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4124,7 +4124,7 @@
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "잘못된 AD/LDAP 필터"
+    "translation": "잘못된 AD/LDAP 게스트 필터 입니다."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4148,7 +4148,7 @@
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "CSV 내보내기에 첨부 파일을 추가 할 수 없습니다."
+    "translation": "Global Relay 내보내기에 첨부파일을 추가할 수 없습니다."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
@@ -4312,7 +4312,7 @@
   },
   {
     "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
+    "translation": "ExportFromTimestamp 메시지 내보내기 작업을 파싱하지 못했습니다."
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -4688,11 +4688,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+    "translation": "Elasticsearch AggregatePostsAfterDays 설정은 1이상의 숫자여야 합니다."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Elasticsearch Bulk Indexing Time Window는 1초 이상이어야 합니다."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -5764,7 +5764,7 @@
   },
   {
     "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date"
+    "translation": "지정된 날짜 이후로 메시지 갯수를 셀 수 없습니다."
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
@@ -5904,7 +5904,7 @@
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
+    "translation": "일괄 채널 사용자를 선택하는데 실패 했습니다."
   },
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
@@ -7012,7 +7012,7 @@
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members"
+    "translation": "일괄 채널 사용자를 선택하는데 실패 했습니다."
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
