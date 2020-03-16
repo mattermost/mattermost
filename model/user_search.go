@@ -62,4 +62,6 @@ type UserSearchOptions struct {
 	Role string
 	// Restrict to search in a list of teams and channels
 	ViewRestrictions *ViewUsersRestrictions
+	// List of allowed channels
+	ListOfAllowedChannels []string
 }

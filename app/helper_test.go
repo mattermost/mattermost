@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -33,11 +35,11 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
-	SystemAdminUser *model.User
+	SystemAdminUser   *model.User
+	LogBuffer         *bytes.Buffer
+	IncludeCacheLayer bool
 
 	tempWorkspace string
-
-	IncludeCacheLayer bool
 }
 
 func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, configSet func(*model.Config)) *TestHelper {
@@ -59,10 +61,12 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	memoryStore.Set(config)
 
+	buffer := &bytes.Buffer{}
+
 	var options []Option
 	options = append(options, ConfigStore(memoryStore))
 	options = append(options, StoreOverride(dbStore))
-	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
+	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -77,6 +81,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th := &TestHelper{
 		App:               s.FakeApp(),
 		Server:            s,
+		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,
 	}
 
@@ -90,6 +95,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+
+	th.App.Srv().SearchEngine = mainHelper.SearchEngine
+
+	th.App.Srv().Store.MarkSystemRanUnitTests()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	// Disable strict password requirements for test
@@ -563,6 +573,10 @@ func (me *TestHelper) TearDown() {
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}
+}
+
+func (me *TestHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
+	return mainHelper.GetSQLSupplier()
 }
 
 func (me *TestHelper) ResetRoleMigration() {
