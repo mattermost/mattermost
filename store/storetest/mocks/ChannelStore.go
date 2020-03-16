@@ -854,6 +854,31 @@ func (_m *ChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	return r0
 }
 
+// GetMemberCountsByGroup provides a mock function with given fields: channelID, includeTimezones
+func (_m *ChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	ret := _m.Called(channelID, includeTimezones)
+
+	var r0 []*model.ChannelMemberCountByGroup
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.ChannelMemberCountByGroup); ok {
+		r0 = rf(channelID, includeTimezones)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMemberCountByGroup)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(channelID, includeTimezones)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetMemberForPost provides a mock function with given fields: postId, userId
 func (_m *ChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(postId, userId)

@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -64,6 +65,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
+	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
@@ -2111,6 +2113,207 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	count, err = ss.Channel().GetMemberCount(c1.Id, false)
 	require.Nilf(t, err, "failed to get member count: %v", err)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
+}
+
+func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
+	var memberCounts []*model.ChannelMemberCountByGroup
+	teamId := model.NewId()
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	c1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel1",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&c1, -1)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Timezone: timezones.DefaultUserTimezone(),
+		Email:    MakeEmail(),
+		DeleteAt: 0,
+	}
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
+	require.Nil(t, err)
+
+	t.Run("empty slice for channel with no groups", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+
+	t.Run("returns memberCountsByGroup without timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("returns memberCountsByGroup with timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+		}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	g2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	// create 5 different users with 2 different timezones for group 2
+	for i := 1; i <= 5; i++ {
+		timeZone := timezones.DefaultUserTimezone()
+		if i == 1 {
+			timeZone["manualTimezone"] = "EDT"
+		}
+
+		u := &model.User{
+			Timezone: timeZone,
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+		}
+		_, err = ss.User().Save(u)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		require.Nil(t, err)
+
+		m := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		_, err = ss.Channel().SaveMember(&m)
+		require.Nil(t, err)
+
+		_, err = ss.Group().UpsertMember(g2.Id, u.Id)
+		require.Nil(t, err)
+	}
+
+	g3 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+
+	_, err = ss.Group().Create(g3)
+	require.Nil(t, err)
+
+	// create 10 different users with 3 different timezones for group 3
+	for i := 1; i <= 10; i++ {
+		timeZone := timezones.DefaultUserTimezone()
+		if i == 1 {
+			timeZone["manualTimezone"] = "EDT"
+		} else if i == 2 {
+			timeZone["manualTimezone"] = "PST"
+		}
+
+		u := &model.User{
+			Timezone: timeZone,
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+		}
+		_, err = ss.User().Save(u)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		require.Nil(t, err)
+
+		m := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		_, err = ss.Channel().SaveMember(&m)
+		require.Nil(t, err)
+
+		_, err = ss.Group().UpsertMember(g3.Id, u.Id)
+		require.Nil(t, err)
+	}
+
+	t.Run("returns memberCountsByGroup for multiple groups with lots of users without timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 0,
+			},
+			{
+				GroupId:                     g2.Id,
+				ChannelMemberCount:          5,
+				ChannelMemberTimezonesCount: 0,
+			},
+			{
+				GroupId:                     g3.Id,
+				ChannelMemberCount:          10,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Nil(t, err)
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("returns memberCountsByGroup for multiple groups with lots of users with timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+			{
+				GroupId:                     g2.Id,
+				ChannelMemberCount:          5,
+				ChannelMemberTimezonesCount: 2,
+			},
+			{
+				GroupId:                     g3.Id,
+				ChannelMemberCount:          10,
+				ChannelMemberTimezonesCount: 3,
+			},
+		}
+		require.Nil(t, err)
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
 }
 
 func testGetGuestCount(t *testing.T, ss store.Store) {

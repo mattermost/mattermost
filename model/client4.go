@@ -4970,3 +4970,12 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	defer closeBody(r)
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
+}

@@ -3225,3 +3225,90 @@ func TestPatchChannelModerations(t *testing.T) {
 	})
 
 }
+
+func TestGetChannelMemberCountsByGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		require.Equal(t, "api.channel.channel_member_counts_by_group.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Returns empty for a channel with no members or groups", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		require.Equal(t, []*model.ChannelMemberCountByGroup{}, memberCounts)
+	})
+
+	user := th.BasicUser
+	user.Timezone["useAutomaticTimezone"] = "false"
+	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
+	_, err := th.App.UpsertGroupMember(th.Group.Id, user.Id)
+	require.Nil(t, err)
+	_, resp := th.SystemAdminClient.UpdateUser(user)
+	CheckNoError(t, resp)
+
+	user2 := th.BasicUser2
+	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
+	_, err = th.App.UpsertGroupMember(th.Group.Id, user2.Id)
+	require.Nil(t, err)
+	_, resp = th.SystemAdminClient.UpdateUser(user2)
+	CheckNoError(t, resp)
+
+	t.Run("Returns users in group without timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("Returns users in group with timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, true, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 2,
+			},
+		}
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	id := model.NewId()
+	group := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+
+	_, err = th.App.CreateGroup(group)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user.Id)
+	require.Nil(t, err)
+
+	t.Run("Returns multiple groups with users in group with timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, true, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     group.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 2,
+			},
+		}
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
+}
