@@ -209,7 +209,7 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 	// Reset these properties, don't update them based on input
 	group.CreateAt = retrievedGroup.CreateAt
 	group.UpdateAt = model.GetMillis()
-	
+
 	group.UpdateAt = model.GetMillis()
 
 	if err := group.IsValidForUpdate(); err != nil {
