@@ -853,6 +853,7 @@ func (a *App) oldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		u1 := users[sChannel.Members[0]]
 		u2 := users[sChannel.Members[1]]
 		if u1 == nil || u2 == nil {
+			mlog.Warn("Either or both of user ids not found in users.json. Ignoring.", mlog.String("id1", sChannel.Members[0]), mlog.String("id2", sChannel.Members[1]))
 			return nil
 		}
 		sc, err := a.createDirectChannel(u1.Id, u2.Id)
@@ -868,6 +869,7 @@ func (a *App) oldImportChannel(channel *model.Channel, sChannel SlackChannel, us
 		for i := range sChannel.Members {
 			u := users[sChannel.Members[i]]
 			if u == nil {
+				mlog.Warn("User not found in users.json. Ignoring.", mlog.String("id", sChannel.Members[i]))
 				continue
 			}
 			members[i] = u.Id
