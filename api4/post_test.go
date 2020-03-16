@@ -99,14 +99,16 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("user status should be online", func(t *testing.T) {
-		p, resp := Client.CreatePost(&model.Post{
+		var p *model.Post
+		p, resp = Client.CreatePost(&model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "i'm online",
 		}, true)
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
 
-		s, resp := Client.GetUserStatus(p.UserId, "")
+		var s *model.Status
+		s, resp = Client.GetUserStatus(p.UserId, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, model.STATUS_ONLINE, s.Status)
 	})
