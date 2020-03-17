@@ -48,6 +48,10 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
 	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
 	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
+	t.Run("SaveMember", func(t *testing.T) { testChannelSaveMember(t, ss) })
+	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, ss) })
+	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, ss) })
+	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
@@ -875,6 +879,335 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 
 	c1t4, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
+}
+
+func testChannelSaveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("not valid channel member", func(t *testing.T) {
+		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err := ss.Channel().SaveMember(member)
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		channelID1 := model.NewId()
+		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err := ss.Channel().SaveMember(m1)
+		require.Nil(t, err)
+		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMember(m2)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly", func(t *testing.T) {
+		s1 := &model.Scheme{
+			Name:                    model.NewId(),
+			DisplayName:             model.NewId(),
+			Description:             model.NewId(),
+			Scope:                   model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole:    model.TEAM_GUEST_ROLE_ID,
+			DefaultTeamUserRole:     model.TEAM_USER_ROLE_ID,
+			DefaultTeamAdminRole:    model.TEAM_ADMIN_ROLE_ID,
+			DefaultChannelGuestRole: model.CHANNEL_GUEST_ROLE_ID,
+			DefaultChannelUserRole:  model.CHANNEL_USER_ROLE_ID,
+			DefaultChannelAdminRole: model.CHANNEL_ADMIN_ROLE_ID,
+		}
+		s1, err = ss.Scheme().Save(s1)
+		require.Nil(t, err)
+
+		s2 := &model.Scheme{
+			Name:                    model.NewId(),
+			DisplayName:             model.NewId(),
+			Description:             model.NewId(),
+			Scope:                   model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole:    "test_team_guest",
+			DefaultTeamUserRole:     "test_team_user",
+			DefaultTeamAdminRole:    "test_team_admin",
+			DefaultChannelGuestRole: "test_guest",
+			DefaultChannelUserRole:  "test_user",
+			DefaultChannelAdminRole: "test_admin",
+		}
+		s2, err = ss.Scheme().Save(s2)
+		require.Nil(t, err)
+
+		channel1, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel1.Id) }()
+		channel2, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel2.Id) }()
+
+		m1 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u1.Id, ExplicitRoles: model.CHANNEL_USER_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m1, err = ss.Channel().SaveMember(m1)
+		require.Nil(t, err)
+		assert.Equal(t, "channel_user", m1.Roles)
+		assert.Equal(t, "", m1.ExplicitRoles)
+		assert.False(t, m1.SchemeGuest)
+		assert.True(t, m1.SchemeUser)
+		assert.False(t, m1.SchemeAdmin)
+
+		m2 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u2.Id, ExplicitRoles: model.CHANNEL_ADMIN_ROLE_ID + " " + model.CHANNEL_USER_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m2, err = ss.Channel().SaveMember(m2)
+		require.Nil(t, err)
+		assert.Equal(t, "channel_admin channel_user", m2.Roles)
+		assert.Equal(t, "", m2.ExplicitRoles)
+		assert.False(t, m2.SchemeGuest)
+		assert.True(t, m2.SchemeUser)
+		assert.True(t, m2.SchemeAdmin)
+
+		m3 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u3.Id, ExplicitRoles: model.CHANNEL_GUEST_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m3, err = ss.Channel().SaveMember(m3)
+		require.Nil(t, err)
+		assert.Equal(t, "channel_guest", m3.Roles)
+		assert.Equal(t, "", m3.ExplicitRoles)
+		assert.True(t, m3.SchemeGuest)
+		assert.False(t, m3.SchemeUser)
+		assert.False(t, m3.SchemeAdmin)
+
+		m4 := &model.ChannelMember{ChannelId: channel2.Id, UserId: u1.Id, ExplicitRoles: "test_user other_role", NotifyProps: defaultNotifyProps}
+		m4, err = ss.Channel().SaveMember(m4)
+		require.Nil(t, err)
+		assert.Equal(t, "test_user other_role", m4.Roles)
+		assert.Equal(t, "test_user other_role", m4.ExplicitRoles)
+		assert.False(t, m4.SchemeGuest)
+		assert.False(t, m4.SchemeUser)
+		assert.False(t, m4.SchemeAdmin)
+
+		m5 := &model.ChannelMember{ChannelId: channel2.Id, UserId: u2.Id, ExplicitRoles: model.CHANNEL_ADMIN_ROLE_ID + " test_admin", NotifyProps: defaultNotifyProps}
+		m5, err = ss.Channel().SaveMember(m5)
+		require.Nil(t, err)
+		assert.Equal(t, "channel_admin test_admin", m5.Roles)
+		assert.Equal(t, "test_admin", m5.ExplicitRoles)
+		assert.False(t, m5.SchemeGuest)
+		assert.False(t, m5.SchemeUser)
+		assert.True(t, m5.SchemeAdmin)
+	})
+}
+
+func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("any not valid channel member", func(t *testing.T) {
+		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		channelID1 := model.NewId()
+		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert multiple members correctly", func(t *testing.T) {
+		s1 := &model.Scheme{
+			Name:                    model.NewId(),
+			DisplayName:             model.NewId(),
+			Description:             model.NewId(),
+			Scope:                   model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole:    model.TEAM_GUEST_ROLE_ID,
+			DefaultTeamUserRole:     model.TEAM_USER_ROLE_ID,
+			DefaultTeamAdminRole:    model.TEAM_ADMIN_ROLE_ID,
+			DefaultChannelGuestRole: model.CHANNEL_GUEST_ROLE_ID,
+			DefaultChannelUserRole:  model.CHANNEL_USER_ROLE_ID,
+			DefaultChannelAdminRole: model.CHANNEL_ADMIN_ROLE_ID,
+		}
+		s1, err := ss.Scheme().Save(s1)
+		require.Nil(t, err)
+
+		s2 := &model.Scheme{
+			Name:                    model.NewId(),
+			DisplayName:             model.NewId(),
+			Description:             model.NewId(),
+			Scope:                   model.SCHEME_SCOPE_TEAM,
+			DefaultTeamGuestRole:    "test_team_guest",
+			DefaultTeamUserRole:     "test_team_user",
+			DefaultTeamAdminRole:    "test_team_admin",
+			DefaultChannelGuestRole: "test_guest",
+			DefaultChannelUserRole:  "test_user",
+			DefaultChannelAdminRole: "test_admin",
+		}
+		s2, err = ss.Scheme().Save(s2)
+		require.Nil(t, err)
+
+		channel1, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel1.Id) }()
+		channel2, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel2.Id) }()
+
+		m1 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u1.Id, ExplicitRoles: model.CHANNEL_USER_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u2.Id, ExplicitRoles: model.CHANNEL_ADMIN_ROLE_ID + " " + model.CHANNEL_USER_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m3 := &model.ChannelMember{ChannelId: channel1.Id, UserId: u3.Id, ExplicitRoles: model.CHANNEL_GUEST_ROLE_ID, NotifyProps: defaultNotifyProps}
+		m4 := &model.ChannelMember{ChannelId: channel2.Id, UserId: u1.Id, ExplicitRoles: "test_user other_role", NotifyProps: defaultNotifyProps}
+		m5 := &model.ChannelMember{ChannelId: channel2.Id, UserId: u2.Id, ExplicitRoles: model.CHANNEL_ADMIN_ROLE_ID + " test_admin", NotifyProps: defaultNotifyProps}
+
+		newMembers, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4, m5})
+		require.Nil(t, err)
+		require.Len(t, newMembers, 5)
+		assert.Equal(t, "channel_user", newMembers[0].Roles)
+		assert.Equal(t, "", newMembers[0].ExplicitRoles)
+		assert.False(t, newMembers[0].SchemeGuest)
+		assert.True(t, newMembers[0].SchemeUser)
+		assert.False(t, newMembers[0].SchemeAdmin)
+
+		assert.Equal(t, "channel_admin channel_user", newMembers[1].Roles)
+		assert.Equal(t, "", newMembers[1].ExplicitRoles)
+		assert.False(t, newMembers[1].SchemeGuest)
+		assert.True(t, newMembers[1].SchemeUser)
+		assert.True(t, newMembers[1].SchemeAdmin)
+
+		assert.Equal(t, "channel_guest", newMembers[2].Roles)
+		assert.Equal(t, "", newMembers[2].ExplicitRoles)
+		assert.True(t, newMembers[2].SchemeGuest)
+		assert.False(t, newMembers[2].SchemeUser)
+		assert.False(t, newMembers[2].SchemeAdmin)
+
+		assert.Equal(t, "test_user other_role", newMembers[3].Roles)
+		assert.Equal(t, "test_user other_role", newMembers[3].ExplicitRoles)
+		assert.False(t, newMembers[3].SchemeGuest)
+		assert.False(t, newMembers[3].SchemeUser)
+		assert.False(t, newMembers[3].SchemeAdmin)
+
+		assert.Equal(t, "channel_admin test_admin", newMembers[4].Roles)
+		assert.Equal(t, "test_admin", newMembers[4].ExplicitRoles)
+		assert.False(t, newMembers[4].SchemeGuest)
+		assert.False(t, newMembers[4].SchemeUser)
+		assert.True(t, newMembers[4].SchemeAdmin)
+	})
+}
+
+func testChannelRemoveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	channelID := model.NewId()
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+	m1 := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
+	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
+	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, err)
+
+	t.Run("remove member from not existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
+		require.Nil(t, err)
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 4)
+	})
+
+	t.Run("remove not existing member from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember(channelID, model.NewId())
+		require.Nil(t, err)
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 4)
+	})
+
+	t.Run("remove existing member from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember(channelID, u1.Id)
+		require.Nil(t, err)
+		defer ss.Channel().SaveMember(m1)
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 3)
+	})
+}
+
+func testChannelRemoveMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	channelID := model.NewId()
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+	m1 := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
+	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
+	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, err)
+
+	t.Run("remove members from not existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.Nil(t, err)
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 4)
+	})
+
+	t.Run("remove not existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 4)
+	})
+
+	t.Run("remove not existing and not existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 2)
+	})
+	t.Run("remove existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, u3.Id})
+		require.Nil(t, err)
+		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3})
+		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		require.Nil(t, err)
+		require.Len(t, *membersOtherChannel, 1)
+	})
 }
 
 func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {

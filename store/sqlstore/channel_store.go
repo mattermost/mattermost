@@ -1449,14 +1449,14 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, model.NewAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, err.Error(), http.StatusBadRequest)
+		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+			return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.exists.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
-		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	newMembers := []*model.ChannelMember{}
