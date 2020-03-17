@@ -580,11 +580,10 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// uncomment when MM-23019 is checked-in
-	// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.USE_GROUP_MENTIONS) {
-	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
-	// 	return
-	// }
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.USE_GROUP_MENTIONS) {
+		c.SetPermissionError(model.USE_GROUP_MENTIONS)
+		return
+	}
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
@@ -627,11 +626,10 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	// uncomment when MM-23019 is checked-in
-	// if !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
-	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
-	// 	return
-	// }
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
+		c.SetPermissionError(model.USE_GROUP_MENTIONS)
+		return
+	}
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
@@ -676,11 +674,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		channelID = id
 	}
 
-	// uncomment when MM-23019 is checked-in
-	// if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
-	// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
-	// 	return
-	// }
+	if teamID == "" && channelID == "" && !c.App.SessionHasPermissionTo(*c.App.Session(), model.USE_GROUP_MENTIONS) {
+		c.SetPermissionError(model.USE_GROUP_MENTIONS)
+		return
+	}
 
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
@@ -695,11 +692,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// uncomment when MM-23019 is checked-in
-		// if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.USE_GROUP_MENTIONS) {
-		// 	c.SetPermissionError(model.USE_GROUP_MENTIONS)
-		// 	return
-		// }
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamID, model.USE_GROUP_MENTIONS) {
+			c.SetPermissionError(model.USE_GROUP_MENTIONS)
+			return
+		}
 		opts.NotAssociatedToTeam = teamID
 	}
 
