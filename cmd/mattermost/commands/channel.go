@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -167,7 +168,7 @@ func init() {
 	RootCmd.AddCommand(ChannelCmd)
 }
 
-func createChannelCmdF(command *cobra.Command, args []string) error {
+func createChannelCmdF(command *cobra.Command, args []string) (auditError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -195,10 +196,16 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		channelType = model.CHANNEL_PRIVATE
 	}
 
+	auditRec := a.MakeAuditRecord("createChannel", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, auditError) }()
+	auditRec.AddMeta("channel_name", name)
+
 	team := getTeamFromTeamArg(a, teamArg)
 	if team == nil {
 		return errors.New("Unable to find team: " + teamArg)
 	}
+	auditRec.AddMeta("team_id", team.Id)
+	auditRec.AddMeta("team_name", team.Name)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -215,13 +222,16 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		return errCreatedChannel
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("channel_id", createdChannel.Id)
+
 	CommandPrettyPrintln("Id: " + createdChannel.Id)
 	CommandPrettyPrintln("Name: " + createdChannel.Name)
 	CommandPrettyPrintln("Display Name: " + createdChannel.DisplayName)
 	return nil
 }
 
-func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
+func removeChannelUsersCmdF(command *cobra.Command, args []string) (auditError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -238,31 +248,48 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
 	}
 
+	auditRec := a.MakeAuditRecord("removeChannelUsers", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, auditError) }()
+	auditRec.AddMeta("allUsers", allUsers)
+
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
+	auditRec.AddMeta("channel_id", channel.Id)
+	auditRec.AddMeta("channel_name", channel.Name)
 
 	if allUsers {
 		removeAllUsersFromChannel(a, channel)
 	} else {
 		users := getUsersFromUserArgs(a, args[1:])
+		var userNamesOk, userNamesErr []string
 		for i, user := range users {
-			removeUserFromChannel(a, channel, user, args[i+1])
+			err := removeUserFromChannel(a, channel, user, args[i+1])
+			if err == nil {
+				userNamesOk = append(userNamesOk, user.Username)
+			} else {
+				userNamesErr = append(userNamesErr, user.Username)
+			}
 		}
+		auditRec.AddMeta("users", userNamesOk)
+		auditRec.AddMeta("errors", userNamesErr)
 	}
 
 	return nil
 }
 
-func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
+func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
-		return
+		err := fmt.Errorf("Can't find user '%s'", userArg)
+		CommandPrintErrorln(err.Error())
+		return err
 	}
 	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+		return err
 	}
+	return nil
 }
 
 func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
@@ -271,34 +298,50 @@ func removeAllUsersFromChannel(a *app.App, channel *model.Channel) {
 	}
 }
 
-func addChannelUsersCmdF(command *cobra.Command, args []string) error {
+func addChannelUsersCmdF(command *cobra.Command, args []string) (auditError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
 	defer a.Shutdown()
 
+	auditRec := a.MakeAuditRecord("addChannelUsers", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, auditError) }()
+
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
+	auditRec.AddMeta("channel_id", channel.Id)
+	auditRec.AddMeta("channel_name", channel.Name)
 
 	users := getUsersFromUserArgs(a, args[1:])
+	var usersOk, usersErr []*model.User
 	for i, user := range users {
-		addUserToChannel(a, channel, user, args[i+1])
+		err := addUserToChannel(a, channel, user, args[i+1])
+		if err == nil {
+			usersOk = append(usersOk, user)
+		} else {
+			usersErr = append(usersErr, user)
+		}
 	}
+	auditRec.AddMeta("users", usersOk)
+	auditRec.AddMeta("errors", usersErr)
 
 	return nil
 }
 
-func addUserToChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
+func addUserToChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
-		return
+		err := fmt.Errorf("Can't find user '%s'", userArg)
+		CommandPrintErrorln(err.Error())
+		return err
 	}
 	if _, err := a.AddUserToChannel(user, channel); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+		return err
 	}
+	return nil
 }
 
 func archiveChannelsCmdF(command *cobra.Command, args []string) error {
