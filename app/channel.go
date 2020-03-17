@@ -753,7 +753,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if _, err = a.CreateChannelScheme(channel); err != nil {
 			return nil, err
 		}
-		mlog.Info("Permission scheme created for channel id: " + channel.Id + " with name: " + channel.Name)
+		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	}
 
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
@@ -774,17 +774,17 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		permissionModified := *channelModerationPatch.Name
 		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
 			if *channelModerationPatch.Roles.Guests {
-				mlog.Info(permissionModified + ": enabled for Guests in channel id: " + channel.Id + " with name: " + channel.Name)
+				mlog.Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
-				mlog.Info(permissionModified + ": disabled for Guests in channel id: " + channel.Id + " with name: " + channel.Name)
+				mlog.Info("Permission disabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			}
 		}
 
 		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
 			if *channelModerationPatch.Roles.Members {
-				mlog.Info(permissionModified + ": enabled for Members in channel id: " + channel.Id + " with name: " + channel.Name)
+				mlog.Info("Permission disabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			} else {
-				mlog.Info(permissionModified + ": disabled for Members in channel id: " + channel.Id + " with name: " + channel.Name)
+				mlog.Info("Permission disabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 			}
 		}
 	}
@@ -798,8 +798,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
-
-		mlog.Info("Permission scheme deleted for channel id: " + channel.Id + " with name: " + channel.Name)
+		mlog.Info("Permission scheme deleted.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	} else {
 		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
 		if err != nil {
