@@ -60,7 +60,7 @@ func Test_sortAuditFields(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := sortAuditFields(logr.Fields(tt.args.fields))
+			got := sortAuditFields(tt.args.fields)
 			require.Equal(t, tt.want, got)
 		})
 	}
