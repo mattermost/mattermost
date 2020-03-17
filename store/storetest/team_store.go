@@ -957,27 +957,33 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 }
 
 func testTeamSaveMember(t *testing.T, ss store.Store) {
-	user, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.Nil(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
-		member := &model.TeamMember{TeamId: "wrong", UserId: user.Id}
+		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, err := ss.Team().SaveMember(member, -1)
 		require.NotNil(t, err)
 		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
 	})
 
 	t.Run("too many members", func(t *testing.T) {
-		member := &model.TeamMember{TeamId: model.NewId(), UserId: user.Id}
+		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
 		_, err := ss.Team().SaveMember(member, 0)
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
 	})
 
 	t.Run("too many members because previous existing members", func(t *testing.T) {
-		m1 := &model.TeamMember{TeamId: model.NewId(), UserId: model.NewId()}
+		teamID := model.NewId()
+
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
 		_, err := ss.Team().SaveMember(m1, 1)
-		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: model.NewId()}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, err = ss.Team().SaveMember(m2, 1)
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
@@ -985,22 +991,16 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		teamID1 := model.NewId()
-		m1 := &model.TeamMember{TeamId: teamID1, UserId: user.Id}
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, err := ss.Team().SaveMember(m1, -1)
 		require.Nil(t, err)
-		m2 := &model.TeamMember{TeamId: teamID1, UserId: user.Id}
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, err = ss.Team().SaveMember(m2, -1)
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
 	})
 
 	t.Run("insert member correctly", func(t *testing.T) {
-		u1 := user
-		u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
-		require.Nil(t, err)
-		u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
-		require.Nil(t, err)
-
 		s1 := &model.Scheme{
 			Name:                 model.NewId(),
 			DisplayName:          model.NewId(),
