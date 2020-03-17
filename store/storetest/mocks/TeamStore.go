@@ -865,6 +865,22 @@ func (_m *TeamStore) RemoveMember(teamId string, userId string) *model.AppError 
 	return r0
 }
 
+// RemoveMembers provides a mock function with given fields: teamId, userIds
+func (_m *TeamStore) RemoveMembers(teamId string, userIds []string) *model.AppError {
+	ret := _m.Called(teamId, userIds)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(teamId, userIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // ResetAllTeamSchemes provides a mock function with given fields:
 func (_m *TeamStore) ResetAllTeamSchemes() *model.AppError {
 	ret := _m.Called()
