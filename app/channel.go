@@ -753,6 +753,9 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if _, err = a.CreateChannelScheme(channel); err != nil {
 			return nil, err
 		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
+		a.Publish(message)
 	}
 
 	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
@@ -776,6 +779,10 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if _, err = a.DeleteChannelScheme(channel); err != nil {
 			return nil, err
 		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
+		a.Publish(message)
+
 		memberRole = higherScopedMemberRole
 		guestRole = higherScopedGuestRole
 	} else {
