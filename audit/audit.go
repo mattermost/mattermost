@@ -128,7 +128,7 @@ func sortAuditFields(fields logr.Fields) []format.ContextField {
 	prependKeys := []string{KeyEvent, KeyStatus, KeyUserID, KeySessionID, KeyIPAddress}
 	appendKeys := []string{KeyClusterID, KeyClient}
 
-	// sort the remaining.
+	// sort alphabetically any fields not in the prepend/append lists.
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		if !findIn(k, prependKeys, appendKeys) {
@@ -137,8 +137,24 @@ func sortAuditFields(fields logr.Fields) []format.ContextField {
 	}
 	sort.Strings(keys)
 
-	allKeys := append(prependKeys, keys...)
-	allKeys = append(allKeys, appendKeys...)
+	allKeys := make([]string, 0, len(fields))
+
+	// add any prepends that exist in fields
+	for _, k := range prependKeys {
+		if _, ok := fields[k]; ok {
+			allKeys = append(allKeys, k)
+		}
+	}
+
+	// sorted
+	allKeys = append(allKeys, keys...)
+
+	// add any appends that exist in fields
+	for _, k := range appendKeys {
+		if _, ok := fields[k]; ok {
+			allKeys = append(allKeys, k)
+		}
+	}
 
 	cfs := make([]format.ContextField, 0, len(allKeys))
 	for _, k := range allKeys {
