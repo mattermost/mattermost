@@ -11,22 +11,22 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
-	fixedArgs := model.NewStaticListArgument()
+	fixedArgs := model.NewAutocompleteStaticListArg()
 	fixedArgs.AddArgument("on", "help")
 
-	argument := &model.Argument{
+	argument := &model.AutocompleteArg{
 		Name:     "", //positional
 		HelpText: "some_help",
-		Type:     model.StaticListArgumentType,
+		Type:     model.AutocompleteStaticListArgType,
 		Data:     fixedArgs,
 	}
 	found, _, suggestions := parseStaticListArgument(argument, "")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "on", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}}, suggestions)
 
 	found, _, suggestions = parseStaticListArgument(argument, "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "on", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}}, suggestions)
 
 	found, changedInput, _ := parseStaticListArgument(argument, "on ")
 	assert.False(t, found)
@@ -40,11 +40,11 @@ func TestParseStaticListArgument(t *testing.T) {
 
 	found, _, suggestions = parseStaticListArgument(argument, "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "on", Description: "help"}, {Hint: "off", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}, {Hint: "off", Description: "help"}}, suggestions)
 
 	found, _, suggestions = parseStaticListArgument(argument, "of")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "off", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "off", Description: "help"}}, suggestions)
 
 	found, _, suggestions = parseStaticListArgument(argument, "o some")
 	assert.True(t, found)
@@ -58,11 +58,11 @@ func TestParseStaticListArgument(t *testing.T) {
 
 	found, _, suggestions = parseStaticListArgument(argument, "on")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "on", Description: "help"}, {Hint: "onon", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}, {Hint: "onon", Description: "help"}}, suggestions)
 
 	found, _, suggestions = parseStaticListArgument(argument, "ono")
 	assert.True(t, found)
-	assert.Equal(t, []model.Suggestion{{Hint: "onon", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "onon", Description: "help"}}, suggestions)
 
 	found, changedInput, _ = parseStaticListArgument(argument, "on some")
 	assert.False(t, found)
@@ -74,27 +74,27 @@ func TestParseStaticListArgument(t *testing.T) {
 }
 
 func TestParseInputTextArgument(t *testing.T) {
-	argument := &model.Argument{
+	argument := &model.AutocompleteArg{
 		Name:     "", //positional
 		HelpText: "some_help",
-		Type:     model.TextInputArgumentType,
-		Data:     &model.TextInputArgument{Hint: "hint", Pattern: "pat"},
+		Type:     model.AutocompleteTextArgType,
+		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
 	}
 	found, _, suggestion := parseInputTextArgument(argument, "")
 	assert.True(t, found)
-	assert.Equal(t, model.Suggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
 
 	found, _, suggestion = parseInputTextArgument(argument, " ")
 	assert.True(t, found)
-	assert.Equal(t, model.Suggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
 
 	found, _, suggestion = parseInputTextArgument(argument, "abc")
 	assert.True(t, found)
-	assert.Equal(t, model.Suggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
 
 	found, _, suggestion = parseInputTextArgument(argument, "\"abc dfd df ")
 	assert.True(t, found)
-	assert.Equal(t, model.Suggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
 
 	found, changedInput, _ := parseInputTextArgument(argument, "abc efg ")
 	assert.False(t, found)
