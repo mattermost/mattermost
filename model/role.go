@@ -31,6 +31,7 @@ func init() {
 		CHANNEL_ADMIN_ROLE_ID,
 	}
 }
+
 type RoleType string
 type RoleScope string
 
