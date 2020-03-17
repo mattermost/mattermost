@@ -314,6 +314,7 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
+	ExperimentalChannelSidebarOrganization            *string
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -653,6 +654,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ExperimentalChannelOrganization == nil {
 		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
+	}
+
+	if s.ExperimentalChannelSidebarOrganization == nil {
+		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
@@ -1052,6 +1057,46 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+}
+
+type ExperimentalAuditSettings struct {
+	Enabled  *bool   `restricted:"true"`
+	IP       *string `restricted:"true"`
+	Port     *int    `restricted:"true"`
+	Tag      *string `restricted:"true"`
+	Cert     *string `restricted:"true"`
+	Insecure *bool   `restricted:"true"`
+	MaxQSize *int    `restricted:"true"`
+}
+
+func (s *ExperimentalAuditSettings) SetDefaults() {
+	if s.Enabled == nil {
+		s.Enabled = NewBool(false)
+	}
+
+	if s.IP == nil {
+		s.IP = NewString("localhost")
+	}
+
+	if s.Port == nil {
+		s.Port = NewInt(6514)
+	}
+
+	if s.Tag == nil {
+		s.Tag = NewString("")
+	}
+
+	if s.Cert == nil {
+		s.Cert = NewString("")
+	}
+
+	if s.Insecure == nil {
+		s.Insecure = NewBool(false)
+	}
+
+	if s.MaxQSize == nil {
+		s.MaxQSize = NewInt(1000)
 	}
 }
 
@@ -2562,40 +2607,41 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 type Config struct {
-	ServiceSettings         ServiceSettings
-	TeamSettings            TeamSettings
-	ClientRequirements      ClientRequirements
-	SqlSettings             SqlSettings
-	LogSettings             LogSettings
-	NotificationLogSettings NotificationLogSettings
-	PasswordSettings        PasswordSettings
-	FileSettings            FileSettings
-	EmailSettings           EmailSettings
-	RateLimitSettings       RateLimitSettings
-	PrivacySettings         PrivacySettings
-	SupportSettings         SupportSettings
-	AnnouncementSettings    AnnouncementSettings
-	ThemeSettings           ThemeSettings
-	GitLabSettings          SSOSettings
-	GoogleSettings          SSOSettings
-	Office365Settings       Office365Settings
-	LdapSettings            LdapSettings
-	ComplianceSettings      ComplianceSettings
-	LocalizationSettings    LocalizationSettings
-	SamlSettings            SamlSettings
-	NativeAppSettings       NativeAppSettings
-	ClusterSettings         ClusterSettings
-	MetricsSettings         MetricsSettings
-	ExperimentalSettings    ExperimentalSettings
-	AnalyticsSettings       AnalyticsSettings
-	ElasticsearchSettings   ElasticsearchSettings
-	DataRetentionSettings   DataRetentionSettings
-	MessageExportSettings   MessageExportSettings
-	JobSettings             JobSettings
-	PluginSettings          PluginSettings
-	DisplaySettings         DisplaySettings
-	GuestAccountsSettings   GuestAccountsSettings
-	ImageProxySettings      ImageProxySettings
+	ServiceSettings           ServiceSettings
+	TeamSettings              TeamSettings
+	ClientRequirements        ClientRequirements
+	SqlSettings               SqlSettings
+	LogSettings               LogSettings
+	ExperimentalAuditSettings ExperimentalAuditSettings
+	NotificationLogSettings   NotificationLogSettings
+	PasswordSettings          PasswordSettings
+	FileSettings              FileSettings
+	EmailSettings             EmailSettings
+	RateLimitSettings         RateLimitSettings
+	PrivacySettings           PrivacySettings
+	SupportSettings           SupportSettings
+	AnnouncementSettings      AnnouncementSettings
+	ThemeSettings             ThemeSettings
+	GitLabSettings            SSOSettings
+	GoogleSettings            SSOSettings
+	Office365Settings         Office365Settings
+	LdapSettings              LdapSettings
+	ComplianceSettings        ComplianceSettings
+	LocalizationSettings      LocalizationSettings
+	SamlSettings              SamlSettings
+	NativeAppSettings         NativeAppSettings
+	ClusterSettings           ClusterSettings
+	MetricsSettings           MetricsSettings
+	ExperimentalSettings      ExperimentalSettings
+	AnalyticsSettings         AnalyticsSettings
+	ElasticsearchSettings     ElasticsearchSettings
+	DataRetentionSettings     DataRetentionSettings
+	MessageExportSettings     MessageExportSettings
+	JobSettings               JobSettings
+	PluginSettings            PluginSettings
+	DisplaySettings           DisplaySettings
+	GuestAccountsSettings     GuestAccountsSettings
+	ImageProxySettings        ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2674,6 +2720,7 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
+	o.ExperimentalAuditSettings.SetDefaults()
 	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()

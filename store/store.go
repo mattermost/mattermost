@@ -148,7 +148,7 @@ type ChannelStore interface {
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
 	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
-	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
+	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
@@ -256,6 +256,7 @@ type PostStore interface {
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
 }
 
 type UserStore interface {
@@ -320,6 +321,7 @@ type UserStore interface {
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
 	DeactivateGuests() ([]string, *model.AppError)
+	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 }
 
 type BotStore interface {
@@ -578,6 +580,8 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	Delete(schemeId string) (*model.Scheme, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+	CountByScope(scope string) (int64, *model.AppError)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
 }
 
 type TermsOfServiceStore interface {
