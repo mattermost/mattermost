@@ -1056,21 +1056,21 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	SysLogEnabled  *bool   `restricted:"true"`
-	SysLogIP       *string `restricted:"true"`
-	SysLogPort     *int    `restricted:"true"`
-	SysLogTag      *string `restricted:"true"`
-	SysLogCert     *string `restricted:"true"`
-	SysLogInsecure *bool   `restricted:"true"`
-	SysLogMaxQSize *int    `restricted:"true"`
+	SysLogEnabled      *bool   `restricted:"true"`
+	SysLogIP           *string `restricted:"true"`
+	SysLogPort         *int    `restricted:"true"`
+	SysLogTag          *string `restricted:"true"`
+	SysLogCert         *string `restricted:"true"`
+	SysLogInsecure     *bool   `restricted:"true"`
+	SysLogMaxQueueSize *int    `restricted:"true"`
 
-	FileEnabled    *bool   `restricted:"true"`
-	FileName       *string `restricted:"true"`
-	FileMaxSizeMB  *int    `restricted:"true"`
-	FileMaxAgeDays *int    `restricted:"true"`
-	FileMaxBackups *int    `restricted:"true"`
-	FileCompress   *bool   `restricted:"true"`
-	FileMaxQSize   *int    `restricted:"true"`
+	FileEnabled      *bool   `restricted:"true"`
+	FileName         *string `restricted:"true"`
+	FileMaxSizeMB    *int    `restricted:"true"`
+	FileMaxAgeDays   *int    `restricted:"true"`
+	FileMaxBackups   *int    `restricted:"true"`
+	FileCompress     *bool   `restricted:"true"`
+	FileMaxQueueSize *int    `restricted:"true"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1098,8 +1098,8 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.SysLogInsecure = NewBool(false)
 	}
 
-	if s.SysLogMaxQSize == nil {
-		s.SysLogMaxQSize = NewInt(1000)
+	if s.SysLogMaxQueueSize == nil {
+		s.SysLogMaxQueueSize = NewInt(1000)
 	}
 
 	if s.FileEnabled == nil {
@@ -1126,8 +1126,8 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 		s.FileCompress = NewBool(false)
 	}
 
-	if s.FileMaxQSize == nil {
-		s.FileMaxQSize = NewInt(1000)
+	if s.FileMaxQueueSize == nil {
+		s.FileMaxQueueSize = NewInt(1000)
 	}
 }
 

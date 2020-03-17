@@ -49,7 +49,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 			port = 6514
 		}
 		raddr := fmt.Sprintf("%s:%d", IP, port)
-		maxQSize := *s.Config().ExperimentalAuditSettings.SysLogMaxQSize
+		maxQSize := *s.Config().ExperimentalAuditSettings.SysLogMaxQueueSize
 		if maxQSize <= 0 {
 			maxQSize = audit.DefMaxQueueSize
 		}
@@ -67,7 +67,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		if err != nil {
 			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
 		} else {
-			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddy", raddr))
+			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddr", raddr))
 			adt.AddTarget(target)
 		}
 	}
@@ -82,16 +82,16 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 			Compress:   *s.Config().ExperimentalAuditSettings.FileCompress,
 		}
 
-		maxQSize := *s.Config().ExperimentalAuditSettings.FileMaxQSize
-		if maxQSize <= 0 {
-			maxQSize = audit.DefMaxQueueSize
+		maxQueueSize := *s.Config().ExperimentalAuditSettings.FileMaxQueueSize
+		if maxQueueSize <= 0 {
+			maxQueueSize = audit.DefMaxQueueSize
 		}
 
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
 		formatter := adt.MakeJSONFormatter()
 		formatter.DisableTimestamp = false
 		formatter.Indent = "\n"
-		target, err := audit.NewFileTarget(filter, formatter, opts, maxQSize)
+		target, err := audit.NewFileTarget(filter, formatter, opts, maxQueueSize)
 		if err != nil {
 			mlog.Error("cannot configure File audit target", mlog.Err(err))
 		} else {
