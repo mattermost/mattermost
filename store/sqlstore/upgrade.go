@@ -753,7 +753,6 @@ func upgradeDatabaseToVersion519(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_19_0, VERSION_5_20_0) {
-
 		sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 
 		sqlStore.CreateColumnIfNotExists("GroupTeams", "SchemeAdmin", "boolean", "boolean", "0")
@@ -780,5 +779,9 @@ func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
 	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
 	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
+	// sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+	// sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
 	// }
 }
