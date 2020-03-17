@@ -692,7 +692,7 @@ CREATE TABLE `Reactions` (
   `PostId` varchar(26) NOT NULL,
   `EmojiName` varchar(64) NOT NULL,
   `CreateAt` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`UserId`,`PostId`,`EmojiName`)
+  PRIMARY KEY (`PostId`,`UserId`,`EmojiName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
