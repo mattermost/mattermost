@@ -42,22 +42,10 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		}
 		rec.Fail()
 	}
-	c.App.Srv().Audit.LogRecord(level, *rec)
-}
-
-// LogAuditMeta creates an audit record and logs it.
-func (c *Context) LogAuditEx(event string, status string) {
-	rec := c.MakeAuditRecord(event, status)
-	c.LogAuditRec(rec)
-}
-
-// LogAuditMeta creates an audit record with metadata and logs it.
-func (c *Context) LogAuditMeta(event string, status string, meta audit.Meta) {
-	rec := c.MakeAuditRecord(event, status)
-	if meta != nil {
-		rec.Meta = meta
+	if cid := c.App.GetClusterId(); cid != "" {
+		rec.AddMeta(audit.KeyClusterID, cid)
 	}
-	c.LogAuditRec(rec)
+	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
 // MakeAuditRecord creates a audit record pre-populated with data from this context.
