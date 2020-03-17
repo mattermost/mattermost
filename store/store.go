@@ -591,6 +591,8 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	Delete(schemeId string) (*model.Scheme, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+	CountByScope(scope string) (int64, *model.AppError)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
 }
 
 type TermsOfServiceStore interface {
