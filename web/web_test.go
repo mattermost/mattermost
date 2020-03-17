@@ -158,9 +158,6 @@ func (th *TestHelper) TearDown() {
 		th.App.InvalidateAllCaches()
 	}
 	th.Server.Shutdown()
-	if err := recover(); err != nil {
-		panic(err)
-	}
 }
 
 func TestStaticFilesRequest(t *testing.T) {
