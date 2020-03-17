@@ -13,9 +13,9 @@ import (
 
 // Argument types
 const (
-	TextInputArgumentType   = "TextInput"
-	StaticListArgumentType  = "StaticList"
-	DynamicListArgumentType = "DynamicList"
+	AutocompleteTextArgType        = "TextInput"
+	AutocompleteStaticListArgType  = "StaticList"
+	AutocompleteDynamicListArgType = "DynamicList"
 )
 
 // AutocompleteData describes slash command autocomplete information.
@@ -29,15 +29,15 @@ type AutocompleteData struct {
 	// Arguments of the command. Arguments can be named or positional.
 	// If they are positional order in the list matters, if they are named order does not matter.
 	// All arguments should be either named or positional, no mixing allowed.
-	Arguments []*Argument
+	Arguments []*AutocompleteArg
 	// Subcommands of the command
 	SubCommands []*AutocompleteData
 }
 
-// Argument describes an argument of the command. Arguments can be named or positional.
+// AutocompleteArg describes an argument of the command. Arguments can be named or positional.
 // If Name is empty string Argument is positional otherwise it is named argument.
 // Named arguments are passed as --Name Argument_Value.
-type Argument struct {
+type AutocompleteArg struct {
 	// Name of the argument
 	Name string
 	// Text displayed to the user to help with the autocomplete
@@ -48,33 +48,33 @@ type Argument struct {
 	Data interface{}
 }
 
-// TextInputArgument describes text user can input as an argument.
-type TextInputArgument struct {
+// AutocompleteTextArg describes text user can input as an argument.
+type AutocompleteTextArg struct {
 	// Hint of the input text
 	Hint string
 	// Regex pattern to match
 	Pattern string
 }
 
-// StaticArgument describes an item in the StaticListArgument.
-type StaticArgument struct {
+// AutocompleteStaticListIem describes an item in the AutocompleteStaticListArg.
+type AutocompleteStaticListIem struct {
 	Item     string
 	HelpText string
 }
 
-// StaticListArgument is used to input one of the arguments from the list,
-// for example [yes, no], [true, false], and so on.
-type StaticListArgument struct {
-	PossibleArguments []StaticArgument
+// AutocompleteStaticListArg is used to input one of the arguments from the list,
+// for example [yes, no], [on, off], and so on.
+type AutocompleteStaticListArg struct {
+	PossibleArguments []AutocompleteStaticListIem
 }
 
-// DynamicListArgument is used when user wants to download possible argument list from the URL.
-type DynamicListArgument struct {
+// AutocompleteDynamicListArg is used when user wants to download possible argument list from the URL.
+type AutocompleteDynamicListArg struct {
 	FetchURL string
 }
 
-// Suggestion describes single suggestion item sent to front
-type Suggestion struct {
+// AutocompleteSuggestion describes single suggestion item sent to front
+type AutocompleteSuggestion struct {
 	// Hint describes what user might want to input
 	Hint string
 	// Description of the command
@@ -87,7 +87,7 @@ func NewAutocompleteData(trigger string, helpText string) *AutocompleteData {
 		Trigger:     trigger,
 		HelpText:    helpText,
 		RoleID:      SYSTEM_USER_ROLE_ID,
-		Arguments:   []*Argument{},
+		Arguments:   []*AutocompleteArg{},
 		SubCommands: []*AutocompleteData{},
 	}
 }
@@ -97,35 +97,35 @@ func (ad *AutocompleteData) AddCommand(command *AutocompleteData) {
 	ad.SubCommands = append(ad.SubCommands, command)
 }
 
-// AddTextInputArgument adds TextInput argument to the command.
-func (ad *AutocompleteData) AddTextInputArgument(name, helpText, hint, pattern string) {
-	argument := Argument{
+// AddTextArgument adds AutocompleteTextArgType argument to the command.
+func (ad *AutocompleteData) AddTextArgument(name, helpText, hint, pattern string) {
+	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     TextInputArgumentType,
-		Data:     &TextInputArgument{Hint: hint, Pattern: pattern},
+		Type:     AutocompleteTextArgType,
+		Data:     &AutocompleteTextArg{Hint: hint, Pattern: pattern},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
-// AddStaticListArgument adds StaticList argument to the command.
-func (ad *AutocompleteData) AddStaticListArgument(name, helpText string, listArgument *StaticListArgument) {
-	argument := Argument{
+// AddStaticListArgument adds AutocompleteStaticListArgType argument to the command.
+func (ad *AutocompleteData) AddStaticListArgument(name, helpText string, listArgument *AutocompleteStaticListArg) {
+	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     StaticListArgumentType,
+		Type:     AutocompleteStaticListArgType,
 		Data:     listArgument,
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
-// AddDynamicListArgument adds DynamicList argument to the command.
+// AddDynamicListArgument adds AutocompleteDynamicListArgType argument to the command.
 func (ad *AutocompleteData) AddDynamicListArgument(name, helpText, url string) {
-	argument := Argument{
+	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     DynamicListArgumentType,
-		Data:     &DynamicListArgument{FetchURL: url},
+		Type:     AutocompleteDynamicListArgType,
+		Data:     &AutocompleteDynamicListArg{FetchURL: url},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
@@ -159,7 +159,7 @@ func (ad *AutocompleteData) IsValid() error {
 	if ad.Trigger == "" {
 		return errors.New("An empty command name in the autocomplete data")
 	}
-	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID}
+	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID, ""}
 	if stringNotInSlice(ad.RoleID, roles) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
@@ -175,8 +175,8 @@ func (ad *AutocompleteData) IsValid() error {
 					return errors.New("Named argument should not be before positional argument")
 				}
 			}
-			if arg.Type == DynamicListArgumentType {
-				DynamicList, ok := arg.Data.(*DynamicListArgument)
+			if arg.Type == AutocompleteDynamicListArgType {
+				DynamicList, ok := arg.Data.(*AutocompleteDynamicListArg)
 				if !ok {
 					return errors.New("Not a proper DynamicList type argument")
 				}
@@ -184,8 +184,8 @@ func (ad *AutocompleteData) IsValid() error {
 				if err != nil {
 					return errors.Wrapf(err, "FetchURL is not a proper url")
 				}
-			} else if arg.Type == StaticListArgumentType {
-				StaticList, ok := arg.Data.(*StaticListArgument)
+			} else if arg.Type == AutocompleteStaticListArgType {
+				StaticList, ok := arg.Data.(*AutocompleteStaticListArg)
 				if !ok {
 					return errors.New("Not a proper StaticList type argument")
 				}
@@ -194,8 +194,8 @@ func (ad *AutocompleteData) IsValid() error {
 						return errors.New("Possible argument name not set in StaticList argument")
 					}
 				}
-			} else if arg.Type == TextInputArgumentType {
-				if _, ok := arg.Data.(*TextInputArgument); !ok {
+			} else if arg.Type == AutocompleteTextArgType {
+				if _, ok := arg.Data.(*AutocompleteTextArg); !ok {
 					return errors.New("Not a proper TextInput type argument")
 				}
 			}
@@ -229,7 +229,7 @@ func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
 }
 
 // UnmarshalJSON will unmarshal argument
-func (a *Argument) UnmarshalJSON(b []byte) error {
+func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	var arg map[string]interface{}
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
@@ -257,7 +257,7 @@ func (a *Argument) UnmarshalJSON(b []byte) error {
 		return errors.Errorf("No field Data in the argument %s", string(b))
 	}
 
-	if a.Type == TextInputArgumentType {
+	if a.Type == AutocompleteTextArgType {
 		m := data.(map[string]interface{})
 		pattern, ok := m["Pattern"]
 		if !ok {
@@ -267,8 +267,8 @@ func (a *Argument) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.Errorf("No field Hint in the TextInput argument %s", string(b))
 		}
-		a.Data = &TextInputArgument{Hint: hint.(string), Pattern: pattern.(string)}
-	} else if a.Type == StaticListArgumentType {
+		a.Data = &AutocompleteTextArg{Hint: hint.(string), Pattern: pattern.(string)}
+	} else if a.Type == AutocompleteStaticListArgType {
 		m := data.(map[string]interface{})
 		listInterface, ok := m["PossibleArguments"]
 		if !ok {
@@ -276,7 +276,7 @@ func (a *Argument) UnmarshalJSON(b []byte) error {
 		}
 
 		list := listInterface.([]interface{})
-		possibleArguments := []StaticArgument{}
+		possibleArguments := []AutocompleteStaticListIem{}
 		for i := range list {
 			args := list[i].(map[string]interface{})
 			itemInt, ok := args["Item"]
@@ -291,33 +291,33 @@ func (a *Argument) UnmarshalJSON(b []byte) error {
 			}
 			helpText := helpTextInt.(string)
 
-			possibleArguments = append(possibleArguments, StaticArgument{
+			possibleArguments = append(possibleArguments, AutocompleteStaticListIem{
 				Item:     item,
 				HelpText: helpText,
 			})
 		}
-		a.Data = &StaticListArgument{PossibleArguments: possibleArguments}
-	} else if a.Type == DynamicListArgumentType {
+		a.Data = &AutocompleteStaticListArg{PossibleArguments: possibleArguments}
+	} else if a.Type == AutocompleteDynamicListArgType {
 		m := data.(map[string]interface{})
 		url, ok := m["FetchURL"]
 		if !ok {
 			return errors.Errorf("No field FetchURL in the DynamicList's argument %s", string(b))
 		}
-		a.Data = &DynamicListArgument{FetchURL: url.(string)}
+		a.Data = &AutocompleteDynamicListArg{FetchURL: url.(string)}
 	}
 	return nil
 }
 
-// NewStaticListArgument returned empty StaticList argument.
-func NewStaticListArgument() *StaticListArgument {
-	return &StaticListArgument{
-		PossibleArguments: []StaticArgument{},
+// NewAutocompleteStaticListArg returned empty AutocompleteStaticListArgType argument.
+func NewAutocompleteStaticListArg() *AutocompleteStaticListArg {
+	return &AutocompleteStaticListArg{
+		PossibleArguments: []AutocompleteStaticListIem{},
 	}
 }
 
 // AddArgument adds a static argument to the StaticList argument.
-func (a *StaticListArgument) AddArgument(text, helpText string) {
-	argument := StaticArgument{
+func (a *AutocompleteStaticListArg) AddArgument(text, helpText string) {
+	argument := AutocompleteStaticListIem{
 		Item:     text,
 		HelpText: helpText,
 	}
@@ -349,7 +349,7 @@ func CreateJiraAutocompleteData() *AutocompleteData {
 	jira.AddCommand(assign)
 
 	create := NewAutocompleteData("create", "Create a new Issue")
-	create.AddTextInputArgument("", "This text is optional, will be inserted into the description field", "[text]", "")
+	create.AddTextArgument("", "This text is optional, will be inserted into the description field", "[text]", "")
 	jira.AddCommand(create)
 
 	transition := NewAutocompleteData("transition", "Change the state of a Jira issue")
@@ -366,7 +366,7 @@ func CreateJiraAutocompleteData() *AutocompleteData {
 
 	settings := NewAutocompleteData("settings", "Update your user settings")
 	notifications := NewAutocompleteData("notifications", "Turn notifications on or off")
-	argument := NewStaticListArgument()
+	argument := NewAutocompleteStaticListArg()
 	argument.AddArgument("on", "Turn notifications on")
 	argument.AddArgument("off", "Turn notifications off")
 	notifications.AddStaticListArgument("", "Turn notifications on or off", argument)
@@ -377,20 +377,20 @@ func CreateJiraAutocompleteData() *AutocompleteData {
 	install.RoleID = SYSTEM_ADMIN_ROLE_ID
 	cloud := NewAutocompleteData("cloud", "Connect to a Jira Cloud instance")
 	urlPattern := "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)"
-	cloud.AddTextInputArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
+	cloud.AddTextArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
 	install.AddCommand(cloud)
 	server := NewAutocompleteData("server", "Connect to a Jira Server or Data Center instance")
-	server.AddTextInputArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
+	server.AddTextArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
 	install.AddCommand(server)
 	jira.AddCommand(install)
 
 	uninstall := NewAutocompleteData("uninstall", "Disconnect Mattermost from a Jira instance")
 	uninstall.RoleID = SYSTEM_ADMIN_ROLE_ID
 	cloud = NewAutocompleteData("cloud", "Disconnect from a Jira Cloud instance")
-	cloud.AddTextInputArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
+	cloud.AddTextArgument("", "input URL of the Jira Cloud instance", "[URL]", urlPattern)
 	uninstall.AddCommand(cloud)
 	server = NewAutocompleteData("server", "Disconnect from a Jira Server or Data Center instance")
-	server.AddTextInputArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
+	server.AddTextArgument("", "input URL of the Jira Server or Data Center instance", "[URL]", urlPattern)
 	uninstall.AddCommand(server)
 	jira.AddCommand(uninstall)
 

@@ -18,7 +18,7 @@ func TestAutocompleteData(t *testing.T) {
 	assert.Nil(t, ad.IsValid())
 	ad.AddDynamicListArgument("", "help", "/some/url")
 	assert.Nil(t, ad.IsValid())
-	ad.AddTextInputArgument("name", "help", "[text]", "")
+	ad.AddTextArgument("name", "help", "[text]", "")
 	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
@@ -29,8 +29,8 @@ func TestAutocompleteData(t *testing.T) {
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "disconnect")
-	command.AddTextInputArgument("", "help", "[text]", "")
-	command.AddTextInputArgument("some", "help", "[text]", "")
+	command.AddTextArgument("", "help", "[text]", "")
+	command.AddTextArgument("some", "help", "[text]", "")
 	ad.AddCommand(command)
 	assert.Nil(t, ad.IsValid())
 
@@ -49,9 +49,9 @@ func TestAutocompleteData(t *testing.T) {
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "disconnect")
 	command.AddDynamicListArgument("", "help", "/valid/url")
-	StaticList := NewStaticListArgument()
-	StaticList.AddArgument("", "help")
-	command.AddStaticListArgument("", "help", StaticList)
+	staticList := NewAutocompleteStaticListArg()
+	staticList.AddArgument("", "help")
+	command.AddStaticListArgument("", "help", staticList)
 	ad.AddCommand(command)
 	assert.NotNil(t, ad.IsValid())
 }
@@ -69,15 +69,15 @@ func getAutocompleteData() *AutocompleteData {
 	ad := NewAutocompleteData("jira", "Avaliable commands:")
 	ad.RoleID = SYSTEM_USER_ROLE_ID
 	ad.AddDynamicListArgument("", "help", "/some/url")
-	ad.AddTextInputArgument("", "help", "[text]", "")
-	StaticList := NewStaticListArgument()
+	ad.AddTextArgument("", "help", "[text]", "")
+	StaticList := NewAutocompleteStaticListArg()
 	StaticList.AddArgument("arg1", "help1")
 	StaticList.AddArgument("arg2", "help2")
 	ad.AddStaticListArgument("", "help", StaticList)
 
 	command := NewAutocompleteData("connect", "Connect to mattermost")
 	command.RoleID = SYSTEM_ADMIN_ROLE_ID
-	command.AddTextInputArgument("some", "help", "[text]", "")
+	command.AddTextArgument("some", "help", "[text]", "")
 	command.AddDynamicListArgument("other", "help", "/other/url")
 	ad.AddCommand(command)
 	return ad
