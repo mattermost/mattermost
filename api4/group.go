@@ -63,7 +63,7 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
 		api.ApiSessionRequired(getGroupsByTeam)).Methods("GET")
 
-	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
+	// GET /api/v4/teams/:team_id/groups_by_channels?page=0&per_page=100
 	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups_by_channels",
 		api.ApiSessionRequired(getGroupsAssociatedToChannelsByTeam)).Methods("GET")
 }
