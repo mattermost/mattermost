@@ -572,11 +572,11 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 		cs2Guest,
 	}
 
-	teamUserCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleTypeChannelUser)
+	teamUserCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeUser)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), teamUserCount)
 
-	teamGuestCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleTypeChannelGuest)
+	teamGuestCount, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), teamGuestCount)
 
@@ -613,19 +613,19 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 	for _, test := range tests {
 		removePermission(test.removePermissionFromRole)
 
-		count, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleTypeChannelUser)
+		count, err := ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeUser)
 		require.Nil(t, err)
 		require.Equal(t, int64(test.expectTeamSchemeChannelUserCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleTypeChannelGuest)
+		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_TEAM, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 		require.Nil(t, err)
 		require.Equal(t, int64(test.expectTeamSchemeChannelGuestCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleTypeChannelUser)
+		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleScopeChannel, model.RoleTypeUser)
 		require.Nil(t, err)
 		require.Equal(t, int64(test.expectChannelSchemeChannelUserCount), count)
 
-		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleTypeChannelGuest)
+		count, err = ss.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, perm, model.RoleScopeChannel, model.RoleTypeGuest)
 		require.Nil(t, err)
 		require.Equal(t, int64(test.expectChannelSchemeChannelGuestCount), count)
 	}

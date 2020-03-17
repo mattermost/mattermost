@@ -331,8 +331,8 @@ func (s *SqlSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
 	return count, nil
 }
 
-func (s *SqlSchemeStore) CountWithoutPermission(scope, permissionID string, roleType model.RoleType) (int64, *model.AppError) {
-	joinCol := fmt.Sprintf("Default%sRole", roleType)
+func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+	joinCol := fmt.Sprintf("Default%s%sRole", roleScope, roleType)
 	query := fmt.Sprintf(`
 		SELECT
 			count(*)
@@ -342,7 +342,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(scope, permissionID string, role
 			Schemes.DeleteAt = 0 AND
 			Schemes.Scope = '%s' AND
 			Roles.Permissions NOT LIKE '%%%s%%'
-	`, joinCol, scope, permissionID)
+	`, joinCol, schemeScope, permissionID)
 	count, err := s.GetReplica().SelectInt(query)
 	if err != nil {
 		return int64(0), model.NewAppError("SqlSchemeStore.CountWithoutPermission", "store.select_error", nil, err.Error(), http.StatusInternalServerError)

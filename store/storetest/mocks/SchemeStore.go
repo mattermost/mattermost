@@ -37,20 +37,20 @@ func (_m *SchemeStore) CountByScope(scope string) (int64, *model.AppError) {
 	return r0, r1
 }
 
-// CountWithoutPermission provides a mock function with given fields: scope, permissionID, roleType
-func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string, roleType model.RoleType) (int64, *model.AppError) {
-	ret := _m.Called(scope, permissionID, roleType)
+// CountWithoutPermission provides a mock function with given fields: scope, permissionID, roleScope, roleType
+func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+	ret := _m.Called(scope, permissionID, roleScope, roleType)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(string, string, model.RoleType) int64); ok {
-		r0 = rf(scope, permissionID, roleType)
+	if rf, ok := ret.Get(0).(func(string, string, model.RoleScope, model.RoleType) int64); ok {
+		r0 = rf(scope, permissionID, roleScope, roleType)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, model.RoleType) *model.AppError); ok {
-		r1 = rf(scope, permissionID, roleType)
+	if rf, ok := ret.Get(1).(func(string, string, model.RoleScope, model.RoleType) *model.AppError); ok {
+		r1 = rf(scope, permissionID, roleScope, roleType)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

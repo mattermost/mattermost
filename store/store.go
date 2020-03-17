@@ -581,7 +581,7 @@ type SchemeStore interface {
 	Delete(schemeId string) (*model.Scheme, *model.AppError)
 	PermanentDeleteAll() *model.AppError
 	CountByScope(scope string) (int64, *model.AppError)
-	CountWithoutPermission(scope, permissionID string, roleType model.RoleType) (int64, *model.AppError)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
 }
 
 type TermsOfServiceStore interface {
