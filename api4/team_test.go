@@ -572,13 +572,16 @@ func TestGetAllTeams(t *testing.T) {
 	CheckNoError(t, resp)
 
 	testCases := []struct {
-		Name          string
-		Page          int
-		PerPage       int
-		Permissions   []string
-		ExpectedTeams []string
-		WithCount     bool
-		ExpectedCount int64
+		Name               string
+		Page               int
+		PerPage            int
+		Permissions        []string
+		ExpectedTeams      []string
+		WithCount          bool
+		ExpectedCount      int64
+		ExpectedError      bool
+		ErrorId            string
+		ExpectedStatusCode int
 	}{
 		{
 			Name:          "Get 1 team per page",
@@ -623,11 +626,23 @@ func TestGetAllTeams(t *testing.T) {
 			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id, team4.Id},
 		},
 		{
-			Name:          "Get no teams because permissions",
-			Page:          0,
-			PerPage:       10,
-			Permissions:   []string{},
-			ExpectedTeams: []string{},
+			Name:               "Get no teams because permissions",
+			Page:               0,
+			PerPage:            10,
+			Permissions:        []string{},
+			ExpectedError:      true,
+			ExpectedStatusCode: http.StatusForbidden,
+			ErrorId:            "api.team.get_all_teams.insufficient_permissions",
+		},
+		{
+			Name:               "Get no teams because permissions with count",
+			Page:               0,
+			PerPage:            10,
+			Permissions:        []string{},
+			WithCount:          true,
+			ExpectedError:      true,
+			ExpectedStatusCode: http.StatusForbidden,
+			ErrorId:            "api.team.get_all_teams.insufficient_permissions",
 		},
 		{
 			Name:          "Get all teams with count",
@@ -678,6 +693,11 @@ func TestGetAllTeams(t *testing.T) {
 				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
 			} else {
 				teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			}
+			if tc.ExpectedError {
+				CheckErrorMessage(t, resp, tc.ErrorId)
+				checkHTTPStatus(t, resp, tc.ExpectedStatusCode, true)
+				return
 			}
 			CheckNoError(t, resp)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))

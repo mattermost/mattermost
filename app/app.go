@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -38,7 +39,7 @@ type App struct {
 	cluster          einterfaces.ClusterInterface
 	compliance       einterfaces.ComplianceInterface
 	dataRetention    einterfaces.DataRetentionInterface
-	elasticsearch    einterfaces.ElasticsearchInterface
+	searchEngine     *searchengine.Broker
 	ldap             einterfaces.LdapInterface
 	messageExport    einterfaces.MessageExportInterface
 	metrics          einterfaces.MetricsInterface
@@ -202,8 +203,8 @@ func (a *App) Compliance() einterfaces.ComplianceInterface {
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
 	return a.dataRetention
 }
-func (a *App) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return a.elasticsearch
+func (a *App) SearchEngine() *searchengine.Broker {
+	return a.searchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ldap
