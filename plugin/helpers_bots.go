@@ -237,7 +237,7 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) 
 
 		// ensure existing bot is synced with what is being created
 		botPatch := &model.BotPatch{
-			Username: &bot.Username,
+			Username:    &bot.Username,
 			DisplayName: &bot.DisplayName,
 			Description: &bot.Description,
 		}
