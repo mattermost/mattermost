@@ -449,7 +449,7 @@ func TestExportDMandGMPost(t *testing.T) {
 func TestExportPostWithProps(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 
-	attachments := []*model.SlackAttachment{{Footer:"footer"}}
+	attachments := []*model.SlackAttachment{{Footer: "footer"}}
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
