@@ -1016,6 +1016,13 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 	case "/api/v1/send_push", "/api/v1/ack":
 		h.t.Helper()
 
+		// Don't do any checking if it's a benchmark
+		if _, ok := h.t.(*testing.B); ok {
+			resp := model.NewOkPushResponse()
+			fmt.Fprintln(w, (&resp).ToJson())
+			return
+		}
+
 		var notification *model.PushNotification
 		var notificationAck *model.PushNotificationAck
 		var err error
@@ -1139,7 +1146,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	assert.Equal(t, model.PUSH_TYPE_CLEAR, handler.notifications()[0].Type)
 }
 
-func TestUpdateMobileAppBadgeSyncPushNotification(t *testing.T) {
+func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1193,7 +1200,7 @@ func TestUpdateMobileAppBadgeSyncPushNotification(t *testing.T) {
 	assert.Equal(t, model.PUSH_TYPE_UPDATE_BADGE, handler.notifications()[1].Type)
 }
 
-func TestSendAckToPushProxyPushNotification(t *testing.T) {
+func TestSendAckToPushProxy(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
@@ -1340,4 +1347,133 @@ func TestAllPushNotifications(t *testing.T) {
 	assert.Equal(t, 8, numMessages)
 	assert.Equal(t, 3, numClears)
 	assert.Equal(t, 6, numUpdateBadges)
+}
+
+func BenchmarkPushNotification(b *testing.B) {
+	th := SetupWithStoreMock(b)
+	defer th.TearDown()
+
+	handler := &testPushNotificationHandler{
+		t:        b,
+		behavior: "simple",
+	}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSessionStore := mocks.SessionStore{}
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+
+	// create 50 users, each having 2 sessions.
+	type userSession struct {
+		user    *model.User
+		session *model.Session
+	}
+	var testData []userSession
+	for i := 0; i < 50; i++ {
+		id := model.NewId()
+		u := &model.User{
+			Id:            id,
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		sess1 := &model.Session{
+			Id:        "id1",
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		}
+		sess2 := &model.Session{
+			Id:        "id2",
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		}
+		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)
+		mockSessionStore.On("UpdateDeviceId", sess1.Id, "deviceID"+u.Id, mock.AnythingOfType("int64")).Return("deviceID"+u.Id, nil)
+
+		testData = append(testData, userSession{
+			user:    u,
+			session: sess1,
+		})
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+		*cfg.LogSettings.EnableConsole = false
+		*cfg.NotificationLogSettings.EnableConsole = false
+	})
+
+	ch := &model.Channel{
+		Id:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Type:     model.CHANNEL_OPEN,
+		Name:     "testch",
+	}
+
+	b.ResetTimer()
+	// We have an inner loop which ranges the testdata slice
+	// and we just repeat that.
+	// TODO: replace 10 by b.N
+	then := time.Now()
+	for i := 0; i < 10; i++ {
+		var wg sync.WaitGroup
+		for j, data := range testData {
+			wg.Add(1)
+			// Ranging between 3 types of notifications.
+			switch j % 3 {
+			case 0:
+				go func(user model.User) {
+					defer wg.Done()
+					post := &model.Post{
+						UserId:    user.Id,
+						ChannelId: ch.Id,
+						Message:   "test message",
+						CreateAt:  model.GetMillis(),
+					}
+					notification := &PostNotification{
+						Post:    post,
+						Channel: ch,
+						ProfileMap: map[string]*model.User{
+							user.Id: &user,
+						},
+						Sender: &user,
+					}
+					th.App.sendPushNotification(notification, &user, true, false, model.COMMENTS_NOTIFY_ANY)
+				}(*data.user)
+			case 1:
+				go func(id string) {
+					defer wg.Done()
+					th.App.UpdateMobileAppBadge(id)
+				}(data.user.Id)
+			case 2:
+				go func(sessID, userID string) {
+					defer wg.Done()
+					th.App.clearPushNotification(sessID, userID, ch.Id)
+				}(data.session.Id, data.user.Id)
+			}
+		}
+		wg.Wait()
+	}
+	b.Logf("time taken: %v", time.Since(then))
+	b.StopTimer()
+	time.Sleep(2 * time.Second)
 }
