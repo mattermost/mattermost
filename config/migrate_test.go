@@ -72,7 +72,6 @@ func TestMigrateDatabaseToFileWithEmptyFiles(t *testing.T) {
 	sqlSettings := helper.GetSQLSettings()
 	fileDSN := "config.json"
 	files := []string{"", "", ""}
-	data := []byte("aaaaa")
 	ds, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	defer ds.Close()
 	defer func() {
@@ -88,10 +87,6 @@ func TestMigrateDatabaseToFileWithEmptyFiles(t *testing.T) {
 	_, err = ds.Set(config)
 	require.NoError(t, err)
 
-	for _, file := range files {
-		err = ds.SetFile(file, data)
-		require.NoError(t, err)
-	}
 	err = Migrate(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), fileDSN)
 	require.NoError(t, err)
 
