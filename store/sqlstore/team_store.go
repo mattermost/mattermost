@@ -96,45 +96,37 @@ func getTeamRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRol
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
 	for _, role := range roles {
-		isImplicit := false
-		if role == model.TEAM_GUEST_ROLE_ID {
-			// We have an implicit role via the system scheme. Override the "schemeGuest" field to true.
+		switch role {
+		case model.TEAM_GUEST_ROLE_ID:
 			result.schemeGuest = true
-			isImplicit = true
-		} else if role == model.TEAM_USER_ROLE_ID {
-			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
+		case model.TEAM_USER_ROLE_ID:
 			result.schemeUser = true
-			isImplicit = true
-		} else if role == model.TEAM_ADMIN_ROLE_ID {
-			// We have an implicit role via the system scheme.
+		case model.TEAM_ADMIN_ROLE_ID:
 			result.schemeAdmin = true
-			isImplicit = true
-		}
-
-		if !isImplicit {
+		default:
 			result.explicitRoles = append(result.explicitRoles, role)
+			result.roles = append(result.roles, role)
 		}
-		result.roles = append(result.roles, role)
 	}
 
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatibility reasons.
 	var schemeImpliedRoles []string
-	if schemeGuest {
+	if result.schemeGuest {
 		if defaultTeamGuestRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamGuestRole)
 		} else {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_GUEST_ROLE_ID)
 		}
 	}
-	if schemeUser {
+	if result.schemeUser {
 		if defaultTeamUserRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamUserRole)
 		} else {
 			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_USER_ROLE_ID)
 		}
 	}
-	if schemeAdmin {
+	if result.schemeAdmin {
 		if defaultTeamAdminRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultTeamAdminRole)
 		} else {
