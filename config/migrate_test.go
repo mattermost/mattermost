@@ -64,6 +64,51 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 	assert.Equal(t, ds.Get(), fs.Get())
 }
 
+func TestMigrateDatabaseToFileWithEmptyFiles(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	helper := testlib.NewMainHelper()
+	sqlSettings := helper.GetSQLSettings()
+	fileDSN := "config.json"
+	files := []string{"", "", ""}
+	data := []byte("aaaaa")
+	ds, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
+	defer ds.Close()
+	defer func() {
+		defaultCfg := &model.Config{}
+		defaultCfg.SetDefaults()
+		ds.Set(defaultCfg)
+	}()
+	require.NoError(t, err)
+	config := ds.Get()
+	config.SamlSettings.IdpCertificateFile = &files[0]
+	config.SamlSettings.PublicCertificateFile = &files[1]
+	config.SamlSettings.PrivateKeyFile = &files[2]
+	_, err = ds.Set(config)
+	require.NoError(t, err)
+
+	for _, file := range files {
+		err = ds.SetFile(file, data)
+		require.NoError(t, err)
+	}
+	err = Migrate(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), fileDSN)
+	require.NoError(t, err)
+
+	fs, err := NewFileStore(fileDSN, false)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	for _, file := range files {
+		hasFile, err := fs.HasFile(file)
+		require.NoError(t, err)
+		defer fs.RemoveFile(file)
+		require.False(t, hasFile)
+	}
+
+	require.Equal(t, ds.Get(), fs.Get())
+}
+
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()

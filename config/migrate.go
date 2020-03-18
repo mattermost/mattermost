@@ -28,6 +28,9 @@ func Migrate(from, to string) error {
 	files = append(files, sourceConfig.PluginSettings.SignaturePublicKeyFiles...)
 
 	for _, file := range files {
+		if file == "" {
+			continue
+		}
 		err = migrateFile(file, source, destination)
 
 		if err != nil {
@@ -38,6 +41,9 @@ func Migrate(from, to string) error {
 }
 
 func migrateFile(name string, source Store, destination Store) error {
+	if name == "" {
+		return nil
+	}
 	fileExists, err := source.HasFile(name)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check existence of %s", name)
