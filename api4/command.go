@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -32,6 +33,8 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
@@ -47,7 +50,10 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("command_id", rcmd.Id)
 	c.LogAudit("success")
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rcmd.ToJson()))
 }
@@ -64,6 +70,9 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
+	auditRec.AddMeta("command_id", c.Params.CommandId)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
@@ -97,6 +106,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
 
 	w.Write([]byte(rcmd.ToJson()))
@@ -108,13 +118,17 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
-
 	cmr, err := model.CommandMoveRequestFromJson(r.Body)
 	if err != nil {
 		c.SetInvalidParam("team_id")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
+	auditRec.AddMeta("command_id", c.Params.CommandId)
+	auditRec.AddMeta("to_team_id", cmr.TeamId)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
 
 	newTeam, appErr := c.App.GetTeam(cmr.TeamId)
 	if appErr != nil {
@@ -133,6 +147,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
+	auditRec.AddMeta("from_team_id", cmd.TeamId)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -147,7 +162,9 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
 
@@ -157,6 +174,9 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
+	auditRec.AddMeta("command_id", c.Params.CommandId)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
@@ -185,6 +205,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
 
 	ReturnStatusOK(w)
@@ -347,7 +368,11 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
+	auditRec.AddMeta("command_id", c.Params.CommandId)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
+
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
 		c.SetCommandNotFoundError()
@@ -373,6 +398,9 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	c.LogAudit("success")
 
 	resp := make(map[string]string)
 	resp["token"] = rcmd.Token

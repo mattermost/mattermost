@@ -230,6 +230,7 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 		}(plugin.Manifest.Id)
 	}
+	wg.Wait()
 
 	// Install plugins from the file store.
 	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
@@ -263,7 +264,6 @@ func (a *App) SyncPlugins() *model.AppError {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
 		}(plugin)
-
 	}
 
 	wg.Wait()

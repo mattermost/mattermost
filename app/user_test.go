@@ -567,6 +567,34 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
+func TestCreateUserWithInviteId(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+
+	t.Run("should create a user", func(t *testing.T) {
+		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		require.Nil(t, err)
+		require.Equal(t, u.Id, user.Id)
+	})
+
+	t.Run("invalid invite id", func(t *testing.T) {
+		_, err := th.App.CreateUserWithInviteId(&user, "")
+		require.NotNil(t, err)
+		require.Contains(t, err.Id, "store.sql_team.get_by_invite_id")
+	})
+
+	t.Run("invalid domain", func(t *testing.T) {
+		th.BasicTeam.AllowedDomains = "mattermost.com"
+		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
+		require.Nil(t, err)
+		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		require.NotNil(t, err)
+		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
+	})
+}
+
 func TestCreateUserWithToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -939,90 +967,6 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		assert.NotNil(t, restrictions.Channels)
 		assert.ElementsMatch(t, restrictions.Teams, []string{team1.Id})
 		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
-	})
-}
-
-func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
-	th.CreateTeam() // Another team
-
-	user1 := th.CreateUser()
-
-	th.LinkUserToTeam(user1, team1)
-	th.LinkUserToTeam(user1, team2)
-
-	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
-
-	team1channel1 := th.CreateChannel(team1)
-	team1channel2 := th.CreateChannel(team1)
-	th.CreateChannel(team1) // Another channel
-	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
-	require.Nil(t, err)
-	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
-	require.Nil(t, err)
-
-	team2channel1 := th.CreateChannel(team2)
-	th.CreateChannel(team2) // Another channel
-
-	th.App.AddUserToChannel(user1, team1channel1)
-	th.App.AddUserToChannel(user1, team1channel2)
-	th.App.AddUserToChannel(user1, team2channel1)
-
-	addPermission := func(role *model.Role, permission string) *model.AppError {
-		newPermissions := append(role.Permissions, permission)
-		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
-		return err
-	}
-
-	removePermission := func(role *model.Role, permission string) *model.AppError {
-		newPermissions := []string{}
-		for _, oldPermission := range role.Permissions {
-			if permission != oldPermission {
-				newPermissions = append(newPermissions, oldPermission)
-			}
-		}
-		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
-		return err
-	}
-
-	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
-		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
-		require.Nil(t, err)
-
-		assert.Nil(t, restrictions)
-	})
-
-	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
-		require.Nil(t, err)
-		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
-		require.Nil(t, err)
-
-		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
-		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
-		require.Nil(t, addPermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
-		defer removePermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
-
-		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
-		require.Nil(t, err)
-		assert.Nil(t, restrictions)
-	})
-
-	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
-		require.Nil(t, err)
-		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
-		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
-
-		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
-		require.Nil(t, err)
-
-		assert.NotNil(t, restrictions)
-		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id}, restrictions)
 	})
 }
 
