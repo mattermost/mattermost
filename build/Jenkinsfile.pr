@@ -57,7 +57,7 @@ pipeline {
 						ansiColor('xterm') {
 							sh """
 								#!/bin/bash -ex
-								git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout release-5.19 || echo 1
+								git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout release-5.22 || echo 1
 								rm -rf ./dist
 								export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
