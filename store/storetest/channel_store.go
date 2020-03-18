@@ -2937,26 +2937,26 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 	t.Run("remove member from not existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
 		require.Nil(t, err)
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 4)
+		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing member from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMember(channelID, model.NewId())
 		require.Nil(t, err)
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 4)
+		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove existing member from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMember(channelID, u1.Id)
 		require.Nil(t, err)
 		defer ss.Channel().SaveMember(m1)
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 3)
+		require.Equal(t, int64(3), membersCount)
 	})
 }
 
@@ -2981,34 +2981,34 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 	t.Run("remove members from not existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
 		require.Nil(t, err)
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 4)
+		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing members from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
 		require.Nil(t, err)
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 4)
+		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing and not existing members from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
 		require.Nil(t, err)
 		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 2)
+		require.Equal(t, int64(2), membersCount)
 	})
 	t.Run("remove existing members from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, u3.Id})
 		require.Nil(t, err)
 		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3})
-		membersOtherChannel, err := ss.Channel().GetMembers(channelID, 0, 100)
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
-		require.Len(t, *membersOtherChannel, 1)
+		require.Equal(t, int64(1), membersCount)
 	})
 }
 
@@ -5768,7 +5768,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 		ChannelId:     c.Id,
 		UserId:        model.NewId(),
 		NotifyProps:   model.GetDefaultChannelNotifyProps(),
-		ExplicitRoles: "channel_user channel_admin system_user_access_token",
+		ExplicitRoles: "system_user_access_token channel_user channel_admin",
 	}
 	m2 := &model.ChannelMember{
 		ChannelId:     c.Id,

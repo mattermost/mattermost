@@ -2981,7 +2981,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{
 		TeamId:        model.NewId(),
 		UserId:        model.NewId(),
-		ExplicitRoles: "team_user team_admin team_post_all_public",
+		ExplicitRoles: "team_post_all_public team_user team_admin",
 	}
 	m2 := &model.TeamMember{
 		TeamId:        model.NewId(),
