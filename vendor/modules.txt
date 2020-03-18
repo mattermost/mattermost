@@ -4,6 +4,8 @@ github.com/BurntSushi/toml
 github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
 github.com/NYTimes/gziphandler
+# github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
+github.com/RackSec/srslog
 # github.com/armon/go-metrics v0.3.0
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -28,6 +30,8 @@ github.com/disintegration/imaging
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.9.0
 github.com/fatih/color
+# github.com/francoispqt/gojay v1.2.13
+github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
 # github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
@@ -272,6 +276,16 @@ github.com/uber/jaeger-client-go/utils
 github.com/uber/jaeger-client-go/zipkin
 # github.com/uber/jaeger-lib v2.2.0+incompatible
 github.com/uber/jaeger-lib/metrics
+# github.com/wiggin77/cfg v1.0.2
+github.com/wiggin77/cfg
+github.com/wiggin77/cfg/ini
+github.com/wiggin77/cfg/timeconv
+# github.com/wiggin77/logr v1.0.4
+github.com/wiggin77/logr
+github.com/wiggin77/logr/format
+github.com/wiggin77/logr/target
+# github.com/wiggin77/merror v1.0.2
+github.com/wiggin77/merror
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 github.com/xtgo/uuid
 # go.uber.org/atomic v1.5.1

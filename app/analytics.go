@@ -151,7 +151,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 		rows[4].Value = float64(r.Data.(int64))
 
-		// If in HA mode then aggregrate all the stats
+		// If in HA mode then aggregate all the stats
 		if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
 			stats, err := a.Cluster().GetClusterStats()
 			if err != nil {

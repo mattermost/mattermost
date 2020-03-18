@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -39,6 +40,9 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	bot.Patch(botPatch)
 
+	auditRec := c.MakeAuditRecord("createBot", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_BOT) {
 		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
 		return
@@ -62,6 +66,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	// Note that the primary key of a bot is the UserId, and matches the primary key of the
+	// corresponding user.
+	auditRec.AddMeta("bot_id", createdBot.UserId)
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write(createdBot.ToJson())
 }
@@ -79,6 +88,10 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchBot", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot_id", botUserId)
+
 	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
@@ -89,6 +102,8 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	w.Write(updatedBot.ToJson())
 }
@@ -182,6 +197,11 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 	}
 	botUserId := c.Params.BotUserId
 
+	auditRec := c.MakeAuditRecord("updateBotActive", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot_id", botUserId)
+	auditRec.AddMeta("enable", active)
+
 	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
@@ -192,6 +212,8 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	w.Write(bot.ToJson())
 }
@@ -204,6 +226,11 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 	userId := c.Params.UserId
+
+	auditRec := c.MakeAuditRecord("assignBot", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot_id", botUserId)
+	auditRec.AddMeta("assign_user_id", userId)
 
 	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
@@ -222,6 +249,8 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	w.Write(bot.ToJson())
 }
@@ -276,6 +305,10 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
+	auditRec := c.MakeAuditRecord("setBotIconImage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot_id", botUserId)
+
 	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
@@ -309,7 +342,9 @@ func setBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }
 
@@ -322,6 +357,10 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
+	auditRec := c.MakeAuditRecord("deleteBotIconImage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot_id", botUserId)
+
 	if err := c.App.SessionHasPermissionToManageBot(*c.App.Session(), botUserId); err != nil {
 		c.Err = err
 		return
@@ -332,6 +371,8 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("")
+
 	ReturnStatusOK(w)
 }

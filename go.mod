@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/NYTimes/gziphandler v1.1.1
+	github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/beevik/etree v1.1.0 // indirect
@@ -42,7 +43,7 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/jonboulle/clockwork v0.1.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.3.0
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -68,6 +69,7 @@ require (
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.4.0
+	github.com/prometheus/client_model v0.2.0
 	github.com/rs/cors v1.7.0
 	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
@@ -88,6 +90,8 @@ require (
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber/jaeger-client-go v2.22.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
+	github.com/wiggin77/logr v1.0.4
+	github.com/wiggin77/merror v1.0.2
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.5.1 // indirect
