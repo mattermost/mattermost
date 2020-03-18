@@ -32,9 +32,7 @@ type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
 
-	failTimeStamps []time.Time
-	lastError      error
-	supervisor     *supervisor
+	supervisor *supervisor
 }
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
@@ -238,6 +236,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	// Store latest BundleInfo in case something has changed since last activation
 	rp.BundleInfo = pluginInfo
 	env.registeredPlugins.Store(id, rp)
+	if env.pluginHealthCheckJob != nil {
+		env.pluginHealthCheckJob.EnsurePlugin(id)
+	}
 
 	defer func() {
 		if reterr == nil {
@@ -492,5 +493,5 @@ func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 
 func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	state := model.PluginStateNotRunning
-	return registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
+	return registeredPlugin{State: state, BundleInfo: bundle}
 }

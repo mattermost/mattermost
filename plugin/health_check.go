@@ -19,10 +19,11 @@ const (
 )
 
 type PluginHealthCheckJob struct {
-	cancel     chan struct{}
-	cancelled  chan struct{}
-	cancelOnce sync.Once
-	env        *Environment
+	cancel         chan struct{}
+	cancelled      chan struct{}
+	cancelOnce     sync.Once
+	env            *Environment
+	failTimestamps sync.Map
 }
 
 // InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
@@ -33,6 +34,11 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
+		env.registeredPlugins.Range(func(key interface{}, value interface{}) bool {
+			id := key.(string)
+			job.EnsurePlugin(id)
+			return true
+		})
 		job.Start()
 	}
 
@@ -43,6 +49,15 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 		env.pluginHealthCheckJob.Cancel()
 		env.pluginHealthCheckJob = nil
 	}
+}
+
+func (job *PluginHealthCheckJob) EnsurePlugin(id string) {
+	_, ok := job.failTimestamps.Load(id)
+	if ok {
+		return
+	}
+
+	job.failTimestamps.Store(id, []time.Time{})
 }
 
 // Start continuously runs health checks on all active plugins, on a timer.
@@ -94,20 +109,19 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 
 // handleHealthCheckFail restarts or deactivates the plugin based on how many times it has failed in a configured amount of time.
 func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
-	rp, ok := job.env.registeredPlugins.Load(id)
+	ftimeInterface, ok := job.failTimestamps.Load(id)
 	if !ok {
 		return
 	}
-	p := rp.(registeredPlugin)
+	ftime := ftimeInterface.([]time.Time)
 
 	// Append current failure before checking for deactivate vs restart action
-	p.failTimeStamps = append(p.failTimeStamps, time.Now())
-	p.lastError = err
-	job.env.registeredPlugins.Store(id, p)
+	ftime = append(ftime, time.Now())
+	job.failTimestamps.Store(id, ftime)
 
-	if shouldDeactivatePlugin(p) {
-		p.failTimeStamps = []time.Time{}
-		job.env.registeredPlugins.Store(id, p)
+	if shouldDeactivatePlugin(ftime) {
+		ftime = []time.Time{}
+		job.failTimestamps.Store(id, ftime)
 		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
 		job.env.SetPluginState(id, model.PluginStateFailedToStayRunning)
@@ -137,10 +151,10 @@ func (job *PluginHealthCheckJob) Cancel() {
 // shouldDeactivatePlugin determines if a plugin needs to be deactivated after certain criteria is met.
 //
 // The criteria is based on if the plugin has consistently failed during the configured number of restarts, within the configured time window.
-func shouldDeactivatePlugin(rp registeredPlugin) bool {
-	if len(rp.failTimeStamps) >= HEALTH_CHECK_RESTART_LIMIT {
-		index := len(rp.failTimeStamps) - HEALTH_CHECK_RESTART_LIMIT
-		t := rp.failTimeStamps[index]
+func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
+	if len(failedTimestamps) >= HEALTH_CHECK_RESTART_LIMIT {
+		index := len(failedTimestamps) - HEALTH_CHECK_RESTART_LIMIT
+		t := failedTimestamps[index]
 		now := time.Now()
 		elapsed := now.Sub(t)
 		if elapsed <= HEALTH_CHECK_DISABLE_DURATION {
