@@ -211,8 +211,7 @@ func TestImportBulkImport(t *testing.T) {
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
 	})
 
-	// Run bulk import with props for posts.
-	t.Run("", func(t *testing.T) {
+	t.Run("Posts with prop information", func(t *testing.T) {
 		data6 := `{"type": "version", "version": 1}
 {"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
