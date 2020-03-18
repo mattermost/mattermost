@@ -121,31 +121,23 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
 	for _, role := range roles {
-		isImplicit := false
-		if role == model.CHANNEL_GUEST_ROLE_ID {
-			// We have an implicit role via the system scheme. Override the "schemeGuest" field to true.
+		switch role {
+		case model.CHANNEL_GUEST_ROLE_ID:
 			result.schemeGuest = true
-			isImplicit = true
-		} else if role == model.CHANNEL_USER_ROLE_ID {
-			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
+		case model.CHANNEL_USER_ROLE_ID:
 			result.schemeUser = true
-			isImplicit = true
-		} else if role == model.CHANNEL_ADMIN_ROLE_ID {
-			// We have an implicit role via the system scheme.
+		case model.CHANNEL_ADMIN_ROLE_ID:
 			result.schemeAdmin = true
-			isImplicit = true
-		}
-
-		if !isImplicit {
+		default:
 			result.explicitRoles = append(result.explicitRoles, role)
+			result.roles = append(result.roles, role)
 		}
-		result.roles = append(result.roles, role)
 	}
 
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatibility reasons.
 	var schemeImpliedRoles []string
-	if schemeGuest {
+	if result.schemeGuest {
 		if defaultChannelGuestRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultChannelGuestRole)
 		} else if defaultTeamGuestRole != "" {
@@ -154,7 +146,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_GUEST_ROLE_ID)
 		}
 	}
-	if schemeUser {
+	if result.schemeUser {
 		if defaultChannelUserRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultChannelUserRole)
 		} else if defaultTeamUserRole != "" {
@@ -163,7 +155,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 			schemeImpliedRoles = append(schemeImpliedRoles, model.CHANNEL_USER_ROLE_ID)
 		}
 	}
-	if schemeAdmin {
+	if result.schemeAdmin {
 		if defaultChannelAdminRole != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, defaultChannelAdminRole)
 		} else if defaultTeamAdminRole != "" {
@@ -177,6 +169,7 @@ func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuest
 		for _, role := range result.roles {
 			if role == impliedRole {
 				alreadyThere = true
+				break
 			}
 		}
 		if !alreadyThere {
@@ -1481,7 +1474,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 		newMember.ExplicitRoles = strings.Join(rolesResult.explicitRoles, " ")
 		newMembers = append(newMembers, &newMember)
 	}
-	return members, nil
+	return newMembers, nil
 }
 
 func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
