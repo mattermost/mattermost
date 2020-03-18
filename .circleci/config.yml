@@ -93,6 +93,19 @@ jobs:
   #           make i18n-extract
   #           diff /tmp/en.json i18n/en.json
 
+  check-app-layers:
+    docker:
+      - image: mattermost/mattermost-build-server:oct-18-2019
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make app-layers
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
   build:
     docker:
       - image: mattermost/mattermost-build-server:oct-18-2019
@@ -104,7 +117,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.3 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -382,9 +395,12 @@ workflows:
       # - check-i18n:
       #     requires:
       #       - setup
-      - build:
+      - check-app-layers:
           requires:
             - setup
+      - build:
+          requires:
+            - check-app-layers
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -402,16 +418,16 @@ workflows:
           dbdriver: mysql
           dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
           requires:
-            - setup
+            - check-app-layers
       - test:
           name: test-postgres
           dbdriver: postgres
           dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
           requires:
-            - setup
+            - check-app-layers
       - test-schema:
           requires:
-            - setup
+            - check-app-layers
       - trigger-ee-tests:
           context: matterbuild-circleci-token
           requires:

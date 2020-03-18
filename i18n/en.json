@@ -1967,6 +1967,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "You don't have the appropriate permissions to list all teams"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
   },
@@ -2959,6 +2963,14 @@
     "translation": "Error reading import emoji image file. Emoji with name: \"{{.EmojiName}}\""
   },
   {
+    "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+    "translation": "Some teams not found"
+  },
+  {
+    "id": "app.import.get_users_by_username.some_users_not_found.error",
+    "translation": "Some users not found"
+  },
+  {
     "id": "app.import.import_channel.scheme_deleted.error",
     "translation": "Unable to set a channel to use a deleted scheme."
   },
@@ -2979,16 +2991,8 @@
     "translation": "Failed to create group channel"
   },
   {
-    "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel"
-  },
-  {
     "id": "app.import.import_direct_channel.update_header_failed.error",
     "translation": "Failed to update direct channel header"
-  },
-  {
-    "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel post"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
@@ -2997,14 +3001,6 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Error importing direct post. Failed to save preferences."
-  },
-  {
-    "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -3049,10 +3045,6 @@
   {
     "id": "app.import.import_post.save_preferences.error",
     "translation": "Error importing post. Failed to save preferences."
-  },
-  {
-    "id": "app.import.import_post.team_not_found.error",
-    "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
@@ -6981,6 +6973,14 @@
   {
     "id": "store.sql_team.get_by_name.missing.app_error",
     "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "store.sql_team.get_by_names.app_error",
+    "translation": "Unable to get the teams by names"
+  },
+  {
+    "id": "store.sql_team.get_by_names.missing.app_error",
+    "translation": "Unable to find some of the requested teams"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
