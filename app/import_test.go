@@ -204,9 +204,9 @@ func TestImportBulkImport(t *testing.T) {
 	})
 
 	t.Run("First item after version without type", func(t *testing.T) {
-		data5 := `{"type": "version", "version": 1}
+		data := `{"type": "version", "version": 1}
 {"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
-		err, line := th.App.BulkImport(strings.NewReader(data5), false, 2)
+		err, line := th.App.BulkImport(strings.NewReader(data), false, 2)
 		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
 	})
