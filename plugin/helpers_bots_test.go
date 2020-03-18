@@ -73,6 +73,11 @@ func TestEnsureBot(t *testing.T) {
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -111,6 +116,11 @@ func TestEnsureBot(t *testing.T) {
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -136,6 +146,11 @@ func TestEnsureBot(t *testing.T) {
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -160,6 +175,11 @@ func TestEnsureBot(t *testing.T) {
 			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
 			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
