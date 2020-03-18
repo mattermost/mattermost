@@ -387,7 +387,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	teamMembersGetOptions := &model.TeamMembersGetOptions{
-		Sort: sort
+		Sort: sort,
 	}
 
 	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions, teamMembersGetOptions)
