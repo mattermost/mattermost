@@ -369,6 +369,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	sort := r.URL.Query().Get("sort")
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -385,7 +386,11 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions)
+	teamMembersGetOptions := &model.TeamMembersGetOptions{
+		Sort:             sort,
+	}
+
+	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions, teamMembersGetOptions)
 	if err != nil {
 		c.Err = err
 		return

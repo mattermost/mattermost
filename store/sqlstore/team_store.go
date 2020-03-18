@@ -678,15 +678,20 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
-		LeftJoin("Users ON TeamMembers.UserId = Users.Id").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
-		Where(sq.Eq{"Users.DeleteAt": 0}).
-		OrderBy("Username").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
+
+	if teamMembersGetOptions.Sort == "Username" {
+		query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id").
+		Where(sq.Eq{"Users.DeleteAt": 0}).
+		OrderBy("Username")
+	} else {
+		query = query.OrderBy("UserId")
+	}
 
 	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
 

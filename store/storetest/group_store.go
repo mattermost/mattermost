@@ -3634,7 +3634,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs)
 			require.Nil(t, err)
 
-			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil)
+			members, err := ss.Team().GetMembers(team.Id, 0, 100, nil, nil)
 			require.Nil(t, err)
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 

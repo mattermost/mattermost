@@ -44,6 +44,11 @@ type EmailInviteWithError struct {
 	Error *AppError `json:"error"`
 }
 
+type TeamMembersGetOptions struct {
+	// Sorting option
+	Sort string
+}
+
 func (o *TeamMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)

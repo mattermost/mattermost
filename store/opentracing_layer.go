@@ -6231,7 +6231,7 @@ func (s *OpenTracingLayerTeamStore) GetMember(teamId string, userId string) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -6240,7 +6240,7 @@ func (s *OpenTracingLayerTeamStore) GetMembers(teamId string, offset int, limit 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.TeamStore.GetMembers(teamId, offset, limit, restrictions)
+	resultVar0, resultVar1 := s.TeamStore.GetMembers(teamId, offset, limit, restrictions, teamMembersGetOptions)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
