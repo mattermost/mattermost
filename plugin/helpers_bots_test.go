@@ -169,6 +169,37 @@ func TestEnsureBot(t *testing.T) {
 			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
+
+		t.Run("should find and update the bot with new bot details", func(t *testing.T) {
+			expectedBotID := model.NewId()
+
+			expectedBotUsername := "updated_testbot"
+			expectedBotDisplayName := "Updated Test Bot"
+			expectedBotDescription := "updated testbotdescription"
+
+			api := setupAPI()
+			api.On("GetServerVersion").Return("5.10.0")
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &expectedBotUsername,
+				DisplayName: &expectedBotDisplayName,
+				Description: &expectedBotDescription,
+			}).Return(nil, nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			updatedTestbot := &model.Bot{
+				Username:    "updated_testbot",
+				DisplayName: "Updated Test Bot",
+				Description: "updated testbotdescription",
+			}
+			botID, err := p.EnsureBot(updatedTestbot)
+
+			assert.Equal(t, expectedBotID, botID)
+			assert.Nil(t, err)
+		})
 	})
 
 	t.Run("if bot doesn't exist", func(t *testing.T) {
