@@ -154,7 +154,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 
 		cm := db.ToModel()
 
-		assert.Equal(t, "channel_admin channel_user", cm.Roles)
+		assert.Equal(t, "channel_user channel_admin", cm.Roles)
 		assert.Equal(t, false, cm.SchemeGuest)
 		assert.Equal(t, true, cm.SchemeUser)
 		assert.Equal(t, true, cm.SchemeAdmin)
@@ -199,7 +199,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 
 		cm := db.ToModel()
 
-		assert.Equal(t, "channel_user custom_role", cm.Roles)
+		assert.Equal(t, "custom_role channel_user", cm.Roles)
 		assert.Equal(t, false, cm.SchemeGuest)
 		assert.Equal(t, true, cm.SchemeUser)
 		assert.Equal(t, false, cm.SchemeAdmin)
@@ -222,7 +222,7 @@ func testChannelMemberWithSchemeRolesToModel(t *testing.T) {
 
 		cm := db.ToModel()
 
-		assert.Equal(t, "channel_user channel_admin custom_role", cm.Roles)
+		assert.Equal(t, "custom_role channel_user channel_admin", cm.Roles)
 		assert.Equal(t, false, cm.SchemeGuest)
 		assert.Equal(t, true, cm.SchemeUser)
 		assert.Equal(t, true, cm.SchemeAdmin)
