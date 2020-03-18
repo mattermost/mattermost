@@ -242,8 +242,8 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) 
 			Description: &bot.Description,
 		}
 
-		if _, patchBotErr := p.API.PatchBot(botID, botPatch); patchBotErr != nil {
-			return "", errors.Wrap(patchBotErr, "failed to patch bot")
+		if _, err := p.API.PatchBot(botID, botPatch); err != nil {
+			return "", errors.Wrap(err, "failed to patch bot")
 		}
 
 		return botID, nil
