@@ -449,7 +449,7 @@ func TestExportDMandGMPost(t *testing.T) {
 func TestExportPostWithProps(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 
-	attachments := []*model.SlackAttachment{{Footer:"footer"}}
+	attachments := []*model.SlackAttachment{{Footer: "footer"}}
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
@@ -481,7 +481,7 @@ func TestExportPostWithProps(t *testing.T) {
 		Props: map[string]interface{}{
 			"attachments": attachments,
 		},
-		UserId:    th1.BasicUser.Id,
+		UserId: th1.BasicUser.Id,
 	}
 	th1.App.CreatePost(p2, gmChannel, false)
 
@@ -511,7 +511,6 @@ func TestExportPostWithProps(t *testing.T) {
 
 	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
-
 
 	// Adding some determinism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
