@@ -734,7 +734,9 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		if tdata.Channels != nil {
 			channels[team.Id] = append(channels[team.Id], *tdata.Channels...)
 		}
-		channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DEFAULT_CHANNEL)})
+		if !user.IsGuest() {
+			channels[team.Id] = append(channels[team.Id], UserChannelImportData{Name: model.NewString(model.DEFAULT_CHANNEL)})
+		}
 
 		teamsByID[team.Id] = team
 		teamMemberByTeamID[team.Id] = member
