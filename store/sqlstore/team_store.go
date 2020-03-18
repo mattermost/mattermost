@@ -686,9 +686,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		Offset(uint64(offset))
 
 	if teamMembersGetOptions.Sort == "Username" {
-		query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id").
-		Where(sq.Eq{"Users.DeleteAt": 0}).
-		OrderBy("Username")
+		query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id").Where(sq.Eq{"Users.DeleteAt": 0}).OrderBy("Username")
 	} else {
 		query = query.OrderBy("UserId")
 	}
