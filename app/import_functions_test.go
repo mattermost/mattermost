@@ -891,7 +891,7 @@ func TestImportImportUser(t *testing.T) {
 		Position:  ptrStr(model.NewId()),
 	}
 
-	teamMembers, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	teamMembers, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get team member count")
 	teamMemberCount := len(teamMembers)
 
@@ -969,7 +969,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check no new member objects were created because dry run mode.
-	tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
@@ -1020,7 +1020,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, err)
 
 	// Check no new member objects were created because all tests should have failed so far.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount)
 
@@ -1043,7 +1043,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.NotNil(t, err)
 
 	// Check only new team member object created because dry run mode.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1)
 
@@ -1074,7 +1074,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check only new channel member object created because dry run mode.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
@@ -1129,7 +1129,7 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, team.Id, *(*data.Teams)[0].Theme)
 
 	// No more new member objects.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil, nil)
 	require.Nil(t, err, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
