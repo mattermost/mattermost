@@ -334,18 +334,32 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			transformations = append(transformations, trans)
 		}
 
-		// ensure all channel admins and team admins have create_post because it's not exposed via the UI
+		// ensure all team scheme channel admins have create_post because it's not exposed via the UI
 		trans = permissionTransformation{
-			On: permissionOr(
-				isRole(model.CHANNEL_ADMIN_ROLE_ID),
-				isRole(model.TEAM_ADMIN_ROLE_ID),
-				isRole(ts.DefaultChannelAdminRole),
-				isRole(ts.DefaultTeamAdminRole),
-			),
+			On:  isRole(ts.DefaultChannelAdminRole),
+			Add: []string{PERMISSION_CREATE_POST},
+		}
+		transformations = append(transformations, trans)
+
+		// ensure all team scheme team admins have create_post because it's not exposed via the UI
+		trans = permissionTransformation{
+			On:  isRole(ts.DefaultTeamAdminRole),
 			Add: []string{PERMISSION_CREATE_POST},
 		}
 		transformations = append(transformations, trans)
 	}
+
+	// ensure team admins have create_post
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.TEAM_ADMIN_ROLE_ID),
+		Add: []string{PERMISSION_CREATE_POST},
+	})
+
+	// ensure channel admins have create_post
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.CHANNEL_ADMIN_ROLE_ID),
+		Add: []string{PERMISSION_CREATE_POST},
+	})
 
 	// ensure system admin has all of the moderated permissions
 	transformations = append(transformations, permissionTransformation{
