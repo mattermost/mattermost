@@ -42,4 +42,18 @@
     <packageUrl regex="true">^pkg:golang/golang\.org/x/tools@.*$</packageUrl>
     <cpe>cpe:/a:data-tools_project:data_tools</cpe>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Misidentified version (commit hash vs. date)
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
+    <vulnerabilityName>CVE-2017-3204</vulnerabilityName>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Golang crypto package misidentified as SSH
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
+    <cpe>cpe:/a:ssh:ssh</cpe>
+  </suppress>
 </suppressions>
