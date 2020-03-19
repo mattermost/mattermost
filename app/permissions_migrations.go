@@ -302,17 +302,17 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 		PERMISSION_USE_CHANNEL_MENTIONS,
 	}
 
-	for _, ts := range allTeamSchemes {
-		var trans permissionTransformation
+	teamAndChannelAdminConditionalTransformations := func(teamAdminID, channelAdminID, channelUserID, channelGuestID string) []permissionTransformation {
+		transformations := []permissionTransformation{}
 
 		for _, perm := range moderatedPermissionsMinusCreatePost {
 			// add each moderated permission to the channel admin if channel user or guest has the permission
-			trans = permissionTransformation{
+			trans := permissionTransformation{
 				On: permissionAnd(
-					isRole(ts.DefaultChannelAdminRole),
+					isRole(channelAdminID),
 					permissionOr(
-						onOtherRole(ts.DefaultChannelUserRole, permissionExists(perm)),
-						onOtherRole(ts.DefaultChannelGuestRole, permissionExists(perm)),
+						onOtherRole(channelUserID, permissionExists(perm)),
+						onOtherRole(channelGuestID, permissionExists(perm)),
 					),
 				),
 				Add: []string{perm},
@@ -322,11 +322,11 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			// add each moderated permission to the team admin if channel admin, user, or guest has the permission
 			trans = permissionTransformation{
 				On: permissionAnd(
-					isRole(ts.DefaultTeamAdminRole),
+					isRole(teamAdminID),
 					permissionOr(
-						onOtherRole(ts.DefaultChannelAdminRole, permissionExists(perm)),
-						onOtherRole(ts.DefaultChannelUserRole, permissionExists(perm)),
-						onOtherRole(ts.DefaultChannelGuestRole, permissionExists(perm)),
+						onOtherRole(channelAdminID, permissionExists(perm)),
+						onOtherRole(channelUserID, permissionExists(perm)),
+						onOtherRole(channelGuestID, permissionExists(perm)),
 					),
 				),
 				Add: []string{perm},
@@ -334,8 +334,12 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			transformations = append(transformations, trans)
 		}
 
+		return transformations
+	}
+
+	for _, ts := range allTeamSchemes {
 		// ensure all team scheme channel admins have create_post because it's not exposed via the UI
-		trans = permissionTransformation{
+		trans := permissionTransformation{
 			On:  isRole(ts.DefaultChannelAdminRole),
 			Add: []string{PERMISSION_CREATE_POST},
 		}
@@ -347,6 +351,14 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 			Add: []string{PERMISSION_CREATE_POST},
 		}
 		transformations = append(transformations, trans)
+
+		// conditionally add all other moderated permissions to team and channel admins
+		transformations = append(transformations, teamAndChannelAdminConditionalTransformations(
+			ts.DefaultTeamAdminRole,
+			ts.DefaultChannelAdminRole,
+			ts.DefaultChannelUserRole,
+			ts.DefaultChannelGuestRole,
+		)...)
 	}
 
 	// ensure team admins have create_post
@@ -360,6 +372,14 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 		On:  isRole(model.CHANNEL_ADMIN_ROLE_ID),
 		Add: []string{PERMISSION_CREATE_POST},
 	})
+
+	// conditionally add all other moderated permissions to team and channel admins
+	transformations = append(transformations, teamAndChannelAdminConditionalTransformations(
+		model.TEAM_ADMIN_ROLE_ID,
+		model.CHANNEL_ADMIN_ROLE_ID,
+		model.CHANNEL_USER_ROLE_ID,
+		model.CHANNEL_GUEST_ROLE_ID,
+	)...)
 
 	// ensure system admin has all of the moderated permissions
 	transformations = append(transformations, permissionTransformation{
