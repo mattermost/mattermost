@@ -42,9 +42,6 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		}
 		rec.Fail()
 	}
-	if cid := c.App.GetClusterId(); cid != "" {
-		rec.AddMeta(audit.KeyClusterID, cid)
-	}
 	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
@@ -58,7 +55,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		SessionID: c.App.Session().Id,
 		Client:    c.App.UserAgent(),
 		IPAddress: c.App.IpAddress(),
-		Meta:      audit.Meta{},
+		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
 	}
 }
 

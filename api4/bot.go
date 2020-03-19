@@ -42,6 +42,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createBot", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot", audit.NewBot(bot))
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_CREATE_BOT) {
 		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
@@ -67,9 +68,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	// Note that the primary key of a bot is the UserId, and matches the primary key of the
-	// corresponding user.
-	auditRec.AddMeta("bot_id", createdBot.UserId)
+	auditRec.AddMeta("bot", audit.NewBot(createdBot)) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write(createdBot.ToJson())
@@ -104,6 +103,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("bot", audit.NewBot(updatedBot))
 
 	w.Write(updatedBot.ToJson())
 }
@@ -214,6 +214,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("bot", audit.NewBot(bot))
 
 	w.Write(bot.ToJson())
 }
@@ -251,6 +252,7 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("bot", audit.NewBot(bot))
 
 	w.Write(bot.ToJson())
 }
