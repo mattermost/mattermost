@@ -685,7 +685,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	if (teamMembersGetOptions != nil) {
+	if teamMembersGetOptions != nil {
 		if teamMembersGetOptions.Sort == "Username" || teamMembersGetOptions.ExcludeDeletedUsers {
 			query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
 		}
