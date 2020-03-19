@@ -389,7 +389,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	excludeDeletedUsersBool, _ := strconv.ParseBool(excludeDeletedUsers)
 	teamMembersGetOptions := &model.TeamMembersGetOptions{
-		Sort: sort,
+		Sort:                sort,
 		ExcludeDeletedUsers: excludeDeletedUsersBool,
 	}
 
