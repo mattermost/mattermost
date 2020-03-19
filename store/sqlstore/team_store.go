@@ -685,16 +685,20 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	if teamMembersGetOptions.Sort == "Username" || teamMembersGetOptions.ExcludeDeletedUsers {
-		query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
-	}
+	if (teamMembersGetOptions != nil) {
+		if teamMembersGetOptions.Sort == "Username" || teamMembersGetOptions.ExcludeDeletedUsers {
+			query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
+		}
 
-	if teamMembersGetOptions.ExcludeDeletedUsers {
-		query = query.Where(sq.Eq{"Users.DeleteAt": 0})
-	}
+		if teamMembersGetOptions.ExcludeDeletedUsers {
+			query = query.Where(sq.Eq{"Users.DeleteAt": 0})
+		}
 
-	if teamMembersGetOptions.Sort == "Username" {
-		query = query.OrderBy("Username")
+		if teamMembersGetOptions.Sort == "Username" {
+			query = query.OrderBy("Username")
+		} else {
+			query = query.OrderBy("UserId")
+		}
 	} else {
 		query = query.OrderBy("UserId")
 	}
