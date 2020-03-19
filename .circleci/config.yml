@@ -86,7 +86,7 @@ jobs:
             then
               html_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.html").url)[0]')
               curl -s -X POST -d 'payload={"username": "Dependency-Check", "icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png", "text": "'\
-                "$vuln_count new findings were made on [CircleCI build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL) in `$CIRCLE_PROJECT_REPONAME`. View the report [here]($html_url)."\
+                "$vuln_count new findings were made on [CircleCI build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL) in \`$CIRCLE_PROJECT_REPONAME\`. View the report [here]($html_url)."\
                 '"}' "$SAST_WEBHOOK_URL"
             fi
 
