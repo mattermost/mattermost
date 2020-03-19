@@ -76,21 +76,19 @@ jobs:
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
-
-  post-sast-results:
-    executor: owasp/default
-    steps:
-      - run: |
-          report_artifacts=$(curl -s https://circleci.com/api/v1.1/project/gh/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BUILD_NUM/artifacts)
-          json_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.json").url)[0]')
-          vuln_count=$(curl -s $json_url | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')
-          if [ $vuln_count -ne 0 ]
-          then
-            html_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.html").url)[0]')
-            curl -s -X POST -d 'payload={"username": "Dependency-Check", "icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png", "text": "'\
-              "$vuln_count new findings were made on [CircleCI build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL) in `$CIRCLE_PROJECT_REPONAME`. View the report [here]($html_url)."\
-              '"}' "$SAST_WEBHOOK_URL"
-          fi
+      - run:
+          name: Post results to Mattermost
+          command: |
+            report_artifacts=$(curl -s https://circleci.com/api/v1.1/project/gh/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BUILD_NUM/artifacts)
+            json_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.json").url)[0]')
+            vuln_count=$(curl -s $json_url | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')
+            if [ $vuln_count -ne 0 ]
+            then
+              html_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.html").url)[0]')
+              curl -s -X POST -d 'payload={"username": "Dependency-Check", "icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png", "text": "'\
+                "$vuln_count new findings were made on [CircleCI build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL) in `$CIRCLE_PROJECT_REPONAME`. View the report [here]($html_url)."\
+                '"}' "$SAST_WEBHOOK_URL"
+            fi
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
@@ -405,12 +403,9 @@ workflows:
                   - master
                   - /^release-.*/
       - check-deps:
+          context: sast-webhook
           requires:
             - setup
-      - post-sast-results:
-          requires:
-            - check-deps
-          context: sast-webhook
       # - check-i18n:
       #     requires:
       #       - setup
