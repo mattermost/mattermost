@@ -916,11 +916,10 @@ func testGetMembersExcludedDeletedUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Gets users ordered by UserName
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{ ExcludeDeletedUsers: true })
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
 	require.Nil(t, err)
 	assert.Len(t, ms, 3)
 }
-
 
 func testGetMembersOrderByUsernameAndExcludeDeletedMembers(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
@@ -967,7 +966,7 @@ func testGetMembersOrderByUsernameAndExcludeDeletedMembers(t *testing.T, ss stor
 	require.Nil(t, err)
 
 	// Gets users ordered by UserName
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{ Sort: "Username" })
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{Sort: "Username"})
 	require.Nil(t, err)
 	assert.Len(t, ms, 5)
 	assert.Equal(t, u1.Id, ms[0].UserId)
@@ -977,7 +976,7 @@ func testGetMembersOrderByUsernameAndExcludeDeletedMembers(t *testing.T, ss stor
 	assert.Equal(t, u4.Id, ms[4].UserId)
 
 	// Gets users ordered by UserName and excludes deleted members
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{ Sort: "Username", ExcludeDeletedUsers: true })
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{Sort: "Username", ExcludeDeletedUsers: true})
 	require.Nil(t, err)
 	assert.Len(t, ms, 2)
 	assert.Equal(t, u2.Id, ms[0].UserId)
