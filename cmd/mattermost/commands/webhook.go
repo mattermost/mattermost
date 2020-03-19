@@ -114,13 +114,13 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		// Fetch all hooks with a very large limit so we get them all.
 		incomingResult := make(chan store.StoreResult, 1)
 		go func() {
-			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+			incomingHooks, err := app.Srv().Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
 			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan store.StoreResult, 1)
 		go func() {
-			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingHooks, err := app.Srv().Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
 			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
 			close(outgoingResult)
 		}()

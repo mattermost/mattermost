@@ -17,7 +17,7 @@ import (
 )
 
 func TestIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
@@ -87,14 +87,42 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
+		resp, err = http.Post(url, "AppLicaTion/x-www-Form-urlencoded", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "application/x-www-form-urlencoded;charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "application/x-www-form-urlencoded; charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "application/x-www-form-urlencoded wrongtext", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+
+		resp, err = http.Post(url, "application/json", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusBadRequest)
 
 		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
 		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusOK)
+
+		resp, err = http.Post(url, "mimetype/wrong", strings.NewReader("payload={\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.True(t, resp.StatusCode == http.StatusBadRequest)
 	})
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
@@ -232,7 +260,7 @@ func TestIncomingWebhook(t *testing.T) {
 }
 
 func TestCommandWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cmd, appErr := th.App.CreateCommand(&model.Command{
@@ -250,9 +278,7 @@ func TestCommandWebhooks(t *testing.T) {
 	}
 
 	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
-	if appErr != nil {
-		t.Fatal(appErr)
-	}
+	require.Nil(t, appErr)
 
 	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 	require.NoError(t, err)
@@ -263,12 +289,11 @@ func TestCommandWebhooks(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		if resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
-			t.Fatal(appErr)
-		}
+		response, appErr2 := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+		require.Nil(t, appErr2)
+		require.Equal(t, http.StatusOK, response.StatusCode)
 	}
 
-	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusBadRequest {
-		t.Fatal("expected error for sixth usage")
-	}
+	resp, _ = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

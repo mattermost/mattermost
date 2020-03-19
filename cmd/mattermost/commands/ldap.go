@@ -45,7 +45,7 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if ldapI := a.Ldap; ldapI != nil {
+	if ldapI := a.Ldap(); ldapI != nil {
 		job, err := ldapI.StartSynchronizeJob(true)
 		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
@@ -65,7 +65,7 @@ func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	toAttribute := args[0]
-	if ldapI := a.Ldap; ldapI != nil {
+	if ldapI := a.Ldap(); ldapI != nil {
 		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
 			CommandPrintErrorln("ERROR: AD/LDAP IdAttribute migration failed! Error: " + err.Error())
 		} else {

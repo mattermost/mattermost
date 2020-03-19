@@ -4,7 +4,6 @@
 package web
 
 import (
-	"mime"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -30,8 +29,6 @@ func (w *Web) InitStatic() {
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
-
-		mime.AddExtensionType(".wasm", "application/wasm")
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))

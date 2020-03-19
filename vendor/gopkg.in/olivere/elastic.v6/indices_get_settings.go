@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -19,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-get-settings.html
 // for more details.
 type IndicesGetSettingsService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index             []string
 	name              []string
 	ignoreUnavailable *bool
@@ -37,6 +44,46 @@ func NewIndicesGetSettingsService(client *Client) *IndicesGetSettingsService {
 		index:  make([]string, 0),
 		name:   make([]string, 0),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesGetSettingsService) Pretty(pretty bool) *IndicesGetSettingsService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesGetSettingsService) Human(human bool) *IndicesGetSettingsService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesGetSettingsService) ErrorTrace(errorTrace bool) *IndicesGetSettingsService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesGetSettingsService) FilterPath(filterPath ...string) *IndicesGetSettingsService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesGetSettingsService) Header(name string, value string) *IndicesGetSettingsService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesGetSettingsService) Headers(headers http.Header) *IndicesGetSettingsService {
+	s.headers = headers
+	return s
 }
 
 // Index is a list of index names; use `_all` or empty string to perform
@@ -88,12 +135,6 @@ func (s *IndicesGetSettingsService) Local(local bool) *IndicesGetSettingsService
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesGetSettingsService) Pretty(pretty bool) *IndicesGetSettingsService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *IndicesGetSettingsService) buildURL() (string, url.Values, error) {
 	var err error
@@ -124,8 +165,17 @@ func (s *IndicesGetSettingsService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
@@ -165,9 +215,10 @@ func (s *IndicesGetSettingsService) Do(ctx context.Context) (map[string]*Indices
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

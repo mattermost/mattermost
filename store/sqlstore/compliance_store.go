@@ -16,7 +16,7 @@ type SqlComplianceStore struct {
 	SqlStore
 }
 
-func NewSqlComplianceStore(sqlStore SqlStore) store.ComplianceStore {
+func newSqlComplianceStore(sqlStore SqlStore) store.ComplianceStore {
 	s := &SqlComplianceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -33,7 +33,7 @@ func NewSqlComplianceStore(sqlStore SqlStore) store.ComplianceStore {
 	return s
 }
 
-func (s SqlComplianceStore) CreateIndexesIfNotExists() {
+func (s SqlComplianceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {

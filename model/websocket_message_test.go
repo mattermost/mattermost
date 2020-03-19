@@ -12,14 +12,20 @@ import (
 )
 
 func TestWebSocketEvent(t *testing.T) {
-	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil)
+	userId := NewId()
+	m := NewWebSocketEvent("some_event", NewId(), NewId(), userId, nil)
 	m.Add("RootId", NewId())
+	user := &User{
+		Id: userId,
+	}
+	m.Add("user", user)
 	json := m.ToJson()
 	result := WebSocketEventFromJson(strings.NewReader(json))
 
 	require.True(t, m.IsValid(), "should be valid")
-	require.Equal(t, m.GetBroadcast().TeamId, result.GetBroadcast().TeamId, "Ids do not match")
-	require.Equal(t, m.GetData()["RootId"], result.GetData()["RootId"], "Ids do not match")
+	require.Equal(t, m.GetBroadcast().TeamId, result.GetBroadcast().TeamId, "Team ids do not match")
+	require.Equal(t, m.GetData()["RootId"], result.GetData()["RootId"], "Root ids do not match")
+	require.Equal(t, m.GetData()["user"].(*User).Id, result.GetData()["user"].(*User).Id, "User ids do not match")
 }
 
 func TestWebSocketEventImmutable(t *testing.T) {

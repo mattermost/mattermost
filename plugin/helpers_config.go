@@ -18,7 +18,7 @@ func (p *HelpersImpl) CheckRequiredServerConfiguration(req *model.Config) (bool,
 
 	cfg := p.API.GetConfig()
 
-	mc, err := utils.Merge(req, cfg, nil)
+	mc, err := utils.Merge(cfg, req, nil)
 	if err != nil {
 		return false, errors.Wrap(err, "could not merge configurations")
 	}

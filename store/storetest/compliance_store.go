@@ -89,9 +89,7 @@ func testComplianceStore(t *testing.T, ss store.Store) {
 
 	compliances, _ = ss.Compliance().GetAll(1, 1)
 
-	if len(compliances) != 1 {
-		t.Fatal("should only have returned 1")
-	}
+	require.Len(t, compliances, 1)
 
 	rc2, _ := ss.Compliance().Get(compliance2.Id)
 	require.Equal(t, compliance2.Status, rc2.Status)
@@ -735,7 +733,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
 	post1e, err = ss.Post().Update(post1e, post1)
@@ -847,7 +845,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	postEditTime := post1.UpdateAt + 1
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
 	post1e, err = ss.Post().Update(post1e, post1)

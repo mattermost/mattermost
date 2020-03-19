@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetRole(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -25,9 +25,9 @@ func TestGetRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv.Store.Role().Save(role)
+	role, err := th.App.Srv().Store.Role().Save(role)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	received, resp := th.Client.GetRole(role.Id)
 	CheckNoError(t, resp)
@@ -47,7 +47,7 @@ func TestGetRole(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -58,9 +58,9 @@ func TestGetRoleByName(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv.Store.Role().Save(role)
+	role, err := th.App.Srv().Store.Role().Save(role)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	received, resp := th.Client.GetRoleByName(role.Name)
 	CheckNoError(t, resp)
@@ -80,7 +80,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRolesByNames(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role1 := &model.Role{
@@ -105,17 +105,17 @@ func TestGetRolesByNames(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role1, err := th.App.Srv.Store.Role().Save(role1)
+	role1, err := th.App.Srv().Store.Role().Save(role1)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role1.Id)
+	defer th.App.Srv().Store.Job().Delete(role1.Id)
 
-	role2, err = th.App.Srv.Store.Role().Save(role2)
+	role2, err = th.App.Srv().Store.Role().Save(role2)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role2.Id)
+	defer th.App.Srv().Store.Job().Delete(role2.Id)
 
-	role3, err = th.App.Srv.Store.Role().Save(role3)
+	role3, err = th.App.Srv().Store.Role().Save(role3)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role3.Id)
+	defer th.App.Srv().Store.Job().Delete(role3.Id)
 
 	// Check all three roles can be found.
 	received, resp := th.Client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
@@ -143,7 +143,7 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestPatchRole(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -154,9 +154,9 @@ func TestPatchRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	role, err := th.App.Srv.Store.Role().Save(role)
+	role, err := th.App.Srv().Store.Role().Save(role)
 	assert.Nil(t, err)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
 		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
@@ -214,7 +214,7 @@ func TestPatchRole(t *testing.T) {
 		license.Features.GuestAccountsPermissions = model.NewBool(false)
 		th.App.SetLicense(license)
 
-		guestRole, err := th.App.Srv.Store.Role().GetByName("system_guest")
+		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
 		require.Nil(t, err)
 		received, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
 		CheckNotImplementedStatus(t, resp)
@@ -224,7 +224,7 @@ func TestPatchRole(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(true)
 		th.App.SetLicense(license)
-		guestRole, err := th.App.Srv.Store.Role().GetByName("system_guest")
+		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
 		require.Nil(t, err)
 		_, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
 		CheckNoError(t, resp)

@@ -16,12 +16,14 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/utils"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +33,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
-	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
+	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
 	app.SetPluginsEnvironment(env)
@@ -180,7 +182,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, "message", post.Message)
-		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
 		assert.Equal(t, "message", retrievedPost.Message)
 	})
@@ -224,7 +226,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.Equal(t, "message_fromplugin", post.Message)
-		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
 		require.Nil(t, errSingle)
 		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
@@ -736,7 +738,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.App.Session.UserId, th.BasicUser.Id)
+	assert.Equal(t, th.App.Session().UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
@@ -908,19 +910,19 @@ func TestHookContext(t *testing.T) {
 	defer th.TearDown()
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	th.App.Session.Id = model.NewId()
-	th.App.RequestId = model.NewId()
-	th.App.IpAddress = model.NewId()
-	th.App.AcceptLanguage = model.NewId()
-	th.App.UserAgent = model.NewId()
+	th.App.Session().Id = model.NewId()
+	th.App.requestId = model.NewId()
+	th.App.ipAddress = model.NewId()
+	th.App.acceptLanguage = model.NewId()
+	th.App.userAgent = model.NewId()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
-	mockAPI.On("LogInfo", th.App.RequestId).Return(nil)
-	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
-	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
-	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
+	mockAPI.On("LogDebug", th.App.Session().Id).Return(nil)
+	mockAPI.On("LogInfo", th.App.RequestId()).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress()).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage()).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent()).Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -958,4 +960,174 @@ func TestHookContext(t *testing.T) {
 	}
 	_, err := th.App.CreatePost(post, th.BasicChannel, false)
 	require.Nil(t, err)
+}
+
+func TestActiveHooks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v5/model"
+				"github.com/mattermost/mattermost-server/v5/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return nil
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				return nil
+			}
+
+			func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+				user.Nickname = "plugin-callback-success"
+				p.API.UpdateUser(user)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIds, 1)
+		pluginId := pluginIds[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		user1 := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader1",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		_, appErr := th.App.CreateUser(user1)
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Second)
+		user1, appErr = th.App.GetUser(user1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin-callback-success", user1.Nickname)
+
+		// Disable plugin
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginId)
+		require.Error(t, err)
+		require.Nil(t, hooks)
+
+		// Should fail to find pluginId as it was deleted when deactivated
+		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginId)
+		require.Error(t, err)
+		require.Empty(t, path)
+	})
+}
+
+func TestHookMetrics(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("", func(t *testing.T) {
+		metricsMock := &mocks.MetricsInterface{}
+
+		pluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		webappPluginDir, err := ioutil.TempDir("", "")
+		require.NoError(t, err)
+		defer os.RemoveAll(pluginDir)
+		defer os.RemoveAll(webappPluginDir)
+
+		env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), metricsMock)
+		require.NoError(t, err)
+
+		th.App.SetPluginsEnvironment(env)
+
+		pluginId := model.NewId()
+		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		code :=
+			`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/v5/model"
+		"github.com/mattermost/mattermost-server/v5/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *MyPlugin) OnActivate() error {
+		return nil
+	}
+
+	func (p *MyPlugin) OnConfigurationChange() error {
+		return nil
+	}
+
+	func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+		user.Nickname = "plugin-callback-success"
+		p.API.UpdateUser(user)
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+`
+		utils.CompileGo(t, code, backend)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
+
+		// Setup mocks before activating
+		metricsMock.On("ObservePluginHookDuration", pluginId, "Implemented", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnActivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnDeactivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "OnConfigurationChange", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginId, "UserHasBeenCreated", true, mock.Anything).Return()
+
+		// Don't care about these calls.
+		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
+		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
+
+		_, _, activationErr := env.Activate(pluginId)
+		require.NoError(t, activationErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+				Enable: true,
+			}
+		})
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+
+		user1 := &model.User{
+			Email:       model.NewId() + "success+test@example.com",
+			Nickname:    "Darth Vader1",
+			Username:    "vader" + model.NewId(),
+			Password:    "passwd1",
+			AuthService: "",
+		}
+		_, appErr := th.App.CreateUser(user1)
+		require.Nil(t, appErr)
+		time.Sleep(1 * time.Second)
+		user1, appErr = th.App.GetUser(user1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "plugin-callback-success", user1.Nickname)
+
+		// Disable plugin
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+
+		metricsMock.AssertExpectations(t)
+	})
 }

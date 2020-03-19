@@ -16,11 +16,11 @@ type SqlReactionStore struct {
 	SqlStore
 }
 
-func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
+func newSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "UserId", "PostId", "EmojiName")
+		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
@@ -29,7 +29,7 @@ func NewSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 	return s
 }
 
-func (s SqlReactionStore) CreateIndexesIfNotExists() {
+func (s SqlReactionStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {

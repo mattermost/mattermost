@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -25,7 +25,7 @@ func TestCreateJob(t *testing.T) {
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
 
-	defer th.App.Srv.Store.Job().Delete(received.Id)
+	defer th.App.Srv().Store.Job().Delete(received.Id)
 
 	job = &model.Job{
 		Type: model.NewId(),
@@ -39,17 +39,17 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	job := &model.Job{
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
 	}
-	_, err := th.App.Srv.Store.Job().Save(job)
+	_, err := th.App.Srv().Store.Job().Save(job)
 	require.Nil(t, err)
 
-	defer th.App.Srv.Store.Job().Delete(job.Id)
+	defer th.App.Srv().Store.Job().Delete(job.Id)
 
 	received, resp := th.SystemAdminClient.GetJob(job.Id)
 	require.Nil(t, resp.Error)
@@ -68,7 +68,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -93,9 +93,9 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	received, resp := th.SystemAdminClient.GetJobs(0, 2)
@@ -115,7 +115,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -144,9 +144,9 @@ func TestGetJobsByType(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	received, resp := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
@@ -173,7 +173,7 @@ func TestGetJobsByType(t *testing.T) {
 }
 
 func TestCancelJob(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	jobs := []*model.Job{
@@ -195,9 +195,9 @@ func TestCancelJob(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		_, err := th.App.Srv.Store.Job().Save(job)
+		_, err := th.App.Srv().Store.Job().Save(job)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(job.Id)
+		defer th.App.Srv().Store.Job().Delete(job.Id)
 	}
 
 	_, resp := th.Client.CancelJob(jobs[0].Id)

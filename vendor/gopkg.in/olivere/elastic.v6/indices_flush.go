@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -20,8 +21,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-flush.html
 // for details.
 type IndicesFlushService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index             []string
 	force             *bool
 	waitIfOngoing     *bool
@@ -36,6 +43,46 @@ func NewIndicesFlushService(client *Client) *IndicesFlushService {
 		client: client,
 		index:  make([]string, 0),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesFlushService) Pretty(pretty bool) *IndicesFlushService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesFlushService) Human(human bool) *IndicesFlushService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesFlushService) ErrorTrace(errorTrace bool) *IndicesFlushService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesFlushService) FilterPath(filterPath ...string) *IndicesFlushService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesFlushService) Header(name string, value string) *IndicesFlushService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesFlushService) Headers(headers http.Header) *IndicesFlushService {
+	s.headers = headers
+	return s
 }
 
 // Index is a list of index names; use `_all` or empty string for all indices.
@@ -84,12 +131,6 @@ func (s *IndicesFlushService) ExpandWildcards(expandWildcards string) *IndicesFl
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesFlushService) Pretty(pretty bool) *IndicesFlushService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *IndicesFlushService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -109,8 +150,17 @@ func (s *IndicesFlushService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.force != nil {
 		params.Set("force", fmt.Sprintf("%v", *s.force))
@@ -150,9 +200,10 @@ func (s *IndicesFlushService) Do(ctx context.Context) (*IndicesFlushResponse, er
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

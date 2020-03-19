@@ -290,7 +290,7 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -328,7 +328,7 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 	return s
 }
 
-func (s SqlChannelStore) CreateIndexesIfNotExists() {
+func (s SqlChannelStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
 	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
 	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
@@ -525,10 +525,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	member1.ChannelId = newChannel.Id
 	member2.ChannelId = newChannel.Id
 
-	_, member1SaveErr := s.saveMemberT(transaction, member1, newChannel)
+	_, member1SaveErr := s.saveMemberT(transaction, member1)
 	member2SaveErr := member1SaveErr
 	if member1.UserId != member2.UserId {
-		_, member2SaveErr = s.saveMemberT(transaction, member2, newChannel)
+		_, member2SaveErr = s.saveMemberT(transaction, member2)
 	}
 
 	if member1SaveErr != nil || member2SaveErr != nil {
@@ -1254,19 +1254,13 @@ var CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	defer s.InvalidateAllChannelMembersForUser(member.UserId)
 
-	// Grab the channel we are saving this member to
-	channel, errCh := s.GetFromMaster(member.ChannelId)
-	if errCh != nil {
-		return nil, errCh
-	}
-
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.SaveMember", "store.sql_channel.save_member.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer finalizeTransaction(transaction)
 
-	newMember, appErr := s.saveMemberT(transaction, member, channel)
+	newMember, appErr := s.saveMemberT(transaction, member)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1278,7 +1272,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	return newMember, nil
 }
 
-func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
+func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member.PreSave()
 	if err := member.IsValid(); err != nil {
 		return nil, err
@@ -1652,19 +1646,8 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppE
 }
 
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
-	props := make(map[string]interface{})
-
-	updateIdQuery := ""
-	for index, channelId := range channelIds {
-		if len(updateIdQuery) > 0 {
-			updateIdQuery += " OR "
-		}
-
-		props["channelId"+strconv.Itoa(index)] = channelId
-		updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
-	}
-
-	selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+	keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	props["UserId"] = userId
 
 	var lastPostAtTimes []struct {
 		Id            string
@@ -1672,21 +1655,51 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		TotalMsgCount int64
 	}
 
-	selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+	query := `SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE Id IN ` + keys
+	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `WITH c AS ( ` + query + `),
+	updated AS (
+	UPDATE
+		ChannelMembers cm
+	SET
+		MentionCount = 0,
+		MsgCount = greatest(cm.MsgCount, c.TotalMsgCount),
+		LastViewedAt = greatest(cm.LastViewedAt, c.LastPostAt),
+		LastUpdateAt = greatest(cm.LastViewedAt, c.LastPostAt)
+	FROM c
+		WHERE cm.UserId = :UserId
+		AND c.Id=cm.ChannelId
+)
+	SELECT Id, LastPostAt FROM c`
+	}
 
-	if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
-		var extra string
+	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
+	if err != nil || len(lastPostAtTimes) == 0 {
 		status := http.StatusInternalServerError
+		var extra string
 		if err == nil {
 			status = http.StatusBadRequest
 			extra = "No channels found"
 		} else {
 			extra = err.Error()
 		}
-		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
+
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt",
+			"store.sql_channel.update_last_viewed_at.app_error",
+			nil,
+			"channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra,
+			status)
 	}
 
 	times := map[string]int64{}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		for _, t := range lastPostAtTimes {
+			times[t.Id] = t.LastPostAt
+		}
+		return times, nil
+	}
+
 	msgCountQuery := ""
 	lastViewedQuery := ""
 	for index, t := range lastPostAtTimes {
@@ -1701,33 +1714,16 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		props["channelId"+strconv.Itoa(index)] = t.Id
 	}
 
-	var updateQuery string
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		updateQuery = `UPDATE
-			ChannelMembers
-		SET
-			MentionCount = 0,
-			MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
-			LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
-			LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
-		WHERE
-				UserId = :UserId
-				AND (` + updateIdQuery + `)`
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		updateQuery = `UPDATE
+	updateQuery := `UPDATE
 			ChannelMembers
 		SET
 			MentionCount = 0,
 			MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
 			LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
-			LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
+			LastUpdateAt = LastViewedAt
 		WHERE
 				UserId = :UserId
-				AND (` + updateIdQuery + `)`
-	}
-
-	props["UserId"] = userId
+				AND ChannelId IN ` + keys
 
 	if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
@@ -1869,9 +1865,12 @@ func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppErro
 	return data, nil
 }
 
-func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
+func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
 	keys, params := MapStringsToQueryParams(channelIds, "Channel")
 	query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
+	if !includeDeleted {
+		query = `SELECT * FROM Channels WHERE DeleteAt=0 AND Id IN ` + keys + ` ORDER BY Name`
+	}
 
 	var channels []*model.Channel
 	_, err := s.GetReplica().Select(&channels, query, params)
@@ -2549,7 +2548,8 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 		return nil, nil
 	}
 
-	for _, member := range channelMembers {
+	for i := range channelMembers {
+		member := channelMembers[i]
 		roles := strings.Fields(member.Roles)
 		var newRoles []string
 		if !member.SchemeAdmin.Valid {
@@ -2835,4 +2835,42 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 		return false, model.NewAppError("SqlChannelStore.UserBelongsToChannels", "store.sql_channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return c > 0, nil
+}
+
+func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+	sql := fmt.Sprintf(`
+		UPDATE
+			ChannelMembers
+		SET
+			SchemeAdmin = CASE WHEN UserId IN ('%s') THEN
+				TRUE
+			ELSE
+				FALSE
+			END
+		WHERE
+			ChannelId = :ChannelId
+			AND (SchemeGuest = false OR SchemeGuest IS NULL)
+			`, strings.Join(userIDs, "', '"))
+
+	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"ChannelId": channelID}); err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("COUNT(*)").From("Channels").Where(sq.Eq{"GroupConstrained": true, "DeleteAt": 0})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GroupSyncedChannelCount", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(sql, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GroupSyncedChannelCount", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }

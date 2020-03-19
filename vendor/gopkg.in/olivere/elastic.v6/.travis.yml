@@ -1,17 +1,22 @@
 sudo: required
 language: go
-go:
-- "1.11.x"
-- "1.12.x"
-- tip
 matrix:
+  include:
+  - go: "1.12.x"
+    env:
+    - GO111MODULE=on
+  - go: "1.12.x"
+    env:
+    - GO111MODULE=off
+  - go: "1.13.x"
+    env:
+    - GO111MODULE=off
+  - go: tip
+    env:
+    - GO111MODULE=off
   allow_failures:
   - go: tip
-env:
-- GO111MODULE=on
-- GO111MODULE=off
 addons:
-  ssh_known_hosts: github.com
   apt:
     update: true
     packages:
@@ -30,4 +35,4 @@ before_install:
 - while ! nc -z localhost 9210; do sleep 1; done
 install: true # ignore the go get -t -v ./...
 script:
-- go test -race -v . ./aws/... ./config/... ./trace/... ./uritemplates/...
+- go test -race -deprecations -strict-decoder -v . ./aws/... ./config/... ./trace/... ./uritemplates/...

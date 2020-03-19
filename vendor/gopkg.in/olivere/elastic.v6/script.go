@@ -126,12 +126,20 @@ func (s *Script) rawScriptSource(script string) (interface{}, error) {
 type ScriptField struct {
 	FieldName string // name of the field
 
-	script *Script
+	script        *Script
+	ignoreFailure *bool // used in e.g. ScriptSource
 }
 
 // NewScriptField creates and initializes a new ScriptField.
 func NewScriptField(fieldName string, script *Script) *ScriptField {
 	return &ScriptField{FieldName: fieldName, script: script}
+}
+
+// IgnoreFailure indicates whether to ignore failures. It is used
+// in e.g. ScriptSource.
+func (f *ScriptField) IgnoreFailure(ignore bool) *ScriptField {
+	f.ignoreFailure = &ignore
+	return f
 }
 
 // Source returns the serializable JSON for the ScriptField.
@@ -145,5 +153,8 @@ func (f *ScriptField) Source() (interface{}, error) {
 		return nil, err
 	}
 	source["script"] = src
+	if v := f.ignoreFailure; v != nil {
+		source["ignore_failure"] = *v
+	}
 	return source, nil
 }

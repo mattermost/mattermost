@@ -20,13 +20,107 @@ var mainHelper *testlib.MainHelper
 func getMockCacheProvider() *mocks.CacheProvider {
 	mockCacheProvider := mocks.CacheProvider{}
 	//todo: replace this line with mocks for all tests
-	mockCache := lru.New(128)
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"Reaction",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
 
 	mockCacheProvider.On("NewCacheWithParams",
 		mock.AnythingOfType("int"),
-		mock.AnythingOfType("string"),
+		"Role",
 		mock.AnythingOfType("int64"),
-		mock.AnythingOfType("string")).Return(mockCache)
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"Scheme",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"Webhook",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"EmojiById",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"EmojiByName",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"ChannelPinnedPostsCounts",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"ChannelMemberCounts",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"ChannelGuestsCount",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"channelById",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"LastPost",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"LastPostTime",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"TermsOfService",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"UserProfileByIds",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"ProfilesInChannel",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"Team",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"FileInfo",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
 
 	return &mockCacheProvider
 }
@@ -58,6 +152,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("Get", "123").Return(&fakeScheme, nil)
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
+
+	fakeFileInfo := model.FileInfo{PostId: "123"}
+	mockFileInfoStore := mocks.FileInfoStore{}
+	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
 	mockWebhookStore := mocks.WebhookStore{}
@@ -128,7 +228,13 @@ func getMockStore() *mocks.Store {
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
-	mockUserStore.On("Get", "123").Return(fakeUser[0], nil)
+
+	fakeProfilesInChannelMap := map[string]*model.User{
+		"456": {Id: "456"},
+	}
+	mockUserStore.On("GetAllProfilesInChannel", "123", true).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfilesInChannel", "123", false).Return(fakeProfilesInChannelMap, nil)
+
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}

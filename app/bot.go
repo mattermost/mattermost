@@ -17,20 +17,20 @@ import (
 
 // CreateBot creates the given bot and corresponding user.
 func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
-	user, err := a.Srv.Store.User().Save(model.UserFromBot(bot))
+	user, err := a.Srv().Store.User().Save(model.UserFromBot(bot))
 	if err != nil {
 		return nil, err
 	}
 	bot.UserId = user.Id
 
-	savedBot, err := a.Srv.Store.Bot().Save(bot)
+	savedBot, err := a.Srv().Store.Bot().Save(bot)
 	if err != nil {
-		a.Srv.Store.User().PermanentDelete(bot.UserId)
+		a.Srv().Store.User().PermanentDelete(bot.UserId)
 		return nil, err
 	}
 
 	// Get the owner of the bot, if one exists. If not, don't send a message
-	ownerUser, err := a.Srv.Store.User().Get(bot.OwnerId)
+	ownerUser, err := a.Srv().Store.User().Get(bot.OwnerId)
 	if err != nil && err.Id != store.MISSING_ACCOUNT_ERROR {
 		mlog.Error(err.Error())
 		return nil, err
@@ -50,7 +50,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(botAddPost, a.Session.Id); err != nil {
+		if _, err := a.CreatePostAsUser(botAddPost, a.Session().Id); err != nil {
 			return nil, err
 		}
 	}
@@ -67,7 +67,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 
 	bot.Patch(botPatch)
 
-	user, err := a.Srv.Store.User().Get(botUserId)
+	user, err := a.Srv().Store.User().Get(botUserId)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
 
-	userUpdate, err := a.Srv.Store.User().Update(user, true)
+	userUpdate, err := a.Srv().Store.User().Update(user, true)
 	if err != nil {
 		return nil, err
 	}
@@ -86,22 +86,22 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	ruser := userUpdate.New
 	a.sendUpdatedUserEvent(*ruser)
 
-	return a.Srv.Store.Bot().Update(bot)
+	return a.Srv().Store.Bot().Update(bot)
 }
 
 // GetBot returns the given bot.
 func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	return a.Srv.Store.Bot().Get(botUserId, includeDeleted)
+	return a.Srv().Store.Bot().Get(botUserId, includeDeleted)
 }
 
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
-	return a.Srv.Store.Bot().GetAll(options)
+	return a.Srv().Store.Bot().GetAll(options)
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	user, err := a.Srv.Store.User().Get(botUserId)
+	user, err := a.Srv().Store.User().Get(botUserId)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		return nil, err
 	}
 
-	bot, err := a.Srv.Store.Bot().Get(botUserId, true)
+	bot, err := a.Srv().Store.Bot().Get(botUserId, true)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 	}
 
 	if changed {
-		bot, err = a.Srv.Store.Bot().Update(bot)
+		bot, err = a.Srv().Store.Bot().Update(bot)
 		if err != nil {
 			return nil, err
 		}
@@ -136,11 +136,11 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
 func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
-	if err := a.Srv.Store.Bot().PermanentDelete(botUserId); err != nil {
+	if err := a.Srv().Store.Bot().PermanentDelete(botUserId); err != nil {
 		return err
 	}
 
-	if err := a.Srv.Store.User().PermanentDelete(botUserId); err != nil {
+	if err := a.Srv().Store.User().PermanentDelete(botUserId); err != nil {
 		return err
 	}
 
@@ -149,14 +149,14 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 
 // UpdateBotOwner changes a bot's owner to the given value.
 func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
-	bot, err := a.Srv.Store.Bot().Get(botUserId, true)
+	bot, err := a.Srv().Store.Bot().Get(botUserId, true)
 	if err != nil {
 		return nil, err
 	}
 
 	bot.OwnerId = newOwnerId
 
-	bot, err = a.Srv.Store.Bot().Update(bot)
+	bot, err = a.Srv().Store.Bot().Update(bot)
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +311,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 
 // ConvertUserToBot converts a user to bot.
 func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
-	return a.Srv.Store.Bot().Save(model.BotFromUser(user))
+	return a.Srv().Store.Bot().Save(model.BotFromUser(user))
 }
 
 // SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
@@ -344,7 +344,7 @@ func (a *App) SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppEr
 	}
 
 	bot.LastIconUpdate = model.GetMillis()
-	if _, err = a.Srv.Store.Bot().Update(bot); err != nil {
+	if _, err = a.Srv().Store.Bot().Update(bot); err != nil {
 		return err
 	}
 	a.invalidateUserCacheAndPublish(botUserId)
@@ -364,12 +364,12 @@ func (a *App) DeleteBotIconImage(botUserId string) *model.AppError {
 		return model.NewAppError("DeleteBotIconImage", "api.bot.delete_bot_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err = a.Srv.Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
+	if err = a.Srv().Store.User().UpdateLastPictureUpdate(botUserId); err != nil {
 		mlog.Error(err.Error())
 	}
 
 	bot.LastIconUpdate = int64(0)
-	if _, err = a.Srv.Store.Bot().Update(bot); err != nil {
+	if _, err = a.Srv().Store.Bot().Update(bot); err != nil {
 		return err
 	}
 

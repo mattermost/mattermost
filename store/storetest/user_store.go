@@ -3535,7 +3535,7 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Type:        model.TEAM_OPEN,
 	})
 	require.Nil(t, err)
@@ -3847,7 +3847,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Set up all the objects needed
 	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		Type:        model.TEAM_OPEN,
 	})
 	require.Nil(t, err)
@@ -4948,8 +4948,6 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
-
-	ss.User().InvalidateProfileCacheForUser(u1.Id)
 
 	user2, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)

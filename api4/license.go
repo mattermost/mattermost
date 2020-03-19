@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -32,7 +33,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var clientLicense map[string]string
 
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		clientLicense = c.App.ClientLicense()
 	} else {
 		clientLicense = c.App.GetSanitizedClientLicense()
@@ -42,9 +43,11 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("addLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -74,6 +77,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileData := fileArray[0]
+	auditRec.AddMeta("filename", fileData.Filename)
 
 	file, err := fileData.Open()
 	if err != nil {
@@ -98,14 +102,23 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().JobSettings.RunJobs {
+		c.App.Srv().Jobs.Workers = c.App.Srv().Jobs.InitWorkers()
+		c.App.Srv().Jobs.StartWorkers()
+	}
+
+	auditRec.Success()
 	c.LogAudit("success")
+
 	w.Write([]byte(license.ToJson()))
 }
 
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("removeLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -120,6 +133,8 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }

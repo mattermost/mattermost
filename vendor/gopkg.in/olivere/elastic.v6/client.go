@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "6.2.23"
+	Version = "6.2.27"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -97,6 +97,9 @@ var (
 
 	// noRetries is a retrier that does not retry.
 	noRetries = NewStopRetrier()
+
+	// noDeprecationLog is a no-op for logging deprecations.
+	noDeprecationLog = func(*http.Request, *http.Response) {}
 )
 
 // ClientOptionFunc is a function that configures a Client.
@@ -111,12 +114,13 @@ type Client struct {
 	conns   []*conn      // all connections
 	cindex  int          // index into conns
 
-	mu                        sync.RWMutex    // guards the next block
-	urls                      []string        // set of URLs passed initially to the client
-	running                   bool            // true if the client's background processes are running
-	errorlog                  Logger          // error log for critical messages
-	infolog                   Logger          // information log for e.g. response times
-	tracelog                  Logger          // trace log for debugging
+	mu                        sync.RWMutex // guards the next block
+	urls                      []string     // set of URLs passed initially to the client
+	running                   bool         // true if the client's background processes are running
+	errorlog                  Logger       // error log for critical messages
+	infolog                   Logger       // information log for e.g. response times
+	tracelog                  Logger       // trace log for debugging
+	deprecationlog            func(*http.Request, *http.Response)
 	scheme                    string          // http or https
 	healthcheckEnabled        bool            // healthchecks enabled or disabled
 	healthcheckTimeoutStartup time.Duration   // time the healthcheck waits for a response from Elasticsearch on startup
@@ -137,6 +141,7 @@ type Client struct {
 	gzipEnabled               bool            // gzip compression enabled or disabled (default)
 	requiredPlugins           []string        // list of required plugins
 	retrier                   Retrier         // strategy for retries
+	headers                   http.Header     // a list of default headers to add to each request
 }
 
 // NewClient creates a new client to work with Elasticsearch.
@@ -238,6 +243,7 @@ func NewSimpleClient(options ...ClientOptionFunc) (*Client, error) {
 		sendGetBodyAs:             DefaultSendGetBodyAs,
 		gzipEnabled:               DefaultGzipEnabled,
 		retrier:                   noRetries, // no retries by default
+		deprecationlog:            noDeprecationLog,
 	}
 
 	// Run the options on it
@@ -323,6 +329,7 @@ func DialContext(ctx context.Context, options ...ClientOptionFunc) (*Client, err
 		sendGetBodyAs:             DefaultSendGetBodyAs,
 		gzipEnabled:               DefaultGzipEnabled,
 		retrier:                   noRetries, // no retries by default
+		deprecationlog:            noDeprecationLog,
 	}
 
 	// Run the options on it
@@ -452,11 +459,9 @@ func configToOptions(cfg *config.Config) ([]ClientOptionFunc, error) {
 		if cfg.Sniff != nil {
 			options = append(options, SetSniff(*cfg.Sniff))
 		}
-		/*
-			if cfg.Healthcheck != nil {
-				options = append(options, SetHealthcheck(*cfg.Healthcheck))
-			}
-		*/
+		if cfg.Healthcheck != nil {
+			options = append(options, SetHealthcheck(*cfg.Healthcheck))
+		}
 	}
 	return options, nil
 }
@@ -714,6 +719,15 @@ func SetRetrier(retrier Retrier) ClientOptionFunc {
 	}
 }
 
+// SetHeaders adds a list of default HTTP headers that will be added to
+// each requests executed by PerformRequest.
+func SetHeaders(headers http.Header) ClientOptionFunc {
+	return func(c *Client) error {
+		c.headers = headers
+		return nil
+	}
+}
+
 // String returns a string representation of the client status.
 func (c *Client) String() string {
 	c.connsMu.Lock()
@@ -952,13 +966,7 @@ func (c *Client) sniffNode(ctx context.Context, url string) []*conn {
 	if err != nil {
 		return nodes
 	}
-	if res == nil {
-		return nodes
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
+	defer res.Body.Close()
 
 	var info NodesInfoResponse
 	if err := json.NewDecoder(res.Body).Decode(&info); err == nil {
@@ -993,7 +1001,7 @@ func (c *Client) extractHostname(scheme, address string) string {
 	if idx := strings.Index(s, "/"); idx >= 0 {
 		s = s[idx+1:]
 	}
-	if strings.Index(s, ":") < 0 {
+	if !strings.Contains(s, ":") {
 		return ""
 	}
 	return fmt.Sprintf("%s://%s", scheme, s)
@@ -1158,11 +1166,9 @@ func (c *Client) startupHealthcheck(parentCtx context.Context, timeout time.Dura
 		case <-parentCtx.Done():
 			lastErr = parentCtx.Err()
 			done = true
-			break
 		case <-time.After(1 * time.Second):
 			if time.Since(start) > timeout {
 				done = true
-				break
 			}
 		}
 	}
@@ -1259,10 +1265,12 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 	basicAuthPassword := c.basicAuthPassword
 	sendGetBodyAs := c.sendGetBodyAs
 	gzipEnabled := c.gzipEnabled
+	healthcheckEnabled := c.healthcheckEnabled
 	retrier := c.retrier
 	if opt.Retrier != nil {
 		retrier = opt.Retrier
 	}
+	defaultHeaders := c.headers
 	c.mu.RUnlock()
 
 	var err error
@@ -1290,6 +1298,10 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 			if !retried {
 				// Force a healtcheck as all connections seem to be dead.
 				c.healthcheck(ctx, timeout, false)
+				if healthcheckEnabled {
+					retried = true
+					continue
+				}
 			}
 			wait, ok, rerr := retrier.Retry(ctx, n, nil, nil, err)
 			if rerr != nil {
@@ -1312,16 +1324,21 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 			c.errorf("elastic: cannot create request for %s %s: %v", strings.ToUpper(opt.Method), conn.URL()+pathWithParams, err)
 			return nil, err
 		}
-
 		if basicAuth {
 			req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
 		}
 		if opt.ContentType != "" {
 			req.Header.Set("Content-Type", opt.ContentType)
 		}
-
 		if len(opt.Headers) > 0 {
 			for key, value := range opt.Headers {
+				for _, v := range value {
+					req.Header.Add(key, v)
+				}
+			}
+		}
+		if len(defaultHeaders) > 0 {
+			for key, value := range defaultHeaders {
 				for _, v := range value {
 					req.Header.Add(key, v)
 				}
@@ -1363,16 +1380,17 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 			time.Sleep(wait)
 			continue // try again
 		}
-		if res.Body != nil {
-			defer res.Body.Close()
-		}
+		defer res.Body.Close()
 
 		// Tracing
 		c.dumpResponse(res)
 
 		// Log deprecation warnings as errors
-		if s := res.Header.Get("Warning"); s != "" {
-			c.errorf(s)
+		if len(res.Header["Warning"]) > 0 {
+			c.deprecationlog((*http.Request)(req), res)
+			for _, warning := range res.Header["Warning"] {
+				c.errorf("Deprecation warning: %s", warning)
+			}
 		}
 
 		// Check for errors
@@ -1802,10 +1820,10 @@ func (c *Client) TasksGetTask() *TasksGetTaskService {
 
 // -- Snapshot and Restore --
 
-// TODO Snapshot Delete
-// TODO Snapshot Get
-// TODO Snapshot Restore
-// TODO Snapshot Status
+// SnapshotStatus returns information about the status of a snapshot.
+func (c *Client) SnapshotStatus() *SnapshotStatusService {
+	return NewSnapshotStatusService(c)
+}
 
 // SnapshotCreate creates a snapshot.
 func (c *Client) SnapshotCreate(repository, snapshot string) *SnapshotCreateService {
