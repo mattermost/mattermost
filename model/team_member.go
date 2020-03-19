@@ -47,6 +47,8 @@ type EmailInviteWithError struct {
 type TeamMembersGetOptions struct {
 	// Sorting option
 	Sort string
+	// if true, then Users.DeleteAt == 0
+	ExcludeDeletedUsers bool
 }
 
 func (o *TeamMember) ToJson() string {

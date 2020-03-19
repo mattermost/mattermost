@@ -370,6 +370,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	sort := r.URL.Query().Get("sort")
+	excludeDeletedUsers := r.URL.Query().Get("exclude_deleted_users")
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -386,8 +387,10 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	excludeDeletedUsersBool, _ := strconv.ParseBool(excludeDeletedUsers)
 	teamMembersGetOptions := &model.TeamMembersGetOptions{
 		Sort: sort,
+		ExcludeDeletedUsers: excludeDeletedUsersBool,
 	}
 
 	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions, teamMembersGetOptions)
