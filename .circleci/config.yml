@@ -96,7 +96,13 @@ jobs:
                 sha1=$(echo $json_dependency | jq -r '.sha1')
                 if [ $sha1 = 'null' ]
                 then
-                  sha1=($(echo $json_dependency | jq -r '.packages[0].id' | tr -d '\n' | sha1sum))
+                  evidence_source=$(echo $json_dependency | jq -r '.evidenceCollected|.vendorEvidence+.productEvidence+.versionEvidence|map(.source)|unique[0]')
+                  if [ $evidence_source = 'Gopkg.lock' ]
+                  then
+                    sha1=($(echo $json_dependency | jq -r '.packages[0].id' | tr -d '\n' | sha1sum))
+                  else
+                    sha1=($(echo $json_dependency | jq -r '.filePath' | tr -d '\n' | sha1sum))
+                  fi
                 fi
                 dependency_url="$html_url#l${index}_$sha1"
                 cpes='`'$(echo $json_dependency | jq -r '.vulnerabilityIds|select(.)|map(.id)|join("`, `")')'`'
