@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/francoispqt/gojay"
 	"github.com/wiggin77/logr"
 )
+
+// ContextField is a name/value pair within the context fields.
+type ContextField struct {
+	Key string
+	Val interface{}
+}
 
 // JSON formats log records as JSON.
 type JSON struct {
@@ -28,8 +35,7 @@ type JSON struct {
 	// then DefTimestampFormat is used.
 	TimestampFormat string
 
-	// Indent sets the character used to indent or pretty print the JSON.
-	// Empty string means no pretty print.
+	// Deprecated: this has no effect.
 	Indent string
 
 	// EscapeHTML determines if certain characters (e.g. `<`, `>`, `&`)
@@ -52,6 +58,9 @@ type JSON struct {
 	// KeyStacktrace overrides the stacktrace field key name.
 	KeyStacktrace string
 
+	// ContextSorter allows custom sorting for the context fields.
+	ContextSorter func(fields logr.Fields) []ContextField
+
 	once sync.Once
 }
 
@@ -67,16 +76,23 @@ func (j *JSON) Format(rec *logr.LogRec, stacktrace bool, buf *bytes.Buffer) (*by
 		enc.Release()
 	}()
 
+	sorter := j.ContextSorter
+	if sorter == nil {
+		sorter = j.defaultContextSorter
+	}
+
 	jlr := JSONLogRec{
 		LogRec:     rec,
 		JSON:       j,
 		stacktrace: stacktrace,
+		sorter:     sorter,
 	}
 
 	err := enc.EncodeObject(jlr)
 	if err != nil {
 		return nil, err
 	}
+	buf.WriteByte('\n')
 	return buf, nil
 }
 
@@ -95,11 +111,27 @@ func (j *JSON) applyDefaultKeyNames() {
 	}
 }
 
+// defaultContextSorter sorts the context fields alphabetically by key.
+func (j *JSON) defaultContextSorter(fields logr.Fields) []ContextField {
+	keys := make([]string, 0, len(fields))
+	for k := range fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	cf := make([]ContextField, 0, len(keys))
+	for _, k := range keys {
+		cf = append(cf, ContextField{Key: k, Val: fields[k]})
+	}
+	return cf
+}
+
 // JSONLogRec decorates a LogRec adding JSON encoding.
 type JSONLogRec struct {
 	*logr.LogRec
 	*JSON
 	stacktrace bool
+	sorter     func(fields logr.Fields) []ContextField
 }
 
 // MarshalJSONObject encodes the LogRec as JSON.
@@ -119,14 +151,14 @@ func (rec JSONLogRec) MarshalJSONObject(enc *gojay.Encoder) {
 		enc.AddStringKey(rec.KeyMsg, rec.Msg())
 	}
 	if !rec.DisableContext {
+		ctxFields := rec.sorter(rec.Fields())
 		if rec.KeyContextFields != "" {
-			enc.AddObjectKey(rec.KeyContextFields, jsonFields(rec.Fields()))
+			enc.AddObjectKey(rec.KeyContextFields, jsonFields(ctxFields))
 		} else {
-			m := rec.Fields()
-			if len(m) > 0 {
-				for k, v := range m {
-					key := rec.prefixCollision(k)
-					encodeField(enc, key, v)
+			if len(ctxFields) > 0 {
+				for _, cf := range ctxFields {
+					key := rec.prefixCollision(cf.Key)
+					encodeField(enc, key, cf.Val)
 				}
 			}
 		}
@@ -180,12 +212,12 @@ func (f stackFrame) IsNil() bool {
 	return false
 }
 
-type jsonFields logr.Fields
+type jsonFields []ContextField
 
 // MarshalJSONObject encodes Fields map to JSON.
 func (f jsonFields) MarshalJSONObject(enc *gojay.Encoder) {
-	for k, v := range f {
-		encodeField(enc, k, v)
+	for _, ctxField := range f {
+		encodeField(enc, ctxField.Key, ctxField.Val)
 	}
 }
 
