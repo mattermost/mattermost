@@ -176,6 +176,41 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(preferences))
+
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user2)
+
+	preference := model.Preference{
+		Name:     user2.Id,
+		UserId:   user2.Id,
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
+	}
+	err = api.UpdatePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(preferences))
+	expectedCategories := []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, model.PREFERENCE_CATEGORY_THEME}
+	for _, pref := range preferences {
+		assert.Contains(t, expectedCategories, pref.Category)
+	}
+
+	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+	expectedCategories = []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS}
+	for _, pref := range preferences {
+		assert.Contains(t, expectedCategories, pref.Category)
+	}
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
