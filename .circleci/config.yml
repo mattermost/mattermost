@@ -81,12 +81,34 @@ jobs:
           command: |
             report_artifacts=$(curl -s https://circleci.com/api/v1.1/project/gh/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BUILD_NUM/artifacts)
             json_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.json").url)[0]')
-            vuln_count=$(curl -s $json_url | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')
-            if [ $vuln_count -ne 0 ]
+            json_report=$(curl -s $json_url)
+            vulnerability_count=$(echo $json_report | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')
+            if [ $vulnerability_count -ne 0 ]
             then
+              alert_message="Dependency-Check made $vulnerability_count findings in [\`$CIRCLE_PROJECT_REPONAME\` build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\n"
+              alert_message="$alert_message|Dependency|CPEs|CVEs|Severity|\n|----------|----|----|--------|\n"
               html_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.html").url)[0]')
+              vulnerable_dependencies=($(echo $json_report | jq -r '[.dependencies[]?]|map(select(.vulnerabilities).fileName)[]'))
+              for dependency in ${vulnerable_dependencies[@]}
+              do
+                json_dependency=$(echo $json_report | jq -r '[.dependencies[]?]|map(select(.fileName=="'$dependency'"))[]')
+                index=$(echo $json_report | jq '[.dependencies[]?]|map(.fileName)|index("'$dependency'")+1')
+                sha1=$(echo $json_dependency | jq -r '.sha1')
+                if [ $sha1 = 'null' ]
+                then
+                  sha1=($(echo $json_dependency | jq -r '.packages[0].id' | tr -d '\n' | sha1sum))
+                fi
+                dependency_url="$html_url#l${index}_$sha1"
+                cpes='`'$(echo $json_dependency | jq -r '.vulnerabilityIds|select(.)|map(.id)|join("`, `")')'`'
+                if [ $cpes = '``' ]; then cpes=''; fi
+                cves='`'$(echo $json_dependency | jq -r '.vulnerabilities|select(.)|map(.name)|join("`, `")')'`'
+                severities=$(echo $json_dependency | jq '.vulnerabilities|select(.)|map(.severity)|unique')
+                severity=$(echo $severities | jq -r 'if contains(["HIGH"]) then "`HIGH`" elif contains(["MEDIUM"]) then "`MEDIUM`" elif contains(["LOW"]) then "`LOW`" else "`Unknown`" end')
+                alert_message="$alert_message|[$dependency]"'('$dependency_url')'"|$cpes|$cves|$severity|\n"
+              done
+              alert_message=$alert_message'\nView the full report [here]('$html_url').'
               curl -s -X POST -d 'payload={"username": "Dependency-Check", "icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png", "text":
-                "'"$vuln_count new findings were made on [CircleCI build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL) in \`$CIRCLE_PROJECT_REPONAME\`. View the report [here]($html_url)."'"
+                "'"$alert_message"'"
                 }' "$SAST_WEBHOOK_URL"
             fi
 
