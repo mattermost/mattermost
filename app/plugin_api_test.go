@@ -197,20 +197,13 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(preferences))
-	expectedCategories := []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, model.PREFERENCE_CATEGORY_THEME}
-	for _, pref := range preferences {
-		assert.Contains(t, expectedCategories, pref.Category)
-	}
 
 	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(preferences))
-	expectedCategories = []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS}
-	for _, pref := range preferences {
-		assert.Contains(t, expectedCategories, pref.Category)
-	}
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
