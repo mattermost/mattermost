@@ -378,7 +378,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	c.LogAudit("")
-	auditRec.AddMeta("patched_channel", audit.NewChannel(rchannel))
+	auditRec.AddMeta("patch", audit.NewChannel(rchannel))
 
 	w.Write([]byte(rchannel.ToJson()))
 }
