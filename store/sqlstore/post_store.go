@@ -173,16 +173,13 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	}
 
 	for _, post := range posts {
+		id := post.RootId
 		if len(post.RootId) == 0 {
-			count, ok := rootIds[post.Id]
-			if ok {
-				post.ReplyCount += int64(count)
-			}
-		} else {
-			count, ok := rootIds[post.RootId]
-			if ok {
-				post.ReplyCount += int64(count)
-			}
+			id = post.Id
+		}
+		count, ok := rootIds[id]
+		if ok {
+			post.ReplyCount += int64(count)
 		}
 	}
 
