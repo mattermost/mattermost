@@ -72,7 +72,7 @@ jobs:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
                   ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
-                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                    --format ALL --noupdate --enableExperimental \
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
