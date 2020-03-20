@@ -2127,7 +2127,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.ExplicitRoles = tc.ExplicitRoles
 
 				var members []*model.TeamMember
-				members, err := ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
+				members, err = ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
 				require.Nil(t, err)
 				require.Len(t, members, 2)
 				member = members[0]
