@@ -724,7 +724,8 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			SchemeAdmin: team.Email == user.Email,
 		}
 		if !user.IsGuest() {
-			userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			var userShouldBeAdmin bool
+			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
 			if err != nil {
 				return err
 			}
@@ -824,9 +825,9 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 	if err != nil {
 		return err
 	}
-	existingMembershipsByChannelId := map[string]*model.ChannelMember{}
+	existingMembershipsByChannelId := map[string]model.ChannelMember{}
 	for _, channelMembership := range *existingMemberships {
-		existingMembershipsByChannelId[channelMembership.ChannelId] = &channelMembership
+		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
 		channel, ok := allChannels[*cdata.Name]
@@ -880,7 +881,8 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 			SchemeAdmin: false,
 		}
 		if !user.IsGuest() {
-			userShouldBeAdmin, err := a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
+			var userShouldBeAdmin bool
+			userShouldBeAdmin, err = a.UserIsInAdminRoleGroup(user.Id, team.Id, model.GroupSyncableTypeTeam)
 			if err != nil {
 				return err
 			}

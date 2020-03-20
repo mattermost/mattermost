@@ -674,9 +674,9 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			Where(sq.Eq{"Users.DeleteAt": 0}).
 			GroupBy("TeamMembers.TeamId")
 
-		sqlCountQuery, argsCount, err := queryCount.ToSql()
-		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		sqlCountQuery, argsCount, errCount := queryCount.ToSql()
+		if errCount != nil {
+			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, errCount.Error(), http.StatusInternalServerError)
 		}
 
 		var counters []struct {

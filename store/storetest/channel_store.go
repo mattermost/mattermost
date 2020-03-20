@@ -890,7 +890,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMember(member)
+		_, err = ss.Channel().SaveMember(member)
 		require.NotNil(t, err)
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
 	})
@@ -898,7 +898,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMember(m1)
+		_, err = ss.Channel().SaveMember(m1)
 		require.Nil(t, err)
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, err = ss.Channel().SaveMember(m2)
@@ -1387,7 +1387,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid channel member", func(t *testing.T) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.NotNil(t, err)
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
 	})
@@ -1396,7 +1396,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
 	})
@@ -1412,12 +1412,13 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1918,7 +1919,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().UpdateMember(member)
+		_, err = ss.Channel().UpdateMember(member)
 		require.NotNil(t, err)
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
 	})
@@ -1934,12 +1935,13 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2096,12 +2098,13 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2410,7 +2413,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid channel member", func(t *testing.T) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.NotNil(t, err)
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
 	})
@@ -2419,7 +2422,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
 	})
@@ -2435,12 +2438,13 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2937,7 +2941,8 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 	t.Run("remove member from not existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
 		require.Nil(t, err)
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), membersCount)
 	})
@@ -2945,7 +2950,8 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 	t.Run("remove not existing member from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMember(channelID, model.NewId())
 		require.Nil(t, err)
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), membersCount)
 	})
@@ -2954,7 +2960,8 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 		err = ss.Channel().RemoveMember(channelID, u1.Id)
 		require.Nil(t, err)
 		defer ss.Channel().SaveMember(m1)
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(3), membersCount)
 	})
@@ -2981,7 +2988,8 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 	t.Run("remove members from not existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
 		require.Nil(t, err)
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), membersCount)
 	})
@@ -2989,7 +2997,8 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 	t.Run("remove not existing members from an existing channel", func(t *testing.T) {
 		err = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
 		require.Nil(t, err)
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(4), membersCount)
 	})
@@ -2998,7 +3007,8 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
 		require.Nil(t, err)
 		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
 		require.Equal(t, int64(2), membersCount)
 	})
