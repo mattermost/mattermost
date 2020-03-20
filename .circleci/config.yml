@@ -105,9 +105,8 @@ jobs:
                   fi
                 fi
                 dependency_url="$html_url#l${index}_$sha1"
-                cpes='`'$(echo $json_dependency | jq -r '.vulnerabilityIds|select(.)|map(.id)|join("`, `")')'`'
-                if [ $cpes = '``' ]; then cpes=''; fi
-                cves='`'$(echo $json_dependency | jq -r '.vulnerabilities|select(.)|map(.name)|join("`, `")')'`'
+                cpes=$(echo $json_dependency | jq -r '.vulnerabilityIds|select(.)|map("`"+.id+"`")|join(", ")')
+                cves=$(echo $json_dependency | jq -r '.vulnerabilities|select(.)|map("[`"+.name+"`](http://web.nvd.nist.gov/view/vuln/detail?vulnId="+.name+")")|join(", ")')
                 severities=$(echo $json_dependency | jq '.vulnerabilities|select(.)|map(.severity)|unique')
                 severity=$(echo $severities | jq -r 'if contains(["HIGH"]) then "`HIGH`" elif contains(["MEDIUM"]) then "`MEDIUM`" elif contains(["LOW"]) then "`LOW`" else "`Unknown`" end')
                 alert_message="$alert_message|[$dependency]"'('$dependency_url')'"|$cpes|$cves|$severity|\n"
