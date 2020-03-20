@@ -2747,7 +2747,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.SchemeUser = tc.SchemeUser
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
-				members, err := ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				var members []*model.ChannelMember
+				members, err = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
 				require.Nil(t, err)
 				require.Len(t, members, 2)
 				member = members[0]
