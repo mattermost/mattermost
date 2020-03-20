@@ -917,12 +917,13 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1077,12 +1078,13 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1549,7 +1551,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 					ExplicitRoles: tc.ExplicitRoles,
 					NotifyProps:   defaultNotifyProps,
 				}
-				members, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				var members []*model.ChannelMember
+				members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
 				require.Nil(t, err)
 				require.Len(t, members, 2)
 				member = members[0]
@@ -1586,12 +1589,13 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2450,7 +2454,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 
 		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
-		members, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		var members []*model.ChannelMember
+		members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
 		require.Nil(t, err)
 		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
@@ -2606,12 +2611,13 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		team, err = ss.Team().Save(team)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel := &model.Channel{
 			DisplayName: "DisplayName",
 			Name:        "z-z-z" + model.NewId() + "b",
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
-		}, -1)
+		}
+		channel, err = ss.Channel().Save(channel, -1)
 		require.Nil(t, err)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 

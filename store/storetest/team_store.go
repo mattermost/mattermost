@@ -1130,7 +1130,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 					SchemeAdmin:   tc.SchemeAdmin,
 					ExplicitRoles: tc.ExplicitRoles,
 				}
-				member, err := ss.Team().SaveMember(member, -1)
+				member, err = ss.Team().SaveMember(member, -1)
 				require.Nil(t, err)
 				defer ss.Team().RemoveMember(team.Id, u1.Id)
 
@@ -1494,7 +1494,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 					SchemeAdmin:   tc.SchemeAdmin,
 					ExplicitRoles: tc.ExplicitRoles,
 				}
-				members, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+				var members []*model.TeamMember
+				members, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
 				require.Nil(t, err)
 				require.Len(t, members, 2)
 				member = members[0]
@@ -2125,6 +2126,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 
+				var members []*model.TeamMember
 				members, err := ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
 				require.Nil(t, err)
 				require.Len(t, members, 2)
