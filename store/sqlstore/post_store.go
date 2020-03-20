@@ -104,6 +104,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
+	postIds := []string{}
 	for _, post := range posts {
 		if len(post.Id) > 0 {
 			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
@@ -113,6 +114,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, err
 		}
+		postIds = append(postIds, post.Id)
 
 		currentChannelCount, ok := channelNewPosts[post.ChannelId]
 		if !ok {
@@ -172,18 +174,12 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		}
 	}
 
-	for _, post := range posts {
-		id := post.RootId
-		if len(post.RootId) == 0 {
-			id = post.Id
-		}
-		count, ok := rootIds[id]
-		if ok {
-			post.ReplyCount += int64(count)
-		}
+	newPosts, appErr := s.GetPostsByIds(postIds)
+	if appErr != nil {
+		mlog.Error("Error getting the updated version of the posts.", mlog.Err(appErr))
+		return posts, nil
 	}
-
-	return posts, nil
+	return newPosts, nil
 }
 
 func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
@@ -1392,7 +1388,7 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
 	keys, params := MapStringsToQueryParams(postIds, "Post")
 
-	query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
+	query := `SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id IN ` + keys + ` ORDER BY CreateAt DESC`
 
 	var posts []*model.Post
 	_, err := s.GetReplica().Select(&posts, query, params)
