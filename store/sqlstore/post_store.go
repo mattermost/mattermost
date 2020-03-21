@@ -770,7 +770,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt " + sort).
+		OrderBy("ChannelId, DeleteAt, CreateAt " + sort).
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -797,7 +797,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt ASC").
+		OrderBy("ChannelId, DeleteAt, CreateAt ASC").
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
