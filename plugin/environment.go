@@ -138,8 +138,8 @@ func (env *Environment) GetPluginState(id string) int {
 	return rp.(registeredPlugin).State
 }
 
-// SetPluginState sets the current state of a plugin (disabled, running, or error)
-func (env *Environment) SetPluginState(id string, state int) {
+// setPluginState sets the current state of a plugin (disabled, running, or error)
+func (env *Environment) setPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
 		p.State = state
@@ -239,9 +239,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 
 	defer func() {
 		if reterr == nil {
-			env.SetPluginState(id, model.PluginStateRunning)
+			env.setPluginState(id, model.PluginStateRunning)
 		} else {
-			env.SetPluginState(id, model.PluginStateFailedToStart)
+			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
 	}()
 
@@ -305,7 +305,7 @@ func (env *Environment) Deactivate(id string) bool {
 
 	isActive := env.IsActive(id)
 
-	env.SetPluginState(id, model.PluginStateNotRunning)
+	env.setPluginState(id, model.PluginStateNotRunning)
 
 	if !isActive {
 		return false
