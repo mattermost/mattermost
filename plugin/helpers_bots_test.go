@@ -197,9 +197,17 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotDisplayName := "Updated Test Bot"
 			expectedBotDescription := "updated testbotdescription"
 
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("GetBundlePath").Return("", nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("PatchBot", expectedBotID, &model.BotPatch{
 				Username:    &expectedBotUsername,
 				DisplayName: &expectedBotDisplayName,
@@ -215,7 +223,7 @@ func TestEnsureBot(t *testing.T) {
 				DisplayName: "Updated Test Bot",
 				Description: "updated testbotdescription",
 			}
-			botID, err := p.EnsureBot(updatedTestbot)
+			botID, err := p.EnsureBot(updatedTestbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
 
 			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
