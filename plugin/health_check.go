@@ -120,7 +120,7 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 		job.failTimestamps.Store(id, ftime)
 		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
-		job.env.SetPluginState(id, model.PluginStateFailedToStayRunning)
+		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
 		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
 		if err := job.env.RestartPlugin(id); err != nil {
