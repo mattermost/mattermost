@@ -29,11 +29,13 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 	files := []string{"IdpCertificateFile", "PublicCertificateFile", "PrivateKeyFile"}
 	data := []byte("aaaaa")
 	ds, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
+	require.Nil(t, err)
 	defer ds.Close()
 	defer func() {
 		defaultCfg := &model.Config{}
 		defaultCfg.SetDefaults()
-		ds.Set(defaultCfg)
+		_, err = ds.Set(defaultCfg)
+		require.Nil(t, err)
 	}()
 	require.NoError(t, err)
 	config := ds.Get()
@@ -73,11 +75,13 @@ func TestMigrateDatabaseToFileWithEmptyFiles(t *testing.T) {
 	fileDSN := "config.json"
 	files := []string{"", "", ""}
 	ds, err := NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
+	require.Nil(t, err)
 	defer ds.Close()
 	defer func() {
 		defaultCfg := &model.Config{}
 		defaultCfg.SetDefaults()
-		ds.Set(defaultCfg)
+		_, err = ds.Set(defaultCfg)
+		require.Nil(t, err)
 	}()
 	require.NoError(t, err)
 	config := ds.Get()
