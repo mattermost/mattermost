@@ -34,11 +34,6 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
-		env.registeredPlugins.Range(func(key interface{}, value interface{}) bool {
-			id := key.(string)
-			job.EnsurePlugin(id)
-			return true
-		})
 		job.Start()
 	}
 
@@ -88,6 +83,7 @@ func (job *PluginHealthCheckJob) Start() {
 
 // checkPlugin determines the plugin's health status, then handles the error or success case.
 func (job *PluginHealthCheckJob) checkPlugin(id string) {
+	job.EnsurePlugin(id)
 	p, ok := job.env.registeredPlugins.Load(id)
 	if !ok {
 		return

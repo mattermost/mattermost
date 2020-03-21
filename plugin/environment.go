@@ -236,9 +236,6 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	// Store latest BundleInfo in case something has changed since last activation
 	rp.BundleInfo = pluginInfo
 	env.registeredPlugins.Store(id, rp)
-	if env.pluginHealthCheckJob != nil {
-		env.pluginHealthCheckJob.EnsurePlugin(id)
-	}
 
 	defer func() {
 		if reterr == nil {
