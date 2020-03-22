@@ -1,7 +1,7 @@
 package logr
 
 // LevelID is the unique id of each level.
-type LevelID uint8
+type LevelID uint
 
 // Level provides a mechanism to enable/disable specific log lines.
 type Level struct {

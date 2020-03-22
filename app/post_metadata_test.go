@@ -307,10 +307,10 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("does not override icon URL", func(t *testing.T) {
 			clientPost := prepare(false, url, emoji)
 
-			s, ok := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
 			assert.True(t, ok)
 			assert.EqualValues(t, url, s)
-			s, ok = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
@@ -318,10 +318,10 @@ func TestPreparePostForClient(t *testing.T) {
 		t.Run("overrides icon URL", func(t *testing.T) {
 			clientPost := prepare(true, url, emoji)
 
-			s, ok := clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_URL]
+			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
 			assert.True(t, ok)
 			assert.EqualValues(t, overridenUrl, s)
-			s, ok = clientPost.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
 			assert.True(t, ok)
 			assert.EqualValues(t, emoji, s)
 		})
@@ -2181,7 +2181,7 @@ func TestParseImages(t *testing.T) {
 			},
 		},
 		"tiff": {
-			FileName: "test.tiff",
+			FileName: "test_compressed_tiff.tiff",
 			Expected: (*model.PostImage)(nil),
 		},
 		"not an image": {

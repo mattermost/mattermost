@@ -1967,6 +1967,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "You don't have the appropriate permissions to list all teams"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
   },

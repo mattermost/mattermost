@@ -754,7 +754,6 @@ func upgradeDatabaseToVersion519(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_19_0, VERSION_5_20_0) {
-
 		sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 
 		sqlStore.CreateColumnIfNotExists("GroupTeams", "SchemeAdmin", "boolean", "boolean", "0")
@@ -795,6 +794,8 @@ func upgradeDatabaseToVersion521(sqlStore SqlStore) {
 func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.22.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
+	// sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+	// sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
 	// }
