@@ -10,15 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func mustMakeLockKey(key string) string {
-	key, err := makeLockKey(key)
-	if err != nil {
-		panic(err)
-	}
-
-	return key
-}
-
 func mustNewMutex(pluginAPI MutexPluginAPI, key string) *Mutex {
 	m, err := NewMutex(pluginAPI, key)
 	if err != nil {
@@ -92,9 +83,7 @@ func unlock(t *testing.T, m *Mutex, panics bool) {
 func TestMutex(t *testing.T) {
 	t.Parallel()
 
-	makeKey := func() string {
-		return model.NewId()
-	}
+	makeKey := model.NewId
 
 	t.Run("successful lock/unlock cycle", func(t *testing.T) {
 		t.Parallel()
@@ -252,7 +241,7 @@ func TestMutex(t *testing.T) {
 		}
 	})
 
-	t.Run("with cancelled context", func(t *testing.T) {
+	t.Run("with canceled context", func(t *testing.T) {
 		t.Parallel()
 
 		mockPluginAPI := newMockPluginAPI(t)

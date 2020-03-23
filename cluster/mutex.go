@@ -66,7 +66,7 @@ func NewMutex(pluginAPI MutexPluginAPI, key string) (*Mutex, error) {
 
 // makeLockKey returns the prefixed key used to namespace mutex keys.
 func makeLockKey(key string) (string, error) {
-	if len(key) == 0 {
+	if key == "" {
 		return "", errors.New("must specify valid mutex key")
 	}
 
@@ -106,12 +106,12 @@ func (m *Mutex) refreshLock() error {
 // Lock locks m. If the mutex is already locked by any plugin instance, including the current one,
 // the calling goroutine blocks until the mutex can be locked.
 func (m *Mutex) Lock() {
-	m.LockWithContext(context.Background())
+	_ = m.LockWithContext(context.Background())
 }
 
-// LockWithContext locks m unless the context is cancelled. If the mutex is already locked by any plugin
+// LockWithContext locks m unless the context is canceled. If the mutex is already locked by any plugin
 // instance, including the current one, the calling goroutine blocks until the mutex can be locked,
-// or the context is cancelled.
+// or the context is canceled.
 //
 // The mutex is locked only if a nil error is returned.
 func (m *Mutex) LockWithContext(ctx context.Context) error {

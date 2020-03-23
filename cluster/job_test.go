@@ -269,9 +269,7 @@ func TestMakeWaitForRoundedInterval(t *testing.T) {
 func TestSchedule(t *testing.T) {
 	t.Parallel()
 
-	makeKey := func() string {
-		return model.NewId()
-	}
+	makeKey := model.NewId
 
 	t.Run("single-threaded", func(t *testing.T) {
 		t.Parallel()
