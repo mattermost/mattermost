@@ -39,7 +39,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER).Return(&model.System{Name: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Value: "true"}, nil)
-	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION).Return(&model.System{Name: model.MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 
@@ -57,6 +57,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	channelStore := mocks.ChannelStore{}
 	channelStore.On("ClearCaches").Return(nil)
 
+	schemeStore := mocks.SchemeStore{}
+	schemeStore.On("GetAllPage", model.SCHEME_SCOPE_TEAM, mock.Anything, 100).Return([]*model.Scheme{}, nil)
+
 	teamStore := mocks.TeamStore{}
 
 	mockStore.On("System").Return(&systemStore)
@@ -65,6 +68,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Status").Return(&statusStore)
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
+	mockStore.On("Scheme").Return(&schemeStore)
 	mockStore.On("Close").Return(nil)
 	mockStore.On("DropAllTables").Return(nil)
 	mockStore.On("MarkSystemRanUnitTests").Return(nil)

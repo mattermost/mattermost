@@ -29,9 +29,6 @@ func newSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
 	return s
 }
 
-func (s SqlReactionStore) createIndexesIfNotExists() {
-}
-
 func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	reaction.PreSave()
 	if err := reaction.IsValid(); err != nil {
