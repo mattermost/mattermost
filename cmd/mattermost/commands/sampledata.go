@@ -18,6 +18,7 @@ import (
 	"github.com/icrowley/fake"
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -50,15 +51,6 @@ func init() {
 	SampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	SampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 	RootCmd.AddCommand(SampleDataCmd)
-}
-
-func sliceIncludes(vs []string, t string) bool {
-	for _, v := range vs {
-		if v == t {
-			return true
-		}
-	}
-	return false
 }
 
 func randomPastTime(seconds int) int64 {
@@ -343,7 +335,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !sliceIncludes(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}
@@ -356,7 +348,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !sliceIncludes(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}
