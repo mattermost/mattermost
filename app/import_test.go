@@ -190,12 +190,39 @@ func TestImportBulkImport(t *testing.T) {
 	require.NotNil(t, err, "Should have failed due to missing version line on line 1.")
 	require.Equal(t, 1, line, "Should have failed due to missing version line on line 1.")
 
+	// Run bulk import using a valid and large input and a \r\n line break.
+	t.Run("", func(t *testing.T) {
+		posts := `{"type": "post"` + strings.Repeat(`, "post": {"team": "`+teamName+`", "channel": "`+channelName+`", "user": "`+username+`", "message": "Repeat after me", "create_at": 193456789012}`, 1E4) + "}"
+		data4 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
+		err, line = th.App.BulkImport(strings.NewReader(data4+"\r\n"+posts), false, 2)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
+
 	t.Run("First item after version without type", func(t *testing.T) {
 		data := `{"type": "version", "version": 1}
 {"name": "custom-emoji-troll", "image": "bulkdata/emoji/trollolol.png"}`
 		err, line := th.App.BulkImport(strings.NewReader(data), false, 2)
 		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
+	})
+
+	t.Run("Posts with prop information", func(t *testing.T) {
+		data6 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "` + testImage + `"}], "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}
+{"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}}`
+
+		err, line := th.App.BulkImport(strings.NewReader(data6), false, 2)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
 	})
 }
 
@@ -226,12 +253,12 @@ func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileIn
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
 	postId := files[0].PostId
-	assert.NotNil(t, postId)
+	require.NotNil(t, postId)
 
 	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
 	require.Nil(t, err)
 
-	assert.Equal(t, len(posts), 1)
+	require.Len(t, posts, 1)
 	for _, file := range files {
 		assert.Contains(t, posts[0].FileIds, file.Id)
 	}

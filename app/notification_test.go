@@ -247,7 +247,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Nil(t, outOfGroupUsers)
 	})
 
-	t.Run("should not return results for non-existant users", func(t *testing.T) {
+	t.Run("should not return results for non-existent users", func(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
@@ -905,7 +905,9 @@ func TestAllowChannelMentions(t *testing.T) {
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
 		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1613,7 +1615,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.Props["override_username"].(string),
+			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},

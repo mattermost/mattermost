@@ -1044,7 +1044,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 2. For each folder - compiles the main.go inside and executes it, validating it's result
 // 3. If folder starts with "manual." it is skipped ("manual." tests executed in other part of this file)
 // 4. Before compiling the main.go file is passed through templating and the following values are available in the template: BasicUser, BasicUser2, BasicChannel, BasicTeam, BasicPost
-// 5. Succesfully running test should return nil, "OK". Any other returned string is considered and error
+// 5. Successfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
 	defaultSchema := getDefaultPluginSettingsSchema()

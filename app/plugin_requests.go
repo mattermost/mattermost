@@ -45,7 +45,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
-		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin enviroment not found.", http.StatusNotImplemented)
+		err := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
 		a.Log().Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")

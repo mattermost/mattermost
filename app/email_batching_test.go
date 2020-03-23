@@ -14,7 +14,7 @@ import (
 )
 
 func TestHandleNewNotifications(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	id1 := model.NewId()
@@ -265,7 +265,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
  * Ensures that post contents are not included in notification email when email notification content type is set to generic
  */
 func TestRenderBatchedPostGeneric(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	var post = &model.Post{}
@@ -290,7 +290,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
  * Ensures that post contents included in notification email when email notification content type is set to full
  */
 func TestRenderBatchedPostFull(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	var post = &model.Post{}

@@ -156,6 +156,7 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 			Channel:  &post.ChannelName,
 			User:     &post.Username,
 			Message:  &post.Message,
+			Props:    &post.Props,
 			CreateAt: &post.CreateAt,
 		},
 	}
@@ -172,6 +173,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 			ChannelMembers: &channelMembers,
 			User:           &post.User,
 			Message:        &post.Message,
+			Props:          &post.Props,
 			CreateAt:       &post.CreateAt,
 		},
 	}
