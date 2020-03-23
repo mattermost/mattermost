@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -112,6 +113,11 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
+	auditRec := a.MakeAuditRecord("pluginAdd", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, nil) }()
+
+	var pluginsOk, pluginsErr []string
+
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
 		if err != nil {
@@ -120,11 +126,17 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 
 		if _, err := a.InstallPlugin(fileReader, false); err != nil {
 			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
+			pluginsErr = append(pluginsErr, plugin)
 		} else {
 			CommandPrettyPrintln("Added plugin: " + plugin)
+			pluginsOk = append(pluginsOk, plugin)
 		}
 		fileReader.Close()
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("plugins", pluginsOk)
+	auditRec.AddMeta("errors", pluginsErr)
 
 	return nil
 }
@@ -140,13 +152,24 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
+	auditRec := a.MakeAuditRecord("pluginDelete", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, nil) }()
+
+	var pluginsOk, pluginsErr []string
+
 	for _, plugin := range args {
 		if err := a.RemovePlugin(plugin); err != nil {
 			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
+			pluginsErr = append(pluginsErr, plugin)
 		} else {
 			CommandPrettyPrintln("Deleted plugin: " + plugin)
+			pluginsOk = append(pluginsOk, plugin)
 		}
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("plugins", pluginsOk)
+	auditRec.AddMeta("errors", pluginsErr)
 
 	return nil
 }
@@ -162,13 +185,24 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
+	auditRec := a.MakeAuditRecord("pluginEnable", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, nil) }()
+
+	var pluginsOk, pluginsErr []string
+
 	for _, plugin := range args {
 		if err := a.EnablePlugin(plugin); err != nil {
 			CommandPrintErrorln("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
+			pluginsErr = append(pluginsErr, plugin)
 		} else {
 			CommandPrettyPrintln("Enabled plugin: " + plugin)
+			pluginsOk = append(pluginsOk, plugin)
 		}
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("plugins", pluginsOk)
+	auditRec.AddMeta("errors", pluginsErr)
 
 	return nil
 }
@@ -184,13 +218,24 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
+	auditRec := a.MakeAuditRecord("pluginDisable", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, nil) }()
+
+	var pluginsOk, pluginsErr []string
+
 	for _, plugin := range args {
 		if err := a.DisablePlugin(plugin); err != nil {
 			CommandPrintErrorln("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
+			pluginsErr = append(pluginsErr, plugin)
 		} else {
 			CommandPrettyPrintln("Disabled plugin: " + plugin)
+			pluginsOk = append(pluginsOk, plugin)
 		}
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("plugins", pluginsOk)
+	auditRec.AddMeta("errors", pluginsErr)
 
 	return nil
 }
@@ -254,7 +299,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
+func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -264,6 +309,11 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
+
+	auditRec := a.MakeAuditRecord("pluginAddPublicKey", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+
+	var publicKeysOk, publicKeysErr []string
 
 	for _, pkFile := range args {
 		filename := filepath.Base(pkFile)
@@ -275,10 +325,16 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 
 		if err := a.AddPublicKey(filename, fileReader); err != nil {
 			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
+			publicKeysErr = append(publicKeysErr, pkFile)
 		} else {
 			CommandPrettyPrintln("Added public key: " + pkFile)
+			publicKeysOk = append(publicKeysOk, pkFile)
 		}
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("publicKeys", publicKeysOk)
+	auditRec.AddMeta("errors", publicKeysErr)
 
 	return nil
 }
@@ -294,13 +350,24 @@ func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
+	auditRec := a.MakeAuditRecord("pluginDeletePublicKey", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, nil) }()
+
+	var publicKeysOk, publicKeysErr []string
+
 	for _, pkFile := range args {
 		if err := a.DeletePublicKey(pkFile); err != nil {
 			CommandPrintErrorln("Unable to delete public key: " + pkFile + ". Error: " + err.Error())
+			publicKeysErr = append(publicKeysErr, pkFile)
 		} else {
 			CommandPrettyPrintln("Deleted public key: " + pkFile)
+			publicKeysOk = append(publicKeysOk, pkFile)
 		}
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("publicKeys", publicKeysOk)
+	auditRec.AddMeta("errors", publicKeysErr)
 
 	return nil
 }

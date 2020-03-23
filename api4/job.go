@@ -47,7 +47,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("job", audit.NewJob(job))
+	auditRec.AddMeta("job", job)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
@@ -61,7 +61,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("job", audit.NewJob(job)) // overwrite meta
+	auditRec.AddMeta("job", job) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(job.ToJson()))

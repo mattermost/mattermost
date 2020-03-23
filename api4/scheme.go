@@ -29,7 +29,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("scheme", audit.NewScheme(scheme))
+	auditRec.AddMeta("scheme", scheme)
 
 	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -48,7 +48,7 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("scheme", audit.NewScheme(scheme)) // overwrite meta
+	auditRec.AddMeta("scheme", scheme) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(scheme.ToJson()))
@@ -182,7 +182,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("scheme", audit.NewScheme(scheme))
+	auditRec.AddMeta("scheme", scheme)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -194,7 +194,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", audit.NewScheme(scheme))
+	auditRec.AddMeta("patch", scheme)
 
 	auditRec.Success()
 	c.LogAudit("")
@@ -228,7 +228,7 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("scheme", audit.NewScheme(scheme))
+	auditRec.AddMeta("scheme", scheme)
 
 	ReturnStatusOK(w)
 }

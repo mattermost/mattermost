@@ -124,7 +124,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group", audit.NewGroup(group))
+	auditRec.AddMeta("group", group)
 
 	group.Patch(groupPatch)
 
@@ -133,7 +133,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", audit.NewGroup(group))
+	auditRec.AddMeta("patch", group)
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {

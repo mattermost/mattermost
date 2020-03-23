@@ -203,7 +203,7 @@ func createChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if team == nil {
 		return errors.New("Unable to find team: " + teamArg)
 	}
-	auditRec.AddMeta("team", audit.NewTeam(team))
+	auditRec.AddMeta("team", team)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -221,7 +221,7 @@ func createChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("channel", audit.NewChannel(createdChannel))
+	auditRec.AddMeta("channel", createdChannel)
 
 	CommandPrettyPrintln("Id: " + createdChannel.Id)
 	CommandPrettyPrintln("Name: " + createdChannel.Name)
@@ -254,7 +254,7 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) (cmdError err
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
-	auditRec.AddMeta("channel", audit.NewChannel(channel))
+	auditRec.AddMeta("channel", channel)
 
 	if allUsers {
 		if err := removeAllUsersFromChannel(a, channel); err != nil {
@@ -262,13 +262,13 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) (cmdError err
 		}
 	} else {
 		users := getUsersFromUserArgs(a, args[1:])
-		var usersOk, usersErr []audit.User
+		var usersOk, usersErr []*model.User
 		for i, user := range users {
 			err := removeUserFromChannel(a, channel, user, args[i+1])
 			if err == nil {
-				usersOk = append(usersOk, audit.NewUser(user))
+				usersOk = append(usersOk, user)
 			} else {
-				usersErr = append(usersErr, audit.NewUser(user))
+				usersErr = append(usersErr, user)
 			}
 		}
 		auditRec.AddMeta("users", usersOk)
@@ -314,16 +314,16 @@ func addChannelUsersCmdF(command *cobra.Command, args []string) (cmdError error)
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
-	auditRec.AddMeta("channel", audit.NewChannel(channel))
+	auditRec.AddMeta("channel", channel)
 
 	users := getUsersFromUserArgs(a, args[1:])
-	var usersOk, usersErr []audit.User
+	var usersOk, usersErr []*model.User
 	for i, user := range users {
 		err := addUserToChannel(a, channel, user, args[i+1])
 		if err == nil {
-			usersOk = append(usersOk, audit.NewUser(user))
+			usersOk = append(usersOk, user)
 		} else {
-			usersErr = append(usersErr, audit.NewUser(user))
+			usersErr = append(usersErr, user)
 		}
 	}
 
@@ -358,7 +358,7 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) (cmdError error)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
 
 	channels := getChannelsFromChannelArgs(a, args)
-	var channelsOk, channelsErr []audit.Channel
+	var channelsOk, channelsErr []*model.Channel
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -366,9 +366,9 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) (cmdError error)
 		}
 		if err := a.Srv().Store.Channel().Delete(channel.Id, model.GetMillis()); err != nil {
 			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
-			channelsErr = append(channelsErr, audit.NewChannel(channel))
+			channelsErr = append(channelsErr, channel)
 		} else {
-			channelsOk = append(channelsOk, audit.NewChannel(channel))
+			channelsOk = append(channelsOk, channel)
 		}
 	}
 
@@ -400,7 +400,7 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) (cmdError error) 
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
 
 	channels := getChannelsFromChannelArgs(a, args)
-	var channelsOk, channelsErr []audit.Channel
+	var channelsOk, channelsErr []*model.Channel
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -408,10 +408,10 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) (cmdError error) 
 		}
 		if err := deleteChannel(a, channel); err != nil {
 			CommandPrintErrorln("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
-			channelsErr = append(channelsErr, audit.NewChannel(channel))
+			channelsErr = append(channelsErr, channel)
 		} else {
 			CommandPrettyPrintln("Deleted channel '" + channel.Name + "'")
-			channelsOk = append(channelsOk, audit.NewChannel(channel))
+			channelsOk = append(channelsOk, channel)
 		}
 	}
 
@@ -440,7 +440,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if team == nil {
 		return errors.New("Unable to find destination team '" + args[0] + "'")
 	}
-	auditRec.AddMeta("team", audit.NewTeam(team))
+	auditRec.AddMeta("team", team)
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
@@ -451,7 +451,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) (cmdError error) {
 	removeDeactivatedMembers, _ := command.Flags().GetBool("remove-deactivated-users")
 
 	channels := getChannelsFromChannelArgs(a, args[1:])
-	var channelsOk, channelsErr []audit.Channel
+	var channelsOk, channelsErr []*model.Channel
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i+1] + "'")
@@ -460,10 +460,10 @@ func moveChannelsCmdF(command *cobra.Command, args []string) (cmdError error) {
 		originTeamID := channel.TeamId
 		if err := moveChannel(a, team, channel, user, removeDeactivatedMembers); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
-			channelsErr = append(channelsErr, audit.NewChannel(channel))
+			channelsErr = append(channelsErr, channel)
 		} else {
 			CommandPrettyPrintln("Moved channel '" + channel.Name + "' to " + team.Name + "(" + team.Id + ") from " + originTeamID + ".")
-			channelsOk = append(channelsOk, audit.NewChannel(channel))
+			channelsOk = append(channelsOk, channel)
 		}
 	}
 
@@ -554,7 +554,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) (cmdError error)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
 
 	channels := getChannelsFromChannelArgs(a, args)
-	var channelsOk, channelsErr []audit.Channel
+	var channelsOk, channelsErr []*model.Channel
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -562,9 +562,9 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) (cmdError error)
 		}
 		if err := a.Srv().Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
-			channelsErr = append(channelsErr, audit.NewChannel(channel))
+			channelsErr = append(channelsErr, channel)
 		} else {
-			channelsOk = append(channelsOk, audit.NewChannel(channel))
+			channelsOk = append(channelsOk, channel)
 		}
 	}
 
@@ -620,8 +620,8 @@ func modifyChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 
 	auditRec := a.MakeAuditRecord("modifyChannel", audit.Fail)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("channel", audit.NewChannel(channel))
-	auditRec.AddMeta("user", audit.NewUser(user))
+	auditRec.AddMeta("channel", channel)
+	auditRec.AddMeta("user", user)
 
 	updatedChannel, err := a.UpdateChannelPrivacy(channel, user)
 	if err != nil {
@@ -629,7 +629,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", audit.NewChannel(updatedChannel))
+	auditRec.AddMeta("update", updatedChannel)
 
 	return nil
 }
@@ -655,7 +655,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 
 	auditRec := a.MakeAuditRecord("renameChannel", audit.Fail)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("channel", audit.NewChannel(channel))
+	auditRec.AddMeta("channel", channel)
 
 	updatedChannel, errch := a.RenameChannel(channel, newChannelName, newDisplayName)
 	if errch != nil {
@@ -663,7 +663,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) (cmdError error) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", audit.NewChannel(updatedChannel))
+	auditRec.AddMeta("update", updatedChannel)
 
 	return nil
 }

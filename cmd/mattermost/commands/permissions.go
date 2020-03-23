@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -56,7 +57,7 @@ func init() {
 	RootCmd.AddCommand(PermissionsCmd)
 }
 
-func resetPermissionsCmdF(command *cobra.Command, args []string) error {
+func resetPermissionsCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -78,6 +79,9 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	auditRec := a.MakeAuditRecord("resetPermissions", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+
 	if err := a.ResetPermissionsSystem(); err != nil {
 		return errors.New(err.Error())
 	}
@@ -86,10 +90,11 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Changes will take effect gradually as the server caches expire.")
 	CommandPrettyPrintln("For the changes to take effect immediately, go to the Mattermost System Console > General > Configuration and click \"Purge All Caches\".")
 
+	auditRec.Success()
 	return nil
 }
 
-func exportPermissionsCmdF(command *cobra.Command, args []string) error {
+func exportPermissionsCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -99,15 +104,19 @@ func exportPermissionsCmdF(command *cobra.Command, args []string) error {
 	if license := a.License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
+
+	auditRec := a.MakeAuditRecord("exportPermissions", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
 
 	if err = a.ExportPermissions(os.Stdout); err != nil {
 		return errors.New(err.Error())
 	}
 
+	auditRec.Success()
 	return nil
 }
 
-func importPermissionsCmdF(command *cobra.Command, args []string) error {
+func importPermissionsCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -117,6 +126,10 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	if license := a.License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
+
+	auditRec := a.MakeAuditRecord("importPermissions", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("file", args[0])
 
 	file, err := os.Open(args[0])
 	if err != nil {
@@ -124,5 +137,6 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer file.Close()
 
+	auditRec.Success()
 	return a.ImportPermissions(file)
 }

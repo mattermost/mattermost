@@ -9,6 +9,7 @@ import (
 
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,7 @@ func init() {
 	RootCmd.AddCommand(ImportCmd)
 }
 
-func slackImportCmdF(command *cobra.Command, args []string) error {
+func slackImportCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -72,6 +73,11 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
+	auditRec := a.MakeAuditRecord("slackImport", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("file", args[1])
+
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
 	importErr, log := a.SlackImport(fileReader, fileInfo.Size(), team.Id)
@@ -79,6 +85,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	if importErr != nil {
 		return err
 	}
+	auditRec.Success()
 
 	CommandPrettyPrintln("")
 	CommandPrintln(log.String())
@@ -147,6 +154,9 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
+		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
+		auditRec.AddMeta("file", args[1])
+		a.LogAuditRec(auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}

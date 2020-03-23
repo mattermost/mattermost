@@ -176,7 +176,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		c.Err = appErr
 		return nil
 	}
-	auditRec.AddMeta("file", audit.NewFileInfo(info))
+	auditRec.AddMeta("file", info)
 
 	fileUploadResponse := &model.FileUploadResponse{
 		FileInfos: []*model.FileInfo{info},
@@ -340,7 +340,7 @@ NEXT_PART:
 			c.LogAuditRec(auditRec)
 			return nil
 		}
-		auditRec.AddMeta("file", audit.NewFileInfo(info))
+		auditRec.AddMeta("file", info)
 
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
@@ -444,7 +444,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			c.LogAuditRec(auditRec)
 			return nil
 		}
-		auditRec.AddMeta("file", audit.NewFileInfo(info))
+		auditRec.AddMeta("file", info)
 
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
@@ -478,7 +478,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("file", audit.NewFileInfo(info))
+	auditRec.AddMeta("file", info)
 
 	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -563,7 +563,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("file", audit.NewFileInfo(info))
+	auditRec.AddMeta("file", info)
 
 	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)

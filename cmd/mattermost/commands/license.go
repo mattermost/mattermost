@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
-func uploadLicenseCmdF(command *cobra.Command, args []string) error {
+func uploadLicenseCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -38,6 +39,10 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")
 	}
+
+	auditRec := a.MakeAuditRecord("uploadLicense", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("file", args[0])
 
 	var fileBytes []byte
 	if fileBytes, err = ioutil.ReadFile(args[0]); err != nil {
@@ -49,6 +54,7 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("Uploaded license file")
+	auditRec.Success()
 
 	return nil
 }

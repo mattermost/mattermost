@@ -64,7 +64,7 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 		userID = fmt.Sprintf("%s:%s", user.Uid, user.Username)
 	}
 
-	return &audit.Record{
+	rec := &audit.Record{
 		APIPath:   "",
 		Event:     event,
 		Status:    initialStatus,
@@ -74,6 +74,9 @@ func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record 
 		IPAddress: "",
 		Meta:      audit.Meta{audit.KeyClusterID: a.GetClusterId()},
 	}
+	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
+
+	return rec
 }
 
 func (s *Server) configureAudit(adt *audit.Audit) {

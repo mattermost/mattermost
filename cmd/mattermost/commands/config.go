@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -226,7 +227,13 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	}
 }
 
-func configSetCmdF(command *cobra.Command, args []string) error {
+func configSetCmdF(command *cobra.Command, args []string) (cmdError error) {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
 	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
@@ -240,6 +247,11 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 	// create the function to update config
 	oldConfig := configStore.Get()
 	newConfig := configStore.Get()
+
+	auditRec := a.MakeAuditRecord("configSet", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("setting", configSetting)
+	auditRec.AddMeta("new_value", newVal)
 
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
 	f(newConfig)
@@ -255,6 +267,7 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to set config")
 	}
 
+	auditRec.Success()
 	return nil
 }
 
@@ -407,6 +420,12 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 }
 
 func configResetCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
 	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
@@ -459,6 +478,9 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 	if _, err := configStore.Set(tempConfig); err != nil {
 		return errors.Wrap(err, "failed to set config")
 	}
+
+	auditRec := a.MakeAuditRecord("configReset", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

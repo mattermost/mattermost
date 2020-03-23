@@ -46,7 +46,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("post", audit.NewPost(post))
+	auditRec.AddMeta("post", post)
 
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(*c.App.Session(), post.ChannelId, model.PERMISSION_CREATE_POST) {
@@ -73,7 +73,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	auditRec.AddMeta("post", audit.NewPost(rp)) // overwrite meta
+	auditRec.AddMeta("post", rp) // overwrite meta
 
 	setOnline := r.URL.Query().Get("set_online")
 	setOnlineBool := true // By default, always set online.
@@ -378,7 +378,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
-	auditRec.AddMeta("post", audit.NewPost(post))
+	auditRec.AddMeta("post", post)
 
 	if c.App.Session().UserId == post.UserId {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), post.ChannelId, model.PERMISSION_DELETE_POST) {
@@ -548,7 +548,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
-	auditRec.AddMeta("post", audit.NewPost(originalPost))
+	auditRec.AddMeta("post", originalPost)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = originalPost.FileIds
@@ -569,7 +569,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("update", audit.NewPost(rpost))
+	auditRec.AddMeta("update", rpost)
 
 	w.Write([]byte(rpost.ToJson()))
 }
@@ -603,7 +603,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
-	auditRec.AddMeta("post", audit.NewPost(originalPost))
+	auditRec.AddMeta("post", originalPost)
 
 	if c.App.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
@@ -619,7 +619,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("patch", audit.NewPost(patchedPost))
+	auditRec.AddMeta("patch", patchedPost)
 
 	w.Write([]byte(patchedPost.ToJson()))
 }
@@ -672,7 +672,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("post", audit.NewPost(post))
+	auditRec.AddMeta("post", post)
 
 	channel, err := c.App.GetChannel(post.ChannelId)
 	if err != nil {
@@ -696,7 +696,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("patch", audit.NewPost(patchedPost))
+	auditRec.AddMeta("patch", patchedPost)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

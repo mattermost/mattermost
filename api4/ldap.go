@@ -149,7 +149,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("ldap_group", audit.NewGroup(ldapGroup))
+	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
@@ -162,7 +162,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if group != nil {
-		auditRec.AddMeta("group", audit.NewGroup(group))
+		auditRec.AddMeta("group", group)
 	}
 
 	var status int
@@ -248,7 +248,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group", audit.NewGroup(group))
+	auditRec.AddMeta("group", group)
 
 	if group.DeleteAt == 0 {
 		_, err = c.App.DeleteGroup(group.Id)

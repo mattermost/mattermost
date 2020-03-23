@@ -99,7 +99,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("role", audit.NewRole(oldRole))
+	auditRec.AddMeta("role", oldRole)
 
 	if c.App.License() == nil && patch.Permissions != nil {
 		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
@@ -151,7 +151,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("patch", audit.NewRole(role))
+	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
 
 	w.Write([]byte(role.ToJson()))

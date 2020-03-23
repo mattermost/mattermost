@@ -175,7 +175,7 @@ func createCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 
 	auditRec := a.MakeAuditRecord("createCommand", audit.Fail)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", audit.NewUser(user))
+	auditRec.AddMeta("user", user)
 
 	createdCommand, err := a.CreateCommand(newCommand)
 	if err != nil {
@@ -184,7 +184,7 @@ func createCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 	CommandPrettyPrintln("created command '" + newCommand.DisplayName + "'")
 
 	auditRec.Success()
-	auditRec.AddMeta("channel", audit.NewCommand(createdCommand))
+	auditRec.AddMeta("channel", createdCommand)
 
 	return nil
 }
@@ -225,10 +225,10 @@ func moveCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 
 	auditRec := a.MakeAuditRecord("moveCommand", audit.Fail)
 	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", audit.NewTeam(team))
+	auditRec.AddMeta("team", team)
 
 	commands := getCommandsFromCommandArgs(a, args[1:])
-	var commandsOk, commandsErr []audit.Command
+	var commandsOk, commandsErr []*model.Command
 	for i, command := range commands {
 		if command == nil {
 			CommandPrintErrorln("Unable to find command '" + args[i+1] + "'")
@@ -236,10 +236,10 @@ func moveCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 		}
 		if err := moveCommand(a, team, command); err != nil {
 			CommandPrintErrorln("Unable to move command '" + command.DisplayName + "' error: " + err.Error())
-			commandsErr = append(commandsErr, audit.NewCommand(command))
+			commandsErr = append(commandsErr, command)
 		} else {
 			CommandPrettyPrintln("Moved command '" + command.DisplayName + "'")
-			commandsOk = append(commandsOk, audit.NewCommand(command))
+			commandsOk = append(commandsOk, command)
 		}
 	}
 
