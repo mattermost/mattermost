@@ -262,8 +262,7 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 
 func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
-		err := fmt.Errorf("Can't find user '%s'", userArg)
-		CommandPrintErrorln(err.Error())
+		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
 	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
@@ -309,8 +308,7 @@ func addChannelUsersCmdF(command *cobra.Command, args []string) error {
 
 func addUserToChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
-		err := fmt.Errorf("Can't find user '%s'", userArg)
-		CommandPrintErrorln(err.Error())
+		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
 	if _, err := a.AddUserToChannel(user, channel); err != nil {

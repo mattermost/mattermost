@@ -135,7 +135,6 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			auditRec := a.MakeAuditRecord("scheduleExport", audit.Success)
 			auditRec.AddMeta("format", format)
 			auditRec.AddMeta("start", startTime)
-			auditRec.AddMeta("timeout", timeoutSeconds)
 			a.LogAuditRec(auditRec, nil)
 		}
 	}

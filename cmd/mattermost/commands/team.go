@@ -204,8 +204,7 @@ func removeUsersCmdF(command *cobra.Command, args []string) error {
 
 func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
-		err := fmt.Errorf("Can't find user '%s'", userArg)
-		CommandPrintErrorln(err.Error())
+		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
 	if err := a.LeaveTeam(team, user, ""); err != nil {
