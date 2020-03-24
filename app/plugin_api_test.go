@@ -744,7 +744,7 @@ func TestInstallPlugin(t *testing.T) {
 
 		import (
 			"net/http"
-			
+
 			"github.com/pkg/errors"
 
 			"github.com/mattermost/mattermost-server/v5/plugin"
@@ -753,7 +753,7 @@ func TestInstallPlugin(t *testing.T) {
 		type configuration struct {
 			DownloadURL string
 		}
-		
+
 		type Plugin struct {
 			plugin.MattermostPlugin
 
@@ -766,7 +766,7 @@ func TestInstallPlugin(t *testing.T) {
 			}
 			return nil
 		}
-		
+
 		func (p *Plugin) OnActivate() error {
 			resp, err := http.Get(p.configuration.DownloadURL)
 			if err != nil {
@@ -783,7 +783,7 @@ func TestInstallPlugin(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&Plugin{})
 		}
-		
+
 	`,
 		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
@@ -1118,6 +1118,16 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
+
+	session, _ := th.App.CreateSession(
+		&model.Session{
+			UserId:   th.BasicUser.Id,
+			CreateAt: model.GetMillis(),
+			Roles:    model.CHANNEL_USER_ROLE_ID,
+			IsOAuth:  false,
+		})
+
+	th.App.SetSession(session)
 
 	data := []byte("Hello World")
 	channelId := th.BasicChannel.Id
