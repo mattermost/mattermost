@@ -137,7 +137,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
 		tmp := model.NewId()
 		if groupPatch.Name == nil {
-			tmp = strings.ReplaceAll(group.DisplayName, " ", "-")
+			tmp = strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
 		}
 		groupPatch.Name = &tmp
 	}
