@@ -132,6 +132,9 @@ func (env *Environment) IsActive(id string) bool {
 func (env *Environment) GetPluginState(id string) int {
 	rp, ok := env.registeredPlugins.Load(id)
 	if !ok {
+		if env.pluginHealthCheckJob != nil && env.pluginHealthCheckJob.hasPluginCrashed(id) {
+			return model.PluginStateFailedToStayRunning
+		}
 		return model.PluginStateNotRunning
 	}
 
@@ -481,6 +484,21 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	}
 }
 
+// performHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
+func (env *Environment) performHealthCheck(id string) error {
+	p, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		return nil
+	}
+	rp := p.(registeredPlugin)
+
+	sup := rp.supervisor
+	if sup == nil {
+		return nil
+	}
+	return sup.PerformHealthCheck()
+}
+
 // SetPrepackagedPlugins saves prepackaged plugins in the environment.
 func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Lock()
@@ -491,4 +509,29 @@ func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	state := model.PluginStateNotRunning
 	return registeredPlugin{State: state, BundleInfo: bundle}
+}
+
+// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
+func (env *Environment) InitPluginHealthCheckJob(enable bool) {
+	// Config is set to enable. No job exists, start a new job.
+	if enable && env.pluginHealthCheckJob == nil {
+		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HEALTH_CHECK_INTERVAL))
+
+		job := newPluginHealthCheckJob(env)
+		env.pluginHealthCheckJob = job
+		go job.Start()
+	}
+
+	// Config is set to disable. Job exists, kill existing job.
+	if !enable && env.pluginHealthCheckJob != nil {
+		mlog.Debug("Disabling plugin health check job")
+
+		env.pluginHealthCheckJob.Cancel()
+		env.pluginHealthCheckJob = nil
+	}
+}
+
+// GetPluginHealthCheckJob returns the PluginHealthCheckJob owned by the Environment. If the job is not set, the function returns nil.
+func (env *Environment) GetPluginHealthCheckJob() *PluginHealthCheckJob {
+	return env.pluginHealthCheckJob
 }
