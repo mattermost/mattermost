@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -58,7 +57,7 @@ type TeamMembersGetOptions struct {
 	ExcludeDeletedUsers bool
 
 	// Restrict to search in a list of teams and channels
-	ViewRestrictions *model.ViewUsersRestrictions
+	ViewRestrictions *ViewUsersRestrictions
 }
 
 func (o *TeamMember) ToJson() string {
