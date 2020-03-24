@@ -106,7 +106,11 @@ func (h *MainHelper) setupStore() {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	h.SearchEngine = searchengine.NewBroker(config, nil)
+	searchEngine, err := searchengine.NewBroker(config, nil)
+	if err != nil {
+		panic("failed to setup test search engine: " + err.Error())
+	}
+	h.SearchEngine = searchEngine
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{

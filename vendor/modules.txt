@@ -6,6 +6,8 @@ github.com/Masterminds/squirrel
 github.com/NYTimes/gziphandler
 # github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
 github.com/RackSec/srslog
+# github.com/RoaringBitmap/roaring v0.4.21
+github.com/RoaringBitmap/roaring
 # github.com/armon/go-metrics v0.3.0
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -16,6 +18,57 @@ github.com/beevik/etree
 github.com/beorn7/perks/quantile
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
+# github.com/blugelabs/bleve v1.0.13
+github.com/blugelabs/bleve
+github.com/blugelabs/bleve/analysis
+github.com/blugelabs/bleve/analysis/analyzer/keyword
+github.com/blugelabs/bleve/analysis/analyzer/standard
+github.com/blugelabs/bleve/analysis/datetime/flexible
+github.com/blugelabs/bleve/analysis/datetime/optional
+github.com/blugelabs/bleve/analysis/lang/en
+github.com/blugelabs/bleve/analysis/token/lowercase
+github.com/blugelabs/bleve/analysis/token/porter
+github.com/blugelabs/bleve/analysis/token/stop
+github.com/blugelabs/bleve/analysis/tokenizer/single
+github.com/blugelabs/bleve/analysis/tokenizer/unicode
+github.com/blugelabs/bleve/document
+github.com/blugelabs/bleve/geo
+github.com/blugelabs/bleve/index
+github.com/blugelabs/bleve/index/scorch
+github.com/blugelabs/bleve/index/scorch/mergeplan
+github.com/blugelabs/bleve/index/scorch/segment
+github.com/blugelabs/bleve/index/store
+github.com/blugelabs/bleve/index/store/boltdb
+github.com/blugelabs/bleve/index/store/gtreap
+github.com/blugelabs/bleve/index/upsidedown
+github.com/blugelabs/bleve/mapping
+github.com/blugelabs/bleve/numeric
+github.com/blugelabs/bleve/registry
+github.com/blugelabs/bleve/search
+github.com/blugelabs/bleve/search/collector
+github.com/blugelabs/bleve/search/facet
+github.com/blugelabs/bleve/search/highlight
+github.com/blugelabs/bleve/search/highlight/format/html
+github.com/blugelabs/bleve/search/highlight/fragmenter/simple
+github.com/blugelabs/bleve/search/highlight/highlighter/html
+github.com/blugelabs/bleve/search/highlight/highlighter/simple
+github.com/blugelabs/bleve/search/query
+github.com/blugelabs/bleve/search/scorer
+github.com/blugelabs/bleve/search/searcher
+github.com/blugelabs/bleve/size
+# github.com/blugelabs/go-porterstemmer v1.0.3
+github.com/blugelabs/go-porterstemmer
+# github.com/blugelabs/segment v1.0.0
+github.com/blugelabs/segment
+# github.com/blugelabs/vellum v1.0.2
+github.com/blugelabs/vellum
+github.com/blugelabs/vellum/levenshtein
+github.com/blugelabs/vellum/regexp
+github.com/blugelabs/vellum/utf8
+# github.com/blugelabs/zap/v11 v11.0.1
+github.com/blugelabs/zap/v11
+# github.com/blugelabs/zap/v12 v12.0.1
+github.com/blugelabs/zap/v12
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/corpix/uarand v0.1.1
@@ -28,12 +81,18 @@ github.com/dgryski/dgoogauth
 github.com/disintegration/imaging
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
+# github.com/edsrzf/mmap-go v1.0.0
+github.com/edsrzf/mmap-go
+# github.com/etcd-io/bbolt v1.3.3
+github.com/etcd-io/bbolt
 # github.com/fatih/color v1.9.0
 github.com/fatih/color
 # github.com/francoispqt/gojay v1.2.13
 github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2
+github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
 github.com/go-asn1-ber/asn1-ber
 # github.com/go-sql-driver/mysql v1.5.0
@@ -48,6 +107,8 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
+# github.com/golang/snappy v0.0.1
+github.com/golang/snappy
 # github.com/google/btree v1.0.0
 github.com/google/btree
 # github.com/google/uuid v1.1.1
@@ -173,6 +234,8 @@ github.com/mitchellh/go-homedir
 github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
+# github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
+github.com/mschoch/smat
 # github.com/muesli/smartcrop v0.3.0
 github.com/muesli/smartcrop
 github.com/muesli/smartcrop/nfnt
@@ -194,6 +257,8 @@ github.com/opentracing/opentracing-go/log
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.6.0
 github.com/pelletier/go-toml
+# github.com/philhofer/fwd v1.0.0
+github.com/philhofer/fwd
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
@@ -242,6 +307,8 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 github.com/ssor/bom
+# github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2
+github.com/steveyen/gtreap
 # github.com/stretchr/objx v0.2.0
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.4.0
@@ -252,6 +319,8 @@ github.com/stretchr/testify/suite
 # github.com/throttled/throttled v2.2.4+incompatible
 github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
+# github.com/tinylib/msgp v1.1.0
+github.com/tinylib/msgp/msgp
 # github.com/tylerb/graceful v1.2.15
 github.com/tylerb/graceful
 # github.com/uber/jaeger-client-go v2.22.1+incompatible
@@ -286,6 +355,8 @@ github.com/wiggin77/logr/format
 github.com/wiggin77/logr/target
 # github.com/wiggin77/merror v1.0.2
 github.com/wiggin77/merror
+# github.com/willf/bitset v1.1.10
+github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 github.com/xtgo/uuid
 # go.uber.org/atomic v1.5.1

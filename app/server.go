@@ -213,7 +213,11 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
+	searchEngine, err := searchengine.NewBroker(s.Config(), s.Jobs)
+	if err != nil {
+		return nil, err
+	}
+	s.SearchEngine = searchEngine
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -225,8 +229,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
-	err := s.RunOldAppInitialization()
-	if err != nil {
+	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
 	}
 
