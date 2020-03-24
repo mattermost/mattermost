@@ -183,6 +183,7 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
 	s.CreateIndexIfNotExists("idx_teams_delete_at", "Teams", "DeleteAt")
+	s.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
 
 	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
 	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
