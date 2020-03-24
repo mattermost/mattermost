@@ -66,7 +66,6 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 	status.Crashed = false
 	job.healthCheckStatuses.Store(id, status)
 
-	job.healthCheckStatuses.Store(id, status)
 	err := job.env.performHealthCheck(id)
 	if err != nil {
 		mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
@@ -126,9 +125,7 @@ func (job *PluginHealthCheckJob) Cancel() {
 func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
 	if len(failedTimestamps) >= HEALTH_CHECK_RESTART_LIMIT {
 		index := len(failedTimestamps) - HEALTH_CHECK_RESTART_LIMIT
-		t := failedTimestamps[index]
-		elapsed := time.Since(t)
-		if elapsed <= HEALTH_CHECK_DEACTIVATION_WINDOW {
+		if time.Since(failedTimestamps[index]) <= HEALTH_CHECK_DEACTIVATION_WINDOW {
 			return true
 		}
 	}
