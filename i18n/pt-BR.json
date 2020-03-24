@@ -1193,6 +1193,10 @@
     "translation": "Não é possível enviar arquivos. Número incorreto de arquivos especificado."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Não foi possível fazer o upload dos arquivos. ChannelId incorreto: {{.channelId}}"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Arquivo acima das dimensões máximas não pode ser enviado: {{.Filename}}"
   },

@@ -1193,6 +1193,14 @@
     "translation": "ファイルをアップロードできませんでした。指定されたファイル数が正しくありません。"
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "ファイルをアップロードできません。誤ったチャネルID: {{.channelId}}"
+  },
+  {
+    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
+    "translation": "ファイルをアップロードできません。アップロード許可が必要です。"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "最大サイズ以上のファイルはアップロードできません: {{.Filename}}"
   },

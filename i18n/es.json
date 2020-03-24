@@ -1193,6 +1193,14 @@
     "translation": "No se pudo subir los archivos. El número de archivos especificado es incorrecto."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "No se pueden cargar archivos. Id. De canal incorrecto: {{.channelId}}"
+  },
+  {
+    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
+    "translation": "No se pueden cargar archivos. Se requiere permiso de carga."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "No se pudo cargar el archivo que supera las dimensiones máximas: {{.Filename}}"
   },

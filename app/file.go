@@ -441,6 +441,17 @@ func (a *App) UploadFile(data []byte, channelId string, filename string) (*model
 		return nil, appError
 	}
 
+	_, err := a.GetChannel(channelId)
+	if err != nil {
+		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.incorrect_channelId.app_error",
+			map[string]interface{}{"channelId": channelId}, "", http.StatusBadRequest)
+	}
+
+	if !a.SessionHasPermissionToChannel(*a.Session(), channelId, model.PERMISSION_UPLOAD_FILE) {
+		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.user_not_authorize_upload.app_error",
+			nil, "", http.StatusBadRequest)
+	}
+
 	if info.PreviewPath != "" || info.ThumbnailPath != "" {
 		previewPathList := []string{info.PreviewPath}
 		thumbnailPathList := []string{info.ThumbnailPath}

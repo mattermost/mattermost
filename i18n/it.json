@@ -1193,6 +1193,14 @@
     "translation": "Impossibile caricare i file. Specifica numero di file non valido."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Impossibile caricare i file. ID canale errato: {{.channelId}}"
+  },
+  {
+    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
+    "translation": "Impossibile caricare i file. È richiesta l'autorizzazione per il caricamento."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Non è stato possibile caricare il file che supera le dimensioni massime: {{.Filename}}"
   },

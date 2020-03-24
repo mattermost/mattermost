@@ -1193,6 +1193,14 @@
     "translation": "Unable to upload files. Incorrect number of files specified."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload file(s). Incorrect ChannelId: {{.channelId}}"
+  },
+  {
+    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
+    "translation": "Unable to upload file(s). Upload permission required."
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },

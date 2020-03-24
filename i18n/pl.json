@@ -1193,6 +1193,10 @@
     "translation": "Nie można przesłać plików. Podano niepoprawną liczbę plików."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Nie można przesłać pliku (ów). Niepoprawny identyfikator kanału: {{.channelId}}"
+  },
+  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Plik większy od maksymalnego rozmiaru nie został załadowany: {{.Filename}}"
   },
