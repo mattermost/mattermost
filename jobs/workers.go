@@ -23,6 +23,7 @@ type Workers struct {
 	LdapSync                 model.Worker
 	Migrations               model.Worker
 	Plugins                  model.Worker
+	BleveIndexing            model.Worker
 
 	listenerId string
 }
@@ -61,6 +62,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Plugins = pluginsInterface.MakeWorker()
 	}
 
+	if bleveIndexerInterface := srv.BleveIndexer; bleveIndexerInterface != nil {
+		workers.BleveIndexing = bleveIndexerInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -94,6 +99,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Plugins != nil {
 			go workers.Plugins.Run()
+		}
+
+		if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
+			go workers.BleveIndexing.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -179,6 +188,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Plugins != nil {
 		workers.Plugins.Stop()
+	}
+
+	if workers.BleveIndexing != nil {
+		workers.BleveIndexing.Stop()
 	}
 
 	mlog.Info("Stopped workers")

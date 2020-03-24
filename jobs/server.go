@@ -24,6 +24,7 @@ type JobServer struct {
 	LdapSync                ejobs.LdapSyncInterface
 	Migrations              tjobs.MigrationsJobInterface
 	Plugins                 tjobs.PluginsJobInterface
+	BleveIndexer            tjobs.BleveIndexerInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

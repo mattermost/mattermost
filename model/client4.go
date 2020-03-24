@@ -353,6 +353,10 @@ func (c *Client4) GetElasticsearchRoute() string {
 	return "/elasticsearch"
 }
 
+func (c *Client4) GetBleveRoute() string {
+	return fmt.Sprintf("/bleve")
+}
+
 func (c *Client4) GetCommandsRoute() string {
 	return "/commands"
 }
@@ -4068,6 +4072,18 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
 	r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/purge_indexes", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// Bleve Section
+
+// PurgeBleveIndexes immediately deletes all Bleve indexes.
+func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetBleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}

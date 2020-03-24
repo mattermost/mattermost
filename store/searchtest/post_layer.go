@@ -26,7 +26,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for exact phrases in quotes",
 		Fn:   testSearchExactPhraseInQuotes,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should be able to search for email addresses with or without quotes",
@@ -111,7 +111,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support search with wildcards",
 		Fn:   testSupportWildcards,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should not support search with preceding wildcards",
