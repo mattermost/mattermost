@@ -98,7 +98,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:oct-18-2019
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -111,7 +111,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:oct-18-2019
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -192,7 +192,7 @@ jobs:
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
       - run:
@@ -265,7 +265,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -301,7 +301,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
