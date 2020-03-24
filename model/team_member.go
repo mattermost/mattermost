@@ -9,7 +9,13 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+const (
+	USERNAME = "Username"
+)
+
 
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
@@ -45,10 +51,14 @@ type EmailInviteWithError struct {
 }
 
 type TeamMembersGetOptions struct {
-	// Sorting option
+	// Sorting options: Username
 	Sort string
-	// if true, then Users.DeleteAt == 0
+
+	// If true, exclude team members whose corresponding user is deleted.
 	ExcludeDeletedUsers bool
+
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *model.ViewUsersRestrictions
 }
 
 func (o *TeamMember) ToJson() string {

@@ -369,12 +369,14 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
-	sort := r.URL.Query().Get("sort")
-	excludeDeletedUsers := r.URL.Query().Get("exclude_deleted_users")
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
 	}
+
+	sort := r.URL.Query().Get("sort")
+	excludeDeletedUsers := r.URL.Query().Get("exclude_deleted_users")
+	excludeDeletedUsersBool, _ := strconv.ParseBool(excludeDeletedUsers)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -387,10 +389,10 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	excludeDeletedUsersBool, _ := strconv.ParseBool(excludeDeletedUsers)
 	teamMembersGetOptions := &model.TeamMembersGetOptions{
 		Sort:                sort,
 		ExcludeDeletedUsers: excludeDeletedUsersBool,
+		ViewRestrictions: 	 restrictions,
 	}
 
 	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions, teamMembersGetOptions)

@@ -686,8 +686,12 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
+	if teamMembersGetOptions == nil || teamMembersGetOptions.Sort == "" {
+		query = query.OrderBy("UserId")
+	}
+
 	if teamMembersGetOptions != nil {
-		if teamMembersGetOptions.Sort == "Username" || teamMembersGetOptions.ExcludeDeletedUsers {
+		if teamMembersGetOptions.Sort == model.USERNAME || teamMembersGetOptions.ExcludeDeletedUsers {
 			query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
 		}
 
@@ -695,16 +699,12 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 			query = query.Where(sq.Eq{"Users.DeleteAt": 0})
 		}
 
-		if teamMembersGetOptions.Sort == "Username" {
-			query = query.OrderBy("Username")
-		} else {
-			query = query.OrderBy("UserId")
+		if teamMembersGetOptions.Sort == model.USERNAME {
+			query = query.OrderBy(model.USERNAME)
 		}
-	} else {
-		query = query.OrderBy("UserId")
 	}
 
-	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
