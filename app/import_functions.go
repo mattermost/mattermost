@@ -721,7 +721,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			UserId:      user.Id,
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),
-			SchemeAdmin: team.Email == user.Email,
+			SchemeAdmin: team.Email == user.Email && !user.IsGuest(),
 		}
 		if !user.IsGuest() {
 			var userShouldBeAdmin bool
@@ -761,18 +761,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 	}
 
-	for _, member := range newMembers {
-		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
-				return err
-			}
-		}
-
-		a.UpdateTeamMemberSchemeRoles(member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
-	}
-
-	// TODO: Remove the loop duplication
-	for _, member := range oldMembers {
+	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
 			if _, err = a.UpdateTeamMemberRoles(member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
 				return err
@@ -925,18 +914,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 	}
 
-	for _, member := range newMembers {
-		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
-			if _, err = a.UpdateChannelMemberRoles(member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
-				return err
-			}
-		}
-
-		a.UpdateChannelMemberSchemeRoles(member.ChannelId, user.Id, isGuestByChannelId[member.ChannelId], isUserByChannelId[member.ChannelId], isAdminByChannelId[member.ChannelId])
-	}
-
-	// TODO: Remove the loop duplication
-	for _, member := range oldMembers {
+	for _, member := range append(newMembers, oldMembers...) {
 		if member.ExplicitRoles != rolesByChannelId[member.ChannelId] {
 			if _, err = a.UpdateChannelMemberRoles(member.ChannelId, user.Id, rolesByChannelId[member.ChannelId]); err != nil {
 				return err
