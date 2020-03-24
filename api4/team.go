@@ -479,7 +479,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("addTeamMember", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("member", member) // output all member fields (no need for audit.NewXXX)
+	auditRec.AddMeta("member", member)
 
 	if member.UserId == c.App.Session().UserId {
 		var team *model.Team
@@ -571,7 +571,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec.Success()
 	if member != nil {
-		auditRec.AddMeta("member", member) // output all member fields (no need for audit.NewXXX)
+		auditRec.AddMeta("member", member)
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -806,7 +806,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("member", teamMember) // output all member fields; no need for audit.NewXXX.
+	auditRec.AddMeta("member", teamMember)
 
 	ReturnStatusOK(w)
 }
@@ -839,7 +839,7 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("member", teamMember) // output all member fields (no need for audit.NewXXX)
+	auditRec.AddMeta("member", teamMember)
 
 	ReturnStatusOK(w)
 }
