@@ -117,7 +117,7 @@ func init() {
 	RootCmd.AddCommand(GroupCmd)
 }
 
-func channelGroupEnableCmdF(command *cobra.Command, args []string) (cmdError error) {
+func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -142,20 +142,19 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) (cmdError err
 		return errors.New("Channel '" + args[0] + "' has no groups associated. It cannot be group-constrained")
 	}
 
-	auditRec := a.MakeAuditRecord("channelGroupEnable", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("channel", channel)
-
 	channel.GroupConstrained = model.NewBool(true)
 	if _, appErr = a.UpdateChannel(channel); appErr != nil {
 		return appErr
 	}
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("channelGroupEnable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
 
-func channelGroupDisableCmdF(command *cobra.Command, args []string) (cmdError error) {
+func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -167,15 +166,14 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) (cmdError er
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	auditRec := a.MakeAuditRecord("channelGroupDisable", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("channel", channel)
-
 	channel.GroupConstrained = model.NewBool(false)
 	if _, appErr := a.UpdateChannel(channel); appErr != nil {
 		return appErr
 	}
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("channelGroupDisable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -225,7 +223,7 @@ func channelGroupListCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func teamGroupEnableCmdF(command *cobra.Command, args []string) (cmdError error) {
+func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -246,20 +244,19 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) (cmdError error)
 		return errors.New("Team '" + args[0] + "' has no groups associated. It cannot be group-constrained")
 	}
 
-	auditRec := a.MakeAuditRecord("teamGroupEnable", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", team)
-
 	team.GroupConstrained = model.NewBool(true)
 	if _, appErr = a.UpdateTeam(team); appErr != nil {
 		return appErr
 	}
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("teamGroupEnable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
 
-func teamGroupDisableCmdF(command *cobra.Command, args []string) (cmdError error) {
+func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -271,15 +268,14 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) (cmdError error
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	auditRec := a.MakeAuditRecord("teamGroupDisable", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", team)
-
 	team.GroupConstrained = model.NewBool(false)
 	if _, appErr := a.UpdateTeam(team); appErr != nil {
 		return appErr
 	}
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("teamGroupDisable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

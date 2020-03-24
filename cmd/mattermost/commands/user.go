@@ -333,7 +333,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func userCreateCmdF(command *cobra.Command, args []string) (cmdError error) {
+func userCreateCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -374,11 +374,6 @@ func userCreateCmdF(command *cobra.Command, args []string) (cmdError error) {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
-	auditRec := a.MakeAuditRecord("userCreate", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", ruser)
-	auditRec.AddMeta("system_admin", systemAdmin)
-
 	if systemAdmin {
 		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
@@ -400,13 +395,16 @@ func userCreateCmdF(command *cobra.Command, args []string) (cmdError error) {
 	CommandPrettyPrintln("email: " + ruser.Email)
 	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("userCreate", audit.Success)
+	auditRec.AddMeta("user", ruser)
+	auditRec.AddMeta("system_admin", systemAdmin)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
 func usersToBots(args []string, a *app.App) {
 	users := getUsersFromUserArgs(a, args)
-	var usersOk []*model.User
 	for i, user := range users {
 		if user == nil {
 			CommandPrintErrorln(fmt.Errorf("Unable to find user \"%s\"", args[i]))
@@ -420,12 +418,11 @@ func usersToBots(args []string, a *app.App) {
 		}
 
 		CommandPrettyPrintln(fmt.Sprintf("User %s is converted to bot successfully", bot.UserId))
-		usersOk = append(usersOk, user)
-	}
-	auditRec := a.MakeAuditRecord("usersToBot", audit.Success)
-	auditRec.AddMeta("users", usersOk)
-	a.LogAuditRec(auditRec, nil)
 
+		auditRec := a.MakeAuditRecord("userToBot", audit.Success)
+		auditRec.AddMeta("user", user)
+		a.LogAuditRec(auditRec, nil)
+	}
 }
 
 func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
@@ -487,7 +484,7 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 	return user, nil
 }
 
-func botToUser(command *cobra.Command, args []string, a *app.App) (cmdError error) {
+func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	if len(args) != 1 {
 		return errors.New("Expect 1 argument. See help text for more details.")
 	}
@@ -512,15 +509,10 @@ func botToUser(command *cobra.Command, args []string, a *app.App) (cmdError erro
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord("botToUser", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("bot", user)
-
 	user, appErr = a.UpdateUser(user, false)
 	if appErr != nil {
 		return fmt.Errorf("Unable to update user. Error: %s" + appErr.Error())
 	}
-	auditRec.AddMeta("user", user)
 
 	appErr = a.UpdatePassword(user, password)
 	if appErr != nil {
@@ -550,7 +542,12 @@ func botToUser(command *cobra.Command, args []string, a *app.App) (cmdError erro
 	CommandPrettyPrintln("last_name: " + user.LastName)
 	CommandPrettyPrintln("roles: " + user.Roles)
 	CommandPrettyPrintln("locale: " + user.Locale)
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("botToUser", audit.Success)
+	auditRec.AddMeta("bot", user)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -637,7 +634,7 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 	return nil
 }
 
-func resetUserPasswordCmdF(command *cobra.Command, args []string) (cmdError error) {
+func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -654,19 +651,18 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) (cmdError erro
 	}
 	password := args[1]
 
-	auditRec := a.MakeAuditRecord("resetUserPassword", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", user)
-
 	if err := a.Srv().Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
 		return err
 	}
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("resetUserPassword", audit.Success)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
-func updateUserEmailCmdF(command *cobra.Command, args []string) (cmdError error) {
+func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -692,22 +688,21 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) (cmdError error)
 		return errors.New("Unable to find user '" + args[0] + "'")
 	}
 
-	auditRec := a.MakeAuditRecord("updateUserEmail", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", user)
-	auditRec.AddMeta("email", newEmail)
-
 	user.Email = newEmail
 	_, errUpdate := a.UpdateUser(user, true)
 	if errUpdate != nil {
 		return errors.New(errUpdate.Message)
 	}
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("updateUserEmail", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("email", newEmail)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
-func resetUserMfaCmdF(command *cobra.Command, args []string) (cmdError error) {
+func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -789,7 +784,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteAllUsersCommandF(command *cobra.Command, args []string) (cmdError error) {
+func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -816,16 +811,14 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) (cmdError err
 		}
 	}
 
-	auditRec := a.MakeAuditRecord("deleteAllUsers", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
 	if err := a.PermanentDeleteAllUsers(); err != nil {
 		return err
 	}
-
 	CommandPrettyPrintln("All user accounts successfully deleted.")
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("deleteAllUsers", audit.Success)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -836,7 +829,7 @@ func migrateAuthCmdF(command *cobra.Command, args []string) error {
 	return migrateAuthToLdapCmdF(command, args)
 }
 
-func migrateAuthToLdapCmdF(command *cobra.Command, args []string) (cmdError error) {
+func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -862,27 +855,25 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) (cmdError erro
 	forceFlag, _ := command.Flags().GetBool("force")
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 
-	auditRec := a.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
-	if !dryRunFlag {
-		defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	}
-	auditRec.AddMeta("fromAuth", fromAuth)
-	auditRec.AddMeta("matchField", matchField)
-	auditRec.AddMeta("force", forceFlag)
-
 	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-		auditRec.Success()
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToLdap", audit.Success)
+			auditRec.AddMeta("fromAuth", fromAuth)
+			auditRec.AddMeta("matchField", matchField)
+			auditRec.AddMeta("force", forceFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 
-func migrateAuthToSamlCmdF(command *cobra.Command, args []string) (cmdError error) {
+func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -927,20 +918,19 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) (cmdError erro
 		fromAuth = ""
 	}
 
-	auditRec := a.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
-	if !dryRunFlag {
-		defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	}
-
 	if migrate := a.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToSaml(fromAuth, matches, autoFlag, dryRunFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-		auditRec.Success()
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToSaml", audit.Success)
+			auditRec.AddMeta("auto", autoFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 

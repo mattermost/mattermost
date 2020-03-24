@@ -135,9 +135,19 @@ func (u auditUser) IsNil() bool {
 }
 
 type auditCommand struct {
-	ID      string
-	Trigger string
-	TeamID  string
+	ID               string
+	CreatorID        string
+	TeamID           string
+	Trigger          string
+	Method           string
+	Username         string
+	IconURL          string
+	AutoComplete     bool
+	AutoCompleteDesc string
+	AutoCompleteHint string
+	DisplayName      string
+	Description      string
+	URL              string
 }
 
 // newAuditCommand creates a simplified representation of Command for output to audit log.
@@ -145,16 +155,36 @@ func newAuditCommand(c *Command) auditCommand {
 	var cmd auditCommand
 	if c != nil {
 		cmd.ID = c.Id
-		cmd.Trigger = c.Trigger
+		cmd.CreatorID = c.CreatorId
 		cmd.TeamID = c.TeamId
+		cmd.Trigger = c.Trigger
+		cmd.Method = c.Method
+		cmd.Username = c.Username
+		cmd.IconURL = c.IconURL
+		cmd.AutoComplete = c.AutoComplete
+		cmd.AutoCompleteDesc = c.AutoCompleteDesc
+		cmd.AutoCompleteHint = c.AutoCompleteHint
+		cmd.DisplayName = c.DisplayName
+		cmd.Description = c.Description
+		cmd.URL = c.URL
 	}
 	return cmd
 }
 
 func (cmd auditCommand) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("id", cmd.ID)
-	enc.StringKey("trigger", cmd.Trigger)
+	enc.StringKey("creator_id", cmd.CreatorID)
 	enc.StringKey("team_id", cmd.TeamID)
+	enc.StringKey("trigger", cmd.Trigger)
+	enc.StringKey("method", cmd.Method)
+	enc.StringKey("username", cmd.Username)
+	enc.StringKey("icon_url", cmd.IconURL)
+	enc.BoolKey("auto_complete", cmd.AutoComplete)
+	enc.StringKey("auto_complete_desc", cmd.AutoCompleteDesc)
+	enc.StringKey("auto_complete_hint", cmd.AutoCompleteHint)
+	enc.StringKey("display", cmd.DisplayName)
+	enc.StringKey("desc", cmd.Description)
+	enc.StringKey("url", cmd.URL)
 }
 
 func (cmd auditCommand) IsNil() bool {

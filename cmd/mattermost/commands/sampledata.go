@@ -368,14 +368,13 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		}
 
 		var importErr *model.AppError
-		auditRec := a.MakeAuditRecord("sampleData", audit.Fail)
-		defer func() { a.LogAuditRec(auditRec, importErr) }()
-
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
-		auditRec.Success()
+		auditRec := a.MakeAuditRecord("sampleData", audit.Success)
+		auditRec.AddMeta("file", bulkFile.Name())
+		a.LogAuditRec(auditRec, nil)
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {

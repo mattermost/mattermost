@@ -42,7 +42,7 @@ func init() {
 	RootCmd.AddCommand(RolesCmd)
 }
 
-func makeSystemAdminCmdF(command *cobra.Command, args []string) (cmdError error) {
+func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -52,12 +52,6 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) (cmdError error)
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
-
-	auditRec := a.MakeAuditRecord("makeSystemAdmin", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
-	var usersOk []*model.User
-	defer func() { auditRec.AddMeta("users", usersOk) }()
 
 	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
@@ -85,18 +79,20 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) (cmdError error)
 			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
 		}
 
-		updatedUser, err := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true)
-		if err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-		usersOk = append(usersOk, updatedUser)
-	}
 
-	auditRec.Success()
+		auditRec := a.MakeAuditRecord("makeSystemAdmin", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }
 
-func makeMemberCmdF(command *cobra.Command, args []string) (cmdError error) {
+func makeMemberCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -106,12 +102,6 @@ func makeMemberCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
-
-	auditRec := a.MakeAuditRecord("makeMember", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
-	var usersOk []*model.User
-	defer func() { auditRec.AddMeta("users", usersOk) }()
 
 	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
@@ -138,13 +128,15 @@ func makeMemberCmdF(command *cobra.Command, args []string) (cmdError error) {
 			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
 		}
 
-		updatedUser, err := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true)
-		if err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-		usersOk = append(usersOk, updatedUser)
-	}
 
-	auditRec.Success()
+		auditRec := a.MakeAuditRecord("makeMember", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }

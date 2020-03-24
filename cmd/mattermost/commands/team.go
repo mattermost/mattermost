@@ -139,7 +139,7 @@ func init() {
 	RootCmd.AddCommand(TeamCmd)
 }
 
-func createTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
+func createTeamCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -163,9 +163,6 @@ func createTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		teamType = model.TEAM_INVITE
 	}
 
-	auditRec := a.MakeAuditRecord("createTeam", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
 	team := &model.Team{
 		Name:        name,
 		DisplayName: displayname,
@@ -173,111 +170,91 @@ func createTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		Type:        teamType,
 	}
 
-	if _, err := a.CreateTeam(team); err != nil {
-		return errors.New("Team creation failed: " + err.Error())
+	createdTeam, errCreate := a.CreateTeam(team)
+	if errCreate != nil {
+		return errors.New("Team creation failed: " + errCreate.Error())
 	}
 
-	auditRec.Success()
-	auditRec.AddMeta("team", team)
+	auditRec := a.MakeAuditRecord("createTeam", audit.Success)
+	auditRec.AddMeta("team", createdTeam)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
 
-func removeUsersCmdF(command *cobra.Command, args []string) (cmdError error) {
+func removeUsersCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
 	defer a.Shutdown()
 
-	auditRec := a.MakeAuditRecord("removeUsers", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
-	auditRec.AddMeta("team", team)
-
-	var usersOk, usersErr []*model.User
 
 	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
-		if err := removeUserFromTeam(a, team, user, args[i+1]); err != nil {
-			usersErr = append(usersErr, user)
-		} else {
-			usersOk = append(usersOk, user)
-		}
+		removeUserFromTeam(a, team, user, args[i+1])
 	}
-
-	auditRec.Success()
-	auditRec.AddMeta("users", usersOk)
-	auditRec.AddMeta("errors", usersErr)
 
 	return nil
 }
 
-func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg string) error {
+func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
 		err := fmt.Errorf("Can't find user '%s'", userArg)
 		CommandPrintErrorln(err.Error())
-		return err
+		return
 	}
 	if err := a.LeaveTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
-		return err
+		return
 	}
-	return nil
+
+	auditRec := a.MakeAuditRecord("removeUserFromTeam", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 }
 
-func addUsersCmdF(command *cobra.Command, args []string) (cmdError error) {
+func addUsersCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
 	defer a.Shutdown()
 
-	auditRec := a.MakeAuditRecord("addUsers", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
-	auditRec.AddMeta("team", team)
-
-	var usersOk, usersErr []*model.User
 
 	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
-		if err := addUserToTeam(a, team, user, args[i+1]); err != nil {
-			usersErr = append(usersErr, user)
-		} else {
-			usersOk = append(usersOk, user)
-		}
+		addUserToTeam(a, team, user, args[i+1])
 	}
-
-	auditRec.Success()
-	auditRec.AddMeta("users", usersOk)
-	auditRec.AddMeta("errors", usersErr)
-
 	return nil
 }
 
-func addUserToTeam(a *app.App, team *model.Team, user *model.User, userArg string) error {
+func addUserToTeam(a *app.App, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
-		err := fmt.Errorf("Can't find user '%s'", userArg)
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
-		return err
+		return
 	}
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
-		return err
+		return
 	}
-	return nil
+
+	auditRec := a.MakeAuditRecord("addUserToTeam", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 }
 
-func deleteTeamsCmdF(command *cobra.Command, args []string) (cmdError error) {
+func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -300,11 +277,6 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) (cmdError error) {
 		}
 	}
 
-	auditRec := a.MakeAuditRecord("deleteTeams", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
-	var teamsOk, teamsErr []*model.Team
-
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
@@ -313,17 +285,14 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) (cmdError error) {
 		}
 		if err := deleteTeam(a, team); err != nil {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + err.Error())
-			teamsErr = append(teamsErr, team)
 		} else {
 			CommandPrettyPrintln("Deleted team '" + team.Name + "'")
-			teamsOk = append(teamsOk, team)
+
+			auditRec := a.MakeAuditRecord("deleteTeams", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
-	auditRec.Success()
-	auditRec.AddMeta("users", teamsOk)
-	auditRec.AddMeta("errors", teamsErr)
-
 	return nil
 }
 
@@ -385,17 +354,12 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 }
 
 // Restores archived teams by name
-func restoreTeamsCmdF(command *cobra.Command, args []string) (cmdError error) {
+func restoreTeamsCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
 	defer a.Shutdown()
-
-	auditRec := a.MakeAuditRecord("restoreTeams", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
-	var teamsOk, teamsErr []*model.Team
 
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
@@ -406,16 +370,12 @@ func restoreTeamsCmdF(command *cobra.Command, args []string) (cmdError error) {
 		err := a.RestoreTeam(team.Id)
 		if err != nil {
 			CommandPrintErrorln("Unable to restore team '" + team.Name + "' error: " + err.Error())
-			teamsErr = append(teamsErr, team)
 		} else {
-			teamsOk = append(teamsOk, team)
+			auditRec := a.MakeAuditRecord("restoreTeams", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
-	auditRec.Success()
-	auditRec.AddMeta("teams", teamsOk)
-	auditRec.AddMeta("errors", teamsErr)
-
 	return nil
 }
 
@@ -435,17 +395,12 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 	return result
 }
 
-func archiveTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
+func archiveTeamCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
 	defer a.Shutdown()
-
-	auditRec := a.MakeAuditRecord("archiveTeam", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-
-	var teamsOk, teamsErr []*model.Team
 
 	foundTeams := getTeamsFromTeamArgs(a, args)
 	for i, team := range foundTeams {
@@ -455,20 +410,16 @@ func archiveTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		}
 		if err := a.SoftDeleteTeam(team.Id); err != nil {
 			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
-			teamsErr = append(teamsErr, team)
 		} else {
-			teamsOk = append(teamsOk, team)
+			auditRec := a.MakeAuditRecord("archiveTeam", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
-	auditRec.Success()
-	auditRec.AddMeta("teams", teamsOk)
-	auditRec.AddMeta("errors", teamsErr)
-
 	return nil
 }
 
-func renameTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
+func renameTeamCmdF(command *cobra.Command, args []string) error {
 
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -480,10 +431,6 @@ func renameTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
-
-	auditRec := a.MakeAuditRecord("renameTeam", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", team)
 
 	var newDisplayName, newTeamName string
 
@@ -504,13 +451,15 @@ func renameTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		CommandPrintErrorln("Unable to rename team to '"+newTeamName+"' error: ", errrt)
 	}
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("renameTeam", audit.Success)
+	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("update", updatedTeam)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
 
-func modifyTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
+func modifyTeamCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -529,10 +478,6 @@ func modifyTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		return errors.New("You must specify only one of --public or --private")
 	}
 
-	auditRec := a.MakeAuditRecord("modifyTeam", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", team)
-
 	if public {
 		team.Type = model.TEAM_OPEN
 		team.AllowOpenInvite = true
@@ -545,9 +490,11 @@ func modifyTeamCmdF(command *cobra.Command, args []string) (cmdError error) {
 		return errors.New("Failed to update privacy for team" + args[0])
 	}
 
-	auditRec.Success()
+	auditRec := a.MakeAuditRecord("modifyTeam", audit.Success)
+	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("type", team.Type)
 	auditRec.AddMeta("allow_open_invite", team.AllowOpenInvite)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

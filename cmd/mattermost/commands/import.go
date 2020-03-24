@@ -46,7 +46,7 @@ func init() {
 	RootCmd.AddCommand(ImportCmd)
 }
 
-func slackImportCmdF(command *cobra.Command, args []string) (cmdError error) {
+func slackImportCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -73,11 +73,6 @@ func slackImportCmdF(command *cobra.Command, args []string) (cmdError error) {
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord("slackImport", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("team", team)
-	auditRec.AddMeta("file", args[1])
-
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
 	importErr, log := a.SlackImport(fileReader, fileInfo.Size(), team.Id)
@@ -85,7 +80,6 @@ func slackImportCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if importErr != nil {
 		return err
 	}
-	auditRec.Success()
 
 	CommandPrettyPrintln("")
 	CommandPrintln(log.String())
@@ -93,6 +87,11 @@ func slackImportCmdF(command *cobra.Command, args []string) (cmdError error) {
 
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
+
+	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("file", args[1])
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

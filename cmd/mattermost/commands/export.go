@@ -82,7 +82,7 @@ func init() {
 	RootCmd.AddCommand(ExportCmd)
 }
 
-func scheduleExportCmdF(command *cobra.Command, args []string) (cmdError error) {
+func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -118,12 +118,6 @@ func scheduleExportCmdF(command *cobra.Command, args []string) (cmdError error) 
 		return errors.New("timeoutSeconds must be a positive integer")
 	}
 
-	auditRec := a.MakeAuditRecord("scheduleExport", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("format", format)
-	auditRec.AddMeta("start", startTime)
-	auditRec.AddMeta("timeout", timeoutSeconds)
-
 	if messageExportI := a.MessageExport(); messageExportI != nil {
 		ctx := context.Background()
 		if timeoutSeconds > 0 {
@@ -137,15 +131,19 @@ func scheduleExportCmdF(command *cobra.Command, args []string) (cmdError error) 
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
-			auditRec.Success()
+
+			auditRec := a.MakeAuditRecord("scheduleExport", audit.Success)
+			auditRec.AddMeta("format", format)
+			auditRec.AddMeta("start", startTime)
+			auditRec.AddMeta("timeout", timeoutSeconds)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
-	return func(command *cobra.Command, args []string) (cmdError error) {
+	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
 		if err != nil {
 			return err
@@ -164,23 +162,22 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		auditRec := a.MakeAuditRecord("buildExport", audit.Fail)
-		defer func() { a.LogAuditRec(auditRec, cmdError) }()
-		auditRec.AddMeta("format", format)
-		auditRec.AddMeta("start", startTime)
-
 		err2 := a.MessageExport().RunExport(format, startTime)
 		if err2 != nil {
 			return err2
 		}
 		CommandPrettyPrintln("SUCCESS: Your data was exported.")
-		auditRec.Success()
+
+		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
+		auditRec.AddMeta("format", format)
+		auditRec.AddMeta("start", startTime)
+		a.LogAuditRec(auditRec, nil)
 
 		return nil
 	}
 }
 
-func bulkExportCmdF(command *cobra.Command, args []string) (cmdError error) {
+func bulkExportCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -207,17 +204,16 @@ func bulkExportCmdF(command *cobra.Command, args []string) (cmdError error) {
 	// Name of the directory to export custom emoji
 	dirNameToExportEmoji := "exported_emoji"
 
-	auditRec := a.MakeAuditRecord("bulkExport", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("all_teams", allTeams)
-	auditRec.AddMeta("file", args[0])
-
 	// args[0] points to the filename/filepath passed with export bulk command
 	if err := a.BulkExport(fileWriter, args[0], pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("bulkExport", audit.Success)
+	auditRec.AddMeta("all_teams", allTeams)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

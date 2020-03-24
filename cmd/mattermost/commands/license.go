@@ -29,7 +29,7 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
-func uploadLicenseCmdF(command *cobra.Command, args []string) (cmdError error) {
+func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -39,10 +39,6 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")
 	}
-
-	auditRec := a.MakeAuditRecord("uploadLicense", audit.Fail)
-	defer func() { a.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("file", args[0])
 
 	var fileBytes []byte
 	if fileBytes, err = ioutil.ReadFile(args[0]); err != nil {
@@ -54,7 +50,10 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) (cmdError error) {
 	}
 
 	CommandPrettyPrintln("Uploaded license file")
-	auditRec.Success()
+
+	auditRec := a.MakeAuditRecord("uploadLicense", audit.Success)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

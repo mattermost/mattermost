@@ -149,7 +149,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func createIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError error) {
+func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -187,11 +187,6 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 		ChannelLocked: channelLocked,
 	}
 
-	auditRec := app.MakeAuditRecord("createIncomingWebhook", audit.Fail)
-	defer func() { app.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", user)
-	auditRec.AddMeta("channel", channel)
-
 	createdIncoming, errIncomingWebhook := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook)
 	if errIncomingWebhook != nil {
 		return errIncomingWebhook
@@ -200,8 +195,11 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	CommandPrettyPrintln("Id: " + createdIncoming.Id)
 	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
-	auditRec.Success()
+	auditRec := app.MakeAuditRecord("createIncomingWebhook", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("hook", createdIncoming)
+	app.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -253,9 +251,9 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
 	updatedHook.ChannelLocked = channelLocked
 
-	updatedIncomingHook, err := app.UpdateIncomingWebhook(oldHook, updatedHook)
-	if err != nil {
-		return err
+	updatedIncomingHook, errUpdated := app.UpdateIncomingWebhook(oldHook, updatedHook)
+	if errUpdated != nil {
+		return errUpdated
 	}
 
 	auditRec.Success()
@@ -264,7 +262,7 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	return nil
 }
 
-func createOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError error) {
+func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -330,16 +328,12 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 		IconURL:      iconURL,
 	}
 
-	auditRec := app.MakeAuditRecord("createOutgoingWebhook", audit.Fail)
-	defer func() { app.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("user", user)
-
+	var channel *model.Channel
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
-		channel := getChannelFromChannelArg(app, channelArg)
+		channel = getChannelFromChannelArg(app, channelArg)
 		if channel != nil {
 			outgoingWebhook.ChannelId = channel.Id
-			auditRec.AddMeta("channel", channel)
 		}
 	}
 
@@ -351,13 +345,18 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
 	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 
-	auditRec.Success()
+	auditRec := app.MakeAuditRecord("createOutgoingWebhook", audit.Success)
+	auditRec.AddMeta("user", user)
 	auditRec.AddMeta("hook", createdOutgoing)
+	if channel != nil {
+		auditRec.AddMeta("channel", channel)
+	}
+	app.LogAuditRec(auditRec, nil)
 
 	return nil
 }
 
-func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError error) {
+func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -373,10 +372,6 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	if appErr != nil {
 		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
 	}
-
-	auditRec := app.MakeAuditRecord("modifyOutgoingWebhook", audit.Fail)
-	defer func() { app.LogAuditRec(auditRec, cmdError) }()
-	auditRec.AddMeta("hook", oldHook)
 
 	updatedHook := model.OutgoingWebhookFromJson(strings.NewReader(oldHook.ToJson()))
 
@@ -439,12 +434,14 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	}
 
 	updatedWebhook, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook)
-	if err != nil {
+	if appErr != nil {
 		return appErr
 	}
 
-	auditRec.Success()
+	auditRec := app.MakeAuditRecord("modifyOutgoingWebhook", audit.Success)
+	auditRec.AddMeta("hook", oldHook)
 	auditRec.AddMeta("update", updatedWebhook)
+	app.LogAuditRec(auditRec, nil)
 
 	return nil
 }
