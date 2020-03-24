@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	HEALTH_CHECK_INTERVAL              = 30 * time.Second // How often the health check should run
-	HEALTH_CHECK_DEACTIVATING_DURATION = 60 * time.Minute // How long we wait for num fails to incur before deactivating the plugin
-	HEALTH_CHECK_PING_FAIL_LIMIT       = 3                // How many times we call RPC ping in a row before it is considered a failure
-	HEALTH_CHECK_RESTART_LIMIT         = 3                // How many times we restart a plugin before we deactivate it
+	HEALTH_CHECK_INTERVAL            = 30 * time.Second // How often the health check should run
+	HEALTH_CHECK_DEACTIVATION_WINDOW = 60 * time.Minute // How long we wait for num fails to incur before deactivating the plugin
+	HEALTH_CHECK_PING_FAIL_LIMIT     = 3                // How many times we call RPC ping in a row before it is considered a failure
+	HEALTH_CHECK_RESTART_LIMIT       = 3                // How many times we restart a plugin before we deactivate it
 )
 
 type PluginHealthCheckStatus struct {
@@ -60,7 +60,6 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 	if !ok {
 		statusInterface = &PluginHealthCheckStatus{
 			failTimestamps: []time.Time{},
-			Crashed:        false,
 		}
 	}
 	status := statusInterface.(*PluginHealthCheckStatus)
@@ -122,16 +121,14 @@ func (job *PluginHealthCheckJob) Cancel() {
 	<-job.cancelled
 }
 
-// shouldDeactivatePlugin determines if a plugin needs to be deactivated after certain criteria is met.
-//
-// The criteria is based on if the plugin has consistently failed during the configured number of restarts, within the configured time window.
+// shouldDeactivatePlugin determines if a plugin needs to be deactivated after the plugin has failed (HEALTH_CHECK_RESTART_LIMIT) times,
+// within the configured time window (HEALTH_CHECK_DEACTIVATION_WINDOW).
 func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
 	if len(failedTimestamps) >= HEALTH_CHECK_RESTART_LIMIT {
 		index := len(failedTimestamps) - HEALTH_CHECK_RESTART_LIMIT
 		t := failedTimestamps[index]
-		now := time.Now()
-		elapsed := now.Sub(t)
-		if elapsed <= HEALTH_CHECK_DEACTIVATING_DURATION {
+		elapsed := time.Since(t)
+		if elapsed <= HEALTH_CHECK_DEACTIVATION_WINDOW {
 			return true
 		}
 	}
