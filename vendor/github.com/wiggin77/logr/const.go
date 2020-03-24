@@ -11,6 +11,10 @@ const (
 	// when generating stack traces for logging.
 	DefaultMaxStackFrames = 30
 
+	// MaxLevelID is the maximum value of a level ID. Some level cache implementations will
+	// allocate a cache of this size. Cannot exceed uint.
+	MaxLevelID = 256
+
 	// DefaultEnqueueTimeout is the default amount of time a log record can take to be queued.
 	// This only applies to blocking enqueue which happen after `logr.OnQueueFull` is called
 	// and returns false.

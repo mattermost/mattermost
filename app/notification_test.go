@@ -916,7 +916,9 @@ func TestAllowChannelMentions(t *testing.T) {
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
 		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
 	})
