@@ -572,9 +572,6 @@ func (me *TestHelper) TearDown() {
 		me.App.InvalidateAllCaches()
 	}
 	me.ShutdownApp()
-	if err := recover(); err != nil {
-		panic(err)
-	}
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}

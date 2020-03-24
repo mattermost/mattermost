@@ -139,10 +139,10 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 	return nil
 }
 
-func (a *App) SchemesIterator(batchSize int) func() []*model.Scheme {
+func (a *App) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
 	offset := 0
 	return func() []*model.Scheme {
-		schemes, err := a.Srv().Store.Scheme().GetAllPage("", offset, batchSize)
+		schemes, err := a.Srv().Store.Scheme().GetAllPage(scope, offset, batchSize)
 		if err != nil {
 			return []*model.Scheme{}
 		}

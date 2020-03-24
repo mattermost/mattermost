@@ -1234,6 +1234,10 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
+
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, team.Id, dryRun)
 		if err != nil {
 			return err
@@ -1504,6 +1508,10 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		post.UserId = user.Id
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
 
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, "noteam", dryRun)
 		if err != nil {

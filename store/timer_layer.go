@@ -4764,10 +4764,58 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) Delete(roldId string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.RoleStore.Delete(roldId)
+	resultVar0, resultVar1 := s.RoleStore.AllChannelSchemeRoles()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.AllChannelSchemeRoles", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelHigherScopedPermissions", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RoleStore.ChannelRolesUnderTeamRole", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.RoleStore.Delete(roleId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

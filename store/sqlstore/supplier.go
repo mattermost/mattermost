@@ -64,6 +64,7 @@ const (
 	EXIT_REMOVE_INDEX_SQLITE         = 136
 	EXIT_TABLE_EXISTS_SQLITE         = 137
 	EXIT_DOES_COLUMN_EXISTS_SQLITE   = 138
+	EXIT_ALTER_PRIMARY_KEY           = 139
 )
 
 type SqlSupplierStores struct {
@@ -204,10 +205,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
-	supplier.stores.reaction.(*SqlReactionStore).createIndexesIfNotExists()
-	supplier.stores.role.(*SqlRoleStore).createIndexesIfNotExists()
-	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
+	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return supplier
@@ -752,6 +751,66 @@ func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName s
 		return false
 	}
 
+	return true
+}
+
+func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) bool {
+	var currentPrimaryKey string
+	var err error
+	// get the current primary key as a comma separated list of columns
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query := `
+			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
+		FROM
+			information_schema.statistics
+		WHERE
+			table_schema = DATABASE()
+		AND table_name = ?
+		AND index_name = 'PRIMARY'
+		GROUP BY
+			index_name`
+		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query := `
+			SELECT string_agg(a.attname, ',') AS pk
+		FROM
+			pg_constraint AS c
+		CROSS JOIN LATERAL
+			UNNEST(c.conkey) AS cols(colnum)
+		INNER JOIN
+			pg_attribute AS a ON a.attrelid = c.conrelid
+		AND cols.colnum = a.attnum
+		WHERE
+			c.contype = 'p'
+		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
+		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		// SQLite doesn't support altering primary key
+		return true
+	}
+	if err != nil {
+		mlog.Critical("Failed to get current primary key", mlog.String("table", tableName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_ALTER_PRIMARY_KEY)
+	}
+
+	primaryKey := strings.Join(columnNames, ",")
+	if strings.EqualFold(currentPrimaryKey, primaryKey) {
+		return false
+	}
+	// alter primary key
+	var alterQuery string
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		alterQuery = "ALTER TABLE " + tableName + " DROP PRIMARY KEY, ADD PRIMARY KEY (" + primaryKey + ")"
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		alterQuery = "ALTER TABLE " + tableName + " DROP CONSTRAINT " + strings.ToLower(tableName) + "_pkey, ADD PRIMARY KEY (" + strings.ToLower(primaryKey) + ")"
+	}
+	_, err = ss.GetMaster().ExecNoTimeout(alterQuery)
+	if err != nil {
+		mlog.Critical("Failed to alter primary key", mlog.String("table", tableName), mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_ALTER_PRIMARY_KEY)
+	}
 	return true
 }
 

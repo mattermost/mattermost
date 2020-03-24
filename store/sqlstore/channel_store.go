@@ -413,6 +413,7 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
 	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
+	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version
