@@ -132,7 +132,7 @@ func (env *Environment) IsActive(id string) bool {
 func (env *Environment) GetPluginState(id string) int {
 	rp, ok := env.registeredPlugins.Load(id)
 	if !ok {
-		if env.pluginHealthCheckJob != nil && env.pluginHealthCheckJob.hasPluginCrashed(id) {
+		if env.pluginHealthCheckJob != nil && !env.pluginHealthCheckJob.isPluginHealthy(id) {
 			return model.PluginStateFailedToStayRunning
 		}
 		return model.PluginStateNotRunning

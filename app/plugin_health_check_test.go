@@ -47,15 +47,23 @@ func TestHealthCheckJob(t *testing.T) {
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
+	require.Equal(t, id, bundles[0].Manifest.Id)
 	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))
 
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
+	require.Equal(t, id, bundles[0].Manifest.Id)
 	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))
 
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 0, len(bundles))
 	require.Equal(t, model.PluginStateFailedToStayRunning, env.GetPluginState(id))
+
+	env.Activate(id)
+	job.CheckPlugin(id)
+	bundles = env.Active()
+	require.Equal(t, 1, len(bundles))
+	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))
 }

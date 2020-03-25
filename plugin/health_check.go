@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -18,9 +17,9 @@ const (
 	HEALTH_CHECK_RESTART_LIMIT       = 3                // How many times we restart a plugin before we deactivate it
 )
 
-type PluginHealthCheckStatus struct {
+type pluginHealthCheckStatus struct {
 	failTimestamps []time.Time
-	Crashed        bool
+	healthy        bool
 }
 
 type PluginHealthCheckJob struct {
@@ -56,53 +55,59 @@ func (job *PluginHealthCheckJob) Start() {
 
 // CheckPlugin determines the plugin's health status, then handles the error or success case.
 func (job *PluginHealthCheckJob) CheckPlugin(id string) {
-	statusInterface, ok := job.healthCheckStatuses.Load(id)
-	if !ok {
-		statusInterface = &PluginHealthCheckStatus{
-			failTimestamps: []time.Time{},
-		}
-	}
-	status := statusInterface.(*PluginHealthCheckStatus)
-	status.Crashed = false
-	job.healthCheckStatuses.Store(id, status)
-
 	err := job.env.performHealthCheck(id)
 	if err != nil {
 		mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
-		job.handleHealthCheckFail(id, status)
+		job.handleHealthCheckFail(id)
+		return
 	}
-}
 
-func (job *PluginHealthCheckJob) hasPluginCrashed(id string) bool {
-	statusInterface, ok := job.healthCheckStatuses.Load(id)
-	if !ok {
-		return false
+	// Mark plugin as healthy
+	status := job.ensureHealthStatus(id)
+	if !status.healthy {
+		status.healthy = true
+		job.healthCheckStatuses.Store(id, status)
 	}
-	status := statusInterface.(*PluginHealthCheckStatus)
-	return status.Crashed
 }
 
 // handleHealthCheckFail restarts or deactivates the plugin based on how many times it has failed in a configured amount of time.
-func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, status *PluginHealthCheckStatus) {
-	// Append current failure before checking for deactivate vs restart action
+func (job *PluginHealthCheckJob) handleHealthCheckFail(id string) {
+	status := job.ensureHealthStatus(id)
 	status.failTimestamps = append(status.failTimestamps, time.Now())
-	status.Crashed = false
-	job.healthCheckStatuses.Store(id, status)
 
 	if shouldDeactivatePlugin(status.failTimestamps) {
-		status.failTimestamps = []time.Time{}
-		status.Crashed = true
-
-		job.healthCheckStatuses.Store(id, status)
 		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
-		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
+
+		status.failTimestamps = nil
+		status.healthy = false
 	} else {
 		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
 		if err := job.env.RestartPlugin(id); err != nil {
 			mlog.Error("Failed to restart plugin", mlog.String("id", id), mlog.Err(err))
 		}
+
+		status.failTimestamps = removeStaleTimestamps(status.failTimestamps)
 	}
+
+	job.healthCheckStatuses.Store(id, status)
+}
+
+// isPluginHealthy takes a plugin id and returns the plugin's health state.
+// A false value means the plugin has crashed and has been deactivated. A true value means the plugin is either running, or disabled by config.
+func (job *PluginHealthCheckJob) isPluginHealthy(id string) bool {
+	statusInterface, ok := job.healthCheckStatuses.Load(id)
+	if !ok {
+		return true
+	}
+	return statusInterface.(*pluginHealthCheckStatus).healthy
+}
+
+// ensureHealthStatus takes a plugin id and returns the stored health status.
+// If the health status does not exist, the function creates the health status, stores it, then returns it.
+func (job *PluginHealthCheckJob) ensureHealthStatus(id string) *pluginHealthCheckStatus {
+	statusInterface, _ := job.healthCheckStatuses.LoadOrStore(id, &pluginHealthCheckStatus{healthy: true})
+	return statusInterface.(*pluginHealthCheckStatus)
 }
 
 func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {
@@ -130,4 +135,15 @@ func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
 		}
 	}
 	return false
+}
+
+// removeStaleTimestamps filters out failure timestamps that are before the start of the HEALTH_CHECK_DEACTIVATION_WINDOW
+func removeStaleTimestamps(timestamps []time.Time) []time.Time {
+	result := []time.Time{}
+	for _, t := range timestamps {
+		if time.Since(t) <= HEALTH_CHECK_DEACTIVATION_WINDOW {
+			result = append(result, t)
+		}
+	}
+	return result
 }
