@@ -228,12 +228,6 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 }
 
 func configSetCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Shutdown()
-
 	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
@@ -262,10 +256,14 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to set config")
 	}
 
-	auditRec := a.MakeAuditRecord("configSet", audit.Success)
-	auditRec.AddMeta("setting", configSetting)
-	auditRec.AddMeta("new_value", newVal)
-	a.LogAuditRec(auditRec, nil)
+	a, err := InitDBCommandContextCobra(command)
+	if err == nil {
+		auditRec := a.MakeAuditRecord("configSet", audit.Success)
+		auditRec.AddMeta("setting", configSetting)
+		auditRec.AddMeta("new_value", newVal)
+		a.LogAuditRec(auditRec, nil)
+	}
+	a.Shutdown()
 
 	return nil
 }
@@ -419,14 +417,6 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 }
 
 func configResetCmdF(command *cobra.Command, args []string) error {
-	/*
-		a, err := InitDBCommandContextCobra(command)
-		if err != nil {
-			return err
-		}
-		defer a.Shutdown()
-	*/
-
 	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
@@ -480,10 +470,13 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to set config")
 	}
 
-	/*
+	a, err := InitDBCommandContextCobra(command)
+	if err == nil {
 		auditRec := a.MakeAuditRecord("configReset", audit.Success)
 		a.LogAuditRec(auditRec, nil)
-	*/
+		a.Shutdown()
+	}
+
 	return nil
 }
 
