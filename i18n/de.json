@@ -1193,14 +1193,6 @@
     "translation": "Konnte Dateien nicht hochladen. Falsche Anzahl von Dateien spezifiziert."
   },
   {
-    "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": "Datei (en) können nicht hochgeladen werden. Falsche Kanal-ID: {{.channelId}}"
-  },
-  {
-    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
-    "translation": "Datei (en) können nicht hochgeladen werden. Upload-Berechtigung erforderlich."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Datei über den maximalen Dimensionen konnte nicht hochgeladen werden: {{.Filename}}"
   },

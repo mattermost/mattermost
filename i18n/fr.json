@@ -1193,14 +1193,6 @@
     "translation": "Impossible d'envoyer des fichiers. Le nombre de fichiers spécifié est incorrect."
   },
   {
-    "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": "Impossible de télécharger le (s) fichier (s). Identifiant de canal incorrect: {{.channelId}}"
-  },
-  {
-    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
-    "translation": "Impossible de télécharger le (s) fichier (s). Autorisation de téléchargement requise."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "Le fichier est au-dessus des limites de dimensions, il n'a pas pu être envoyé : {{.Filename}}"
   },

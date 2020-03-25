@@ -1193,14 +1193,6 @@
     "translation": "파일을 업로드 할 수 없습니다. 잘못된 파일 수가 지정되었습니다."
   },
   {
-    "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": "파일을 업로드 할 수 없습니다. 잘못된 ChannelId: {{.channelId}}"
-  },
-  {
-    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
-    "translation": "파일을 업로드 할 수 없습니다. 업로드 권한이 필요합니다."
-  },
-  {
     "id": "api.file.upload_file.large_image.app_error",
     "translation": "최대 크기를 초과하는 파일을 업로드 할 수 없습니다: {{.Filename}}"
   },

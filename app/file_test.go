@@ -90,21 +90,22 @@ func TestUploadFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	session, _ := th.App.CreateSession(
+	session, err := th.App.CreateSession(
 		&model.Session{
 			UserId:   th.BasicUser.Id,
 			CreateAt: model.GetMillis(),
 			Roles:    model.CHANNEL_USER_ROLE_ID,
 			IsOAuth:  false,
 		})
-
+	require.Nil(t, err, "Making sure that session was created successfully.")
 	th.App.SetSession(session)
 
 	channelId := th.BasicChannel.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, _ := th.App.UploadFile(data, model.NewId(), filename)
+	info1, err := th.App.UploadFile(data, model.NewId(), filename)
+	require.Error(t, err, "Wrong Channel ID.")
 	require.Nil(t, info1, "Channel ID does not exist.")
 
 	// remove permission to upload file.
@@ -114,8 +115,7 @@ func TestUploadFile(t *testing.T) {
 
 	//restore permission
 	th.AddPermissionToRole(model.PERMISSION_UPLOAD_FILE.Id, model.CHANNEL_USER_ROLE_ID)
-
-	info1, err := th.App.UploadFile(data, channelId, filename)
+	info1, err = th.App.UploadFile(data, channelId, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
