@@ -262,8 +262,8 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		auditRec.AddMeta("setting", configSetting)
 		auditRec.AddMeta("new_value", newVal)
 		a.LogAuditRec(auditRec, nil)
+		a.Shutdown()
 	}
-	a.Shutdown()
 
 	return nil
 }
