@@ -855,6 +855,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
+		replyData := replyData
 		if err = validateReplyImportData(&replyData, post.CreateAt, a.MaxPostSize()); err != nil {
 			return err
 		}
@@ -871,6 +872,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 	postsForOverwriteList := []*model.Post{}
 
 	for _, replyData := range data {
+		replyData := replyData
 		user := users[*replyData.User]
 
 		// Check if this post already exists.
@@ -1109,6 +1111,10 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
+
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, team.Id, dryRun)
 		if err != nil {
 			return err
@@ -1144,6 +1150,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 	var lastPostWithData *postAndData
 	repliesBulk := []ReplyImportData{}
 	for _, postWithData := range postsWithData {
+		postWithData := postWithData
 		if postWithData.postData.FlaggedBy != nil {
 			var preferences model.Preferences
 
@@ -1167,6 +1174,7 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
+				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
 					return err
 				}
@@ -1204,6 +1212,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	}
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
+		attachment := attachment
 		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
 		if err != nil {
 			return nil, err
@@ -1377,6 +1386,10 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 		post.CreateAt = *postData.CreateAt
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		if postData.Props != nil {
+			post.Props = *postData.Props
+		}
+
 		fileIds, err := a.uploadAttachments(postData.Attachments, post, "noteam", dryRun)
 		if err != nil {
 			return err
@@ -1432,6 +1445,7 @@ func (a *App) importMultipleDirectPosts(data []*DirectPostImportData, dryRun boo
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
+				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
 					return err
 				}
