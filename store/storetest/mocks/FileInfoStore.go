@@ -183,9 +183,9 @@ func (_m *FileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFil
 	return r0, r1
 }
 
-// InvalidateFileInfosForPostCache provides a mock function with given fields: postId
-func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string) {
-	_m.Called(postId)
+// InvalidateFileInfosForPostCache provides a mock function with given fields: postId, deleted
+func (_m *FileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
+	_m.Called(postId, deleted)
 }
 
 // PermanentDelete provides a mock function with given fields: fileId

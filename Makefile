@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -80,9 +80,6 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 
 # Tests
 TESTS=.
-
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
@@ -203,8 +200,10 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
-	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+    # The following commented commands can be used to re-generate the AppIface from the App struct
+	#env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
+	#$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
@@ -234,6 +233,10 @@ plugin-mocks: ## Creates mock files for plugins.
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+
+searchengine-mocks: ## Creates mock files for searchengines.
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -311,6 +314,15 @@ else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: ## Runs only quick tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
+else
+	@echo Running only TE tests
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+endif
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests

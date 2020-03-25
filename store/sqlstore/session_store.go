@@ -20,7 +20,7 @@ type SqlSessionStore struct {
 	SqlStore
 }
 
-func NewSqlSessionStore(sqlStore SqlStore) store.SessionStore {
+func newSqlSessionStore(sqlStore SqlStore) store.SessionStore {
 	us := &SqlSessionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -36,7 +36,7 @@ func NewSqlSessionStore(sqlStore SqlStore) store.SessionStore {
 	return us
 }
 
-func (me SqlSessionStore) CreateIndexesIfNotExists() {
+func (me SqlSessionStore) createIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_user_id", "Sessions", "UserId")
 	me.CreateIndexIfNotExists("idx_sessions_token", "Sessions", "Token")
 	me.CreateIndexIfNotExists("idx_sessions_expires_at", "Sessions", "ExpiresAt")

@@ -44,19 +44,19 @@ func (a *App) clusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 }
 
 func (a *App) clusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(msg.Data)
+	a.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(msg.Data)
 }
 
 func (a *App) clusterInvalidateCacheForChannelByNameHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForChannelByNameSkipClusterSend(msg.Props["id"], msg.Props["name"])
+	a.invalidateCacheForChannelByNameSkipClusterSend(msg.Props["id"], msg.Props["name"])
 }
 
 func (a *App) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForUserSkipClusterSend(msg.Data)
+	a.invalidateCacheForUserSkipClusterSend(msg.Data)
 }
 
 func (a *App) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	a.InvalidateCacheForUserTeamsSkipClusterSend(msg.Data)
+	a.invalidateCacheForUserTeamsSkipClusterSend(msg.Data)
 }
 
 func (a *App) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {

@@ -38,7 +38,7 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
 	require.Empty(t, rpost.FileIds)
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Nil(t, rpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
 	post.ParentId = rpost.Id
@@ -112,10 +112,32 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
-	t.Run("creates a post that has channel mentions without the USE_CHANNEL_MENTIONS Permission", func(t *testing.T) {
+	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		WebSocketClient, err := th.CreateWebSocketClient()
+		WebSocketClient.Listen()
+		require.Nil(t, err)
+
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with no channel mentions"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		// Message with no channel mentions should result in no ephemeral message
+		timeout := time.After(300 * time.Millisecond)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+			case <-timeout:
+				waiting = false
+			}
+		}
 
 		post.RootId = rpost.Id
 		post.ParentId = rpost.Id
@@ -134,6 +156,21 @@ func TestCreatePost(t *testing.T) {
 		post.Message = "a post with @here"
 		_, resp = Client.CreatePost(post)
 		CheckNoError(t, resp)
+
+		timeout = time.After(600 * time.Millisecond)
+		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
+		for eventsToGo > 0 {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+					require.Equal(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.Event)
+					eventsToGo = eventsToGo - 1
+				}
+			case <-timeout:
+				require.Fail(t, "Should have received ephemeral message event and not timedout")
+				eventsToGo = 0
+			}
+		}
 	})
 
 	post.RootId = ""
@@ -537,7 +574,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
 
-			acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER).(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -640,20 +677,20 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
-		rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
+		rpost.AddProp(model.PROPS_ADD_CHANNEL_MEMBER, "no good")
 		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
-		assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, rrupost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, actual.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
-		assert.Nil(t, actual.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, actual.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 	})
 
 	t.Run("join/leave post", func(t *testing.T) {
@@ -811,7 +848,7 @@ func TestPatchPost(t *testing.T) {
 
 		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
-		assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
 		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
@@ -828,13 +865,13 @@ func TestPatchPost(t *testing.T) {
 
 		rpost2, resp := Client.PatchPost(post.Id, patch2)
 		CheckNoError(t, resp)
-		assert.NotEmpty(t, rpost2.Props["attachments"])
+		assert.NotEmpty(t, rpost2.GetProp("attachments"))
 		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body, ")
+		require.EqualError(t, err, ": Invalid or missing post in request body., ")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
