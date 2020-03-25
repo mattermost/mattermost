@@ -96,7 +96,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,

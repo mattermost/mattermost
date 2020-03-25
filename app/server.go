@@ -766,7 +766,7 @@ func doSecurity(s *Server) {
 
 func doDiagnostics(s *Server) {
 	if *s.Config().LogSettings.EnableDiagnostics {
-		s.FakeApp().SendDailyDiagnostics()
+		s.SendDailyDiagnostics()
 	}
 }
 
@@ -1183,4 +1183,69 @@ func (s *Server) setupInviteEmailRateLimiting() error {
 
 	s.EmailRateLimiter = rateLimiter
 	return nil
+}
+
+func (s *Server) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	role, err := s.Store.Role().GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.mergeChannelHigherScopedPermissions([]*model.Role{role})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
+}
+
+func (s *Server) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
+	var higherScopeNamesToQuery []string
+
+	for _, role := range roles {
+		if role.SchemeManaged {
+			higherScopeNamesToQuery = append(higherScopeNamesToQuery, role.Name)
+		}
+	}
+
+	if len(higherScopeNamesToQuery) == 0 {
+		return nil
+	}
+
+	higherScopedPermissionsMap, err := s.Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
+	if err != nil {
+		return err
+	}
+
+	for _, role := range roles {
+		if role.SchemeManaged {
+			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
+				role.MergeChannelHigherScopedPermissions(higherScopedPermissions)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
+	if s.phase2PermissionsMigrationComplete {
+		return nil
+	}
+
+	if _, err := s.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
+	}
+
+	s.phase2PermissionsMigrationComplete = true
+
+	return nil
+}
+
+func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	if err := s.IsPhase2MigrationCompleted(); err != nil {
+		return nil, err
+	}
+
+	return s.Store.Scheme().GetAllPage(scope, offset, limit)
 }

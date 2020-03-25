@@ -14,6 +14,7 @@ import (
 
 	"testing"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -79,7 +80,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,

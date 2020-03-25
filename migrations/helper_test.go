@@ -50,7 +50,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 
 	th := &TestHelper{
-		App:    s.FakeApp(),
+		App:    app.New(app.ServerConnector(s)),
 		Server: s,
 	}
 

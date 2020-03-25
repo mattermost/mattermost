@@ -12040,21 +12040,6 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendDailyDiagnostics() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDailyDiagnostics")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SendDailyDiagnostics()
-}
-
 func (a *OpenTracingAppLayer) SendDeactivateAccountEmail(email string, locale string, siteURL string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDeactivateAccountEmail")
@@ -12075,21 +12060,6 @@ func (a *OpenTracingAppLayer) SendDeactivateAccountEmail(email string, locale st
 	}
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendDiagnostic(event string, properties map[string]interface{}) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDiagnostic")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SendDiagnostic(event, properties)
 }
 
 func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
@@ -12933,23 +12903,6 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file m
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SetupInviteEmailRateLimiting() error {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetupInviteEmailRateLimiting")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SetupInviteEmailRateLimiting()
 
 	return resultVar0
 }

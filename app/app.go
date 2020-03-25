@@ -105,12 +105,16 @@ func (a *App) SetDiagnosticId(id string) {
 	a.Srv().diagnosticId = id
 }
 
-func (a *App) HTMLTemplates() *template.Template {
-	if a.Srv().htmlTemplateWatcher != nil {
-		return a.Srv().htmlTemplateWatcher.Templates()
+func (s *Server) HTMLTemplates() *template.Template {
+	if s.htmlTemplateWatcher != nil {
+		return s.htmlTemplateWatcher.Templates()
 	}
 
 	return nil
+}
+
+func (a *App) HTMLTemplates() *template.Template {
+	return a.Srv().HTMLTemplates()
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {

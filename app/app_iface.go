@@ -803,9 +803,7 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
-	SendDailyDiagnostics()
 	SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError
-	SendDiagnostic(event string, properties map[string]interface{})
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
@@ -856,7 +854,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SetupInviteEmailRateLimiting() error
 	ShutDownPlugins()
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
 	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
