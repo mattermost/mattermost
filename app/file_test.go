@@ -110,7 +110,8 @@ func TestUploadFile(t *testing.T) {
 
 	// remove permission to upload file.
 	th.RemovePermissionFromRole(model.PERMISSION_UPLOAD_FILE.Id, model.CHANNEL_USER_ROLE_ID)
-	info1, _ = th.App.UploadFile(data, channelId, filename)
+	info1, err = th.App.UploadFile(data, channelId, filename)
+	require.Error(t, err, "Making sure that error is returned.")
 	require.Nil(t, info1, "No Permission to upload file for this user.")
 
 	//restore permission
