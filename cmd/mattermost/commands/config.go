@@ -419,11 +419,13 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 }
 
 func configResetCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Shutdown()
+	/*
+		a, err := InitDBCommandContextCobra(command)
+		if err != nil {
+			return err
+		}
+		defer a.Shutdown()
+	*/
 
 	configStore, err := getConfigStore(command)
 	if err != nil {
@@ -478,9 +480,10 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to set config")
 	}
 
-	auditRec := a.MakeAuditRecord("configReset", audit.Success)
-	a.LogAuditRec(auditRec, nil)
-
+	/*
+		auditRec := a.MakeAuditRecord("configReset", audit.Success)
+		a.LogAuditRec(auditRec, nil)
+	*/
 	return nil
 }
 
