@@ -92,6 +92,14 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		assert.Equal(t, "dnd", userStatus.Status)
 	}
 
+	invalidUserIds := []string{"invalid_user_id", "invalid_user_id"}
+	_, resp = Client.GetUsersStatusesByIds(invalidUserIds)
+	CheckBadRequestStatus(t, resp)
+
+	invalidUserIds = []string{th.BasicUser.Id, "invalid_user_id"}
+	_, resp = Client.GetUsersStatusesByIds(invalidUserIds)
+	CheckBadRequestStatus(t, resp)
+
 	Client.Logout()
 
 	_, resp = Client.GetUsersStatusesByIds(usersIds)
