@@ -46,7 +46,7 @@ func (s LocalCacheSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppEr
 func (s LocalCacheSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
 	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.schemeCache, schemeId)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
-
+	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	return s.SchemeStore.Delete(schemeId)
 }
 
