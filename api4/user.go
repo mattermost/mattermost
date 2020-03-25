@@ -2026,7 +2026,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(accessToken.UserId); err == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
 		auditRec.AddMeta("user", user)
 	}
 
@@ -2071,7 +2071,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if user, err := c.App.GetUser(accessToken.UserId); err == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
 		auditRec.AddMeta("user", user)
 	}
 
@@ -2116,7 +2116,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := c.App.GetUser(accessToken.UserId); err == nil {
+	if user, errGet := c.App.GetUser(accessToken.UserId); errGet == nil {
 		auditRec.AddMeta("user", user)
 	}
 
