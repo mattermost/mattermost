@@ -773,7 +773,7 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		OrderBy("ChannelId, DeleteAt, CreateAt " + sort).
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -803,7 +803,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		OrderBy("ChannelId, DeleteAt, CreateAt ASC").
+		OrderBy("ChannelId", "DeleteAt", "CreateAt ASC").
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
