@@ -214,6 +214,8 @@ github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
 # github.com/rs/cors v1.7.0
 github.com/rs/cors
+# github.com/rudderlabs/analytics-go v3.1.0+incompatible
+github.com/rudderlabs/analytics-go
 # github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 github.com/russellhaering/goxmldsig
 github.com/russellhaering/goxmldsig/etreeutils

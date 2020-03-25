@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
@@ -114,6 +115,7 @@ type Server struct {
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
+	rudderClient     rudder.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -871,10 +873,33 @@ func (s *Server) initDiagnostics(endpoint string) {
 	}
 }
 
+func (s *Server) initRudder(endpoint string) {
+	if s.rudderClient == nil {
+		config := rudder.Config{}
+		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
+		config.Endpoint = endpoint
+		// For testing
+		if endpoint != RUDDER_DATAPLANE_URL {
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, _ := rudder.NewWithConfig(RUDDER_KEY, config)
+		client.Enqueue(rudder.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.rudderClient = client
+	}
+}
+
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
 	if s.diagnosticClient != nil {
 		return s.diagnosticClient.Close()
+	}
+
+	if s.rudderClient != nil {
+		return s.rudderClient.Close()
 	}
 
 	return nil
