@@ -37,28 +37,28 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 	adt.OnQueueFull = s.onAuditTargetQueueFull
 	adt.OnError = s.onAuditError
 
-	// For now we only support sending audit records to Syslog via TLS.
+	// Configure target for SysLog via TLS.
 	// See https://www.rsyslog.com/doc/v8-stable/tutorials/tls_cert_summary.html
-	if *s.Config().ExperimentalAuditSettings.Enabled {
-		IP := *s.Config().ExperimentalAuditSettings.IP
+	if *s.Config().ExperimentalAuditSettings.SysLogEnabled {
+		IP := *s.Config().ExperimentalAuditSettings.SysLogIP
 		if IP == "" {
 			IP = "localhost"
 		}
-		port := *s.Config().ExperimentalAuditSettings.Port
+		port := *s.Config().ExperimentalAuditSettings.SysLogPort
 		if port <= 0 {
 			port = 6514
 		}
 		raddr := fmt.Sprintf("%s:%d", IP, port)
-		maxQSize := *s.Config().ExperimentalAuditSettings.MaxQSize
+		maxQSize := *s.Config().ExperimentalAuditSettings.SysLogMaxQueueSize
 		if maxQSize <= 0 {
 			maxQSize = audit.DefMaxQueueSize
 		}
 
 		params := &audit.SyslogParams{
 			Raddr:    raddr,
-			Cert:     *s.Config().ExperimentalAuditSettings.Cert,
-			Tag:      *s.Config().ExperimentalAuditSettings.Tag,
-			Insecure: *s.Config().ExperimentalAuditSettings.Insecure,
+			Cert:     *s.Config().ExperimentalAuditSettings.SysLogCert,
+			Tag:      *s.Config().ExperimentalAuditSettings.SysLogTag,
+			Insecure: *s.Config().ExperimentalAuditSettings.SysLogInsecure,
 		}
 
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
@@ -66,10 +66,38 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		target, err := audit.NewSyslogTLSTarget(filter, formatter, params, maxQSize)
 		if err != nil {
 			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
-			return
+		} else {
+			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddr", raddr))
+			adt.AddTarget(target)
 		}
-		mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddy", raddr))
-		adt.AddTarget(target)
+	}
+
+	// Configure target for rotating file output
+	if *s.Config().ExperimentalAuditSettings.FileEnabled {
+		opts := audit.FileOptions{
+			Filename:   *s.Config().ExperimentalAuditSettings.FileName,
+			MaxSize:    *s.Config().ExperimentalAuditSettings.FileMaxSizeMB,
+			MaxAge:     *s.Config().ExperimentalAuditSettings.FileMaxAgeDays,
+			MaxBackups: *s.Config().ExperimentalAuditSettings.FileMaxBackups,
+			Compress:   *s.Config().ExperimentalAuditSettings.FileCompress,
+		}
+
+		maxQueueSize := *s.Config().ExperimentalAuditSettings.FileMaxQueueSize
+		if maxQueueSize <= 0 {
+			maxQueueSize = audit.DefMaxQueueSize
+		}
+
+		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
+		formatter := adt.MakeJSONFormatter()
+		formatter.DisableTimestamp = false
+		formatter.Indent = "\n"
+		target, err := audit.NewFileTarget(filter, formatter, opts, maxQueueSize)
+		if err != nil {
+			mlog.Error("cannot configure File audit target", mlog.Err(err))
+		} else {
+			mlog.Debug("File audit target created successfully", mlog.String("filename", opts.Filename))
+			adt.AddTarget(target)
+		}
 	}
 }
 

@@ -9,6 +9,32 @@ import (
 	"strings"
 )
 
+var BuiltInSchemeManagedRoleIDs []string
+
+func init() {
+	BuiltInSchemeManagedRoleIDs = []string{
+		SYSTEM_GUEST_ROLE_ID,
+		SYSTEM_USER_ROLE_ID,
+		SYSTEM_ADMIN_ROLE_ID,
+		SYSTEM_POST_ALL_ROLE_ID,
+		SYSTEM_POST_ALL_PUBLIC_ROLE_ID,
+		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
+
+		TEAM_GUEST_ROLE_ID,
+		TEAM_USER_ROLE_ID,
+		TEAM_ADMIN_ROLE_ID,
+		TEAM_POST_ALL_ROLE_ID,
+		TEAM_POST_ALL_PUBLIC_ROLE_ID,
+
+		CHANNEL_GUEST_ROLE_ID,
+		CHANNEL_USER_ROLE_ID,
+		CHANNEL_ADMIN_ROLE_ID,
+	}
+}
+
+type RoleType string
+type RoleScope string
+
 const (
 	SYSTEM_GUEST_ROLE_ID             = "system_guest"
 	SYSTEM_USER_ROLE_ID              = "system_user"
@@ -30,6 +56,14 @@ const (
 	ROLE_NAME_MAX_LENGTH         = 64
 	ROLE_DISPLAY_NAME_MAX_LENGTH = 128
 	ROLE_DESCRIPTION_MAX_LENGTH  = 1024
+
+	RoleScopeSystem  RoleScope = "System"
+	RoleScopeTeam    RoleScope = "Team"
+	RoleScopeChannel RoleScope = "Channel"
+
+	RoleTypeGuest RoleType = "Guest"
+	RoleTypeUser  RoleType = "User"
+	RoleTypeAdmin RoleType = "Admin"
 )
 
 type Role struct {
@@ -47,6 +81,11 @@ type Role struct {
 
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
+}
+
+type RolePermissions struct {
+	RoleID      string
+	Permissions []string
 }
 
 func (r *Role) ToJson() string {
@@ -86,6 +125,45 @@ func (r *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		r.Permissions = *patch.Permissions
 	}
+}
+
+// MergeChannelHigherScopedPermissions is meant to be invoked on a channel scheme's role and merges the higher-scoped
+// channel role's permissions.
+func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *RolePermissions) {
+	mergedPermissions := []string{}
+
+	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
+	rolePermissionsMap := AsStringBoolMap(r.Permissions)
+
+	for _, cp := range ALL_PERMISSIONS {
+		if cp.Scope != PERMISSION_SCOPE_CHANNEL {
+			continue
+		}
+
+		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
+
+		// For the channel admin role always look to the higher scope to determine if the role has ther permission.
+		// The channel admin is a special case because they're not part of the UI to be "channel moderated", only
+		// channel members and channel guests are.
+		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && presentOnHigherScope {
+			mergedPermissions = append(mergedPermissions, cp.Id)
+			continue
+		}
+
+		_, permissionIsModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[cp.Id]
+		if permissionIsModerated {
+			_, presentOnRole := rolePermissionsMap[cp.Id]
+			if presentOnRole && presentOnHigherScope {
+				mergedPermissions = append(mergedPermissions, cp.Id)
+			}
+		} else {
+			if presentOnHigherScope {
+				mergedPermissions = append(mergedPermissions, cp.Id)
+			}
+		}
+	}
+
+	r.Permissions = mergedPermissions
 }
 
 // Returns an array of permissions that are in either role.Permissions
@@ -161,7 +239,7 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 }
 
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
-func (r *Role) GetChannelModeratedPermissions() map[string]bool {
+func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
 		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
@@ -169,8 +247,20 @@ func (r *Role) GetChannelModeratedPermissions() map[string]bool {
 		}
 
 		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+			// the moderated permission has already been found to be true so skip this iteration
+			if moderatedPermissions[moderatedPermissionValue] {
+				continue
+			}
+
 			if moderated == permission {
-				moderatedPermissions[moderatedPermissionValue] = true
+				// Special case where the channel moderated permission for `manage_members` is different depending on whether the channel is private or public
+				if moderated == PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id || moderated == PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id {
+					canManagePublic := channelType == CHANNEL_OPEN && moderated == PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id
+					canManagePrivate := channelType == CHANNEL_PRIVATE && moderated == PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+				} else {
+					moderatedPermissions[moderatedPermissionValue] = true
+				}
 			}
 		}
 	}

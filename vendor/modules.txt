@@ -227,8 +227,6 @@ github.com/sean-/seed
 github.com/segmentio/analytics-go
 # github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c
 github.com/segmentio/backo-go
-# github.com/shinji62/logrus-syslog-ng v0.0.0-20180605090607-3974ebb047a0
-github.com/shinji62/logrus-syslog-ng
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
@@ -282,11 +280,10 @@ github.com/uber/jaeger-lib/metrics
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.3
+# github.com/wiggin77/logr v1.0.4
 github.com/wiggin77/logr
 github.com/wiggin77/logr/format
-# github.com/wiggin77/logrus4logr v1.0.2
-github.com/wiggin77/logrus4logr
+github.com/wiggin77/logr/target
 # github.com/wiggin77/merror v1.0.2
 github.com/wiggin77/merror
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c

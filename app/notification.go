@@ -966,6 +966,13 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			// No need to bother about unicode as we are looking for ASCII characters.
+			last := word[len(word)-1]
+			switch last {
+			// If the word is possibly at the end of a sentence, remove that character.
+			case '.', '-', ':':
+				word = word[:len(word)-1]
+			}
 			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
