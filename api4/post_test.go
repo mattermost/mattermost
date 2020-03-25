@@ -104,7 +104,6 @@ func TestCreatePost(t *testing.T) {
 			})
 		require.Nil(t, err, "Making sure that session was created successfully.")
 		th.App.SetSession(session)
-
 		fileInfo, err := th.App.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
 		require.Nil(t, err)
 		fileId := fileInfo.Id
