@@ -322,9 +322,7 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 			GroupMembers
 			JOIN Users ON Users.Id = GroupMembers.UserId
 		WHERE
-			GroupMembers.DeleteAt = 0
-			AND Users.DeleteAt = 0
-			AND GroupId = :GroupId
+			GroupId = :GroupId
 			AND GroupMembers.UserId NOT IN (
 				SELECT ChannelMembers.UserId
 				FROM ChannelMembers
@@ -338,6 +336,8 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 				WHERE TeamMembers.TeamId = Teams.Id
 				AND TeamMembers.DeleteAt = 0
 			)
+			AND GroupMembers.DeleteAt = 0
+			AND Users.DeleteAt = 0
 		`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "ChannelId": channelID}); err != nil {
