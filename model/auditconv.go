@@ -76,7 +76,7 @@ func (c auditChannel) MarshalJSONObject(enc *gojay.Encoder) {
 	enc.StringKey("type", c.Type)
 }
 
-func (t auditChannel) IsNil() bool {
+func (c auditChannel) IsNil() bool {
 	return false
 }
 
