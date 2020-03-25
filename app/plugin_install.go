@@ -433,6 +433,10 @@ func (a *App) removePlugin(id string) *model.AppError {
 		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
+	// If no canary tag is configured, remove all instances,
+	// including ones installed from servers with a configured canary tag.
+	// Otherwise, if a canary tag is configured, remove the one installed
+	// with the canary tag, and try to re-install one without, if it exists.
 	if canaryTag == "" {
 		a.removeAllPlugins(id)
 	} else {
@@ -485,8 +489,10 @@ func (a *App) removeAllPlugins(id string) {
 		mlog.Error("Can't list directory", mlog.Err(appErr), mlog.String("path", fileStorePluginFolder))
 		return
 	}
+
 	for _, fileStorePath := range fileStorePaths {
-		if strings.Contains(fileStorePath, id) {
+		fileStoreName := filepath.Base(fileStorePath)
+		if strings.HasPrefix(fileStoreName, id+".tar.gz") {
 			if appErr = a.RemoveFile(fileStorePath); appErr != nil {
 				mlog.Error("Can't remove plugin", mlog.Err(appErr), mlog.String("path", fileStorePath))
 			}
