@@ -80,11 +80,15 @@ func (me *ClusterDiscoveryService) Stop() {
 	me.stop <- true
 }
 
-func (a *App) IsLeader() bool {
-	if a.License() != nil && *a.Config().ClusterSettings.Enable && a.Cluster() != nil {
-		return a.Cluster().IsLeader()
+func (s *Server) IsLeader() bool {
+	if s.License() != nil && *s.Config().ClusterSettings.Enable && s.Cluster != nil {
+		return s.Cluster.IsLeader()
 	}
 	return true
+}
+
+func (a *App) IsLeader() bool {
+	return a.Srv().IsLeader()
 }
 
 func (a *App) GetClusterId() string {

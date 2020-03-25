@@ -1096,13 +1096,17 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 }
 
-func (a *App) MaxPostSize() int {
-	maxPostSize := a.Srv().Store.Post().GetMaxPostSize()
+func (s *Server) MaxPostSize() int {
+	maxPostSize := s.Store.Post().GetMaxPostSize()
 	if maxPostSize == 0 {
 		return model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
 	return maxPostSize
+}
+
+func (a *App) MaxPostSize() int {
+	return a.Srv().MaxPostSize()
 }
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the

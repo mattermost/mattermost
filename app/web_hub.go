@@ -121,36 +121,44 @@ func (a *App) HubStart() {
 	}()
 }
 
-func (a *App) HubStop() {
+func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
 	select {
-	case a.Srv().HubsStopCheckingForDeadlock <- true:
+	case s.HubsStopCheckingForDeadlock <- true:
 	default:
 		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
 	}
 
-	for _, hub := range a.Srv().GetHubs() {
+	for _, hub := range s.GetHubs() {
 		hub.Stop()
 	}
 
-	a.Srv().SetHubs([]*Hub{})
+	s.SetHubs([]*Hub{})
 }
 
-func (a *App) GetHubForUserId(userId string) *Hub {
-	if len(a.Srv().GetHubs()) == 0 {
+func (a *App) HubStop() {
+	a.Srv().HubStop()
+}
+
+func (s *Server) GetHubForUserId(userId string) *Hub {
+	if len(s.GetHubs()) == 0 {
 		return nil
 	}
 
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(a.Srv().GetHubs()))
-	hub, err := a.Srv().GetHub(int(index))
+	index := hash.Sum32() % uint32(len(s.GetHubs()))
+	hub, err := s.GetHub(int(index))
 	if err != nil {
 		mlog.Warn("Requested hub doesn't exist", mlog.Int("hub_index", int(index)))
 		return nil
 	}
 	return hub
+}
+
+func (a *App) GetHubForUserId(userId string) *Hub {
+	return a.Srv().GetHubForUserId(userId)
 }
 
 func (a *App) HubRegister(webConn *WebConn) {
@@ -173,14 +181,14 @@ func (a *App) HubUnregister(webConn *WebConn) {
 	}
 }
 
-func (a *App) Publish(message *model.WebSocketEvent) {
-	if metrics := a.Metrics(); metrics != nil {
-		metrics.IncrementWebsocketEvent(message.EventType())
+func (s *Server) Publish(message *model.WebSocketEvent) {
+	if s.Metrics != nil {
+		s.Metrics.IncrementWebsocketEvent(message.EventType())
 	}
 
-	a.PublishSkipClusterSend(message)
+	s.PublishSkipClusterSend(message)
 
-	if a.Cluster() != nil {
+	if s.Cluster != nil {
 		cm := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_PUBLISH,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -195,21 +203,29 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
-		a.Cluster().SendClusterMessage(cm)
+		s.Cluster.SendClusterMessage(cm)
 	}
 }
 
-func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
+func (a *App) Publish(message *model.WebSocketEvent) {
+	a.Srv().Publish(message)
+}
+
+func (s *Server) PublishSkipClusterSend(message *model.WebSocketEvent) {
 	if message.GetBroadcast().UserId != "" {
-		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
+		hub := s.GetHubForUserId(message.GetBroadcast().UserId)
 		if hub != nil {
 			hub.Broadcast(message)
 		}
 	} else {
-		for _, hub := range a.Srv().GetHubs() {
+		for _, hub := range s.GetHubs() {
 			hub.Broadcast(message)
 		}
 	}
+}
+
+func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
+	a.Srv().PublishSkipClusterSend(message)
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {

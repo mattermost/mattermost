@@ -40,15 +40,24 @@ type pluginSignaturePath struct {
 //
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
-func (a *App) GetPluginsEnvironment() *plugin.Environment {
-	if !*a.Config().PluginSettings.Enable {
+func (s *Server) GetPluginsEnvironment() *plugin.Environment {
+	if !*s.Config().PluginSettings.Enable {
 		return nil
 	}
 
-	a.Srv().PluginsLock.RLock()
-	defer a.Srv().PluginsLock.RUnlock()
+	s.PluginsLock.RLock()
+	defer s.PluginsLock.RUnlock()
 
-	return a.Srv().PluginsEnvironment
+	return s.PluginsEnvironment
+}
+
+// GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
+// initialized.
+//
+// To get the plugins environment when the plugins are disabled, manually acquire the plugins
+// lock instead.
+func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	return a.Srv().GetPluginsEnvironment()
 }
 
 func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {

@@ -24,34 +24,34 @@ import (
 // Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
-	s.FakeApp().createPushNotificationsHub()
+	s.createPushNotificationsHub()
 
 	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
-		s.FakeApp().configOrLicenseListener()
+		s.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
-		message.Add("config", s.FakeApp().ClientConfigWithComputed())
+		message.Add("config", s.ClientConfigWithComputed())
 		s.Go(func() {
-			s.FakeApp().Publish(message)
+			s.Publish(message)
 		})
 	})
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.FakeApp().configOrLicenseListener()
+		s.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", s.FakeApp().GetSanitizedClientLicense())
+		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
-			s.FakeApp().Publish(message)
+			s.Publish(message)
 		})
 
 	})
 
-	if err := s.FakeApp().SetupInviteEmailRateLimiting(); err != nil {
+	if err := s.setupInviteEmailRateLimiting(); err != nil {
 		return err
 	}
 
@@ -85,25 +85,25 @@ func (s *Server) RunOldAppInitialization() error {
 	s.Store = s.newStore()
 	s.FakeApp().StartPushNotificationsHubWorkers()
 
-	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
+	if err := s.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := s.FakeApp().ensurePostActionCookieSecret(); err != nil {
+	if err := s.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
-	if err := s.FakeApp().ensureInstallationDate(); err != nil {
+	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
 
 	s.ensureDiagnosticId()
-	s.FakeApp().regenerateClientConfig()
+	s.regenerateClientConfig()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
 		}
 	})
 
@@ -156,7 +156,7 @@ func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().InitPostMetadata()
 
 	s.FakeApp().InitPlugins(*s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-	s.FakeApp().AddConfigListener(func(prevCfg, cfg *model.Config) {
+	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {
 			s.FakeApp().InitPlugins(*cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
@@ -168,10 +168,10 @@ func (s *Server) RunOldAppInitialization() error {
 }
 
 func (s *Server) RunOldAppShutdown() {
-	s.FakeApp().HubStop()
+	s.HubStop()
 	s.FakeApp().StopPushNotificationsHubWorkers()
 	s.FakeApp().ShutDownPlugins()
-	s.FakeApp().RemoveLicenseListener(s.licenseListenerId)
+	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 }
 

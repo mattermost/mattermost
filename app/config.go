@@ -5,25 +5,16 @@ package app
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/md5"
-	"crypto/rand"
-	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -103,168 +94,6 @@ func (a *App) RemoveConfigListener(id string) {
 	a.Srv().RemoveConfigListener(id)
 }
 
-// ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
-// and future calls to PostActionCookieSecret will always return a valid key, same on all
-// servers in the cluster
-func (a *App) ensurePostActionCookieSecret() error {
-	if a.Srv().postActionCookieSecret != nil {
-		return nil
-	}
-
-	var secret *model.SystemPostActionCookieSecret
-
-	value, err := a.Srv().Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-	if err == nil {
-		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
-			return err
-		}
-	}
-
-	// If we don't already have a key, try to generate one.
-	if secret == nil {
-		newSecret := &model.SystemPostActionCookieSecret{
-			Secret: make([]byte, 32),
-		}
-		_, err := rand.Reader.Read(newSecret.Secret)
-		if err != nil {
-			return err
-		}
-
-		system := &model.System{
-			Name: model.SYSTEM_POST_ACTION_COOKIE_SECRET,
-		}
-		v, err := json.Marshal(newSecret)
-		if err != nil {
-			return err
-		}
-		system.Value = string(v)
-		// If we were able to save the key, use it, otherwise log the error.
-		if appErr := a.Srv().Store.System().Save(system); appErr != nil {
-			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(appErr))
-		} else {
-			secret = newSecret
-		}
-	}
-
-	// If we weren't able to save a new key above, another server must have beat us to it. Get the
-	// key from the database, and if that fails, error out.
-	if secret == nil {
-		value, err := a.Srv().Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-		if err != nil {
-			return err
-		}
-
-		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
-			return err
-		}
-	}
-
-	a.Srv().postActionCookieSecret = secret.Secret
-	return nil
-}
-
-// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
-// AsymmetricSigningKey will always return a valid signing key.
-func (a *App) ensureAsymmetricSigningKey() error {
-	if a.Srv().asymmetricSigningKey != nil {
-		return nil
-	}
-
-	var key *model.SystemAsymmetricSigningKey
-
-	value, err := a.Srv().Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-	if err == nil {
-		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
-			return err
-		}
-	}
-
-	// If we don't already have a key, try to generate one.
-	if key == nil {
-		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			return err
-		}
-		newKey := &model.SystemAsymmetricSigningKey{
-			ECDSAKey: &model.SystemECDSAKey{
-				Curve: "P-256",
-				X:     newECDSAKey.X,
-				Y:     newECDSAKey.Y,
-				D:     newECDSAKey.D,
-			},
-		}
-		system := &model.System{
-			Name: model.SYSTEM_ASYMMETRIC_SIGNING_KEY,
-		}
-		v, err := json.Marshal(newKey)
-		if err != nil {
-			return err
-		}
-		system.Value = string(v)
-		// If we were able to save the key, use it, otherwise log the error.
-		if appErr := a.Srv().Store.System().Save(system); appErr != nil {
-			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(appErr))
-		} else {
-			key = newKey
-		}
-	}
-
-	// If we weren't able to save a new key above, another server must have beat us to it. Get the
-	// key from the database, and if that fails, error out.
-	if key == nil {
-		value, err := a.Srv().Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-		if err != nil {
-			return err
-		}
-
-		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
-			return err
-		}
-	}
-
-	var curve elliptic.Curve
-	switch key.ECDSAKey.Curve {
-	case "P-256":
-		curve = elliptic.P256()
-	default:
-		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
-	}
-	a.Srv().asymmetricSigningKey = &ecdsa.PrivateKey{
-		PublicKey: ecdsa.PublicKey{
-			Curve: curve,
-			X:     key.ECDSAKey.X,
-			Y:     key.ECDSAKey.Y,
-		},
-		D: key.ECDSAKey.D,
-	}
-	a.regenerateClientConfig()
-	return nil
-}
-
-func (a *App) ensureInstallationDate() error {
-	_, err := a.getSystemInstallDate()
-	if err == nil {
-		return nil
-	}
-
-	installDate, err := a.Srv().Store.User().InferSystemInstallDate()
-	var installationDate int64
-	if err == nil && installDate > 0 {
-		installationDate = installDate
-	} else {
-		installationDate = utils.MillisFromTime(time.Now())
-	}
-
-	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
-		Value: strconv.FormatInt(installationDate, 10),
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return s.asymmetricSigningKey
@@ -282,32 +111,6 @@ func (a *App) PostActionCookieSecret() []byte {
 	return a.Srv().PostActionCookieSecret()
 }
 
-func (a *App) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
-
-	if clientConfig["EnableCustomTermsOfService"] == "true" {
-		termsOfService, err := a.GetLatestTermsOfService()
-		if err != nil {
-			mlog.Err(err)
-		} else {
-			clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-			limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-		}
-	}
-
-	if key := a.AsymmetricSigningKey(); key != nil {
-		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-	}
-
-	clientConfigJSON, _ := json.Marshal(clientConfig)
-	a.Srv().clientConfig = clientConfig
-	a.Srv().limitedClientConfig = limitedClientConfig
-	a.Srv().clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
-}
-
 func (a *App) GetCookieDomain() string {
 	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
 		if siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL); err == nil {
@@ -322,22 +125,27 @@ func (a *App) GetSiteURL() string {
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
-func (a *App) ClientConfigWithComputed() map[string]string {
+func (s *Server) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range a.ClientConfig() {
+	for k, v := range s.clientConfig {
 		respCfg[k] = v
 	}
 
 	// These properties are not configurable, but nevertheless represent configuration expected
 	// by the client.
-	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
-	respCfg["MaxPostSize"] = strconv.Itoa(a.MaxPostSize())
+	respCfg["NoAccounts"] = strconv.FormatBool(s.IsFirstUserAccount())
+	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
 	respCfg["InstallationDate"] = ""
-	if installationDate, err := a.getSystemInstallDate(); err == nil {
+	if installationDate, err := s.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)
 	}
 
 	return respCfg
+}
+
+// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
+func (a *App) ClientConfigWithComputed() map[string]string {
+	return a.Srv().ClientConfigWithComputed()
 }
 
 // LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.

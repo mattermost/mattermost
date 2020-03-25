@@ -14,9 +14,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
-	"github.com/throttled/throttled/store/memstore"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -37,26 +34,6 @@ func condenseSiteURL(siteURL string) string {
 	}
 
 	return path.Join(parsedSiteURL.Host, parsedSiteURL.Path)
-}
-
-func (a *App) SetupInviteEmailRateLimiting() error {
-	store, err := memstore.New(emailRateLimitingMemstoreSize)
-	if err != nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
-	}
-
-	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
-		MaxBurst: emailRateLimitingMaxBurst,
-	}
-
-	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-	if err != nil || rateLimiter == nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
-	}
-
-	a.Srv().EmailRateLimiter = rateLimiter
-	return nil
 }
 
 func (a *App) sendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {

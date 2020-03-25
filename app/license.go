@@ -146,11 +146,15 @@ func (a *App) SetClientLicense(m map[string]string) {
 	a.Srv().clientLicenseValue.Store(m)
 }
 
-func (a *App) ClientLicense() map[string]string {
-	if clientLicense, _ := a.Srv().clientLicenseValue.Load().(map[string]string); clientLicense != nil {
+func (s *Server) ClientLicense() map[string]string {
+	if clientLicense, _ := s.clientLicenseValue.Load().(map[string]string); clientLicense != nil {
 		return clientLicense
 	}
 	return map[string]string{"IsLicensed": "false"}
+}
+
+func (a *App) ClientLicense() map[string]string {
+	return a.Srv().ClientLicense()
 }
 
 func (a *App) RemoveLicense() *model.AppError {
@@ -194,10 +198,10 @@ func (a *App) RemoveLicenseListener(id string) {
 	delete(a.Srv().licenseListeners, id)
 }
 
-func (a *App) GetSanitizedClientLicense() map[string]string {
+func (s *Server) GetSanitizedClientLicense() map[string]string {
 	sanitizedLicense := make(map[string]string)
 
-	for k, v := range a.ClientLicense() {
+	for k, v := range s.ClientLicense() {
 		sanitizedLicense[k] = v
 	}
 
@@ -212,4 +216,8 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
+}
+
+func (a *App) GetSanitizedClientLicense() map[string]string {
+	return a.Srv().GetSanitizedClientLicense()
 }
