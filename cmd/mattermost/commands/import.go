@@ -154,7 +154,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
 		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
-		auditRec.AddMeta("file", args[1])
+		auditRec.AddMeta("file", args[0])
 		a.LogAuditRec(auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
