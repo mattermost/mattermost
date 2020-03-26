@@ -42,7 +42,7 @@ func TestInstallPluginFromURL(t *testing.T) {
 		_, err := h.InstallPluginFromURL("http://%41:8080/", replace)
 
 		assert.Error(t, err)
-		assert.Equal(t, "error while parsing url: parse http://%41:8080/: invalid URL escape \"%41\"", err.Error())
+		assert.Equal(t, "error while parsing url: parse \"http://%41:8080/\": invalid URL escape \"%41\"", err.Error())
 	})
 
 	t.Run("errors out while downloading file", func(t *testing.T) {
