@@ -37,6 +37,10 @@ type MetricsInterface interface {
 
 	IncrementWebsocketEvent(eventType string)
 	IncrementWebSocketBroadcast(eventType string)
+	IncrementWebSocketBroadcastBufferSize(hub string, amount float64)
+	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
+	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
+	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
@@ -48,4 +52,9 @@ type MetricsInterface interface {
 	IncrementPostIndexCounter()
 	IncrementUserIndexCounter()
 	IncrementChannelIndexCounter()
+
+	ObservePluginHookDuration(pluginID, hookName string, success bool, elapsed float64)
+	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
+	ObservePluginMultiHookDuration(elapsed float64)
+	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
 }

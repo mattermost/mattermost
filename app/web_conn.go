@@ -46,7 +46,7 @@ type WebConn struct {
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
 	if len(session.UserId) > 0 {
-		a.Srv.Go(func() {
+		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
@@ -131,7 +131,7 @@ func (wc *WebConn) readPump() {
 	wc.WebSocket.SetPongHandler(func(string) error {
 		wc.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		if wc.IsAuthenticated() {
-			wc.App.Srv.Go(func() {
+			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
 			})
 		}
@@ -149,7 +149,7 @@ func (wc *WebConn) readPump() {
 			}
 			return
 		}
-		wc.App.Srv.WebSocketRouter.ServeWebSocket(wc, &req)
+		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 	}
 }
 
@@ -230,10 +230,8 @@ func (wc *WebConn) writePump() {
 					return
 				}
 
-				if wc.App.Metrics != nil {
-					wc.App.Srv.Go(func() {
-						wc.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
-					})
+				if wc.App.Metrics() != nil {
+					wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
 				}
 			}
 
@@ -367,7 +365,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if wc.AllChannelMembers == nil {
-			result, err := wc.App.Srv.Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
+			result, err := wc.App.Srv().Store.Channel().GetAllChannelMembersForUser(wc.UserId, true, false)
 			if err != nil {
 				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 				return false

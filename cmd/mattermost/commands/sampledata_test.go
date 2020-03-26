@@ -10,7 +10,7 @@ import (
 )
 
 func TestSampledataBadParameters(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// should fail because you need at least 1 worker

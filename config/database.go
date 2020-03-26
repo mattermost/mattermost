@@ -102,7 +102,7 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
 	// backwards-compatible migration for any existing schema.
-	// Also fix using the wrong encoding initally
+	// Also fix using the wrong encoding initially
 	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
 		if err != nil {
@@ -139,7 +139,7 @@ func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
 	if len(s) != 2 {
-		errors.New("failed to parse DSN as URL")
+		return "", "", errors.New("failed to parse DSN as URL")
 	}
 
 	scheme := s[0]
@@ -273,7 +273,7 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 	}
 
 	var data []byte
-	row := ds.db.QueryRowx(query, args...)
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&data); err != nil {
 		return nil, errors.Wrapf(err, "failed to scan data from row for %s", name)
 	}
@@ -324,8 +324,8 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 		return false, err
 	}
 
-	var count int
-	row := ds.db.QueryRowx(query, args...)
+	var count int64
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&count); err != nil {
 		return false, errors.Wrapf(err, "failed to scan count of rows for %s", name)
 	}

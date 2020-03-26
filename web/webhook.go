@@ -5,6 +5,7 @@ package web
 
 import (
 	"io"
+	"mime"
 	"net/http"
 	"strings"
 
@@ -28,17 +29,21 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	contentType := r.Header.Get("Content-Type")
+	mediaType, _, mimeErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimeErr.Error(), http.StatusBadRequest)
+		return
+	}
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {
 			if c.Err != nil {
-				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId), mlog.String("payload", incomingWebhookPayload.ToJson()))
+				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId()), mlog.String("payload", incomingWebhookPayload.ToJson()))
 			}
 		}
 	}()
 
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
+	if mediaType == "application/x-www-form-urlencoded" {
 		payload := strings.NewReader(r.FormValue("payload"))
 
 		incomingWebhookPayload, err = decodePayload(payload)
@@ -46,7 +51,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	} else if strings.HasPrefix(contentType, "multipart/form-data") {
+	} else if mediaType == "multipart/form-data" {
 		r.ParseMultipartForm(0)
 
 		decoder := schema.NewDecoder()

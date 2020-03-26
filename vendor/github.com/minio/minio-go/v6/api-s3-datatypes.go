@@ -243,3 +243,19 @@ type deleteMultiObjectsResult struct {
 	DeletedObjects   []deletedObject    `xml:"Deleted"`
 	UnDeletedObjects []nonDeletedObject `xml:"Error"`
 }
+
+type tagging struct {
+	XMLName xml.Name `xml:"http://s3.amazonaws.com/doc/2006-03-01/ Tagging"`
+	TagSet  tagSet
+}
+
+type tagSet struct {
+	XMLName xml.Name `xml:"TagSet"`
+	Tags    []tag
+}
+
+type tag struct {
+	XMLName xml.Name `xml:"Tag"`
+	Key     string   `xml:"Key"`
+	Value   string   `xml:"Value"`
+}

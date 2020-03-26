@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,7 +74,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 		ExpireAt: 0,
 	}
 
-	_, err = th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
+	_, err = th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
 	assert.Nil(t, err)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
@@ -190,16 +191,12 @@ func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 }
 
 func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
 	pluginId := "testpluginid"
 
-	defer func() {
-		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
-	}()
-
 	t.Run("storing a value without providing options works", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
 		assert.True(t, result)
 		assert.Nil(t, err)
@@ -211,6 +208,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		err := th.App.SetPluginKey(pluginId, "key", []byte("value-1"))
 		require.Nil(t, err)
 
@@ -228,6 +228,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		err := th.App.SetPluginKey(pluginId, "key", []byte("value-2"))
 		require.Nil(t, err)
 
@@ -245,6 +248,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-2", []byte("value-1"), model.PluginKVSetOptions{})
 		require.Nil(t, err)
@@ -264,6 +270,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		// first set a value.
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-3", []byte("value-1"), model.PluginKVSetOptions{})
 		require.Nil(t, err)
@@ -274,12 +283,21 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 		assert.Nil(t, err)
 		assert.True(t, result)
 
+		// verify a nil value is returned
 		ret, err := th.App.GetPluginKey(pluginId, "nil-test-key-3")
 		assert.Nil(t, err)
 		assert.Nil(t, ret)
+
+		// verify the row is actually gone
+		list, err := th.App.ListPluginKeys(pluginId, 0, 1)
+		assert.Nil(t, err)
+		assert.Empty(t, list)
 	})
 
 	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
 			Atomic:   true,
 			OldValue: nil,
@@ -293,6 +311,9 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
 			ExpireInSeconds: 1,
 		})
@@ -604,6 +625,49 @@ func TestPluginSync(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestPluginPanicLogs(t *testing.T) {
+	t.Run("should panic", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			panic("some text from panic")
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message_",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		assert.Nil(t, err)
+
+		logs := th.LogBuffer.String()
+		assert.True(t, strings.Contains(logs, "some text from panic"))
+	})
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {

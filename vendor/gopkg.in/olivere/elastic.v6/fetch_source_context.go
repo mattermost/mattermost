@@ -78,10 +78,10 @@ func (fsc *FetchSourceContext) Query() url.Values {
 	params := url.Values{}
 	if fsc.fetchSource {
 		if len(fsc.includes) > 0 {
-			params.Add("_source_include", strings.Join(fsc.includes, ","))
+			params.Add("_source_includes", strings.Join(fsc.includes, ","))
 		}
 		if len(fsc.excludes) > 0 {
-			params.Add("_source_exclude", strings.Join(fsc.excludes, ","))
+			params.Add("_source_excludes", strings.Join(fsc.excludes, ","))
 		}
 	} else {
 		params.Add("_source", "false")

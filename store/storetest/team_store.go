@@ -30,6 +30,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, ss) })
+	t.Run("GetByNames", func(t *testing.T) { testTeamStoreGetByNames(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
 	t.Run("SearchPrivate", func(t *testing.T) { testTeamStoreSearchPrivate(t, ss) })
@@ -61,6 +62,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, ss) })
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
 	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
+	t.Run("GroupSyncedTeamCount", func(t *testing.T) { testGroupSyncedTeamCount(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -121,6 +123,59 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 	require.NotNil(t, err, "Missing id should have failed")
 }
 
+func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+
+	_, err := ss.Team().Save(&o1)
+	require.Nil(t, err)
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName2"
+	o2.Name = "z-z-z" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+
+	_, err = ss.Team().Save(&o2)
+	require.Nil(t, err)
+
+	t.Run("Get empty list", func(t *testing.T) {
+		var teams []*model.Team
+		teams, err = ss.Team().GetByNames([]string{})
+		require.Nil(t, err)
+		require.Empty(t, teams)
+	})
+
+	t.Run("Get existing teams", func(t *testing.T) {
+		var teams []*model.Team
+		teams, err = ss.Team().GetByNames([]string{o1.Name, o2.Name})
+		require.Nil(t, err)
+		teamsIds := []string{}
+		for _, team := range teams {
+			teamsIds = append(teamsIds, team.Id)
+		}
+		assert.Contains(t, teamsIds, o1.Id, "invalid returned team")
+		assert.Contains(t, teamsIds, o2.Id, "invalid returned team")
+	})
+
+	t.Run("Get existing team and one invalid team name", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{o1.Name, ""})
+		require.NotNil(t, err)
+	})
+
+	t.Run("Get existing team and not existing team", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{o1.Name, "not-existing-team-name"})
+		require.NotNil(t, err)
+	})
+	t.Run("Get not existing teams", func(t *testing.T) {
+		_, err = ss.Team().GetByNames([]string{"not-existing-team-name", "not-existing-team-name-2"})
+		require.NotNil(t, err)
+	})
+}
+
 func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
@@ -131,12 +186,22 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	team, err := ss.Team().GetByName(o1.Name)
-	require.Nil(t, err)
-	require.Equal(t, *team, o1, "invalid returned team")
+	t.Run("Get existing team", func(t *testing.T) {
+		var team *model.Team
+		team, err = ss.Team().GetByName(o1.Name)
+		require.Nil(t, err)
+		require.Equal(t, *team, o1, "invalid returned team")
+	})
 
-	_, err = ss.Team().GetByName("")
-	require.NotNil(t, err, "Missing id should have failed")
+	t.Run("Get invalid team name", func(t *testing.T) {
+		_, err = ss.Team().GetByName("")
+		require.NotNil(t, err, "Missing id should have failed")
+	})
+
+	t.Run("Get not existing team", func(t *testing.T) {
+		_, err = ss.Team().GetByName("not-existing-team-name")
+		require.NotNil(t, err, "Missing id should have failed")
+	})
 }
 
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
@@ -1336,7 +1401,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 
 	// Create and save some teams.
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1344,7 +1409,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1352,7 +1417,7 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1463,7 +1528,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1471,7 +1536,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	}
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1564,7 +1629,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(0), count1)
 
 	t1 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1578,7 +1643,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1), count2)
 
 	t2 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1592,7 +1657,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count3)
 
 	t3 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1605,7 +1670,7 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(2), count4)
 
 	t4 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "zz" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
@@ -1682,4 +1747,40 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, t1.Id, tmfe1.TeamId)
 	assert.Equal(t, u1.Id, tmfe1.UserId)
 	assert.Equal(t, t1.Name, tmfe1.TeamName)
+}
+
+func testGroupSyncedTeamCount(t *testing.T, ss store.Store) {
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName:      model.NewId(),
+		Name:             "zz" + model.NewId(),
+		Email:            MakeEmail(),
+		Type:             model.TEAM_INVITE,
+		GroupConstrained: model.NewBool(true),
+	})
+	require.Nil(t, err)
+	require.True(t, team1.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team1.Id)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: model.NewId(),
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_INVITE,
+	})
+	require.Nil(t, err)
+	require.False(t, team2.IsGroupConstrained())
+	defer ss.Team().PermanentDelete(team2.Id)
+
+	count, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, count, int64(1))
+
+	team2.GroupConstrained = model.NewBool(true)
+	team2, err = ss.Team().Update(team2)
+	require.Nil(t, err)
+	require.True(t, team2.IsGroupConstrained())
+
+	countAfter, err := ss.Team().GroupSyncedTeamCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, countAfter, count+1)
 }

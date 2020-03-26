@@ -21,6 +21,7 @@ func TestRoleStore(t *testing.T, ss store.Store) {
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, ss) })
+	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, ss) })
 }
 
 func testRoleStoreSave(t *testing.T, ss store.Store) {
@@ -355,4 +356,160 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	roles, err = ss.Role().GetByNames([]string{r1.Name, r2.Name})
 	assert.Nil(t, err)
 	assert.Empty(t, roles)
+}
+
+func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
+	createDefaultRoles(t, ss)
+
+	teamScheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme1, err := ss.Scheme().Save(teamScheme1)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme1.Id)
+
+	teamScheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme2, err = ss.Scheme().Save(teamScheme2)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme2.Id)
+
+	channelScheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme1, err = ss.Scheme().Save(channelScheme1)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme1.Id)
+
+	channelScheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme2, err = ss.Scheme().Save(channelScheme2)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme1.Id)
+
+	team1 := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme1.Id,
+	}
+	team1, err = ss.Team().Save(team1)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team1.Id)
+
+	team2 := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme2.Id,
+	}
+	team2, err = ss.Team().Save(team2)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team2.Id)
+
+	channel1 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme1.Id,
+	}
+	channel1, err = ss.Channel().Save(channel1, -1)
+	require.Nil(t, err)
+	defer ss.Channel().Delete(channel1.Id, 0)
+
+	channel2 := &model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme2.Id,
+	}
+	channel2, err = ss.Channel().Save(channel2, -1)
+	require.Nil(t, err)
+	defer ss.Channel().Delete(channel2.Id, 0)
+
+	t.Run("ChannelRolesUnderTeamRole", func(t *testing.T) {
+		t.Run("guest role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelGuestRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelGuestRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelGuestRole)
+		})
+
+		t.Run("user role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelUserRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelUserRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelUserRole)
+		})
+
+		t.Run("admin role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelAdminRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelAdminRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelAdminRole)
+		})
+	})
+
+	t.Run("AllChannelSchemeRoles", func(t *testing.T) {
+		t.Run("guest role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().AllChannelSchemeRoles()
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			allRoleNames := []string{
+				channelScheme1.DefaultChannelGuestRole,
+				channelScheme2.DefaultChannelGuestRole,
+
+				channelScheme1.DefaultChannelUserRole,
+				channelScheme2.DefaultChannelUserRole,
+
+				channelScheme1.DefaultChannelAdminRole,
+				channelScheme2.DefaultChannelAdminRole,
+			}
+
+			for _, roleName := range allRoleNames {
+				require.Contains(t, actualRoleNames, roleName)
+			}
+		})
+	})
 }

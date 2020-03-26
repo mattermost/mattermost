@@ -30,7 +30,7 @@ func NewPluginAPI(a *App, manifest *model.Manifest) *PluginAPI {
 		id:       manifest.Id,
 		manifest: manifest,
 		app:      a,
-		logger:   a.Log.With(mlog.String("plugin_id", manifest.Id)).Sugar(),
+		logger:   a.Log().With(mlog.String("plugin_id", manifest.Id)).Sugar(),
 	}
 }
 
@@ -292,7 +292,7 @@ func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage 
 }
 
 func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
-	if api.app.Ldap == nil {
+	if api.app.Ldap() == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -308,7 +308,7 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
 		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
-		return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+		return api.app.Ldap().GetUserAttributes(*user.AuthData, attributes)
 	}
 
 	return map[string]string{}, nil
@@ -501,7 +501,7 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId)
+	return api.app.GetPostThread(postId, false)
 }
 
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
@@ -509,19 +509,19 @@ func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsSince(channelId, time)
+	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: time})
 }
 
 func (api *PluginAPI) GetPostsAfter(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(channelId, postId, page, perPage)
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(channelId, postId, page, perPage)
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: postId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(channelId, page, perPage)
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -565,6 +565,10 @@ func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, 
 
 func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfos(page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
@@ -654,7 +658,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.SendNotificationMail(to, subject, htmlBody)
+	return api.app.sendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section

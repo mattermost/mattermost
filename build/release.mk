@@ -90,6 +90,7 @@ endif
 		done; \
 	done
 
+
 	@# ----- PLATFORM SPECIFIC -----
 
 	@# Make osx package
@@ -101,6 +102,7 @@ else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="osx-amd64"; \
@@ -122,6 +124,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost
 	rm -f $(DIST_PATH)/bin/platform
+	rm -f $(DIST_PATH)/bin/mmctl
 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make windows package
@@ -133,6 +136,7 @@ else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
@@ -154,6 +158,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost.exe
 	rm -f $(DIST_PATH)/bin/platform.exe
+	rm -f $(DIST_PATH)/bin/mmctl.exe
 	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make linux package
@@ -165,6 +170,7 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \

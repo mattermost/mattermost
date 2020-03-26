@@ -60,6 +60,17 @@ func (c Client) RemoveBucket(bucketName string) error {
 
 // RemoveObject remove an object from a bucket.
 func (c Client) RemoveObject(bucketName, objectName string) error {
+	return c.RemoveObjectWithOptions(bucketName, objectName, RemoveObjectOptions{})
+}
+
+// RemoveObjectOptions represents options specified by user for PutObject call
+type RemoveObjectOptions struct {
+	GovernanceBypass bool
+	VersionID        string
+}
+
+// RemoveObjectWithOptions removes an object from a bucket.
+func (c Client) RemoveObjectWithOptions(bucketName, objectName string, opts RemoveObjectOptions) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -67,11 +78,29 @@ func (c Client) RemoveObject(bucketName, objectName string) error {
 	if err := s3utils.CheckValidObjectName(objectName); err != nil {
 		return err
 	}
+
+	// Get resources properly escaped and lined up before
+	// using them in http request.
+	urlValues := make(url.Values)
+
+	if opts.VersionID != "" {
+		urlValues.Set("versionId", opts.VersionID)
+	}
+
+	// Build headers.
+	headers := make(http.Header)
+
+	if opts.GovernanceBypass {
+		// Set the bypass goverenance retention header
+		headers.Set("x-amz-bypass-governance-retention", "True")
+	}
 	// Execute DELETE on objectName.
 	resp, err := c.executeMethod(context.Background(), "DELETE", requestMetadata{
 		bucketName:       bucketName,
 		objectName:       objectName,
 		contentSHA256Hex: emptySHA256Hex,
+		queryValues:      urlValues,
+		customHeader:     headers,
 	})
 	defer closeResponse(resp)
 	if err != nil {

@@ -137,11 +137,10 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		}
 
 		// Proceed to upload the part.
-		var objPart ObjectPart
-		objPart, err = c.uploadPart(ctx, bucketName, objectName, uploadID, rd, partNumber,
+		objPart, uerr := c.uploadPart(ctx, bucketName, objectName, uploadID, rd, partNumber,
 			md5Base64, sha256Hex, int64(length), opts.ServerSideEncryption)
-		if err != nil {
-			return totalUploadedSize, err
+		if uerr != nil {
+			return totalUploadedSize, uerr
 		}
 
 		// Save successfully uploaded part metadata.
@@ -294,8 +293,7 @@ func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID
 	objPart.Size = size
 	objPart.PartNumber = partNumber
 	// Trim off the odd double quotes from ETag in the beginning and end.
-	objPart.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	objPart.ETag = strings.TrimSuffix(objPart.ETag, "\"")
+	objPart.ETag = trimEtag(resp.Header.Get("ETag"))
 	return objPart, nil
 }
 

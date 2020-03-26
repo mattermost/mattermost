@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -17,7 +19,14 @@ import (
 // It is documented at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-snapshots.html.
 type SnapshotDeleteService struct {
-	client     *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	repository string
 	snapshot   string
 }
@@ -27,6 +36,46 @@ func NewSnapshotDeleteService(client *Client) *SnapshotDeleteService {
 	return &SnapshotDeleteService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *SnapshotDeleteService) Pretty(pretty bool) *SnapshotDeleteService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *SnapshotDeleteService) Human(human bool) *SnapshotDeleteService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *SnapshotDeleteService) ErrorTrace(errorTrace bool) *SnapshotDeleteService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *SnapshotDeleteService) FilterPath(filterPath ...string) *SnapshotDeleteService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *SnapshotDeleteService) Header(name string, value string) *SnapshotDeleteService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *SnapshotDeleteService) Headers(headers http.Header) *SnapshotDeleteService {
+	s.headers = headers
+	return s
 }
 
 // Repository is the repository name.
@@ -51,7 +100,21 @@ func (s *SnapshotDeleteService) buildURL() (string, url.Values, error) {
 	if err != nil {
 		return "", url.Values{}, err
 	}
-	return path, url.Values{}, nil
+
+	params := url.Values{}
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
+	}
+	return path, params, nil
 }
 
 // Validate checks if the operation is valid.
@@ -84,9 +147,10 @@ func (s *SnapshotDeleteService) Do(ctx context.Context) (*SnapshotDeleteResponse
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "DELETE",
-		Path:   path,
-		Params: params,
+		Method:  "DELETE",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

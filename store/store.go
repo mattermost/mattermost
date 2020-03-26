@@ -6,6 +6,8 @@
 package store
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -56,6 +58,8 @@ type Store interface {
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
 	CheckIntegrity() <-chan IntegrityCheckResult
+	SetContext(context context.Context)
+	Context() context.Context
 }
 
 type TeamStore interface {
@@ -63,6 +67,7 @@ type TeamStore interface {
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
+	GetByNames(name []string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
 	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
@@ -110,6 +115,9 @@ type TeamStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+
+	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
+	GroupSyncedTeamCount() (int64, *model.AppError)
 }
 
 type ChannelStore interface {
@@ -140,7 +148,7 @@ type ChannelStore interface {
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
 	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
-	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
+	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
@@ -198,6 +206,9 @@ type ChannelStore interface {
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
 	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
+
+	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
+	GroupSyncedChannelCount() (int64, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -208,20 +219,22 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
+	SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string) (*model.PostList, *model.AppError)
+	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
+	// @openTracingParams userId, teamId, offset, limit
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
@@ -234,6 +247,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
+	OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
@@ -242,6 +256,7 @@ type PostStore interface {
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
 }
 
 type UserStore interface {
@@ -306,6 +321,7 @@ type UserStore interface {
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
 	DeactivateGuests() ([]string, *model.AppError)
+	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
 }
 
 type BotStore interface {
@@ -488,7 +504,8 @@ type FileInfoStore interface {
 	GetByPath(path string) (*model.FileInfo, *model.AppError)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
 	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
-	InvalidateFileInfosForPostCache(postId string)
+	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	InvalidateFileInfosForPostCache(postId string, deleted bool)
 	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
 	DeleteForPost(postId string) (string, *model.AppError)
 	PermanentDelete(fileId string) *model.AppError
@@ -552,8 +569,19 @@ type RoleStore interface {
 	GetAll() ([]*model.Role, *model.AppError)
 	GetByName(name string) (*model.Role, *model.AppError)
 	GetByNames(names []string) ([]*model.Role, *model.AppError)
-	Delete(roldId string) (*model.Role, *model.AppError)
+	Delete(roleId string) (*model.Role, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+
+	// HigherScopedPermissions retrieves the higher-scoped permissions of a list of role names. The higher-scope
+	// (either team scheme or system scheme) is determined based on whether the team has a scheme or not.
+	ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError)
+
+	// AllChannelSchemeRoles returns all of the roles associated to channel schemes.
+	AllChannelSchemeRoles() ([]*model.Role, *model.AppError)
+
+	// ChannelRolesUnderTeamRole returns all of the non-deleted roles that are affected by updates to the
+	// given role.
+	ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError)
 }
 
 type SchemeStore interface {
@@ -563,6 +591,8 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	Delete(schemeId string) (*model.Scheme, *model.AppError)
 	PermanentDeleteAll() *model.AppError
+	CountByScope(scope string) (int64, *model.AppError)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
 }
 
 type TermsOfServiceStore interface {
@@ -639,6 +669,21 @@ type GroupStore interface {
 	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
 	// the admin role for the given syncable.
 	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+
+	// GroupCount returns the total count of records in the UserGroups table.
+	GroupCount() (int64, *model.AppError)
+
+	// GroupTeamCount returns the total count of records in the GroupTeams table.
+	GroupTeamCount() (int64, *model.AppError)
+
+	// GroupChannelCount returns the total count of records in the GroupChannels table.
+	GroupChannelCount() (int64, *model.AppError)
+
+	// GroupMemberCount returns the total count of records in the GroupMembers table.
+	GroupMemberCount() (int64, *model.AppError)
+
+	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
+	DistinctGroupMemberCount() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {

@@ -88,6 +88,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
+	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -446,6 +447,18 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o2.Name = "bb" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_DIRECT
 
+	o3 := model.Channel{}
+	o3.TeamId = model.NewId()
+	o3.DisplayName = "Deleted channel"
+	o3.Name = "cc" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	_, err = ss.Channel().Save(&o3, -1)
+	require.Nil(t, err)
+	err = ss.Channel().Delete(o3.Id, 123)
+	require.Nil(t, err)
+	o3.DeleteAt = 123
+	o3.UpdateAt = 123
+
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o2.Id
 	m1.UserId = u1.Id
@@ -459,17 +472,30 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id})
-	require.Nil(t, err, err)
-	require.Len(t, r1, 2, "invalid returned channels, exepected 2 and got "+strconv.Itoa(len(r1)))
-	require.Equal(t, o1.ToJson(), r1[0].ToJson())
-	require.Equal(t, o2.ToJson(), r1[1].ToJson())
+	t.Run("Get 2 existing channels", func(t *testing.T) {
+		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
+		require.Nil(t, err, err)
+		require.Len(t, r1, 2, "invalid returned channels, exepected 2 and got "+strconv.Itoa(len(r1)))
+		require.Equal(t, o1.ToJson(), r1[0].ToJson())
+		require.Equal(t, o2.ToJson(), r1[1].ToJson())
+	})
 
-	nonexistentId := "abcd1234"
-	r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId})
-	require.Nil(t, err, err)
-	require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
-	require.Equal(t, o1.ToJson(), r2[0].ToJson(), "invalid returned channel")
+	t.Run("Get 1 existing and 1 not existing channel", func(t *testing.T) {
+		nonexistentId := "abcd1234"
+		r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}, false)
+		require.Nil(t, err, err)
+		require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
+		require.Equal(t, o1.ToJson(), r2[0].ToJson(), "invalid returned channel")
+	})
+
+	t.Run("Get 2 existing and 1 deleted channel", func(t *testing.T) {
+		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id, o3.Id}, true)
+		require.Nil(t, err, err)
+		require.Len(t, r1, 3, "invalid returned channels, exepected 3 and got "+strconv.Itoa(len(r1)))
+		require.Equal(t, o1.ToJson(), r1[0].ToJson())
+		require.Equal(t, o2.ToJson(), r1[1].ToJson())
+		require.Equal(t, o3.ToJson(), r1[2].ToJson())
+	})
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
@@ -4220,4 +4246,38 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
 	assert.Nil(t, err)
 	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
+}
+
+func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
+	channel1, err := ss.Channel().Save(&model.Channel{
+		DisplayName:      model.NewId(),
+		Name:             model.NewId(),
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+	}, 999)
+	require.Nil(t, err)
+	require.True(t, channel1.IsGroupConstrained())
+	defer ss.Channel().PermanentDelete(channel1.Id)
+
+	channel2, err := ss.Channel().Save(&model.Channel{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}, 999)
+	require.Nil(t, err)
+	require.False(t, channel2.IsGroupConstrained())
+	defer ss.Channel().PermanentDelete(channel2.Id)
+
+	count, err := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, count, int64(1))
+
+	channel2.GroupConstrained = model.NewBool(true)
+	channel2, err = ss.Channel().Update(channel2)
+	require.Nil(t, err)
+	require.True(t, channel2.IsGroupConstrained())
+
+	countAfter, err := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, err)
+	require.GreaterOrEqual(t, countAfter, count+1)
 }

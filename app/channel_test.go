@@ -107,6 +107,7 @@ func TestMoveChannel(t *testing.T) {
 	// It should fail, unless removeDeactivatedMembers is true.
 	deacivatedUser := th.CreateUser()
 	channel2 := th.CreateChannel(sourceTeam)
+	defer th.App.PermanentDeleteChannel(channel2)
 
 	_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
 	require.Nil(t, err)
@@ -136,6 +137,7 @@ func TestMoveChannel(t *testing.T) {
 
 	channel3, err = th.App.CreateChannel(channel3, false)
 	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channel3)
 
 	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
 	assert.Nil(t, err)
@@ -146,10 +148,10 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	defer th.TearDown()
 
 	// figure out the initial number of users in town square
-	channel, err := th.App.Srv.Store.Channel().GetByName(th.BasicTeam.Id, "town-square", true)
+	channel, err := th.App.Srv().Store.Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.Nil(t, err)
 	townSquareChannelId := channel.Id
-	users, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	users, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
 	require.Nil(t, err)
 	initialNumTownSquareUsers := len(users)
 
@@ -158,7 +160,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
 	require.Nil(t, err)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
@@ -177,10 +179,10 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	defer th.TearDown()
 
 	// figure out the initial number of users in off-topic
-	channel, err := th.App.Srv.Store.Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
+	channel, err := th.App.Srv().Store.Channel().GetByName(th.BasicTeam.Id, "off-topic", true)
 	require.Nil(t, err)
 	offTopicChannelId := channel.Id
-	users, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
+	users, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
 	require.Nil(t, err)
 	initialNumTownSquareUsers := len(users)
 
@@ -189,7 +191,7 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing
 	th.App.JoinDefaultChannels(th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, offTopicChannelId)
 	require.Nil(t, err)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
@@ -208,6 +210,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(basicChannel2)
 	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
@@ -233,7 +236,7 @@ func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	publicChannel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 1)
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
@@ -248,7 +251,7 @@ func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, privateChannel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, privateChannel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 1)
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
@@ -259,6 +262,7 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	defer th.TearDown()
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	defer th.App.PermanentDeleteChannel(channel)
 	require.Nil(t, err)
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
@@ -291,7 +295,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	channel, err := th.App.CreateGroupChannel(groupUserIds, th.BasicUser.Id)
 
 	require.Nil(t, err, "Failed to create group channel.")
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 3)
 
@@ -316,7 +320,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	channel, err := th.App.GetOrCreateDirectChannel(user1.Id, user2.Id)
 	require.Nil(t, err, "Failed to create direct channel.")
 
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 2)
 
@@ -344,7 +348,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	require.Nil(t, err, "Failed to create direct channel.")
 
 	// there should be a ChannelMemberHistory record for both users
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 2)
 
@@ -379,7 +383,7 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -389,30 +393,6 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
-
-/*func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	// a user creates a channel
-	publicChannel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
-	require.Nil(t, err)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.Nil(t, histories[0].LeaveTime)
-
-	// the user leaves that channel
-	if err := th.App.LeaveChannel(publicChannel.Id, th.BasicUser.Id); err != nil {
-		t.Fatal("Failed to remove user from channel. Error: " + err.Message)
-	}
-	histories = store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)).([]*model.ChannelMemberHistoryResult)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.NotNil(t, histories[0].LeaveTime)
-}*/
 
 func TestLeaveDefaultChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
@@ -477,9 +457,8 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 	// create a user and add it to a channel
 	user := th.CreateUser()
-	if _, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id); err != nil {
-		t.Fatal("Failed to add user to team. Error: " + err.Message)
-	}
+	_, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id)
+	require.Nil(t, err)
 
 	groupUserIds := make([]string, 0)
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
@@ -488,11 +467,11 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	userRequestorId := ""
 	postRootId := ""
-	_, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId)
+	_, err = th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId)
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, err := th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
+	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)
 	require.Nil(t, err)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -502,7 +481,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
+	postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
 	require.Nil(t, err)
 
 	if assert.Len(t, postList.Order, 1) {
@@ -510,7 +489,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 		assert.Equal(t, model.POST_JOIN_CHANNEL, post.Type)
 		assert.Equal(t, user.Id, post.UserId)
-		assert.Equal(t, user.Username, post.Props["username"])
+		assert.Equal(t, user.Username, post.GetProp("username"))
 	}
 }
 
@@ -827,6 +806,36 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.Nil(t, err, "Failed to get the timezones for a channel.")
 
 	assert.Equal(t, 2, len(timezones))
+}
+
+func TestGetChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	channel := &model.Channel{
+		DisplayName: fmt.Sprintf("Public"),
+		Name:        fmt.Sprintf("public"),
+		Type:        model.CHANNEL_OPEN,
+		CreatorId:   th.BasicUser.Id,
+		TeamId:      th.BasicTeam.Id,
+	}
+	th.App.CreateChannel(channel, true)
+	defer th.App.PermanentDeleteChannel(channel)
+	defer th.TearDown()
+
+	channelList, err := th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 4)
+
+	th.App.DeleteChannel(channel, th.BasicUser.Id)
+
+	// Now we get all the non-archived channels for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 3)
+
+	// Now we get all the channels, even though are archived, for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 4)
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
@@ -1291,4 +1300,351 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	// Should allow a bot to be removed from a group synced channel
 	err = th.App.RemoveUserFromChannel(botUser.Id, th.SystemAdminUser.Id, privateChannel)
 	require.Nil(t, err)
+}
+
+func TestPatchChannelModerationsForChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+	channel := th.BasicChannel
+
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
+	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[1]
+	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[2]
+	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[3]
+
+	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
+
+	testCases := []struct {
+		Name                          string
+		ChannelModerationsPatch       []*model.ChannelModerationPatch
+		PermissionsModeratedByPatch   map[string]*model.ChannelModeratedRoles
+		RevertChannelModerationsPatch []*model.ChannelModerationPatch
+		HigherScopedMemberPermissions []string
+		HigherScopedGuestPermissions  []string
+		ShouldError                   bool
+		ShouldHaveNoChannelScheme     bool
+	}{
+		{
+			Name: "Removing create posts from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				createPosts: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing create reactions from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				createReactions: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing channel mentions from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				channelMentions: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing manage members from members role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				manageMembers: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing create posts from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				createPosts: {
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing create reactions from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				createReactions: {
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing channel mentions from guests role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				channelMentions: {
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: true},
+				},
+			},
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(true)},
+				},
+			},
+		},
+		{
+			Name: "Removing manage members from guests role should error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{Guests: model.NewBool(false)},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Removing a permission that is not channel moderated should error",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &nonChannelModeratedPermission,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(false),
+						Guests:  model.NewBool(false),
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
+			ShouldError:                 true,
+		},
+		{
+			Name: "Error when adding a permission that is disabled in the parent member role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(false),
+					},
+				},
+			},
+			PermissionsModeratedByPatch:   map[string]*model.ChannelModeratedRoles{},
+			HigherScopedMemberPermissions: []string{},
+			ShouldError:                   true,
+		},
+		{
+			Name: "Error when adding a permission that is disabled in the parent guest role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(false),
+						Guests:  model.NewBool(true),
+					},
+				},
+			},
+			PermissionsModeratedByPatch:  map[string]*model.ChannelModeratedRoles{},
+			HigherScopedGuestPermissions: []string{},
+			ShouldError:                  true,
+		},
+		{
+			Name: "Removing a permission from the member role that is disabled in the parent guest role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(false),
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{
+				createPosts: {
+					Members: &model.ChannelModeratedRole{Value: false, Enabled: true},
+					Guests:  &model.ChannelModeratedRole{Value: false, Enabled: false},
+				},
+				createReactions: {
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
+				},
+				channelMentions: {
+					Guests: &model.ChannelModeratedRole{Value: false, Enabled: false},
+				},
+			},
+			HigherScopedGuestPermissions: []string{},
+			ShouldError:                  false,
+		},
+		{
+			Name: "Channel should have no scheme when all moderated permissions are equivalent to higher scoped role",
+			ChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name: &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
+					},
+				},
+				{
+					Name: &createReactions,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
+					},
+				},
+				{
+					Name: &channelMentions,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+						Guests:  model.NewBool(true),
+					},
+				},
+				{
+					Name: &manageMembers,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewBool(true),
+					},
+				},
+			},
+			PermissionsModeratedByPatch: map[string]*model.ChannelModeratedRoles{},
+			ShouldHaveNoChannelScheme:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			higherScopedPermissionsOverriden := tc.HigherScopedMemberPermissions != nil || tc.HigherScopedGuestPermissions != nil
+			// If the test case restricts higher scoped permissions.
+			if higherScopedPermissionsOverriden {
+				higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+				if tc.HigherScopedMemberPermissions != nil {
+					higherScopedMemberRole, err := th.App.GetRoleByName(higherScopedMemberRoleName)
+					require.Nil(t, err)
+					originalPermissions := higherScopedMemberRole.Permissions
+
+					th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &tc.HigherScopedMemberPermissions})
+					defer th.App.PatchRole(higherScopedMemberRole, &model.RolePatch{Permissions: &originalPermissions})
+				}
+
+				if tc.HigherScopedGuestPermissions != nil {
+					higherScopedGuestRole, err := th.App.GetRoleByName(higherScopedGuestRoleName)
+					require.Nil(t, err)
+					originalPermissions := higherScopedGuestRole.Permissions
+
+					th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &tc.HigherScopedGuestPermissions})
+					defer th.App.PatchRole(higherScopedGuestRole, &model.RolePatch{Permissions: &originalPermissions})
+				}
+			}
+
+			moderations, err := th.App.PatchChannelModerationsForChannel(channel, tc.ChannelModerationsPatch)
+			if tc.ShouldError {
+				require.Error(t, err)
+				return
+			}
+			require.Nil(t, err)
+
+			updatedChannel, _ := th.App.GetChannel(channel.Id)
+			if tc.ShouldHaveNoChannelScheme {
+				require.Nil(t, updatedChannel.SchemeId)
+			} else {
+				require.NotNil(t, updatedChannel.SchemeId)
+			}
+
+			for _, moderation := range moderations {
+				// If the permission is not found in the expected modified permissions table then require it to be true
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Members != nil {
+					require.Equal(t, moderation.Roles.Members.Value, permission.Members.Value)
+					require.Equal(t, moderation.Roles.Members.Enabled, permission.Members.Enabled)
+				} else {
+					require.Equal(t, moderation.Roles.Members.Value, true)
+					require.Equal(t, moderation.Roles.Members.Enabled, true)
+				}
+
+				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
+					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
+					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
+				} else if moderation.Name == manageMembers {
+					require.Empty(t, moderation.Roles.Guests)
+				} else {
+					require.Equal(t, moderation.Roles.Guests.Value, true)
+					require.Equal(t, moderation.Roles.Guests.Enabled, true)
+				}
+			}
+
+			if tc.RevertChannelModerationsPatch != nil {
+				th.App.PatchChannelModerationsForChannel(channel, tc.RevertChannelModerationsPatch)
+			}
+		})
+	}
 }

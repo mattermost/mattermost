@@ -21,7 +21,7 @@ type SqlStatusStore struct {
 	SqlStore
 }
 
-func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
+func newSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	s := &SqlStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -34,7 +34,7 @@ func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	return s
 }
 
-func (s SqlStatusStore) CreateIndexesIfNotExists() {
+func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_user_id", "Status", "UserId")
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }

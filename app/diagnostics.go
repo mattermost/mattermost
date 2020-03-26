@@ -53,6 +53,8 @@ const (
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
 	TRACK_ELASTICSEARCH             = "elasticsearch"
+	TRACK_GROUPS                    = "groups"
+	TRACK_CHANNEL_MODERATION        = "channel_moderation"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -66,7 +68,7 @@ func (a *App) SendDailyDiagnostics() {
 
 func (a *App) sendDailyDiagnostics(override bool) {
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		a.Srv.initDiagnostics("")
+		a.Srv().initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
 		a.trackLicense()
@@ -74,11 +76,13 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackServer()
 		a.trackPermissions()
 		a.trackElasticsearch()
+		a.trackGroups()
+		a.trackChannelModeration()
 	}
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	a.Srv.diagnosticClient.Enqueue(analytics.Track{
+	a.Srv().diagnosticClient.Enqueue(analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
@@ -135,78 +139,78 @@ func (a *App) trackActivity() {
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
-	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
 	}
 
-	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
 		botAccountsCount = count
 	}
 
-	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+	if iucr, err := a.Srv().Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(false)
+	teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	if ucc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+	if ucc, err := a.Srv().Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+	if pcc, err := a.Srv().Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+	if dcc, err := a.Srv().Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+	if duccr, err := a.Srv().Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+	if dpccr, err := a.Srv().Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
-	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postCountsYesterday, _ := a.Srv().Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	postsCountPreviousDay = 0
 	if len(postCountsYesterday) > 0 {
 		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
 	}
 
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
-	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostCountsYesterday, _ := a.Srv().Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	botPostsCountPreviousDay = 0
 	if len(botPostCountsYesterday) > 0 {
 		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
 	}
 
-	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
+	slashCommandsCount, _ = a.Srv().Store.Command().AnalyticsCommandCount("")
 
-	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := a.Srv().Store.Webhook().AnalyticsIncomingCount(""); err == nil {
 		incomingWebhooksCount = c
 	}
 
-	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
+	outgoingWebhooksCount, _ = a.Srv().Store.Webhook().AnalyticsOutgoingCount("")
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.Err == nil {
@@ -308,6 +312,7 @@ func (a *App) trackConfig() {
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
+		"experimental_channel_sidebar_organization":               *cfg.ServiceSettings.ExperimentalChannelSidebarOrganization,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
@@ -628,25 +633,29 @@ func (a *App) trackConfig() {
 		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
 		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
 		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
-	plugins, appErr := pluginsEnvironment.Available()
-	if appErr != nil {
-		pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
-		pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
-		pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
-		pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
-		pluginConfigData["version_github"] = pluginVersion(plugins, "github")
-		pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
-		pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
-		pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
-		pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
-		pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
-		pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
-		pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+	if pluginsEnvironment != nil {
+		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+		} else {
+			pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
+			pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
+			pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
+			pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
+			pluginConfigData["version_github"] = pluginVersion(plugins, "github")
+			pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
+			pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
+			pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
+			pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
+			pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
+			pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
+			pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
+		}
 	}
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
@@ -783,7 +792,7 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+	if scr, err := a.Srv().Store.User().AnalyticsGetSystemAdminCount(); err == nil {
 		data["system_admins"] = scr
 	}
 
@@ -792,12 +801,12 @@ func (a *App) trackServer() {
 
 func (a *App) trackPermissions() {
 	phase1Complete := false
-	if _, err := a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if _, err := a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
 		phase2Complete = true
 	}
 
@@ -889,7 +898,7 @@ func (a *App) trackPermissions() {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			count, _ := a.Srv.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
+			count, _ := a.Srv().Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
 			a.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
@@ -908,9 +917,117 @@ func (a *App) trackPermissions() {
 func (a *App) trackElasticsearch() {
 	data := map[string]interface{}{}
 
-	if a.Elasticsearch != nil && a.Elasticsearch.GetVersion() != 0 {
-		data["elasticsearch_server_version"] = a.Elasticsearch.GetVersion()
+	for _, engine := range a.SearchEngine().GetActiveEngines() {
+		if engine.GetVersion() != 0 && engine.GetName() == "elasticsearch" {
+			data["elasticsearch_server_version"] = engine.GetVersion()
+		}
 	}
 
 	a.SendDiagnostic(TRACK_ELASTICSEARCH, data)
+}
+
+func (a *App) trackGroups() {
+	groupCount, err := a.Srv().Store.Group().GroupCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupTeamCount, err := a.Srv().Store.Group().GroupTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupChannelCount, err := a.Srv().Store.Group().GroupChannelCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupSyncedTeamCount, err := a.Srv().Store.Team().GroupSyncedTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupSyncedChannelCount, err := a.Srv().Store.Channel().GroupSyncedChannelCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	groupMemberCount, err := a.Srv().Store.Group().GroupMemberCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	distinctGroupMemberCount, err := a.Srv().Store.Group().DistinctGroupMemberCount()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	a.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
+		"group_count":                 groupCount,
+		"group_team_count":            groupTeamCount,
+		"group_channel_count":         groupChannelCount,
+		"group_synced_team_count":     groupSyncedTeamCount,
+		"group_synced_channel_count":  groupSyncedChannelCount,
+		"group_member_count":          groupMemberCount,
+		"distinct_group_member_count": distinctGroupMemberCount,
+	})
+}
+
+func (a *App) trackChannelModeration() {
+	channelSchemeCount, err := a.Srv().Store.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	createPostUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	createPostGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
+	postReactionsUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	postReactionsGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
+	manageMembersUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	useChannelMentionsUser, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	useChannelMentionsGuest, err := a.Srv().Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
+	a.SendDiagnostic(TRACK_CHANNEL_MODERATION, map[string]interface{}{
+		"channel_scheme_count": channelSchemeCount,
+
+		"create_post_user_disabled_count":  createPostUser,
+		"create_post_guest_disabled_count": createPostGuest,
+
+		"post_reactions_user_disabled_count":  postReactionsUser,
+		"post_reactions_guest_disabled_count": postReactionsGuest,
+
+		"manage_members_user_disabled_count": manageMembersUser, // the UI does not allow this to be removed for guests
+
+		"use_channel_mentions_user_disabled_count":  useChannelMentionsUser,
+		"use_channel_mentions_guest_disabled_count": useChannelMentionsGuest,
+	})
 }

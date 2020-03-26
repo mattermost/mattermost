@@ -10,7 +10,7 @@ import (
 )
 
 func TestElasticsearchTest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
@@ -32,7 +32,7 @@ func TestElasticsearchTest(t *testing.T) {
 }
 
 func TestElasticsearchPurgeIndexes(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {

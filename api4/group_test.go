@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -14,7 +15,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -59,7 +60,7 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestPatchGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -125,7 +126,7 @@ func TestPatchGroup(t *testing.T) {
 }
 
 func TestLinkGroupTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -163,7 +164,7 @@ func TestLinkGroupTeam(t *testing.T) {
 }
 
 func TestLinkGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -202,7 +203,7 @@ func TestLinkGroupChannel(t *testing.T) {
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -236,17 +237,20 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	assert.NotNil(t, response.Error)
-
+	time.Sleep(2 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.Client.Logout()
-	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	ok, response := th.Client.Logout()
+	assert.True(t, ok)
+	CheckOKStatus(t, response)
+	_, response = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	CheckOKStatus(t, response)
 
 	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)
 }
 
 func TestUnlinkGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -296,7 +300,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -350,7 +354,7 @@ func TestGetGroupTeam(t *testing.T) {
 }
 
 func TestGetGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -404,7 +408,7 @@ func TestGetGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -453,7 +457,7 @@ func TestGetGroupTeams(t *testing.T) {
 }
 
 func TestGetGroupChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -502,7 +506,7 @@ func TestGetGroupChannels(t *testing.T) {
 }
 
 func TestPatchGroupTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -567,7 +571,7 @@ func TestPatchGroupTeam(t *testing.T) {
 }
 
 func TestPatchGroupChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -641,7 +645,7 @@ func TestPatchGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupsByChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -708,7 +712,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -773,7 +777,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -801,7 +805,7 @@ func TestGetGroups(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	_, response = th.SystemAdminClient.GetGroups(opts)
-	CheckBadRequestStatus(t, response)
+	require.Nil(t, response.Error)
 
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
 	require.Nil(t, response.Error)
@@ -841,4 +845,9 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	opts.NotAssociatedToTeam = ""
+	opts.NotAssociatedToChannel = ""
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
 }

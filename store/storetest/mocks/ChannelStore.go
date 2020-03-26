@@ -619,13 +619,13 @@ func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int
 	return r0, r1
 }
 
-// GetChannelsByIds provides a mock function with given fields: channelIds
-func (_m *ChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
-	ret := _m.Called(channelIds)
+// GetChannelsByIds provides a mock function with given fields: channelIds, includeDeleted
+func (_m *ChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+	ret := _m.Called(channelIds, includeDeleted)
 
 	var r0 []*model.Channel
-	if rf, ok := ret.Get(0).(func([]string) []*model.Channel); ok {
-		r0 = rf(channelIds)
+	if rf, ok := ret.Get(0).(func([]string, bool) []*model.Channel); ok {
+		r0 = rf(channelIds, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Channel)
@@ -633,8 +633,8 @@ func (_m *ChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel,
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
-		r1 = rf(channelIds)
+	if rf, ok := ret.Get(1).(func([]string, bool) *model.AppError); ok {
+		r1 = rf(channelIds, includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1118,6 +1118,29 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mod
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GroupSyncedChannelCount provides a mock function with given fields:
+func (_m *ChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

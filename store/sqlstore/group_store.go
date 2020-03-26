@@ -51,7 +51,7 @@ type SqlGroupStore struct {
 	SqlStore
 }
 
-func NewSqlGroupStore(sqlStore SqlStore) store.GroupStore {
+func newSqlGroupStore(sqlStore SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")
@@ -78,7 +78,7 @@ func NewSqlGroupStore(sqlStore SqlStore) store.GroupStore {
 	return s
 }
 
-func (s *SqlGroupStore) CreateIndexesIfNotExists() {
+func (s *SqlGroupStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
 	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
 	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")
@@ -1227,4 +1227,44 @@ func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType 
 	}
 
 	return userIDs, nil
+}
+
+func (s *SqlGroupStore) GroupCount() (int64, *model.AppError) {
+	return s.countTable("UserGroups")
+}
+
+func (s *SqlGroupStore) GroupTeamCount() (int64, *model.AppError) {
+	return s.countTable("GroupTeams")
+}
+
+func (s *SqlGroupStore) GroupChannelCount() (int64, *model.AppError) {
+	return s.countTable("GroupChannels")
+}
+
+func (s *SqlGroupStore) GroupMemberCount() (int64, *model.AppError) {
+	return s.countTable("GroupMembers")
+}
+
+func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
+	return s.countTableWithSelect("COUNT(DISTINCT UserId)", "GroupMembers")
+}
+
+func (s *SqlGroupStore) countTable(tableName string) (int64, *model.AppError) {
+	return s.countTableWithSelect("COUNT(*)", tableName)
+}
+
+func (s *SqlGroupStore) countTableWithSelect(selectStr, tableName string) (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(sq.Eq{"DeleteAt": 0})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.countTableWithSelect", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(sql, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.countTableWithSelect", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }

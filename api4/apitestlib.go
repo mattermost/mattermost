@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,6 +20,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -49,21 +53,17 @@ type TestHelper struct {
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
 	tempWorkspace     string
+
+	IncludeCacheLayer bool
 }
 
-// testStore tracks the active test store.
-// This is a bridge between the new testlib ownership of the test store and the existing usage
-// of the api4 test helper by many packages. In the future, this test helper would ideally belong
-// to the testlib altogether.
-var testStore store.Store
+var mainHelper *testlib.MainHelper
 
-func UseTestStore(store store.Store) {
-	testStore = store
+func SetMainHelper(mh *testlib.MainHelper) {
+	mainHelper = mh
 }
 
-func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
-	testStore.DropAllTables()
-
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -84,17 +84,22 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(testStore))
+	options = append(options, app.StoreOverride(dbStore))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
+	if includeCache {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
 
 	th := &TestHelper{
-		App:         s.FakeApp(),
-		Server:      s,
-		ConfigStore: memoryStore,
+		App:               s.FakeApp(),
+		Server:            s,
+		ConfigStore:       memoryStore,
+		IncludeCacheLayer: includeCache,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -114,10 +119,9 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.Server, th.Server.AppOptions, th.App.Srv.Router)
-	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
-	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
-	th.App.Srv.Store.MarkSystemRanUnitTests()
+	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -147,16 +151,73 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true, nil)
+func SetupEnterprise(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, true, true, nil)
 }
 
-func Setup() *TestHelper {
-	return setupTestHelper(false, nil)
+func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, false, true, nil)
 }
 
-func SetupConfig(updateConfig func(cfg *model.Config)) *TestHelper {
-	return setupTestHelper(false, updateConfig)
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+
+	if mainHelper == nil {
+		tb.SkipNow()
+	}
+
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	return setupTestHelper(dbStore, false, true, updateConfig)
+}
+
+func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, updateConfig)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, false, nil)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
 }
 
 func (me *TestHelper) ShutdownApp() {
@@ -169,7 +230,7 @@ func (me *TestHelper) ShutdownApp() {
 	select {
 	case <-done:
 	case <-time.After(30 * time.Second):
-		// panic instead of t.Fatal to terminate all tests in this package, otherwise the
+		// panic instead of fatal to terminate all tests in this package, otherwise the
 		// still running App could spuriously fail subsequent tests.
 		panic("failed to shutdown App within 30 seconds")
 	}
@@ -177,25 +238,60 @@ func (me *TestHelper) ShutdownApp() {
 
 func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
+	if me.IncludeCacheLayer {
+		// Clean all the caches
+		me.App.InvalidateAllCaches()
+	}
 
 	me.ShutdownApp()
 
 	utils.EnableDebugLogForTest()
+}
 
-	if err := recover(); err != nil {
-		panic(err)
-	}
+var initBasicOnce sync.Once
+var userCache struct {
+	SystemAdminUser *model.User
+	TeamAdminUser   *model.User
+	BasicUser       *model.User
+	BasicUser2      *model.User
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.LoginSystemAdmin()
+	// create users once and cache them because password hashing is slow
+	initBasicOnce.Do(func() {
+		me.SystemAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
 
-	me.TeamAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+		me.TeamAdminUser = me.CreateUser()
+		me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
+		me.TeamAdminUser, _ = me.App.GetUser(me.TeamAdminUser.Id)
+		userCache.TeamAdminUser = me.TeamAdminUser.DeepCopy()
+
+		me.BasicUser = me.CreateUser()
+		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
+		userCache.BasicUser = me.BasicUser.DeepCopy()
+
+		me.BasicUser2 = me.CreateUser()
+		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
+		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
+	})
+	// restore cached users
+	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
+	me.BasicUser = userCache.BasicUser.DeepCopy()
+	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
+	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	// restore non hashed password for login
+	me.SystemAdminUser.Password = "Pa$$word11"
+	me.TeamAdminUser.Password = "Pa$$word11"
+	me.BasicUser.Password = "Pa$$word11"
+	me.BasicUser2.Password = "Pa$$word11"
+
+	me.LoginSystemAdmin()
 	me.LoginTeamAdmin()
 
 	me.BasicTeam = me.CreateTeam()
@@ -205,9 +301,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicDeletedChannel = me.CreatePublicChannel()
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
-	me.BasicUser = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.BasicUser2 = me.CreateUser()
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel)
@@ -227,7 +321,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 
 func (me *TestHelper) waitForConnectivity() {
 	for i := 0; i < 1000; i++ {
-		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv.ListenAddr.Port))
+		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
 			return
@@ -238,19 +332,19 @@ func (me *TestHelper) waitForConnectivity() {
 }
 
 func (me *TestHelper) CreateClient() *model.Client4 {
-	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv.ListenAddr.Port))
+	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv().ListenAddr.Port))
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.Client.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), me.Client.AuthToken)
 }
 
 func (me *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.SystemAdminClient.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), me.SystemAdminClient.AuthToken)
 }
 
 func (me *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), client.AuthToken)
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", me.App.Srv().ListenAddr.Port), client.AuthToken)
 }
 
 func (me *TestHelper) CreateBotWithSystemAdminClient() *model.Bot {
@@ -318,7 +412,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Pa$$word11"
-	_, err := me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	_, err := me.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
 		return nil
 	}
@@ -420,7 +514,7 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := me.App.Srv.Store.Post().Save(&model.Post{
+	post, err := me.App.Srv().Store.Post().Save(&model.Post{
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
@@ -751,9 +845,9 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
+	if cm, err := me.App.Srv().Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if _, err = me.App.Srv.Store.Channel().UpdateMember(cm); err != nil {
+		if _, err = me.App.Srv().Store.Channel().UpdateMember(cm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -768,9 +862,9 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -788,9 +882,9 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -914,4 +1008,26 @@ func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	}
 
 	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) SetupTeamScheme() *model.Scheme {
+	return me.SetupScheme(model.SCHEME_SCOPE_TEAM)
+}
+
+func (me *TestHelper) SetupChannelScheme() *model.Scheme {
+	return me.SetupScheme(model.SCHEME_SCOPE_CHANNEL)
+}
+
+func (me *TestHelper) SetupScheme(scope string) *model.Scheme {
+	scheme := model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       scope,
+	}
+
+	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
+		return scheme
+	} else {
+		panic(err)
+	}
 }

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
@@ -80,7 +81,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
 		healthCheckKey := "health_check"
 
-		writeErr := c.App.Srv.Store.System().SaveOrUpdate(&model.System{
+		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
 			Name:  healthCheckKey,
 			Value: currentTime,
 		})
@@ -89,7 +90,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		} else {
-			healthCheck, readErr := c.App.Srv.Store.System().GetByName(healthCheckKey)
+			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
 			if readErr != nil {
 				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
@@ -136,7 +137,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -146,7 +147,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestEmail(c.App.Session.UserId, cfg)
+	err := c.App.TestEmail(c.App.Session().UserId, cfg)
 	if err != nil {
 		c.Err = err
 		return
@@ -156,7 +157,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -182,7 +183,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -198,10 +199,13 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("databaseRecycle", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("databaseRecycle", "api.restricted_system_admin", nil, "", http.StatusForbidden)
@@ -210,14 +214,18 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.RecycleDatabaseConnection()
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("invalidateCaches", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("invalidateCaches", "api.restricted_system_admin", nil, "", http.StatusForbidden)
@@ -230,12 +238,14 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -253,12 +263,12 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	forceToDebug := false
 
 	if !*c.App.Config().ServiceSettings.EnableDeveloper {
-		if c.App.Session.UserId == "" {
+		if c.App.Session().UserId == "" {
 			c.Err = model.NewAppError("postLog", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 			forceToDebug = true
 		}
 	}
@@ -274,7 +284,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	msg = "Client Logs API Endpoint Message: " + msg
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
-		mlog.String("user_agent", c.App.UserAgent),
+		mlog.String("user_agent", c.App.UserAgent()),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
@@ -295,7 +305,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		name = "standard"
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -315,7 +325,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
-	supportedTimezones := c.App.Timezones.GetSupported()
+	supportedTimezones := c.App.Timezones().GetSupported()
 	if supportedTimezones == nil {
 		supportedTimezones = make([]string, 0)
 	}
@@ -335,7 +345,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -389,7 +399,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := c.App.HTTPService.MakeClient(false)
+	client := c.App.HTTPService().MakeClient(false)
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
@@ -431,7 +441,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	if ack.IsIdLoaded {
 		if err != nil {
 			// Log the error only, then continue to fetch notification message
-			c.App.NotificationsLog.Error("Notification ack not sent to push proxy",
+			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
 				mlog.String("ackId", ack.Id),
 				mlog.String("type", ack.NotificationType),
 				mlog.String("postId", ack.PostId),
@@ -439,14 +449,14 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 
-		notificationInterface := c.App.Notification
+		notificationInterface := c.App.Notification()
 
 		if notificationInterface == nil {
 			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
 			return
 		}
 
-		msg, appError := notificationInterface.GetNotificationMessage(ack, c.App.Session.UserId)
+		msg, appError := notificationInterface.GetNotificationMessage(ack, c.App.Session().UserId)
 		if appError != nil {
 			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
 			return
@@ -464,7 +474,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -481,25 +491,37 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.Srv.Busy.Set(time.Second * time.Duration(i))
+	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("seconds", i)
+
+	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	c.App.Srv.Busy.Clear()
+
+	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	c.App.Srv().Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	w.Write([]byte(c.App.Srv.Busy.ToJson()))
+	w.Write([]byte(c.App.Srv().Busy.ToJson()))
 }

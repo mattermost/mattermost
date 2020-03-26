@@ -13,6 +13,7 @@ import (
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -25,7 +26,7 @@ type supervisor struct {
 	pid         int
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog.Logger, metrics einterfaces.MetricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -43,7 +44,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
 			log:     wrappedLogger,
-			apiImpl: apiImpl,
+			apiImpl: &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
 
@@ -62,6 +63,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
 		Cmd:             cmd,
+		Stderr:          wrappedLogger.With(mlog.String("source", "plugin_stderr_panic")).StdErrPanicLogWriter(),
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
@@ -80,7 +82,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		return nil, err
 	}
 
-	sup.hooks = raw.(Hooks)
+	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), metrics}
 
 	impl, err := sup.hooks.Implemented()
 	if err != nil {
