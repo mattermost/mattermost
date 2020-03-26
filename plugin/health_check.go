@@ -13,7 +13,7 @@ import (
 
 const (
 	HEALTH_CHECK_INTERVAL            = 30 * time.Second // How often the health check should run
-	HEALTH_CHECK_DEACTIVATION_WINDOW = 60 * time.Minute // How long we wait for num fails to incur before deactivating the plugin
+	HEALTH_CHECK_DEACTIVATION_WINDOW = 60 * time.Minute // How long we wait for num fails to occur before deactivating the plugin
 	HEALTH_CHECK_PING_FAIL_LIMIT     = 3                // How many times we call RPC ping in a row before it is considered a failure
 	HEALTH_CHECK_NUM_RESTARTS_LIMIT  = 3                // How many times we restart a plugin before we deactivate it
 )
@@ -26,8 +26,8 @@ type PluginHealthCheckJob struct {
 	failureTimestamps sync.Map
 }
 
-// Start continuously runs health checks on all active plugins, on a timer.
-func (job *PluginHealthCheckJob) Start() {
+// run continuously performs health checks on all active plugins, on a timer.
+func (job *PluginHealthCheckJob) run() {
 	mlog.Debug("Plugin health check job starting.")
 	defer close(job.cancelled)
 
@@ -114,7 +114,7 @@ func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
 	return time.Since(failedTimestamps[index]) <= HEALTH_CHECK_DEACTIVATION_WINDOW
 }
 
-// removeStaleTimestamps only keeps the last HEALTH_CHECK_NUM_RESTARTS_LIMIT items in timestamps
+// removeStaleTimestamps only keeps the last HEALTH_CHECK_NUM_RESTARTS_LIMIT items in timestamps.
 func removeStaleTimestamps(timestamps []time.Time) []time.Time {
 	if len(timestamps) > HEALTH_CHECK_NUM_RESTARTS_LIMIT {
 		timestamps = timestamps[len(timestamps)-HEALTH_CHECK_NUM_RESTARTS_LIMIT:]

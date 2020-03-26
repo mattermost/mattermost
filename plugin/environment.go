@@ -507,7 +507,7 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
-		go job.Start()
+		go job.run()
 	}
 
 	// Config is set to disable. Job exists, kill existing job.
@@ -519,7 +519,7 @@ func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 	}
 }
 
-// GetPluginHealthCheckJob returns the PluginHealthCheckJob owned by the Environment. If the job is not set, the function returns nil.
+// GetPluginHealthCheckJob returns the configured PluginHealthCheckJob, if any.
 func (env *Environment) GetPluginHealthCheckJob() *PluginHealthCheckJob {
 	return env.pluginHealthCheckJob
 }
