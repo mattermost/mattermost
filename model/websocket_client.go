@@ -128,6 +128,9 @@ func (wsc *WebSocketClient) Listen() {
 			}
 
 			event := WebSocketEventFromJson(bytes.NewReader(rawMsg))
+			if event == nil {
+				continue
+			}
 			if event.IsValid() {
 				wsc.EventChannel <- event
 				continue
