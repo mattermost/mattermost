@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -48,8 +49,10 @@ func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
+	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	us.usersQuery = us.getQueryBuilder().
-		Select("u.*", "b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
+		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
+			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -582,6 +585,9 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 }
 
 func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
+	failure := func(e error) (map[string]*model.User, *model.AppError) {
+		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, e.Error(), http.StatusInternalServerError)
+	}
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
@@ -590,12 +596,35 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return failure(err)
+	}
+	var users []*model.User
+	rows, err := us.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return failure(err)
 	}
 
-	var users []*model.User
-	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	defer rows.Close()
+	for rows.Next() {
+		var user model.User
+		var props, notifyProps, timezone []byte
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
+			return failure(err)
+		}
+		if err = json.Unmarshal(props, &user.Props); err != nil {
+			return failure(err)
+		}
+		if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
+			return failure(err)
+		}
+		if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
+			return failure(err)
+		}
+		users = append(users, &user)
+	}
+	err = rows.Err()
+	if err != nil {
+		return failure(err)
 	}
 
 	userMap := make(map[string]*model.User)
@@ -1686,4 +1715,36 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
+}
+
+func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	autocomplete := &model.UserAutocompleteInChannel{}
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := us.SearchInChannel(channelId, term, options)
+		uchan <- store.StoreResult{Data: users, Err: err}
+		close(uchan)
+	}()
+
+	nuchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := us.SearchNotInChannel(teamId, channelId, term, options)
+		nuchan <- store.StoreResult{Data: users, Err: err}
+		close(nuchan)
+	}()
+
+	result := <-uchan
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	users := result.Data.([]*model.User)
+	autocomplete.InChannel = users
+
+	result = <-nuchan
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	users = result.Data.([]*model.User)
+	autocomplete.OutOfChannel = users
+	return autocomplete, nil
 }

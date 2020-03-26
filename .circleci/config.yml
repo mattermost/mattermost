@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   aws-s3: circleci/aws-s3@1.0.11
+  owasp: entur/owasp@0.0.10
 
 executors:
   ubuntu:
@@ -40,6 +41,45 @@ jobs:
             - mattermost-webapp
             - mattermost-server
 
+  check-deps:
+    parameters:
+      cve_data_directory:
+        type: string
+        default: "~/.owasp/dependency-check-data"
+    working_directory: ~/mattermost/mattermost-server
+    executor: owasp/default
+    environment:
+      version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
+      executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          name: Install Go
+          command: sudo apt-get update && sudo apt-get install golang
+      - owasp/with_commandline:
+          steps:
+            # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
+            - owasp/generate_cache_keys:
+                cache_key: commmandline-default-cache-key-v6
+            - owasp/restore_owasp_cache
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+            - owasp/store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+            - run:
+                name: Run OWASP Dependency-Check Analyzer
+                command: |
+                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
+                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                    --scan './**/*' || true
+            - owasp/collect_reports:
+                persist_to_workspace: false
+      - run:
+          name: Post results to Mattermost
+          command: ./scripts/depcheck-alert.sh
+
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
   # check-i18n:
@@ -58,7 +98,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:oct-18-2019
+      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -71,7 +111,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:oct-18-2019
+      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -80,7 +120,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.3 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -152,7 +192,7 @@ jobs:
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
+              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
       - run:
@@ -225,7 +265,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
+              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -261,7 +301,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
+              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
@@ -352,6 +392,10 @@ workflows:
                 ignore:
                   - master
                   - /^release-.*/
+      - check-deps:
+          context: sast-webhook
+          requires:
+            - setup
       # - check-i18n:
       #     requires:
       #       - setup

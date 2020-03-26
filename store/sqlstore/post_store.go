@@ -433,9 +433,9 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *mod
 		return appErr(err.Error())
 	}
 
-	post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
+	post.AddProp(model.POST_PROPS_DELETE_BY, deleteByID)
 
-	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
+	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
 		return appErr(err.Error())
 	}
@@ -770,7 +770,10 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt " + sort).
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-23369.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -797,7 +800,10 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt ASC").
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-23369.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt ASC").
 		Limit(1)
 
 	queryString, args, err := query.ToSql()
@@ -999,7 +1005,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 	return searchQuery, queryParams
 }
 
-func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byName bool) (string, map[string]interface{}) {
 	if len(channels) == 0 {
 		return "", queryParams
 	}
@@ -1011,13 +1017,20 @@ func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPr
 		queryParams[paramName] = channel
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Name NOT IN (" + clause + ")", queryParams
+	if byName {
+		if exclusion {
+			return "AND Name NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Name IN (" + clause + ")", queryParams
 	}
-	return "AND Name IN (" + clause + ")", queryParams
+
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}, byUsername bool) (string, map[string]interface{}) {
 	if len(users) == 0 {
 		return "", queryParams
 	}
@@ -1028,13 +1041,19 @@ func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix s
 		queryParams[paramName] = user
 	}
 	clause := strings.Join(clauseSlice, ", ")
-	if exclusion {
-		return "AND Username NOT IN (" + clause + ")", queryParams
+	if byUsername {
+		if exclusion {
+			return "AND Username NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Username IN (" + clause + ")", queryParams
 	}
-	return "AND Username IN (" + clause + ")", queryParams
+	if exclusion {
+		return "AND Id NOT IN (" + clause + ")", queryParams
+	}
+	return "AND Id IN (" + clause + ")", queryParams
 }
 
-func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}, userByUsername bool) (string, map[string]interface{}) {
 	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
 		return "", queryParams
 	}
@@ -1052,16 +1071,20 @@ func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedU
 				FROM_USER_FILTER
 				EXCLUDED_USER_FILTER)`
 
-	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
+	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
 
-	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
+	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams, userByUsername)
 	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
 
 	return filterQuery, queryParams
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+	return s.search(teamId, userId, params, true, true)
+}
+
+func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, *model.AppError) {
 	queryParams := map[string]interface{}{
 		"TeamId": teamId,
 		"UserId": userId,
@@ -1114,13 +1137,13 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams)
+	inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "IN_CHANNEL_FILTER", inChannelClause, 1)
 
-	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams)
+	excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams, channelsByName)
 	searchQuery = strings.Replace(searchQuery, "EXCLUDED_CHANNEL_FILTER", excludedChannelClause, 1)
 
-	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
+	postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams, userByUsername)
 	searchQuery = strings.Replace(searchQuery, "POST_FILTER", postFilterClause, 1)
 
 	createDateFilterClause, queryParams := s.buildCreateDateFilterClause(params, queryParams)
@@ -1665,4 +1688,50 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 	}
 	return posts, nil
+}
+
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	// Since we don't support paging for DB search, we just return nothing for later pages
+	if page > 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	var wg sync.WaitGroup
+
+	pchan := make(chan store.StoreResult, len(paramsList))
+
+	for _, params := range paramsList {
+		// Don't allow users to search for everything.
+		if params.Terms == "*" {
+			continue
+		}
+
+		params.IncludeDeletedChannels = includeDeletedChannels
+		params.OrTerms = isOrSearch
+
+		wg.Add(1)
+
+		go func(params *model.SearchParams) {
+			defer wg.Done()
+			postList, err := s.search(teamId, userId, params, false, false)
+			pchan <- store.StoreResult{Data: postList, Err: err}
+		}(params)
+	}
+
+	wg.Wait()
+	close(pchan)
+
+	posts := model.NewPostList()
+
+	for result := range pchan {
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data := result.Data.(*model.PostList)
+		posts.Extend(data)
+	}
+
+	posts.SortByCreateAt()
+
+	return model.MakePostSearchResults(posts, nil), nil
 }

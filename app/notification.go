@@ -69,7 +69,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentions.addMention(otherUserId, DMMention)
 		}
 
-		if post.Props["from_webhook"] == "true" {
+		if post.GetProp("from_webhook") == "true" {
 			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
@@ -81,7 +81,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.POST_ADD_TO_CHANNEL {
-			addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string)
+			addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
 			if ok {
 				mentions.addMention(addedUserId, KeywordMention)
 			}
@@ -103,7 +103,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		// prevent the user from mentioning themselves
-		if post.Props["from_webhook"] != "true" {
+		if post.GetProp("from_webhook") != "true" {
 			mentions.removeMention(post.UserId)
 		}
 
@@ -118,7 +118,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
 				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
-				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
 				!post.IsSystemMessage() {
 				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 			}
@@ -733,7 +733,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {
-		if value, ok := n.Post.Props["override_username"]; ok && n.Post.Props["from_webhook"] == "true" {
+		if value, ok := n.Post.GetProps()["override_username"]; ok && n.Post.GetProp("from_webhook") == "true" {
 			return value.(string)
 		}
 	}
@@ -829,6 +829,13 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			// No need to bother about unicode as we are looking for ASCII characters.
+			last := word[len(word)-1]
+			switch last {
+			// If the word is possibly at the end of a sentence, remove that character.
+			case '.', '-', ':':
+				word = word[:len(word)-1]
+			}
 			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further

@@ -816,63 +816,74 @@ func TestGetExplicitMentions(t *testing.T) {
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
-	// test all the boundary cases that we know can break up terms (and those that we know won't)
-	cases := map[string]bool{
-		"":          false,
-		"here":      false,
-		"@here":     true,
-		" @here ":   true,
-		"\n@here\n": true,
-		"!@here!":   true,
-		"#@here#":   true,
-		"$@here$":   true,
-		"%@here%":   true,
-		"^@here^":   true,
-		"&@here&":   true,
-		"*@here*":   true,
-		"(@here(":   true,
-		")@here)":   true,
-		"-@here-":   true,
-		"_@here_":   true,
-		"=@here=":   true,
-		"+@here+":   true,
-		"[@here[":   true,
-		"{@here{":   true,
-		"]@here]":   true,
-		"}@here}":   true,
-		"\\@here\\": true,
-		"|@here|":   true,
-		";@here;":   true,
-		"@here:":    true,
-		":@here:":   false, // This case shouldn't trigger a mention since it follows the format of reactions e.g. :word:
-		"'@here'":   true,
-		"\"@here\"": true,
-		",@here,":   true,
-		"<@here<":   true,
-		".@here.":   true,
-		">@here>":   true,
-		"/@here/":   true,
-		"?@here?":   true,
-		"`@here`":   false, // This case shouldn't mention since it's a code block
-		"~@here~":   true,
-		"@HERE":     true,
-		"@hERe":     true,
-	}
+	t.Run("Boundary cases", func(t *testing.T) {
+		// test all the boundary cases that we know can break up terms (and those that we know won't)
+		cases := map[string]bool{
+			"":          false,
+			"here":      false,
+			"@here":     true,
+			" @here ":   true,
+			"\n@here\n": true,
+			"!@here!":   true,
+			"#@here#":   true,
+			"$@here$":   true,
+			"%@here%":   true,
+			"^@here^":   true,
+			"&@here&":   true,
+			"*@here*":   true,
+			"(@here(":   true,
+			")@here)":   true,
+			"-@here-":   true,
+			"_@here_":   true,
+			"=@here=":   true,
+			"+@here+":   true,
+			"[@here[":   true,
+			"{@here{":   true,
+			"]@here]":   true,
+			"}@here}":   true,
+			"\\@here\\": true,
+			"|@here|":   true,
+			";@here;":   true,
+			"@here:":    true,
+			":@here:":   false, // This case shouldn't trigger a mention since it follows the format of reactions e.g. :word:
+			"'@here'":   true,
+			"\"@here\"": true,
+			",@here,":   true,
+			"<@here<":   true,
+			".@here.":   true,
+			">@here>":   true,
+			"/@here/":   true,
+			"?@here?":   true,
+			"`@here`":   false, // This case shouldn't mention since it's a code block
+			"~@here~":   true,
+			"@HERE":     true,
+			"@hERe":     true,
+		}
+		for message, shouldMention := range cases {
+			post := &model.Post{Message: message}
+			m := getExplicitMentions(post, nil)
+			require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
+			require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
+		}
+	})
 
-	for message, shouldMention := range cases {
-		post := &model.Post{Message: message}
-		m := getExplicitMentions(post, nil)
-		require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
-		require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
-	}
+	t.Run("Mention @here and someone", func(t *testing.T) {
+		id := model.NewId()
+		m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
+		require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
+		require.Len(t, m.Mentions, 1)
+		require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
+		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
+		assert.Equal(t, "potential", m.OtherPotentialMentions[0])
+	})
 
-	// mentioning @here and someone
-	id := model.NewId()
-	m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
-	require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
-	require.Len(t, m.Mentions, 1)
-	require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
-	require.LessOrEqual(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
+	t.Run("Username ending with period", func(t *testing.T) {
+		id := model.NewId()
+		m := getExplicitMentions(&model.Post{Message: "@potential. test"}, map[string][]string{"@user": {id}})
+		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
+		assert.Equal(t, "potential", m.OtherPotentialMentions[0])
+	})
+
 }
 
 func TestAllowChannelMentions(t *testing.T) {
@@ -905,7 +916,9 @@ func TestAllowChannelMentions(t *testing.T) {
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
 		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1613,7 +1626,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.Props["override_username"].(string),
+			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},

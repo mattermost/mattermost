@@ -35,7 +35,7 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 
 	s, err := app.NewServer(
 		app.Config(configDSN, false),
-		app.StartElasticsearch,
+		app.StartSearchEngine,
 	)
 	if err != nil {
 		return nil, err
