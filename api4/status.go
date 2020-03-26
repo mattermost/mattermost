@@ -40,21 +40,16 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJson(r.Body)
 
-	isUserIdsInvalid := false
-
 	if len(userIds) == 0 {
-		isUserIdsInvalid = true
+		c.SetInvalidParam("user_ids")
+		return
 	}
 
 	for _, userId := range userIds {
 		if len(userId) != 26 {
-			isUserIdsInvalid = true
+			c.SetInvalidParam("user_ids")
+			return
 		}
-	}
-
-	if isUserIdsInvalid {
-		c.SetInvalidParam("user_ids")
-		return
 	}
 
 	// No permission check required

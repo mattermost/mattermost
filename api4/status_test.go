@@ -100,6 +100,10 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 	_, resp = Client.GetUsersStatusesByIds(invalidUserIds)
 	CheckBadRequestStatus(t, resp)
 
+	invalidUserIds = []string{"", ""}
+	_, resp = Client.GetUsersStatusesByIds(invalidUserIds)
+	CheckBadRequestStatus(t, resp)
+
 	Client.Logout()
 
 	_, resp = Client.GetUsersStatusesByIds(usersIds)
