@@ -677,10 +677,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		existingMembershipsByTeamId[teamMembership.TeamId] = teamMembership
 	}
 	for _, tdata := range *data {
-		team, ok := allTeams[*tdata.Name]
-		if !ok {
-			return model.NewAppError("BulkImport", "app.import.import_user_teams.team_not_found.error", nil, "", http.StatusInternalServerError)
-		}
+		team := allTeams[*tdata.Name]
 
 		// Team-specific theme Preferences.
 		if tdata.Theme != nil {
@@ -819,11 +816,8 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
-		channel, ok := allChannels[*cdata.Name]
-		if !ok {
-			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
-		}
-		if _, ok = channelsByID[channel.Id]; ok && *cdata.Name == model.DEFAULT_CHANNEL {
+		channel := allChannels[*cdata.Name]
+		if _, ok := channelsByID[channel.Id]; ok && *cdata.Name == model.DEFAULT_CHANNEL {
 			// town-square membership was in the import and added by the importer (skip the added by the importer)
 			continue
 		}
