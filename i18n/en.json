@@ -1393,10 +1393,6 @@
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
-    "id": "api.file.upload_file.user_not_authorize_upload.app_error",
-    "translation": "Unable to upload file(s). Upload permission required: {{.channelId}}"
-  },
-  {
     "id": "api.file.write_file.s3.app_error",
     "translation": "Encountered an error writing to S3."
   },

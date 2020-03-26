@@ -1119,16 +1119,6 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	session, _ := th.App.CreateSession(
-		&model.Session{
-			UserId:   th.BasicUser.Id,
-			CreateAt: model.GetMillis(),
-			Roles:    model.CHANNEL_USER_ROLE_ID,
-			IsOAuth:  false,
-		})
-
-	th.App.SetSession(session)
-
 	data := []byte("Hello World")
 	channelId := th.BasicChannel.Id
 	filename := "testGetFile"

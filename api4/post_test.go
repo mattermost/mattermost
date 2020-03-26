@@ -95,15 +95,6 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("with file uploaded by nouser", func(t *testing.T) {
-		session, err := th.App.CreateSession(
-			&model.Session{
-				UserId:   th.BasicUser.Id,
-				CreateAt: model.GetMillis(),
-				Roles:    model.CHANNEL_USER_ROLE_ID,
-				IsOAuth:  false,
-			})
-		require.Nil(t, err, "Making sure that session was created successfully.")
-		th.App.SetSession(session)
 		fileInfo, err := th.App.UploadFile([]byte("data"), th.BasicChannel.Id, "test")
 		require.Nil(t, err)
 		fileId := fileInfo.Id

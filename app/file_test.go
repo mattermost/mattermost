@@ -90,32 +90,17 @@ func TestUploadFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	session, err := th.App.CreateSession(
-		&model.Session{
-			UserId:   th.BasicUser.Id,
-			CreateAt: model.GetMillis(),
-			Roles:    model.CHANNEL_USER_ROLE_ID,
-			IsOAuth:  false,
-		})
-	require.Nil(t, err, "Making sure that session was created successfully.")
-	th.App.SetSession(session)
-
 	channelId := th.BasicChannel.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.UploadFile(data, model.NewId(), filename)
+	info1, err := th.App.UploadFile(data, "wrong", filename)
 	require.Error(t, err, "Wrong Channel ID.")
 	require.Nil(t, info1, "Channel ID does not exist.")
 
-	// remove permission to upload file.
-	th.RemovePermissionFromRole(model.PERMISSION_UPLOAD_FILE.Id, model.CHANNEL_USER_ROLE_ID)
-	info1, err = th.App.UploadFile(data, channelId, filename)
-	require.Error(t, err, "Making sure that error is returned.")
-	require.Nil(t, info1, "No Permission to upload file for this user.")
+	info1, err = th.App.UploadFile(data, "", filename)
+	require.Nil(t, err, "for legacy reasons it should accepts the empty channel id")
 
-	//restore permission
-	th.AddPermissionToRole(model.PERMISSION_UPLOAD_FILE.Id, model.CHANNEL_USER_ROLE_ID)
 	info1, err = th.App.UploadFile(data, channelId, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
