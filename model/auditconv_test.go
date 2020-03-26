@@ -15,8 +15,9 @@ type Sample struct {
 }
 
 func TestAuditModelTypeConv(t *testing.T) {
-	sample := &Sample{}
-	sampleArr := []*Sample{&Sample{}, &Sample{}}
+	sample := &Sample{flag: true, name: "sample"}
+	sample2 := &Sample{name: "sample2"}
+	sampleArr := []*Sample{sample, sample2}
 
 	user := &User{}
 
