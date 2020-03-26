@@ -411,21 +411,15 @@ func (h *Hub) Start() {
 			case webCon := <-h.register:
 				connections.Add(webCon)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
-				if webCon.IsAuthenticated() && !webCon.IsClosed() {
+				// Send hello message.
+				if webCon.IsAuthenticated() {
 					msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
 					msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v",
 						model.CurrentVersion,
 						model.BuildNumber,
 						webCon.App.ClientConfigHash(),
 						webCon.App.License() != nil))
-					select {
-					case webCon.Send <- msg:
-					default:
-						mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
-						close(webCon.Send)
-						webCon.SetClosed()
-						connections.Remove(webCon)
-					}
+					webCon.Send <- msg
 				}
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
@@ -479,7 +473,6 @@ func (h *Hub) Start() {
 						default:
 							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
 							close(webCon.Send)
-							webCon.SetClosed()
 							connections.Remove(webCon)
 						}
 					}
