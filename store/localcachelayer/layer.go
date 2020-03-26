@@ -297,6 +297,5 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.userProfileByIdsCache)
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
-	s.doClearCacheCluster(s.roleCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
 }
