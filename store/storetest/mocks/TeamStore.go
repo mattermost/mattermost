@@ -525,9 +525,29 @@ func (_m *TeamStore) GetMember(teamId string, userId string) (*model.TeamMember,
 	return r0, r1
 }
 
-// GetMembers provides a mock function with given fields: teamId, offset, limit, restrictions, teamMembersGetOptions
+// GetMembers provides a mock function with given fields: teamId, offset, limit, teamMembersGetOptions
 func (_m *TeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
-	return nil, nil
+	ret := _m.Called(teamId, offset, limit, teamMembersGetOptions)
+
+	var r0 []*model.TeamMember
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.TeamMembersGetOptions) []*model.TeamMember); ok {
+		r0 = rf(teamId, offset, limit, teamMembersGetOptions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int, *model.TeamMembersGetOptions) *model.AppError); ok {
+		r1 = rf(teamId, offset, limit, teamMembersGetOptions)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMembersByIds provides a mock function with given fields: teamId, userIds, restrictions
