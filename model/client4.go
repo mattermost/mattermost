@@ -1795,8 +1795,8 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
-func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, sort string, exclude_deleted_users bool, etag string) ([]*TeamMember, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v&exclude_deleted_users=%v", page, perPage, sort, exclude_deleted_users)
 	r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
