@@ -15,7 +15,6 @@ const (
 	USERNAME = "Username"
 )
 
-
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`

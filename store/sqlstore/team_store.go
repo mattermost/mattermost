@@ -679,7 +679,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
@@ -702,9 +702,9 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 		if teamMembersGetOptions.Sort == model.USERNAME {
 			query = query.OrderBy(model.USERNAME)
 		}
-	}
 
-	query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
+		query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

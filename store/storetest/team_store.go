@@ -916,7 +916,7 @@ func testGetMembersExcludedDeletedUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Gets users ordered by UserName
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
 	require.Nil(t, err)
 	assert.Len(t, ms, 3)
 }
@@ -966,7 +966,7 @@ func testGetMembersOrderByUsernameAndExcludeDeletedMembers(t *testing.T, ss stor
 	require.Nil(t, err)
 
 	// Gets users ordered by UserName
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{Sort: "Username"})
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: "Username"})
 	require.Nil(t, err)
 	assert.Len(t, ms, 5)
 	assert.Equal(t, u1.Id, ms[0].UserId)
@@ -976,12 +976,13 @@ func testGetMembersOrderByUsernameAndExcludeDeletedMembers(t *testing.T, ss stor
 	assert.Equal(t, u4.Id, ms[4].UserId)
 
 	// Gets users ordered by UserName and excludes deleted members
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, &model.TeamMembersGetOptions{Sort: "Username", ExcludeDeletedUsers: true})
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: "Username", ExcludeDeletedUsers: true})
 	require.Nil(t, err)
 	assert.Len(t, ms, 2)
 	assert.Equal(t, u2.Id, ms[0].UserId)
 	assert.Equal(t, u4.Id, ms[1].UserId)
 }
+
 func testGetMembersOrderByUserID(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
@@ -1007,7 +1008,7 @@ func testGetMembersOrderByUserID(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Gets users ordered by UserId
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, nil)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 	assert.Len(t, ms, 5)
 	assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
@@ -1032,11 +1033,11 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil, nil)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 	assert.Len(t, ms, 2)
 
-	ms, err = ss.Team().GetMembers(teamId2, 0, 100, nil, nil)
+	ms, err = ss.Team().GetMembers(teamId2, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m3.UserId, ms[0].UserId)
@@ -1049,7 +1050,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	err = ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, err)
 
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, nil)
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
@@ -1060,7 +1061,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	err = ss.Team().RemoveAllMembersByTeam(teamId1)
 	require.Nil(t, err)
 
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, nil)
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 	require.Empty(t, ms)
 
@@ -1109,7 +1110,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	e := ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, e)
 
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil, nil)
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 
 	require.Len(t, ms, 1)

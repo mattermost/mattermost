@@ -392,10 +392,10 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamMembersGetOptions := &model.TeamMembersGetOptions{
 		Sort:                sort,
 		ExcludeDeletedUsers: excludeDeletedUsersBool,
-		ViewRestrictions: 	 restrictions,
+		ViewRestrictions:    restrictions,
 	}
 
-	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions, teamMembersGetOptions)
+	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, teamMembersGetOptions)
 	if err != nil {
 		c.Err = err
 		return
