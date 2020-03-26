@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +16,8 @@ func TestLRU(t *testing.T) {
 	l := NewLRU(&LRUOptions{128, 0, ""})
 
 	for i := 0; i < 256; i++ {
-		l.Set(fmt.Sprintf("%d", i), i)
+		err := l.Set(fmt.Sprintf("%d", i), i)
+		require.Nil(t, err)
 	}
 	len, err := l.Len()
 	require.Nil(t, err)
@@ -33,18 +35,18 @@ func TestLRU(t *testing.T) {
 	for i := 0; i < 128; i++ {
 		var v int
 		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Equal(t, ErrKeyNotFound, errGet, "should be evicted")
+		require.Equal(t, ErrKeyNotFound, errGet, "should be evicted %v: %v", i, errGet)
 	}
 	for i := 128; i < 256; i++ {
 		var v int
 		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Nil(t, errGet, "should not be evicted")
+		require.Nil(t, errGet, "should not be evicted %v: %v", i, errGet)
 	}
 	for i := 128; i < 192; i++ {
 		l.Remove(fmt.Sprintf("%d", i))
 		var v int
 		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Equal(t, ErrKeyNotFound, errGet, "should be deleted")
+		require.Equal(t, ErrKeyNotFound, errGet, "should be deleted %v: %v", i, errGet)
 	}
 
 	var v int
@@ -65,12 +67,19 @@ func TestLRU(t *testing.T) {
 	require.Equalf(t, len, 0, "bad len: %v", len)
 	err = l.Get("200", &v)
 	require.Equal(t, err, ErrKeyNotFound, "should contain nothing")
+
+	err = l.Set("201", 301)
+	require.Nil(t, err)
+	err = l.Get("201", &v)
+	require.Nil(t, err)
+	require.Equal(t, 301, v)
+
 }
 
 func TestLRUExpire(t *testing.T) {
-	l := NewLRU(&LRUOptions{128, 0, ""})
+	l := NewLRU(&LRUOptions{128, 1, ""})
 
-	l.SetWithExpiry("1", 1, 1*time.Second)
+	l.SetWithDefaultExpiry("1", 1)
 	l.SetWithExpiry("2", 2, 1*time.Second)
 	l.SetWithExpiry("3", 3, 0*time.Second)
 
@@ -84,4 +93,98 @@ func TestLRUExpire(t *testing.T) {
 	err2 := l.Get("3", &r2)
 	require.Nil(t, err2, "should exist")
 	require.Equal(t, 3, r2)
+}
+
+func TestLRUMarshalUnMarshal(t *testing.T) {
+	l := NewLRU(&LRUOptions{1, 0, ""})
+
+	value1 := map[string]interface{}{
+		"key1": 1,
+		"key2": "value2",
+	}
+	err := l.Set("test", value1)
+
+	require.Nil(t, err)
+
+	var value2 map[string]interface{}
+	err = l.Get("test", &value2)
+	require.Nil(t, err)
+
+	v1, ok := value2["key1"].(int)
+	require.True(t, ok, "unable to cast value")
+	require.Equal(t, 1, v1)
+
+	v2, ok := value2["key2"].(string)
+	require.True(t, ok, "unable to cast value")
+	require.Equal(t, "value2", v2)
+}
+
+func BenchmarkLRU(b *testing.B) {
+
+	value1 := "simplestring"
+	b.Run("simple testcase LRU", func(b *testing.B) {
+		l := lru.New(1)
+		l.Add("test", value1)
+		_, ok := l.Get("test")
+		require.True(b, ok)
+	})
+
+	b.Run("simple testcase LRU2", func(b *testing.B) {
+		l2 := NewLRU(&LRUOptions{1, 0, ""})
+		err := l2.Set("test", value1)
+		require.Nil(b, err)
+
+		var val string
+		err = l2.Get("test", &val)
+		require.Nil(b, err)
+	})
+
+	type obj struct {
+		Field1 int
+		Field2 string
+		Field3 struct {
+			Field4 int
+			Field5 string
+		}
+		Field6 map[string]string
+	}
+
+	value2 := obj{
+		1,
+		"field2",
+		struct {
+			Field4 int
+			Field5 string
+		}{
+			6,
+			"field5 is a looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong string",
+		},
+		map[string]string{
+			"key0": "value0",
+			"key1": "value value1",
+			"key2": "value value value2",
+			"key3": "value value value value3",
+			"key4": "value value value value value4",
+			"key5": "value value value value value value5",
+			"key6": "value value value value value value value6",
+			"key7": "value value value value value value value value7",
+			"key8": "value value value value value value value value value8",
+			"key9": "value value value value value value value value value value9",
+		},
+	}
+	b.Run("simple testcase LRU", func(b *testing.B) {
+		l := lru.New(1)
+		l.Add("test", value2)
+		_, ok := l.Get("test")
+		require.True(b, ok)
+	})
+	b.Run("simple testcase LRU2", func(b *testing.B) {
+		l2 := NewLRU(&LRUOptions{1, 0, ""})
+		err := l2.Set("test", value2)
+		require.Nil(b, err)
+
+		var val obj
+		err = l2.Get("test", &val)
+		require.Nil(b, err)
+	})
 }

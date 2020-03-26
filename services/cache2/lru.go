@@ -4,8 +4,9 @@
 package cache2
 
 import (
+	"bytes"
 	"container/list"
-	"encoding/json"
+	"encoding/gob"
 	"sync"
 	"time"
 )
@@ -132,7 +133,8 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 		expires = time.Now().Add(ttl)
 	}
 
-	bytes, err := json.Marshal(value)
+	var buffer bytes.Buffer
+	err := gob.NewEncoder(&buffer).Encode(value)
 	if err != nil {
 		return err
 	}
@@ -141,7 +143,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	if ent, ok := l.items[key]; ok {
 		l.evictList.MoveToFront(ent)
 		e := ent.Value.(*entry)
-		e.value = bytes
+		e.value = buffer.Bytes()
 		e.expires = expires
 		if e.generation != l.currentGeneration {
 			e.generation = l.currentGeneration
@@ -151,7 +153,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	}
 
 	// Add new item
-	ent := &entry{key, bytes, expires, l.currentGeneration}
+	ent := &entry{key, buffer.Bytes(), expires, l.currentGeneration}
 	entry := l.evictList.PushFront(ent)
 	l.items[key] = entry
 	l.len++
@@ -172,7 +174,7 @@ func (l *LRU) get(key string, value interface{}) error {
 		}
 
 		l.evictList.MoveToFront(ent)
-		return json.Unmarshal(ent.Value.(*entry).value, value)
+		return gob.NewDecoder(bytes.NewBuffer(e.value)).Decode(value)
 	}
 	return ErrKeyNotFound
 }
