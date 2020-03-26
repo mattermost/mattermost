@@ -122,21 +122,25 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 func BenchmarkLRU(b *testing.B) {
 
 	value1 := "simplestring"
-	b.Run("simple testcase LRU", func(b *testing.B) {
-		l := lru.New(1)
-		l.Add("test", value1)
-		_, ok := l.Get("test")
-		require.True(b, ok)
+	b.Run("simple=old", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l := lru.New(1)
+			l.Add("test", value1)
+			_, ok := l.Get("test")
+			require.True(b, ok)
+		}
 	})
 
-	b.Run("simple testcase LRU2", func(b *testing.B) {
-		l2 := NewLRU(&LRUOptions{1, 0, ""})
-		err := l2.Set("test", value1)
-		require.Nil(b, err)
+	b.Run("simple=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			err := l2.Set("test", value1)
+			require.Nil(b, err)
 
-		var val string
-		err = l2.Get("test", &val)
-		require.Nil(b, err)
+			var val string
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
 	})
 
 	type obj struct {
@@ -172,19 +176,23 @@ func BenchmarkLRU(b *testing.B) {
 			"key9": "value value value value value value value value value value9",
 		},
 	}
-	b.Run("simple testcase LRU", func(b *testing.B) {
-		l := lru.New(1)
-		l.Add("test", value2)
-		_, ok := l.Get("test")
-		require.True(b, ok)
+	b.Run("complex=old", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l := lru.New(1)
+			l.Add("test", value2)
+			_, ok := l.Get("test")
+			require.True(b, ok)
+		}
 	})
-	b.Run("simple testcase LRU2", func(b *testing.B) {
-		l2 := NewLRU(&LRUOptions{1, 0, ""})
-		err := l2.Set("test", value2)
-		require.Nil(b, err)
+	b.Run("complex=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			err := l2.Set("test", value2)
+			require.Nil(b, err)
 
-		var val obj
-		err = l2.Get("test", &val)
-		require.Nil(b, err)
+			var val obj
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
 	})
 }
