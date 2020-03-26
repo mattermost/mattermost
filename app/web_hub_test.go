@@ -65,69 +65,6 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	defer wc3.Close()
 }
 
-// This uses some web_conn internal code to bypass the read/write pump and the buffered channel
-// to try to trigger the panic.
-// The objective is to send a hello message after closing the send channel and verify that
-// it does not cause a panic.
-func TestHubPanic(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
-	th.App.HubStart()
-
-	session, appErr := th.App.CreateSession(&model.Session{
-		UserId: th.BasicUser.Id,
-	})
-	require.Nil(t, appErr)
-
-	d := websocket.Dialer{}
-	c, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
-	require.NoError(t, err)
-
-	wc := &WebConn{
-		App:                th.App,
-		Send:               make(chan model.WebSocketMessage), // deliberately not making a buffered channel
-		sendClosed:         0,
-		WebSocket:          c,
-		LastUserActivityAt: model.GetMillis(),
-		UserId:             th.BasicUser.Id,
-		T:                  goi18n.IdentityTfunc(),
-		Locale:             "en",
-		endWritePump:       make(chan struct{}),
-		pumpFinished:       make(chan struct{}),
-	}
-	wc.SetSession(session)
-	wc.SetSessionToken(session.Token)
-	wc.SetSessionExpiresAt(session.ExpiresAt)
-	go func() {
-		// Read from the channel once to allow the Register code to move forward
-		<-wc.Send
-	}()
-
-	hub := th.App.GetHubForUserId(wc.UserId)
-	hub.Register(wc)
-
-	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
-	hub.Broadcast(msg) // This should now close the connection since no one is listening.
-
-	// wait until send chan is closed
-	for {
-		time.Sleep(5 * time.Millisecond)
-		if wc.IsClosed() {
-			break
-		}
-	}
-
-	hub.Register(wc) // Registering again to test that it does not panic.
-
-	// Manually closing pumpFinished to avoid calling read/write pump.
-	close(wc.pumpFinished)
-	wc.Close()
-}
-
 // TestHubStopRaceCondition verifies that attempts to use the hub after it has shutdown does not
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
