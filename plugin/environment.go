@@ -132,9 +132,6 @@ func (env *Environment) IsActive(id string) bool {
 func (env *Environment) GetPluginState(id string) int {
 	rp, ok := env.registeredPlugins.Load(id)
 	if !ok {
-		if env.pluginHealthCheckJob != nil && !env.pluginHealthCheckJob.isPluginHealthy(id) {
-			return model.PluginStateFailedToStayRunning
-		}
 		return model.PluginStateNotRunning
 	}
 
@@ -153,7 +150,7 @@ func (env *Environment) setPluginState(id string, state int) {
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
-	if _, ok := env.registeredPlugins.Load(id); !ok {
+	if !env.IsActive(id) {
 		return "", fmt.Errorf("plugin not found: %v", id)
 	}
 	return filepath.Join(env.pluginDir, id, "public"), nil
@@ -230,14 +227,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
-	value, ok := env.registeredPlugins.Load(id)
-	if !ok {
-		value = newRegisteredPlugin(pluginInfo)
-	}
-
-	rp := value.(registeredPlugin)
-	// Store latest BundleInfo in case something has changed since last activation
-	rp.BundleInfo = pluginInfo
+	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
 	defer func() {
@@ -321,8 +311,6 @@ func (env *Environment) Deactivate(id string) bool {
 		}
 		rp.supervisor.Shutdown()
 	}
-
-	env.registeredPlugins.Delete(id)
 
 	return true
 }
