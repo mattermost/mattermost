@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,6 +20,7 @@ func TestHealthCheckJob(t *testing.T) {
 			package main
 
 			import (
+				"github.com/mattermost/mattermost-server/v5/model"
 				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
@@ -26,8 +28,8 @@ func TestHealthCheckJob(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) OnActivate() error {
-				panic("simulate panic")
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				panic("Uncaught error")
 			}
 
 			func main() {
@@ -44,23 +46,37 @@ func TestHealthCheckJob(t *testing.T) {
 	require.Equal(t, 1, len(bundles))
 
 	id := bundles[0].Manifest.Id
+
+	// First health check
+	hooks, err := env.HooksForPlugin(id)
+	require.Nil(t, err)
+	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
 	require.Equal(t, id, bundles[0].Manifest.Id)
 	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))
 
+	// Second health check
+	hooks, err = env.HooksForPlugin(id)
+	require.Nil(t, err)
+	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 1, len(bundles))
 	require.Equal(t, id, bundles[0].Manifest.Id)
 	require.Equal(t, model.PluginStateRunning, env.GetPluginState(id))
 
+	// Third health check, plugin should be deactivated by the job
+	hooks, err = env.HooksForPlugin(id)
+	require.Nil(t, err)
+	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
 	require.Equal(t, 0, len(bundles))
 	require.Equal(t, model.PluginStateFailedToStayRunning, env.GetPluginState(id))
 
+	// Activated manually, plugin should stay active
 	env.Activate(id)
 	job.CheckPlugin(id)
 	bundles = env.Active()
