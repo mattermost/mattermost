@@ -57,30 +57,35 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 	}
 
 	mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
-	timestamps := job.ensureStoredTimestamps(id)
+	timestamps := job.getStoredTimestamps(id)
 	timestamps = append(timestamps, time.Now())
 
 	if shouldDeactivatePlugin(timestamps) {
+		// Order matters here, must deactivate first and then set plugin state
 		mlog.Debug("Deactivating plugin due to multiple crashes", mlog.String("id", id))
 		job.env.Deactivate(id)
 
-		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
+		// Reset timestamp state for this plugin
 		job.failureTimestamps.Delete(id)
+		job.env.setPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
 		mlog.Debug("Restarting plugin due to failed health check", mlog.String("id", id))
 		if err := job.env.RestartPlugin(id); err != nil {
 			mlog.Error("Failed to restart plugin", mlog.String("id", id), mlog.Err(err))
 		}
 
-		timestamps = removeStaleTimestamps(timestamps)
-		job.failureTimestamps.Store(id, timestamps)
+		// Store this failure so we can continue to monitor the plugin
+		job.failureTimestamps.Store(id, removeStaleTimestamps(timestamps))
 	}
 }
 
-// ensureStoredTimestamps returns the stored failure timestamps for a plugin.
-func (job *PluginHealthCheckJob) ensureStoredTimestamps(id string) []time.Time {
-	statusInterface, _ := job.failureTimestamps.LoadOrStore(id, []time.Time{})
-	return statusInterface.([]time.Time)
+// getStoredTimestamps returns the stored failure timestamps for a plugin.
+func (job *PluginHealthCheckJob) getStoredTimestamps(id string) []time.Time {
+	timestamps, ok := job.failureTimestamps.Load(id)
+	if !ok {
+		timestamps = []time.Time{}
+	}
+	return timestamps.([]time.Time)
 }
 
 func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {
@@ -109,13 +114,11 @@ func shouldDeactivatePlugin(failedTimestamps []time.Time) bool {
 	return time.Since(failedTimestamps[index]) <= HEALTH_CHECK_DEACTIVATION_WINDOW
 }
 
-// removeStaleTimestamps filters out failure timestamps that are before the start of the HEALTH_CHECK_DEACTIVATION_WINDOW
+// removeStaleTimestamps only keeps the last HEALTH_CHECK_NUM_RESTARTS_LIMIT items in timestamps
 func removeStaleTimestamps(timestamps []time.Time) []time.Time {
-	result := []time.Time{}
-	for _, t := range timestamps {
-		if time.Since(t) <= HEALTH_CHECK_DEACTIVATION_WINDOW {
-			result = append(result, t)
-		}
+	if len(timestamps) > HEALTH_CHECK_NUM_RESTARTS_LIMIT {
+		timestamps = timestamps[len(timestamps)-HEALTH_CHECK_NUM_RESTARTS_LIMIT:]
 	}
-	return result
+
+	return timestamps
 }
