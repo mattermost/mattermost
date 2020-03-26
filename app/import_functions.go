@@ -816,8 +816,11 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		existingMembershipsByChannelId[channelMembership.ChannelId] = channelMembership
 	}
 	for _, cdata := range *data {
-		channel := allChannels[*cdata.Name]
-		if _, ok := channelsByID[channel.Id]; ok && *cdata.Name == model.DEFAULT_CHANNEL {
+		channel, ok := allChannels[*cdata.Name]
+		if !ok {
+			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
+		}
+		if _, ok = channelsByID[channel.Id]; ok && *cdata.Name == model.DEFAULT_CHANNEL {
 			// town-square membership was in the import and added by the importer (skip the added by the importer)
 			continue
 		}
