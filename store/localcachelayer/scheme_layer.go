@@ -53,6 +53,6 @@ func (s LocalCacheSchemeStore) Delete(schemeId string) (*model.Scheme, *model.Ap
 func (s LocalCacheSchemeStore) PermanentDeleteAll() *model.AppError {
 	defer s.rootStore.doClearCacheCluster(s.rootStore.schemeCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
-
+	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	return s.SchemeStore.PermanentDeleteAll()
 }
