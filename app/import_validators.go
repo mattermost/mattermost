@@ -226,7 +226,7 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return len(*str) == 0
 	}
 
-	if (!blank(data.AuthService) || !blank(data.AuthData)) && (blank(data.AuthService) || blank(data.AuthData)) {
+	if (!blank(data.AuthService) && blank(data.AuthData)) || (blank(data.AuthService) && !blank(data.AuthData)) {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
