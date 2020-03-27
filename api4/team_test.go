@@ -1295,19 +1295,19 @@ func TestGetTeamMembers(t *testing.T) {
 	_, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, "", false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, "", false, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, true, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, true, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, "", true, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, "", true, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersSortAndWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
 	CheckNoError(t, resp)
 }
 
