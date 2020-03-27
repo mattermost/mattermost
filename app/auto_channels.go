@@ -63,7 +63,7 @@ func (cfg *AutoChannelCreator) CreateTestChannels(num utils.Range) ([]*model.Cha
 		var err error
 		channels[i], err = cfg.createRandomChannel()
 		if err != nil {
-			return channels, err
+			return nil, err
 		}
 	}
 
