@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -288,6 +289,14 @@ func (wc *WebConn) IsAuthenticated() bool {
 	}
 
 	return true
+}
+
+// sendHello sends a HELLO message through the websocket.
+// DO NOT call this function from anywhere else other than inside (*Hub).Start.
+func (wc *WebConn) sendHello() {
+	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.License() != nil))
+	wc.Send <- msg
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {

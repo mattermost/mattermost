@@ -413,13 +413,7 @@ func (h *Hub) Start() {
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
 				// Send hello message.
 				if webCon.IsAuthenticated() {
-					msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
-					msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v",
-						model.CurrentVersion,
-						model.BuildNumber,
-						webCon.App.ClientConfigHash(),
-						webCon.App.License() != nil))
-					webCon.Send <- msg
+					webCon.sendHello()
 				}
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
