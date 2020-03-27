@@ -772,11 +772,18 @@ func upgradeDatabaseToVersion521(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion522(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.22.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
 	sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
 	sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
+	sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
+	// sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+	// sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
 	// }

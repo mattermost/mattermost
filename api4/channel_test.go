@@ -3110,6 +3110,34 @@ func TestGetChannelModerations(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Retuns the correct value for manage_members depending on whether the channel is public or private", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, scheme.DefaultChannelUserRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelUserRole)
+
+		// public channel does not have the permission
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Equal(t, moderation.Roles.Members.Value, false)
+			}
+		}
+
+		// private channel does have the permission
+		moderations, res = th.SystemAdminClient.GetChannelModerations(th.BasicPrivateChannel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+			}
+		}
+	})
 }
 
 func TestPatchChannelModerations(t *testing.T) {

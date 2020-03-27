@@ -3046,7 +3046,7 @@ func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, us
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DoPermissionsMigrations() *model.AppError {
+func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoPermissionsMigrations")
 
@@ -3059,11 +3059,6 @@ func (a *OpenTracingAppLayer) DoPermissionsMigrations() *model.AppError {
 
 	defer span.Finish()
 	resultVar0 := a.app.DoPermissionsMigrations()
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
 
 	return resultVar0
 }
@@ -3237,21 +3232,6 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(token *model.UserAccessToken
 	}
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) EnsureDiagnosticId() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureDiagnosticId")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.EnsureDiagnosticId()
 }
 
 func (a *OpenTracingAppLayer) EnvironmentConfig() map[string]interface{} {
@@ -11569,7 +11549,7 @@ func (a *OpenTracingAppLayer) SaveUserTermsOfService(userId string, termsOfServi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Scheme {
+func (a *OpenTracingAppLayer) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SchemesIterator")
 
@@ -11581,7 +11561,7 @@ func (a *OpenTracingAppLayer) SchemesIterator(batchSize int) func() []*model.Sch
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SchemesIterator(batchSize)
+	resultVar0 := a.app.SchemesIterator(scope, batchSize)
 
 	return resultVar0
 }

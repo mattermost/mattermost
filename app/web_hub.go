@@ -61,12 +61,7 @@ func (a *App) NewWebHub() *Hub {
 }
 
 func (a *App) TotalWebsocketConnections() int {
-	count := int64(0)
-	for _, hub := range a.Srv().GetHubs() {
-		count = count + atomic.LoadInt64(&hub.connectionCount)
-	}
-
-	return int(count)
+	return a.Srv().TotalWebsocketConnections()
 }
 
 func (a *App) HubStart() {
@@ -101,7 +96,7 @@ func (a *App) HubStart() {
 				for _, hub := range a.Srv().GetHubs() {
 					if len(hub.broadcast) >= DEADLOCK_WARN {
 						mlog.Error(
-							"Hub processing might be deadlock with events in the buffer",
+							"Websocket hub queue is filled to 99% of its capacity",
 							mlog.Int("hub", hub.connectionIndex),
 							mlog.Int("goroutine", hub.goroutineId),
 							mlog.Int("events", len(hub.broadcast)),
