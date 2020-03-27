@@ -72,7 +72,7 @@ func (cfg *AutoTeamCreator) CreateTestTeams(num utils.Range) ([]*model.Team, err
 		var err error
 		teams[i], err = cfg.createRandomTeam()
 		if err != nil {
-			return teams, err
+			return nil, err
 		}
 	}
 
