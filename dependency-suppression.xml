@@ -56,4 +56,11 @@
     <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
     <cpe>cpe:/a:ssh:ssh</cpe>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      DoS affecting `Delete`; no references to the operation in codebase or dependencies
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/buger/jsonparser@.*$</packageUrl>
+    <cve>CVE-2020-10675</cve>
+  </suppress>
 </suppressions>
