@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -25,8 +26,8 @@ const (
 )
 
 type writeMessage struct {
-	msgType  msgType
-	contents interface{}
+	msgType msgType
+	data    interface{}
 }
 
 // WebSocketClient stores the necessary information required to
@@ -48,7 +49,7 @@ type WebSocketClient struct {
 	quitPingWatchdog chan struct{}
 
 	quitWriterChan chan struct{}
-	closed         bool
+	closed         int32
 }
 
 // NewWebSocketClient constructs a new WebSocket client with convenience
@@ -118,11 +119,11 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	// All of this needs to be redesigned for v6.
 	wsc.configurePingHandling()
 	// If it has been closed before, we just restart the writer.
-	if wsc.closed {
+	if atomic.LoadInt32(&wsc.closed) == 1 {
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
-		wsc.closed = false
+		atomic.StoreInt32(&wsc.closed, 0)
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -134,12 +135,12 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 }
 
 func (wsc *WebSocketClient) Close() {
-	if wsc.closed {
+	if atomic.LoadInt32(&wsc.closed) == 1 {
 		return
 	}
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
-	wsc.closed = true
+	atomic.StoreInt32(&wsc.closed, 1)
 	wsc.Conn.Close()
 }
 
@@ -149,7 +150,7 @@ func (wsc *WebSocketClient) writer() {
 		case msg := <-wsc.writeChan:
 			switch msg.msgType {
 			case msgTypeJSON:
-				wsc.Conn.WriteJSON(msg.contents)
+				wsc.Conn.WriteJSON(msg.data)
 			case msgTypePong:
 				wsc.Conn.WriteMessage(websocket.PongMessage, []byte{})
 			}
@@ -206,8 +207,8 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 
 	wsc.Sequence++
 	wsc.writeChan <- writeMessage{
-		msgType:  msgTypeJSON,
-		contents: req,
+		msgType: msgTypeJSON,
+		data:    req,
 	}
 }
 
