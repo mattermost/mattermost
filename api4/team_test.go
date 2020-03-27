@@ -1250,7 +1250,7 @@ func TestGetTeamMembers(t *testing.T) {
 	team := th.BasicTeam
 	userNotMember := th.CreateUser()
 
-	rmembers, resp := Client.GetTeamMembers(team.Id, 0, 100, "", false, "")
+	rmembers, resp := Client.GetTeamMembers(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
 
 	t.Logf("rmembers count %v\n", len(rmembers))
@@ -1262,21 +1262,21 @@ func TestGetTeamMembers(t *testing.T) {
 		require.NotEqual(t, rmember.UserId, userNotMember.Id, "user should be a member of team")
 	}
 
-	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "", false, "")
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
 	require.Len(t, rmembers, 1, "should be 1 per page")
 
-	rmembers, resp = Client.GetTeamMembers(team.Id, 1, 1, "", false, "")
+	rmembers, resp = Client.GetTeamMembers(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
 	require.Len(t, rmembers, 1, "should be 1 per page")
 
-	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "", false, "")
+	rmembers, resp = Client.GetTeamMembers(team.Id, 10000, 100, "")
 	CheckNoError(t, resp)
 	require.Empty(t, rmembers, "should be no member")
 
-	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "", false, "")
+	rmembers, resp = Client.GetTeamMembers(team.Id, 0, 2, "")
 	CheckNoError(t, resp)
-	rmembers2, resp := Client.GetTeamMembers(team.Id, 1, 2, "", false, "")
+	rmembers2, resp := Client.GetTeamMembers(team.Id, 1, 2, "")
 	CheckNoError(t, resp)
 
 	for _, tm1 := range rmembers {
@@ -1285,29 +1285,29 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 	}
 
-	_, resp = Client.GetTeamMembers("junk", 0, 100, "", false, "")
+	_, resp = Client.GetTeamMembers("junk", 0, 100, "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetTeamMembers(model.NewId(), 0, 100, "", false, "")
+	_, resp = Client.GetTeamMembers(model.NewId(), 0, 100, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.GetTeamMembers(team.Id, 0, 1, "", false, "")
+	_, resp = Client.GetTeamMembers(team.Id, 0, 1, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "", false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, "", false, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, model.USERNAME, false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, model.USERNAME, true, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, true, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, "", true, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, "", true, "")
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamMembers(team.Id, 0, 100, model.USERNAME, false, "")
+	_, resp = th.SystemAdminClient.GetTeamMembersWithoutDeletedUsers(team.Id, 0, 100, model.USERNAME, false, "")
 	CheckNoError(t, resp)
 }
 
