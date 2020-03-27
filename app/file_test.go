@@ -99,7 +99,7 @@ func TestUploadFile(t *testing.T) {
 	require.Nil(t, info1, "Channel ID does not exist.")
 
 	info1, err = th.App.UploadFile(data, "", filename)
-	require.Nil(t, err, "for legacy reasons it should accepts the empty channel id")
+	require.Nil(t, err, "empty channel IDs should be valid")
 
 	info1, err = th.App.UploadFile(data, channelId, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
