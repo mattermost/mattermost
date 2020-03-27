@@ -136,7 +136,7 @@ func TestDiagnostics(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		th.App.SendDiagnostic("Testing Diagnostic", map[string]interface{}{
+		th.App.Srv().SendDiagnostic("Testing Diagnostic", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {
@@ -151,7 +151,7 @@ func TestDiagnostics(t *testing.T) {
 
 	// Plugins remain disabled at this point
 	t.Run("SendDailyDiagnosticsPluginsDisabled", func(t *testing.T) {
-		th.App.sendDailyDiagnostics(true)
+		th.App.Srv().sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -202,7 +202,7 @@ func TestDiagnostics(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.sendDailyDiagnostics(true)
+		th.App.Srv().sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -250,7 +250,7 @@ func TestDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
-		th.App.SendDailyDiagnostics()
+		th.App.Srv().SendDailyDiagnostics()
 
 		select {
 		case <-data:
@@ -263,7 +263,7 @@ func TestDiagnostics(t *testing.T) {
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
 
-		th.App.sendDailyDiagnostics(true)
+		th.App.Srv().sendDailyDiagnostics(true)
 
 		select {
 		case <-data:

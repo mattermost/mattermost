@@ -148,6 +148,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 		th.tempWorkspace = tempWorkspace
 	}
 
+	th.App.InitServer()
+
 	return th
 }
 

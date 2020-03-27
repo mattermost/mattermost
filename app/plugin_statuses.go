@@ -50,7 +50,11 @@ func (s *Server) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 
 	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		status.ClusterId = s.Cluster.GetClusterId()
+		if s.Cluster != nil {
+			status.ClusterId = s.Cluster.GetClusterId()
+		} else {
+			status.ClusterId = ""
+		}
 	}
 
 	return pluginStatuses, nil
