@@ -51,7 +51,7 @@ type Hooks interface {
 	// will be terminated. The plugin will not receive hooks until after OnActivate returns
 	// without error. OnConfigurationChange will be called once before OnActivate.
 	//
-	// Minimum server version: 4.2
+	// Minimum server version: 5.2
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
@@ -64,14 +64,14 @@ type Hooks interface {
 	// use the API, and the plugin will be terminated shortly after this invocation. The plugin
 	// will stop receiving hooks just prior to this method being called.
 	//
-	// Minimum server version: 4.2
+	// Minimum server version: 5.2
 	OnDeactivate() error
 
 	// OnConfigurationChange is invoked when configuration changes may have been made. Any
 	// returned error is logged, but does not stop the plugin. You must be prepared to handle
 	// a configuration failure gracefully. It is called once before OnActivate.
 	//
-	// Minimum server version: 4.3
+	// Minimum server version: 5.2
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
@@ -80,13 +80,13 @@ type Hooks interface {
 	// The Mattermost-User-Id header will be present if (and only if) the request is by an
 	// authenticated user.
 	//
-	// Minimum server version: 4.2
+	// Minimum server version: 5.2
 	ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
 
 	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
 	// API.
 	//
-	// Minimum server version: 4.6
+	// Minimum server version: 5.2
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 
 	// UserHasBeenCreated is invoked after a user was created.
@@ -118,7 +118,7 @@ type Hooks interface {
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	//
-	// Minimum server version: 5.0
+	// Minimum server version: 5.2
 	MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 
 	// MessageWillBeUpdated is invoked when a message is updated by a user before it is committed
@@ -131,7 +131,7 @@ type Hooks interface {
 	// Note that this method will be called for posts updated by plugins, including the plugin that
 	// updated the post.
 	//
-	// Minimum server version: 5.0
+	// Minimum server version: 5.2
 	MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 
 	// MessageHasBeenPosted is invoked after the message has been committed to the database.
@@ -139,7 +139,7 @@ type Hooks interface {
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	//
-	// Minimum server version: 5.0
+	// Minimum server version: 5.2
 	MessageHasBeenPosted(c *Context, post *model.Post)
 
 	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the database.
@@ -147,7 +147,7 @@ type Hooks interface {
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
 	//
-	// Minimum server version: 5.0
+	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
