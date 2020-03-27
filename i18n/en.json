@@ -6591,6 +6591,10 @@
     "translation": "Unable to select the posts to delete for the user (too many), please re-run."
   },
   {
+    "id": "store.sql_post.populate_reply_count.app_error",
+    "translation": "Unable to get the post replies count"
+  },
+  {
     "id": "store.sql_post.save.app_error",
     "translation": "Unable to save the Post."
   },
