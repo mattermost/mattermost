@@ -411,9 +411,8 @@ func (h *Hub) Start() {
 			case webCon := <-h.register:
 				connections.Add(webCon)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
-				// Send hello message.
 				if webCon.IsAuthenticated() {
-					webCon.sendHello()
+					webCon.Send <- webCon.createHelloMessage()
 				}
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
