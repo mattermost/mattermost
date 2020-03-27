@@ -49,7 +49,7 @@ type EmailInviteWithError struct {
 }
 
 type TeamMembersGetOptions struct {
-	// Sorting options: Username
+	// Sort the team members. Accepts "Username", but defaults to "Id".
 	Sort string
 
 	// If true, exclude team members whose corresponding user is deleted.
