@@ -174,12 +174,22 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		}
 	}
 
-	newPosts, appErr := s.GetPostsByIds(postIds)
-	if appErr != nil {
-		mlog.Error("Error getting the updated version of the posts.", mlog.Err(appErr))
-		return posts, nil
+	unknownRepliesPosts := []*model.Post{}
+	for _, post := range posts {
+		if len(post.RootId) == 0 {
+			count, ok := rootIds[post.Id]
+			if ok {
+				post.ReplyCount += int64(count)
+			}
+		}
+		unknownRepliesPosts = append(unknownRepliesPosts, post)
 	}
-	return newPosts, nil
+
+	if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
+		mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
+	}
+
+	return posts, nil
 }
 
 func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
@@ -188,6 +198,42 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	}
 	return posts[0], nil
+}
+
+func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
+	rootIds := []string{}
+	for _, post := range posts {
+		rootIds = append(rootIds, post.Id)
+	}
+	countList := []struct {
+		RootId string
+		Count  int64
+	}{}
+	query := s.getQueryBuilder().Select("RootId, COUNT(Id)").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return model.NewAppError("SqlPostStore.populateReplyCount", "store.sql_post.populate_reply_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s.GetMaster().Select(&countList, queryString, args...)
+	if err != nil {
+		return model.NewAppError("SqlPostStore.populateReplyCount", "store.sql_post.populate_reply_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	counts := map[string]int64{}
+	for _, count := range countList {
+		counts[count.RootId] = count.Count
+	}
+
+	for _, post := range posts {
+		count, ok := counts[post.RootId]
+		if !ok {
+			post.ReplyCount = 0
+		}
+		post.ReplyCount = count
+	}
+
+	return nil
 }
 
 func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
@@ -287,7 +333,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	query := `
             SELECT
-                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
+                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
             FROM
                 (SELECT
                     *
