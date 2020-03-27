@@ -26,11 +26,11 @@ import (
 func (s *Server) RunOldAppInitialization() error {
 	s.FakeApp().createPushNotificationsHub()
 
-	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
+	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.FakeApp().Srv().configListenerId = s.FakeApp().AddConfigListener(func(_, _ *model.Config) {
+	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
@@ -40,7 +40,7 @@ func (s *Server) RunOldAppInitialization() error {
 			s.FakeApp().Publish(message)
 		})
 	})
-	s.FakeApp().Srv().licenseListenerId = s.FakeApp().AddLicenseListener(func(oldLicense, newLicense *model.License) {
+	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
@@ -59,12 +59,12 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.initEnterprise()
 
-	if s.FakeApp().Srv().newStore == nil {
-		s.FakeApp().Srv().newStore = func() store.Store {
+	if s.newStore == nil {
+		s.newStore = func() store.Store {
 			return store.NewTimerLayer(
 				searchlayer.NewSearchLayer(
 					localcachelayer.NewLocalCacheLayer(
-						sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics),
+						sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics),
 						s.Metrics,
 						s.Cluster,
 						s.CacheProvider,
@@ -79,10 +79,10 @@ func (s *Server) RunOldAppInitialization() error {
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
 		mlog.Error("Failed to parse server templates", mlog.Err(err))
 	} else {
-		s.FakeApp().Srv().htmlTemplateWatcher = htmlTemplateWatcher
+		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	s.FakeApp().Srv().Store = s.FakeApp().Srv().newStore()
+	s.Store = s.newStore()
 	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
@@ -97,49 +97,49 @@ func (s *Server) RunOldAppInitialization() error {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
 
-	s.FakeApp().EnsureDiagnosticId()
+	s.ensureDiagnosticId()
 	s.FakeApp().regenerateClientConfig()
 
-	s.FakeApp().Srv().clusterLeaderListenerId = s.FakeApp().Srv().AddClusterLeaderChangedListener(func() {
+	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
-		if s.FakeApp().Srv().Jobs != nil {
-			s.FakeApp().Srv().Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
+		if s.Jobs != nil {
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
 		}
 	})
 
-	subpath, err := utils.GetSubpathFromConfig(s.FakeApp().Config())
+	subpath, err := utils.GetSubpathFromConfig(s.Config())
 	if err != nil {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
-	s.FakeApp().Srv().Router = s.FakeApp().Srv().RootRouter.PathPrefix(subpath).Subrouter()
-	pluginsRoute := s.FakeApp().Srv().Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
+	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", s.FakeApp().ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.FakeApp().ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
-		s.FakeApp().Srv().RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path = path.Join(subpath, r.URL.Path)
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-	s.FakeApp().Srv().Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
+	s.Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
 
-	s.FakeApp().Srv().WebSocketRouter = &WebSocketRouter{
+	s.WebSocketRouter = &WebSocketRouter{
 		app:      s.FakeApp(),
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	if err := mailservice.TestConnection(s.FakeApp().Config()); err != nil {
+	if err := mailservice.TestConnection(s.Config()); err != nil {
 		mlog.Error("Mail server connection test is failed: " + err.Message)
 	}
 
-	if _, err := url.ParseRequestURI(*s.FakeApp().Config().ServiceSettings.SiteURL); err != nil {
+	if _, err := url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
 	}
 
-	backend, appErr := s.FakeApp().FileBackend()
+	backend, appErr := s.FileBackend()
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}
