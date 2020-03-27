@@ -883,7 +883,10 @@ func (s *Server) initRudder(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, _ := rudder.NewWithConfig(RUDDER_KEY, config)
+		client, err := rudder.NewWithConfig(RUDDER_KEY, config)
+		if err != nil {
+			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
+		}
 		client.Enqueue(rudder.Identify{
 			UserId: s.diagnosticId,
 		})
@@ -894,15 +897,17 @@ func (s *Server) initRudder(endpoint string) {
 
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
+	var err error = nil
+
 	if s.diagnosticClient != nil {
-		return s.diagnosticClient.Close()
+		err = s.diagnosticClient.Close()
 	}
 
 	if s.rudderClient != nil {
-		return s.rudderClient.Close()
+		err = s.rudderClient.Close()
 	}
 
-	return nil
+	return err
 }
 
 // GetHubs returns the list of hubs. This method is safe
