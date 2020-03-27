@@ -664,6 +664,7 @@ func TestImportValidateUserAuth(t *testing.T) {
 			require.Nil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
 		} else {
 			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
+			require.Equal(t, "app.import.validate_user_import_data.auth_data_and_service_dependency.error", err.Id)
 		}
 	}
 
