@@ -134,7 +134,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 }
 
 func (wsc *WebSocketClient) Close() {
-	// CAS to 1 and proceed. Return if already 0.
+	// CAS to 1 and proceed. Return if already 1.
 	if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
 		return
 	}
