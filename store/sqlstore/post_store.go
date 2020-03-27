@@ -104,7 +104,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
-	postIds := []string{}
 	for _, post := range posts {
 		if len(post.Id) > 0 {
 			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
@@ -114,7 +113,6 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		if err := post.IsValid(maxPostSize); err != nil {
 			return nil, err
 		}
-		postIds = append(postIds, post.Id)
 
 		currentChannelCount, ok := channelNewPosts[post.ChannelId]
 		if !ok {
@@ -181,12 +179,15 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 			if ok {
 				post.ReplyCount += int64(count)
 			}
+		} else {
+			unknownRepliesPosts = append(unknownRepliesPosts, post)
 		}
-		unknownRepliesPosts = append(unknownRepliesPosts, post)
 	}
 
-	if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
-		mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
+	if len(unknownRepliesPosts) > 0 {
+		if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
+			mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
+		}
 	}
 
 	return posts, nil
