@@ -134,6 +134,9 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 }
 
 func (wsc *WebSocketClient) Close() {
+	if wsc.closed {
+		return
+	}
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
 	wsc.closed = true
