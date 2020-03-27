@@ -119,11 +119,10 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	// All of this needs to be redesigned for v6.
 	wsc.configurePingHandling()
 	// If it has been closed before, we just restart the writer.
-	if atomic.LoadInt32(&wsc.closed) == 1 {
+	if atomic.CompareAndSwapInt32(&wsc.closed, 1, 0) {
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
-		atomic.StoreInt32(&wsc.closed, 0)
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -135,12 +134,12 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 }
 
 func (wsc *WebSocketClient) Close() {
-	if atomic.LoadInt32(&wsc.closed) == 1 {
+	// CAS to 1 and proceed. Return if already 0.
+	if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
 		return
 	}
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
-	atomic.StoreInt32(&wsc.closed, 1)
 	wsc.Conn.Close()
 }
 
