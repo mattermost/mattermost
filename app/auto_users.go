@@ -103,7 +103,7 @@ func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range) ([]*model.User, err
 		var err error
 		users[i], err = cfg.createRandomUser()
 		if err != nil {
-			return users, err
+			return nil, err
 		}
 	}
 
