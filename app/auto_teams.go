@@ -44,7 +44,7 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 	if cfg.Fuzzy {
 		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.FuzzName()
-		teamName = utils.RandomName(cfg.NameLength, cfg.NameCharset) + model.NewId()
+		teamName = model.NewRandomTeamName()
 	} else {
 		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.RandomName(cfg.NameLength, cfg.NameCharset)
