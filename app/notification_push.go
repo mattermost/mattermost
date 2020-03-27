@@ -310,8 +310,8 @@ func (a *App) StartPushNotificationsHubWorkers() {
 	}
 }
 
-func (a *App) StopPushNotificationsHubWorkers() {
-	for _, channel := range a.Srv().PushNotificationsHub.Channels {
+func (s *Server) StopPushNotificationsHubWorkers() {
+	for _, channel := range s.PushNotificationsHub.Channels {
 		close(channel)
 	}
 }

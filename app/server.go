@@ -56,6 +56,7 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
+	AppInitialized  sync.Once
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -310,32 +311,19 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	if s.joinCluster && s.Cluster != nil {
-		s.FakeApp().registerAllClusterMessageHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()
 	}
 
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-			}
-		}
-	})
+	s.SearchEngine.UpdateConfig(s.Config())
+	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
+	s.searchConfigListenerId = searchConfigListenerId
+	s.searchLicenseListenerId = searchLicenseListenerId
 
-	// Disable active guest accounts on first run if guest accounts are disabled
-	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
-			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-		}
-	}
+	return s, nil
+}
 
-	s.initJobs()
-
+func (s *Server) RunJobs() {
 	if s.runjobs {
 		s.Go(func() {
 			runSecurityJob(s)
@@ -364,13 +352,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.Jobs.StartSchedulers()
 		}
 	}
-
-	s.SearchEngine.UpdateConfig(s.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
-	s.searchConfigListenerId = searchConfigListenerId
-	s.searchLicenseListenerId = searchLicenseListenerId
-
-	return s, nil
 }
 
 // Global app options that should be applied to apps created by this server
@@ -1248,4 +1229,8 @@ func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Schem
 	}
 
 	return s.Store.Scheme().GetAllPage(scope, offset, limit)
+}
+
+func (s *Server) ClientConfigHash() string {
+	return s.clientConfigHash
 }

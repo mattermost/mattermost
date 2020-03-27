@@ -186,32 +186,37 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 }
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
-func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg, err := a.Srv().configStore.Set(newCfg)
+func (s *Server) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := s.configStore.Set(newCfg)
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if a.Metrics() != nil {
-		if *a.Config().MetricsSettings.Enable {
-			a.Metrics().StartServer()
+	if s.Metrics != nil {
+		if *s.Config().MetricsSettings.Enable {
+			s.Metrics.StartServer()
 		} else {
-			a.Metrics().StopServer()
+			s.Metrics.StopServer()
 		}
 	}
 
-	if a.Cluster() != nil {
-		newCfg = a.Srv().configStore.RemoveEnvironmentOverrides(newCfg)
-		oldCfg = a.Srv().configStore.RemoveEnvironmentOverrides(oldCfg)
-		err := a.Cluster().ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+	if s.Cluster != nil {
+		newCfg = s.configStore.RemoveEnvironmentOverrides(newCfg)
+		oldCfg = s.configStore.RemoveEnvironmentOverrides(oldCfg)
+		err := s.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// SaveConfig replaces the active configuration, optionally notifying cluster peers.
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	return a.Srv().SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {

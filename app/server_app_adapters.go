@@ -83,7 +83,6 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	s.Store = s.newStore()
-	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := s.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
@@ -112,10 +111,6 @@ func (s *Server) RunOldAppInitialization() error {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
-	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", s.FakeApp().ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.FakeApp().ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -124,10 +119,9 @@ func (s *Server) RunOldAppInitialization() error {
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-	s.Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
 
 	s.WebSocketRouter = &WebSocketRouter{
-		app:      s.FakeApp(),
+		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
 
@@ -147,39 +141,13 @@ func (s *Server) RunOldAppInitialization() error {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		s.FakeApp().LoadLicense()
-	}
-
-	s.FakeApp().DoAppMigrations()
-
-	s.FakeApp().InitPostMetadata()
-
-	s.FakeApp().InitPlugins(*s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-	s.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if *cfg.PluginSettings.Enable {
-			s.FakeApp().InitPlugins(*cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-		} else {
-			s.FakeApp().ShutDownPlugins()
-		}
-	})
-
 	return nil
 }
 
 func (s *Server) RunOldAppShutdown() {
 	s.HubStop()
-	s.FakeApp().StopPushNotificationsHubWorkers()
-	s.FakeApp().ShutDownPlugins()
+	s.StopPushNotificationsHubWorkers()
+	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
-}
-
-// A temporary bridge to deal with cases where the code is so tighly coupled that
-// this is easier as a temporary solution
-func (s *Server) FakeApp() *App {
-	a := New(
-		ServerConnector(s),
-	)
-	return a
 }

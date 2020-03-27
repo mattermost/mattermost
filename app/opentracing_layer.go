@@ -8945,6 +8945,21 @@ func (a *OpenTracingAppLayer) InitPostMetadata() {
 	a.app.InitPostMetadata()
 }
 
+func (a *OpenTracingAppLayer) InitServer() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InitServer")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.InitServer()
+}
+
 func (a *OpenTracingAppLayer) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallMarketplacePlugin")
@@ -12907,21 +12922,6 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ShutDownPlugins() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ShutDownPlugins")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ShutDownPlugins()
-}
-
 func (a *OpenTracingAppLayer) Shutdown() {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Shutdown")
@@ -13077,21 +13077,6 @@ func (a *OpenTracingAppLayer) StartPushNotificationsHubWorkers() {
 
 	defer span.Finish()
 	a.app.StartPushNotificationsHubWorkers()
-}
-
-func (a *OpenTracingAppLayer) StopPushNotificationsHubWorkers() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StopPushNotificationsHubWorkers")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.StopPushNotificationsHubWorkers()
 }
 
 func (a *OpenTracingAppLayer) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {

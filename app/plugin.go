@@ -279,8 +279,8 @@ func (a *App) SyncPlugins() *model.AppError {
 	return nil
 }
 
-func (a *App) ShutDownPlugins() {
-	pluginsEnvironment := a.GetPluginsEnvironment()
+func (s *Server) ShutDownPlugins() {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -289,14 +289,14 @@ func (a *App) ShutDownPlugins() {
 
 	pluginsEnvironment.Shutdown()
 
-	a.RemoveConfigListener(a.Srv().PluginConfigListenerId)
-	a.Srv().PluginConfigListenerId = ""
+	s.RemoveConfigListener(s.PluginConfigListenerId)
+	s.PluginConfigListenerId = ""
 
 	// Acquiring lock manually before cleaning up PluginsEnvironment.
-	a.Srv().PluginsLock.Lock()
-	defer a.Srv().PluginsLock.Unlock()
-	if a.Srv().PluginsEnvironment == pluginsEnvironment {
-		a.Srv().PluginsEnvironment = nil
+	s.PluginsLock.Lock()
+	defer s.PluginsLock.Unlock()
+	if s.PluginsEnvironment == pluginsEnvironment {
+		s.PluginsEnvironment = nil
 	} else {
 		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}

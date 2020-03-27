@@ -88,6 +88,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
+	c.App.InitServer()
 
 	t, _ := utils.GetTranslationsAndLocale(w, r)
 	c.App.SetT(t)

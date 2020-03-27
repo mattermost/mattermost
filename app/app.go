@@ -62,6 +62,57 @@ func New(options ...AppOption) *App {
 	return app
 }
 
+func (a *App) InitServer() {
+	a.srv.AppInitialized.Do(func() {
+		a.initEnterprise()
+		a.StartPushNotificationsHubWorkers()
+		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+				if appErr := a.DeactivateGuests(); appErr != nil {
+					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+				}
+			}
+		})
+
+		// Disable active guest accounts on first run if guest accounts are disabled
+		if !*a.Config().GuestAccountsSettings.Enable {
+			if appErr := a.DeactivateGuests(); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+
+		if a.srv.joinCluster && a.srv.Cluster != nil {
+			a.registerAllClusterMessageHandlers()
+			a.srv.Cluster.StartInterNodeCommunication()
+		}
+
+		pluginsRoute := a.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+		pluginsRoute.HandleFunc("", a.ServePluginRequest)
+		pluginsRoute.HandleFunc("/public/{public_file:.*}", a.ServePluginPublicRequest)
+		pluginsRoute.HandleFunc("/{anything:.*}", a.ServePluginRequest)
+		a.srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
+
+		if model.BuildEnterpriseReady == "true" {
+			a.LoadLicense()
+		}
+
+		a.DoAppMigrations()
+
+		a.InitPostMetadata()
+
+		a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+			if *cfg.PluginSettings.Enable {
+				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+			} else {
+				a.srv.ShutDownPlugins()
+			}
+		})
+		a.initJobs()
+		a.srv.RunJobs()
+	})
+}
+
 // DO NOT CALL THIS.
 // This is to avoid having to change all the code in cmd/mattermost/commands/* for now
 // shutdown should be called directly on the server
@@ -70,31 +121,31 @@ func (a *App) Shutdown() {
 	a.srv = nil
 }
 
-func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
+func (a *App) initJobs() {
+	a.srv.Jobs = jobs.NewJobServer(a.srv, a.srv.Store)
 	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
+		a.srv.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a.srv)
 	}
 	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
+		a.srv.Jobs.MessageExportJob = jobsMessageExportJobInterface(a.srv)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
+		a.srv.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a.srv)
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
+		a.srv.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a.srv)
 	}
 	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())
+		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
 	if jobsMigrationsInterface != nil {
-		s.Jobs.Migrations = jobsMigrationsInterface(s.FakeApp())
+		a.srv.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
 	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
+		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
-	s.Jobs.Workers = s.Jobs.InitWorkers()
-	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
+	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {

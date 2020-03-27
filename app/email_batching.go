@@ -255,7 +255,7 @@ func (s *Server) renderBatchedPost(notification *batchedNotification, channel *m
 	}
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
-	template.Props["PostMessage"] = s.FakeApp().GetMessageForNotification(notification.post, translateFunc)
+	template.Props["PostMessage"] = s.GetMessageForNotification(notification.post, translateFunc)
 	template.Props["PostLink"] = siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 	template.Props["SenderName"] = sender.GetDisplayName(displayNameFormat)
 

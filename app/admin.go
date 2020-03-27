@@ -19,25 +19,25 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, a.Cluster().GetMyClusterInfo().Hostname)
+		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
 
-	melines, err := a.GetLogsSkipSend(page, perPage)
+	melines, err := s.GetLogsSkipSend(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
 	lines = append(lines, melines...)
 
-	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
-		clines, err := a.Cluster().GetLogs(page, perPage)
+	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -48,11 +48,15 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return a.GetLogs(page, perPage)
+}
+
+func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *a.Config().LogSettings.EnableFile {
-		logFile := utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
+	if *s.Config().LogSettings.EnableFile {
+		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
@@ -117,6 +121,10 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	}
 
 	return lines, nil
+}
+
+func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogsSkipSend(page, perPage)
 }
 
 func (a *App) GetClusterStatus() []*model.ClusterInfo {

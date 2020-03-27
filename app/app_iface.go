@@ -36,6 +36,9 @@ import (
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
+	// Initialize the server to be usable from the app layer
+	InitServer()
+
 	// @openTracingParams teamId
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -854,7 +857,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	ShutDownPlugins()
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
 	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
 	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
@@ -864,7 +866,6 @@ type AppIface interface {
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
 	StartPushNotificationsHubWorkers()
-	StopPushNotificationsHubWorkers()
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

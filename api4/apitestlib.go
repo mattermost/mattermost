@@ -121,7 +121,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	wsapi.Init(th.App.Srv())
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
