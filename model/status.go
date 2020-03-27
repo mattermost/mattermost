@@ -28,10 +28,9 @@ type Status struct {
 }
 
 func (o *Status) ToJson() string {
-	tempChannelId := o.ActiveChannel
-	o.ActiveChannel = ""
-	b, _ := json.Marshal(o)
-	o.ActiveChannel = tempChannelId
+	oCopy := *o
+	oCopy.ActiveChannel = ""
+	b, _ := json.Marshal(oCopy)
 	return string(b)
 }
 
@@ -47,18 +46,14 @@ func StatusFromJson(data io.Reader) *Status {
 }
 
 func StatusListToJson(u []*Status) string {
-	activeChannels := make([]string, len(u))
-	for index, s := range u {
-		activeChannels[index] = s.ActiveChannel
-		s.ActiveChannel = ""
+	uCopy := make([]Status, len(u))
+	for i, s := range u {
+		sCopy := *s
+		sCopy.ActiveChannel = ""
+		uCopy[i] = sCopy
 	}
 
-	b, _ := json.Marshal(u)
-
-	for index, s := range u {
-		s.ActiveChannel = activeChannels[index]
-	}
-
+	b, _ := json.Marshal(uCopy)
 	return string(b)
 }
 

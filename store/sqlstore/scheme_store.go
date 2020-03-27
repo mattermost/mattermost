@@ -41,6 +41,9 @@ func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
 }
 
 func (s SqlSchemeStore) createIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+	s.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
@@ -152,6 +155,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 		}
 		scheme.DefaultTeamGuestRole = savedRole.Name
 	}
+
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		// Channel Admin Role
 		channelAdminRole := &model.Role{
@@ -159,6 +163,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			DisplayName:   fmt.Sprintf("Channel Admin Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
 			SchemeManaged: true,
+		}
+
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelAdminRole.Permissions = []string{}
 		}
 
 		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction)
@@ -175,6 +183,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelUserRole.Permissions = filterModerated(channelUserRole.Permissions)
+		}
+
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
 		if err != nil {
 			return nil, err
@@ -187,6 +199,10 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
 			Permissions:   defaultRoles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
 			SchemeManaged: true,
+		}
+
+		if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
+			channelGuestRole.Permissions = filterModerated(channelGuestRole.Permissions)
 		}
 
 		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
@@ -213,6 +229,16 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	}
 
 	return scheme, nil
+}
+
+func filterModerated(permissions []string) []string {
+	filteredPermissions := []string{}
+	for _, perm := range permissions {
+		if _, ok := model.CHANNEL_MODERATED_PERMISSIONS_MAP[perm]; ok {
+			filteredPermissions = append(filteredPermissions, perm)
+		}
+	}
+	return filteredPermissions
 }
 
 func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
@@ -321,4 +347,31 @@ func (s *SqlSchemeStore) PermanentDeleteAll() *model.AppError {
 	}
 
 	return nil
+}
+
+func (s *SqlSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Schemes WHERE Scope = :Scope AND DeleteAt = 0", map[string]interface{}{"Scope": scope})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlSchemeStore.CountByScope", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
+}
+
+func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+	joinCol := fmt.Sprintf("Default%s%sRole", roleScope, roleType)
+	query := fmt.Sprintf(`
+		SELECT
+			count(*)
+		FROM Schemes
+			JOIN Roles ON Roles.Name = Schemes.%s
+		WHERE
+			Schemes.DeleteAt = 0 AND
+			Schemes.Scope = '%s' AND
+			Roles.Permissions NOT LIKE '%%%s%%'
+	`, joinCol, schemeScope, permissionID)
+	count, err := s.GetReplica().SelectInt(query)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlSchemeStore.CountWithoutPermission", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
