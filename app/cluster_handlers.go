@@ -31,6 +31,9 @@ func (a *App) registerAllClusterMessageHandlers() {
 
 func (a *App) clusterPublishHandler(msg *model.ClusterMessage) {
 	event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
+	if event == nil {
+		return
+	}
 	a.PublishSkipClusterSend(event)
 }
 
