@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cluster"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +19,7 @@ type testMutexProvider struct {
 	mutex *sync.Mutex
 }
 
-func (p *testMutexProvider) NewMutex(name string) cluster.Mutex {
+func (p *testMutexProvider) NewMutex(name string) sync.Locker {
 	return p.mutex
 }
 

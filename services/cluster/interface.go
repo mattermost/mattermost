@@ -3,11 +3,8 @@
 
 package cluster
 
-type Mutex interface {
-	Lock()
-	Unlock()
-}
+import "sync"
 
 type MutexProvider interface {
-	NewMutex(name string) Mutex
+	NewMutex(name string) sync.Locker
 }

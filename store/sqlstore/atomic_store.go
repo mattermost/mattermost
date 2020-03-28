@@ -114,7 +114,7 @@ func (ps SqlAtomicStore) CompareAndSet(kv *model.AtomicKeyValue, oldValue []byte
 				// this isn't a good use of CompareAndSet anyway, since there's no corresponding guarantee of
 				// atomicity. Nevertheless, let's return results consistent with Postgres and with what might
 				// be expected in this case.
-				count, err := ps.GetReplica().SelectInt(
+				count, err := ps.GetMaster().SelectInt(
 					"SELECT COUNT(*) FROM AtomicKeyValueStore WHERE AKey = :Key AND AValue = :Value",
 					map[string]interface{}{
 						"Key":   kv.Key,
@@ -125,11 +125,12 @@ func (ps SqlAtomicStore) CompareAndSet(kv *model.AtomicKeyValue, oldValue []byte
 					return false, model.NewAppError("SqlAtomicStore.CompareAndSet", "store.sql_atomic_store.compare_and_set.mysql_select.app_error", nil, fmt.Sprintf("key=%v, err=%v", kv.Key, err.Error()), http.StatusInternalServerError)
 				}
 
-				if count == 0 {
+				switch count {
+				case 0:
 					return false, nil
-				} else if count == 1 {
+				case 1:
 					return true, nil
-				} else {
+				default:
 					return false, model.NewAppError("SqlAtomicStore.CompareAndSet", "store.sql_atomic_store.compare_and_set.too_many_rows.app_error", nil, fmt.Sprintf("key=%v, count=%d", kv.Key, count), http.StatusInternalServerError)
 				}
 			}

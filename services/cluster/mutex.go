@@ -53,8 +53,8 @@ type DBMutex struct {
 	// lock guards the variables used to manage the refresh task, and is not itself related to
 	// the cluster-wide lock.
 	lock        sync.Mutex
-	stopRefresh chan bool
-	refreshDone chan bool
+	stopRefresh chan struct{}
+	refreshDone chan struct{}
 }
 
 // NewDBMutex creates a mutex with the given name.
@@ -102,8 +102,36 @@ func (m *DBMutex) refreshLock() error {
 // Lock locks m. If the mutex is already locked by any plugin instance, including the current one,
 // the calling goroutine blocks until the mutex can be locked.
 func (m *DBMutex) Lock() {
-	var waitInterval time.Duration
+	m.waitUntilLockAcquired()
 
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		t := time.NewTicker(refreshInterval)
+		for {
+			select {
+			case <-t.C:
+				err := m.refreshLock()
+				if err != nil {
+					mlog.Error("failed to refresh mutex", mlog.Err(err), mlog.String("lock_key", m.key))
+					return
+				}
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	m.lock.Lock()
+	m.stopRefresh = stop
+	m.refreshDone = done
+	m.lock.Unlock()
+}
+
+// waitUntilLockAcquired will try to acquire the lock in an infinite loop
+func (m *DBMutex) waitUntilLockAcquired() {
+	var waitInterval time.Duration
 	for {
 		time.Sleep(waitInterval)
 
@@ -116,31 +144,6 @@ func (m *DBMutex) Lock() {
 			waitInterval = nextWaitInterval(waitInterval, err)
 			continue
 		}
-
-		stop := make(chan bool)
-		done := make(chan bool)
-		go func() {
-			defer close(done)
-			t := time.NewTicker(refreshInterval)
-			for {
-				select {
-				case <-t.C:
-					err := m.refreshLock()
-					if err != nil {
-						mlog.Error("failed to refresh mutex", mlog.Err(err), mlog.String("lock_key", m.key))
-						return
-					}
-				case <-stop:
-					return
-				}
-			}
-		}()
-
-		m.lock.Lock()
-		m.stopRefresh = stop
-		m.refreshDone = done
-		m.lock.Unlock()
-
 		return
 	}
 }
@@ -196,6 +199,8 @@ type DBMutexProvider struct {
 }
 
 // NewMutex creates a new mutex instance
-func (m *DBMutexProvider) NewMutex(name string) Mutex {
+func (m *DBMutexProvider) NewMutex(name string) sync.Locker {
 	return NewDBMutex(name, m.Store)
 }
+
+var _ MutexProvider = &DBMutexProvider{}
