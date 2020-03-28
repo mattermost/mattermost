@@ -23,6 +23,8 @@ type configuration struct {
 	channelID string
 }
 
+// HelpPlugin implements the interface expected by the Mattermost server to communicate
+// between the server and plugin processes.
 type HelpPlugin struct {
 	plugin.MattermostPlugin
 
@@ -85,6 +87,7 @@ func (p *HelpPlugin) OnConfigurationChange() error {
 	return nil
 }
 
+// MessageHasBeenPosted automatically replies to posts that plea for help.
 func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	configuration := p.getConfiguration()
 
@@ -94,7 +97,7 @@ func (p *HelpPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	}
 
 	// Ignore posts this plugin made.
-	if sentByPlugin, _ := post.Props["sent_by_plugin"].(bool); sentByPlugin {
+	if sentByPlugin, _ := post.GetProp("sent_by_plugin").(bool); sentByPlugin {
 		return
 	}
 

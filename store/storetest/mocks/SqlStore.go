@@ -46,6 +46,20 @@ func (_m *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 	return r0
 }
 
+// AlterPrimaryKey provides a mock function with given fields: tableName, columnNames
+func (_m *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool {
+	ret := _m.Called(tableName, columnNames)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []string) bool); ok {
+		r0 = rf(tableName, columnNames)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Audit provides a mock function with given fields:
 func (_m *SqlStore) Audit() store.AuditStore {
 	ret := _m.Called()
