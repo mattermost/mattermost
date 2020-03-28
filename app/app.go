@@ -78,16 +78,16 @@ func (a *App) configOrLicenseListener() {
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store)
 	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s.FakeApp())
+		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}
 	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s.FakeApp())
+		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s.FakeApp())
+		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s.FakeApp())
+		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
 	}
 	if jobsLdapSyncInterface != nil {
 		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())
@@ -107,25 +107,6 @@ func (a *App) DiagnosticId() string {
 }
 
 func (a *App) SetDiagnosticId(id string) {
-	a.Srv().diagnosticId = id
-}
-
-func (a *App) EnsureDiagnosticId() {
-	if a.Srv().diagnosticId != "" {
-		return
-	}
-	props, err := a.Srv().Store.System().Get()
-	if err != nil {
-		return
-	}
-
-	id := props[model.SYSTEM_DIAGNOSTIC_ID]
-	if len(id) == 0 {
-		id = model.NewId()
-		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		a.Srv().Store.System().Save(systemId)
-	}
-
 	a.Srv().diagnosticId = id
 }
 
