@@ -15,44 +15,60 @@ func TestGetUserStatus(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "offline", userStatus.Status)
+	t.Run("offline status", func(t *testing.T) {
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "offline", userStatus.Status)
+	})
 
-	th.App.SetStatusOnline(th.BasicUser.Id, true)
-	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "online", userStatus.Status)
+	t.Run("online status", func(t *testing.T) {
+		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "online", userStatus.Status)
+	})
 
-	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
-	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "away", userStatus.Status)
+	t.Run("away status", func(t *testing.T) {
+		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "away", userStatus.Status)
+	})
 
-	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
-	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "dnd", userStatus.Status)
+	t.Run("dnd status", func(t *testing.T) {
+		th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "dnd", userStatus.Status)
+	})
 
-	th.App.SetStatusOffline(th.BasicUser.Id, true)
-	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "offline", userStatus.Status)
+	t.Run("back to offline status", func(t *testing.T) {
+		th.App.SetStatusOffline(th.BasicUser.Id, true)
+		userStatus, resp := Client.GetUserStatus(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "offline", userStatus.Status)
+	})
 
-	//Get user2 status logged as user1
-	userStatus, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "offline", userStatus.Status)
+	t.Run("get other user status", func(t *testing.T) {
+		//Get user2 status logged as user1
+		userStatus, resp := Client.GetUserStatus(th.BasicUser2.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "offline", userStatus.Status)
+	})
 
-	Client.Logout()
+	t.Run("get status from logged out user", func(t *testing.T) {
+		Client.Logout()
 
-	_, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
-	CheckUnauthorizedStatus(t, resp)
+		_, resp := Client.GetUserStatus(th.BasicUser2.Id, "")
+		CheckUnauthorizedStatus(t, resp)
+	})
 
-	th.LoginBasic2()
-	userStatus, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
-	CheckNoError(t, resp)
-	assert.Equal(t, "offline", userStatus.Status)
+	t.Run("get status from other user", func(t *testing.T) {
+		th.LoginBasic2()
+		userStatus, resp := Client.GetUserStatus(th.BasicUser2.Id, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, "offline", userStatus.Status)
+	})
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
@@ -62,40 +78,55 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 
 	usersIds := []string{th.BasicUser.Id, th.BasicUser2.Id}
 
-	usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
-	CheckNoError(t, resp)
-	for _, userStatus := range usersStatuses {
-		assert.Equal(t, "offline", userStatus.Status)
-	}
+	t.Run("empty userIds list", func(t *testing.T) {
+		_, resp := Client.GetUsersStatusesByIds([]string{})
+		CheckBadRequestStatus(t, resp)
+	})
 
-	th.App.SetStatusOnline(th.BasicUser.Id, true)
-	th.App.SetStatusOnline(th.BasicUser2.Id, true)
-	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
-	CheckNoError(t, resp)
-	for _, userStatus := range usersStatuses {
-		assert.Equal(t, "online", userStatus.Status)
-	}
+	t.Run("offline status", func(t *testing.T) {
+		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckNoError(t, resp)
+		for _, userStatus := range usersStatuses {
+			assert.Equal(t, "offline", userStatus.Status)
+		}
+	})
 
-	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
-	th.App.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
-	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
-	CheckNoError(t, resp)
-	for _, userStatus := range usersStatuses {
-		assert.Equal(t, "away", userStatus.Status)
-	}
+	t.Run("online status", func(t *testing.T) {
+		th.App.SetStatusOnline(th.BasicUser.Id, true)
+		th.App.SetStatusOnline(th.BasicUser2.Id, true)
+		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckNoError(t, resp)
+		for _, userStatus := range usersStatuses {
+			assert.Equal(t, "online", userStatus.Status)
+		}
+	})
 
-	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
-	th.App.SetStatusDoNotDisturb(th.BasicUser2.Id)
-	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
-	CheckNoError(t, resp)
-	for _, userStatus := range usersStatuses {
-		assert.Equal(t, "dnd", userStatus.Status)
-	}
+	t.Run("away status", func(t *testing.T) {
+		th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+		th.App.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
+		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckNoError(t, resp)
+		for _, userStatus := range usersStatuses {
+			assert.Equal(t, "away", userStatus.Status)
+		}
+	})
 
-	Client.Logout()
+	t.Run("dnd status", func(t *testing.T) {
+		th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
+		th.App.SetStatusDoNotDisturb(th.BasicUser2.Id)
+		usersStatuses, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckNoError(t, resp)
+		for _, userStatus := range usersStatuses {
+			assert.Equal(t, "dnd", userStatus.Status)
+		}
+	})
 
-	_, resp = Client.GetUsersStatusesByIds(usersIds)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("get statuses from logged out user", func(t *testing.T) {
+		Client.Logout()
+
+		_, resp := Client.GetUsersStatusesByIds(usersIds)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestUpdateUserStatus(t *testing.T) {
@@ -103,40 +134,57 @@ func TestUpdateUserStatus(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
-	updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
-	CheckNoError(t, resp)
-	assert.Equal(t, "online", updateUserStatus.Status)
+	t.Run("set online status", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
+		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		CheckNoError(t, resp)
+		assert.Equal(t, "online", updateUserStatus.Status)
+	})
 
-	toUpdateUserStatus.Status = "away"
-	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
-	CheckNoError(t, resp)
-	assert.Equal(t, "away", updateUserStatus.Status)
+	t.Run("set away status", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "away", UserId: th.BasicUser.Id}
+		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		CheckNoError(t, resp)
+		assert.Equal(t, "away", updateUserStatus.Status)
+	})
 
-	toUpdateUserStatus.Status = "dnd"
-	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
-	CheckNoError(t, resp)
-	assert.Equal(t, "dnd", updateUserStatus.Status)
+	t.Run("set dnd status", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "dnd", UserId: th.BasicUser.Id}
+		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		CheckNoError(t, resp)
+		assert.Equal(t, "dnd", updateUserStatus.Status)
+	})
 
-	toUpdateUserStatus.Status = "offline"
-	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
-	CheckNoError(t, resp)
-	assert.Equal(t, "offline", updateUserStatus.Status)
+	t.Run("set offline status", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "offline", UserId: th.BasicUser.Id}
+		updateUserStatus, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		CheckNoError(t, resp)
+		assert.Equal(t, "offline", updateUserStatus.Status)
+	})
 
-	toUpdateUserStatus.Status = "online"
-	toUpdateUserStatus.UserId = th.BasicUser2.Id
-	_, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
-	CheckForbiddenStatus(t, resp)
+	t.Run("set status for other user as regular user", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
+		_, resp := Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	toUpdateUserStatus.Status = "online"
-	updateUserStatus, _ = th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
-	assert.Equal(t, "online", updateUserStatus.Status)
+	t.Run("set status for other user as admin user", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
+		updateUserStatus, _ := th.SystemAdminClient.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		assert.Equal(t, "online", updateUserStatus.Status)
+	})
 
-	_, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
-	CheckBadRequestStatus(t, resp)
+	t.Run("not matching status user id and the user id passed in the function", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
+		_, resp := Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	Client.Logout()
+	t.Run("get statuses from logged out user", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser2.Id}
+		Client.Logout()
 
-	_, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
-	CheckUnauthorizedStatus(t, resp)
+		_, resp := Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }

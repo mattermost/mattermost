@@ -75,19 +75,19 @@ func TestUserPreUpdate(t *testing.T) {
 func TestUserUpdateMentionKeysFromUsername(t *testing.T) {
 	user := User{Username: "user"}
 	user.SetDefaultNotifications()
-	assert.Equalf(t, user.NotifyProps["mention_keys"], "user,@user", "default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "", "default mention keys are invalid: %v", user.NotifyProps["mention_keys"])
 
 	user.Username = "person"
 	user.UpdateMentionKeysFromUsername("user")
-	assert.Equalf(t, user.NotifyProps["mention_keys"], "person,@person", "mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
+	assert.Equalf(t, user.NotifyProps["mention_keys"], "", "mention keys are invalid after changing username: %v", user.NotifyProps["mention_keys"])
 
 	user.NotifyProps["mention_keys"] += ",mention"
 	user.UpdateMentionKeysFromUsername("person")
-	assert.Equalf(t, user.NotifyProps["mention_keys"], "person,@person,mention", "mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
+	assert.Equalf(t, user.NotifyProps["mention_keys"], ",mention", "mention keys are invalid after adding extra mention keyword: %v", user.NotifyProps["mention_keys"])
 
 	user.Username = "user"
 	user.UpdateMentionKeysFromUsername("person")
-	assert.Equalf(t, user.NotifyProps["mention_keys"], "user,@user,mention", "mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
+	assert.Equalf(t, user.NotifyProps["mention_keys"], ",mention", "mention keys are invalid after changing username with extra mention keyword: %v", user.NotifyProps["mention_keys"])
 }
 
 func TestUserIsValid(t *testing.T) {
