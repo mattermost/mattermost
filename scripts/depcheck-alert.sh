@@ -11,7 +11,19 @@ json_report=$(curl -s $json_url)
 vulnerability_count=$(echo $json_report | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')
 if [ $vulnerability_count -ne 0 ]
 then
-  alert_message="Dependency-Check made $vulnerability_count findings in [\`$CIRCLE_PROJECT_REPONAME\` build #$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\n"
+  if [ $vulnerability_count -gt 1 ]
+  then
+    alert_message="$vulnerability_count new findings"
+  else
+    alert_message="New finding"
+  fi
+  alert_message="$alert_message in \`$CIRCLE_PROJECT_REPONAME\` CircleCI build [#$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)"
+  if [ -z "$CIRCLE_PULL_REQUEST" ]
+  then
+    alert_message="$alert_message\n\n"
+  else
+    alert_message="$alert_message, triggered by $CIRCLE_PULL_REQUEST\n\n"
+  fi
   alert_message="$alert_message|Dependency|CPEs|CVEs|Severity|\n|----------|----|----|--------|\n"
   html_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.html").url)[0]')
 
@@ -41,7 +53,8 @@ then
     severity=$(echo $severities | jq -r 'if contains(["HIGH"]) then "`HIGH`" elif contains(["MEDIUM"]) then "`MEDIUM`" elif contains(["LOW"]) then "`LOW`" else "`Unknown`" end')
     alert_message="$alert_message|[$dependency]"'('$dependency_url')'"|$cpes|$cves|$severity|\n"
   done
-  alert_message=$alert_message'\nView the full report [here]('$html_url').'
+  alert_message=$alert_message'\nView the full report [here]('$html_url')'
+  alert_message=$alert_message' or [edit suppressions](https://github.com/'$CIRCLE_PROJECT_USERNAME'/'$CIRCLE_PROJECT_REPONAME'/edit/master/dependency-suppression.xml).'
 
   # Post to Mattermost
   curl -s -X POST -d 'payload={"username": "Dependency-Check", "icon_url": "https://www.mattermost.org/wp-content/uploads/2016/04/icon.png", "text":

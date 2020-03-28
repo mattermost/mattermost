@@ -454,6 +454,11 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
+func (me *TestHelper) CreateRole(roleName string) *model.Role {
+	role, _ := me.App.CreateRole(&model.Role{Name: roleName, DisplayName: roleName, Description: roleName, Permissions: []string{}})
+	return role
+}
+
 func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	utils.DisableDebugLogForTest()
 
