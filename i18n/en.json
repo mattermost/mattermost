@@ -3071,6 +3071,10 @@
     "translation": "Error importing user preferences. Failed to save preferences."
   },
   {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "Error importing user channels. Channel not found."
+  },
+  {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
   },
@@ -6045,6 +6049,22 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Unable to save the channel member."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.channel_roles.app_error",
+    "translation": "Unable to build query to get the channel roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.channel_roles_query.app_error",
+    "translation": "Error fetching the channel roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.team_roles.app_error",
+    "translation": "Unable to build query to get the team roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.team_roles_query.app_error",
+    "translation": "Error fetching the team roles."
   },
   {
     "id": "store.sql_channel.search.app_error",

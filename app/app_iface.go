@@ -411,7 +411,6 @@ type AppIface interface {
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
-	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
 	// @openTracingParams args
 	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
