@@ -113,16 +113,58 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestCreateChannel(t *testing.T) {
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	name := "name" + id
+	team, _ := th.App.Srv().Store.Team().GetByName(th.BasicTeam.Name)
 
-	th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name)
+	t.Run("should create public channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name)
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
+		assert.Equal(t, name, channel.Name)
+		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+	})
 
-	name = name + "-private"
-	th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--private", "--name", name)
+	t.Run("should create private channel", func(t *testing.T) {
+		name := name + "-private"
+		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--private")
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
+		assert.Equal(t, name, channel.Name)
+		assert.Equal(t, model.CHANNEL_PRIVATE, channel.Type)
+	})
+
+	t.Run("should create channel with header and purpose", func(t *testing.T) {
+		name := name + "-withhp"
+		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--header", "this is a header", "--purpose", "this is the purpose")
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
+		assert.Equal(t, name, channel.Name)
+		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+		assert.Equal(t, "this is a header", channel.Header)
+		assert.Equal(t, "this is the purpose", channel.Purpose)
+	})
+
+	t.Run("should not create channel if name already exists on the same team", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name))
+	})
+
+	t.Run("should not create channel without display name", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "create", "--display_name", "", "--team", th.BasicTeam.Name, "--name", name))
+	})
+
+	t.Run("should not create channel without name", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", ""))
+	})
+
+	t.Run("should not create channel without team", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "create", "--display_name", name, "--team", "", "--name", name))
+	})
+
+	t.Run("should not create channel with unexisting team", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name+"-unexisting", "--name", name))
+	})
 }
 
 func TestRenameChannel(t *testing.T) {
