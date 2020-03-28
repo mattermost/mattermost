@@ -208,10 +208,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
-	supplier.stores.reaction.(*SqlReactionStore).createIndexesIfNotExists()
-	supplier.stores.role.(*SqlRoleStore).createIndexesIfNotExists()
-	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
+	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 	supplier.stores.atomic.(*SqlAtomicStore).createIndexesIfNotExists()
 

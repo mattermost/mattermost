@@ -75,6 +75,49 @@ func TestCreateCommandPost(t *testing.T) {
 	require.Equal(t, err.Id, "api.context.invalid_param.app_error")
 }
 
+func TestExecuteCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
+		TestCases := map[string]string{
+			"/code happy path":             "    happy path",
+			"/code\nnewline path":          "    newline path",
+			"/code\n/nDouble newline path": "    /nDouble newline path",
+			"/code  double space":          "     double space",
+			"/code\ttab":                   "    tab",
+		}
+
+		for TestCase, result := range TestCases {
+			args := &model.CommandArgs{
+				Command: TestCase,
+				T:       func(s string, args ...interface{}) string { return s },
+			}
+			resp, _ := th.App.ExecuteCommand(args)
+
+			assert.Equal(t, resp.Text, result)
+		}
+	})
+
+	t.Run("missing slash character", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "missing leading slash character",
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "",
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
+	})
+}
+
 func TestHandleCommandResponsePost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
