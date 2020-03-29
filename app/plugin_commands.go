@@ -120,6 +120,14 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
+	for username, userId := range a.mentionsToTeamMembers(args.Command, args.TeamId) {
+		args.AddUserMention(username, userId)
+	}
+
+	for channelName, channelId := range a.mentionsToPublicChannels(args.Command, args.TeamId) {
+		args.AddChannelMention(channelName, channelId)
+	}
+
 	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
 	return matched.Command, response, appErr
 }

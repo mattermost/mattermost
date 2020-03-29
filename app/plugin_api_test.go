@@ -919,7 +919,7 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 2. For each folder - compiles the main.go inside and executes it, validating it's result
 // 3. If folder starts with "manual." it is skipped ("manual." tests executed in other part of this file)
 // 4. Before compiling the main.go file is passed through templating and the following values are available in the template: BasicUser, BasicUser2, BasicChannel, BasicTeam, BasicPost
-// 5. Succesfully running test should return nil, "OK". Any other returned string is considered and error
+// 5. Successfully running test should return nil, "OK". Any other returned string is considered and error
 
 func TestBasicAPIPlugins(t *testing.T) {
 	defaultSchema := getDefaultPluginSettingsSchema()
@@ -1408,4 +1408,47 @@ func TestApiMetrics(t *testing.T) {
 
 		metricsMock.AssertExpectations(t)
 	})
+}
+
+func TestPluginAPIGetPostsForChannel(t *testing.T) {
+	require := require.New(t)
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	numPosts := 10
+
+	// GetPostsForChannel returns posts ordered with the most recent first, so we
+	// need to invert the expected slice, the oldest post being BasicPost
+	expectedPosts := make([]*model.Post, numPosts)
+	expectedPosts[numPosts-1] = th.BasicPost
+	for i := numPosts - 2; i >= 0; i-- {
+		expectedPosts[i] = th.CreatePost(th.BasicChannel)
+	}
+	// CreatePost does not add Metadata, but initializes the structure. GetPostsForChannel
+	// returns nil for an empty Metadata, so we need to match that behaviour
+	for _, post := range expectedPosts {
+		post.Metadata = nil
+	}
+
+	postList, err := api.GetPostsForChannel(th.BasicChannel.Id, 0, 0)
+	require.Nil(err)
+	require.Nil(postList.ToSlice())
+
+	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts/2)
+	require.Nil(err)
+	require.Equal(expectedPosts[:numPosts/2], postList.ToSlice())
+
+	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 1, numPosts/2)
+	require.Nil(err)
+	require.Equal(expectedPosts[numPosts/2:], postList.ToSlice())
+
+	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 2, numPosts/2)
+	require.Nil(err)
+	require.Nil(postList.ToSlice())
+
+	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts+1)
+	require.Nil(err)
+	require.Equal(expectedPosts, postList.ToSlice())
 }

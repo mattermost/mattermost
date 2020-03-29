@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -23,9 +24,10 @@ func (tw *testingWriter) Write(b []byte) (int, error) {
 
 // NewTestingLogger creates a Logger that proxies logs through a testing interface.
 // This allows tests that spin up App instances to avoid spewing logs unless the test fails or -verbose is specified.
-func NewTestingLogger(tb testing.TB) *Logger {
+func NewTestingLogger(tb testing.TB, writer io.Writer) *Logger {
 	logWriter := &testingWriter{tb}
-	logWriterSync := zapcore.AddSync(logWriter)
+	multiWriter := io.MultiWriter(logWriter, writer)
+	logWriterSync := zapcore.AddSync(multiWriter)
 
 	testingLogger := &Logger{
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel("debug")),
