@@ -129,3 +129,25 @@ func (p *HelpersImpl) KVSetWithExpiryJSON(key string, value interface{}, expireI
 
 	return nil
 }
+
+func (p *HelpersImpl) KVModify(key string, f func(value []byte) ([]byte, error)) error {
+	err := p.ensureServerVersion("5.2.0")
+	if err != nil {
+		return err
+	}
+
+	v, err := p.API.KVGet(key)
+	if err != nil {
+		return err
+	}
+
+	mv, err := f(v)
+	if err != nil {
+		return err
+	}
+	err = p.API.KVSet(key, mv)
+	if err != nil {
+		return err
+	}
+	return nil
+}

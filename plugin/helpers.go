@@ -56,6 +56,12 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiryJSON(key string, value interface{}, expireInSeconds int64) error
 
+	//KVModify modifies data for a particular key
+	//
+	//@tag KeyValueStore
+	// Minimum server version: 5.2
+	KVModify(key string, f func(initialValue []byte) ([]byte, error)) error
+
 	// CheckRequiredServerConfiguration checks if the server is configured according to
 	// plugin requirements.
 	//

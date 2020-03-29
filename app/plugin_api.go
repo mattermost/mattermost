@@ -745,10 +745,6 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
-func (api *PluginAPI) KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError {
-	return api.app.ModifyKey(api.id, key, f)
-}
-
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil)
 	ev = ev.SetBroadcast(broadcast).SetData(payload)

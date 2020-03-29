@@ -3933,35 +3933,6 @@ func (s *apiRPCServer) KVList(args *Z_KVListArgs, returns *Z_KVListReturns) erro
 	return nil
 }
 
-type Z_KVAtomicModifyArgs struct {
-	A string
-	B func(initialValue []byte) ([]byte, error)
-}
-
-type Z_KVAtomicModifyReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError {
-	_args := &Z_KVAtomicModifyArgs{key, f}
-	_returns := &Z_KVAtomicModifyReturns{}
-	if err := g.client.Call("Plugin.KVAtomicModify", _args, _returns); err != nil {
-		log.Printf("RPC call to KVAtomicModify API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) KVAtomicModify(args *Z_KVAtomicModifyArgs, returns *Z_KVAtomicModifyReturns) error {
-	if hook, ok := s.impl.(interface {
-		KVAtomicModify(key string, f func(initialValue []byte) ([]byte, error)) *model.AppError
-	}); ok {
-		returns.A = hook.KVAtomicModify(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API KVAtomicModify called but not implemented."))
-	}
-	return nil
-}
-
 type Z_PublishWebSocketEventArgs struct {
 	A string
 	B map[string]interface{}

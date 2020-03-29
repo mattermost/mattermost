@@ -4,12 +4,14 @@
 package plugin_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestKVGetJSON(t *testing.T) {
@@ -394,4 +396,49 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 		api.AssertExpectations(t)
 		assert.NoError(t, err)
 	})
+}
+
+func TestPluginAPIKVModify(t *testing.T) {
+	api := &plugintest.API{}
+	p := &plugin.HelpersImpl{API: api}
+
+	testCases := []struct {
+		description      string
+		key              string
+		actualValue      []byte
+		expectedValue    []byte
+		modificationFunc func([]byte) ([]byte, error)
+	}{
+		{
+			description: "Test actual data modification without error from modification func",
+			key:         "key1",
+			actualValue: []byte("THIS IS A TEST VALUE"),
+			modificationFunc: func(b []byte) ([]byte, error) {
+				return []byte(strings.ToLower(string(b))), nil
+			},
+			expectedValue: []byte(strings.ToLower("THIS IS A TEST VALUE")),
+		},
+	}
+	for _, tt := range testCases {
+		{
+			// set an actual value to the kv store
+			err := api.KVSet(tt.key, tt.actualValue)
+			require.Nil(t, err)
+
+			// check that this value is exists in kv store as in that representation in what we pass it there
+			valueWePassed, err := api.KVGet(tt.key)
+			require.Nil(t, err)
+			require.Equal(t, valueWePassed, tt.actualValue)
+
+			// modify data in kv store with provided modification function
+			require.Nil(t, p.KVModify(tt.key, tt.modificationFunc))
+
+			// get value from kv store
+			actualResult, err := api.KVGet(tt.key)
+			require.Nil(t, err)
+
+			// check that modification function was applied for the data with given key
+			require.Equal(t, actualResult, tt.expectedValue)
+		}
+	}
 }
