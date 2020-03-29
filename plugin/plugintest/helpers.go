@@ -200,6 +200,20 @@ func (_m *Helpers) KVListWithOptions(options ...plugin.KVListOption) ([]string, 
 	return r0, r1
 }
 
+// KVModify provides a mock function with given fields: key, f
+func (_m *Helpers) KVModify(key string, f func([]byte) ([]byte, error)) error {
+	ret := _m.Called(key, f)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, func([]byte) ([]byte, error)) error); ok {
+		r0 = rf(key, f)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // KVSetJSON provides a mock function with given fields: key, value
 func (_m *Helpers) KVSetJSON(key string, value interface{}) error {
 	ret := _m.Called(key, value)
