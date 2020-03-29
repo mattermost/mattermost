@@ -34,6 +34,12 @@ func getMockCacheProvider() *mocks.CacheProvider {
 
 	mockCacheProvider.On("NewCacheWithParams",
 		mock.AnythingOfType("int"),
+		"RolePermission",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
 		"Scheme",
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(lru.New(128))
@@ -116,6 +122,12 @@ func getMockCacheProvider() *mocks.CacheProvider {
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(lru.New(128))
 
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"FileInfo",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
 	return &mockCacheProvider
 }
 
@@ -146,6 +158,12 @@ func getMockStore() *mocks.Store {
 	mockSchemesStore.On("Get", "123").Return(&fakeScheme, nil)
 	mockSchemesStore.On("PermanentDeleteAll").Return(nil)
 	mockStore.On("Scheme").Return(&mockSchemesStore)
+
+	fakeFileInfo := model.FileInfo{PostId: "123"}
+	mockFileInfoStore := mocks.FileInfoStore{}
+	mockFileInfoStore.On("GetForPost", "123", true, true, false).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockFileInfoStore.On("GetForPost", "123", true, true, true).Return([]*model.FileInfo{&fakeFileInfo}, nil)
+	mockStore.On("FileInfo").Return(&mockFileInfoStore)
 
 	fakeWebhook := model.IncomingWebhook{Id: "123"}
 	mockWebhookStore := mocks.WebhookStore{}

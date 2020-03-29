@@ -40,7 +40,7 @@ func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, te
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if !a.Srv.EmailBatching.Add(user, post, team) {
+	if !a.Srv().EmailBatching.Add(user, post, team) {
 		mlog.Error("Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize.")
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -235,12 +235,12 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 		"Day":      tm.Day(),
 	})
 
-	body := s.FakeApp().NewEmailTemplate("post_batched_body", user.Locale)
+	body := s.FakeApp().newEmailTemplate("post_batched_body", user.Locale)
 	body.Props["SiteURL"] = *s.Config().ServiceSettings.SiteURL
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if err := s.FakeApp().SendNotificationMail(user.Email, subject, body.Render()); err != nil {
+	if err := s.FakeApp().sendNotificationMail(user.Email, subject, body.Render()); err != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
 	}
 }
@@ -249,9 +249,9 @@ func (s *Server) renderBatchedPost(notification *batchedNotification, channel *m
 	// don't include message contents if email notification contents type is set to generic
 	var template *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		template = s.FakeApp().NewEmailTemplate("post_batched_post_full", userLocale)
+		template = s.FakeApp().newEmailTemplate("post_batched_post_full", userLocale)
 	} else {
-		template = s.FakeApp().NewEmailTemplate("post_batched_post_generic", userLocale)
+		template = s.FakeApp().newEmailTemplate("post_batched_post_generic", userLocale)
 	}
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")

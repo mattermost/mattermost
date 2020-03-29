@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -81,14 +81,11 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 # Tests
 TESTS=.
 
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
-
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.2.0
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
@@ -120,12 +117,10 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-all: run ## Alias for 'run'.
-
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-# The second sed will look for v<NUM>.<NUM>* and if its not found replace it with the word latest
-LATEST_RELEASE_MMCTL = $(shell scripts/get_latest_release.sh 'mattermost/mmctl')
-REL_TO_DOWNLOAD = $(shell git rev-parse --abbrev-ref HEAD | sed 's/release-/v/' | sed '/v\([0-9]\)\./! s/\(.*\)/$(LATEST_RELEASE_MMCTL)/')
+MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+
+all: run ## Alias for 'run'.
 
 include build/*.mk
 
@@ -174,17 +169,17 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 # Externally built binaries
-ifeq ($(shell test -f bin/mmctl && echo -n yes),yes)
+ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
 else ifeq ($(PLATFORM),Darwin)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Linux)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Windows)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(REL_TO_DOWNLOAD)
-	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
 else
 	@echo "mmctl error: can't detect OS"
 endif
@@ -203,6 +198,12 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	golangci-lint run ./enterprise/...
 endif
 endif
+
+app-layers: ## Extract interface from App struct
+    # The following commented commands can be used to re-generate the AppIface from the App struct
+	#env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
+	#$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
@@ -232,6 +233,10 @@ plugin-mocks: ## Creates mock files for plugins.
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+
+searchengine-mocks: ## Creates mock files for searchengines.
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	$(GOPATH)/bin/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -291,6 +296,17 @@ test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
+gomodtidy:
+	@cp go.mod go.mod.orig
+	@cp go.sum go.sum.orig
+	$(GO) mod tidy
+	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
+		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
+		rm go.*.orig; \
+		exit 1; \
+	fi;
+	@rm go.*.orig;
+
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
@@ -298,6 +314,15 @@ else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: ## Runs only quick tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
+else
+	@echo Running only TE tests
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+endif
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -494,10 +519,10 @@ vet: ## Run mattermost go vet specific checks
 		exit 1; \
 	fi; \
 
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging ./enterprise/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
 

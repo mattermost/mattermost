@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/avct/uasurfer"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -25,12 +26,15 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("createComplianceReport", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	job.UserId = c.App.Session.UserId
+	job.UserId = c.App.Session().UserId
 
 	rjob, err := c.App.SaveComplianceReport(job)
 	if err != nil {
@@ -38,13 +42,17 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("compliance_id", rjob.Id)
+	auditRec.AddMeta("compliance_desc", rjob.Desc)
 	c.LogAudit("")
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rjob.ToJson()))
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -64,7 +72,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -84,7 +92,11 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("downloadComplianceReport", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("compliance_id", c.Params.ReportId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -101,6 +113,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec.AddMeta("compliance_desc", job.Desc)
 	c.LogAudit("downloaded " + job.Desc)
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
@@ -116,6 +129,8 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		// trim off anything before the final / so we just get the file's name
 		w.Header().Set("Content-Type", "application/octet-stream")
 	}
+
+	auditRec.Success()
 
 	w.Write(reportBytes)
 }

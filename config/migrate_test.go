@@ -20,6 +20,9 @@ func getDsn(driver string, source string) string {
 }
 
 func TestMigrateDatabaseToFile(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
 	sqlSettings := helper.GetSQLSettings()
 	fileDSN := "config.json"
@@ -62,6 +65,9 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 }
 
 func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	helper := testlib.NewMainHelper()
 	sqlSettings := helper.GetSQLSettings()
 	fileDSN := "config.json"

@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetSamlMetadata(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -24,7 +24,7 @@ func TestGetSamlMetadata(t *testing.T) {
 }
 
 func TestSamlCompleteCSRFPass(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	url := th.Client.Url + "/login/sso/saml"

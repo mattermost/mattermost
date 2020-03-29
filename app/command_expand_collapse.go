@@ -68,7 +68,7 @@ func (a *App) setCollapsePreference(args *model.CommandArgs, isCollapse bool) *m
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
+	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

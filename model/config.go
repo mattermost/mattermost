@@ -271,6 +271,7 @@ type ServiceSettings struct {
 	EnableLinkPreviews                                *bool
 	EnableTesting                                     *bool   `restricted:"true"`
 	EnableDeveloper                                   *bool   `restricted:"true"`
+	EnableOpenTracing                                 *bool   `restricted:"true"`
 	EnableSecurityFixAlert                            *bool   `restricted:"true"`
 	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
 	AllowedUntrustedInternalConnections               *string `restricted:"true"`
@@ -313,6 +314,7 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
+	ExperimentalChannelSidebarOrganization            *string
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -369,6 +371,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableDeveloper = NewBool(false)
 	}
 
+	if s.EnableOpenTracing == nil {
+		s.EnableOpenTracing = NewBool(false)
+	}
+
 	if s.EnableSecurityFixAlert == nil {
 		s.EnableSecurityFixAlert = NewBool(true)
 	}
@@ -403,10 +409,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewBool(false)
-	}
-
-	if s.EnableIncomingWebhooks == nil {
-		s.EnableIncomingWebhooks = NewBool(true)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -650,6 +652,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
+	if s.ExperimentalChannelSidebarOrganization == nil {
+		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
+	}
+
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -882,6 +888,63 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	}
 }
 
+type Office365Settings struct {
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
+	DirectoryId     *string
+}
+
+func (s *Office365Settings) setDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewBool(false)
+	}
+
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Secret == nil {
+		s.Secret = NewString("")
+	}
+
+	if s.Scope == nil {
+		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.AuthEndpoint == nil {
+		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
+	}
+
+	if s.TokenEndpoint == nil {
+		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+	}
+
+	if s.UserApiEndpoint == nil {
+		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	}
+
+	if s.DirectoryId == nil {
+		s.DirectoryId = NewString("")
+	}
+}
+
+func (s *Office365Settings) SSOSettings() *SSOSettings {
+	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	return &ssoSettings
+}
+
 type SqlSettings struct {
 	DriverName                  *string  `restricted:"true"`
 	DataSource                  *string  `restricted:"true"`
@@ -990,6 +1053,82 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+}
+
+type ExperimentalAuditSettings struct {
+	SysLogEnabled      *bool   `restricted:"true"`
+	SysLogIP           *string `restricted:"true"`
+	SysLogPort         *int    `restricted:"true"`
+	SysLogTag          *string `restricted:"true"`
+	SysLogCert         *string `restricted:"true"`
+	SysLogInsecure     *bool   `restricted:"true"`
+	SysLogMaxQueueSize *int    `restricted:"true"`
+
+	FileEnabled      *bool   `restricted:"true"`
+	FileName         *string `restricted:"true"`
+	FileMaxSizeMB    *int    `restricted:"true"`
+	FileMaxAgeDays   *int    `restricted:"true"`
+	FileMaxBackups   *int    `restricted:"true"`
+	FileCompress     *bool   `restricted:"true"`
+	FileMaxQueueSize *int    `restricted:"true"`
+}
+
+func (s *ExperimentalAuditSettings) SetDefaults() {
+	if s.SysLogEnabled == nil {
+		s.SysLogEnabled = NewBool(false)
+	}
+
+	if s.SysLogIP == nil {
+		s.SysLogIP = NewString("localhost")
+	}
+
+	if s.SysLogPort == nil {
+		s.SysLogPort = NewInt(6514)
+	}
+
+	if s.SysLogTag == nil {
+		s.SysLogTag = NewString("")
+	}
+
+	if s.SysLogCert == nil {
+		s.SysLogCert = NewString("")
+	}
+
+	if s.SysLogInsecure == nil {
+		s.SysLogInsecure = NewBool(false)
+	}
+
+	if s.SysLogMaxQueueSize == nil {
+		s.SysLogMaxQueueSize = NewInt(1000)
+	}
+
+	if s.FileEnabled == nil {
+		s.FileEnabled = NewBool(false)
+	}
+
+	if s.FileName == nil {
+		s.FileName = NewString("")
+	}
+
+	if s.FileMaxSizeMB == nil {
+		s.FileMaxSizeMB = NewInt(100)
+	}
+
+	if s.FileMaxAgeDays == nil {
+		s.FileMaxAgeDays = NewInt(0) // no limit on age
+	}
+
+	if s.FileMaxBackups == nil { // no limit on number of backups
+		s.FileMaxBackups = NewInt(0)
+	}
+
+	if s.FileCompress == nil {
+		s.FileCompress = NewBool(false)
+	}
+
+	if s.FileMaxQueueSize == nil {
+		s.FileMaxQueueSize = NewInt(1000)
 	}
 }
 
@@ -1183,6 +1322,7 @@ type EmailSettings struct {
 	SMTPPassword                      *string `restricted:"true"`
 	SMTPServer                        *string `restricted:"true"`
 	SMTPPort                          *string `restricted:"true"`
+	SMTPServerTimeout                 *int
 	ConnectionSecurity                *string `restricted:"true"`
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
@@ -1261,6 +1401,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
 		s.SMTPPort = NewString("10025")
+	}
+
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(10)
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
@@ -2495,40 +2639,41 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 type Config struct {
-	ServiceSettings         ServiceSettings
-	TeamSettings            TeamSettings
-	ClientRequirements      ClientRequirements
-	SqlSettings             SqlSettings
-	LogSettings             LogSettings
-	NotificationLogSettings NotificationLogSettings
-	PasswordSettings        PasswordSettings
-	FileSettings            FileSettings
-	EmailSettings           EmailSettings
-	RateLimitSettings       RateLimitSettings
-	PrivacySettings         PrivacySettings
-	SupportSettings         SupportSettings
-	AnnouncementSettings    AnnouncementSettings
-	ThemeSettings           ThemeSettings
-	GitLabSettings          SSOSettings
-	GoogleSettings          SSOSettings
-	Office365Settings       SSOSettings
-	LdapSettings            LdapSettings
-	ComplianceSettings      ComplianceSettings
-	LocalizationSettings    LocalizationSettings
-	SamlSettings            SamlSettings
-	NativeAppSettings       NativeAppSettings
-	ClusterSettings         ClusterSettings
-	MetricsSettings         MetricsSettings
-	ExperimentalSettings    ExperimentalSettings
-	AnalyticsSettings       AnalyticsSettings
-	ElasticsearchSettings   ElasticsearchSettings
-	DataRetentionSettings   DataRetentionSettings
-	MessageExportSettings   MessageExportSettings
-	JobSettings             JobSettings
-	PluginSettings          PluginSettings
-	DisplaySettings         DisplaySettings
-	GuestAccountsSettings   GuestAccountsSettings
-	ImageProxySettings      ImageProxySettings
+	ServiceSettings           ServiceSettings
+	TeamSettings              TeamSettings
+	ClientRequirements        ClientRequirements
+	SqlSettings               SqlSettings
+	LogSettings               LogSettings
+	ExperimentalAuditSettings ExperimentalAuditSettings
+	NotificationLogSettings   NotificationLogSettings
+	PasswordSettings          PasswordSettings
+	FileSettings              FileSettings
+	EmailSettings             EmailSettings
+	RateLimitSettings         RateLimitSettings
+	PrivacySettings           PrivacySettings
+	SupportSettings           SupportSettings
+	AnnouncementSettings      AnnouncementSettings
+	ThemeSettings             ThemeSettings
+	GitLabSettings            SSOSettings
+	GoogleSettings            SSOSettings
+	Office365Settings         Office365Settings
+	LdapSettings              LdapSettings
+	ComplianceSettings        ComplianceSettings
+	LocalizationSettings      LocalizationSettings
+	SamlSettings              SamlSettings
+	NativeAppSettings         NativeAppSettings
+	ClusterSettings           ClusterSettings
+	MetricsSettings           MetricsSettings
+	ExperimentalSettings      ExperimentalSettings
+	AnalyticsSettings         AnalyticsSettings
+	ElasticsearchSettings     ElasticsearchSettings
+	DataRetentionSettings     DataRetentionSettings
+	MessageExportSettings     MessageExportSettings
+	JobSettings               JobSettings
+	PluginSettings            PluginSettings
+	DisplaySettings           DisplaySettings
+	GuestAccountsSettings     GuestAccountsSettings
+	ImageProxySettings        ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2551,7 +2696,7 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	case SERVICE_GOOGLE:
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
-		return &o.Office365Settings
+		return o.Office365Settings.SSOSettings()
 	}
 
 	return nil
@@ -2586,7 +2731,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
@@ -2607,6 +2752,7 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
+	o.ExperimentalAuditSettings.SetDefaults()
 	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
@@ -2687,7 +2833,6 @@ func (o *Config) IsValid() *AppError {
 	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
 	}
-
 	return nil
 }
 

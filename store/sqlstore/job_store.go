@@ -16,7 +16,7 @@ type SqlJobStore struct {
 	SqlStore
 }
 
-func NewSqlJobStore(sqlStore SqlStore) store.JobStore {
+func newSqlJobStore(sqlStore SqlStore) store.JobStore {
 	s := &SqlJobStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -30,7 +30,7 @@ func NewSqlJobStore(sqlStore SqlStore) store.JobStore {
 	return s
 }
 
-func (jss SqlJobStore) CreateIndexesIfNotExists() {
+func (jss SqlJobStore) createIndexesIfNotExists() {
 	jss.CreateIndexIfNotExists("idx_jobs_type", "Jobs", "Type")
 }
 

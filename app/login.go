@@ -36,11 +36,11 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
-		if a.Metrics != nil {
+		if a.Metrics() != nil {
 			if user == nil || err != nil {
-				a.Metrics.IncrementLoginFail()
+				a.Metrics().IncrementLoginFail()
 			} else {
-				a.Metrics.IncrementLogin()
+				a.Metrics().IncrementLogin()
 			}
 		}
 	}()
@@ -93,13 +93,13 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	}
 
 	// Try to get the user by username/email
-	if user, err := a.Srv.Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
+	if user, err := a.Srv().Store.User().GetForLogin(loginId, enableUsername, enableEmail); err == nil {
 		return user, nil
 	}
 
 	// Try to get the user with LDAP if enabled
-	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
-		if ldapUser, err := a.Ldap.GetUser(loginId); err == nil {
+	if *a.Config().LdapSettings.Enable && a.Ldap() != nil {
+		if ldapUser, err := a.Ldap().GetUser(loginId); err == nil {
 			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.USER_AUTH_SERVICE_LDAP); err == nil {
 				return user, nil
 			}
@@ -163,10 +163,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
-	a.Session = *session
+	a.SetSession(session)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv.Go(func() {
+		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)
@@ -191,7 +191,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
-		Value:    a.Session.Token,
+		Value:    a.Session().Token,
 		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
@@ -202,7 +202,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
-		Value:   a.Session.UserId,
+		Value:   a.Session().UserId,
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
@@ -212,7 +212,7 @@ func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request) {
 
 	csrfCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_CSRF,
-		Value:   a.Session.GetCSRF(),
+		Value:   a.Session().GetCSRF(),
 		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,

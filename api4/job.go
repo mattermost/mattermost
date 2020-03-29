@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -23,7 +24,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -44,7 +45,11 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_JOBS) {
+	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("job_type", job.Type)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -55,6 +60,9 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("job_id", job.Id)
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(job.ToJson()))
 }
@@ -64,7 +72,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -84,7 +92,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -104,7 +112,11 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_JOBS) {
+	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("job_id", c.Params.JobId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -113,6 +125,8 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

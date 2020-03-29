@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,7 +74,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 		ExpireAt: 0,
 	}
 
-	_, err = th.App.Srv.Store.Plugin().SaveOrUpdate(kv)
+	_, err = th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
 	assert.Nil(t, err)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
@@ -624,6 +625,49 @@ func TestPluginSync(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestPluginPanicLogs(t *testing.T) {
+	t.Run("should panic", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			panic("some text from panic")
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message_",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		assert.Nil(t, err)
+
+		logs := th.LogBuffer.String()
+		assert.True(t, strings.Contains(logs, "some text from panic"))
+	})
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {

@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -161,7 +161,7 @@ func TestCreateScheme(t *testing.T) {
 }
 
 func TestGetScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -223,7 +223,7 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestGetSchemes(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -286,7 +286,7 @@ func TestGetSchemes(t *testing.T) {
 }
 
 func TestGetTeamsForScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -308,7 +308,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	team1, err := th.App.Srv.Store.Team().Save(team1)
+	team1, err := th.App.Srv().Store.Team().Save(team1)
 	require.Nil(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -316,7 +316,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
-	team1, err = th.App.Srv.Store.Team().Update(team1)
+	team1, err = th.App.Srv().Store.Team().Update(team1)
 	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -330,7 +330,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	team2, err = th.App.Srv.Store.Team().Save(team2)
+	team2, err = th.App.Srv().Store.Team().Save(team2)
 	require.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -378,7 +378,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 }
 
 func TestGetChannelsForScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -401,7 +401,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 	}
 
-	channel1, errCh := th.App.Srv.Store.Channel().Save(channel1, 1000000)
+	channel1, errCh := th.App.Srv().Store.Channel().Save(channel1, 1000000)
 	assert.Nil(t, errCh)
 
 	l2, r2 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -409,7 +409,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	channel1.SchemeId = &scheme1.Id
-	channel1, err := th.App.Srv.Store.Channel().Update(channel1)
+	channel1, err := th.App.Srv().Store.Channel().Update(channel1)
 	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -424,7 +424,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	channel2, err = th.App.Srv.Store.Channel().Save(channel2, 1000000)
+	channel2, err = th.App.Srv().Store.Channel().Save(channel2, 1000000)
 	assert.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
@@ -472,7 +472,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 }
 
 func TestPatchScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -579,7 +579,7 @@ func TestPatchScheme(t *testing.T) {
 }
 
 func TestDeleteScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("ValidTeamScheme", func(t *testing.T) {
@@ -620,8 +620,8 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		team, err := th.App.Srv.Store.Team().Save(&model.Team{
-			Name:        model.NewId(),
+		team, err := th.App.Srv().Store.Team().Save(&model.Team{
+			Name:        "zz" + model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
 			Type:        model.TEAM_OPEN,
@@ -689,7 +689,7 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		channel, err := th.App.Srv.Store.Channel().Save(&model.Channel{
+		channel, err := th.App.Srv().Store.Channel().Save(&model.Channel{
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),

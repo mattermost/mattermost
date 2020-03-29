@@ -58,7 +58,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
 
@@ -104,7 +104,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
 
