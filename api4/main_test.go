@@ -9,8 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
-var mainHelper *testlib.MainHelper
-
 func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore:     true,
@@ -20,6 +18,5 @@ func TestMain(m *testing.M) {
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	UseTestStore(mainHelper.GetStore())
 	mainHelper.Main(m)
 }
