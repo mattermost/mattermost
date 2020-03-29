@@ -191,7 +191,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple words containing a :",
+			Name:  "string is multiple words containing a flag",
 			Input: "apple banana from:chan",
 			Words: []searchWord{
 				{
@@ -211,7 +211,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : and a - prefix",
+			Name:  "string is multiple words containing a flag and a - prefix",
 			Input: "apple -banana from:chan",
 			Words: []searchWord{
 				{
@@ -231,7 +231,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : and multiple - prefixes",
+			Name:  "string is multiple words containing a flag and multiple - prefixes",
 			Input: "-apple -banana from:chan",
 			Words: []searchWord{
 				{
@@ -251,7 +251,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : and multiple # prefixes",
+			Name:  "string is multiple words containing a flag and multiple # prefixes",
 			Input: "#apple #banana from:chan",
 			Words: []searchWord{
 				{
@@ -271,7 +271,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : with a single - and multiple # prefixes",
+			Name:  "string is multiple words containing a flag with a single - and multiple # prefixes",
 			Input: "-#apple #banana from:chan",
 			Words: []searchWord{
 				{
@@ -291,7 +291,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : prefixed with - and multiple # prefixes",
+			Name:  "string is multiple words containing a flag prefixed with - and multiple # prefixes",
 			Input: "#apple #banana -from:chan",
 			Words: []searchWord{
 				{
@@ -312,7 +312,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : prefixed with multiple - and multiple # prefixes",
+			Name:  "string is multiple words containing a flag prefixed with multiple - and multiple # prefixes",
 			Input: "-#apple -#banana -from:chan",
 			Words: []searchWord{
 				{
@@ -333,7 +333,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a : with a space",
+			Name:  "string is multiple words containing a flag with a space",
 			Input: "apple banana from: chan",
 			Words: []searchWord{
 				{
@@ -353,7 +353,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a in: with a space",
+			Name:  "string is multiple words containing a in flag with a space",
 			Input: "apple banana in: chan",
 			Words: []searchWord{
 				{
@@ -373,7 +373,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words containing a channel: with a space",
+			Name:  "string is multiple words containing a channel flag with a space",
 			Input: "apple banana channel: chan",
 			Words: []searchWord{
 				{
@@ -393,7 +393,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is only fruit: with a space",
+			Name:  "string with a non-floag followed by :",
 			Input: "fruit: cherry",
 			Words: []searchWord{
 				{
@@ -408,7 +408,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is a single word with a : postfix",
+			Name:  "string with the a flag but without the value for that flag should be threaded as a word",
 			Input: "channel:",
 			Words: []searchWord{
 				{
@@ -419,7 +419,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is a single word which results in a single flag",
+			Name:  "string is a single flag which results in a single flag",
 			Input: "channel:first",
 			Words: []searchWord{},
 			Flags: []flag{
@@ -430,7 +430,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is a single word prefixed with - which results in a single excluded flag",
+			Name:  "single flag with - which results in a excluded flag",
 			Input: "-channel:first",
 			Words: []searchWord{},
 			Flags: []flag{
@@ -442,7 +442,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words which results in multiple unexcluded flags and a single search word",
+			Name:  "string is multiple flags which results in multiple unexcluded flags and a single search word",
 			Input: "channel: first in: second from:",
 			Words: []searchWord{
 				{
@@ -464,7 +464,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words which results in multiple unexcluded and excluded flags and a single search word",
+			Name:  "string is multiple flags which results in multiple unexcluded and excluded flags and a single search word",
 			Input: "channel: first -in: second from:",
 			Words: []searchWord{
 				{
@@ -486,7 +486,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is multiple words which results in multiple excluded and unexcluded flags and a single search word",
+			Name:  "string is multiple flags which results in multiple excluded and unexcluded flags and a single search word",
 			Input: "-channel: first in: second from:",
 			Words: []searchWord{
 				{
@@ -508,7 +508,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is words which results four unexcluded flags",
+			Name:  "string is four flags which results four unexcluded flags",
 			Input: "channel: first channel: second from: third from: fourth",
 			Words: []searchWord{},
 			Flags: []flag{
@@ -535,7 +535,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			},
 		},
 		{
-			Name:  "string is a single quoted word which results in a single search word which is quoted",
+			Name:  "string is a single quoted flag which results in a single search word which is quoted",
 			Input: "\"quoted\"",
 			Words: []searchWord{
 				{
@@ -546,7 +546,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is a single quoted word prefixed with a - which results in a single search word which is quoted",
+			Name:  "string is a single quoted flag prefixed with a - which results in a single search word which is quoted",
 			Input: "\"-quoted\"",
 			Words: []searchWord{
 				{
@@ -557,7 +557,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is a single quoted word prefixed with a - which results in a single search word which is quoted and exported",
+			Name:  "string is a single quoted flag prefixed with a - which results in a single search word which is quoted and exported",
 			Input: "-\"quoted\"",
 			Words: []searchWord{
 				{
@@ -568,7 +568,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple quoted words which results in a single search word which is quoted and unexported",
+			Name:  "string is multiple quoted flags which results in a single search word which is quoted and unexported",
 			Input: "\"quoted multiple words\"",
 			Words: []searchWord{
 				{
@@ -579,7 +579,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple quoted words prefixed with - which results in a single search word which is quoted and unexported",
+			Name:  "string is multiple quoted flags prefixed with - which results in a single search word which is quoted and unexported",
 			Input: "\"quoted -multiple words\"",
 			Words: []searchWord{
 				{
@@ -590,7 +590,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple quoted words and unquoted words",
+			Name:  "string is multiple quoted flags and unquoted words",
 			Input: "some \"stuff\" \"quoted multiple words\" some \"more stuff\"",
 			Words: []searchWord{
 				{
@@ -617,7 +617,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple quoted words and unquoted words some being prefixed with -",
+			Name:  "string is multiple quoted flags and unquoted words some being prefixed with -",
 			Input: "some -\"stuff\" \"quoted multiple words\" some -\"more stuff\"",
 			Words: []searchWord{
 				{
@@ -644,7 +644,7 @@ func TestParseSearchFlags2(t *testing.T) {
 			Flags: []flag{},
 		},
 		{
-			Name:  "string is multiple quoted words and unquoted words some being flags",
+			Name:  "string is multiple quoted flags and unquoted words some being flags",
 			Input: "some in:here \"stuff\" \"quoted multiple words\" from:someone \"more stuff\"",
 			Words: []searchWord{
 				{
