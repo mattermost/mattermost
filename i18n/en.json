@@ -500,6 +500,10 @@
     "translation": "Command with a trigger of '{{.Trigger}}' returned response {{.Status}}."
   },
   {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Command trigger word is missing the leading slash character"
+  },
+  {
     "id": "api.command.execute_command.not_found.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
@@ -1967,6 +1971,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "You don't have the appropriate permissions to list all teams"
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
   },
@@ -3061,6 +3069,10 @@
   {
     "id": "app.import.import_user.save_preferences.error",
     "translation": "Error importing user preferences. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "Error importing user channels. Channel not found."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -6037,6 +6049,22 @@
   {
     "id": "store.sql_channel.save_member.save.app_error",
     "translation": "Unable to save the channel member."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.channel_roles.app_error",
+    "translation": "Unable to build query to get the channel roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.channel_roles_query.app_error",
+    "translation": "Error fetching the channel roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.team_roles.app_error",
+    "translation": "Unable to build query to get the team roles."
+  },
+  {
+    "id": "store.sql_channel.save_multimple_members.team_roles_query.app_error",
+    "translation": "Error fetching the team roles."
   },
   {
     "id": "store.sql_channel.search.app_error",

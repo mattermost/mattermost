@@ -446,6 +446,81 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.ElementsMatch(t, dmMembers, *posts[3].ChannelMembers)
 }
 
+func TestExportPostWithProps(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	attachments := []*model.SlackAttachment{{Footer: "footer"}}
+
+	// DM Channel
+	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+	dmMembers := []string{th1.BasicUser.Username, th1.BasicUser2.Username}
+
+	user1 := th1.CreateUser()
+	th1.LinkUserToTeam(user1, th1.BasicTeam)
+	user2 := th1.CreateUser()
+	th1.LinkUserToTeam(user2, th1.BasicTeam)
+
+	// GM Channel
+	gmChannel := th1.CreateGroupChannel(user1, user2)
+	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
+
+	// DM posts
+	p1 := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "aa" + model.NewId() + "a",
+		Props: map[string]interface{}{
+			"attachments": attachments,
+		},
+		UserId: th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p1, dmChannel, false)
+
+	p2 := &model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "dd" + model.NewId() + "a",
+		Props: map[string]interface{}{
+			"attachments": attachments,
+		},
+		UserId: th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p2, gmChannel, false)
+
+	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
+	assert.Len(t, posts, 2)
+	require.NotEmpty(t, posts[0].Props)
+	require.NotEmpty(t, posts[1].Props)
+
+	var b bytes.Buffer
+	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
+	assert.Len(t, posts, 0)
+
+	// import the exported posts
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
+
+	// Adding some determinism so its possible to assert on slice index
+	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
+	assert.Len(t, posts, 2)
+	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
+	assert.Contains(t, posts[0].Props["attachments"].([]interface{})[0], "footer")
+	assert.Contains(t, posts[1].Props["attachments"].([]interface{})[0], "footer")
+}
+
 func TestExportDMPostWithSelf(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 

@@ -29,16 +29,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
-	// GetViewUsersRestrictionsForTeam returns a list with the channel ids that the user has permissions to view on a
-	// team. If the result is an empty list, the user can't view any channel; if it's
-	// nil, there are no restrictions for the user in the specified team.
-	GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError)
 	// @openTracingParams teamId
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -105,7 +102,7 @@ type AppIface interface {
 	// Notifies cluster peers through config change.
 	DisablePlugin(id string) *model.AppError
 	// DoPermissionsMigrations execute all the permissions migrations need by the current version.
-	DoPermissionsMigrations() *model.AppError
+	DoPermissionsMigrations() error
 	// EnablePlugin will set the config for an installed plugin to enabled, triggering asynchronous
 	// activation if inactive anywhere in the cluster.
 	// Notifies cluster peers through config change.
@@ -413,9 +410,7 @@ type AppIface interface {
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
-	Elasticsearch() einterfaces.ElasticsearchInterface
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
-	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
 	// @openTracingParams args
 	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
@@ -677,9 +672,6 @@ type AppIface interface {
 	InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	IpAddress() string
-	IsESAutocompletionEnabled() bool
-	IsESIndexingEnabled() bool
-	IsESSearchEnabled() bool
 	IsFirstUserAccount() bool
 	IsLeader() bool
 	IsPasswordValid(password string) *model.AppError
@@ -789,12 +781,13 @@ type AppIface interface {
 	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
-	SchemesIterator(batchSize int) func() []*model.Scheme
+	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
 	SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError)
 	SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError)
 	SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
+	SearchEngine() *searchengine.Broker
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
 	SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError)
