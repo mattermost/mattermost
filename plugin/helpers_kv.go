@@ -227,18 +227,18 @@ func (p *HelpersImpl) KVModify(key string, f func(value []byte) ([]byte, error))
 		return err
 	}
 
-	v, err := p.API.KVGet(key)
-	if err != nil {
-		return err
+	v, appErr := p.API.KVGet(key)
+	if appErr != nil {
+		return appErr
 	}
 
-	mv, err := f(v)
-	if err != nil {
+	modifiedValue, modifiedError := f(v)
+	if modifiedError != nil {
 		return err
 	}
-	err = p.API.KVSet(key, mv)
-	if err != nil {
-		return err
+	setErr := p.API.KVSet(key, modifiedValue)
+	if setErr != nil {
+		return setErr
 	}
 	return nil
 }

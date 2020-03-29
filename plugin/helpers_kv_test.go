@@ -4,8 +4,8 @@
 package plugin_test
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
