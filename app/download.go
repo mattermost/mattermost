@@ -4,13 +4,14 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+
 	"github.com/pkg/errors"
 )
 
@@ -45,7 +46,6 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, errors.Wrap(err, "download failed after multiple retries.")
 	}
