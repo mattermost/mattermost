@@ -244,6 +244,10 @@
     "translation": "This channel has been converted to a Private Channel."
   },
   {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Your license does not support groups"
+  },
+  {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
     "translation": "This default channel cannot be converted into a private channel."
   },
@@ -330,10 +334,6 @@
   {
     "id": "api.channel.leave.left",
     "translation": "%v left the channel."
-  },
-  {
-    "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Your license does not support groups"
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
