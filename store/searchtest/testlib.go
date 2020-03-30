@@ -74,22 +74,6 @@ func makeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }
 
-func assertUsers(t *testing.T, expected, actual []*model.User) {
-	expectedUsernames := make([]string, 0, len(expected))
-	for _, user := range expected {
-		expectedUsernames = append(expectedUsernames, user.Username)
-	}
-
-	actualUsernames := make([]string, 0, len(actual))
-	for _, user := range actual {
-		actualUsernames = append(actualUsernames, user.Username)
-	}
-
-	if assert.Equal(t, expectedUsernames, actualUsernames) {
-		assert.Equal(t, expected, actual)
-	}
-}
-
 func assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
 	expectedUsernames := make([]string, 0, len(expected))
 	for _, user := range expected {
@@ -147,20 +131,6 @@ func addUserToTeamsAndChannels(s store.Store, user *model.User, teamIds []string
 	}
 
 	return nil
-}
-
-type ByChannelDisplayName model.ChannelList
-
-func (s ByChannelDisplayName) Len() int { return len(s) }
-func (s ByChannelDisplayName) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s ByChannelDisplayName) Less(i, j int) bool {
-	if s[i].DisplayName != s[j].DisplayName {
-		return s[i].DisplayName < s[j].DisplayName
-	}
-
-	return s[i].Id < s[j].Id
 }
 
 func checkPostInSearchResults(t *testing.T, postId string, searchResults []string) {

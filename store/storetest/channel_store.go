@@ -66,6 +66,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -2386,6 +2387,211 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, &model.ChannelList{&o9}, channels)
 	})
+}
+
+type ByChannelDisplayName model.ChannelList
+
+func (s ByChannelDisplayName) Len() int { return len(s) }
+func (s ByChannelDisplayName) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s ByChannelDisplayName) Less(i, j int) bool {
+	if s[i].DisplayName != s[j].DisplayName {
+		return s[i].DisplayName < s[j].DisplayName
+	}
+
+	return s[i].Id < s[j].Id
+}
+
+func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+	otherTeamId := model.NewId()
+
+	o1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "ChannelA",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err := ss.Channel().Save(&o1, -1)
+	require.Nil(t, err)
+
+	o2 := model.Channel{
+		TeamId:      otherTeamId,
+		DisplayName: "ChannelA",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o2, -1)
+	require.Nil(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   o1.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
+	require.Nil(t, err)
+
+	m2 := model.ChannelMember{
+		ChannelId:   o1.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m2)
+	require.Nil(t, err)
+
+	m3 := model.ChannelMember{
+		ChannelId:   o2.Id,
+		UserId:      model.NewId(),
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m3)
+	require.Nil(t, err)
+
+	o3 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "ChannelA (alternate)",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o3, -1)
+	require.Nil(t, err)
+
+	o4 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel B",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	_, err = ss.Channel().Save(&o4, -1)
+	require.Nil(t, err)
+
+	o5 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel C",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	_, err = ss.Channel().Save(&o5, -1)
+	require.Nil(t, err)
+
+	o6 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Off-Topic",
+		Name:        "off-topic",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o6, -1)
+	require.Nil(t, err)
+
+	o7 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Off-Set",
+		Name:        "off-set",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o7, -1)
+	require.Nil(t, err)
+
+	o8 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Off-Limit",
+		Name:        "off-limit",
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	_, err = ss.Channel().Save(&o8, -1)
+	require.Nil(t, err)
+
+	o9 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Town Square",
+		Name:        "town-square",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o9, -1)
+	require.Nil(t, err)
+
+	o10 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "The",
+		Name:        "the",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o10, -1)
+	require.Nil(t, err)
+
+	o11 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Native Mobile Apps",
+		Name:        "native-mobile-apps",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o11, -1)
+	require.Nil(t, err)
+
+	o12 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "ChannelZ",
+		Purpose:     "This can now be searchable!",
+		Name:        "with-purpose",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o12, -1)
+	require.Nil(t, err)
+
+	o13 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "ChannelA (deleted)",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&o13, -1)
+	require.Nil(t, err)
+	o13.DeleteAt = model.GetMillis()
+	o13.UpdateAt = o13.DeleteAt
+	err = ss.Channel().Delete(o13.Id, o13.DeleteAt)
+	require.Nil(t, err, "channel should have been deleted")
+
+	testCases := []struct {
+		Description     string
+		TeamId          string
+		Term            string
+		IncludeDeleted  bool
+		ExpectedResults *model.ChannelList
+	}{
+		{"ChannelA", teamId, "ChannelA", false, &model.ChannelList{&o1, &o3}},
+		{"ChannelA, include deleted", teamId, "ChannelA", true, &model.ChannelList{&o1, &o3, &o13}},
+		{"ChannelA, other team", otherTeamId, "ChannelA", false, &model.ChannelList{&o2}},
+		{"empty string", teamId, "", false, &model.ChannelList{&o1, &o3, &o12, &o11, &o7, &o6, &o10, &o9}},
+		{"no matches", teamId, "blargh", false, &model.ChannelList{}},
+		{"prefix", teamId, "off-", false, &model.ChannelList{&o7, &o6}},
+		{"full match with dash", teamId, "off-topic", false, &model.ChannelList{&o6}},
+		{"town square", teamId, "town square", false, &model.ChannelList{&o9}},
+		{"the in name", teamId, "the", false, &model.ChannelList{&o10}},
+		{"Mobile", teamId, "Mobile", false, &model.ChannelList{&o11}},
+		{"search purpose", teamId, "now searchable", false, &model.ChannelList{&o12}},
+		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},
+	}
+
+	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError){
+		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
+		"SearchInTeam":       ss.Channel().SearchInTeam,
+	} {
+		for _, testCase := range testCases {
+			t.Run(testCase.Description, func(t *testing.T) {
+				channels, err := search(testCase.TeamId, testCase.Term, testCase.IncludeDeleted)
+				require.Nil(t, err)
+
+				// AutoCompleteInTeam doesn't currently sort its output results.
+				if name == "AutocompleteInTeam" {
+					sort.Sort(ByChannelDisplayName(*channels))
+				}
+
+				require.Equal(t, testCase.ExpectedResults, channels)
+			})
+		}
+	}
 }
 
 func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
