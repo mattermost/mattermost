@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestKVGetJSON(t *testing.T) {
@@ -640,46 +640,67 @@ func getKeys(count int) []string {
 }
 
 func TestPluginAPIKVModify(t *testing.T) {
-	api := &plugintest.API{}
-	p := &plugin.HelpersImpl{API: api}
+	t.Run("got error from KVGet method", func (t *testing.T){
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
 
-	testCases := []struct {
-		description      string
-		key              string
-		actualValue      []byte
-		expectedValue    []byte
-		modificationFunc func([]byte) ([]byte, error)
-	}{
-		{
-			description: "Test actual data modification without error from modification func",
-			key:         "key1",
-			actualValue: []byte("THIS IS A TEST VALUE"),
-			modificationFunc: func(b []byte) ([]byte, error) {
-				return []byte(strings.ToLower(string(b))), nil
-			},
-			expectedValue: []byte(strings.ToLower("THIS IS A TEST VALUE")),
-		},
-	}
-	for _, tt := range testCases {
-		{
-			// set an actual value to the kv store
-			err := api.KVSet(tt.key, tt.actualValue)
-			require.Nil(t, err)
-
-			// check that this value is exists in kv store as in that representation in what we pass it there
-			valueWePassed, err := api.KVGet(tt.key)
-			require.Nil(t, err)
-			require.Equal(t, valueWePassed, tt.actualValue)
-
-			// modify data in kv store with provided modification function
-			require.Nil(t, p.KVModify(tt.key, tt.modificationFunc))
-
-			// get value from kv store
-			actualResult, err := api.KVGet(tt.key)
-			require.Nil(t, err)
-
-			// check that modification function was applied for the data with given key
-			require.Equal(t, actualResult, tt.expectedValue)
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte{}, &model.AppError{})
+		p.API = api
+		modificationFunc := func (value []byte) ([]byte,error){
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
 		}
-	}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("got error from KVSet method", func (t *testing.T){
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte("test_string"), nil)
+		api.On("KVSet", "key",[]byte("TEST_STRING")).Return(&model.AppError{})
+		modificationFunc := func (value []byte) ([]byte,error){
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("server version is not supported", func (t *testing.T){
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.1.0")
+		p.API = api
+		modificationFunc := func (value []byte) ([]byte,error){
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("successfully apply modification", func(t *testing.T) {
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte("test_string"), nil)
+		api.On("KVSet", "key",[]byte("TEST_STRING")).Return(nil)
+		p.API = api
+		modificationFunc := func (value []byte) ([]byte,error){
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Nil(t, err)
+	})
 }
