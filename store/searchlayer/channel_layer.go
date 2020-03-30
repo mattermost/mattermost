@@ -19,12 +19,12 @@ func (c *SearchChannelStore) deleteChannelIndex(channel *model.Channel) {
 	if channel.Type == model.CHANNEL_OPEN {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
-				go (func(engineCopy searchengine.SearchEngineInterface) {
+				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.DeleteChannel(channel); err != nil {
 						mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					}
 					mlog.Debug("Removed channel from index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
-				})(engine)
+				})
 			}
 		}
 	}
@@ -34,12 +34,12 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 	if channel.Type == model.CHANNEL_OPEN {
 		for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 			if engine.IsIndexingEnabled() {
-				go (func(engineCopy searchengine.SearchEngineInterface) {
+				runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 					if err := engineCopy.IndexChannel(channel); err != nil {
 						mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					}
 					mlog.Debug("Indexed channel in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("channel_id", channel.Id))
-				})(engine)
+				})
 			}
 		}
 	}

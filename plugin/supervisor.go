@@ -63,7 +63,6 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, parentLogger *mlog
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
 		Cmd:             cmd,
-		Stderr:          wrappedLogger.With(mlog.String("source", "plugin_stderr_panic")).StdErrPanicLogWriter(),
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,

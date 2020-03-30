@@ -333,7 +333,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		return err
 	}
 
-	resp, err := a.HTTPService().MakeClient(true).Do(request)
+	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
 		return err
 	}
