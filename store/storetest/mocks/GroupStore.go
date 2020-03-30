@@ -702,6 +702,31 @@ func (_m *GroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppE
 	return r0, r1
 }
 
+// GetMemberUsersInTeam provides a mock function with given fields: groupID, teamID
+func (_m *GroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+	ret := _m.Called(groupID, teamID)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, string) []*model.User); ok {
+		r0 = rf(groupID, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(groupID, teamID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetMemberUsersNotInChannel provides a mock function with given fields: groupID, channelID
 func (_m *GroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
 	ret := _m.Called(groupID, channelID)
