@@ -61,12 +61,7 @@ func (a *App) NewWebHub() *Hub {
 }
 
 func (a *App) TotalWebsocketConnections() int {
-	count := int64(0)
-	for _, hub := range a.Srv().GetHubs() {
-		count = count + atomic.LoadInt64(&hub.connectionCount)
-	}
-
-	return int(count)
+	return a.Srv().TotalWebsocketConnections()
 }
 
 func (a *App) HubStart() {
@@ -344,10 +339,6 @@ func (h *Hub) Register(webConn *WebConn) {
 	case h.register <- webConn:
 	case <-h.didStop:
 	}
-
-	if webConn.IsAuthenticated() {
-		webConn.SendHello()
-	}
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
@@ -415,6 +406,9 @@ func (h *Hub) Start() {
 			case webCon := <-h.register:
 				connections.Add(webCon)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
+				if webCon.IsAuthenticated() {
+					webCon.Send <- webCon.createHelloMessage()
+				}
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
