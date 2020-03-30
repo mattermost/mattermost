@@ -1,6 +1,7 @@
 package logr
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -15,7 +16,7 @@ type LevelStatus struct {
 type levelCache interface {
 	setup()
 	get(id LevelID) (LevelStatus, bool)
-	put(id LevelID, status LevelStatus)
+	put(id LevelID, status LevelStatus) error
 	clear()
 }
 
@@ -30,25 +31,32 @@ func (c *syncMapLevelCache) setup() {
 }
 
 func (c *syncMapLevelCache) get(id LevelID) (LevelStatus, bool) {
+	if id > MaxLevelID {
+		return LevelStatus{}, false
+	}
 	s, _ := c.m.Load(id)
 	status := s.(LevelStatus)
 	return status, !status.empty
 }
 
-func (c *syncMapLevelCache) put(id LevelID, status LevelStatus) {
+func (c *syncMapLevelCache) put(id LevelID, status LevelStatus) error {
+	if id > MaxLevelID {
+		return fmt.Errorf("level id cannot exceed MaxLevelID (%d)", MaxLevelID)
+	}
 	c.m.Store(id, status)
+	return nil
 }
 
 func (c *syncMapLevelCache) clear() {
 	var i LevelID
-	for i = 0; i < 255; i++ {
+	for i = 0; i < MaxLevelID; i++ {
 		c.m.Store(i, LevelStatus{empty: true})
 	}
 }
 
 // arrayLevelCache using array and a mutex.
 type arrayLevelCache struct {
-	arr [256]LevelStatus
+	arr [MaxLevelID + 1]LevelStatus
 	mux sync.RWMutex
 }
 
@@ -59,6 +67,9 @@ func (c *arrayLevelCache) setup() {
 //var dummy = LevelStatus{}
 
 func (c *arrayLevelCache) get(id LevelID) (LevelStatus, bool) {
+	if id > MaxLevelID {
+		return LevelStatus{}, false
+	}
 	c.mux.RLock()
 	status := c.arr[id]
 	ok := !status.empty
@@ -66,11 +77,15 @@ func (c *arrayLevelCache) get(id LevelID) (LevelStatus, bool) {
 	return status, ok
 }
 
-func (c *arrayLevelCache) put(id LevelID, status LevelStatus) {
+func (c *arrayLevelCache) put(id LevelID, status LevelStatus) error {
+	if id > MaxLevelID {
+		return fmt.Errorf("level id cannot exceed MaxLevelID (%d)", MaxLevelID)
+	}
 	c.mux.Lock()
 	defer c.mux.Unlock()
 
 	c.arr[id] = status
+	return nil
 }
 
 func (c *arrayLevelCache) clear() {

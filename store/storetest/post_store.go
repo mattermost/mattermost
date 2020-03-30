@@ -87,6 +87,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		_, err := ss.Post().Save(&rootPost)
 		require.Nil(t, err)
 
+		time.Sleep(2 * time.Millisecond)
+
 		replyPost := model.Post{}
 		replyPost.ChannelId = rootPost.ChannelId
 		replyPost.UserId = model.NewId()
@@ -409,8 +411,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 
 	require.Equal(t, ro1.Message, o1.Message, "Failed to save/get")
 
-	o1a := &model.Post{}
-	*o1a = *ro1
+	o1a := ro1.Clone()
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
 	_, err = ss.Post().Update(o1a, ro1)
 	require.Nil(t, err)
@@ -421,8 +422,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	ro1a := r1.Posts[o1.Id]
 	require.Equal(t, ro1a.Message, o1a.Message, "Failed to update/get")
 
-	o2a := &model.Post{}
-	*o2a = *ro2
+	o2a := ro2.Clone()
 	o2a.Message = ro2.Message + "DDDDDDD"
 	_, err = ss.Post().Update(o2a, ro2)
 	require.Nil(t, err)
@@ -433,8 +433,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 
 	require.Equal(t, ro2a.Message, o2a.Message, "Failed to update/get")
 
-	o3a := &model.Post{}
-	*o3a = *ro3
+	o3a := ro3.Clone()
 	o3a.Message = ro3.Message + "WWWWWWW"
 	_, err = ss.Post().Update(o3a, ro3)
 	require.Nil(t, err)
@@ -459,8 +458,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	ro4 := r4.Posts[o4.Id]
 
-	o4a := &model.Post{}
-	*o4a = *ro4
+	o4a := ro4.Clone()
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
 	_, err = ss.Post().Update(o4a, ro4)
@@ -496,7 +494,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
 	post := posts[0]
-	actual := post.Props[model.POST_PROPS_DELETE_BY]
+	actual := post.GetProp(model.POST_PROPS_DELETE_BY)
 
 	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 
@@ -1949,16 +1947,13 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	require.Equal(t, ro5.Filenames, o5.Filenames, "Failed to save/get")
 
 	t.Run("overwrite changing message", func(t *testing.T) {
-		o1a := &model.Post{}
-		*o1a = *ro1
+		o1a := ro1.Clone()
 		o1a.Message = ro1.Message + "BBBBBBBBBB"
 
-		o2a := &model.Post{}
-		*o2a = *ro2
+		o2a := ro2.Clone()
 		o2a.Message = ro2.Message + "DDDDDDD"
 
-		o3a := &model.Post{}
-		*o3a = *ro3
+		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
 		_, err = ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
@@ -1982,13 +1977,11 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("overwrite clearing filenames", func(t *testing.T) {
-		o4a := &model.Post{}
-		*o4a = *ro4
+		o4a := ro4.Clone()
 		o4a.Filenames = []string{}
 		o4a.FileIds = []string{model.NewId()}
 
-		o5a := &model.Post{}
-		*o5a = *ro5
+		o5a := ro5.Clone()
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
@@ -2064,20 +2057,17 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	require.Equal(t, ro4.Message, o4.Message, "Failed to save/get")
 
 	t.Run("overwrite changing message", func(t *testing.T) {
-		o1a := &model.Post{}
-		*o1a = *ro1
+		o1a := ro1.Clone()
 		o1a.Message = ro1.Message + "BBBBBBBBBB"
 		_, err = ss.Post().Overwrite(o1a)
 		require.Nil(t, err)
 
-		o2a := &model.Post{}
-		*o2a = *ro2
+		o2a := ro2.Clone()
 		o2a.Message = ro2.Message + "DDDDDDD"
 		_, err = ss.Post().Overwrite(o2a)
 		require.Nil(t, err)
 
-		o3a := &model.Post{}
-		*o3a = *ro3
+		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 		_, err = ss.Post().Overwrite(o3a)
 		require.Nil(t, err)
@@ -2100,8 +2090,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("overwrite clearing filenames", func(t *testing.T) {
-		o4a := &model.Post{}
-		*o4a = *ro4
+		o4a := ro4.Clone()
 		o4a.Filenames = []string{}
 		o4a.FileIds = []string{model.NewId()}
 		_, err = ss.Post().Overwrite(o4a)
@@ -2521,8 +2510,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	p1, err = ss.Post().Save(p1)
 	require.Nil(t, err)
 
-	o1a := &model.Post{}
-	*o1a = *p1
+	o1a := p1.Clone()
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
 	_, err = ss.Post().Update(o1a, p1)

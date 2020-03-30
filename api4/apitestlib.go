@@ -254,10 +254,6 @@ func (me *TestHelper) TearDown() {
 	me.ShutdownApp()
 
 	utils.EnableDebugLogForTest()
-
-	if err := recover(); err != nil {
-		panic(err)
-	}
 }
 
 var initBasicOnce sync.Once
