@@ -116,6 +116,7 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th.Server.initEnterprise()
+			th.App.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {

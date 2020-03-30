@@ -107,7 +107,7 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	ApiClient = model.NewAPIv4Client(URL)
 
 	a := app.New(app.ServerConnector(s))
-	a.DoAppMigrations()
+	a.InitServer()
 
 	s.Store.MarkSystemRanUnitTests()
 
