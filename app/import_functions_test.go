@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -1218,7 +1217,7 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_ONLINE)
 	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "true")
 	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
-	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, fmt.Sprintf("%s,@%s", username, username))
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "")
 
 	// Set Notify Props with Mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
@@ -1527,6 +1526,363 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 }
 
+func TestImportUserTeams(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team2 := th.CreateTeam()
+	channel2 := th.CreateChannel(th.BasicTeam)
+	channel3 := th.CreateChannel(team2)
+	customRole := th.CreateRole("test_custom_role")
+	sampleTheme := "{\"test\":\"#abcdef\"}"
+
+	tt := []struct {
+		name                  string
+		data                  *[]UserTeamImportData
+		expectedError         bool
+		expectedUserTeams     int
+		expectedUserChannels  int
+		expectedExplicitRoles string
+		expectedRoles         string
+		expectedTheme         string
+	}{
+		{
+			name: "Not existing team should fail",
+			data: &[]UserTeamImportData{
+				{
+					Name: model.NewString("not-existing-team-name"),
+				},
+			},
+			expectedError: true,
+		},
+		{
+			name:                 "nil data shouldn't do anything",
+			expectedError:        false,
+			expectedUserTeams:    0,
+			expectedUserChannels: 0,
+		},
+		{
+			name: "Should fail if one of the roles doesn't exists",
+			data: &[]UserTeamImportData{
+				{
+					Name:  &th.BasicTeam.Name,
+					Roles: model.NewString("not-existing-role"),
+				},
+			},
+			expectedError:         true,
+			expectedUserTeams:     1,
+			expectedUserChannels:  0,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user",
+		},
+		{
+			name: "Should success to import explicit role",
+			data: &[]UserTeamImportData{
+				{
+					Name:  &th.BasicTeam.Name,
+					Roles: &customRole.Name,
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: customRole.Name,
+			expectedRoles:         customRole.Name + " team_user",
+		},
+		{
+			name: "Should success to import admin role",
+			data: &[]UserTeamImportData{
+				{
+					Name:  &th.BasicTeam.Name,
+					Roles: model.NewString(model.TEAM_ADMIN_ROLE_ID),
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user team_admin",
+		},
+		{
+			name: "Should success to import with theme",
+			data: &[]UserTeamImportData{
+				{
+					Name:  &th.BasicTeam.Name,
+					Theme: &sampleTheme,
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user",
+			expectedTheme:         sampleTheme,
+		},
+		{
+			name: "Team without channels must add the default channel",
+			data: &[]UserTeamImportData{
+				{
+					Name: &th.BasicTeam.Name,
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user",
+		},
+		{
+			name: "Team with default channel must add only the default channel",
+			data: &[]UserTeamImportData{
+				{
+					Name: &th.BasicTeam.Name,
+					Channels: &[]UserChannelImportData{
+						{
+							Name: ptrStr(model.DEFAULT_CHANNEL),
+						},
+					},
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user",
+		},
+		{
+			name: "Team with non default channel must add default channel and the other channel",
+			data: &[]UserTeamImportData{
+				{
+					Name: &th.BasicTeam.Name,
+					Channels: &[]UserChannelImportData{
+						{
+							Name: &th.BasicChannel.Name,
+						},
+					},
+				},
+			},
+			expectedError:         false,
+			expectedUserTeams:     1,
+			expectedUserChannels:  2,
+			expectedExplicitRoles: "",
+			expectedRoles:         "team_user",
+		},
+		{
+			name: "Multiple teams with multiple channels each",
+			data: &[]UserTeamImportData{
+				{
+					Name: &th.BasicTeam.Name,
+					Channels: &[]UserChannelImportData{
+						{
+							Name: &th.BasicChannel.Name,
+						},
+						{
+							Name: &channel2.Name,
+						},
+					},
+				},
+				{
+					Name: &team2.Name,
+					Channels: &[]UserChannelImportData{
+						{
+							Name: &channel3.Name,
+						},
+						{
+							Name: model.NewString("town-square"),
+						},
+					},
+				},
+			},
+			expectedError:        false,
+			expectedUserTeams:    2,
+			expectedUserChannels: 5,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			user := th.CreateUser()
+
+			// Two times import must end with the same results
+			for x := 0; x < 2; x++ {
+				err := th.App.importUserTeams(user, tc.data)
+				if tc.expectedError {
+					require.NotNil(t, err)
+				} else {
+					require.Nil(t, err)
+				}
+				teamMembers, err := th.App.Srv().Store.Team().GetTeamsForUser(user.Id)
+				require.Nil(t, err)
+				require.Len(t, teamMembers, tc.expectedUserTeams)
+				if tc.expectedUserTeams == 1 {
+					require.Equal(t, tc.expectedExplicitRoles, teamMembers[0].ExplicitRoles, "Not matching expected explicit roles")
+					require.Equal(t, tc.expectedRoles, teamMembers[0].Roles, "not matching expected roles")
+					if tc.expectedTheme != "" {
+						pref, prefErr := th.App.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_THEME, teamMembers[0].TeamId)
+						require.Nil(t, prefErr)
+						require.Equal(t, tc.expectedTheme, pref.Value)
+					}
+				}
+
+				totalMembers := 0
+				for _, teamMember := range teamMembers {
+					channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(teamMember.TeamId, user.Id)
+					require.Nil(t, err)
+					totalMembers += len(*channelMembers)
+				}
+				require.Equal(t, tc.expectedUserChannels, totalMembers)
+			}
+		})
+	}
+
+	t.Run("Should fail if the MaxUserPerTeam is reached", func(t *testing.T) {
+		user := th.CreateUser()
+		data := &[]UserTeamImportData{
+			{
+				Name: &th.BasicTeam.Name,
+			},
+		}
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 1 })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 100 })
+		err := th.App.importUserTeams(user, data)
+		require.NotNil(t, err)
+	})
+}
+
+func TestImportUserChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	channel2 := th.CreateChannel(th.BasicTeam)
+	customRole := th.CreateRole("test_custom_role")
+	sampleNotifyProps := UserChannelNotifyPropsImportData{
+		Desktop:    model.NewString("all"),
+		Mobile:     model.NewString("none"),
+		MarkUnread: model.NewString("all"),
+	}
+
+	tt := []struct {
+		name                  string
+		data                  *[]UserChannelImportData
+		expectedError         bool
+		expectedUserChannels  int
+		expectedExplicitRoles string
+		expectedRoles         string
+		expectedNotifyProps   *UserChannelNotifyPropsImportData
+	}{
+		{
+			name: "Not existing channel should fail",
+			data: &[]UserChannelImportData{
+				{
+					Name: model.NewString("not-existing-channel-name"),
+				},
+			},
+			expectedError: true,
+		},
+		{
+			name:                 "nil data shouldn't do anything",
+			expectedError:        false,
+			expectedUserChannels: 0,
+		},
+		{
+			name: "Should fail if one of the roles doesn't exists",
+			data: &[]UserChannelImportData{
+				{
+					Name:  &th.BasicChannel.Name,
+					Roles: model.NewString("not-existing-role"),
+				},
+			},
+			expectedError:         true,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "channel_user",
+		},
+		{
+			name: "Should success to import explicit role",
+			data: &[]UserChannelImportData{
+				{
+					Name:  &th.BasicChannel.Name,
+					Roles: &customRole.Name,
+				},
+			},
+			expectedError:         false,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: customRole.Name,
+			expectedRoles:         customRole.Name + " channel_user",
+		},
+		{
+			name: "Should success to import admin role",
+			data: &[]UserChannelImportData{
+				{
+					Name:  &th.BasicChannel.Name,
+					Roles: model.NewString(model.CHANNEL_ADMIN_ROLE_ID),
+				},
+			},
+			expectedError:         false,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "channel_user channel_admin",
+		},
+		{
+			name: "Should success to import with notifyProps",
+			data: &[]UserChannelImportData{
+				{
+					Name:        &th.BasicChannel.Name,
+					NotifyProps: &sampleNotifyProps,
+				},
+			},
+			expectedError:         false,
+			expectedUserChannels:  1,
+			expectedExplicitRoles: "",
+			expectedRoles:         "channel_user",
+			expectedNotifyProps:   &sampleNotifyProps,
+		},
+		{
+			name: "Should import properly multiple channels",
+			data: &[]UserChannelImportData{
+				{
+					Name: &th.BasicChannel.Name,
+				},
+				{
+					Name: &channel2.Name,
+				},
+			},
+			expectedError:        false,
+			expectedUserChannels: 2,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			user := th.CreateUser()
+			th.App.joinUserToTeam(th.BasicTeam, user)
+			teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+			require.Nil(t, err)
+
+			// Two times import must end with the same results
+			for x := 0; x < 2; x++ {
+				err = th.App.importUserChannels(user, th.BasicTeam, teamMember, tc.data)
+				if tc.expectedError {
+					require.NotNil(t, err)
+				} else {
+					require.Nil(t, err)
+				}
+				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
+				require.Nil(t, err)
+				require.Len(t, *channelMembers, tc.expectedUserChannels)
+				if tc.expectedUserChannels == 1 {
+					channelMember := (*channelMembers)[0]
+					require.Equal(t, tc.expectedExplicitRoles, channelMember.ExplicitRoles, "Not matching expected explicit roles")
+					require.Equal(t, tc.expectedRoles, channelMember.Roles, "not matching expected roles")
+					if tc.expectedNotifyProps != nil {
+						require.Equal(t, *tc.expectedNotifyProps.Desktop, channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
+						require.Equal(t, *tc.expectedNotifyProps.Mobile, channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
+						require.Equal(t, *tc.expectedNotifyProps.MarkUnread, channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestImportUserDefaultNotifyProps(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1537,7 +1893,8 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 		NotifyProps: &UserNotifyPropsImportData{
-			Email: ptrStr("false"),
+			Email:       ptrStr("false"),
+			MentionKeys: ptrStr(""),
 		},
 	}
 	require.Nil(t, th.App.importUser(&data, false))

@@ -65,7 +65,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 func (a *App) ExportPermissions(w io.Writer) error {
 
-	next := a.SchemesIterator(permissionsExportBatchSize)
+	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {

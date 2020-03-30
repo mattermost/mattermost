@@ -210,6 +210,20 @@ func TestImportBulkImport(t *testing.T) {
 		require.NotNil(t, err, "Should have failed due to invalid type on line 2.")
 		require.Equal(t, 2, line, "Should have failed due to invalid type on line 2.")
 	})
+
+	t.Run("Posts with prop information", func(t *testing.T) {
+		data6 := `{"type": "version", "version": 1}
+{"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
+{"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
+{"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `","theme": "` + teamTheme1 + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012, "attachments":[{"path": "` + testImage + `"}], "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}
+{"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username + `"]}}
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username + `"], "user": "` + username + `", "message": "Hello Direct Channel to myself", "create_at": 123456789014, "props":{"attachments":[{"id":0,"fallback":"[February 4th, 2020 2:46 PM] author: fallback","color":"D0D0D0","pretext":"","author_name":"author","author_link":"","title":"","title_link":"","text":"this post has props","fields":null,"image_url":"","thumb_url":"","footer":"Posted in #general","footer_icon":"","ts":"1580823992.000100"}]}}}}`
+
+		err, line := th.App.BulkImport(strings.NewReader(data6), false, 2)
+		require.Nil(t, err, "BulkImport should have succeeded")
+		require.Equal(t, 0, line, "BulkImport line should be 0")
+	})
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
