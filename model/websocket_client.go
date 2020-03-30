@@ -243,6 +243,9 @@ func (wsc *WebSocketClient) configurePingHandling() {
 }
 
 func (wsc *WebSocketClient) pingHandler(appData string) error {
+	if atomic.LoadInt32(&wsc.closed) == 1 {
+		return nil
+	}
 	if !wsc.pingTimeoutTimer.Stop() {
 		<-wsc.pingTimeoutTimer.C
 	}
