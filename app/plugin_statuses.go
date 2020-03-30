@@ -23,7 +23,7 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 
 	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		if status.PluginId == id {
+		if status.PluginId == id && s.Cluster != nil {
 			status.ClusterId = s.Cluster.GetClusterId()
 			return status, nil
 		}
