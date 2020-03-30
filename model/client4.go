@@ -1805,6 +1805,18 @@ func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag stri
 	return TeamMembersFromJson(r.Body), BuildResponse(r)
 }
 
+// GetTeamMembersWithoutDeletedUsers returns team members based on the provided team id string. Additional parameters of sort and exclude_deleted_users accepted as well
+// Could not add it to above function due to it be a breaking change.
+func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(teamId string, page int, perPage int, sort string, exclude_deleted_users bool, etag string) ([]*TeamMember, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v&exclude_deleted_users=%v", page, perPage, sort, exclude_deleted_users)
+	r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamMembersFromJson(r.Body), BuildResponse(r)
+}
+
 // GetTeamMembersForUser returns the team members for a user.
 func (c *Client4) GetTeamMembersForUser(userId string, etag string) ([]*TeamMember, *Response) {
 	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/teams/members", etag)

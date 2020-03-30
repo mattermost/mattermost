@@ -118,7 +118,8 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService httpservice.HTTPService
+	HTTPService            httpservice.HTTPService
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -204,6 +205,7 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s)
+	s.pushNotificationClient = s.HTTPService.MakeClient(true)
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 

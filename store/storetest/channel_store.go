@@ -77,7 +77,6 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
-	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss, s) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
 	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, ss) })
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
@@ -91,7 +90,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
 	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
 	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
-	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
+	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss, s) })
 	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss, s) })
 	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
@@ -5277,139 +5276,6 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s SqlSupplier) {
-	u1 := &model.User{}
-	u1.Email = MakeEmail()
-	u1.Username = "user1" + model.NewId()
-	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
-	require.Nil(t, err)
-
-	u2 := &model.User{}
-	u2.Email = MakeEmail()
-	u2.Username = "user2" + model.NewId()
-	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
-	require.Nil(t, err)
-
-	u3 := &model.User{}
-	u3.Email = MakeEmail()
-	u3.Username = "user3" + model.NewId()
-	u3.Nickname = model.NewId()
-	_, err = ss.User().Save(u3)
-	require.Nil(t, err)
-
-	u4 := &model.User{}
-	u4.Email = MakeEmail()
-	u4.Username = "user4" + model.NewId()
-	u4.Nickname = model.NewId()
-	_, err = ss.User().Save(u4)
-	require.Nil(t, err)
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "ChannelA"
-	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o1, -1)
-	require.Nil(t, err)
-
-	m1 := model.ChannelMember{}
-	m1.ChannelId = o1.Id
-	m1.UserId = u1.Id
-	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m1)
-	require.Nil(t, err)
-
-	o2 := model.Channel{}
-	o2.TeamId = model.NewId()
-	o2.DisplayName = "Channel2"
-	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o2, -1)
-	require.Nil(t, err)
-
-	m2 := model.ChannelMember{}
-	m2.ChannelId = o2.Id
-	m2.UserId = m1.UserId
-	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m2)
-	require.Nil(t, err)
-
-	o3 := model.Channel{}
-	o3.TeamId = o1.TeamId
-	o3.DisplayName = "ChannelA"
-	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o3, -1)
-	require.Nil(t, err)
-
-	m3 := model.ChannelMember{}
-	m3.ChannelId = o3.Id
-	m3.UserId = m1.UserId
-	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m3)
-	require.Nil(t, err)
-
-	err = ss.Channel().SetDeleteAt(o3.Id, 100, 100)
-	require.Nil(t, err, "channel should have been deleted")
-
-	o4 := model.Channel{}
-	o4.TeamId = o1.TeamId
-	o4.DisplayName = "ChannelA"
-	o4.Name = "zz" + model.NewId() + "b"
-	o4.Type = model.CHANNEL_PRIVATE
-	_, err = ss.Channel().Save(&o4, -1)
-	require.Nil(t, err)
-
-	m4 := model.ChannelMember{}
-	m4.ChannelId = o4.Id
-	m4.UserId = m1.UserId
-	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m4)
-	require.Nil(t, err)
-
-	o5 := model.Channel{}
-	o5.TeamId = o1.TeamId
-	o5.DisplayName = "ChannelC"
-	o5.Name = "zz" + model.NewId() + "b"
-	o5.Type = model.CHANNEL_PRIVATE
-	_, err = ss.Channel().Save(&o5, -1)
-	require.Nil(t, err)
-
-	_, err = ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err)
-	_, err = ss.Channel().CreateDirectChannel(u2, u3)
-	require.Nil(t, err)
-
-	tt := []struct {
-		name            string
-		term            string
-		includeDeleted  bool
-		expectedMatches int
-	}{
-		{"Empty search (list all)", "", false, 4},
-		{"Narrow search", "ChannelA", false, 2},
-		{"Wide search", "Cha", false, 3},
-		{"Direct messages", "user", false, 1},
-		{"Wide search with archived channels", "Cha", true, 4},
-		{"Narrow with archived channels", "ChannelA", true, 3},
-		{"Direct messages with archived channels", "user", true, 1},
-		{"Search without results", "blarg", true, 0},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			channels, err := ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
-			require.Nil(t, err)
-			require.Len(t, *channels, 2)
-		})
-	}
-
-	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
-}
-
 func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
@@ -6287,7 +6153,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, u1.Id, cmfe1.UserId)
 }
 
-func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
+func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s SqlSupplier) {
 	// Set up all the objects needed in the store.
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
@@ -6365,6 +6231,9 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	assert.Nil(t, err)
 	assert.Len(t, *d2, 1)
 	assert.Equal(t, u3.Id, (*d2)[0].UserId)
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s SqlSupplier) {
