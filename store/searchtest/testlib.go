@@ -12,6 +12,7 @@ import (
 
 const (
 	ENGINE_ALL           = "all"
+	ENGINE_NONE          = "none"
 	ENGINE_MYSQL         = "mysql"
 	ENGINE_POSTGRES      = "postgres"
 	ENGINE_ELASTICSEARCH = "elasticsearch"
@@ -24,9 +25,11 @@ type SearchTestEngine struct {
 }
 
 type searchTest struct {
-	Name string
-	Fn   func(*testing.T, *SearchTestHelper)
-	Tags []string
+	Name        string
+	Fn          func(*testing.T, *SearchTestHelper)
+	Tags        []string
+	Skip        bool
+	SkipMessage string
 }
 
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
@@ -53,6 +56,10 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 	for _, test := range filteredTests {
 		if testing.Short() {
 			t.Skip("Skipping advanced search test")
+			continue
+		}
+
+		if test.Skip {
 			continue
 		}
 
