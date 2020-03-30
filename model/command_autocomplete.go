@@ -59,13 +59,14 @@ type AutocompleteTextArg struct {
 
 // AutocompleteStaticListItem describes an item in the AutocompleteStaticListArg.
 type AutocompleteStaticListItem struct {
-	Item     string
-	HelpText string
+	Hint string
+	Item string
 }
 
 // AutocompleteStaticListArg is used to input one of the arguments from the list,
 // for example [yes, no], [on, off], and so on.
 type AutocompleteStaticListArg struct {
+	HelpText          string //TODO make sure to support this
 	PossibleArguments []AutocompleteStaticListItem
 }
 
@@ -76,7 +77,9 @@ type AutocompleteDynamicListArg struct {
 
 // AutocompleteSuggestion describes a single suggestion item sent to the frontend
 type AutocompleteSuggestion struct {
-	// Hint describes what user might want to input
+	// Suggestion describes what user might want to input
+	Suggestion string
+	// Hint describes a hint about the suggested input
 	Hint string
 	// Description of the command
 	Description string
@@ -243,23 +246,21 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
-	name, ok := arg["Name"].(string)
+	ok := true
+	a.Name, ok = arg["Name"].(string)
 	if !ok {
 		return errors.Errorf("No field Name in the argument %s", string(b))
 	}
-	a.Name = name
 
-	helpText, ok := arg["HelpText"].(string)
+	a.HelpText, ok = arg["HelpText"].(string)
 	if !ok {
 		return errors.Errorf("No field HelpText in the argument %s", string(b))
 	}
-	a.HelpText = helpText
 
-	argType, ok := arg["Type"].(string)
+	a.Type, ok = arg["Type"].(string)
 	if !ok {
 		return errors.Errorf("No field Type in the argument %s", string(b))
 	}
-	a.Type = argType
 
 	data, ok := arg["Data"]
 	if !ok {
@@ -285,6 +286,10 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		if !ok {
 			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
 		}
+		helpText, ok := m["HelpText"].(string)
+		if !ok {
+			return errors.Errorf("No field HelpText in the StaticList's possible arguments %s", string(b))
+		}
 		list, ok := m["PossibleArguments"].([]interface{})
 		if !ok {
 			return errors.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
@@ -301,21 +306,21 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 				return errors.Errorf("No field Item in the StaticList's possible arguments %s", string(b))
 			}
 
-			helpText, ok := args["HelpText"].(string)
+			hint, ok := args["Hint"].(string)
 			if !ok {
-				return errors.Errorf("No field HelpText in the StaticList's possible arguments %s", string(b))
+				return errors.Errorf("No field Hint in the StaticList's possible arguments %s", string(b))
 			}
 
 			possibleArguments = append(possibleArguments, AutocompleteStaticListItem{
-				Item:     item,
-				HelpText: helpText,
+				Item: item,
+				Hint: hint,
 			})
 		}
-		a.Data = &AutocompleteStaticListArg{PossibleArguments: possibleArguments}
+		a.Data = &AutocompleteStaticListArg{HelpText: helpText, PossibleArguments: possibleArguments}
 	} else if a.Type == AutocompleteArgTypeDynamicList {
 		m, ok := data.(map[string]interface{})
 		if !ok {
-			return errors.Errorf("Wrong Data type in the DynamicList argument %s", string(b))
+			return errors.Errorf("Wrong type type in the DynamicList argument %s", string(b))
 		}
 		url, ok := m["FetchURL"].(string)
 		if !ok {
@@ -326,18 +331,19 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NewAutocompleteStaticListArg returns an empty AutocompleteArgTypeStaticList argument.
-func NewAutocompleteStaticListArg() *AutocompleteStaticListArg {
+// NewAutocompleteStaticListArg returned empty AutocompleteStaticListArgType argument.
+func NewAutocompleteStaticListArg(helpText string) *AutocompleteStaticListArg {
 	return &AutocompleteStaticListArg{
+		HelpText:          helpText,
 		PossibleArguments: []AutocompleteStaticListItem{},
 	}
 }
 
 // AddArgument adds a static argument to the StaticList argument.
-func (a *AutocompleteStaticListArg) AddArgument(text, helpText string) {
+func (a *AutocompleteStaticListArg) AddArgument(text, hint string) {
 	argument := AutocompleteStaticListItem{
-		Item:     text,
-		HelpText: helpText,
+		Item: text,
+		Hint: hint,
 	}
 	a.PossibleArguments = append(a.PossibleArguments, argument)
 }
@@ -397,7 +403,7 @@ func CreateJiraAutocompleteData() *AutocompleteData {
 
 	settings := NewAutocompleteData("settings", "Update your user settings")
 	notifications := NewAutocompleteData("notifications", "Turn notifications on or off")
-	argument := NewAutocompleteStaticListArg()
+	argument := NewAutocompleteStaticListArg("Notification settings")
 	argument.AddArgument("on", "Turn notifications on")
 	argument.AddArgument("off", "Turn notifications off")
 	notifications.AddStaticListArgument("", "Turn notifications on or off", argument)

@@ -11,7 +11,7 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
-	fixedArgs := model.NewAutocompleteStaticListArg()
+	fixedArgs := model.NewAutocompleteStaticListArg("help text for the argument")
 	fixedArgs.AddArgument("on", "help")
 
 	argument := &model.AutocompleteArg{
@@ -20,57 +20,62 @@ func TestParseStaticListArgument(t *testing.T) {
 		Type:     model.AutocompleteArgTypeStaticList,
 		Data:     fixedArgs,
 	}
-	found, _, suggestions := parseStaticListArgument(argument, "")
+	found, _, _, suggestions := parseStaticListArgument(argument, "", "") //TODO understand this!
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, _, suggestions = parseStaticListArgument(argument, "o")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, changedInput, _ := parseStaticListArgument(argument, "on ")
+	found, parsed, toBeParsed, _ := parseStaticListArgument(argument, "", "on ")
 	assert.False(t, found)
-	assert.Equal(t, "", changedInput)
+	assert.Equal(t, "on ", parsed)
+	assert.Equal(t, "", toBeParsed)
 
-	found, changedInput, _ = parseStaticListArgument(argument, "on some")
+	found, parsed, toBeParsed, _ = parseStaticListArgument(argument, "", "on some")
 	assert.False(t, found)
-	assert.Equal(t, "some", changedInput)
+	assert.Equal(t, "on ", parsed)
+	assert.Equal(t, "some", toBeParsed)
 
 	fixedArgs.AddArgument("off", "help")
 
-	found, _, suggestions = parseStaticListArgument(argument, "o")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}, {Hint: "off", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}, {Suggestion: "off", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, _, suggestions = parseStaticListArgument(argument, "of")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "of")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "off", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "off", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, _, suggestions = parseStaticListArgument(argument, "o some")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "o some")
 	assert.True(t, found)
 	assert.Len(t, suggestions, 0)
 
-	found, changedInput, _ = parseStaticListArgument(argument, "off some")
+	found, parsed, toBeParsed, _ = parseStaticListArgument(argument, "", "off some")
 	assert.False(t, found)
-	assert.Equal(t, "some", changedInput)
+	assert.Equal(t, "off ", parsed)
+	assert.Equal(t, "some", toBeParsed)
 
 	fixedArgs.AddArgument("onon", "help")
 
-	found, _, suggestions = parseStaticListArgument(argument, "on")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "on")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "on", Description: "help"}, {Hint: "onon", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}, {Suggestion: "onon", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, _, suggestions = parseStaticListArgument(argument, "ono")
+	found, _, _, suggestions = parseStaticListArgument(argument, "", "ono")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Hint: "onon", Description: "help"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "onon", Hint: "help", Description: "help text for the argument"}}, suggestions)
 
-	found, changedInput, _ = parseStaticListArgument(argument, "on some")
+	found, parsed, toBeParsed, _ = parseStaticListArgument(argument, "", "on some")
 	assert.False(t, found)
-	assert.Equal(t, "some", changedInput)
+	assert.Equal(t, "on ", parsed)
+	assert.Equal(t, "some", toBeParsed)
 
-	found, changedInput, _ = parseStaticListArgument(argument, "onon some")
+	found, parsed, toBeParsed, _ = parseStaticListArgument(argument, "", "onon some")
 	assert.False(t, found)
-	assert.Equal(t, "some", changedInput)
+	assert.Equal(t, "onon ", parsed)
+	assert.Equal(t, "some", toBeParsed)
 }
 
 func TestParseInputTextArgument(t *testing.T) {
@@ -80,37 +85,42 @@ func TestParseInputTextArgument(t *testing.T) {
 		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
 	}
-	found, _, suggestion := parseInputTextArgument(argument, "")
+
+	found, _, _, suggestion := parseInputTextArgument(argument, "", "")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, suggestion = parseInputTextArgument(argument, " ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", " ")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Suggestion: " ", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, suggestion = parseInputTextArgument(argument, "abc")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "abc")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Suggestion: "abc", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, _, suggestion = parseInputTextArgument(argument, "\"abc dfd df ")
+	found, _, _, suggestion = parseInputTextArgument(argument, "", "\"abc dfd df ")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Suggestion: "\"abc dfd df ", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, changedInput, _ := parseInputTextArgument(argument, "abc efg ")
+	found, parsed, toBeParsed, _ := parseInputTextArgument(argument, "", "abc efg ")
 	assert.False(t, found)
-	assert.Equal(t, "efg ", changedInput)
+	assert.Equal(t, "abc ", parsed)
+	assert.Equal(t, "efg ", toBeParsed)
 
-	found, changedInput, _ = parseInputTextArgument(argument, "abc ")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "abc ")
 	assert.False(t, found)
-	assert.Equal(t, "", changedInput)
+	assert.Equal(t, "abc ", parsed)
+	assert.Equal(t, "", toBeParsed)
 
-	found, changedInput, _ = parseInputTextArgument(argument, "\"abc def\" abc")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\" abc")
 	assert.False(t, found)
-	assert.Equal(t, "abc", changedInput)
+	assert.Equal(t, "\"abc def\" ", parsed)
+	assert.Equal(t, "abc", toBeParsed)
 
-	found, changedInput, _ = parseInputTextArgument(argument, "\"abc def\"")
+	found, parsed, toBeParsed, _ = parseInputTextArgument(argument, "", "\"abc def\"")
 	assert.False(t, found)
-	assert.Equal(t, "", changedInput)
+	assert.Equal(t, "\"abc def\"", parsed)
+	assert.Equal(t, "", toBeParsed)
 }
 
 func TestSuggestions(t *testing.T) {
@@ -120,28 +130,34 @@ func TestSuggestions(t *testing.T) {
 	jira := model.CreateJiraAutocompleteData()
 	suggestions := th.App.GetSuggestions([]*model.AutocompleteData{jira}, "ji", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
-	assert.Equal(t, jira.Trigger, suggestions[0].Hint)
+	assert.Equal(t, jira.Trigger, suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
 	assert.Equal(t, jira.HelpText, suggestions[0].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira crea", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
-	assert.Equal(t, "create", suggestions[0].Hint)
+	assert.Equal(t, "jira create", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
 	assert.Equal(t, "Create a new Issue", suggestions[0].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira c", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 2)
-	assert.Equal(t, "create", suggestions[1].Hint)
+	assert.Equal(t, "jira create", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
 	assert.Equal(t, "Create a new Issue", suggestions[1].Description)
-	assert.Equal(t, "connect", suggestions[0].Hint)
+	assert.Equal(t, "jira connect", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
 	assert.Equal(t, "Connect your Mattermost account to your Jira account", suggestions[0].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira create ", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "jira create ", suggestions[0].Suggestion)
 	assert.Equal(t, "[text]", suggestions[0].Hint)
 	assert.Equal(t, "This text is optional, will be inserted into the description field", suggestions[0].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira create some", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "jira create some", suggestions[0].Suggestion)
 	assert.Equal(t, "[text]", suggestions[0].Hint)
 	assert.Equal(t, "This text is optional, will be inserted into the description field", suggestions[0].Description)
 
@@ -153,10 +169,12 @@ func TestSuggestions(t *testing.T) {
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira settings notifications o", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 2)
-	assert.Equal(t, "on", suggestions[0].Hint)
-	assert.Equal(t, "Turn notifications on", suggestions[0].Description)
-	assert.Equal(t, "off", suggestions[1].Hint)
-	assert.Equal(t, "Turn notifications off", suggestions[1].Description)
+	assert.Equal(t, "jira settings notifications on", suggestions[0].Suggestion)
+	assert.Equal(t, "Turn notifications on", suggestions[0].Hint)
+	assert.Equal(t, "Notification settings", suggestions[0].Description)
+	assert.Equal(t, "jira settings notifications off", suggestions[1].Suggestion)
+	assert.Equal(t, "Turn notifications off", suggestions[1].Hint)
+	assert.Equal(t, "Notification settings", suggestions[1].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira ", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 10)

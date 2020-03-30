@@ -400,7 +400,7 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		}
 		if command.AutocompleteData == nil {
 			if strings.HasPrefix(command.Trigger, userInput) {
-				suggestions = append(suggestions, model.AutocompleteSuggestion{Description: command.AutoCompleteDesc, Hint: command.Trigger})
+				suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: command.Trigger, Description: command.AutoCompleteDesc, Hint: command.AutoCompleteHint})
 			}
 			continue
 		}

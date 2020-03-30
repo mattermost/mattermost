@@ -49,7 +49,7 @@ func TestAutocompleteData(t *testing.T) {
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "disconnect")
 	command.AddDynamicListArgument("", "help", "/valid/url")
-	staticList := NewAutocompleteStaticListArg()
+	staticList := NewAutocompleteStaticListArg("help_text")
 	staticList.AddArgument("", "help")
 	command.AddStaticListArgument("", "help", staticList)
 	ad.AddCommand(command)
@@ -70,7 +70,7 @@ func getAutocompleteData() *AutocompleteData {
 	ad.RoleID = SYSTEM_USER_ROLE_ID
 	ad.AddDynamicListArgument("", "help", "/some/url")
 	ad.AddTextArgument("", "help", "[text]", "")
-	StaticList := NewAutocompleteStaticListArg()
+	StaticList := NewAutocompleteStaticListArg("help_text")
 	StaticList.AddArgument("arg1", "help1")
 	StaticList.AddArgument("arg2", "help2")
 	ad.AddStaticListArgument("", "help", StaticList)
