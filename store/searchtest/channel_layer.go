@@ -143,6 +143,7 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	}
 
 	for _, tc := range tt {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			channels, err := s.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
 			require.Nil(t, err)
@@ -194,6 +195,7 @@ func testSearchESSearchChannels(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Channel().AutocompleteInTeam(team.Id, tc.Term, false)
 			require.Nil(t, err)

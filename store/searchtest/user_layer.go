@@ -352,6 +352,7 @@ func testSearchDatabaseUserSearch(t *testing.T, s store.Store) {
 	}
 
 	for _, testCase := range testCases {
+		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := s.User().Search(testCase.TeamId, testCase.Term, testCase.Options)
 			require.Nil(t, err)
@@ -514,6 +515,7 @@ func testSearchESSearchUsersInChannel(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			options.ViewRestrictions = tc.ViewRestrictions
 			res, err := s.User().AutocompleteUsersInChannel(tc.Team, tc.Channel, tc.Term, options)
@@ -660,6 +662,7 @@ func testSearchESSearchUsersInTeam(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			options.ViewRestrictions = tc.ViewRestrictions
 			res, err := s.User().Search(tc.Team, tc.Term, options)

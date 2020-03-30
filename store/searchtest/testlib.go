@@ -55,6 +55,7 @@ func runTestSearch(t *testing.T, s store.Store, testEngine *SearchTestEngine, te
 	filteredTests := filterTestsByTag(tests, testEngine.Driver)
 
 	for _, test := range filteredTests {
+		test := test
 		if testing.Short() {
 			t.Skip("Skipping advanced search test")
 			continue

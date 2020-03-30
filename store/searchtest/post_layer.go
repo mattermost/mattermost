@@ -367,6 +367,7 @@ func testSearchDatabasePostSearch(t *testing.T, s store.Store) {
 		},
 	}
 	for _, tc := range tt {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := s.Post().Search(teamId, userId, tc.searchParams)
 			require.Nil(t, err)
@@ -423,6 +424,7 @@ func testSearchESSearchPosts_MarkdownUnderscores(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -535,6 +537,7 @@ func testSearchESSearchPosts_ChineseWords(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -604,6 +607,7 @@ func testSearchESSearchPosts_AlternativeSpellings(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -864,6 +868,7 @@ func testSearchESSearchPosts_Paging(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Post().SearchPostsInTeamForUser(searchParams, user.Id, team.Id, false, false, tc.Page, tc.PerPage)
 			require.Nil(t, err)
@@ -939,6 +944,7 @@ func testSearchESSearchPosts_QuotedTerms(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 			searchParams[0].ExcludedTerms = tc.ExcludedTerms
@@ -1028,6 +1034,7 @@ func testSearchESSearchPosts_StopWords(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -1097,6 +1104,7 @@ func testSearchESSearchPosts_Stemming(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -1158,6 +1166,7 @@ func testSearchESSearchPosts_Wildcard(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -1227,6 +1236,7 @@ func testSearchESSearchPosts_AlternativeUnicodeForms(t *testing.T, s store.Store
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].Terms = tc.Terms
 
@@ -1353,6 +1363,7 @@ func testSearchESSearchPosts_FromAndIn(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			searchParams[0].FromUsers = tc.FromUsers
 			searchParams[0].InChannels = tc.InChannels
@@ -1672,6 +1683,7 @@ func testSearchESSearchPosts_AfterBeforeOn(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Post().SearchPostsInTeamForUser(tc.SearchParams, user.Id, team.Id, false, false, 0, 20)
 			require.Nil(t, err)
@@ -1772,6 +1784,7 @@ func testSearchESSearchPosts_Hashtags(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Post().SearchPostsInTeamForUser(tc.SearchParams, user.Id, team.Id, false, false, 0, 20)
 			require.Nil(t, err)
@@ -1851,6 +1864,7 @@ func testSearchESSearchPosts_HashtagsAndOrWords(t *testing.T, s store.Store) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Post().SearchPostsInTeamForUser(tc.SearchParams, user.Id, team.Id, false, false, 0, 20)
 			require.Nil(t, err)
@@ -1935,6 +1949,7 @@ func testSearchESSearchPosts_HashtagsCaseInsensitive(t *testing.T, s store.Store
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := s.Post().SearchPostsInTeamForUser(tc.SearchParams, user.Id, team.Id, false, false, 0, 20)
 			require.Nil(t, err)
