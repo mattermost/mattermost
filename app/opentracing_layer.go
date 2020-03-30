@@ -7587,7 +7587,7 @@ func (a *OpenTracingAppLayer) GetTeamMember(teamId string, userId string) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamMembers")
 
@@ -7599,7 +7599,7 @@ func (a *OpenTracingAppLayer) GetTeamMembers(teamId string, offset int, limit in
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTeamMembers(teamId, offset, limit, restrictions)
+	resultVar0, resultVar1 := a.app.GetTeamMembers(teamId, offset, limit, teamMembersGetOptions)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
