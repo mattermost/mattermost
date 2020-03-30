@@ -312,6 +312,35 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) 
 	return count, nil
 }
 
+func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+	var groupMembers []*model.User
+
+	query := `
+		SELECT
+			Users.*
+		FROM
+			GroupMembers
+			JOIN Users ON Users.Id = GroupMembers.UserId
+		WHERE
+			GroupId = :GroupId
+			AND GroupMembers.UserId IN (
+				SELECT TeamMembers.UserId
+				FROM TeamMembers
+				JOIN Teams ON Teams.Id = :TeamId
+				WHERE TeamMembers.TeamId = Teams.Id
+				AND TeamMembers.DeleteAt = 0
+			)
+			AND GroupMembers.DeleteAt = 0
+			AND Users.DeleteAt = 0
+		`
+
+	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "TeamId": teamID}); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetMemberUsersInTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupMembers, nil
+}
+
 func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
 	var groupMembers []*model.User
 
