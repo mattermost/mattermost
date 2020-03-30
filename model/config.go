@@ -314,6 +314,7 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
+	ExperimentalChannelSidebarOrganization            *string
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -408,10 +409,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewBool(false)
-	}
-
-	if s.EnableIncomingWebhooks == nil {
-		s.EnableIncomingWebhooks = NewBool(true)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -653,6 +650,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ExperimentalChannelOrganization == nil {
 		experimentalUnreadEnabled := *s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
+	}
+
+	if s.ExperimentalChannelSidebarOrganization == nil {
+		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
@@ -1056,42 +1057,78 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	Enabled  *bool   `restricted:"true"`
-	IP       *string `restricted:"true"`
-	Port     *int    `restricted:"true"`
-	Tag      *string `restricted:"true"`
-	Cert     *string `restricted:"true"`
-	Insecure *bool   `restricted:"true"`
-	MaxQSize *int    `restricted:"true"`
+	SysLogEnabled      *bool   `restricted:"true"`
+	SysLogIP           *string `restricted:"true"`
+	SysLogPort         *int    `restricted:"true"`
+	SysLogTag          *string `restricted:"true"`
+	SysLogCert         *string `restricted:"true"`
+	SysLogInsecure     *bool   `restricted:"true"`
+	SysLogMaxQueueSize *int    `restricted:"true"`
+
+	FileEnabled      *bool   `restricted:"true"`
+	FileName         *string `restricted:"true"`
+	FileMaxSizeMB    *int    `restricted:"true"`
+	FileMaxAgeDays   *int    `restricted:"true"`
+	FileMaxBackups   *int    `restricted:"true"`
+	FileCompress     *bool   `restricted:"true"`
+	FileMaxQueueSize *int    `restricted:"true"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
-	if s.Enabled == nil {
-		s.Enabled = NewBool(false)
+	if s.SysLogEnabled == nil {
+		s.SysLogEnabled = NewBool(false)
 	}
 
-	if s.IP == nil {
-		s.IP = NewString("localhost")
+	if s.SysLogIP == nil {
+		s.SysLogIP = NewString("localhost")
 	}
 
-	if s.Port == nil {
-		s.Port = NewInt(6514)
+	if s.SysLogPort == nil {
+		s.SysLogPort = NewInt(6514)
 	}
 
-	if s.Tag == nil {
-		s.Tag = NewString("")
+	if s.SysLogTag == nil {
+		s.SysLogTag = NewString("")
 	}
 
-	if s.Cert == nil {
-		s.Cert = NewString("")
+	if s.SysLogCert == nil {
+		s.SysLogCert = NewString("")
 	}
 
-	if s.Insecure == nil {
-		s.Insecure = NewBool(false)
+	if s.SysLogInsecure == nil {
+		s.SysLogInsecure = NewBool(false)
 	}
 
-	if s.MaxQSize == nil {
-		s.MaxQSize = NewInt(1000)
+	if s.SysLogMaxQueueSize == nil {
+		s.SysLogMaxQueueSize = NewInt(1000)
+	}
+
+	if s.FileEnabled == nil {
+		s.FileEnabled = NewBool(false)
+	}
+
+	if s.FileName == nil {
+		s.FileName = NewString("")
+	}
+
+	if s.FileMaxSizeMB == nil {
+		s.FileMaxSizeMB = NewInt(100)
+	}
+
+	if s.FileMaxAgeDays == nil {
+		s.FileMaxAgeDays = NewInt(0) // no limit on age
+	}
+
+	if s.FileMaxBackups == nil { // no limit on number of backups
+		s.FileMaxBackups = NewInt(0)
+	}
+
+	if s.FileCompress == nil {
+		s.FileCompress = NewBool(false)
+	}
+
+	if s.FileMaxQueueSize == nil {
+		s.FileMaxQueueSize = NewInt(1000)
 	}
 }
 

@@ -19,9 +19,9 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			go (func(engineCopy searchengine.SearchEngineInterface) {
-				channel, chanErr := s.rootStore.Channel().GetForPost(post.Id)
+				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
 				if chanErr != nil {
-					mlog.Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
+					mlog.Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))
 					return
 				}
 				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
