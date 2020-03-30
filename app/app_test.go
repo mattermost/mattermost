@@ -603,6 +603,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 		model.PERMISSION_REMOVE_REACTION.Id,
 		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expected2)
 	sort.Strings(role2.Permissions)
