@@ -33,6 +33,7 @@ func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, ss) })
 	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, ss) })
+	t.Run("GetPosts", func(t *testing.T) { testPostStoreGetPosts(t, ss) })
 	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
 	t.Run("PostCountsByDay", func(t *testing.T) { testPostCountsByDay(t, ss) })
@@ -1212,6 +1213,118 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 
 		assert.Len(t, postList.Posts, 1)
 		assert.NotNil(t, postList.Posts[post1.Id])
+	})
+}
+
+func testPostStoreGetPosts(t *testing.T, ss store.Store) {
+	channelId := model.NewId()
+	userId := model.NewId()
+
+	post1, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+	})
+	require.Nil(t, err)
+	time.Sleep(time.Millisecond)
+
+	post2, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+	})
+	require.Nil(t, err)
+	time.Sleep(time.Millisecond)
+
+	post3, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+	})
+	require.Nil(t, err)
+	time.Sleep(time.Millisecond)
+
+	post4, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+	})
+	require.Nil(t, err)
+	time.Sleep(time.Millisecond)
+
+	post5, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+		RootId:    post3.Id,
+	})
+	require.Nil(t, err)
+	time.Sleep(time.Millisecond)
+
+	post6, err := ss.Post().Save(&model.Post{
+		ChannelId: channelId,
+		UserId:    userId,
+		Message:   "message",
+		RootId:    post1.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return the last posts created in a channel", func(t *testing.T) {
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 30, SkipFetchThreads: false}, false)
+		assert.Nil(t, err)
+
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+			post4.Id,
+			post3.Id,
+			post2.Id,
+			post1.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 6)
+		assert.NotNil(t, postList.Posts[post1.Id])
+		assert.NotNil(t, postList.Posts[post2.Id])
+		assert.NotNil(t, postList.Posts[post3.Id])
+		assert.NotNil(t, postList.Posts[post4.Id])
+		assert.NotNil(t, postList.Posts[post5.Id])
+		assert.NotNil(t, postList.Posts[post6.Id])
+	})
+
+	t.Run("should return the last posts created in a channel and the threads and the reply count must be 0", func(t *testing.T) {
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 2, SkipFetchThreads: false}, false)
+		assert.Nil(t, err)
+
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 4)
+		require.NotNil(t, postList.Posts[post1.Id])
+		require.NotNil(t, postList.Posts[post3.Id])
+		require.NotNil(t, postList.Posts[post5.Id])
+		require.NotNil(t, postList.Posts[post6.Id])
+		assert.Equal(t, int64(0), postList.Posts[post1.Id].ReplyCount)
+		assert.Equal(t, int64(0), postList.Posts[post3.Id].ReplyCount)
+		assert.Equal(t, int64(0), postList.Posts[post5.Id].ReplyCount)
+		assert.Equal(t, int64(0), postList.Posts[post6.Id].ReplyCount)
+	})
+
+	t.Run("should return the last posts created in a channel without the threads and the reply count must be correct", func(t *testing.T) {
+		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 2, SkipFetchThreads: true}, false)
+		assert.Nil(t, err)
+
+		assert.Equal(t, []string{
+			post6.Id,
+			post5.Id,
+		}, postList.Order)
+
+		assert.Len(t, postList.Posts, 4)
+		assert.NotNil(t, postList.Posts[post5.Id])
+		assert.NotNil(t, postList.Posts[post6.Id])
+		assert.Equal(t, int64(1), postList.Posts[post5.Id].ReplyCount)
+		assert.Equal(t, int64(1), postList.Posts[post6.Id].ReplyCount)
 	})
 }
 
