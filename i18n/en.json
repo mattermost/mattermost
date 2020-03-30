@@ -1405,6 +1405,10 @@
     "translation": "Encountered an error writing to local server storage."
   },
   {
+    "id": "api.image.get.app_error",
+    "translation": "Requested image url cannot be parsed."
+  },
+  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
