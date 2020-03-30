@@ -170,13 +170,6 @@ func (th *SearchTestHelper) deleteTeam(team *model.Team) error {
 	return nil
 }
 
-func (th *SearchTestHelper) createTeamMember(teamID, userID string) *model.TeamMember {
-	return &model.TeamMember{
-		TeamId: teamID,
-		UserId: userID,
-	}
-}
-
 func (th *SearchTestHelper) makeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazon.com"
 }
@@ -234,10 +227,6 @@ func (th *SearchTestHelper) deleteBot(botID string) error {
 		return errors.New(err.Error())
 	}
 	return nil
-}
-
-func (th *SearchTestHelper) createChannelName() string {
-	return "zz" + model.NewId() + "b"
 }
 
 func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose, channelType string, deleted bool) (*model.Channel, error) {
@@ -330,17 +319,6 @@ func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
 	return nil
 }
 
-func (th *SearchTestHelper) saveChannels(channels []*model.Channel) error {
-	for _, channel := range channels {
-		_, err := th.Store.Channel().Save(channel, 100)
-		if err != nil {
-			return errors.New(err.Error())
-		}
-	}
-
-	return nil
-}
-
 func (th *SearchTestHelper) deleteChannels(channels []*model.Channel) error {
 	for _, channel := range channels {
 		err := th.deleteChannel(channel)
@@ -427,22 +405,6 @@ func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []str
 	return channelMembers, nil
 }
 
-func (th *SearchTestHelper) assertUsers(t *testing.T, expected, actual []*model.User) {
-	expectedUsernames := make([]string, 0, len(expected))
-	for _, user := range expected {
-		expectedUsernames = append(expectedUsernames, user.Username)
-	}
-
-	actualUsernames := make([]string, 0, len(actual))
-	for _, user := range actual {
-		actualUsernames = append(actualUsernames, user.Username)
-	}
-
-	if assert.Equal(t, expectedUsernames, actualUsernames) {
-		assert.Equal(t, expected, actual)
-	}
-}
-
 func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
 	expectedUsernames := make([]string, 0, len(expected))
 	for _, user := range expected {
@@ -462,25 +424,10 @@ func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, a
 func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string, searchResults map[string]*model.Post) {
 	t.Helper()
 	postIDS := make([]string, len(searchResults))
-	for ID, _ := range searchResults {
+	for ID := range searchResults {
 		postIDS = append(postIDS, ID)
 	}
 	assert.Contains(t, postIDS, postID, "Did not find expected post in search results.")
-}
-
-func (th *SearchTestHelper) checkPostNotInSearchResults(t *testing.T, postID string, searchResults []string) {
-	t.Helper()
-	assert.NotContains(t, searchResults, postID, "Found post in search results that should not be there.")
-}
-
-func (th *SearchTestHelper) checkMatchesEqual(t *testing.T, expected model.PostSearchMatches, actual map[string][]string) {
-	a := assert.New(t)
-
-	a.Len(actual, len(expected), "Received matches for a different number of posts")
-
-	for postID, expectedMatches := range expected {
-		a.ElementsMatch(expectedMatches, actual[postID], fmt.Sprintf("%v: expected %v, got %v", postID, expectedMatches, actual[postID]))
-	}
 }
 
 type ByChannelDisplayName model.ChannelList

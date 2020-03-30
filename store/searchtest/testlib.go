@@ -66,7 +66,9 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 		if testEngine.BeforeTest != nil {
 			testEngine.BeforeTest(t, th.Store)
 		}
-		t.Run(test.Name, func(t *testing.T) { test.Fn(t, th) })
+		testName := test.Name
+		testFn := test.Fn
+		t.Run(testName, func(t *testing.T) { testFn(t, th) })
 		if testEngine.AfterTest != nil {
 			testEngine.AfterTest(t, th.Store)
 		}
