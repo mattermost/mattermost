@@ -53,6 +53,7 @@ const (
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
+	PERMISSION_ACCESS_SYSTEM_CONSOLE             = "access_system_console"
 )
 
 func isRole(role string) func(string, map[string]map[string]bool) bool {
@@ -396,6 +397,15 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAccessSystemConsolePermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{PERMISSION_ACCESS_SYSTEM_CONSOLE},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -412,6 +422,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ACCESS_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAccessSystemConsolePermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {

@@ -142,7 +142,7 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
-		// For the channel admin role always look to the higher scope to determine if the role has ther permission.
+		// For the channel admin role always look to the higher scope to determine if the role has their permission.
 		// The channel admin is a special case because they're not part of the UI to be "channel moderated", only
 		// channel members and channel guests are.
 		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && presentOnHigherScope {
@@ -274,7 +274,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 
 	// Iterate through the list of existing permissions on the role and append permissions that we want to keep.
 	for _, permission := range r.Permissions {
-		// Permission is not moderated so dont add it to the patch and skip the channelModerationsPatch
+		// Permission is not moderated so don't add it to the patch and skip the channelModerationsPatch
 		if _, isModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !isModerated {
 			continue
 		}
@@ -301,7 +301,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 		}
 	}
 
-	// Iterate through the patch and add any permissions that dont already exist on the role
+	// Iterate through the patch and add any permissions that don't already exist on the role
 	for _, channelModerationPatch := range channelModerationsPatch {
 		for permission, moderatedPermissionName := range CHANNEL_MODERATED_PERMISSIONS_MAP {
 			if roleName == "members" && channelModerationPatch.Roles.Members != nil && *channelModerationPatch.Roles.Members && *channelModerationPatch.Name == moderatedPermissionName {
@@ -610,6 +610,7 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_LIST_PRIVATE_TEAMS.Id,
 							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 							PERMISSION_VIEW_MEMBERS.Id,
+							PERMISSION_ACCESS_SYSTEM_CONSOLE.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),

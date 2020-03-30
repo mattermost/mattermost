@@ -91,6 +91,7 @@ var PERMISSION_INVITE_GUEST *Permission
 var PERMISSION_PROMOTE_GUEST *Permission
 var PERMISSION_DEMOTE_TO_GUEST *Permission
 var PERMISSION_USE_CHANNEL_MENTIONS *Permission
+var PERMISSION_ACCESS_SYSTEM_CONSOLE *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -567,6 +568,13 @@ func initializePermissions() {
 		PERMISSION_SCOPE_CHANNEL,
 	}
 
+	PERMISSION_ACCESS_SYSTEM_CONSOLE = &Permission{
+		"access_system_console",
+		"authentication.permissions.access_system_console.name",
+		"authentication.permissions.access_system_console.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+
 	ALL_PERMISSIONS = []*Permission{
 		PERMISSION_INVITE_USER,
 		PERMISSION_ADD_USER_TO_TEAM,
@@ -643,6 +651,7 @@ func initializePermissions() {
 		PERMISSION_PROMOTE_GUEST,
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_USE_CHANNEL_MENTIONS,
+		PERMISSION_ACCESS_SYSTEM_CONSOLE,
 	}
 
 	CHANNEL_MODERATED_PERMISSIONS = []string{
