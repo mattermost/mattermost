@@ -49,7 +49,7 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
-	return a.GetLogs(page, perPage)
+	return a.Srv().GetLogs(page, perPage)
 }
 
 func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
