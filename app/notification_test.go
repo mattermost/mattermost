@@ -910,7 +910,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		}
 		for message, shouldMention := range cases {
 			post := &model.Post{Message: message}
-			m := getExplicitMentions(post, nil)
+			m := getExplicitMentions(post, nil, nil)
 			require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
 			require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
 		}
@@ -918,7 +918,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	t.Run("Mention @here and someone", func(t *testing.T) {
 		id := model.NewId()
-		m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}})
+		m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}, nil)
 		require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
 		require.Len(t, m.Mentions, 1)
 		require.Equal(t, KeywordMention, m.Mentions[id], "should've mentioned @user with \"@here @user\"")
@@ -928,7 +928,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	t.Run("Username ending with period", func(t *testing.T) {
 		id := model.NewId()
-		m := getExplicitMentions(&model.Post{Message: "@potential. test"}, map[string][]string{"@user": {id}})
+		m := getExplicitMentions(&model.Post{Message: "@potential. test"}, map[string][]string{"@user": {id}}, nil)
 		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
 		assert.Equal(t, "potential", m.OtherPotentialMentions[0])
 	})
