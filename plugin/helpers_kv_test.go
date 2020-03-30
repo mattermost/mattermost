@@ -640,14 +640,14 @@ func getKeys(count int) []string {
 }
 
 func TestPluginAPIKVModify(t *testing.T) {
-	t.Run("got error from KVGet method", func (t *testing.T){
+	t.Run("got error from KVGet method", func(t *testing.T) {
 		api := &plugintest.API{}
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.2.0")
 		api.On("KVGet", "key").Return([]byte{}, &model.AppError{})
 		p.API = api
-		modificationFunc := func (value []byte) ([]byte,error){
+		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
@@ -656,14 +656,14 @@ func TestPluginAPIKVModify(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("got error from KVSet method", func (t *testing.T){
+	t.Run("got error from KVSet method", func(t *testing.T) {
 		api := &plugintest.API{}
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.2.0")
 		api.On("KVGet", "key").Return([]byte("test_string"), nil)
-		api.On("KVSet", "key",[]byte("TEST_STRING")).Return(&model.AppError{})
-		modificationFunc := func (value []byte) ([]byte,error){
+		api.On("KVSet", "key", []byte("TEST_STRING")).Return(&model.AppError{})
+		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
@@ -672,13 +672,13 @@ func TestPluginAPIKVModify(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("server version is not supported", func (t *testing.T){
+	t.Run("server version is not supported", func(t *testing.T) {
 		api := &plugintest.API{}
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.1.0")
 		p.API = api
-		modificationFunc := func (value []byte) ([]byte,error){
+		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
@@ -693,9 +693,9 @@ func TestPluginAPIKVModify(t *testing.T) {
 
 		api.On("GetServerVersion").Return("5.2.0")
 		api.On("KVGet", "key").Return([]byte("test_string"), nil)
-		api.On("KVSet", "key",[]byte("TEST_STRING")).Return(nil)
+		api.On("KVSet", "key", []byte("TEST_STRING")).Return(nil)
 		p.API = api
-		modificationFunc := func (value []byte) ([]byte,error){
+		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
