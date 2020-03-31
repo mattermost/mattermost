@@ -158,6 +158,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
 		"system_admin": {
+			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 			model.PERMISSION_MANAGE_SYSTEM.Id,
 			model.PERMISSION_MANAGE_ROLES.Id,
@@ -349,6 +350,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
 		"system_admin": {
+			model.PERMISSION_ACCESS_SYSTEM_CONSOLE.Id,
 			model.PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
 			model.PERMISSION_MANAGE_SYSTEM.Id,
 			model.PERMISSION_MANAGE_ROLES.Id,
