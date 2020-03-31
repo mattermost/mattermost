@@ -51,6 +51,7 @@ const (
 	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
 	PERMISSION_CREATE_POST                       = "create_post"
 	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
+	PERMISSION_USE_GROUP_MENTIONS                = "use_group_mentions"
 	PERMISSION_ADD_REACTION                      = "add_reaction"
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
@@ -412,7 +413,7 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
-func getAddUseGroupMentionsPermissionMigration() (permissionsMap, error) {
+func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On: permissionAnd(
@@ -441,7 +442,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: getAddUseGroupMentionsPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: a.getAddUseGroupMentionsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
