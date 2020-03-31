@@ -102,12 +102,12 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 		*cfg.PasswordSettings.Number = false
 	})
 
+	a := app.New(app.ServerConnector(s))
+	a.InitServer()
+
 	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
-
-	a := app.New(app.ServerConnector(s))
-	a.InitServer()
 
 	s.Store.MarkSystemRanUnitTests()
 
