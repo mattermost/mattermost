@@ -144,15 +144,12 @@ func (s *Server) initEnterprise() {
 func (a *App) initEnterprise() {
 	if accountMigrationInterface != nil {
 		a.srv.AccountMigration = accountMigrationInterface(a)
-		a.accountMigration = a.srv.AccountMigration
 	}
 	if ldapInterface != nil {
 		a.srv.Ldap = ldapInterface(a)
-		a.ldap = a.srv.Ldap
 	}
 	if notificationInterface != nil {
 		a.srv.Notification = notificationInterface(a)
-		a.notification = a.srv.Notification
 	}
 	if samlInterface != nil {
 		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
@@ -167,6 +164,5 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
-		a.saml = a.srv.Saml
 	}
 }

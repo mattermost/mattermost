@@ -111,6 +111,10 @@ func (a *App) InitServer() {
 		a.initJobs()
 		a.srv.RunJobs()
 	})
+	a.accountMigration = a.srv.AccountMigration
+	a.ldap = a.srv.Ldap
+	a.notification = a.srv.Notification
+	a.saml = a.srv.Saml
 }
 
 // DO NOT CALL THIS.
