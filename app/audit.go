@@ -34,7 +34,7 @@ func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits,
 	return a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
 }
 
-// logAuditRec logs an audit record using default CLILevel.
+// LogAuditRec logs an audit record using default CLILevel.
 func (a *App) LogAuditRec(rec *audit.Record, err error) {
 	a.LogAuditRecWithLevel(rec, CLILevel, err)
 }
