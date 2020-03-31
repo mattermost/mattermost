@@ -133,7 +133,7 @@ func (c *Client4) ClearOAuthToken() {
 }
 
 func (c *Client4) GetUsersRoute() string {
-	return fmt.Sprintf("/users")
+	return "/users"
 }
 
 func (c *Client4) GetUserRoute(userId string) string {
@@ -157,7 +157,7 @@ func (c *Client4) GetUserByEmailRoute(email string) string {
 }
 
 func (c *Client4) GetBotsRoute() string {
-	return fmt.Sprintf("/bots")
+	return "/bots"
 }
 
 func (c *Client4) GetBotRoute(botUserId string) string {
@@ -165,7 +165,7 @@ func (c *Client4) GetBotRoute(botUserId string) string {
 }
 
 func (c *Client4) GetTeamsRoute() string {
-	return fmt.Sprintf("/teams")
+	return "/teams"
 }
 
 func (c *Client4) GetTeamRoute(teamId string) string {
@@ -197,7 +197,7 @@ func (c *Client4) GetTeamImportRoute(teamId string) string {
 }
 
 func (c *Client4) GetChannelsRoute() string {
-	return fmt.Sprintf("/channels")
+	return "/channels"
 }
 
 func (c *Client4) GetChannelsForTeamRoute(teamId string) string {
@@ -234,19 +234,19 @@ func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
 }
 
 func (c *Client4) GetPostsRoute() string {
-	return fmt.Sprintf("/posts")
+	return "/posts"
 }
 
 func (c *Client4) GetPostsEphemeralRoute() string {
-	return fmt.Sprintf("/posts/ephemeral")
+	return "/posts/ephemeral"
 }
 
 func (c *Client4) GetConfigRoute() string {
-	return fmt.Sprintf("/config")
+	return "/config"
 }
 
 func (c *Client4) GetLicenseRoute() string {
-	return fmt.Sprintf("/license")
+	return "/license"
 }
 
 func (c *Client4) GetPostRoute(postId string) string {
@@ -254,7 +254,7 @@ func (c *Client4) GetPostRoute(postId string) string {
 }
 
 func (c *Client4) GetFilesRoute() string {
-	return fmt.Sprintf("/files")
+	return "/files"
 }
 
 func (c *Client4) GetFileRoute(fileId string) string {
@@ -262,7 +262,7 @@ func (c *Client4) GetFileRoute(fileId string) string {
 }
 
 func (c *Client4) GetPluginsRoute() string {
-	return fmt.Sprintf("/plugins")
+	return "/plugins"
 }
 
 func (c *Client4) GetPluginRoute(pluginId string) string {
@@ -270,35 +270,35 @@ func (c *Client4) GetPluginRoute(pluginId string) string {
 }
 
 func (c *Client4) GetSystemRoute() string {
-	return fmt.Sprintf("/system")
+	return "/system"
 }
 
 func (c *Client4) GetTestEmailRoute() string {
-	return fmt.Sprintf("/email/test")
+	return "/email/test"
 }
 
 func (c *Client4) GetTestSiteURLRoute() string {
-	return fmt.Sprintf("/site_url/test")
+	return "/site_url/test"
 }
 
 func (c *Client4) GetTestS3Route() string {
-	return fmt.Sprintf("/file/s3_test")
+	return "/file/s3_test"
 }
 
 func (c *Client4) GetDatabaseRoute() string {
-	return fmt.Sprintf("/database")
+	return "/database"
 }
 
 func (c *Client4) GetCacheRoute() string {
-	return fmt.Sprintf("/caches")
+	return "/caches"
 }
 
 func (c *Client4) GetClusterRoute() string {
-	return fmt.Sprintf("/cluster")
+	return "/cluster"
 }
 
 func (c *Client4) GetIncomingWebhooksRoute() string {
-	return fmt.Sprintf("/hooks/incoming")
+	return "/hooks/incoming"
 }
 
 func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
@@ -306,7 +306,7 @@ func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
 }
 
 func (c *Client4) GetComplianceReportsRoute() string {
-	return fmt.Sprintf("/compliance/reports")
+	return "/compliance/reports"
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
@@ -314,7 +314,7 @@ func (c *Client4) GetComplianceReportRoute(reportId string) string {
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
-	return fmt.Sprintf("/hooks/outgoing")
+	return "/hooks/outgoing"
 }
 
 func (c *Client4) GetOutgoingWebhookRoute(hookID string) string {
@@ -334,27 +334,27 @@ func (c *Client4) GetUserStatusesRoute() string {
 }
 
 func (c *Client4) GetSamlRoute() string {
-	return fmt.Sprintf("/saml")
+	return "/saml"
 }
 
 func (c *Client4) GetLdapRoute() string {
-	return fmt.Sprintf("/ldap")
+	return "/ldap"
 }
 
 func (c *Client4) GetBrandRoute() string {
-	return fmt.Sprintf("/brand")
+	return "/brand"
 }
 
 func (c *Client4) GetDataRetentionRoute() string {
-	return fmt.Sprintf("/data_retention")
+	return "/data_retention"
 }
 
 func (c *Client4) GetElasticsearchRoute() string {
-	return fmt.Sprintf("/elasticsearch")
+	return "/elasticsearch"
 }
 
 func (c *Client4) GetCommandsRoute() string {
-	return fmt.Sprintf("/commands")
+	return "/commands"
 }
 
 func (c *Client4) GetCommandRoute(commandId string) string {
@@ -366,7 +366,7 @@ func (c *Client4) GetCommandMoveRoute(commandId string) string {
 }
 
 func (c *Client4) GetEmojisRoute() string {
-	return fmt.Sprintf("/emoji")
+	return "/emoji"
 }
 
 func (c *Client4) GetEmojiRoute(emojiId string) string {
@@ -378,11 +378,11 @@ func (c *Client4) GetEmojiByNameRoute(name string) string {
 }
 
 func (c *Client4) GetReactionsRoute() string {
-	return fmt.Sprintf("/reactions")
+	return "/reactions"
 }
 
 func (c *Client4) GetOAuthAppsRoute() string {
-	return fmt.Sprintf("/oauth/apps")
+	return "/oauth/apps"
 }
 
 func (c *Client4) GetOAuthAppRoute(appId string) string {
@@ -390,19 +390,19 @@ func (c *Client4) GetOAuthAppRoute(appId string) string {
 }
 
 func (c *Client4) GetOpenGraphRoute() string {
-	return fmt.Sprintf("/opengraph")
+	return "/opengraph"
 }
 
 func (c *Client4) GetJobsRoute() string {
-	return fmt.Sprintf("/jobs")
+	return "/jobs"
 }
 
 func (c *Client4) GetRolesRoute() string {
-	return fmt.Sprintf("/roles")
+	return "/roles"
 }
 
 func (c *Client4) GetSchemesRoute() string {
-	return fmt.Sprintf("/schemes")
+	return "/schemes"
 }
 
 func (c *Client4) GetSchemeRoute(id string) string {
@@ -410,7 +410,7 @@ func (c *Client4) GetSchemeRoute(id string) string {
 }
 
 func (c *Client4) GetAnalyticsRoute() string {
-	return fmt.Sprintf("/analytics")
+	return "/analytics"
 }
 
 func (c *Client4) GetTimezonesRoute() string {
@@ -430,7 +430,7 @@ func (c *Client4) GetTotalUsersStatsRoute() string {
 }
 
 func (c *Client4) GetRedirectLocationRoute() string {
-	return fmt.Sprintf("/redirect_location")
+	return "/redirect_location"
 }
 
 func (c *Client4) GetServerBusyRoute() string {
