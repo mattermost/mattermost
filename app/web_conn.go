@@ -291,10 +291,10 @@ func (wc *WebConn) IsAuthenticated() bool {
 	return true
 }
 
-func (wc *WebConn) SendHello() {
+func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
 	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.License() != nil))
-	wc.Send <- msg
+	return msg
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
