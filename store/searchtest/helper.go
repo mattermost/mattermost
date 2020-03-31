@@ -29,11 +29,11 @@ type SearchTestHelper struct {
 
 func (th *SearchTestHelper) SetupBasicFixtures() error {
 	// Create teams
-	team, err := th.createTeam("test-team", "test team", model.TEAM_OPEN)
+	team, err := th.createTeam("searchtest-team", "Searchtest team", model.TEAM_OPEN)
 	if err != nil {
 		return err
 	}
-	anotherTeam, err := th.createTeam("another-test-team", "Another test team", model.TEAM_OPEN)
+	anotherTeam, err := th.createTeam("another-searchtest-team", "Another Searchtest team", model.TEAM_OPEN)
 	if err != nil {
 		return err
 	}
@@ -137,6 +137,11 @@ func (th *SearchTestHelper) CleanFixtures() error {
 	}
 
 	err = th.deleteUser(th.User2)
+	if err != nil {
+		return err
+	}
+
+	err = th.deleteUser(th.UserAnotherTeam)
 	if err != nil {
 		return err
 	}
