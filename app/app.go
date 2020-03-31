@@ -65,6 +65,11 @@ func New(options ...AppOption) *App {
 func (a *App) InitServer() {
 	a.srv.AppInitialized.Do(func() {
 		a.initEnterprise()
+		a.accountMigration = a.srv.AccountMigration
+		a.ldap = a.srv.Ldap
+		a.notification = a.srv.Notification
+		a.saml = a.srv.Saml
+
 		a.StartPushNotificationsHubWorkers()
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
