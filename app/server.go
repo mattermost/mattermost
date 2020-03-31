@@ -33,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -117,7 +118,8 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService httpservice.HTTPService
+	HTTPService            httpservice.HTTPService
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -202,7 +204,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
-	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+	s.HTTPService = httpservice.MakeHTTPService(s)
+	s.pushNotificationClient = s.HTTPService.MakeClient(true)
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
@@ -917,4 +920,37 @@ func (s *Server) SetHub(index int, hub *Hub) error {
 	}
 	s.hubs[index] = hub
 	return nil
+}
+
+func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
+	license := s.License()
+	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+}
+
+func (s *Server) TotalWebsocketConnections() int {
+	count := int64(0)
+	for _, hub := range s.GetHubs() {
+		count = count + atomic.LoadInt64(&hub.connectionCount)
+	}
+
+	return int(count)
+}
+
+func (s *Server) ensureDiagnosticId() {
+	if s.diagnosticId != "" {
+		return
+	}
+	props, err := s.Store.System().Get()
+	if err != nil {
+		return
+	}
+
+	id := props[model.SYSTEM_DIAGNOSTIC_ID]
+	if len(id) == 0 {
+		id = model.NewId()
+		systemID := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+		s.Store.System().Save(systemID)
+	}
+
+	s.diagnosticId = id
 }

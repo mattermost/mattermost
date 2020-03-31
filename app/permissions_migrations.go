@@ -4,11 +4,13 @@
 package app
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type permissionTransformation struct {
-	On     func(string, map[string]map[string]bool) bool
+	On     func(*model.Role, map[string]map[string]bool) bool
 	Add    []string
 	Remove []string
 }
@@ -49,42 +51,55 @@ const (
 	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
 	PERMISSION_CREATE_POST                       = "create_post"
 	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
+	PERMISSION_USE_GROUP_MENTIONS                = "use_group_mentions"
 	PERMISSION_ADD_REACTION                      = "add_reaction"
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
 )
 
-func isRole(role string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		return roleName == role
+func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return role.Name == roleName
 	}
 }
 
-func permissionExists(permission string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		val, ok := permissionsMap[roleName][permission]
+func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return role.Name != roleName
+	}
+}
+
+func isNotSchemeRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return !strings.Contains(role.DisplayName, roleName)
+	}
+}
+
+func permissionExists(permission string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		val, ok := permissionsMap[role.Name][permission]
 		return ok && val
 	}
 }
 
-func permissionNotExists(permission string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		val, ok := permissionsMap[roleName][permission]
+func permissionNotExists(permission string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		val, ok := permissionsMap[role.Name][permission]
 		return !(ok && val)
 	}
 }
 
-func onOtherRole(otherRole string, function func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		return function(otherRole, permissionsMap)
+func onOtherRole(otherRole string, function func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return function(&model.Role{Name: otherRole}, permissionsMap)
 	}
 }
 
-func permissionOr(funcs ...func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
+func permissionOr(funcs ...func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		for _, f := range funcs {
-			if f(roleName, permissionsMap) {
+			if f(role, permissionsMap) {
 				return true
 			}
 		}
@@ -92,10 +107,10 @@ func permissionOr(funcs ...func(string, map[string]map[string]bool) bool) func(s
 	}
 }
 
-func permissionAnd(funcs ...func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
+func permissionAnd(funcs ...func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		for _, f := range funcs {
-			if !f(roleName, permissionsMap) {
+			if !f(role, permissionsMap) {
 				return false
 			}
 		}
@@ -103,11 +118,12 @@ func permissionAnd(funcs ...func(string, map[string]map[string]bool) bool) func(
 	}
 }
 
-func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, migrationMap permissionsMap) []string {
+func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, migrationMap permissionsMap) []string {
 	var result []string
 
+	roleName := role.Name
 	for _, transformation := range migrationMap {
-		if transformation.On(roleName, roleMap) {
+		if transformation.On(role, roleMap) {
 			for _, permission := range transformation.Add {
 				roleMap[roleName][permission] = true
 			}
@@ -144,7 +160,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	}
 
 	for _, role := range roles {
-		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
+		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
 		if _, err := a.Srv().Store.Role().Save(role); err != nil {
 			return err
 		}
@@ -396,6 +412,19 @@ func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionAnd(
+				isNotRole(model.CHANNEL_GUEST_ROLE_ID),
+				isNotSchemeRole("Channel Guest Role for Scheme"),
+				permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+			),
+			Add: []string{PERMISSION_USE_GROUP_MENTIONS},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -412,6 +441,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: a.getAddUseGroupMentionsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {

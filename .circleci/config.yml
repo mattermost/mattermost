@@ -23,7 +23,7 @@ jobs:
       - checkout
       - run: |
           cd ../
-          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@github.com:mattermost/mattermost-webapp.git
+          git clone https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
