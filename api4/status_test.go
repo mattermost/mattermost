@@ -58,7 +58,6 @@ func TestGetUserStatus(t *testing.T) {
 
 	t.Run("get status from logged out user", func(t *testing.T) {
 		Client.Logout()
-
 		_, resp := Client.GetUserStatus(th.BasicUser2.Id, "")
 		CheckUnauthorizedStatus(t, resp)
 	})
@@ -80,6 +79,16 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 
 	t.Run("empty userIds list", func(t *testing.T) {
 		_, resp := Client.GetUsersStatusesByIds([]string{})
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("completely invalid userIds list", func(t *testing.T) {
+		_, resp := Client.GetUsersStatusesByIds([]string{"invalid_user_id", "invalid_user_id"})
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("partly invalid userIds list", func(t *testing.T) {
+		_, resp := Client.GetUsersStatusesByIds([]string{th.BasicUser.Id, "invalid_user_id"})
 		CheckBadRequestStatus(t, resp)
 	})
 
