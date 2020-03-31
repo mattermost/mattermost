@@ -723,8 +723,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	PERMISSION_USE_GROUP_MENTIONS := model.PERMISSION_USE_CHANNEL_MENTIONS
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, PERMISSION_USE_GROUP_MENTIONS) {
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
 		return false
 	}
 
