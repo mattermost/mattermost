@@ -39,7 +39,7 @@ func (a *App) LogAuditRec(rec *audit.Record, err error) {
 	a.LogAuditRecWithLevel(rec, CLILevel, err)
 }
 
-// LogAuditRec logs an audit record using specified Level.
+// LogAuditRecWithLevel logs an audit record using specified Level.
 func (a *App) LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error) {
 	if rec == nil {
 		return
