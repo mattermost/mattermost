@@ -190,7 +190,7 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 		if message.EventType() == model.WEBSOCKET_EVENT_POSTED ||
 			message.EventType() == model.WEBSOCKET_EVENT_POST_EDITED ||
 			message.EventType() == model.WEBSOCKET_EVENT_DIRECT_ADDED ||
-			message.EventType() == model.WEBSOCKET_EVENT_GROUP_ADDED ||
+			message.EventType() == model.WEBSOCKET_EVENT_GROUP_MESSAGE_ADDED ||
 			message.EventType() == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}

@@ -141,6 +141,11 @@ func (group *Group) IsValidForUpdate() *AppError {
 	return nil
 }
 
+func (group *Group) ToJson() string {
+	b, _ := json.Marshal(group)
+	return string(b)
+}
+
 func GroupFromJson(data io.Reader) *Group {
 	var group *Group
 	json.NewDecoder(data).Decode(&group)

@@ -32,11 +32,27 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().Update(group)
+	newGroup, err := a.Srv().Store.Group().Update(group)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", newGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	return newGroup, err
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().Delete(groupID)
+	newGroup, err := a.Srv().Store.Group().Delete(groupID)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", newGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	return newGroup, err
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
