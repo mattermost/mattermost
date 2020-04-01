@@ -181,7 +181,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 
 	auditRec := a.MakeAuditRecord("createCommand", audit.Success)
 	auditRec.AddMeta("user", user)
-	auditRec.AddMeta("channel", createdCommand)
+	auditRec.AddMeta("command", createdCommand)
 	a.LogAuditRec(auditRec, nil)
 	return nil
 }
