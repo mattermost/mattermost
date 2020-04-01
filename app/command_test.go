@@ -442,17 +442,17 @@ func TestMentionsToTeamMembers(t *testing.T) {
 		expectedMap model.UserMentionMap
 	}{
 		{
-			fmt.Sprintf(""),
+			"",
 			th.BasicTeam.Id,
 			model.UserMentionMap{},
 		},
 		{
-			fmt.Sprintf("/trigger"),
+			"/trigger",
 			th.BasicTeam.Id,
 			model.UserMentionMap{},
 		},
 		{
-			fmt.Sprintf("/trigger 0 mentions"),
+			"/trigger 0 mentions",
 			th.BasicTeam.Id,
 			model.UserMentionMap{},
 		},
@@ -527,17 +527,17 @@ func TestMentionsToPublicChannels(t *testing.T) {
 		expectedMap model.ChannelMentionMap
 	}{
 		{
-			fmt.Sprintf(""),
+			"",
 			th.BasicTeam.Id,
 			model.ChannelMentionMap{},
 		},
 		{
-			fmt.Sprintf("/trigger"),
+			"/trigger",
 			th.BasicTeam.Id,
 			model.ChannelMentionMap{},
 		},
 		{
-			fmt.Sprintf("/trigger 0 mentions"),
+			"/trigger 0 mentions",
 			th.BasicTeam.Id,
 			model.ChannelMentionMap{},
 		},
