@@ -236,9 +236,9 @@ func (p *HelpersImpl) KVModify(key string, f func(value []byte) ([]byte, error))
 	if modifiedError != nil {
 		return err
 	}
-	err = p.API.KVSet(key, modifiedValue)
-	if err != nil {
-		return err
+	kvErr := p.API.KVSet(key, modifiedValue)
+	if kvErr != nil {
+		return kvErr
 	}
 	return nil
 }
