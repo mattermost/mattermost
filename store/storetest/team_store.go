@@ -46,7 +46,13 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("TeamPublicCount", func(t *testing.T) { testPublicTeamCount(t, ss) })
 	t.Run("TeamPrivateCount", func(t *testing.T) { testPrivateTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
-	t.Run("GetMembersOrder", func(t *testing.T) { testGetMembersOrder(t, ss) })
+	t.Run("TestGetMembers", func(t *testing.T) { testGetMembers(t, ss) })
+	t.Run("SaveMember", func(t *testing.T) { testTeamSaveMember(t, ss) })
+	t.Run("SaveMultipleMembers", func(t *testing.T) { testTeamSaveMultipleMembers(t, ss) })
+	t.Run("UpdateMember", func(t *testing.T) { testTeamUpdateMember(t, ss) })
+	t.Run("UpdateMultipleMembers", func(t *testing.T) { testTeamUpdateMultipleMembers(t, ss) })
+	t.Run("RemoveMember", func(t *testing.T) { testTeamRemoveMember(t, ss) })
+	t.Run("RemoveMembers", func(t *testing.T) { testTeamRemoveMembers(t, ss) })
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, ss) })
 	t.Run("GetTeamMembersByIds", func(t *testing.T) { testGetTeamMembersByIds(t, ss) })
@@ -869,38 +875,135 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
 }
 
-func testGetMembersOrder(t *testing.T, ss store.Store) {
-	teamId1 := model.NewId()
-	teamId2 := model.NewId()
+func testGetMembers(t *testing.T, ss store.Store) {
+	// Each user should have a mention count of exactly 1 in the DB at this point.
+	t.Run("Test GetMembers Order By UserID", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
 
-	m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
-	m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
-	m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
-	m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
-	m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
-	m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m6, -1)
-	require.Nil(t, err)
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, err)
 
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
-	require.Nil(t, err)
-	assert.Len(t, ms, 5)
-	assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
-	assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
-	assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
-	assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
-	assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
+		// Gets users ordered by UserId
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+		require.Nil(t, err)
+		assert.Len(t, ms, 5)
+		assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
+		assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
+		assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
+		assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
+		assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
+	})
+
+	t.Run("Test GetMembers Order By Username And Exclude Deleted Members", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
+
+		u1 := &model.User{Username: "a", Email: MakeEmail(), DeleteAt: int64(1)}
+		u2 := &model.User{Username: "c", Email: MakeEmail()}
+		u3 := &model.User{Username: "b", Email: MakeEmail(), DeleteAt: int64(1)}
+		u4 := &model.User{Username: "f", Email: MakeEmail()}
+		u5 := &model.User{Username: "e", Email: MakeEmail(), DeleteAt: int64(1)}
+		u6 := &model.User{Username: "d", Email: MakeEmail()}
+
+		u1, err := ss.User().Save(u1)
+		require.Nil(t, err)
+		u2, err = ss.User().Save(u2)
+		require.Nil(t, err)
+		u3, err = ss.User().Save(u3)
+		require.Nil(t, err)
+		u4, err = ss.User().Save(u4)
+		require.Nil(t, err)
+		u5, err = ss.User().Save(u5)
+		require.Nil(t, err)
+		u6, err = ss.User().Save(u6)
+		require.Nil(t, err)
+
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: u4.Id}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
+
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, err)
+
+		// Gets users ordered by UserName
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME})
+		require.Nil(t, err)
+		assert.Len(t, ms, 5)
+		assert.Equal(t, u1.Id, ms[0].UserId)
+		assert.Equal(t, u3.Id, ms[1].UserId)
+		assert.Equal(t, u2.Id, ms[2].UserId)
+		assert.Equal(t, u5.Id, ms[3].UserId)
+		assert.Equal(t, u4.Id, ms[4].UserId)
+
+		// Gets users ordered by UserName and excludes deleted members
+		ms, err = ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME, ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+		assert.Len(t, ms, 2)
+		assert.Equal(t, u2.Id, ms[0].UserId)
+		assert.Equal(t, u4.Id, ms[1].UserId)
+	})
+
+	t.Run("Test GetMembers Excluded Deleted Users", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
+
+		u1 := &model.User{Email: MakeEmail()}
+		u2 := &model.User{Email: MakeEmail(), DeleteAt: int64(1)}
+		u3 := &model.User{Email: MakeEmail()}
+		u4 := &model.User{Email: MakeEmail(), DeleteAt: int64(3)}
+		u5 := &model.User{Email: MakeEmail()}
+		u6 := &model.User{Email: MakeEmail(), DeleteAt: int64(5)}
+
+		u1, err := ss.User().Save(u1)
+		require.Nil(t, err)
+		u2, err = ss.User().Save(u2)
+		require.Nil(t, err)
+		u3, err = ss.User().Save(u3)
+		require.Nil(t, err)
+		u4, err = ss.User().Save(u4)
+		require.Nil(t, err)
+		u5, err = ss.User().Save(u5)
+		require.Nil(t, err)
+		u6, err = ss.User().Save(u6)
+		require.Nil(t, err)
+
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: u4.Id}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
+
+		t1, err := ss.Team().SaveMember(m1, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m2, -1)
+		require.Nil(t, err)
+		t3, err := ss.Team().SaveMember(m3, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m4, -1)
+		require.Nil(t, err)
+		t5, err := ss.Team().SaveMember(m5, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m6, -1)
+		require.Nil(t, err)
+
+		// Gets users ordered by UserName
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+		assert.Len(t, ms, 3)
+		require.ElementsMatch(t, ms, [3]*model.TeamMember{t1, t3, t5})
+	})
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
@@ -911,11 +1014,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 	require.Nil(t, err)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -953,9 +1052,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, err)
 
 	ms, err = ss.Team().GetTeamsForUser(uid)
@@ -970,6 +1067,1446 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Empty(t, ms)
 }
 
+func testTeamSaveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("not valid team member", func(t *testing.T) {
+		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
+		_, err = ss.Team().SaveMember(member, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("too many members", func(t *testing.T) {
+		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
+		_, err = ss.Team().SaveMember(member, 0)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members because previous existing members", func(t *testing.T) {
+		teamID := model.NewId()
+
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		_, err = ss.Team().SaveMember(m1, 1)
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		_, err = ss.Team().SaveMember(m2, 1)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		teamID1 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		_, err = ss.Team().SaveMember(m1, -1)
+		require.Nil(t, err)
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		_, err = ss.Team().SaveMember(m2, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				member, err = ss.Team().SaveMember(member, -1)
+				require.Nil(t, err)
+				defer ss.Team().RemoveMember(team.Id, u1.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				member, err := ss.Team().SaveMember(member, -1)
+				require.Nil(t, err)
+				defer ss.Team().RemoveMember(team.Id, u1.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("any not valid team member", func(t *testing.T) {
+		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("too many members in one team", func(t *testing.T) {
+		teamID := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members in one team because previous existing members", func(t *testing.T) {
+		teamID := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 3)
+		require.Nil(t, err)
+
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("too many members, but in different teams", func(t *testing.T) {
+		teamID1 := model.NewId()
+		teamID2 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamID1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamID2, UserId: u1.Id}
+		m5 := &model.TeamMember{TeamId: teamID2, UserId: u2.Id}
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		teamID1 := model.NewId()
+		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert members correctly (in team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				otherMember := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u2.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				var members []*model.TeamMember
+				members, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+				defer ss.Team().RemoveMember(team.Id, u1.Id)
+				defer ss.Team().RemoveMember(team.Id, u2.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				otherMember := &model.TeamMember{
+					TeamId:        team.Id,
+					UserId:        u2.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+				}
+				members, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+				defer ss.Team().RemoveMember(team.Id, u1.Id)
+				defer ss.Team().RemoveMember(team.Id, u2.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testTeamUpdateMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("not valid team member", func(t *testing.T) {
+		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
+		_, err = ss.Team().UpdateMember(member)
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
+		member, err = ss.Team().SaveMember(member, -1)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+
+				member, err = ss.Team().UpdateMember(member)
+				require.Nil(t, err)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
+		member, err := ss.Team().SaveMember(member, -1)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+
+				member, err = ss.Team().UpdateMember(member)
+				require.Nil(t, err)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+
+	t.Run("any not valid team member", func(t *testing.T) {
+		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
+		_, err = ss.Team().UpdateMultipleMembers([]*model.TeamMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+	})
+
+	t.Run("update members correctly (in team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
+		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
+		var members []*model.TeamMember
+		members, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+		require.Nil(t, err)
+		require.Len(t, members, 2)
+		member = members[0]
+		otherMember = members[1]
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      "team_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       "team_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       "team_user team_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test team_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test team_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test team_user team_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+
+				var members []*model.TeamMember
+				members, err = ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
+		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
+		members, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+		require.Nil(t, err)
+		require.Len(t, members, 2)
+		member = members[0]
+		otherMember = members[1]
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "team user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "team user explicit",
+				ExplicitRoles:      "team_user",
+				ExpectedRoles:      ts.DefaultTeamUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "team guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team guest explicit",
+				ExplicitRoles:       "team_guest",
+				ExpectedRoles:       ts.DefaultTeamGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "team admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "team admin explicit",
+				ExplicitRoles:       "team_user team_admin",
+				ExpectedRoles:       ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "team user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team user explicit and explicit custom role",
+				ExplicitRoles:         "team_user test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "team guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team guest explicit and explicit custom role",
+				ExplicitRoles:         "team_guest test",
+				ExpectedRoles:         "test " + ts.DefaultTeamGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "team admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team admin explicit and explicit custom role",
+				ExplicitRoles:         "team_user team_admin test",
+				ExpectedRoles:         "test " + ts.DefaultTeamUserRole + " " + ts.DefaultTeamAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "team member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+
+				members, err := ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testTeamRemoveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	teamID := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+	m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+	m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
+	m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
+	require.Nil(t, err)
+
+	t.Run("remove member from not existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMember("not-existing-team", u1.Id)
+		require.Nil(t, err)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 4)
+	})
+
+	t.Run("remove not existing member from an existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMember(teamID, model.NewId())
+		require.Nil(t, err)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 4)
+	})
+
+	t.Run("remove existing member from an existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMember(teamID, u1.Id)
+		require.Nil(t, err)
+		defer ss.Team().SaveMember(m1, -1)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 3)
+	})
+}
+
+func testTeamRemoveMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	teamID := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
+	m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
+	m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
+	m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
+	require.Nil(t, err)
+
+	t.Run("remove members from not existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMembers("not-existing-team", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.Nil(t, err)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 4)
+	})
+
+	t.Run("remove not existing members from an existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMembers(teamID, []string{model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 4)
+	})
+
+	t.Run("remove not existing and not existing members from an existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 2)
+	})
+	t.Run("remove existing members from an existing team", func(t *testing.T) {
+		err = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, u3.Id})
+		require.Nil(t, err)
+		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
+		var membersOtherTeam []*model.TeamMember
+		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, err)
+		require.Len(t, membersOtherTeam, 1)
+	})
+}
+
 func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 	teamId2 := model.NewId()
@@ -978,12 +2515,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 	require.Nil(t, err)
 
 	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
@@ -1010,9 +2542,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m5, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, err)
 
 	result, err := ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
@@ -1477,12 +3007,12 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		ExplicitRoles: "something_else",
 	}
 
-	tm1, err = ss.Team().SaveMember(tm1, -1)
+	memberships, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{tm1, tm2, tm3}, -1)
 	require.Nil(t, err)
-	tm2, err = ss.Team().SaveMember(tm2, -1)
-	require.Nil(t, err)
-	tm3, err = ss.Team().SaveMember(tm3, -1)
-	require.Nil(t, err)
+	require.Len(t, memberships, 3)
+	tm1 = memberships[0]
+	tm2 = memberships[1]
+	tm3 = memberships[2]
 
 	lastDoneTeamId := strings.Repeat("0", 26)
 	lastDoneUserId := strings.Repeat("0", 26)
@@ -1568,7 +3098,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{
 		TeamId:        model.NewId(),
 		UserId:        model.NewId(),
-		ExplicitRoles: "team_user team_admin team_post_all_public",
+		ExplicitRoles: "team_post_all_public team_user team_admin",
 	}
 	m2 := &model.TeamMember{
 		TeamId:        model.NewId(),
@@ -1586,13 +3116,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 		ExplicitRoles: "custom_only",
 	}
 
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m4, -1)
+	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
 	require.Nil(t, err)
 
 	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
@@ -1731,11 +3255,8 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
-	_, err = ss.Team().SaveMember(m2, -1)
+	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 	require.Nil(t, err)
 
 	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
