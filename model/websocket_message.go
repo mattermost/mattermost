@@ -57,7 +57,6 @@ const (
 	WEBSOCKET_EVENT_OPEN_DIALOG             = "open_dialog"
 	WEBSOCKET_EVENT_GUESTS_DEACTIVATED      = "guests_deactivated"
 	WEBSOCKET_EVENT_RECEIVED_GROUP          = "received_group"
-
 )
 
 type WebSocketMessage interface {
