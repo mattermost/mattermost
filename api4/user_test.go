@@ -1598,8 +1598,8 @@ func TestPatchUserUnicode(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	patch := &model.UserPatch{}
-	patch.Nickname = model.NewString("\u206cEnder\u206d Wiggin\u206a")
-	patch.FirstName = model.NewString("\ufffaAndrew\ufffb")
+	patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
+	patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
 	patch.LastName = model.NewString("\u2028Wiggin\u2029")
 
 	ruser, resp := th.Client.PatchUser(user.Id, patch)
