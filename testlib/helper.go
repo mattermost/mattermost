@@ -168,8 +168,16 @@ func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
 	if h.ClusterInterface == nil {
-		panic("MainHelper not initialized with sql supplier.")
+		panic("MainHelper not initialized with cluster interface.")
 	}
 
 	return h.ClusterInterface
+}
+
+func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
+	if h.SearchEngine == nil {
+		panic("MainHelper not initialized with search engine")
+	}
+
+	return h.SearchEngine
 }

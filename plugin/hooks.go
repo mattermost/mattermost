@@ -50,20 +50,28 @@ type Hooks interface {
 	// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin
 	// will be terminated. The plugin will not receive hooks until after OnActivate returns
 	// without error. OnConfigurationChange will be called once before OnActivate.
+	//
+	// Minimum server version: 5.2
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
 	// Plugins do not need to provide an implementation. Any given will be ignored.
+	//
+	// Minimum server version: 5.2
 	Implemented() ([]string, error)
 
 	// OnDeactivate is invoked when the plugin is deactivated. This is the plugin's last chance to
 	// use the API, and the plugin will be terminated shortly after this invocation. The plugin
 	// will stop receiving hooks just prior to this method being called.
+	//
+	// Minimum server version: 5.2
 	OnDeactivate() error
 
 	// OnConfigurationChange is invoked when configuration changes may have been made. Any
 	// returned error is logged, but does not stop the plugin. You must be prepared to handle
 	// a configuration failure gracefully. It is called once before OnActivate.
+	//
+	// Minimum server version: 5.2
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
@@ -71,10 +79,14 @@ type Hooks interface {
 	//
 	// The Mattermost-User-Id header will be present if (and only if) the request is by an
 	// authenticated user.
+	//
+	// Minimum server version: 5.2
 	ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
 
 	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
 	// API.
+	//
+	// Minimum server version: 5.2
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 
 	// UserHasBeenCreated is invoked after a user was created.
@@ -84,9 +96,13 @@ type Hooks interface {
 
 	// UserWillLogIn before the login of the user is returned. Returning a non empty string will reject the login event.
 	// If you don't need to reject the login event, see UserHasLoggedIn
+	//
+	// Minimum server version: 5.2
 	UserWillLogIn(c *Context, user *model.User) string
 
 	// UserHasLoggedIn is invoked after a user has logged in.
+	//
+	// Minimum server version: 5.2
 	UserHasLoggedIn(c *Context, user *model.User)
 
 	// MessageWillBePosted is invoked when a message is posted by a user before it is committed
@@ -101,6 +117,8 @@ type Hooks interface {
 	//
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
+	//
+	// Minimum server version: 5.2
 	MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 
 	// MessageWillBeUpdated is invoked when a message is updated by a user before it is committed
@@ -112,37 +130,53 @@ type Hooks interface {
 	//
 	// Note that this method will be called for posts updated by plugins, including the plugin that
 	// updated the post.
+	//
+	// Minimum server version: 5.2
 	MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 
 	// MessageHasBeenPosted is invoked after the message has been committed to the database.
 	// If you need to modify or reject the post, see MessageWillBePosted
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
+	//
+	// Minimum server version: 5.2
 	MessageHasBeenPosted(c *Context, post *model.Post)
 
 	// MessageHasBeenUpdated is invoked after a message is updated and has been updated in the database.
 	// If you need to modify or reject the post, see MessageWillBeUpdated
 	// Note that this method will be called for posts created by plugins, including the plugin that
 	// created the post.
+	//
+	// Minimum server version: 5.2
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 
 	// ChannelHasBeenCreated is invoked after the channel has been committed to the database.
+	//
+	// Minimum server version: 5.2
 	ChannelHasBeenCreated(c *Context, channel *model.Channel)
 
 	// UserHasJoinedChannel is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was invited to the channel by the actor.
+	//
+	// Minimum server version: 5.2
 	UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
 
 	// UserHasLeftChannel is invoked after the membership has been removed from the database.
 	// If actor is not nil, the user was removed from the channel by the actor.
+	//
+	// Minimum server version: 5.2
 	UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
 
 	// UserHasJoinedTeam is invoked after the membership has been committed to the database.
 	// If actor is not nil, the user was added to the team by the actor.
+	//
+	// Minimum server version: 5.2
 	UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 
 	// UserHasLeftTeam is invoked after the membership has been removed from the database.
 	// If actor is not nil, the user was removed from the team by the actor.
+	//
+	// Minimum server version: 5.2
 	UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 
 	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
@@ -154,5 +188,7 @@ type Hooks interface {
 	//
 	// Note that this method will be called for files uploaded by plugins, including the plugin that uploaded the post.
 	// FileInfo.Size will be automatically set properly if you modify the file.
+	//
+	// Minimum server version: 5.2
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
 }

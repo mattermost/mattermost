@@ -59,7 +59,7 @@ func (s SearchStore) indexUserFromID(userId string) {
 func (s SearchStore) indexUser(user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			go (func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				userTeams, err := s.Team().GetTeamsByUserId(user.Id)
 				if err != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
@@ -87,7 +87,21 @@ func (s SearchStore) indexUser(user *model.User) {
 					return
 				}
 				mlog.Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
-			})(engine)
+			})
 		}
+	}
+}
+
+// Runs an indexing function synchronously or asynchronously depending on the engine
+func runIndexFn(engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
+	if engine.IsIndexingSync() {
+		indexFn(engine)
+		if err := engine.RefreshIndexes(); err != nil {
+			mlog.Error("Encountered error refresh the indexes", mlog.Err(err))
+		}
+	} else {
+		go (func(engineCopy searchengine.SearchEngineInterface) {
+			indexFn(engineCopy)
+		})(engine)
 	}
 }
