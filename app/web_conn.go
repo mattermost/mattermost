@@ -146,7 +146,7 @@ func (wc *WebConn) readPump() {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 				mlog.Debug("websocket.read: client side closed socket", mlog.String("user_id", wc.UserId))
 			} else {
-				// mlog.Debug("websocket.read: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+				mlog.Debug("websocket.read: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 			}
 			return
 		}
@@ -226,7 +226,7 @@ func (wc *WebConn) writePump() {
 					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 						mlog.Debug("websocket.send: client side closed socket", mlog.String("user_id", wc.UserId))
 					} else {
-						// mlog.Debug("websocket.send: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+						mlog.Debug("websocket.send: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 					}
 					return
 				}
