@@ -25,7 +25,7 @@ func (me *RenameProvider) GetTrigger() string {
 }
 
 func (me *RenameProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
-	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.desc"))
+	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
 	renameAutocompleteData.AddTextArgument("", T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
 		Trigger:          CMD_RENAME,

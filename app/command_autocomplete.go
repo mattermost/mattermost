@@ -4,8 +4,10 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -60,7 +62,13 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 					parsed = changedParsed
 					toBeParsed = changedToBeParsed
 				} else if arg.Type == model.AutocompleteArgTypeDynamicList {
-					// TODO https://mattermost.atlassian.net/browse/MM-21491
+					found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.parseDynamicListArgument(arg, parsed, toBeParsed)
+					if found {
+						suggestions = append(suggestions, dynamicListsuggestions...)
+						break
+					}
+					parsed = changedParsed
+					toBeParsed = changedToBeParsed
 				}
 			} else { // Named argument
 				//TODO https://mattermost.atlassian.net/browse/MM-23194
@@ -99,21 +107,38 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 }
 
 func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
-	in := strings.TrimPrefix(toBeParsed, " ")
 	a := arg.Data.(*model.AutocompleteStaticListArg)
+	return parseListItems(a.PossibleArguments, arg.HelpText, parsed, toBeParsed)
+}
+
+func (a *App) parseDynamicListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
+	resp, err := http.Get(dynamicArg.FetchURL)
+	if err != nil {
+		a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", dynamicArg.FetchURL), mlog.Err(err))
+		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{} //TODO test!
+	}
+	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
+
+	return parseListItems(listItems, arg.HelpText, parsed, toBeParsed)
+}
+
+func parseListItems(items []model.AutocompleteStaticListItem, helpText, parsed, toBeParsed string) (bool, string, string, []model.AutocompleteSuggestion) {
+	in := strings.TrimPrefix(toBeParsed, " ")
+	suggestions := []model.AutocompleteSuggestion{}
 	maxPrefix := ""
-	for _, arg := range a.PossibleArguments {
+	for _, arg := range items {
 		if strings.HasPrefix(in, arg.Item+" ") && len(maxPrefix) < len(arg.Item)+1 {
 			maxPrefix = arg.Item + " "
 		}
 	}
-	if maxPrefix != "" { //typing StaticArgument finished
+	if maxPrefix != "" { //typing of an argument finished
 		return false, parsed + in[:len(maxPrefix)], in[len(maxPrefix):], []model.AutocompleteSuggestion{}
 	}
 	// user has not finished typing static argument
-	for _, arg := range a.PossibleArguments {
+	for _, arg := range items {
 		if strings.HasPrefix(arg.Item, in) {
-			suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: parsed + arg.Item, Hint: arg.Hint, Description: a.HelpText})
+			suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: parsed + arg.Item, Hint: arg.Hint, Description: helpText})
 		}
 	}
 	return true, parsed + toBeParsed, "", suggestions

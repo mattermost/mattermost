@@ -11,7 +11,7 @@ import (
 )
 
 func TestParseStaticListArgument(t *testing.T) {
-	fixedArgs := model.NewAutocompleteStaticListArg("help text for the argument")
+	fixedArgs := model.NewAutocompleteStaticListArg()
 	fixedArgs.AddArgument("on", "help")
 
 	argument := &model.AutocompleteArg{
@@ -22,11 +22,11 @@ func TestParseStaticListArgument(t *testing.T) {
 	}
 	found, _, _, suggestions := parseStaticListArgument(argument, "", "") //TODO understand this!
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, parsed, toBeParsed, _ := parseStaticListArgument(argument, "", "on ")
 	assert.False(t, found)
@@ -42,11 +42,11 @@ func TestParseStaticListArgument(t *testing.T) {
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "o")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}, {Suggestion: "off", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "some_help"}, {Suggestion: "off", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "of")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "off", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "off", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "o some")
 	assert.True(t, found)
@@ -61,11 +61,11 @@ func TestParseStaticListArgument(t *testing.T) {
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "on")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "help text for the argument"}, {Suggestion: "onon", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "on", Hint: "help", Description: "some_help"}, {Suggestion: "onon", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, _, _, suggestions = parseStaticListArgument(argument, "", "ono")
 	assert.True(t, found)
-	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "onon", Hint: "help", Description: "help text for the argument"}}, suggestions)
+	assert.Equal(t, []model.AutocompleteSuggestion{{Suggestion: "onon", Hint: "help", Description: "some_help"}}, suggestions)
 
 	found, parsed, toBeParsed, _ = parseStaticListArgument(argument, "", "on some")
 	assert.False(t, found)
@@ -171,10 +171,10 @@ func TestSuggestions(t *testing.T) {
 	assert.Len(t, suggestions, 2)
 	assert.Equal(t, "jira settings notifications on", suggestions[0].Suggestion)
 	assert.Equal(t, "Turn notifications on", suggestions[0].Hint)
-	assert.Equal(t, "Notification settings", suggestions[0].Description)
+	assert.Equal(t, "Turn notifications on or off", suggestions[0].Description)
 	assert.Equal(t, "jira settings notifications off", suggestions[1].Suggestion)
 	assert.Equal(t, "Turn notifications off", suggestions[1].Hint)
-	assert.Equal(t, "Notification settings", suggestions[1].Description)
+	assert.Equal(t, "Turn notifications on or off", suggestions[1].Description)
 
 	suggestions = th.App.GetSuggestions([]*model.AutocompleteData{jira}, "jira ", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 10)

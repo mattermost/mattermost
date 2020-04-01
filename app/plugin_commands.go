@@ -4,11 +4,13 @@
 package app
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 )
 
 type PluginCommand struct {
@@ -25,7 +27,20 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 	}
 
 	if command.AutocompleteData == nil {
-		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteDesc)
+		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
+	} else {
+		siteURL := a.GetSiteURL()
+		if siteURL == "" {
+			siteURL = fmt.Sprintf("http://localhost%v", *a.Srv().Config().ServiceSettings.ListenAddress)
+		}
+		baseURL, err := url.Parse(siteURL + "/plugins/" + pluginId)
+		if err != nil {
+			return errors.Wrapf(err, "Can't parse url %s", siteURL+"/plugins/"+pluginId)
+		}
+		err = command.AutocompleteData.UpdateRelativeURLsForPluginCommands(baseURL)
+		if err != nil {
+			return errors.Wrap(err, "Can't update relative urls for plugin commands")
+		}
 	}
 
 	command = &model.Command{
