@@ -332,6 +332,10 @@ func (u *User) PreSave() {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
 
@@ -365,6 +369,11 @@ func (u *User) PreUpdate() {
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
+
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
 
 	if u.AuthData != nil && *u.AuthData == "" {
 		u.AuthData = nil
