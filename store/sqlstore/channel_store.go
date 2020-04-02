@@ -334,6 +334,30 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
+type sidebarCategoryType string
+
+const (
+	SidebarCategoryChannels       sidebarCategoryType = "C"
+	SidebarCategoryDirectMessages sidebarCategoryType = "D"
+	SidebarCategoryFavorites      sidebarCategoryType = "F"
+)
+
+type sidebarCategory struct {
+	Id          string
+	UserId      string
+	TeamId      string
+	Order       int64
+	Type        sidebarCategoryType
+	DisplayName string
+}
+
+type sidebarChannel struct {
+	ChannelId  string
+	UserId     string
+	CategoryId string
+	Order      int64
+}
+
 var allChannelMembersForUserCache = lru.New(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
 var allChannelMembersNotifyPropsForChannelCache = lru.New(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelByNameCache = lru.New(model.CHANNEL_CACHE_SIZE)
@@ -383,6 +407,10 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.SetUniqueTogether("Name", "TeamId")
 		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
+
+		db.AddTableWithName(sidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
+		db.AddTableWithName(sidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId")
+
 	}
 
 	return s
@@ -414,6 +442,13 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+
+	// s.CreateUniqueCompositeIndexIfNotExists("idx_sidebar_categories", "SidebarCategories", []string{"UserId", "TeamId", "Order"})
+	// s.CreateUniqueCompositeIndexIfNotExists("idx_sidebar_channels", "SidebarChannels", []string{"CategoryId", "Order"})
+}
+
+func (s SqlChannelStore) MigrateFavoriteChannels() error {
+
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version
