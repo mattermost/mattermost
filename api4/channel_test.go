@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
@@ -3146,7 +3147,7 @@ func TestGetChannelModerations(t *testing.T) {
 
 		mockStore := mocks.Store{}
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("Get", scheme.Id).Return(scheme, nil)
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Team").Return(th.App.Srv().Store.Team())
 		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
