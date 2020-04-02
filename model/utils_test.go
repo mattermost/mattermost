@@ -756,6 +756,7 @@ func TestSanitizeUnicode(t *testing.T) {
 		{name: "empty string", arg: "", want: ""},
 		{name: "ascii only", arg: "Hello There", want: "Hello There"},
 		{name: "allowed unicode", arg: "Ādam likes Iñtërnâtiônàližætiøn", want: "Ādam likes Iñtërnâtiônàližætiøn"},
+		{name: "allowed unicode escaped", arg: "\u00eaI like hats\u00e2", want: "êI like hatsâ"},
 		{name: "blacklist char, don't reverse string", arg: "\u202E2resu", want: "2resu"},
 		{name: "blacklist chars, scoping musical notation", arg: musicArg, want: musicWant},
 	}
