@@ -420,6 +420,9 @@ workflows:
       - check-app-layers:
           requires:
             - setup
+      - build-api-spec:
+          requires:
+            - setup
       - build:
           requires:
             - check-app-layers
