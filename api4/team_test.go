@@ -2439,7 +2439,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 
-	//Check if the email was send to the rigth email address
+	//Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mailservice.JSONMessageHeaderInbucket
 		err := mailservice.RetryInbucket(5, func() error {
@@ -2562,7 +2562,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 
-	//Check if the email was send to the rigth email address
+	//Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mailservice.JSONMessageHeaderInbucket
 		err := mailservice.RetryInbucket(5, func() error {
