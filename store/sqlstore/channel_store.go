@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -383,6 +384,11 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.SetUniqueTogether("Name", "TeamId")
 		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
+
+		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
+		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
+		tableSidebarCategories.SetUniqueTogether("UserId", "TeamId", "SortOrder", "Type")
+		tableSidebarChannels.SetUniqueTogether("CategoryId", "SortOrder")
 	}
 
 	return s
@@ -414,6 +420,271 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+}
+
+// MigrateSidebarCategories creates 3 initial categories for all existing user/team pairs
+// **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
+func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, *model.AppError) {
+	var userTeamMap []struct {
+		UserId string
+		TeamId string
+		Locale *string
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	if _, err := transaction.Select(&userTeamMap, "SELECT TeamId, UserId, Users.Locale FROM TeamMembers LEFT JOIN Users ON Users.Id=UserId WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.migrate_categories.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if len(userTeamMap) == 0 {
+		// No more team members in query result means that the migration has finished.
+		return nil, nil
+	}
+
+	for _, u := range userTeamMap {
+		locale := "en"
+		if u.Locale != nil {
+			locale = *u.Locale
+		}
+		T := utils.GetUserTranslations(locale)
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.favorites"),
+			Id:          model.NewId(),
+			UserId:      u.UserId,
+			TeamId:      u.TeamId,
+			Sorting:     model.SidebarCategorySortManual,
+			SortOrder:   model.DefaultSidebarSortOrderFavorites,
+			Type:        model.SidebarCategoryFavorites,
+		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.channels"),
+			Id:          model.NewId(),
+			UserId:      u.UserId,
+			TeamId:      u.TeamId,
+			Sorting:     model.SidebarCategorySortManual,
+			SortOrder:   model.DefaultSidebarSortOrderChannels,
+			Type:        model.SidebarCategoryChannels,
+		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.dm"),
+			Id:          model.NewId(),
+			UserId:      u.UserId,
+			TeamId:      u.TeamId,
+			Sorting:     model.SidebarCategorySortRecent,
+			SortOrder:   model.DefaultSidebarSortOrderDMs,
+			Type:        model.SidebarCategoryDirectMessages,
+		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	data := make(map[string]interface{})
+	data["TeamId"] = userTeamMap[len(userTeamMap)-1].TeamId
+	data["UserId"] = userTeamMap[len(userTeamMap)-1].UserId
+
+	return data, nil
+}
+
+type userMembership struct {
+	UserId     string
+	ChannelId  string
+	CategoryId string
+}
+
+func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transaction, runningOrder *int64, sql string, args ...interface{}) ([]userMembership, *model.AppError) {
+	var memberships []userMembership
+	if _, err := transaction.Select(&memberships, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, favorite := range memberships {
+		sql, args, _ := s.getQueryBuilder().
+			Insert("SidebarChannels").
+			Columns("ChannelId", "UserId", "CategoryId", "SortOrder").
+			Values(favorite.ChannelId, favorite.UserId, favorite.CategoryId, *runningOrder).ToSql()
+
+		if _, err := transaction.Exec(sql, args...); err != nil && !IsUniqueConstraintError(err, []string{"UserId", "PRIMARY"}) {
+			return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		*runningOrder = *runningOrder + model.MinimalSidebarSortDistance
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return memberships, nil
+}
+
+// MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
+// **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
+func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateFavoritesToSidebarChannels", "store.sql_channel.migrate_favorites.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	sb := s.
+		getQueryBuilder().
+		Select("Preferences.UserId", "Preferences.Name AS ChannelId", "SidebarCategories.Id AS CategoryId").
+		From("Preferences").
+		Where(sq.And{
+			sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL},
+			sq.NotEq{"Preferences.Value": "false"},
+			sq.NotEq{"SidebarCategories.Id": nil},
+			sq.Gt{"Preferences.UserId": lastUserId},
+		}).
+		LeftJoin("Channels ON (Channels.Id=Preferences.Name)").
+		LeftJoin("SidebarCategories ON (SidebarCategories.UserId=Preferences.UserId AND SidebarCategories.Type='F' AND (SidebarCategories.TeamId=Channels.TeamId OR Channels.TeamId=''))").
+		OrderBy("Preferences.UserId", "Channels.Name DESC").
+		Limit(100)
+
+	sql, args, err := sb.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateFavoritesToSidebarChannels", "store.sql_channel.migrate_favorites.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	userFavorites, appErr := s.migrateMembershipToSidebar(transaction, &runningOrder, sql, args...)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(userFavorites) == 0 {
+		return nil, nil
+	}
+
+	data := make(map[string]interface{})
+	data["UserId"] = userFavorites[len(userFavorites)-1].UserId
+	data["SortOrder"] = runningOrder
+	return data, nil
+
+}
+
+// MigrateChannelsToSidebarChannels populates the SidebarChannels table by analyzing ChannelMembers table
+// **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
+func (s SqlChannelStore) MigrateChannelsToSidebarChannels(lastChannelId, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateChannelsToSidebarChannels", "store.sql_channel.migrate_channels_sidebar.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	sb := s.
+		getQueryBuilder().
+		Select("Channels.Id AS ChannelId", "ChannelMembers.UserId", "SidebarCategories.Id AS CategoryId").
+		From("Channels").
+		Where(sq.And{
+			sq.Or{
+				sq.Eq{"Channels.Type": model.CHANNEL_OPEN},
+				sq.Eq{"Channels.Type": model.CHANNEL_PRIVATE},
+			},
+			sq.NotEq{"SidebarCategories.Id": nil},
+			sq.Gt{"Channels.Id": lastChannelId, "ChannelMembers.UserId": lastUserId},
+		}).
+		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Channels.Id").
+		LeftJoin("SidebarCategories ON (SidebarCategories.UserId=ChannelMembers.UserId AND SidebarCategories.Type='C' AND SidebarCategories.TeamId=Channels.TeamId)").
+		OrderBy("Channels.Id", "ChannelMembers.UserId", "Channels.Name DESC").
+		Limit(100)
+
+	sql, args, err := sb.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateChannelsToSidebarChannels", "store.sql_channel.migrate_channels_sidebar.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	userMemberships, appErr := s.migrateMembershipToSidebar(transaction, &runningOrder, sql, args...)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(userMemberships) == 0 {
+		return nil, nil
+	}
+	data := make(map[string]interface{})
+	data["UserId"] = userMemberships[len(userMemberships)-1].UserId
+	data["ChannelId"] = userMemberships[len(userMemberships)-1].ChannelId
+	data["SortOrder"] = runningOrder
+	return data, nil
+}
+
+// MigrateDirectGroupMessagesToSidebarChannels populates the SidebarChannels table by analyzing Preferences table for existing show/hide
+// on DMs and GMs and matching them with ChannelMembers table
+// **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
+func (s SqlChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateDirectGroupMessagesToSidebarChannels", "store.sql_channel.migrate_dms.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	hiddenFilter := sq.Or{
+		sq.NotEq{"Preferences.Value": "false"},
+		sq.Eq{"Preferences.Value": nil},
+	}
+	directMessageFilter := sq.And{
+		sq.Eq{"Channels.Type": model.CHANNEL_DIRECT},
+		sq.Or{
+			sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW},
+			sq.Eq{"Preferences.Category": nil},
+		},
+		hiddenFilter,
+	}
+	groupMessageFilter := sq.And{
+		sq.Eq{"Channels.Type": model.CHANNEL_GROUP},
+		sq.Or{
+			sq.Eq{"Preferences.Category": model.PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW},
+			sq.Eq{"Preferences.Category": nil},
+		},
+		hiddenFilter,
+	}
+	sb := s.
+		getQueryBuilder().
+		Select("Channels.Id AS ChannelId", "ChannelMembers.UserId", "SidebarCategories.Id AS CategoryId").
+		From("Channels").
+		Where(sq.And{
+			sq.Or{
+				directMessageFilter,
+				groupMessageFilter,
+			},
+			sq.NotEq{"SidebarCategories.Id": nil},
+			sq.Gt{"Channels.Id": lastChannelId, "ChannelMembers.UserId": lastUserId},
+		}).
+		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Channels.Id").
+		LeftJoin("Preferences ON Channels.Id=Preferences.Name AND ChannelMembers.UserId=Preferences.UserId").
+		LeftJoin("TeamMembers ON TeamMembers.UserId=ChannelMembers.UserId").
+		LeftJoin("SidebarCategories ON (SidebarCategories.UserId=ChannelMembers.UserId AND SidebarCategories.Type='D' AND SidebarCategories.TeamId=TeamMembers.TeamId)").
+		OrderBy("Channels.Id", "ChannelMembers.UserId", "Channels.Name DESC").
+		Limit(100)
+
+	sql, args, err := sb.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.MigrateDirectGroupMessagesToSidebarChannels", "store.sql_channel.migrate_dms.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	userMemberships, appErr := s.migrateMembershipToSidebar(transaction, &runningOrder, sql, args...)
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(userMemberships) == 0 {
+		return nil, nil
+	}
+	data := make(map[string]interface{})
+	data["UserId"] = userMemberships[len(userMemberships)-1].UserId
+	data["ChannelId"] = userMemberships[len(userMemberships)-1].ChannelId
+	data["SortOrder"] = runningOrder
+	return data, nil
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version
@@ -1864,6 +2135,21 @@ func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) *mode
 	if err != nil {
 		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 	}
+
+	// cleanup sidebarchannels table if the user is no longer a member of that channel
+	sql, args, err = s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"UserId": userIds},
+		}).ToSql()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s.GetMaster().Exec(sql, args...)
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
 	return nil
 }
 
@@ -3131,4 +3417,301 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
 	}
 
 	return count, nil
+}
+
+type sidebarCategoryForJoin struct {
+	model.SidebarCategory
+	ChannelId *string
+}
+
+func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	sql, args, _ := s.getQueryBuilder().
+		Select("MAX(SortOrder)").
+		From("SidebarCategories").
+		GroupBy("SortOrder").
+		Where(sq.And{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"UserId": userId},
+		}).ToSql()
+	maxOrder, err := transaction.SelectInt(sql, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	categoryId := model.NewId()
+	category := &model.SidebarCategory{
+		DisplayName: newCategory.DisplayName,
+		Id:          categoryId,
+		UserId:      userId,
+		TeamId:      teamId,
+		Sorting:     model.SidebarCategorySortManual,
+		SortOrder:   maxOrder + model.MinimalSidebarSortDistance,
+		Type:        model.SidebarCategoryCustom,
+	}
+	if err = transaction.Insert(category); err != nil {
+		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var channels []interface{}
+	runningOrder := 0
+	for _, channelID := range newCategory.Channels {
+		channels = append(channels, &model.SidebarChannel{
+			ChannelId:  channelID,
+			CategoryId: categoryId,
+			SortOrder:  int64(runningOrder),
+			UserId:     userId,
+		})
+		runningOrder += model.MinimalSidebarSortDistance
+	}
+	if err = transaction.Insert(channels...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return &model.SidebarCategoryWithChannels{
+		SidebarCategory: *category,
+		Channels:        newCategory.Channels,
+	}, nil
+}
+
+func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	var categories []*sidebarCategoryForJoin
+	sql, args, _ := s.getQueryBuilder().
+		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
+		From("SidebarCategories").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
+		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
+		OrderBy("SidebarChannels.SortOrder ASC").ToSql()
+	if _, err := s.GetReplica().Select(&categories, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+	result := &model.SidebarCategoryWithChannels{
+		SidebarCategory: categories[0].SidebarCategory,
+		Channels:        make([]string, 0),
+	}
+	for _, category := range categories {
+		if category.ChannelId != nil {
+			result.Channels = append(result.Channels, *category.ChannelId)
+		}
+	}
+	return result, nil
+
+}
+
+func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	oc := model.OrderedSidebarCategories{
+		Categories: make(model.SidebarCategoriesWithChannels, 0),
+		Order:      make([]string, 0),
+	}
+
+	var categories []*sidebarCategoryForJoin
+	sql, args, _ := s.getQueryBuilder().
+		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
+		From("SidebarCategories").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=Id").
+		Where(sq.And{
+			sq.Eq{"SidebarCategories.UserId": userId},
+			sq.Eq{"SidebarCategories.TeamId": teamId},
+		}).
+		OrderBy("SidebarCategories.SortOrder ASC").ToSql()
+
+	if _, err := s.GetReplica().Select(&categories, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategories", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+	for _, category := range categories {
+		var prevCategory *model.SidebarCategoryWithChannels
+		for _, existing := range oc.Categories {
+			if existing.Id == category.Id {
+				prevCategory = existing
+				break
+			}
+		}
+		if prevCategory == nil {
+			prevCategory = &model.SidebarCategoryWithChannels{
+				SidebarCategory: category.SidebarCategory,
+				Channels:        make([]string, 0),
+			}
+			oc.Categories = append(oc.Categories, prevCategory)
+			oc.Order = append(oc.Order, category.Id)
+			if category.ChannelId != nil {
+				prevCategory.Channels = append(prevCategory.Channels, *category.ChannelId)
+			}
+		}
+	}
+	return &oc, nil
+}
+
+func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
+	var ids []string
+
+	sql, args, _ := s.getQueryBuilder().
+		Select("Id").
+		From("SidebarCategories").
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"TeamId": teamId},
+		}).
+		OrderBy("SidebarCategories.SortOrder ASC").ToSql()
+
+	if _, err := s.GetReplica().Select(&ids, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+	return ids, nil
+}
+
+func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+	existingOrder, err := s.GetSidebarCategoryOrder(userId, teamId)
+	if err != nil {
+		return err
+	}
+	if len(existingOrder) != len(categoryOrder) {
+		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories different size than in DB", http.StatusInternalServerError)
+	}
+	var newOrder []interface{}
+	runningOrder := 0
+	for _, categoryId := range categoryOrder {
+		newOrder = append(newOrder, &model.SidebarCategory{
+			Id:        categoryId,
+			SortOrder: int64(runningOrder),
+		})
+		runningOrder += model.MinimalSidebarSortDistance
+	}
+	if _, err := s.GetMaster().UpdateColumns(func(col *gorp.ColumnMap) bool {
+		return col.ColumnName == "SortOrder"
+	}, newOrder...); err != nil {
+		return model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+	for _, categoryToUpdate := range categories {
+		var category *model.SidebarCategory
+		if err = transaction.SelectOne(&category, "SELECT * FROM SidebarCategories WHERE Id = :Id", map[string]interface{}{"Id": categoryToUpdate.Id}); err != nil {
+			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		category.DisplayName = categoryToUpdate.DisplayName
+		if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
+			return col.ColumnName == "DisplayName" || col.ColumnName == "Sorting"
+		}, category); err != nil {
+			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// clean previous favorites
+		sql, args, _ := s.getQueryBuilder().Delete("SidebarChannels").Where(sq.Eq{"ChannelId": categoryToUpdate.Channels}).ToSql()
+
+		if _, err = transaction.Exec(sql, args...); err != nil {
+			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if category.Type == model.SidebarCategoryFavorites {
+			// clean previous preference favorites (to support bi-directional sync)
+			sql, args, _ = s.getQueryBuilder().Delete("Preferences").Where(
+				sq.Eq{
+					"ChannelId":            categoryToUpdate.Channels,
+					"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				},
+			).ToSql()
+
+			if _, err = transaction.Exec(sql, args...); err != nil {
+				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		var channels []interface{}
+		var preferences []interface{}
+		runningOrder := 0
+		for _, channelID := range categoryToUpdate.Channels {
+			channels = append(channels, &model.SidebarChannel{
+				ChannelId:  channelID,
+				CategoryId: category.Id,
+				SortOrder:  int64(runningOrder),
+				UserId:     userId,
+			})
+			preferences = append(preferences, &model.Preference{
+				Name:     channelID,
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Value:    "true",
+			})
+			runningOrder += model.MinimalSidebarSortDistance
+		}
+
+		if err = transaction.Insert(channels...); err != nil {
+			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+
+		}
+
+		if category.Type == model.SidebarCategoryFavorites {
+			if err = transaction.Insert(preferences...); err != nil {
+				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return categories, nil
+}
+
+// UpdateSidebarChannelByPreference is called when the Preference table is being updated to keep SidebarCategories in sync
+// At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
+func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelsByPreferences", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+	for _, preference := range *preferences {
+		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+			continue
+		}
+		params := map[string]interface{}{
+			"UserId":       preference.UserId,
+			"ChannelId":    preference.Name,
+			"CategoryType": model.SidebarCategoryFavorites,
+		}
+		// if new preference is false - remove the channel from the appropriate sidebar category
+		if preference.Value == "false" {
+			if _, err := transaction.Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId", params); err != nil {
+				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			// otherwise - insert new channel into the apropriate category. ignore duplicate error
+			if _, err := transaction.Exec("INSERT INTO SidebarChannels (ChannelId, UserId, CategoryId, SortOrder) SELECT Id AS CategoryId, :UserId AS UserId, :ChannelId AS ChannelId, MAX(SidebarChannels.SortOrder)+10 FROM SidebarCategories INNER JOIN SidebarChannels ON SidebarChannels.CategoryId = SidebarCategories.Id WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId GROUP BY SidebarChannels.CategoryId, SidebarCategories.Id", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+	// if channel is being moved, remove it from the categories, since it's possible that there's no matching category in the new team
+	if _, err := s.GetMaster().Exec("DELETE FROM SidebarChannels WHERE ChannelId=:ChannelId", map[string]interface{}{"ChannelId": channel.Id}); err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelCategoryOnMove", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
