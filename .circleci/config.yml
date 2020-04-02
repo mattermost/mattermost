@@ -111,7 +111,7 @@ jobs:
 
   build-api-spec:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: circleci/node:lts
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
