@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 )
 
 func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
@@ -18,12 +19,12 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	esI := a.Elasticsearch()
-	if esI == nil {
+	seI := a.SearchEngine().ElasticsearchEngine
+	if seI == nil {
 		err := model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
 	}
-	if err := esI.TestConfig(cfg); err != nil {
+	if err := seI.TestConfig(cfg); err != nil {
 		return err
 	}
 
@@ -31,15 +32,19 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 }
 
 func (a *App) PurgeElasticsearchIndexes() *model.AppError {
-	esI := a.Elasticsearch()
-	if esI == nil {
+	seI := a.SearchEngine().ElasticsearchEngine
+	if seI == nil {
 		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 
-	if err := esI.PurgeIndexes(); err != nil {
+	if err := seI.PurgeIndexes(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (a *App) SetSearchEngine(se *searchengine.Broker) {
+	a.searchEngine = se
 }

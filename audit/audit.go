@@ -5,6 +5,7 @@ package audit
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/wiggin77/logr"
 	"github.com/wiggin77/logr/format"
@@ -46,8 +47,10 @@ func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
 func (a *Audit) MakeJSONFormatter() *format.JSON {
 	f := &format.JSON{
 		DisableTimestamp:  true,
+		DisableMsg:        true,
 		DisableStacktrace: true,
 		DisableLevel:      true,
+		ContextSorter:     sortAuditFields,
 	}
 	return f
 }
@@ -116,4 +119,57 @@ func (a *Audit) onLoggerError(err error) {
 	if a.OnError != nil {
 		a.OnError(err)
 	}
+}
+
+// sortAuditFields sorts the context fields of an audit record such that some fields
+// are prepended in order, some are appended in order, and the rest are sorted alphabetically.
+// This is done to make reading the records easier since common fields will appear in the same order.
+func sortAuditFields(fields logr.Fields) []format.ContextField {
+	prependKeys := []string{KeyEvent, KeyStatus, KeyUserID, KeySessionID, KeyIPAddress}
+	appendKeys := []string{KeyClusterID, KeyClient}
+
+	// sort alphabetically any fields not in the prepend/append lists.
+	keys := make([]string, 0, len(fields))
+	for k := range fields {
+		if !findIn(k, prependKeys, appendKeys) {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+
+	allKeys := make([]string, 0, len(fields))
+
+	// add any prepends that exist in fields
+	for _, k := range prependKeys {
+		if _, ok := fields[k]; ok {
+			allKeys = append(allKeys, k)
+		}
+	}
+
+	// sorted
+	allKeys = append(allKeys, keys...)
+
+	// add any appends that exist in fields
+	for _, k := range appendKeys {
+		if _, ok := fields[k]; ok {
+			allKeys = append(allKeys, k)
+		}
+	}
+
+	cfs := make([]format.ContextField, 0, len(allKeys))
+	for _, k := range allKeys {
+		cfs = append(cfs, format.ContextField{Key: k, Val: fields[k]})
+	}
+	return cfs
+}
+
+func findIn(s string, arrs ...[]string) bool {
+	for _, list := range arrs {
+		for _, key := range list {
+			if s == key {
+				return true
+			}
+		}
+	}
+	return false
 }

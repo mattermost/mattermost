@@ -1712,3 +1712,35 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 	}
 	return nil
 }
+
+func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	autocomplete := &model.UserAutocompleteInChannel{}
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := us.SearchInChannel(channelId, term, options)
+		uchan <- store.StoreResult{Data: users, Err: err}
+		close(uchan)
+	}()
+
+	nuchan := make(chan store.StoreResult, 1)
+	go func() {
+		users, err := us.SearchNotInChannel(teamId, channelId, term, options)
+		nuchan <- store.StoreResult{Data: users, Err: err}
+		close(nuchan)
+	}()
+
+	result := <-uchan
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	users := result.Data.([]*model.User)
+	autocomplete.InChannel = users
+
+	result = <-nuchan
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	users = result.Data.([]*model.User)
+	autocomplete.OutOfChannel = users
+	return autocomplete, nil
+}
