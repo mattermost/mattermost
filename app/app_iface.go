@@ -411,7 +411,6 @@ type AppIface interface {
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
-	EnsureDiagnosticId()
 	EnvironmentConfig() map[string]interface{}
 	// @openTracingParams args
 	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
@@ -595,7 +594,7 @@ type AppIface interface {
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
 	GetTeamIdFromQuery(query url.Values) (string, *model.AppError)
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
-	GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)

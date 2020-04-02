@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	USERNAME = "Username"
+)
+
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -42,6 +46,17 @@ type TeamMemberWithError struct {
 type EmailInviteWithError struct {
 	Email string    `json:"email"`
 	Error *AppError `json:"error"`
+}
+
+type TeamMembersGetOptions struct {
+	// Sort the team members. Accepts "Username", but defaults to "Id".
+	Sort string
+
+	// If true, exclude team members whose corresponding user is deleted.
+	ExcludeDeletedUsers bool
+
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *ViewUsersRestrictions
 }
 
 func (o *TeamMember) ToJson() string {
