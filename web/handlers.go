@@ -150,7 +150,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s cdn.rudderlabs.com",
+			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ cdn.rudderlabs.com%s",
 			h.cspShaDirective,
 		))
 	} else {
