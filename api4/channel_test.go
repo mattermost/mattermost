@@ -125,26 +125,6 @@ func TestCreateChannel(t *testing.T) {
 	require.Equal(t, *groupConstrainedChannel.GroupConstrained, *rchannel.GroupConstrained, "GroupConstrained flags do not match")
 }
 
-func TestCreateChannelUnicode(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-	team := th.BasicTeam
-
-	channel := &model.Channel{
-		Name:        "\u206cenglish\u206dchannel",
-		DisplayName: "The \u206cEnglish\u206d Channel",
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      team.Id}
-
-	rchannel, resp := Client.CreateChannel(channel)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-
-	require.Equal(t, "englishchannel", rchannel.Name, "bad unicode should be filtered from name")
-	require.Equal(t, "The English Channel", rchannel.DisplayName, "bad unicode should be filtered from display name")
-}
-
 func TestUpdateChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -247,30 +227,6 @@ func TestUpdateChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestUpdateChannelUnicode(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-	team := th.BasicTeam
-
-	channel := &model.Channel{
-		DisplayName: "Test API Name",
-		Name:        GenerateTestChannelName(),
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      team.Id,
-	}
-	channel, _ = Client.CreateChannel(channel)
-
-	channel.Name = "\u206ahistorychannel"
-	channel.DisplayName = "UFO's and \ufff9stuff\ufffb."
-
-	newChannel, resp := Client.UpdateChannel(channel)
-	CheckNoError(t, resp)
-
-	require.Equal(t, "historychannel", newChannel.Name, "bad unicode should be filtered from name")
-	require.Equal(t, "UFO's and stuff.", newChannel.DisplayName, "bad unicode should be filtered from display name")
-}
-
 func TestPatchChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -359,25 +315,62 @@ func TestPatchChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestPatchChannelUnicode(t *testing.T) {
+func TestCreateChannelUnicode(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+	team := th.BasicTeam
 
-	patch := &model.ChannelPatch{
-		Name:        new(string),
-		DisplayName: new(string),
-		Header:      new(string),
-		Purpose:     new(string),
-	}
-	*patch.Name = "\u206ecommunitychannel\u206f"
-	*patch.DisplayName = "Natalie Tran's \ufffcAwesome Channel"
+	t.Run("create channel unicode", func(t *testing.T) {
+		channel := &model.Channel{
+			Name:        "\u206cenglish\u206dchannel",
+			DisplayName: "The \u206cEnglish\u206d Channel",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id}
 
-	channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
-	CheckNoError(t, resp)
+		rchannel, resp := Client.CreateChannel(channel)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
 
-	require.Equal(t, "communitychannel", channel.Name, "bad unicode should be filtered from name")
-	require.Equal(t, "Natalie Tran's Awesome Channel", channel.DisplayName, "bad unicode should be filtered from display name")
+		require.Equal(t, "englishchannel", rchannel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "The English Channel", rchannel.DisplayName, "bad unicode should be filtered from display name")
+	})
+
+	t.Run("update channel unicode", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: "Test API Name",
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, _ = Client.CreateChannel(channel)
+
+		channel.Name = "\u206ahistorychannel"
+		channel.DisplayName = "UFO's and \ufff9stuff\ufffb."
+
+		newChannel, resp := Client.UpdateChannel(channel)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "historychannel", newChannel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "UFO's and stuff.", newChannel.DisplayName, "bad unicode should be filtered from display name")
+	})
+
+	t.Run("patch channel unicode", func(t *testing.T) {
+		patch := &model.ChannelPatch{
+			Name:        new(string),
+			DisplayName: new(string),
+			Header:      new(string),
+			Purpose:     new(string),
+		}
+		*patch.Name = "\u206ecommunitychannel\u206f"
+		*patch.DisplayName = "Natalie Tran's \ufffcAwesome Channel"
+
+		channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "communitychannel", channel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "Natalie Tran's Awesome Channel", channel.DisplayName, "bad unicode should be filtered from display name")
+	})
 }
 
 func TestCreateDirectChannel(t *testing.T) {
