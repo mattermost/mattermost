@@ -120,7 +120,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 	})
 }
 
-func TestCreateTeamInicode(t *testing.T) {
+func TestCreateTeamUnicode(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
