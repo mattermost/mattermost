@@ -1567,7 +1567,7 @@ func TestPatchUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestCreateUserUnicode(t *testing.T) {
+func TestUserUnicodeNames(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client

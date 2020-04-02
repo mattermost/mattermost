@@ -317,7 +317,7 @@ func TestPatchChannel(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestCreateChannelUnicode(t *testing.T) {
+func TestChannelUnicodeNames(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
