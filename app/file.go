@@ -69,8 +69,7 @@ const (
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
-	license := a.License()
-	return filesstore.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
+	return a.Srv().FileBackend()
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
@@ -331,7 +330,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	// Copy and save the updated post
 	newPost := &model.Post{}
-	*newPost = *post
+	newPost = post.Clone()
 
 	newPost.Filenames = []string{}
 	newPost.FileIds = fileIds
@@ -1095,6 +1094,10 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return a.Srv().Store.FileInfo().Get(fileId)
+}
+
+func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	return a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {

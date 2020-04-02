@@ -51,7 +51,7 @@ type SqlGroupStore struct {
 	SqlStore
 }
 
-func NewSqlGroupStore(sqlStore SqlStore) store.GroupStore {
+func newSqlGroupStore(sqlStore SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")
@@ -78,7 +78,7 @@ func NewSqlGroupStore(sqlStore SqlStore) store.GroupStore {
 	return s
 }
 
-func (s *SqlGroupStore) CreateIndexesIfNotExists() {
+func (s *SqlGroupStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
 	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
 	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")

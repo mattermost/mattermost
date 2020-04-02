@@ -103,21 +103,13 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			a.postJoinMessageForDefaultChannel(user, requestor, channel)
 		}
 
-		a.InvalidateCacheForChannelMembers(channel.Id)
+		a.invalidateCacheForChannelMembers(channel.Id)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
 
-	}
-
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err = a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
 	}
 
 	return err
@@ -189,14 +181,6 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
 
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	return rchannel, nil
 }
 
@@ -267,23 +251,6 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
-	if a.IsESIndexingEnabled() {
-		if sc.Type == model.CHANNEL_OPEN {
-			a.Srv().Go(func() {
-				if err := a.Elasticsearch().IndexChannel(sc); err != nil {
-					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
-				}
-			})
-		}
-		if addMember {
-			a.Srv().Go(func() {
-				if err := a.indexUserFromId(channel.CreatorId); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", channel.CreatorId), mlog.Err(err))
-				}
-			})
-		}
-	}
-
 	return sc, nil
 }
 
@@ -311,16 +278,6 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 						hooks.ChannelHasBeenCreated(pluginContext, channel)
 						return true
 					}, plugin.ChannelHasBeenCreatedId)
-				})
-			}
-
-			if a.IsESIndexingEnabled() {
-				a.Srv().Go(func() {
-					for _, id := range []string{userId, otherUserId} {
-						if indexUserErr := a.indexUserFromId(id); indexUserErr != nil {
-							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(indexUserErr))
-						}
-					}
 				})
 			}
 
@@ -431,16 +388,6 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			for _, id := range userIds {
-				if err := a.indexUserFromId(id); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
-				}
-			}
-		})
-	}
-
 	return channel, nil
 }
 
@@ -530,23 +477,43 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 		return nil, err
 	}
 
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
 
-	if a.IsESIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
-		a.Srv().Go(func() {
-			if err := a.Elasticsearch().IndexChannel(channel); err != nil {
-				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-			}
-		})
-	}
-
 	return channel, nil
 }
 
+// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
+func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+	scheme, err := a.CreateScheme(&model.Scheme{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	channel.SchemeId = &scheme.Id
+	if _, err := a.UpdateChannelScheme(channel); err != nil {
+		return nil, err
+	}
+	return scheme, nil
+}
+
+// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
+func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+		return nil, err
+	}
+	channel.SchemeId = nil
+	return a.UpdateChannelScheme(channel)
+}
+
+// UpdateChannelScheme saves the new SchemeId of the channel passed.
 func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
 	var oldChannel *model.Channel
 	var err *model.AppError
@@ -555,13 +522,7 @@ func (a *App) UpdateChannelScheme(channel *model.Channel) (*model.Channel, *mode
 	}
 
 	oldChannel.SchemeId = channel.SchemeId
-
-	newChannel, err := a.UpdateChannel(oldChannel)
-	if err != nil {
-		return nil, err
-	}
-
-	return newChannel, nil
+	return a.UpdateChannel(oldChannel)
 }
 
 func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
@@ -581,7 +542,7 @@ func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) 
 		return channel, err
 	}
 
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CONVERTED, channel.TeamId, "", "", nil)
 	messageWs.Add("channel_id", channel.Id)
@@ -621,7 +582,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		return nil, err
 	}
 	channel.DeleteAt = 0
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_RESTORED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -685,35 +646,235 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, nil
 }
 
-func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
+// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
+func (a *App) GetSchemeRolesForChannel(channelId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(channelId)
 	if err != nil {
-		return "", "", "", err
+		return
 	}
 
 	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			return "", "", "", err
+			return
 		}
-		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+
+		guestRoleName = scheme.DefaultChannelGuestRole
+		userRoleName = scheme.DefaultChannelUserRole
+		adminRoleName = scheme.DefaultChannelAdminRole
+
+		return
 	}
 
-	team, err := a.GetTeam(channel.TeamId)
+	return a.GetTeamSchemeChannelRoles(channel.TeamId)
+}
+
+// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
+func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
+	team, err := a.GetTeam(teamId)
 	if err != nil {
-		return "", "", "", err
+		return
 	}
 
 	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
-		scheme, err := a.GetScheme(*team.SchemeId)
+		var scheme *model.Scheme
+		scheme, err = a.GetScheme(*team.SchemeId)
 		if err != nil {
-			return "", "", "", err
+			return
 		}
-		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+
+		guestRoleName = scheme.DefaultChannelGuestRole
+		userRoleName = scheme.DefaultChannelUserRole
+		adminRoleName = scheme.DefaultChannelAdminRole
+	} else {
+		guestRoleName = model.CHANNEL_GUEST_ROLE_ID
+		userRoleName = model.CHANNEL_USER_ROLE_ID
+		adminRoleName = model.CHANNEL_ADMIN_ROLE_ID
 	}
 
-	return model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+	return
+}
+
+// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
+func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError) {
+	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	memberRole, err := a.GetRoleByName(memberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	var guestRole *model.Role
+	if len(guestRoleName) > 0 {
+		guestRole, err = a.GetRoleByName(guestRoleName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	if err != nil {
+		return nil, err
+	}
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	var higherScopedGuestRole *model.Role
+	if len(guestRoleName) > 0 {
+		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+}
+
+// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
+func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions(channel.Type)
+	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions(channel.Type)
+
+	for _, moderationPatch := range channelModerationsPatch {
+		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !higherScopedGuestPermissions[*moderationPatch.Name] {
+			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+		}
+	}
+
+	// Channel has no scheme so create one
+	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+		if _, err = a.CreateChannelScheme(channel); err != nil {
+			return nil, err
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
+		a.Publish(message)
+		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+	}
+
+	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	memberRole, err := a.GetRoleByName(memberRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	guestRole, err := a.GetRoleByName(guestRoleName)
+	if err != nil {
+		return nil, err
+	}
+
+	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
+	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
+
+	for _, channelModerationPatch := range channelModerationsPatch {
+		permissionModified := *channelModerationPatch.Name
+		if channelModerationPatch.Roles.Guests != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(guestRole, guestRolePatch)) {
+			if *channelModerationPatch.Roles.Guests {
+				mlog.Info("Permission enabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+			} else {
+				mlog.Info("Permission disabled for guests.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+			}
+		}
+
+		if channelModerationPatch.Roles.Members != nil && utils.StringInSlice(permissionModified, model.ChannelModeratedPermissionsChangedByPatch(memberRole, memberRolePatch)) {
+			if *channelModerationPatch.Roles.Members {
+				mlog.Info("Permission enabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+			} else {
+				mlog.Info("Permission disabled for members.", mlog.String("permission", permissionModified), mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+			}
+		}
+	}
+
+	memberRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedMemberRole, memberRolePatch)) == 0
+	guestRolePermissionsUnmodified := len(model.ChannelModeratedPermissionsChangedByPatch(higherScopedGuestRole, guestRolePatch)) == 0
+	if memberRolePermissionsUnmodified && guestRolePermissionsUnmodified {
+		// The channel scheme matches the permissions of its higherScoped scheme so delete the scheme
+		if _, err = a.DeleteChannelScheme(channel); err != nil {
+			return nil, err
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
+		a.Publish(message)
+
+		memberRole = higherScopedMemberRole
+		guestRole = higherScopedGuestRole
+		mlog.Info("Permission scheme deleted.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+	} else {
+		memberRole, err = a.PatchRole(memberRole, memberRolePatch)
+		if err != nil {
+			return nil, err
+		}
+		guestRole, err = a.PatchRole(guestRole, guestRolePatch)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return buildChannelModerations(channel.Type, memberRole, guestRole, higherScopedMemberRole, higherScopedGuestRole), nil
+}
+
+func buildChannelModerations(channelType string, memberRole *model.Role, guestRole *model.Role, higherScopedMemberRole *model.Role, higherScopedGuestRole *model.Role) []*model.ChannelModeration {
+	var memberPermissions, guestPermissions, higherScopedMemberPermissions, higherScopedGuestPermissions map[string]bool
+	if memberRole != nil {
+		memberPermissions = memberRole.GetChannelModeratedPermissions(channelType)
+	}
+	if guestRole != nil {
+		guestPermissions = guestRole.GetChannelModeratedPermissions(channelType)
+	}
+	if higherScopedMemberRole != nil {
+		higherScopedMemberPermissions = higherScopedMemberRole.GetChannelModeratedPermissions(channelType)
+	}
+	if higherScopedGuestRole != nil {
+		higherScopedGuestPermissions = higherScopedGuestRole.GetChannelModeratedPermissions(channelType)
+	}
+
+	var channelModerations []*model.ChannelModeration
+	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
+		roles := &model.ChannelModeratedRoles{}
+
+		roles.Members = &model.ChannelModeratedRole{
+			Value:   memberPermissions[permissionKey],
+			Enabled: higherScopedMemberPermissions[permissionKey],
+		}
+
+		if permissionKey == "manage_members" {
+			roles.Guests = nil
+		} else {
+			roles.Guests = &model.ChannelModeratedRole{
+				Value:   guestPermissions[permissionKey],
+				Enabled: higherScopedGuestPermissions[permissionKey],
+			}
+		}
+
+		moderation := &model.ChannelModeration{
+			Name:  permissionKey,
+			Roles: roles,
+		}
+
+		channelModerations = append(channelModerations, moderation)
+	}
+
+	return channelModerations
 }
 
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -848,7 +1009,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 	}
 
 	a.InvalidateCacheForUser(userId)
-	a.InvalidateCacheForChannelMembersNotifyProps(channelId)
+	a.invalidateCacheForChannelMembersNotifyProps(channelId)
 	// Notify the clients that the member notify props changed
 	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
 	evt.Add("channelMember", member.ToJson())
@@ -927,7 +1088,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		if err := a.Srv().Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
-		a.InvalidateCacheForWebhook(hook.Id)
+		a.invalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
@@ -941,7 +1102,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
 		return err
 	}
-	a.InvalidateCacheForChannel(channel)
+	a.invalidateCacheForChannel(channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 	message.Add("channel_id", channel.Id)
@@ -992,7 +1153,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		newMember.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if _, err = a.Srv().Store.Channel().SaveMember(newMember); err != nil {
+	newMember, err = a.Srv().Store.Channel().SaveMember(newMember)
+	if err != nil {
 		mlog.Error("Failed to add member", mlog.String("user_id", user.Id), mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -1004,7 +1166,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	}
 
 	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForChannelMembers(channel.Id)
+	a.invalidateCacheForChannelMembers(channel.Id)
 
 	return newMember, nil
 }
@@ -1067,14 +1229,6 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
 			}, plugin.UserHasJoinedChannelId)
-		})
-	}
-
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
 		})
 	}
 
@@ -1384,6 +1538,7 @@ func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page
 	members := make([]*model.ChannelMember, 0)
 	if m != nil {
 		for _, member := range *m {
+			member := member
 			members = append(members, &member)
 		}
 	}
@@ -1462,14 +1617,6 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
 			}, plugin.UserHasJoinedChannelId)
-		})
-	}
-
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
 		})
 	}
 
@@ -1736,7 +1883,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	}
 
 	a.InvalidateCacheForUser(userIdToRemove)
-	a.InvalidateCacheForChannelMembers(channel.Id)
+	a.invalidateCacheForChannelMembers(channel.Id)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actorUser *model.User
@@ -1750,14 +1897,6 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
 			}, plugin.UserHasLeftChannelId)
-		})
-	}
-
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			if err := a.indexUserFromId(userIdToRemove); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
-			}
 		})
 	}
 
@@ -1882,50 +2021,11 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	return channelUnread, nil
 }
 
-func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	channelIds, err := a.Elasticsearch().SearchChannels(teamId, term)
-	if err != nil {
-		return nil, err
-	}
-
-	channelList := model.ChannelList{}
-	if len(channelIds) > 0 {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(channelIds)
-		if err != nil {
-			return nil, err
-		}
-		for _, c := range channels {
-			if c.DeleteAt > 0 && !includeDeleted {
-				continue
-			}
-			channelList = append(channelList, c)
-		}
-	}
-
-	return &channelList, nil
-}
-
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-	var channelList *model.ChannelList
-	var err *model.AppError
 	term = strings.TrimSpace(term)
 
-	if a.IsESAutocompletionEnabled() {
-		channelList, err = a.esAutocompleteChannels(teamId, term, includeDeleted)
-		if err != nil {
-			mlog.Error("Encountered error on AutocompleteChannels through Elasticsearch. Falling back to default autocompletion.", mlog.Err(err))
-		}
-	}
-
-	if !a.IsESAutocompletionEnabled() || err != nil {
-		channelList, err = a.Srv().Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return channelList, nil
+	return a.Srv().Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -2044,7 +2144,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 		}
 	}
 	for _, channelId := range channelsToClearPushNotifications {
-		a.ClearPushNotification(currentSessionId, userId, channelId)
+		a.clearPushNotification(currentSessionId, userId, channelId)
 	}
 	return times, nil
 }
@@ -2072,11 +2172,6 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
-	profiles, err := a.Srv().Store.User().GetAllProfilesInChannel(channel.Id, false)
-	if err != nil {
-		return err
-	}
-
 	if err := a.Srv().Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
 		return err
 	}
@@ -2095,23 +2190,6 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 	if err := a.Srv().Store.Channel().PermanentDelete(channel.Id); err != nil {
 		return err
-	}
-
-	if a.IsESIndexingEnabled() {
-		a.Srv().Go(func() {
-			for _, user := range profiles {
-				if err := a.indexUser(user); err != nil {
-					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-				}
-			}
-		})
-		if channel.Type == model.CHANNEL_OPEN {
-			a.Srv().Go(func() {
-				if err := a.Elasticsearch().DeleteChannel(channel); err != nil {
-					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
-				}
-			})
-		}
 	}
 
 	return nil

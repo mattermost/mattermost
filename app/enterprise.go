@@ -9,6 +9,7 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 )
 
 var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
@@ -23,45 +24,45 @@ func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
 	clusterInterface = f
 }
 
-var complianceInterface func(*App) einterfaces.ComplianceInterface
+var complianceInterface func(*Server) einterfaces.ComplianceInterface
 
-func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
+func RegisterComplianceInterface(f func(*Server) einterfaces.ComplianceInterface) {
 	complianceInterface = f
 }
 
-var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
+var dataRetentionInterface func(*Server) einterfaces.DataRetentionInterface
 
-func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
+func RegisterDataRetentionInterface(f func(*Server) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
 }
 
-var elasticsearchInterface func(*App) einterfaces.ElasticsearchInterface
+var elasticsearchInterface func(*Server) searchengine.SearchEngineInterface
 
-func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterface) {
+func RegisterElasticsearchInterface(f func(*Server) searchengine.SearchEngineInterface) {
 	elasticsearchInterface = f
 }
 
-var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
+var jobsDataRetentionJobInterface func(*Server) ejobs.DataRetentionJobInterface
 
-func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
+func RegisterJobsDataRetentionJobInterface(f func(*Server) ejobs.DataRetentionJobInterface) {
 	jobsDataRetentionJobInterface = f
 }
 
-var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
+var jobsMessageExportJobInterface func(*Server) ejobs.MessageExportJobInterface
 
-func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
+func RegisterJobsMessageExportJobInterface(f func(*Server) ejobs.MessageExportJobInterface) {
 	jobsMessageExportJobInterface = f
 }
 
-var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
+var jobsElasticsearchAggregatorInterface func(*Server) ejobs.ElasticsearchAggregatorInterface
 
-func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
+func RegisterJobsElasticsearchAggregatorInterface(f func(*Server) ejobs.ElasticsearchAggregatorInterface) {
 	jobsElasticsearchAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
+var jobsElasticsearchIndexerInterface func(*Server) ejobs.ElasticsearchIndexerInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
+func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.ElasticsearchIndexerInterface) {
 	jobsElasticsearchIndexerInterface = f
 }
 
@@ -89,15 +90,15 @@ func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
-var messageExportInterface func(*App) einterfaces.MessageExportInterface
+var messageExportInterface func(*Server) einterfaces.MessageExportInterface
 
-func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
+func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInterface) {
 	messageExportInterface = f
 }
 
-var metricsInterface func(*App) einterfaces.MetricsInterface
+var metricsInterface func(*Server) einterfaces.MetricsInterface
 
-func RegisterMetricsInterface(f func(*App) einterfaces.MetricsInterface) {
+func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
@@ -121,22 +122,19 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 
 func (s *Server) initEnterprise() {
 	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s.FakeApp())
+		s.Metrics = metricsInterface(s)
 	}
 	if accountMigrationInterface != nil {
 		s.AccountMigration = accountMigrationInterface(s)
 	}
 	if complianceInterface != nil {
-		s.Compliance = complianceInterface(s.FakeApp())
-	}
-	if elasticsearchInterface != nil {
-		s.Elasticsearch = elasticsearchInterface(s.FakeApp())
+		s.Compliance = complianceInterface(s)
 	}
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())
 	}
 	if messageExportInterface != nil {
-		s.MessageExport = messageExportInterface(s.FakeApp())
+		s.MessageExport = messageExportInterface(s)
 	}
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s.FakeApp())
@@ -156,9 +154,13 @@ func (s *Server) initEnterprise() {
 		})
 	}
 	if dataRetentionInterface != nil {
-		s.DataRetention = dataRetentionInterface(s.FakeApp())
+		s.DataRetention = dataRetentionInterface(s)
 	}
 	if clusterInterface != nil {
 		s.Cluster = clusterInterface(s)
+	}
+
+	if elasticsearchInterface != nil {
+		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
 }

@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestGroupStore(t *testing.T, ss store.Store) {
@@ -3620,15 +3621,6 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 		},
 	}
 
-	includes := func(list []string, item string) bool {
-		for _, it := range list {
-			if it == item {
-				return true
-			}
-		}
-		return false
-	}
-
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
 			err = ss.Team().UpdateMembersRole(team.Id, tt.inUserIDs)
@@ -3639,7 +3631,7 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(members), 4) // sanity check for team membership
 
 			for _, member := range members {
-				if includes(tt.inUserIDs, member.UserId) {
+				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)
@@ -3738,15 +3730,6 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 		},
 	}
 
-	includes := func(list []string, item string) bool {
-		for _, it := range list {
-			if it == item {
-				return true
-			}
-		}
-		return false
-	}
-
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
 			err = ss.Channel().UpdateMembersRole(channel.Id, tt.inUserIDs)
@@ -3758,7 +3741,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, ss store.Store) {
 			require.GreaterOrEqual(t, len(*members), 4) // sanity check for channel membership
 
 			for _, member := range *members {
-				if includes(tt.inUserIDs, member.UserId) {
+				if utils.StringInSlice(member.UserId, tt.inUserIDs) {
 					require.True(t, member.SchemeAdmin)
 				} else {
 					require.False(t, member.SchemeAdmin)

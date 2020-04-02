@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -776,43 +778,64 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
+	t.Run("get channels for the team for user", func(t *testing.T) {
+		channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
 
-	found := make([]bool, 3)
-	for _, c := range channels {
-		if c.Id == th.BasicChannel.Id {
-			found[0] = true
-		} else if c.Id == th.BasicChannel2.Id {
-			found[1] = true
-		} else if c.Id == th.BasicPrivateChannel.Id {
-			found[2] = true
+		found := make([]bool, 3)
+		for _, c := range channels {
+			if c.Id == th.BasicChannel.Id {
+				found[0] = true
+			} else if c.Id == th.BasicChannel2.Id {
+				found[1] = true
+			} else if c.Id == th.BasicPrivateChannel.Id {
+				found[2] = true
+			}
+
+			require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
 		}
 
-		require.True(t, c.TeamId == "" || c.TeamId == th.BasicTeam.Id)
-	}
+		for _, f := range found {
+			require.True(t, f, "missing a channel")
+		}
 
-	for _, f := range found {
-		require.True(t, f, "missing a channel")
-	}
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, resp.Etag)
+		CheckEtag(t, channels, resp)
 
-	channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, resp.Etag)
-	CheckEtag(t, channels, resp)
+		_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", false, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, "junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, false, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser("junk", th.BasicUser.Id, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, false, "")
+		CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser2.Id, "")
-	CheckForbiddenStatus(t, resp)
+		_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, false, "")
+		CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelsForTeamForUser(model.NewId(), th.BasicUser.Id, "")
-	CheckForbiddenStatus(t, resp)
+		_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
+	t.Run("deleted channel could be retrieved using the proper flag", func(t *testing.T) {
+		testChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      th.BasicTeam.Id,
+			CreatorId:   th.BasicUser.Id,
+		}
+		th.App.CreateChannel(testChannel, true)
+		defer th.App.PermanentDeleteChannel(testChannel)
+		channels, resp := Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 6, len(channels))
+		th.App.DeleteChannel(testChannel, th.BasicUser.Id)
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 5, len(channels))
+	})
 }
 
 func TestGetAllChannels(t *testing.T) {
@@ -2828,7 +2851,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 	_, resp = th.Client.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// Test that a license is requried.
+	// Test that a license is required.
 	th.App.SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNotImplementedStatus(t, resp)
@@ -2979,4 +3002,284 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetChannelModerations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	team := th.BasicTeam
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Equal(t, "api.channel.get_channel_moderations.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Errors as a non sysadmin", func(t *testing.T) {
+		_, res := th.Client.GetChannelModerations(channel.Id, "")
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Returns default moderations with default roles", func(t *testing.T) {
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, true)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
+	})
+
+	t.Run("Returns value false and enabled false for permissions that are not present in higher scoped scheme when no channel scheme present", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+		}
+	})
+
+	t.Run("Returns value false and enabled true for permissions that are not present in channel scheme but present in team scheme", func(t *testing.T) {
+		scheme := th.SetupChannelScheme()
+		channel.SchemeId = &scheme.Id
+		_, err := th.App.UpdateChannelScheme(channel)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+			}
+		}
+	})
+
+	t.Run("Returns value false and enabled false for permissions that are not present in channel & team scheme", func(t *testing.T) {
+		teamScheme := th.SetupTeamScheme()
+		team.SchemeId = &teamScheme.Id
+		th.App.UpdateTeamScheme(team)
+
+		scheme := th.SetupChannelScheme()
+		channel.SchemeId = &scheme.Id
+		th.App.UpdateChannelScheme(channel)
+
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		th.RemovePermissionFromRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
+
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelGuestRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, teamScheme.DefaultChannelGuestRole)
+
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == model.PERMISSION_CREATE_POST.Id {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+		}
+	})
+
+	t.Run("Retuns the correct value for manage_members depending on whether the channel is public or private", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, scheme.DefaultChannelUserRole)
+		defer th.AddPermissionToRole(model.PERMISSION_CREATE_POST.Id, scheme.DefaultChannelUserRole)
+
+		// public channel does not have the permission
+		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Equal(t, moderation.Roles.Members.Value, false)
+			}
+		}
+
+		// private channel does have the permission
+		moderations, res = th.SystemAdminClient.GetChannelModerations(th.BasicPrivateChannel.Id, "")
+		require.Nil(t, res.Error)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+			}
+		}
+	})
+
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+	})
+}
+
+func TestPatchChannelModerations(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+
+	emptyPatch := []*model.ChannelModerationPatch{}
+
+	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
+
+	th.App.SetPhase2PermissionsMigrationStatus(true)
+
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Equal(t, "api.channel.patch_channel_moderations.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Errors as a non sysadmin", func(t *testing.T) {
+		_, res := th.Client.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Returns default moderations with empty patch", func(t *testing.T) {
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, true)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
+
+		require.Nil(t, channel.SchemeId)
+	})
+
+	t.Run("Creates a scheme and returns the updated channel moderations when patching an existing permission", func(t *testing.T) {
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+			},
+		}
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, true)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+			}
+
+			if moderation.Name == createPosts {
+				require.Equal(t, moderation.Roles.Members.Value, false)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+			} else {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+				require.Equal(t, moderation.Roles.Members.Enabled, true)
+			}
+		}
+		channel, _ = th.App.GetChannel(channel.Id)
+		require.NotNil(t, channel.SchemeId)
+	})
+
+	t.Run("Removes the existing scheme when moderated permissions are set back to higher scoped values", func(t *testing.T) {
+		channel, _ = th.App.GetChannel(channel.Id)
+		schemeId := channel.SchemeId
+
+		scheme, _ := th.App.GetScheme(*schemeId)
+		require.Equal(t, scheme.DeleteAt, int64(0))
+
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+			},
+		}
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, true)
+				require.Equal(t, moderation.Roles.Guests.Enabled, true)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
+
+		channel, _ = th.App.GetChannel(channel.Id)
+		require.Nil(t, channel.SchemeId)
+
+		scheme, _ = th.App.GetScheme(*schemeId)
+		require.NotEqual(t, scheme.DeleteAt, int64(0))
+	})
+
 }

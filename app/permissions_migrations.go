@@ -4,28 +4,19 @@
 package app
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type permissionTransformation struct {
-	On     func(string, map[string]map[string]bool) bool
+	On     func(*model.Role, map[string]map[string]bool) bool
 	Add    []string
 	Remove []string
 }
 type permissionsMap []permissionTransformation
 
 const (
-	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT                     = "emoji_permissions_split"
-	MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT                   = "webhook_permissions_split"
-	MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS              = "list_join_public_private_teams"
-	MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER                = "remove_permanent_delete_user"
-	MIGRATION_KEY_ADD_BOT_PERMISSIONS                         = "add_bot_permissions"
-	MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER = "apply_channel_manage_delete_to_channel_user"
-	MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER = "remove_channel_manage_delete_from_team_user"
-	MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION                 = "view_members_new_permission"
-	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
-	MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION         = "add_use_channel_mentions_permission"
-
 	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
 	PERMISSION_MANAGE_OTHERS_EMOJIS              = "manage_others_emojis"
@@ -60,38 +51,55 @@ const (
 	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
 	PERMISSION_CREATE_POST                       = "create_post"
 	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
+	PERMISSION_USE_GROUP_MENTIONS                = "use_group_mentions"
+	PERMISSION_ADD_REACTION                      = "add_reaction"
+	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
+	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
+	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
 )
 
-func isRole(role string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		return roleName == role
+func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return role.Name == roleName
 	}
 }
 
-func permissionExists(permission string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		val, ok := permissionsMap[roleName][permission]
+func isNotRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return role.Name != roleName
+	}
+}
+
+func isNotSchemeRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return !strings.Contains(role.DisplayName, roleName)
+	}
+}
+
+func permissionExists(permission string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		val, ok := permissionsMap[role.Name][permission]
 		return ok && val
 	}
 }
 
-func permissionNotExists(permission string) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		val, ok := permissionsMap[roleName][permission]
+func permissionNotExists(permission string) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		val, ok := permissionsMap[role.Name][permission]
 		return !(ok && val)
 	}
 }
 
-func onOtherRole(otherRole string, function func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
-		return function(otherRole, permissionsMap)
+func onOtherRole(otherRole string, function func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
+		return function(&model.Role{Name: otherRole}, permissionsMap)
 	}
 }
 
-func permissionOr(funcs ...func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
+func permissionOr(funcs ...func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		for _, f := range funcs {
-			if f(roleName, permissionsMap) {
+			if f(role, permissionsMap) {
 				return true
 			}
 		}
@@ -99,10 +107,10 @@ func permissionOr(funcs ...func(string, map[string]map[string]bool) bool) func(s
 	}
 }
 
-func permissionAnd(funcs ...func(string, map[string]map[string]bool) bool) func(string, map[string]map[string]bool) bool {
-	return func(roleName string, permissionsMap map[string]map[string]bool) bool {
+func permissionAnd(funcs ...func(*model.Role, map[string]map[string]bool) bool) func(*model.Role, map[string]map[string]bool) bool {
+	return func(role *model.Role, permissionsMap map[string]map[string]bool) bool {
 		for _, f := range funcs {
-			if !f(roleName, permissionsMap) {
+			if !f(role, permissionsMap) {
 				return false
 			}
 		}
@@ -110,11 +118,12 @@ func permissionAnd(funcs ...func(string, map[string]map[string]bool) bool) func(
 	}
 }
 
-func applyPermissionsMap(roleName string, roleMap map[string]map[string]bool, migrationMap permissionsMap) []string {
+func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, migrationMap permissionsMap) []string {
 	var result []string
 
+	roleName := role.Name
 	for _, transformation := range migrationMap {
-		if transformation.On(roleName, roleMap) {
+		if transformation.On(role, roleMap) {
 			for _, permission := range transformation.Add {
 				roleMap[roleName][permission] = true
 			}
@@ -151,7 +160,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	}
 
 	for _, role := range roles {
-		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
+		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
 		if _, err := a.Srv().Store.Role().Save(role); err != nil {
 			return err
 		}
@@ -163,7 +172,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	return nil
 }
 
-func getEmojisPermissionsSplitMigration() permissionsMap {
+func (a *App) getEmojisPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_EMOJIS),
@@ -175,10 +184,10 @@ func getEmojisPermissionsSplitMigration() permissionsMap {
 			Add:    []string{PERMISSION_DELETE_OTHERS_EMOJIS},
 			Remove: []string{PERMISSION_MANAGE_OTHERS_EMOJIS},
 		},
-	}
+	}, nil
 }
 
-func getWebhooksPermissionsSplitMigration() permissionsMap {
+func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_WEBHOOKS),
@@ -190,10 +199,10 @@ func getWebhooksPermissionsSplitMigration() permissionsMap {
 			Add:    []string{PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS, PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS},
 			Remove: []string{PERMISSION_MANAGE_OTHERS_WEBHOOKS},
 		},
-	}
+	}, nil
 }
 
-func getListJoinPublicPrivateTeamsPermissionsMigration() permissionsMap {
+func (a *App) getListJoinPublicPrivateTeamsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
@@ -205,29 +214,29 @@ func getListJoinPublicPrivateTeamsPermissionsMigration() permissionsMap {
 			Add:    []string{PERMISSION_LIST_PUBLIC_TEAMS, PERMISSION_JOIN_PUBLIC_TEAMS},
 			Remove: []string{},
 		},
-	}
+	}, nil
 }
 
-func removePermanentDeleteUserMigration() permissionsMap {
+func (a *App) removePermanentDeleteUserMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_PERMANENT_DELETE_USER),
 			Remove: []string{PERMISSION_PERMANENT_DELETE_USER},
 		},
-	}
+	}, nil
 }
 
-func getAddBotPermissionsMigration() permissionsMap {
+func (a *App) getAddBotPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add:    []string{PERMISSION_CREATE_BOT, PERMISSION_READ_BOTS, PERMISSION_READ_OTHERS_BOTS, PERMISSION_MANAGE_BOTS, PERMISSION_MANAGE_OTHERS_BOTS},
 			Remove: []string{},
 		},
-	}
+	}, nil
 }
 
-func applyChannelManageDeleteToChannelUser() permissionsMap {
+func (a *App) applyChannelManageDeleteToChannelUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES))),
@@ -245,10 +254,10 @@ func applyChannelManageDeleteToChannelUser() permissionsMap {
 			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL))),
 			Add: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
 		},
-	}
+	}, nil
 }
 
-func removeChannelManageDeleteFromTeamUser() permissionsMap {
+func (a *App) removeChannelManageDeleteFromTeamUser() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)),
@@ -266,10 +275,10 @@ func removeChannelManageDeleteFromTeamUser() permissionsMap {
 			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL)),
 			Remove: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
 		},
-	}
+	}, nil
 }
 
-func getViewMembersPermissionMigration() permissionsMap {
+func (a *App) getViewMembersPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_USER_ROLE_ID),
@@ -279,47 +288,168 @@ func getViewMembersPermissionMigration() permissionsMap {
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: []string{PERMISSION_VIEW_MEMBERS},
 		},
-	}
+	}, nil
 }
 
-func getAddManageGuestsPermissionsMigration() permissionsMap {
+func (a *App) getAddManageGuestsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: []string{PERMISSION_PROMOTE_GUEST, PERMISSION_DEMOTE_TO_GUEST, PERMISSION_INVITE_GUEST},
 		},
-	}
+	}, nil
 }
 
-func getAddUseMentionChannelsPermissionMigration() permissionsMap {
+func (a *App) channelModerationPermissionsMigration() (permissionsMap, error) {
+	transformations := permissionsMap{}
+
+	var allTeamSchemes []*model.Scheme
+	next := a.SchemesIterator(model.SCHEME_SCOPE_TEAM, 100)
+	var schemeBatch []*model.Scheme
+	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
+		allTeamSchemes = append(allTeamSchemes, schemeBatch...)
+	}
+
+	moderatedPermissionsMinusCreatePost := []string{
+		PERMISSION_ADD_REACTION,
+		PERMISSION_REMOVE_REACTION,
+		PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS,
+		PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS,
+		PERMISSION_USE_CHANNEL_MENTIONS,
+	}
+
+	teamAndChannelAdminConditionalTransformations := func(teamAdminID, channelAdminID, channelUserID, channelGuestID string) []permissionTransformation {
+		transformations := []permissionTransformation{}
+
+		for _, perm := range moderatedPermissionsMinusCreatePost {
+			// add each moderated permission to the channel admin if channel user or guest has the permission
+			trans := permissionTransformation{
+				On: permissionAnd(
+					isRole(channelAdminID),
+					permissionOr(
+						onOtherRole(channelUserID, permissionExists(perm)),
+						onOtherRole(channelGuestID, permissionExists(perm)),
+					),
+				),
+				Add: []string{perm},
+			}
+			transformations = append(transformations, trans)
+
+			// add each moderated permission to the team admin if channel admin, user, or guest has the permission
+			trans = permissionTransformation{
+				On: permissionAnd(
+					isRole(teamAdminID),
+					permissionOr(
+						onOtherRole(channelAdminID, permissionExists(perm)),
+						onOtherRole(channelUserID, permissionExists(perm)),
+						onOtherRole(channelGuestID, permissionExists(perm)),
+					),
+				),
+				Add: []string{perm},
+			}
+			transformations = append(transformations, trans)
+		}
+
+		return transformations
+	}
+
+	for _, ts := range allTeamSchemes {
+		// ensure all team scheme channel admins have create_post because it's not exposed via the UI
+		trans := permissionTransformation{
+			On:  isRole(ts.DefaultChannelAdminRole),
+			Add: []string{PERMISSION_CREATE_POST},
+		}
+		transformations = append(transformations, trans)
+
+		// ensure all team scheme team admins have create_post because it's not exposed via the UI
+		trans = permissionTransformation{
+			On:  isRole(ts.DefaultTeamAdminRole),
+			Add: []string{PERMISSION_CREATE_POST},
+		}
+		transformations = append(transformations, trans)
+
+		// conditionally add all other moderated permissions to team and channel admins
+		transformations = append(transformations, teamAndChannelAdminConditionalTransformations(
+			ts.DefaultTeamAdminRole,
+			ts.DefaultChannelAdminRole,
+			ts.DefaultChannelUserRole,
+			ts.DefaultChannelGuestRole,
+		)...)
+	}
+
+	// ensure team admins have create_post
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.TEAM_ADMIN_ROLE_ID),
+		Add: []string{PERMISSION_CREATE_POST},
+	})
+
+	// ensure channel admins have create_post
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.CHANNEL_ADMIN_ROLE_ID),
+		Add: []string{PERMISSION_CREATE_POST},
+	})
+
+	// conditionally add all other moderated permissions to team and channel admins
+	transformations = append(transformations, teamAndChannelAdminConditionalTransformations(
+		model.TEAM_ADMIN_ROLE_ID,
+		model.CHANNEL_ADMIN_ROLE_ID,
+		model.CHANNEL_USER_ROLE_ID,
+		model.CHANNEL_GUEST_ROLE_ID,
+	)...)
+
+	// ensure system admin has all of the moderated permissions
+	transformations = append(transformations, permissionTransformation{
+		On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+		Add: append(moderatedPermissionsMinusCreatePost, PERMISSION_CREATE_POST),
+	})
+
+	// add the new use_channel_mentions permission to everyone who has create_post
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+		Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+	})
+
+	return transformations, nil
+}
+
+func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
-			Add: []string{PERMISSION_USE_CHANNEL_MENTIONS},
+			On: permissionAnd(
+				isNotRole(model.CHANNEL_GUEST_ROLE_ID),
+				isNotSchemeRole("Channel Guest Role for Scheme"),
+				permissionOr(permissionExists(PERMISSION_CREATE_POST), permissionExists(PERMISSION_CREATE_POST_PUBLIC)),
+			),
+			Add: []string{PERMISSION_USE_GROUP_MENTIONS},
 		},
-	}
+	}, nil
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
-func (a *App) DoPermissionsMigrations() *model.AppError {
+func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
 		Key       string
-		Migration func() permissionsMap
+		Migration func() (permissionsMap, error)
 	}{
-		{Key: MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
-		{Key: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
-		{Key: MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
-		{Key: MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
-		{Key: MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
-		{Key: MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: applyChannelManageDeleteToChannelUser},
-		{Key: MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: removeChannelManageDeleteFromTeamUser},
-		{Key: MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: getViewMembersPermissionMigration},
-		{Key: MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: getAddManageGuestsPermissionsMigration},
-		{Key: MIGRATION_KEY_ADD_USE_CHANNEL_MENTIONS_PERMISSION, Migration: getAddUseMentionChannelsPermissionMigration},
+		{Key: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: a.getEmojisPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: a.getWebhooksPermissionsSplitMigration},
+		{Key: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: a.getListJoinPublicPrivateTeamsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: a.removePermanentDeleteUserMigration},
+		{Key: model.MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: a.getAddBotPermissionsMigration},
+		{Key: model.MIGRATION_KEY_APPLY_CHANNEL_MANAGE_DELETE_TO_CHANNEL_USER, Migration: a.applyChannelManageDeleteToChannelUser},
+		{Key: model.MIGRATION_KEY_REMOVE_CHANNEL_MANAGE_DELETE_FROM_TEAM_USER, Migration: a.removeChannelManageDeleteFromTeamUser},
+		{Key: model.MIGRATION_KEY_VIEW_MEMBERS_NEW_PERMISSION, Migration: a.getViewMembersPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: a.getAddUseGroupMentionsPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
-		if err := a.doPermissionsMigration(migration.Key, migration.Migration()); err != nil {
+		migMap, err := migration.Migration()
+		if err != nil {
+			return err
+		}
+		if err := a.doPermissionsMigration(migration.Key, migMap); err != nil {
 			return err
 		}
 	}
