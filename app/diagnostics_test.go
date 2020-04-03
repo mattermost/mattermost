@@ -320,6 +320,7 @@ func TestRudderDiagnostics(t *testing.T) {
 	th.Server.initRudder(server.URL)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
+		t.Helper()
 		assert.NotEmpty(t, actual.MessageId)
 		assert.False(t, actual.SentAt.IsZero())
 		if assert.Len(t, actual.Batch, 1) {
@@ -405,7 +406,7 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			// TRACK_PLUGINS,
 		} {
-			require.Contains(t, info, item)
+			require.ElementsMatch(t, info, item)
 		}
 	})
 
@@ -456,7 +457,7 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			TRACK_PLUGINS,
 		} {
-			require.Contains(t, info, item)
+			require.ElementsMatch(t, info, item)
 		}
 	})
 
