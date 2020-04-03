@@ -351,10 +351,8 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 }
 
 func sanitized(user *model.User) *model.User {
-	clonedUser := model.UserFromJson(strings.NewReader(user.ToJson()))
-	clonedUser.AuthData = new(string)
-	*clonedUser.AuthData = ""
-	clonedUser.Props = model.StringMap{}
+	clonedUser := user.DeepCopy()
+	clonedUser.Sanitize(map[string]bool{})
 
 	return clonedUser
 }
@@ -1276,25 +1274,25 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
+		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
+		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
@@ -1310,7 +1308,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		// u3 comes from the cache, and u4 does not
-		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u4)}, users)
+		assert.Equal(t, []*model.User{u3, u4}, users)
 	})
 }
 
@@ -4580,6 +4578,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
+
+	ss.User().InvalidateProfileCacheForUser(u1.Id)
 
 	user2, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)
