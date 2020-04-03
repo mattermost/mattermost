@@ -1579,7 +1579,7 @@ func TestUserUnicodeNames(t *testing.T) {
 			LastName:  "\ufeffWiggin",
 			Nickname:  "Ender\u2028 Wiggin",
 			Password:  "hello1",
-			Username:  GenerateTestUsername(),
+			Username:  "\ufeffwiggin77",
 			Roles:     model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		ruser, resp := Client.CreateUser(&user)
@@ -1588,6 +1588,7 @@ func TestUserUnicodeNames(t *testing.T) {
 
 		_, _ = Client.Login(user.Email, user.Password)
 
+		require.Equal(t, "wiggin77", ruser.Username, "Bad Unicode not filtered from username")
 		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "Bad Unicode not filtered from displayname")
 		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad Unicode not filtered from nickname")
 	})
@@ -1596,6 +1597,7 @@ func TestUserUnicodeNames(t *testing.T) {
 		user := th.CreateUser()
 		Client.Login(user.Email, user.Password)
 
+		user.Username = "wiggin\ufff9"
 		user.Nickname = "Ender\u0340 \ufffcWiggin"
 		user.FirstName = "Andrew\ufff9"
 		user.LastName = "Wig\u206fgin"
@@ -1603,6 +1605,7 @@ func TestUserUnicodeNames(t *testing.T) {
 		ruser, resp := Client.UpdateUser(user)
 		CheckNoError(t, resp)
 
+		require.Equal(t, "wiggin", ruser.Username, "bad unicode should be filtered from username")
 		require.Equal(t, "Ender Wiggin", ruser.Nickname, "bad unicode should be filtered from nickname")
 		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "bad unicode should be filtered from display name")
 	})

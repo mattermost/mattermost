@@ -329,12 +329,13 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
-	u.Username = NormalizeUsername(u.Username)
-	u.Email = NormalizeEmail(u.Email)
-
+	u.Username = SanitizeUnicode(u.Username)
 	u.FirstName = SanitizeUnicode(u.FirstName)
 	u.LastName = SanitizeUnicode(u.LastName)
 	u.Nickname = SanitizeUnicode(u.Nickname)
+
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -366,6 +367,12 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
