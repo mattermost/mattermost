@@ -85,10 +85,12 @@ type TeamStore interface {
 	AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError)
 	AnalyticsPublicTeamCount() (int64, *model.AppError)
 	AnalyticsPrivateTeamCount() (int64, *model.AppError)
+	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
+	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
-	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
+	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
 	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
@@ -97,6 +99,7 @@ type TeamStore interface {
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	RemoveMember(teamId string, userId string) *model.AppError
+	RemoveMembers(teamId string, userIds []string) *model.AppError
 	RemoveAllMembersByTeam(teamId string) *model.AppError
 	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
@@ -150,8 +153,10 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
+	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
+	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
@@ -170,6 +175,7 @@ type ChannelStore interface {
 	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
+	RemoveMembers(channelId string, userIds []string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
