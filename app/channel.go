@@ -384,7 +384,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 		a.InvalidateCacheForUser(userId)
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_MESSAGE_ADDED, "", channel.Id, "", nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", channel.Id, "", nil)
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
