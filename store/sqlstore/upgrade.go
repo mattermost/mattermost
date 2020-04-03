@@ -173,6 +173,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion519(sqlStore)
 	upgradeDatabaseToVersion520(sqlStore)
 	upgradeDatabaseToVersion521(sqlStore)
+	upgradeDatabaseToVersion522(sqlStore)
+	upgradeDatabaseToVersion524(sqlStore)
 
 	return nil
 }
@@ -767,13 +769,33 @@ func upgradeDatabaseToVersion520(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion521(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_20_0, VERSION_5_21_0) {
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SecretToken", "varchar(26)", "varchar(26)", "")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "HmacAlgorithm", "varchar(12)", "varchar(12)", "")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "TimestampModel", "varchar(100)", "varchar(100)", "")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "HmacModel", "varchar(100)", "varchar(100)", "")
-		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SignedContentModel", "varchar(48)", "varchar(48)", "")
-
-		sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "SecretToken", "varchar(26)", "varchar(26)", "")
 		saveSchemaVersion(sqlStore, VERSION_5_21_0)
 	}
+}
+
+func upgradeDatabaseToVersion522(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
+	sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
+	// sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+	// sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	// }
+}
+
+func upgradeDatabaseToVersion524(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_24_0) {
+	sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SignatureExpected", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "SecretToken", "varchar(64)", "varchar(64)", "")
+
+	sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "Signed", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "SecretToken", "varchar(64)", "varchar(64)", "")
+	sqlStore.CreateColumnIfNotExists("OutgoingWebhooks", "UpdateSecretToken", "boolean", "boolean", "0")
+	// saveSchemaVersion(sqlStore, VERSION_5_24_0)
+	// }
 }

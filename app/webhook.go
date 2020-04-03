@@ -25,7 +25,8 @@ const (
 	TRIGGERWORDS_EXACT_MATCH = 0
 	TRIGGERWORDS_STARTS_WITH = 1
 
-	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
+	MaxIntegrationResponseSize         = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
+	outgoingHookSignatureVersionPrefix = "v0="
 )
 
 func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
@@ -165,11 +166,11 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType, 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
-	if len(secretToken) != 0 { //skip signing the outgoing hooks with no secretToken
+	if len(secretToken) != 0 {
 		now := strconv.FormatInt(time.Now().Unix(), 10)
 		hmacDigest := model.GenerateHmacSignature(&bodyBytes, now, secretToken)
-		req.Header.Set("Mattermost-Timestamp", now)
-		req.Header.Set("Mattermost-Signature", hmacDigest)
+		req.Header.Set("X-Mattermost-Request-Timestamp", now)
+		req.Header.Set("X-Mattermost-Signature", outgoingHookSignatureVersionPrefix+hmacDigest)
 	}
 
 	resp, err := a.HTTPService().MakeClient(false).Do(req)
@@ -341,13 +342,10 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(hook.HmacAlgorithm) > 0 {
-		if err := hook.IsValidSignatureModels(); err != nil {
-			return nil, err
+	if hook.SignatureExpected {
+		if len(hook.SecretToken) < 26 {
+			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_secret_token.app_error", nil, "", http.StatusBadRequest)
 		}
-		hook.SecretToken = model.NewRandomString(26)
-	} else {
-		hook.ResetSignatureModels()
 	}
 
 	return a.Srv().Store.Webhook().SaveIncoming(hook)
@@ -367,6 +365,14 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 
 	if updatedHook.Username != "" && !model.IsValidUsername(updatedHook.Username) {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if updatedHook.SignatureExpected && len(updatedHook.SecretToken) < 26 {
+		return nil, model.NewAppError("UpdateIncomingWebhook", "api.webhook.update_webhook.bad_secret_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if oldHook.SignatureExpected && !updatedHook.SignatureExpected {
+		updatedHook.SecretToken = ""
 	}
 
 	updatedHook.Id = oldHook.Id
@@ -466,7 +472,11 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		}
 	}
 
-	hook.SecretToken = model.NewRandomString(26)
+	if hook.Signed {
+		hook.SecretToken = model.NewRandomString(26)
+	} else {
+		hook.SecretToken = ""
+	}
 
 	webhook, err := a.Srv().Store.Webhook().SaveOutgoing(hook)
 	if err != nil {
@@ -510,6 +520,17 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		if existingOutHook.ChannelId == updatedHook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 && existingOutHook.Id != updatedHook.Id {
 			return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.update_outgoing.intersect.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+
+	// Here may need to ensure no change in trigger words while updating the secretToken
+	if !oldHook.Signed && updatedHook.Signed {
+		updatedHook.SecretToken = model.NewRandomString(26)
+	}
+
+	//  Regenerated secret token will only be seen after the update
+	if oldHook.Signed && updatedHook.Signed && updatedHook.UpdateSecretToken {
+		updatedHook.SecretToken = model.NewRandomString(26)
+		updatedHook.UpdateSecretToken = false
 	}
 
 	updatedHook.CreatorId = oldHook.CreatorId

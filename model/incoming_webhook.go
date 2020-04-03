@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 )
 
 const (
@@ -17,24 +16,20 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id                 string          `json:"id"`
-	CreateAt           int64           `json:"create_at"`
-	UpdateAt           int64           `json:"update_at"`
-	DeleteAt           int64           `json:"delete_at"`
-	UserId             string          `json:"user_id"`
-	ChannelId          string          `json:"channel_id"`
-	TeamId             string          `json:"team_id"`
-	DisplayName        string          `json:"display_name"`
-	Description        string          `json:"description"`
-	Username           string          `json:"username"`
-	IconURL            string          `json:"icon_url"`
-	ChannelLocked      bool            `json:"channel_locked"`
-	SecretToken        string          `json:"secret_token"`
-	HmacAlgorithm      string          `json:"hmac_algorithm"`
-	TimestampModel     StringInterface `json:"ts_format"`
-	HmacModel          StringInterface `json:"hmac_format"`
-	SignedContentModel StringArray     `json:"payload_format"`
-	ContentType        string          `json:"content_type"`
+	Id                string `json:"id"`
+	CreateAt          int64  `json:"create_at"`
+	UpdateAt          int64  `json:"update_at"`
+	DeleteAt          int64  `json:"delete_at"`
+	UserId            string `json:"user_id"`
+	ChannelId         string `json:"channel_id"`
+	TeamId            string `json:"team_id"`
+	DisplayName       string `json:"display_name"`
+	Description       string `json:"description"`
+	Username          string `json:"username"`
+	IconURL           string `json:"icon_url"`
+	ChannelLocked     bool   `json:"channel_locked"`
+	SignatureExpected bool   `json:"signature_on"`
+	SecretToken       string `json:"secret_token"`
 }
 
 type IncomingWebhookRequest struct {
@@ -68,101 +63,6 @@ func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
 	var o []*IncomingWebhook
 	json.NewDecoder(data).Decode(&o)
 	return o
-}
-
-func (o *IncomingWebhook) ResetSignatureModels() {
-	o.HmacAlgorithm = ""
-	o.TimestampModel = StringInterface{}
-	o.HmacModel = StringInterface{}
-	o.SignedContentModel = StringArray{}
-}
-
-func ValidModelSplitter(s *StringInterface) bool {
-	// empty splitBy is valid
-	splitValue, isSet := s.ValidHeaderModel("SplitBy")
-	if !isSet {
-		delete(*s, "Index")
-		return true
-	}
-
-	idxValue, _ := s.ValidHeaderModel("Index")
-	if len(splitValue) > 0 {
-		if !(len(idxValue) > 0) {
-			return false
-		}
-		intIdx, err := strconv.ParseInt(idxValue, 10, 0)
-		if err != nil {
-			return false
-		} else if int(intIdx) > 5 || int(intIdx) < 0 {
-			return false
-		}
-	} else {
-		if len(idxValue) > 0 {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (s StringInterface) ValidHeaderModel(mapKey string) (string, bool) {
-	_, isSet := s[mapKey]
-	if headerPartStr, ok := s[mapKey].(string); ok {
-		return headerPartStr, isSet
-	}
-	return "", isSet
-}
-
-func (o *IncomingWebhook) IsValidSignatureModels() *AppError {
-	if !(o.HmacAlgorithm == "HMAC-SHA1" || o.HmacAlgorithm == "HMAC-SHA256") {
-		return NewAppError("IncomingWebhook.IsValidSignatureModels",
-			"model.incoming_hook.hmac_algorithm.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(len(o.SignedContentModel) > 0 && len(o.SignedContentModel) < 6) {
-		return NewAppError("IncomingWebhook.IsValidSignatureModels",
-			"model.incoming_hook.signed_content_model.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	hmacModelHeader, ok := o.HmacModel["HeaderName"].(string)
-	if !(ok && 0 < len(hmacModelHeader) && len(hmacModelHeader) < 26) {
-		return NewAppError("IncomingWebhook.IsValidSignatureModels",
-			"model.incoming_hook.hmac_headername.app_error", nil, "", http.StatusBadRequest)
-	}
-	if !ValidModelSplitter(&o.HmacModel) {
-		return NewAppError("IncomingWebhook.IsValidSignatureModels",
-			"model.incoming_hook.hmac_splitter.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if pre, pSet := o.HmacModel.ValidHeaderModel("Prefix"); pSet && pre == "" {
-		return NewAppError("IncomingWebhook.IsValidSignatureModels",
-			"model.incoming_hook.hmac_prefix.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	timestampModelH := o.TimestampModel["HeaderName"]
-	if timestampModelH == nil {
-		o.TimestampModel = StringInterface{}
-	} else {
-		tsModelHeader, ok1 := timestampModelH.(string)
-		if !(ok1 && 0 < len(tsModelHeader) && len(tsModelHeader) < 26) {
-			return NewAppError("IncomingWebhook.IsValidSignatureModels",
-				"model.incoming_hook.timestamp_header.app_error", nil, "", http.StatusBadRequest)
-
-		}
-
-		if !ValidModelSplitter(&o.TimestampModel) {
-			return NewAppError("IncomingWebhook.IsValidSignatureModels",
-				"model.incoming_hook.timestamp_splitter.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		if pre, pSet := o.TimestampModel.ValidHeaderModel("Prefix"); pSet && (pre == "" || len(pre) > 8) {
-			return NewAppError("IncomingWebhook.IsValidSignatureModels",
-				"model.incoming_hook.timestamp_prefix.app_error", nil, "", http.StatusBadRequest)
-		}
-
-	}
-
-	return nil
 }
 
 func (o *IncomingWebhook) IsValid() *AppError {
@@ -205,10 +105,6 @@ func (o *IncomingWebhook) IsValid() *AppError {
 
 	if len(o.IconURL) > 1024 {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.icon_url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if !(len(o.SecretToken) == 26 || len(o.SecretToken) == 0) {
-		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.secret_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }

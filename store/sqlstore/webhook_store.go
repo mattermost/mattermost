@@ -35,11 +35,6 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		table.ColMap("TeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("Description").SetMaxSize(500)
-		table.ColMap("SecretToken").SetMaxSize(26)
-		table.ColMap("HmacAlgorithm").SetMaxSize(12)
-		table.ColMap("TimestampModel").SetMaxSize(100)
-		table.ColMap("HmacModel").SetMaxSize(100)
-		table.ColMap("SignedContentModel").SetMaxSize(48)
 
 		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
@@ -55,7 +50,6 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableo.ColMap("TriggerWhen").SetMaxSize(1)
 		tableo.ColMap("Username").SetMaxSize(64)
 		tableo.ColMap("IconURL").SetMaxSize(1024)
-		tableo.ColMap("SecretToken").SetMaxSize(26)
 	}
 
 	return s

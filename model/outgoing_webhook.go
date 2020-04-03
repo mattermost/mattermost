@@ -17,23 +17,25 @@ import (
 )
 
 type OutgoingWebhook struct {
-	Id           string      `json:"id"`
-	Token        string      `json:"token"`
-	CreateAt     int64       `json:"create_at"`
-	UpdateAt     int64       `json:"update_at"`
-	DeleteAt     int64       `json:"delete_at"`
-	CreatorId    string      `json:"creator_id"`
-	ChannelId    string      `json:"channel_id"`
-	TeamId       string      `json:"team_id"`
-	TriggerWords StringArray `json:"trigger_words"`
-	TriggerWhen  int         `json:"trigger_when"`
-	CallbackURLs StringArray `json:"callback_urls"`
-	DisplayName  string      `json:"display_name"`
-	Description  string      `json:"description"`
-	ContentType  string      `json:"content_type"`
-	Username     string      `json:"username"`
-	IconURL      string      `json:"icon_url"`
-	SecretToken  string      `json:"secret_token"`
+	Id                string      `json:"id"`
+	Token             string      `json:"token"`
+	CreateAt          int64       `json:"create_at"`
+	UpdateAt          int64       `json:"update_at"`
+	DeleteAt          int64       `json:"delete_at"`
+	CreatorId         string      `json:"creator_id"`
+	ChannelId         string      `json:"channel_id"`
+	TeamId            string      `json:"team_id"`
+	TriggerWords      StringArray `json:"trigger_words"`
+	TriggerWhen       int         `json:"trigger_when"`
+	CallbackURLs      StringArray `json:"callback_urls"`
+	DisplayName       string      `json:"display_name"`
+	Description       string      `json:"description"`
+	ContentType       string      `json:"content_type"`
+	Username          string      `json:"username"`
+	IconURL           string      `json:"icon_url"`
+	Signed            bool        `json:"signed"`
+	SecretToken       string      `json:"secret_token"`
+	UpdateSecretToken bool        `json:"update_secret_token"`
 }
 
 type OutgoingWebhookPayload struct {
@@ -62,6 +64,8 @@ type OutgoingWebhookResponse struct {
 }
 
 const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
+
+var outgoingHookSignedContentModel = [4]string{"v0:", "{timestamp}", ":", "{payload}"}
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, _ := json.Marshal(o)
@@ -267,11 +271,28 @@ func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (trigge
 	return triggerWord
 }
 
+func createOutgoingHookContentToSign(payLoad *[]byte, timestamp string) *[]byte {
+	var contentToSign []byte
+	for _, signedPart := range outgoingHookSignedContentModel {
+		switch signedPart {
+		case "{timestamp}":
+			contentToSign = append(contentToSign, []byte(timestamp)...)
+		case "{payload}":
+			contentToSign = append(contentToSign, *payLoad...)
+		default:
+			contentToSign = append(contentToSign, []byte(signedPart)...)
+		}
+	}
+
+	return &contentToSign
+}
+
+// GenerateHmacSignature generates a hmac digest based on the outgoing webhook content model.
 func GenerateHmacSignature(payLoad *[]byte, timestamp, secretToken string) string {
-	contentToSign := append(*payLoad, []byte(timestamp)...)
+	contentToSign := createOutgoingHookContentToSign(payLoad, timestamp)
 
 	mac := hmac.New(sha256.New, []byte(secretToken))
-	mac.Write(contentToSign)
+	mac.Write(*contentToSign)
 
 	return hex.EncodeToString(mac.Sum(nil))
 }

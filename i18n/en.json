@@ -1401,6 +1401,10 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.incoming_webhook.invalid_secret_token.app_error",
+    "translation": "Invalid secrect token."
+  },
+  {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
   },
@@ -2855,6 +2859,14 @@
     "translation": "You posted to an invalid webhook URL."
   },
   {
+    "id": "api.webhook.incoming.invalid_signature.app_error",
+    "translation": "It's an invalid signature."
+  },
+  {
+    "id": "api.webhook.incoming.invalid_timestamp.app_error",
+    "translation": "It's an invalid timestamp."
+  },
+  {
     "id": "api.webhook.incoming.invalid_webhook_Hmac.app_error",
     "translation": "Your webhook signature failed to verify."
   },
@@ -2873,6 +2885,10 @@
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
     "translation": "Outgoing webhooks from the same channel cannot have the same trigger words/callback URLs."
+  },
+  {
+    "id": "api.webhook.update_webhook.bad_secret_token.app_error",
+    "translation": "The updated secret token is not valid."
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -5155,22 +5171,6 @@
     "translation": "Invalid title"
   },
   {
-    "id": "model.incoming_hook.hmac_algorithm.app_error",
-    "translation": "Invalid HMAC algorithm"
-  },
-  {
-    "id": "model.incoming_hook.hmac_headername.app_error",
-    "translation": "Invalid HMAC header"
-  },
-  {
-    "id": "model.incoming_hook.hmac_prefix.app_error",
-    "translation": "Invalid HMAC prefix"
-  },
-  {
-    "id": "model.incoming_hook.hmac_splitter.app_error",
-    "translation": "Invalid HMAC header splitter"
-  },
-  {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "Invalid post icon"
   },
@@ -5187,28 +5187,8 @@
     "translation": "Unable to parse incoming data"
   },
   {
-    "id": "model.incoming_hook.secret_token.app_error",
-    "translation": "Secret token for webhook signature is invalid."
-  },
-  {
-    "id": "model.incoming_hook.signed_content_model.app_error",
-    "translation": "Invalid content model for signing"
-  },
-  {
     "id": "model.incoming_hook.team_id.app_error",
     "translation": "Invalid team ID"
-  },
-  {
-    "id": "model.incoming_hook.timestamp_header.app_error",
-    "translation": "Invalid timestamp header"
-  },
-  {
-    "id": "model.incoming_hook.timestamp_splitter.app_error",
-    "translation": "Invalid timestamp splitter"
-  },
-  {
-    "id": "model.incoming_hook.timestamp_prefix.app_error",
-    "translation": "Invalid timestamp prefix"
   },
   {
     "id": "model.incoming_hook.update_at.app_error",

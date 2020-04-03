@@ -156,6 +156,6 @@ func TestOutgoingWebhookResponseJson(t *testing.T) {
 func TestGenerateHmacSignature(t *testing.T) {
 	body := []byte("body")
 	digest := GenerateHmacSignature(&body, "123", "me")
-	assert.Equal(t, "693e4df7c4867401f4b1f3896b949c3a5a9346ac4f7568d40e17119980e41a1a", digest, "Hmacs need to match.")
+	assert.Equal(t, "93085d222ef2bdf3f24c9aecbcd082231625c9455a7d4568bcf1b9ad3bd65bbc", digest, "Hmacs need to match.")
 
 }
