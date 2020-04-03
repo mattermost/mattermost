@@ -378,7 +378,7 @@ func TestRudderDiagnostics(t *testing.T) {
 			}
 		}
 
-		for _, item := range []string{
+		expected := []string{
 			TRACK_CONFIG_SERVICE,
 			TRACK_CONFIG_TEAM,
 			TRACK_CONFIG_SQL,
@@ -405,9 +405,8 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			// TRACK_PLUGINS,
-		} {
-			require.ElementsMatch(t, info, item)
 		}
+		require.ElementsMatch(t, info, expected)
 	})
 
 	// Enable plugins for the remainder of the tests.
@@ -429,7 +428,7 @@ func TestRudderDiagnostics(t *testing.T) {
 			}
 		}
 
-		for _, item := range []string{
+		expected := []string{
 			TRACK_CONFIG_SERVICE,
 			TRACK_CONFIG_TEAM,
 			TRACK_CONFIG_SQL,
@@ -456,9 +455,8 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			TRACK_PLUGINS,
-		} {
-			require.ElementsMatch(t, info, item)
 		}
+		require.ElementsMatch(t, info, expected)
 	})
 
 	t.Run("SendDailyDiagnosticsNoRudderKey", func(t *testing.T) {
