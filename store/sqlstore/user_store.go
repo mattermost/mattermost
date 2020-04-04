@@ -825,10 +825,6 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 		return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	for _, u := range users {
-		u.Sanitize(map[string]bool{})
-	}
-
 	return users, nil
 }
 
