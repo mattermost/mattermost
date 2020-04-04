@@ -40,7 +40,7 @@ type Job struct {
 }
 
 func (j *Job) IsValid() *AppError {
-	if len(j.Id) != 26 {
+	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 

@@ -19,7 +19,7 @@ func (a *App) LoadLicense() {
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
 
-	if len(licenseId) != 26 {
+	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*a.Config().ServiceSettings.LicenseFileLocation)
 
