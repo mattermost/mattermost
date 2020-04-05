@@ -5,11 +5,11 @@ package api4
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -767,9 +767,6 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	fileId := fileResp.FileInfos[0].Id
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
 	require.NotEqual(t, 0, len(data), "should not be empty")
@@ -874,9 +871,6 @@ func TestGetFilePreview(t *testing.T) {
 	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
 	CheckNoError(t, resp)
 	fileId := fileResp.FileInfos[0].Id
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
 
 	data, resp := Client.GetFilePreview(fileId)
 	CheckNoError(t, resp)
