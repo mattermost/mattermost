@@ -1754,7 +1754,11 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	removeDeactivatedMembers := r.URL.Query().Get("remove_deactivated_members") == "true"
+	var removeDeactivatedMembers bool
+	val, ok := props["removeDeactivatedMembers"].(string)
+	if ok {
+		removeDeactivatedMembers = val == "true"
+	}
 
 	auditRec := c.MakeAuditRecord("moveChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1789,5 +1793,5 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("channel=" + channel.Name)
 	c.LogAudit("team=" + team.Name)
 
-	ReturnStatusOK(w)
+	w.Write([]byte(channel.ToJson()))
 }

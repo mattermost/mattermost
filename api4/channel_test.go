@@ -3283,3 +3283,47 @@ func TestPatchChannelModerations(t *testing.T) {
 	})
 
 }
+
+func TestMoveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+	team1 := th.BasicTeam
+	team2 := th.CreateTeam()
+
+	t.Run("Should move channel", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		ch, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, ch.TeamId)
+	})
+
+	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
+		user := th.CreateUser()
+		dmChannel := th.CreateDmChannel(user)
+		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+	})
+
+	t.Run("Should fail due to permissions", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		_, resp := Client.MoveChannel(publicChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+	})
+
+	t.Run("Should fail to move channel due to a member not member of target team", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		user := th.BasicUser
+
+		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.NotNil(t, resp.Error)
+	})
+
+}
