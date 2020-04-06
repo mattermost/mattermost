@@ -823,9 +823,6 @@ func TestGetFileLink(t *testing.T) {
 	_, resp = Client.GetFileLink(fileId)
 	CheckNotImplementedStatus(t, resp)
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
@@ -914,9 +911,6 @@ func TestGetFileInfo(t *testing.T) {
 	CheckNoError(t, resp)
 	fileId := fileResp.FileInfos[0].Id
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	info, resp := Client.GetFileInfo(fileId)
 	CheckNoError(t, resp)
 
@@ -973,9 +967,6 @@ func TestGetPublicFile(t *testing.T) {
 	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
 
 	resp, err := http.Get(link)
 	require.NoError(t, err)
