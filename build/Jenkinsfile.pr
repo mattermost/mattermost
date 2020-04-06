@@ -270,6 +270,7 @@ pipeline {
 								sh """
 								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
 								/usr/local/bin/docker-compose --no-ansi ps
+								cat ../tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
 								"""
 							}
 						}
@@ -387,6 +388,7 @@ pipeline {
 								sh """
 								/usr/local/bin/docker-compose --no-ansi run --rm start_dependencies
 								/usr/local/bin/docker-compose --no-ansi ps
+								cat ../tests/${LDAP_DATA}-data.ldif | /usr/local/bin/docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
 								"""
 							}
 						}
