@@ -475,7 +475,11 @@ pipeline {
 	post {
 		always {
 			dir('src/github.com/mattermost/mattermost-server') {
-				junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'report*.xml'
+				junit allowEmptyResults: false, healthScaleFactor: 0.0, testResults: 'report*.xml'
+				archiveArtifacts 'report*.xml'
+			}
+			dir('src-copy/github.com/mattermost/mattermost-server') {
+				junit allowEmptyResults: false, healthScaleFactor: 0.0, testResults: 'report*.xml'
 				archiveArtifacts 'report*.xml'
 			}
 			dir('src/github.com/mattermost/mattermost-server/build') {
