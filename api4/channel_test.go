@@ -3304,12 +3304,14 @@ func TestMoveChannel(t *testing.T) {
 		dmChannel := th.CreateDmChannel(user)
 		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id, false)
 		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
 	})
 
 	t.Run("Should fail due to permissions", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
 		_, resp := Client.MoveChannel(publicChannel.Id, team1.Id, false)
 		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 
 	t.Run("Should fail to move channel due to a member not member of target team", func(t *testing.T) {
@@ -3324,6 +3326,7 @@ func TestMoveChannel(t *testing.T) {
 
 		_, resp = th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
 		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	})
 
 }
