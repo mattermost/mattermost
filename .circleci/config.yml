@@ -23,7 +23,7 @@ jobs:
       - checkout
       - run: |
           cd ../
-          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone git@github.com:mattermost/mattermost-webapp.git
+          git clone https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
@@ -369,19 +369,6 @@ jobs:
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             docker push mattermost/mattermost-team-edition:${TAG}
 
-  trigger-ee-tests:
-    machine: true
-    steps:
-      - run:
-          name: Trigger enterprise
-          command: |
-            curl \
-              --request POST \
-              --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
-              --user ${CIRCLECI_TOKEN} \
-              --data parameters[external_branch]=$CIRCLE_BRANCH \
-              --data parameters[external_sha]=$CIRCLE_SHA1
-
 workflows:
   version: 2
   untagged-build:
@@ -432,15 +419,3 @@ workflows:
       - test-schema:
           requires:
             - check-app-layers
-      - trigger-ee-tests:
-          context: matterbuild-circleci-token
-          requires:
-            - test-mysql
-            - test-postgres
-            - test-schema
-            - upload-s3
-            - upload-s3-sha
-            - build-docker
-          filters:
-            branches:
-              only: /^pull\/.*$/
