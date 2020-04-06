@@ -1272,6 +1272,16 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// VerifyUser will verify a user by its Id. (Requires manage system role)
+func (c *Client4) VerifyUser(userId string) (*User, *Response) {
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/verify", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
+}
+
 // SendVerificationEmail will send an email to the user with the provided email address, if
 // that user exists. The email will contain a link that can be used to verify the user's
 // email address.
