@@ -16,11 +16,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-type NotificationType string
+type notificationType string
 
-const NOTIFICATION_TYPE_CLEAR NotificationType = "clear"
-const NOTIFICATION_TYPE_MESSAGE NotificationType = "message"
-const NOTIFICATION_TYPE_UPDATE_BADGE NotificationType = "update_badge"
+const (
+	notificationTypeClear       notificationType = "clear"
+	notificationTypeMessage     notificationType = "message"
+	notificationTypeUpdateBadge notificationType = "update_badge"
+)
 
 const PUSH_NOTIFICATION_HUB_WORKERS = 1000
 const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
@@ -30,7 +32,7 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
-	notificationType   NotificationType
+	notificationType   notificationType
 	currentSessionId   string
 	userId             string
 	channelId          string
@@ -155,7 +157,7 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 
 	c := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
-		notificationType:   NOTIFICATION_TYPE_MESSAGE,
+		notificationType:   notificationTypeMessage,
 		post:               post,
 		user:               user,
 		channel:            channel,
@@ -229,7 +231,7 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 func (a *App) clearPushNotification(currentSessionId, userId, channelId string) {
 	channel := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
-		notificationType: NOTIFICATION_TYPE_CLEAR,
+		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
@@ -257,7 +259,7 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 func (a *App) UpdateMobileAppBadge(userId string) {
 	channel := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
-		notificationType: NOTIFICATION_TYPE_UPDATE_BADGE,
+		notificationType: notificationTypeUpdateBadge,
 		userId:           userId,
 	}
 }
@@ -275,11 +277,10 @@ func (a *App) createPushNotificationsHub() {
 func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 	for notification := range notifications {
 		var err *model.AppError
-
 		switch notification.notificationType {
-		case NOTIFICATION_TYPE_CLEAR:
+		case notificationTypeClear:
 			err = a.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
-		case NOTIFICATION_TYPE_MESSAGE:
+		case notificationTypeMessage:
 			err = a.sendPushNotificationSync(
 				notification.post,
 				notification.user,
@@ -290,7 +291,7 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 				notification.channelWideMention,
 				notification.replyToThreadType,
 			)
-		case NOTIFICATION_TYPE_UPDATE_BADGE:
+		case notificationTypeUpdateBadge:
 			err = a.updateMobileAppBadgeSync(notification.userId)
 		default:
 			mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
@@ -326,30 +327,28 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		mlog.String("status", model.PUSH_SEND_PREPARE),
 	)
 
-	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	url := strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/") + model.API_URL_SUFFIX_V1 + "/send_push"
+	request, err := http.NewRequest("POST", url, strings.NewReader(msg.ToJson()))
 	if err != nil {
 		return err
 	}
 
-	resp, err := a.HTTPService().MakeClient(true).Do(request)
+	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 
 	pushResponse := model.PushResponseFromJson(resp.Body)
 
-	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
+	switch pushResponse[model.PUSH_STATUS] {
+	case model.PUSH_STATUS_REMOVE:
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
 		return errors.New("Device was reported as removed")
-	}
-
-	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
+	case model.PUSH_STATUS_FAIL:
 		return errors.New(pushResponse[model.PUSH_STATUS_ERROR_MSG])
 	}
-
 	return nil
 }
 
@@ -425,7 +424,7 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if (userNotify == model.USER_NOTIFY_ALL || channelNotify == model.CHANNEL_NOTIFY_ALL) &&
-		(post.UserId != user.Id || post.Props["from_webhook"] == "true") {
+		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
 	}
 
@@ -521,16 +520,16 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	msg.SenderName = senderName
-	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
+	if ou, ok := post.GetProp("override_username").(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
 		msg.SenderName = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
+	if oi, ok := post.GetProp("override_icon_url").(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
 		msg.OverrideIconUrl = oi
 	}
 
-	if fw, ok := post.Props["from_webhook"].(string); ok {
+	if fw, ok := post.GetProp("from_webhook").(string); ok {
 		msg.FromWebhook = fw
 	}
 
