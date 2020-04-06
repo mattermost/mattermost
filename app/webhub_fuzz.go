@@ -55,8 +55,6 @@ func init() {
 	}
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
-	// defer mainHelper.Close()
-	// mainHelper.Main(m)
 }
 
 func dummyWebsocketHandler() http.HandlerFunc {
