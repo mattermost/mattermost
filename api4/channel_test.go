@@ -3309,8 +3309,20 @@ func TestPatchChannelModerations(t *testing.T) {
 		_, err := th.App.UpdateTeamScheme(team)
 		require.Nil(t, err)
 
-		_, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
 		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
 
 		patch := []*model.ChannelModerationPatch{
 			{
@@ -3319,8 +3331,20 @@ func TestPatchChannelModerations(t *testing.T) {
 			},
 		}
 
-		_, res = th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		moderations, res = th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
 		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
 	})
 
 }
