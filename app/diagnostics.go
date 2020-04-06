@@ -796,6 +796,10 @@ func (a *App) trackServer() {
 		data["system_admins"] = scr
 	}
 
+	if scr, err := a.Srv().Store.GetDbVersion(); err == nil {
+		data["database_version"] = scr
+	}
+
 	a.SendDiagnostic(TRACK_SERVER, data)
 }
 
