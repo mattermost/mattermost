@@ -3282,4 +3282,45 @@ func TestPatchChannelModerations(t *testing.T) {
 		require.NotEqual(t, scheme.DeleteAt, int64(0))
 	})
 
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		team := th.BasicTeam
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Nil(t, res.Error)
+
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+			},
+		}
+
+		_, res = th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+	})
+
 }
