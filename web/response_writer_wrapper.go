@@ -29,21 +29,21 @@ func BuildResponseWriter(original http.ResponseWriter) *ResponseWriterWrapper {
 	}
 }
 
-func (w *ResponseWriterWrapper) StatusCode() int {
-	return w.statusCode
+func (rw *ResponseWriterWrapper) StatusCode() int {
+	return rw.statusCode
 }
 
-func (w *ResponseWriterWrapper) WriteHeader(statusCode int) {
-	w.statusCode = statusCode
-	w.statusCodeWritten = true
-	w.ResponseWriter.WriteHeader(statusCode)
+func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.statusCodeWritten = true
+	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
-func (w *ResponseWriterWrapper) Write(data []byte) (int, error) {
-	if !w.statusCodeWritten {
-		w.statusCode = http.StatusOK
+func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
+	if !rw.statusCodeWritten {
+		rw.statusCode = http.StatusOK
 	}
-	return w.ResponseWriter.Write(data)
+	return rw.ResponseWriter.Write(data)
 }
 
 // Using as embedded makes the ResponseWrite be stored as interface and that way
