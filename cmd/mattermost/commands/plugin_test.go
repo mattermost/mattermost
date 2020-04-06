@@ -23,22 +23,29 @@ func TestPlugin(t *testing.T) {
 	*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
 	th.SetConfig(cfg)
 
-	os.MkdirAll("./test-plugins", os.ModePerm)
-	os.MkdirAll("./test-client-plugins", os.ModePerm)
+	err := os.MkdirAll("./test-plugins", os.ModePerm)
+	require.Nil(t, err)
+	err = os.MkdirAll("./test-client-plugins", os.ModePerm)
+	require.Nil(t, err)
 
 	path, _ := fileutils.FindDir("tests")
 
-	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	output := th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	assert.Contains(t, output, "Added plugin:")
+	output = th.CheckCommand(t, "plugin", "enable", "testplugin")
+	assert.Contains(t, output, "Enabled plugin: testplugin")
 
-	th.CheckCommand(t, "plugin", "enable", "testplugin")
 	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
+	require.NotNil(t, fs.Get().PluginSettings.PluginStates["testplugin"])
 	assert.True(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	fs.Close()
 
-	th.CheckCommand(t, "plugin", "disable", "testplugin")
+	output = th.CheckCommand(t, "plugin", "disable", "testplugin")
+	assert.Contains(t, output, "Disabled plugin: testplugin")
 	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
+	require.NotNil(t, fs.Get().PluginSettings.PluginStates["testplugin"])
 	assert.False(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	fs.Close()
 

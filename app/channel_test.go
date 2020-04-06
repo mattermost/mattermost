@@ -489,7 +489,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 		assert.Equal(t, model.POST_JOIN_CHANNEL, post.Type)
 		assert.Equal(t, user.Id, post.UserId)
-		assert.Equal(t, user.Username, post.Props["username"])
+		assert.Equal(t, user.Username, post.GetProp("username"))
 	}
 }
 
@@ -811,8 +811,8 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 func TestGetChannelsForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	channel := &model.Channel{
-		DisplayName: fmt.Sprintf("Public"),
-		Name:        fmt.Sprintf("public"),
+		DisplayName: "Public",
+		Name:        "public",
 		Type:        model.CHANNEL_OPEN,
 		CreatorId:   th.BasicUser.Id,
 		TeamId:      th.BasicTeam.Id,

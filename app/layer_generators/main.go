@@ -108,7 +108,7 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	for paramName := range paramsToTrace {
 		found := false
 		for _, param := range params {
-			if param.Name == paramName {
+			if param.Name == paramName || strings.HasPrefix(paramName, param.Name+".") {
 				found = true
 				break
 			}
@@ -214,6 +214,17 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			for i, typeName := range results {
 				if typeName == "*model.AppError" {
 					return fmt.Sprintf("resultVar%d", i)
+				}
+			}
+			return ""
+		},
+		"shouldTrace": func(params map[string]bool, param string) string {
+			if _, ok := params[param]; ok {
+				return fmt.Sprintf(`span.SetTag("%s", %s)`, param, param)
+			}
+			for pName := range params {
+				if strings.HasPrefix(pName, param+".") {
+					return fmt.Sprintf(`span.SetTag("%s", %s)`, pName, pName)
 				}
 			}
 			return ""

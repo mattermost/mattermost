@@ -489,7 +489,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, err
 		}
@@ -763,8 +763,8 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 	return a.Srv().Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 }
 
-func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, restrictions)
+func (a *App) GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, teamMembersGetOptions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -941,15 +941,6 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true
 			}, plugin.UserHasLeftTeamId)
-		})
-	}
-
-	esInterface := a.Elasticsearch()
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Srv().Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
 		})
 	}
 
@@ -1135,7 +1126,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	}()
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
-		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels, false)
 		cchan <- store.StoreResult{Data: channels, Err: err}
 		close(cchan)
 	}()
@@ -1600,7 +1591,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, nil)
 		if err != nil {
 			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
