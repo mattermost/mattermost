@@ -41,7 +41,7 @@ import (
 // 1. go get -u github.com/dvyukov/go-fuzz/go-fuzz github.com/dvyukov/go-fuzz/go-fuzz-build
 // 2. mv app/helper_test.go app/helper.go
 // (Also reduce the number of push notification workers to 1 to debug stack traces easily.)
-// 3. go-fuzz-build github.com/mattermost/mattermost-server/v5/app.
+// 3. go-fuzz-build github.com/mattermost/mattermost-server/v5/app
 // 4. Generate a corpus dir. It's just a directory with files containing random data
 // for go-fuzz to use as an initial seed. Use the generateInitialCorpus function for that.
 // 5. go-fuzz -bin=app-fuzz.zip -workdir=./workdir
@@ -145,20 +145,17 @@ func getActionData(data []byte, userIDs, teamIDs, channelIDs []string) *actionDa
 
 var startServerOnce sync.Once
 var dataChan chan []byte
-var resChan = make(chan int, 4) // buffer of 4 to keep reading panics.
+var resChan = make(chan int, 4) // buffer of 4 to keep reading results.
 
 func Fuzz(data []byte) int {
+	// We don't want to close anything down as the fuzzer will keep on running forever.
 	startServerOnce.Do(func() {
 		t := &testing.T{}
 		th := Setup(t).InitBasic()
-		// We don't want to close anything down as the fuzzer will keep on running forever.
-		// defer th.TearDown()
 
 		s := httptest.NewServer(dummyWebsocketHandler())
-		// defer s.Close()
 
 		th.App.HubStart()
-		// defer th.App.HubStop()
 
 		u1 := th.CreateUser()
 		u2 := th.CreateUser()
@@ -261,13 +258,6 @@ func Fuzz(data []byte) int {
 	// get data from res chan
 	result := <-resChan
 	return result
-
-	// close(dataChan)
-	// close(resChan)
-	// // drain resChan
-	// for res := range resChan {
-	// _ = res
-	// }
 }
 
 // generateInitialCorpus generates the corpus for go-fuzz.
