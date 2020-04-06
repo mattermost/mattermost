@@ -668,7 +668,6 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string, groups 
 
 	buf := ""
 	mentionsEnabledFields := getMentionsEnabledFields(post)
-
 	for _, message := range mentionsEnabledFields {
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
