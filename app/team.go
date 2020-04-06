@@ -763,8 +763,8 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 	return a.Srv().Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 }
 
-func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, restrictions)
+func (a *App) GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, teamMembersGetOptions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -1591,7 +1591,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, nil)
 		if err != nil {
 			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break

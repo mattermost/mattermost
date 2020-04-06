@@ -7,6 +7,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -195,7 +196,7 @@ func TestApplyPermissionsMap(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			result := applyPermissionsMap("system_admin", tc.RoleMap, tc.TranslationMap)
+			result := applyPermissionsMap(&model.Role{Name: "system_admin"}, tc.RoleMap, tc.TranslationMap)
 			sort.Strings(result)
 			assert.Equal(t, tc.ExpectedResult, result)
 		})
