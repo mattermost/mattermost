@@ -40,7 +40,8 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			if len(listOfAllowedChannels) == 0 {
+
+			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 				return []*model.User{}, nil
 			}
 
@@ -147,6 +148,10 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	}
 
 	var listOfAllowedChannels []string
+	if viewRestrictions == nil && teamId == "" {
+		return nil, nil
+	}
+
 	if viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {

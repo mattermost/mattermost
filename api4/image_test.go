@@ -91,5 +91,14 @@ func TestGetImage(t *testing.T) {
 		respBody, err := ioutil.ReadAll(resp.Body)
 		require.NoError(t, err)
 		assert.Equal(t, "success", string(respBody))
+
+		// local images should not be proxied, but forwarded
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=/plugins/test/image.png", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusFound, resp.StatusCode)
 	})
 }
