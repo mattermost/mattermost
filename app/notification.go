@@ -755,7 +755,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
 func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
-	groupMembersInTeam, err := a.Srv().Store.Group().GetMemberUsers(group.Id)
+	groupMembersInTeam, err := a.Srv().Store.Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
 	outOfChannelGroupMembers := []*model.User{}
 	if err != nil {
 		return false, err
