@@ -257,11 +257,11 @@
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Caractere inválido '__' no nome do canal para um canal não-direto"
+    "translation": "Caractere inválido '__' no nome do canal para um canal não-direto."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual"
+    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual."
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -273,15 +273,15 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "ID de usuário inválido para a criação do canal direto"
+    "translation": "ID de usuário inválido para a criação do canal direto."
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Os canais de grupo de mensagem deve conter pelo menos 3 e não mais que 8 usuários"
+    "translation": "Os canais de grupo de mensagem deve conter pelo menos 3 e não mais que 8 usuários."
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "Um dos usuários fornecidos não existe"
+    "translation": "Um dos usuários fornecidos não existe."
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -289,11 +289,11 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Não é possível excluir o canal padrão {{.Channel}}"
+    "translation": "Não é possível excluir o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
-    "translation": "O canal foi arquivado ou excluído"
+    "translation": "O canal foi arquivado ou excluído."
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "Você não tem a permissão apropriada"
+    "translation": "Você não tem a permissão apropriada."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -317,11 +317,11 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Não pode deixar o canal padrão {{.Channel}}"
+    "translation": "Não pode deixar o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Não é possível sair de um canal de mensagem direta"
+    "translation": "Não é possível sair de um canal de mensagem direta."
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -333,11 +333,11 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Licença não suporta Retenção de Dados."
+    "translation": "Sua licença não suporta moderação de canal"
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Falha ao atualizar o canal"
+    "translation": "Falha ao atualizar o canal."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -381,7 +381,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Não é possível remover usuário do canal padrão {{.Channel}}"
+    "translation": "Não é possível remover usuário do canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -401,15 +401,15 @@
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Não foi possível remover usuário para este tipo de canal"
+    "translation": "Não foi possível remover usuário para este tipo de canal."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Você não pode renomear um canal de mensagens diretas"
+    "translation": "Você não pode renomear um canal de mensagens diretas."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Você não pode renomear um canal de mensagens de grupo"
+    "translation": "Você não pode renomear um canal de mensagens de grupo."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "O canal foi arquivado ou excluído"
+    "translation": "O canal foi arquivado ou excluído."
   },
   {
     "id": "api.channel.update_channel.invalid_character.app_error",
@@ -429,15 +429,15 @@
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
+    "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Tipo do canal não pode ser atualizado"
+    "translation": "Tipo do canal não pode ser atualizado."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Atualização de membro do canal inválida: Você não pode adicionar ou remover a função de convidado manualmente"
+    "translation": "Atualização de membro do canal inválida: Você não pode adicionar ou remover a função de convidado manualmente."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -445,7 +445,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal."
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -461,11 +461,11 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Atualização de membro da equipe inválida: Você não pode adicionar ou remover a função de convidado manualmente"
+    "translation": "Atualização de membro da equipe inválida: Você não pode adicionar ou remover a função de convidado manualmente."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um integrante da equipe"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um integrante da equipe."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -489,19 +489,19 @@
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' falhou"
+    "translation": "Comando com o gatilho '{{.Trigger}}' falhou."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou uma resposta vazia"
+    "translation": "Comando com o gatilho '{{.Trigger}}' retornou uma resposta vazia."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou a resposta {{.Status}}"
+    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou a resposta {{.Status}}."
   },
   {
     "id": "api.command.execute_command.format.app_error",
-    "translation": "Command trigger word is missing the leading slash character"
+    "translation": "Palavra do gatilho do comando está faltando o caractere de barra principal"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -509,7 +509,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Nenhum comando disparador encontrado"
+    "translation": "Nenhum comando disparador encontrado."
   },
   {
     "id": "api.command.invite_people.desc",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "convidar_pessoas"
   },
   {
     "id": "api.command.invite_people.no_email",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Não é possível atualizar os comandos entre equipes"
+    "translation": "Não é possível atualizar os comandos entre equipes."
   },
   {
     "id": "api.command_away.desc",
@@ -657,11 +657,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Nome do canal deve ter {{.Length}} caracteres ou menos"
+    "translation": "Nome do canal deve ter {{.Length}} caracteres ou menos."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Nome do canal deve ter {{.Length}} caracteres ou mais"
+    "translation": "Nome do canal deve ter {{.Length}} caracteres ou mais."
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -717,7 +717,7 @@
   },
   {
     "id": "api.command_echo.delay.app_error",
-    "translation": "Os atrasos devem ser abaixo de 10000 segundos"
+    "translation": "Os atrasos devem ser abaixo de 10000 segundos."
   },
   {
     "id": "api.command_echo.desc",
@@ -725,7 +725,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Alto volume de solicitações de echo, não foi possível processar a requisição"
+    "translation": "Alto volume de solicitações de echo, não foi possível processar a requisição."
   },
   {
     "id": "api.command_echo.hint",
@@ -737,7 +737,7 @@
   },
   {
     "id": "api.command_echo.name",
-    "translation": "echo"
+    "translation": "eco"
   },
   {
     "id": "api.command_expand.desc",
@@ -753,7 +753,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Um erro ocorreu ao expandir as visualizações"
+    "translation": "Um erro ocorreu ao expandir as visualizações."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -884,7 +884,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Não foi possível achar o canal"
+    "translation": "Não foi possível achar o canal."
   },
   {
     "id": "api.command_join.name",
@@ -916,7 +916,7 @@
   },
   {
     "id": "api.command_logout.name",
-    "translation": "logout"
+    "translation": "sair"
   },
   {
     "id": "api.command_me.desc",
@@ -928,7 +928,7 @@
   },
   {
     "id": "api.command_me.name",
-    "translation": "me"
+    "translation": "eu"
   },
   {
     "id": "api.command_msg.desc",
@@ -1076,7 +1076,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "O comando de busca não é suportado no seu equipamento"
+    "translation": "O comando de busca não é suportado no seu equipamento."
   },
   {
     "id": "api.command_settings.desc",
@@ -1088,7 +1088,7 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "O comando de configurações não é suportado no seu equipamento"
+    "translation": "O comando de configurações não é suportado no seu equipamento."
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -1100,7 +1100,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "O comando de busca não é suportado no seu dispositivo"
+    "translation": "O comando de busca não é suportado no seu dispositivo."
   },
   {
     "id": "api.command_shrug.desc",
@@ -1128,11 +1128,11 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "{{.Name}} inválido ou ausente no corpo da requisição"
+    "translation": "{{.Name}} inválido ou ausente no corpo da requisição."
   },
   {
     "id": "api.context.invalid_param.app_error",
-    "translation": "Parâmetro {{.Name}} inválido"
+    "translation": "Parâmetro {{.Name}} inválido."
   },
   {
     "id": "api.context.invalid_token.error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.invalid_url_param.app_error",
-    "translation": "Parâmetro {{.Name}} inválido ou ausente na URL de requisição"
+    "translation": "Parâmetro {{.Name}} inválido ou ausente na URL de requisição."
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1148,11 +1148,11 @@
   },
   {
     "id": "api.context.permissions.app_error",
-    "translation": "Você não tem a permissão apropriada"
+    "translation": "Você não tem a permissão apropriada."
   },
   {
     "id": "api.context.server_busy.app_error",
-    "translation": "Servidor está ocupado, os serviços não críticos estão temporariamente indisponíveis"
+    "translation": "Servidor está ocupado, os serviços não críticos estão temporariamente indisponíveis."
   },
   {
     "id": "api.context.session_expired.app_error",
@@ -1160,11 +1160,11 @@
   },
   {
     "id": "api.context.token_provided.app_error",
-    "translation": "Sessão não é OAuth mas o token foi fornecido na consulta"
+    "translation": "Sessão não é OAuth mas o token foi fornecido na consulta."
   },
   {
     "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
-    "translation": "Recurso de termos de serviço personalizado está desativado"
+    "translation": "Recurso de termos de serviço personalizado está desativado."
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -1176,7 +1176,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Email em lote foi desabilitado pelo administrador do sistema"
+    "translation": "Email em lote foi desabilitado pelo administrador do sistema."
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1218,7 +1218,7 @@
   },
   {
     "id": "api.emoji.create.other_user.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "api.emoji.create.parse.app_error",
@@ -1286,19 +1286,19 @@
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
-    "translation": "O link público não parece ser válido"
+    "translation": "O link público não parece ser válido."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
-    "translation": "Arquivo não tem uma imagem de pré-visualização"
+    "translation": "Arquivo não tem uma imagem de pré-visualização."
   },
   {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-    "translation": "Arquivo não tem uma imagem em miniatura"
+    "translation": "Arquivo não tem uma imagem em miniatura."
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
-    "translation": "Links públicos foram desabilitados"
+    "translation": "Links públicos foram desabilitados."
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
@@ -1322,19 +1322,19 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Encontrado um erro ao ler a partir do servidor de armazenamento local"
+    "translation": "Encontrado um erro ao ler a partir do servidor de armazenamento local."
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": "Encontrado um erro ao ler a partir do armazenamento S3"
+    "translation": "Encontrado um erro ao ler a partir do armazenamento S3."
   },
   {
     "id": "api.file.reader.reading_local.app_error",
-    "translation": "Encontrado um erro ao iniciar a leitura a partir do servidor de armazenamento local"
+    "translation": "Encontrado um erro ao iniciar a leitura a partir do servidor de armazenamento local."
   },
   {
     "id": "api.file.reader.s3.app_error",
-    "translation": "Encontrado um erro ao iniciar a leitura a partir do armazenamento S3"
+    "translation": "Encontrado um erro ao iniciar a leitura a partir do armazenamento S3."
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
@@ -1366,7 +1366,7 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensão ({{.Width}} por {{.Height}} pixels) excede os limites"
+    "translation": "{{.Filename}} dimensão ({{.Width}} por {{.Height}} pixels) excede os limites."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1394,15 +1394,15 @@
   },
   {
     "id": "api.file.write_file.s3.app_error",
-    "translation": "Encontrado um erro ao gravar no S3"
+    "translation": "Encontrado um erro ao gravar no S3."
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Encontrado um erro ao criar o diretório para o novo arquivo"
+    "translation": "Encontrado um erro ao criar o diretório para o novo arquivo."
   },
   {
     "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Encontrado um erro ao gravar no servidor local de armazenamento"
+    "translation": "Encontrado um erro ao gravar no servidor local de armazenamento."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1426,7 +1426,7 @@
   },
   {
     "id": "api.license.add_license.array.app_error",
-    "translation": "Matriz vazia sobre a 'licença' na requisição"
+    "translation": "Matriz vazia sobre a 'licença' na requisição."
   },
   {
     "id": "api.license.add_license.expired.app_error",
@@ -1442,11 +1442,11 @@
   },
   {
     "id": "api.license.add_license.no_file.app_error",
-    "translation": "Nenhum arquivo sobre a 'licença' no pedido"
+    "translation": "Nenhum arquivo sobre a 'licença' no pedido."
   },
   {
     "id": "api.license.add_license.open.app_error",
-    "translation": "Não foi possível abrir arquivo de licença"
+    "translation": "Não foi possível abrir arquivo de licença."
   },
   {
     "id": "api.license.add_license.save.app_error",
@@ -1466,11 +1466,11 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "marshal erro"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
-    "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url"
+    "translation": "invalid_request: redirect_uri fornecido não corresponde a callback_url registrado."
   },
   {
     "id": "api.oauth.allow_oauth.turn_off.app_error",
@@ -1482,15 +1482,15 @@
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
-    "translation": "invalid_request: Bad client_id"
+    "translation": "invalid_request: Bad client_id."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Faltando client_secret"
+    "translation": "invalid_request: Faltando client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
-    "translation": "invalid_request: Bad grant_type"
+    "translation": "invalid_request: Bad grant_type."
   },
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
@@ -1502,43 +1502,43 @@
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
-    "translation": "invalid_grant: Código de autorização inválido ou expirado"
+    "translation": "invalid_grant: Código de autorização inválido ou expirado."
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto acessava o banco de dados"
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto acessava o banco de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava o token de acesso no banco de dados"
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava o token de acesso no banco de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava a sessão no banco de dados"
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto salvava a sessão no banco de dados."
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error: Encontrado um erro interno no servidor enquanto obtia usuário do banco de dados"
+    "translation": "server_error: Encontrado um erro interno no servidor enquanto obtia usuário do banco de dados."
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
-    "translation": "invalid_request: Faltando código"
+    "translation": "invalid_request: Faltando código."
   },
   {
     "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-    "translation": "invalid_request: Faltando refresh_token"
+    "translation": "invalid_request: Faltando refresh_token."
   },
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
-    "translation": "invalid_request: Fornecido redirect_uri que não corresponde ao código de autorização redirect_uri"
+    "translation": "invalid_request: Fornecido redirect_uri que não corresponde ao código de autorização redirect_uri."
   },
   {
     "id": "api.oauth.get_access_token.refresh_token.app_error",
-    "translation": "invalid_grant: Inválido refresh token"
+    "translation": "invalid_grant: Inválido refresh token."
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "State token inválido"
+    "translation": "State token inválido."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1546,15 +1546,15 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Erro ao deletar a sessão do DB"
+    "translation": "Erro ao deletar a sessão do DB."
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Erro ao deletar o token do DB"
+    "translation": "Erro ao deletar o token de acesso do DB."
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Erro ao obter o token de acesso do DB antes da exclusão"
+    "translation": "Erro ao obter o token de acesso do DB antes da exclusão."
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1562,11 +1562,11 @@
   },
   {
     "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-    "translation": "O link de inscrição expirou"
+    "translation": "O link de inscrição expirou."
   },
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
+    "translation": "O link de inscrição não parece ser válido."
   },
   {
     "id": "api.outgoing_webhook.disabled.app_error",
@@ -1582,15 +1582,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "Matriz de arquivo está vazia na requisição multipart/form"
+    "translation": "Matriz de arquivo está vazia na requisição multipart/form."
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Não foi possível abrir o arquivo na requisição multipart/form"
+    "translation": "Não foi possível abrir o arquivo na requisição multipart/form."
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Arquivo faltando na requisição multipart/form"
+    "translation": "Arquivo faltando na requisição multipart/form."
   },
   {
     "id": "api.plugin.verify_plugin.app_error",
@@ -1618,15 +1618,15 @@
   },
   {
     "id": "api.post.create_post.channel_root_id.app_error",
-    "translation": "ChannelId inválido para o parâmetro RootId"
+    "translation": "ChannelId inválido para o parâmetro RootId."
   },
   {
     "id": "api.post.create_post.parent_id.app_error",
-    "translation": "Parâmetro ParentId inválido"
+    "translation": "Parâmetro ParentId inválido."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
-    "translation": "Parâmetro RootId inválido"
+    "translation": "Parâmetro RootId inválido."
   },
   {
     "id": "api.post.create_post.town_square_read_only",
@@ -1634,7 +1634,7 @@
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": "Erro ao criar a publicação"
+    "translation": "Erro ao criar a publicação."
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -1662,11 +1662,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Id da ação inválido"
+    "translation": "Id da ação inválido."
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Erro na ação de integração"
+    "translation": "Erro na ação de integração."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1732,7 +1732,7 @@
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
-    "translation": "Já excluído id={{.PostId}}"
+    "translation": "Já excluído id={{.PostId}}."
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
@@ -1740,11 +1740,11 @@
   },
   {
     "id": "api.post.update_post.system_message.app_error",
-    "translation": "Não foi possível atualizar a mensagem do sistema"
+    "translation": "Não foi possível atualizar a mensagem do sistema."
   },
   {
     "id": "api.post_get_post_by_id.get.app_error",
-    "translation": "Não foi possível obter a publicação"
+    "translation": "Não foi possível obter a publicação."
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
@@ -1768,19 +1768,19 @@
   },
   {
     "id": "api.push_notification.id_loaded.fetch.app_error",
-    "translation": "Ocorreu um erro ao buscar a notificação push carregada por ID"
+    "translation": "Ocorreu um erro ao buscar a notificação push carregada por ID."
   },
   {
     "id": "api.push_notifications.message.parse.app_error",
-    "translation": "Ocorreu um erro ao construir a mensagem de notificação push"
+    "translation": "Ocorreu um erro ao construir a mensagem de notificação push."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "Ocorreu um erro ao enviar a entrega de recibo para o serviço de notificação por push"
+    "translation": "Ocorreu um erro ao enviar a entrega de recibo para o serviço de notificação por push."
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
-    "translation": "Ocorreu um erro ao construir a mensagem de aviso de notificação push"
+    "translation": "Ocorreu um erro ao construir a mensagem de aviso de notificação push."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1936,7 +1936,7 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "Usuário não localizado"
+    "translation": "Usuário não localizado."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
-    "translation": "Você não tem a permissão apropriada para editar o cabeçalho do canal."
+    "translation": "Você não tem a permissão apropriada para listar todas as equipes"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1980,7 +1980,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Inválido nome do driver em configurações de arquivo.  Deve ser 'local' ou 'amazons3'"
+    "translation": "Inválido nome do driver em configurações de arquivo.  Deve ser 'local' ou 'amazons3'."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1988,15 +1988,15 @@
   },
   {
     "id": "api.team.import_team.array.app_error",
-    "translation": "Matriz vazia em 'file' na requisição"
+    "translation": "Matriz vazia em 'file' na requisição."
   },
   {
     "id": "api.team.import_team.integer.app_error",
-    "translation": "Tamanho do arquivo não é um inteiro"
+    "translation": "Tamanho do arquivo não é um inteiro."
   },
   {
     "id": "api.team.import_team.no_file.app_error",
-    "translation": "Nenhum arquivo sobre a 'file' no pedido"
+    "translation": "Nenhum arquivo sobre a 'file' no pedido."
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
@@ -2004,11 +2004,11 @@
   },
   {
     "id": "api.team.import_team.open.app_error",
-    "translation": "Não foi possível abrir o arquivo"
+    "translation": "Não foi possível abrir o arquivo."
   },
   {
     "id": "api.team.import_team.parse.app_error",
-    "translation": "Não foi possível processar o formulário multipart"
+    "translation": "Não foi possível processar o formulário multipart."
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
@@ -2076,7 +2076,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "Ocorreu um erro ao obter a equipe"
+    "translation": "Ocorreu um erro ao obter a equipe."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2096,23 +2096,23 @@
   },
   {
     "id": "api.team.set_team_icon.array.app_error",
-    "translation": "Matriz vazia em 'image' na requisição"
+    "translation": "Matriz vazia em 'image' na requisição."
   },
   {
     "id": "api.team.set_team_icon.decode.app_error",
-    "translation": "Não foi possível ler o ícone da equipe"
+    "translation": "Não foi possível ler o ícone da equipe."
   },
   {
     "id": "api.team.set_team_icon.decode_config.app_error",
-    "translation": "Não foi possível ler os metadados do ícone da equipe"
+    "translation": "Não foi possível ler os metadados do ícone da equipe."
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Não foi possível codificar o ícone da equipe"
+    "translation": "Não foi possível codificar o ícone da equipe."
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "Ocorreu um erro ao obter a equipe"
+    "translation": "Ocorreu um erro ao obter a equipe."
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -2120,11 +2120,11 @@
   },
   {
     "id": "api.team.set_team_icon.open.app_error",
-    "translation": "Não foi possível abrir arquivo de imagem"
+    "translation": "Não foi possível abrir arquivo de imagem."
   },
   {
     "id": "api.team.set_team_icon.parse.app_error",
-    "translation": "Não foi possível processar o formulário multipart"
+    "translation": "Não foi possível processar o formulário multipart."
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
@@ -2136,11 +2136,11 @@
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "Não é possível salvar o ícone da equipe"
+    "translation": "Não é possível salvar o ícone da equipe."
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "Ocorreu um erro ao atualizar o ícone da equipe"
+    "translation": "Ocorreu um erro ao atualizar o ícone da equipe."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2400,7 +2400,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA não está disponível para este tipo de conta"
+    "translation": "MFA não está disponível para este tipo de conta."
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2408,11 +2408,11 @@
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
-    "translation": "Resposta errada da solicitação de token"
+    "translation": "Resposta errada da solicitação de token."
   },
   {
     "id": "api.user.authorize_oauth_user.bad_token.app_error",
-    "translation": "Tipo de token errado"
+    "translation": "Tipo de token errado."
   },
   {
     "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2420,23 +2420,23 @@
   },
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
-    "translation": "Faltando o token de acesso"
+    "translation": "Faltando o token de acesso."
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "Resposta inválida recebida do provedor de serviços OAuth"
+    "translation": "Resposta inválida recebida do provedor de serviços OAuth."
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
-    "translation": "Solicitação de token para {{.Service}} falhou"
+    "translation": "Solicitação de token para {{.Service}} falhou."
   },
   {
     "id": "api.user.authorize_oauth_user.token_failed.app_error",
-    "translation": "Solicitação de token falhou"
+    "translation": "Solicitação de token falhou."
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Provedor de serviço OAuth não suportado"
+    "translation": "Provedor de serviço OAuth não suportado."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2448,19 +2448,19 @@
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
-    "translation": "Acesso falhou por causa de senha inválida"
+    "translation": "Acesso falhou por causa de senha inválida."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "E-mail em branco"
+    "translation": "E-mail em branco."
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Não foi possível processar os dados de autenticação do {{.Service}} de objeto de usuário"
+    "translation": "Não foi possível processar os dados de autenticação do {{.Service}} de objeto de usuário."
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor."
   },
   {
     "id": "api.user.create_email_token.error",
@@ -2472,11 +2472,11 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Não foi possível criar o usuário fora do {{.Service}} do objeto de usuário"
+    "translation": "Não foi possível criar o usuário fora do {{.Service}} do objeto de usuário."
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -2484,15 +2484,15 @@
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": "Não foi possível criar a imagem font padrão"
+    "translation": "Não foi possível criar a imagem font padrão."
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": "Não foi possível codificar a imagem padrão do perfil"
+    "translation": "Não foi possível codificar a imagem padrão do perfil."
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": "Não foi possível adicionar a imagem inicial de perfil padrão para o usuário"
+    "translation": "Não foi possível adicionar a imagem inicial de perfil padrão para o usuário."
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
@@ -2508,7 +2508,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "Sua licença não suporta contas convidado"
+    "translation": "Sua licença não suporta contas convidado."
   },
   {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
@@ -2524,19 +2524,19 @@
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "O link de inscrição expirou"
+    "translation": "O link de inscrição expirou."
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "O link de inscrição não parece ser válido"
+    "translation": "O link de inscrição não parece ser válido."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
-    "translation": "Não é possível converte o usuário para convidado devido ele já ser um convidado"
+    "translation": "Não é possível converte o usuário para convidado devido ele já ser um convidado."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "AD/LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -2544,7 +2544,7 @@
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Provedor de serviço OAuth não suportado"
+    "translation": "Provedor de serviço OAuth não suportado."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2552,11 +2552,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "AD/LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Está conta de usuário não utiliza AD/LDAP"
+    "translation": "Está conta de usuário não utiliza AD/LDAP."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2564,15 +2564,15 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "O login do bot é proibido"
+    "translation": "O login do bot é proibido."
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Tentou entrar usando o recurso experimental ClientSideCert sem fornecer um certificado válido"
+    "translation": "Tentou entrar usando o recurso experimental ClientSideCert sem fornecer um certificado válido."
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Tentativa de usar o recurso experimental ClientSideCertEnable sem uma licença corporativa válida"
+    "translation": "Tentativa de usar o recurso experimental ClientSideCertEnable sem uma licença corporativa válida."
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -2604,31 +2604,31 @@
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": "Login falhou por causa do endereço de email não ter sido verificado"
+    "translation": "Login falhou por causa do endereço de email não ter sido verificado."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
-    "translation": "Por favor logue usando {{.AuthService}}"
+    "translation": "Por favor entre usando {{.AuthService}}."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "O login do bot é proibido"
+    "translation": "O login do bot é proibido."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
+    "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor."
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
-    "translation": "Não foi possível processar os dados de autenticação do {{.Service}} de objeto de usuário"
+    "translation": "Não foi possível processar os dados de autenticação do {{.Service}} de objeto de usuário."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "AD/LDAP não está disponível neste servidor"
+    "translation": "AD/LDAP não está disponível neste servidor."
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
-    "translation": "Atualização de senha falhou devido ao contexto user_id não combinar com id de usuário fornecido"
+    "translation": "Atualização de senha falhou devido ao contexto user_id não combinar com id de usuário fornecido."
   },
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
@@ -2636,7 +2636,7 @@
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
-    "translation": "Não foi possível converter o convidado em usuário comum porque não é um convidado"
+    "translation": "Não foi possível converter o convidado em usuário comum porque não é um convidado."
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2656,7 +2656,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Não foi possível redefinir a senha para conta SSO"
+    "translation": "Não foi possível redefinir a senha para conta SSO."
   },
   {
     "id": "api.user.reset_password.token_parse.error",
@@ -2692,11 +2692,11 @@
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
-    "translation": "Falha ao enviar email de senha redefinida com sucesso"
+    "translation": "Falha ao enviar email de senha redefinida com sucesso."
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Não foi possível redefinir a senha para conta SSO"
+    "translation": "Não foi possível redefinir a senha para conta SSO."
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2724,19 +2724,19 @@
   },
   {
     "id": "api.user.update_active.permissions.app_error",
-    "translation": "Você não tem a permissão apropriada"
+    "translation": "Você não tem a permissão apropriada."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Não foi possível obter o usuário de {{.Service}} do objeto de usuário"
+    "translation": "Não foi possível obter o usuário de {{.Service}} do objeto de usuário."
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Atualização da senha falhou devido ao contexto user_id não combinar com props do usuário fornecido"
+    "translation": "Atualização da senha falhou devido ao contexto user_id não combinar com props do usuário fornecido."
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "Atualização de senha falhou"
+    "translation": "Atualização de senha falhou."
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
@@ -2748,11 +2748,11 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "Atualização de senha falhou porque o usuário está conectado através de um serviço OAuth"
+    "translation": "Atualização de senha falhou porque o usuário está conectado através de um serviço OAuth."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Atualização de senha falhou porque não foi possível encontrar uma conta válida"
+    "translation": "Atualização de senha falhou porque não foi possível encontrar uma conta válida."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
@@ -2764,11 +2764,11 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Matriz vazia em 'image' na requisição"
+    "translation": "Matriz vazia em 'image' na requisição."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Não foi possível decodificar a imagem do perfil"
+    "translation": "Não foi possível decodificar a imagem do perfil."
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
@@ -2776,7 +2776,7 @@
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "Não foi possível codificar a imagem do perfil"
+    "translation": "Não foi possível codificar a imagem do perfil."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
@@ -2784,11 +2784,11 @@
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": "Não foi possível abrir arquivo de imagem"
+    "translation": "Não foi possível abrir arquivo de imagem."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Não foi possível processar o formulário multipart"
+    "translation": "Não foi possível processar o formulário multipart."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -2800,7 +2800,7 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "Não foi possível enviar a imagem do perfil"
+    "translation": "Não foi possível enviar a imagem do perfil."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -2820,7 +2820,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Falha ao atualizar conexão websocket"
+    "translation": "Falha ao atualizar conexão websocket."
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2852,7 +2852,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Ou trigger_words ou channel_id precisa ser definido"
+    "translation": "Ou trigger_words ou channel_id precisa ser definido."
   },
   {
     "id": "api.webhook.incoming.error",
@@ -2860,7 +2860,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Não é possível atualizar os webhook entre as equipes"
+    "translation": "Não é possível atualizar os webhook entre as equipes."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2868,11 +2868,11 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Parâmetro {{.Name}} inválido"
+    "translation": "Parâmetro {{.Name}} inválido."
   },
   {
     "id": "api.websocket_handler.server_busy.app_error",
-    "translation": "Servidor está ocupado, os serviços não críticos estão temporariamente indisponíveis"
+    "translation": "Servidor está ocupado, os serviços não críticos estão temporariamente indisponíveis."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -2896,11 +2896,11 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} foi desativado. Eles gerenciaram as seguintes contas de bot que agora foram desativadas.\n\n{{.BotNames}}{{else}}{{.UserName}} foi desativado. Eles gerenciaram {{.NumBots}} contas de bot que foram desativadas agora, incluindo o seguinte:\n\n{{.BotNames}}{{end}}Você pode se apropriar de cada bot ativando-o em **Integrações > Contas de Bot** e criando novos tokens para o bot.\n\nPara obter mais informações, consulte nossa [documentação](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} foi desativado. Eles gerenciaram as seguintes contas de bot que ainda estão ativadas.\n\n{{.BotNames}}\n{{else}}{{.UserName}} foi desativado. Eles gerenciaram {{.NumBots}} contas de bot que ainda estão ativadas, incluindo o seguinte:\n\n{{.BotNames}}{{end}}É altamente recomendável que você tome posse de cada bot, reativando-o em ** Integrações > Contas de Bot** e criando novos tokens para o bot.\n\nPara obter mais informações, consulte nossa [documentação](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nSe você deseja que as contas bot sejam desativadas automaticamente após a desativação do usuário, defina \"Desativar contas bot após a desativação do usuário\" em **Console do sistema > Integrações > Contas bot** como verdadeiro.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} foi desativado. Eles gerenciaram as seguintes contas de bot que agora foram desativadas.\n\n{{.BotNames}}{{else}}{{.UserName}} foi desativado. Eles gerenciaram {{.NumBots}} contas de bot que foram desativadas agora, incluindo o seguinte:\n\n{{.BotNames}}{{end}}Você pode se apropriar de cada bot ativando-o em **Integrações > Contas de Bot** e criando novos tokens para o bot.\n\nPara obter mais informações, consulte nossa [documentação](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} foi desativado. Eles gerenciaram as seguintes contas de bot que ainda estão ativadas.\n\n{{.BotNames}}\n{{else}}{{.UserName}} foi desativado. Eles gerenciaram {{.NumBots}} contas de bot que ainda estão ativadas, incluindo o seguinte:\n\n{{.BotNames}}{{end}}É altamente recomendável que você tome posse de cada bot, reativando-o em ** Integrações > Contas de Bot** e criando novos tokens para o bot.\n\nPara obter mais informações, consulte nossa [documentação](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nSe você deseja que as contas bot sejam desativadas automaticamente após a desativação do usuário, defina “Desativar contas bot após a desativação do usuário” em **Console do sistema > Integrações > Contas bot** como verdadeiro.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "É necessário informar o ID da equipe para criar um canal"
+    "translation": "É necessário informar o ID da equipe para criar um canal."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -2968,11 +2968,11 @@
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": "Some teams not found"
+    "translation": "Algumas equipes não encontradas"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Some users not found"
+    "translation": "Alguns usuários não encontrados"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -3556,11 +3556,11 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Falha ao salvar o estado do plugin na configuração"
+    "translation": "Falha ao salvar o estado do plugin na configuração."
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Não é possível desativar o plugin"
+    "translation": "Não é possível desativar o plugin."
   },
   {
     "id": "app.plugin.delete_public_key.delete.app_error",
@@ -3576,7 +3576,7 @@
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encontrado erro no sistema de arquivo"
+    "translation": "Encontrado erro no sistema de arquivo."
   },
   {
     "id": "app.plugin.flag_managed.app_error",
@@ -3588,7 +3588,7 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Não é possível obter os plugins ativos"
+    "translation": "Não é possível obter os plugins ativos."
   },
   {
     "id": "app.plugin.get_public_key.get_file.app_error",
@@ -3596,7 +3596,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Não foi possível obter os status dos plugins"
+    "translation": "Não foi possível obter os estados dos plugins."
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3620,11 +3620,11 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Versão do plugin não pode ser lida"
+    "translation": "Versão do plugin não pode ser lida."
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Não foi possível encontrar o manifesto para o plugin extraído"
+    "translation": "Não foi possível encontrar o manifesto para o plugin extraído."
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
@@ -3664,11 +3664,11 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Plugin não está instalado"
+    "translation": "Plugin não está instalado."
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Não é possível deletar o plugin"
+    "translation": "Não é possível deletar o plugin."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -3720,7 +3720,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "Um erro ocorreu salvando a configuração"
+    "translation": "Um erro ocorreu salvando a configuração."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3732,7 +3732,7 @@
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Falha ao analisar a data de instalação"
+    "translation": "Falha ao analisar a data de instalação."
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
@@ -4004,27 +4004,27 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch já está iniciado"
+    "translation": "Elasticsearch já está iniciado."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Erro ao criar o bulk processor do Elastisearch"
+    "translation": "Erro ao criar o bulk processor do Elastisearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Falha ao obter versão do servidor Elasticsearch"
+    "translation": "Falha ao obter versão do servidor Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Falha ao decodificar a versão do servidor Elasticsearch"
+    "translation": "Falha ao decodificar a versão do servidor Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Erro ao iniciar o bulk processor do Elasticsearch"
+    "translation": "Erro ao iniciar o bulk processor do Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch já está parado"
+    "translation": "Elasticsearch já está parado."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4048,7 +4048,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "interface ldap era nula"
+    "translation": "interface ldap era nula."
   },
   {
     "id": "ent.ldap.create_fail",
@@ -4064,7 +4064,7 @@
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Senha inválida"
+    "translation": "Senha inválida."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -4072,15 +4072,15 @@
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Nome de usuário dado corresponde a vários usuários"
+    "translation": "Nome de usuário dado corresponde a vários usuários."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Falha ao pesquisar o servidor AD/LDAP"
+    "translation": "Falha ao pesquisar o servidor AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Não foi possível conectar no servidor AD/LDAP"
+    "translation": "Não foi possível conectar no servidor AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -4088,7 +4088,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Usuário não registrado no servidor AD/LDAP"
+    "translation": "Usuário não registrado no servidor AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -4096,11 +4096,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Não foi possível obter todos os usuários usando AD/LDAP"
+    "translation": "Não foi possível obter todos os usuários usando AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "erro ao obter os grupos"
+    "translation": "erro ao obter os grupos."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -4116,15 +4116,15 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "Filtro Admin AD/LDAP Inválido"
+    "translation": "Filtro Admin AD/LDAP Inválido."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Filtro AD/LDAP Inválido"
+    "translation": "Filtro AD/LDAP Inválido."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "Filtro AD/LDAP Inválido"
+    "translation": "Filtro Convidado AD/LDAP Inválido."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4188,15 +4188,15 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Não foi possível obter a informação do arquivo temporário de exportação"
+    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Não foi possível obter um remetente de email do arquivo temporário"
+    "translation": "Não foi possível obter um remetente de email do arquivo temporário."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Não foi possível abrir o arquivo temporário de exportação"
+    "translation": "Não foi possível abrir o arquivo temporário de exportação."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4252,7 +4252,7 @@
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Recebido uma resposta em branco do Provedor de Identidade"
+    "translation": "Recebido uma resposta em branco do Provedor de Identidade."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -4328,11 +4328,11 @@
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Não é possível processar a URL"
+    "translation": "Não é possível processar a URL."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": "Não é possível obter canais"
+    "translation": "Não é possível obter canais."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4340,7 +4340,7 @@
   },
   {
     "id": "mfa.activate.authenticate.app_error",
-    "translation": "Erro ao tentar autenticar o token MFA"
+    "translation": "Erro ao tentar autenticar o token MFA."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
@@ -4348,23 +4348,23 @@
   },
   {
     "id": "mfa.activate.save_active.app_error",
-    "translation": "Não foi possível atualizar o status ativo MFA para o usuário"
+    "translation": "Não foi possível atualizar o status ativo MFA para o usuário."
   },
   {
     "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Não foi possível atualizar o status ativo MFA para o usuário"
+    "translation": "Não foi possível atualizar o status ativo MFA para o usuário."
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Erro ao limpar a chave secreta MFA"
+    "translation": "Erro ao limpar a chave secreta MFA."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "Erro ao gerar QR code"
+    "translation": "Erro ao gerar QR code."
   },
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Erro ao salvar a chave secreta MFA"
+    "translation": "Erro ao salvar a chave secreta MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4384,199 +4384,199 @@
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Token de acesso inválido"
+    "translation": "Token de acesso inválido."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": "Id do cliente inválido"
+    "translation": "Id do cliente inválido."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Uri de redirecionamento inválida"
+    "translation": "Uri de redirecionamento inválida."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Token de atualização inválido"
+    "translation": "Token de atualização inválido."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Código de autorização inválido"
+    "translation": "Código de autorização inválido."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Id do cliente inválido"
+    "translation": "Id do cliente inválido."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Criado em deve ser um tempo válido."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Expira em deve ser definido"
+    "translation": "Expira em deve ser definido."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": "Uri de redirecionamento inválida"
+    "translation": "Uri de redirecionamento inválida."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Tipo de resposta inválida"
+    "translation": "Tipo de resposta inválida."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Escopo inválido"
+    "translation": "Escopo inválido."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": "Estado inválido"
+    "translation": "Estado inválido."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Inválido create at"
+    "translation": "Inválido create at."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Inválido creator id"
+    "translation": "Inválido creator id."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Descrição inválida"
+    "translation": "Descrição inválida."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Inválido update at"
+    "translation": "Inválido update at."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Nome do usuário inválido."
+    "translation": "Nome do usuário inválido.."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas"
+    "translation": "Nome deve ter 2 ou mais caracteres alfanuméricos em minúsculas."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Criado em deve ser um tempo válido."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Inválido creator id"
+    "translation": "Inválido creator id."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Nome para exibição inválido"
+    "translation": "Nome para exibição inválido."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "Cabeçalho inválido"
+    "translation": "Cabeçalho inválido."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "ID inválida."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "Propósito inválido"
+    "translation": "Propósito inválido."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Tipo inválido"
+    "translation": "Tipo inválido."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Update deve ser um tempo válido"
+    "translation": "Atualizado em deve ser um tempo válido."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "Id do canal inválida"
+    "translation": "Id do canal inválida."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Valor de notificação de email inválida"
+    "translation": "Valor de notificação de email inválida."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Status de menções de canal de ignorar inválido"
+    "translation": "Status de menções de canal de ignorar inválido."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": "Nível de notificação inválido"
+    "translation": "Nível de notificação inválido."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Nível de notificação de push inválido"
+    "translation": "Nível de notificação de push inválido."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "Nível do marcador não lido inválido"
+    "translation": "Nível do marcador não lido inválido."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.client.connecting.app_error",
-    "translation": "Encontramos um erro enquanto conectava ao servidor"
+    "translation": "Encontramos um erro enquanto conectava ao servidor."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt deve ser definido"
+    "translation": "CreateAt deve ser definido."
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Hostname deve ser definido"
+    "translation": "Hostname deve ser definido."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "ID inválida."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt deve ser definido"
+    "translation": "LastPingAt deve ser definido."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName deve ser definido"
+    "translation": "ClusterName deve ser definido."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Type deve ser definido"
+    "translation": "Type deve ser definido."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Criado em deve ser um tempo válido."
   },
   {
     "id": "model.command.is_valid.description.app_error",
-    "translation": "Descrição inválida"
+    "translation": "Descrição inválida."
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Título inválido"
+    "translation": "Título inválido."
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "ID inválida."
   },
   {
     "id": "model.command.is_valid.method.app_error",
-    "translation": "Método inválido"
+    "translation": "Método inválido."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "ID da equipe inválido"
+    "translation": "ID da equipe inválido."
   },
   {
     "id": "model.command.is_valid.token.app_error",
@@ -4584,75 +4584,75 @@
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Gatilho inválido"
+    "translation": "Gatilho inválido."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Update deve ser um tempo válido"
+    "translation": "Atualizado em deve ser um tempo válido."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "URL inválida"
+    "translation": "URL inválida."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://"
+    "translation": "URL inválida. Deve ser uma URL válida e começar com http:// ou https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Id do canal inválida"
+    "translation": "Id do canal inválida."
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "ID do comando inválido"
+    "translation": "ID do comando inválido."
   },
   {
     "id": "model.command_hook.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Criado em deve ser um tempo válido."
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Hook id do comando inválido"
+    "translation": "Hook id do comando inválido."
   },
   {
     "id": "model.command_hook.parent_id.app_error",
-    "translation": "parent id inválido"
+    "translation": "parent id inválido."
   },
   {
     "id": "model.command_hook.root_id.app_error",
-    "translation": "root id inválida"
+    "translation": "root id inválida."
   },
   {
     "id": "model.command_hook.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Id do usuário inválido."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Criado em deve ser um tempo válido."
   },
   {
     "id": "model.compliance.is_valid.desc.app_error",
-    "translation": "Descrição inválida"
+    "translation": "Descrição inválida."
   },
   {
     "id": "model.compliance.is_valid.end_at.app_error",
-    "translation": "Para precisa ser um tempo válido"
+    "translation": "Para precisa ser um tempo válido."
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
-    "translation": "ID inválida"
+    "translation": "ID inválida."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
-    "translation": "De precisa ser um tempo válido"
+    "translation": "De precisa ser um tempo válido."
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "Para precisa ser maior que De"
+    "translation": "Para precisa ser maior que De."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
@@ -4688,7 +4688,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1"
+    "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
@@ -4708,11 +4708,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1"
+    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\""
+    "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
@@ -4732,7 +4732,7 @@
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Inválida segurança de conexão em configurações de email. Deve ser '', 'TLS', or 'STARTTLS'"
+    "translation": "Inválida segurança de conexão em configurações de email. Deve ser '', 'TLS', or 'STARTTLS'."
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -4740,7 +4740,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Inválido nome do driver em configurações de arquivo. Deve ser 'local' ou 'amazons3'"
+    "translation": "Inválido nome do driver em configurações de arquivo. Deve ser 'local' ou 'amazons3'."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -4776,7 +4776,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Inválida segurança de conexão em configurações de AD/LDAP. Deve ser '', 'TLS', or 'STARTTLS'"
+    "translation": "Inválida segurança de conexão em configurações de AD/LDAP. Deve ser '', 'TLS', or 'STARTTLS'."
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4796,7 +4796,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Idiomas Disponíveis devem conter Idioma Padrão do Cliente"
+    "translation": "Idiomas Disponíveis devem conter Idioma Padrão do Cliente."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Trabalho de exportação de mensagens BatchSize deve ser um inteiro positivo"
+    "translation": "Trabalho de exportação de mensagens BatchSize deve ser um inteiro positivo."
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
@@ -4832,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "O trabalho de exportação de mensagens a configuração EnableExport deve ser verdadeira ou falsa"
+    "translation": "O trabalho de exportação de mensagens a configuração EnableExport deve ser verdadeira ou falsa."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
@@ -4840,27 +4840,27 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Na tarefa de exportação de mensagens o ExportFormat deve ser 'actiance', 'csv' ou 'globalrelay'"
+    "translation": "Na tarefa de exportação de mensagens o ExportFormat deve ser 'actiance', 'csv' ou 'globalrelay'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Tarefa de exportação de mensagem está definido ExportFormat para 'globalrelay', mas estão faltando GlobalRelaySettings"
+    "translation": "Tarefa de exportação de mensagem está definido ExportFormat para 'globalrelay', mas estão faltando GlobalRelaySettings."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Exportação de mensagem GlobalRelaySettings.CustomerType deve ser definido como 'A9' ou 'A10'"
+    "translation": "Exportação de mensagem GlobalRelaySettings.CustomerType deve ser definido como 'A9' ou 'A10'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Na tarefa de exportação de mensagens o GlobalRelaySettings.EmailAddress deve ser um endereço de email válido"
+    "translation": "Na tarefa de exportação de mensagens o GlobalRelaySettings.EmailAddress deve ser um endereço de email válido."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpPassword deve ser definido"
+    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpPassword deve ser definido."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpUsername deve ser definido"
+    "translation": "Tarefa de exportação de mensagem GlobalRelaySettings.SmtpUsername deve ser definido."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -5328,7 +5328,7 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+    "translation": "As notificações do canal estão desativadas em {{.ChannelName}}. O {{.Mention}} não acionou nenhuma notificação."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -6984,7 +6984,7 @@
   },
   {
     "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
+    "translation": "Não foi possível encontrar algumas das equipes solicitadas"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",

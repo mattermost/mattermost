@@ -3620,11 +3620,11 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Versiunea pluginului nu a putut fi analizată"
+    "translation": "Versiunea pluginului nu a putut fi analizată."
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Nu se poate găsi un manifest pentru plugin extras"
+    "translation": "Imposibil de găsit manifest pentru pluginul extras."
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
@@ -3664,11 +3664,11 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Modulul% 1 nu este instalat"
+    "translation": "Pluginul nu este instalat."
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Imposibil de șters plugin"
+    "translation": "Pluginul nu poate fi șters."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -3720,7 +3720,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "A apărut o eroare la salvarea configurației"
+    "translation": "A apărut o eroare la salvarea configurației."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3732,7 +3732,7 @@
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Nu a putut fi analizată data de instalare"
+    "translation": "Nu a putut fi analizată data de instalare."
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
@@ -4004,27 +4004,27 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch este deja pornit"
+    "translation": "Elasticsearch este deja pornit."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Imposibil de creat Elasticsearch bulk procesor"
+    "translation": "Nu a reușit să creeze procesorul vrac Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Nu a reușit să obțină versiunea serverului Elasticsearch"
+    "translation": "Nu a reușit să obțină versiunea serverului Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Nu a reușit să analizeze versiunea serverului Elasticsearch"
+    "translation": "Nu a reușit să analizeze versiunea serverului Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed la spre scrobeală Elasticsearch bulk procesor"
+    "translation": "Nu a reușit să pornească procesorul în vrac Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch este deja oprit"
+    "translation": "Elasticsearch este deja oprit."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4048,7 +4048,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "interfața ldap a fost zero"
+    "translation": "Interfața ldap era nulă."
   },
   {
     "id": "ent.ldap.create_fail",
@@ -4064,7 +4064,7 @@
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Parolă incorectă"
+    "translation": "Parolă Invalidă."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -4072,15 +4072,15 @@
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Numele de utilizator dat meciuri mai mulţi utilizatori"
+    "translation": "Numele de utilizator dat corespunde mai multor utilizatori."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Nu a reuşit să Căutaţi serverul AD/LDAP"
+    "translation": "Nu a reușit să caute pe serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Incapabil să se conecteze la serverul AD/LDAP"
+    "translation": "Imposibil de conectat la serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -4088,7 +4088,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Utilizatorul nu inregistrat pe serverul AD/LDAP"
+    "translation": "Utilizator neînregistrat pe serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -4096,11 +4096,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Imposibilitatea de a obţine toate utilizatori folosind AD/LDAP"
+    "translation": "Nu se pot obține toți utilizatorii care utilizează AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "eroare de recuperare a grupurilor"
+    "translation": "eroare la găsirea grupurilor."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -4116,15 +4116,15 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "Filtrul invitat AD/LDAP invalid"
+    "translation": "Filtrul admin AD/LDAP invalid."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "AD/LDAP invalidă filtru"
+    "translation": "Filtru AD/LDAP invalid."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "Filtrul invitat AD/LDAP invalid"
+    "translation": "Filtrul invitat AD/LDAP invalid."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4188,15 +4188,15 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Imposibilitatea de a obţine informaţiile din fişierul de export temporar"
+    "translation": "Imposibil de obținut informațiile despre fișierul temporar de export."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Imposibilitatea de a obţine un e-mail de la fişierul temporar"
+    "translation": "Imposibil de a primi un e-mail din fișierul temporar."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Imposibil de deschis fişierul de export temporar"
+    "translation": "Imposibil de deschis fișierul temporar de export."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4252,7 +4252,7 @@
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Am primit un raspuns gol la furnizorul de identitate"
+    "translation": "Am primit un raspuns gol la furnizorul de identitate."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -4328,11 +4328,11 @@
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Imposibil de analizat URL"
+    "translation": "Imposibil de analizat URL."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": "Imposibil de obținut canale"
+    "translation": "Imposibil de obținut canale."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4340,31 +4340,31 @@
   },
   {
     "id": "mfa.activate.authenticate.app_error",
-    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
+    "translation": "Eroare la încercarea de a autentifica tokenul MFA."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Simbol MFA invalidă."
+    "translation": "Token MFA invalid."
   },
   {
     "id": "mfa.activate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
   },
   {
     "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Eroare la eliminarea secretului MFA"
+    "translation": "Eroare la eliminarea secretului MFA."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "Eroare la generarea codului QR"
+    "translation": "Eroare la generarea codului QR."
   },
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Eroare la salvarea secretului MFA"
+    "translation": "Eroare la salvarea secretului MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4384,127 +4384,127 @@
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Etichetă de acces invalidă"
+    "translation": "Etichetă de acces invalidă."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": "Id-ul de client invalid"
+    "translation": "Id-ul de client invalid."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Redirecturi invalide"
+    "translation": "Redirecturi url invalid."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Etichetă de reîmprospătare invalidă"
+    "translation": "Jetonul de actualizare nu este valabil."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Cod de autorizare invalid"
+    "translation": "Cod de autorizare invalid."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Id-ul de client invalid"
+    "translation": "Id-ul de client invalid."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Creați la trebuie să fie un timp valabil."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Expirarea trebuie să fie stabilită"
+    "translation": "Expirarea trebuie să fie setată."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": "Redirecturi invalide"
+    "translation": "Redirecturi uri invalid."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Răspuns invalid"
+    "translation": "Tip de răspuns invalid."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Scop invalid"
+    "translation": "Scop invalid."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": "Stare invalidă"
+    "translation": "Stare invalidă."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Crearea invalidă la"
+    "translation": "Creare invalidă la."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Actualizare invalidă la"
+    "translation": "Actualizare invalidă \"update at\"."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Nume de utilizator invalid."
+    "translation": "Utilizator invalid."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule"
+    "translation": "Numele trebuie să aibă 2 sau mai multe caractere alfanumerice cu minuscule."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Nume afișat invalid"
+    "translation": "Nume afișat invalid."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "Antetul invalid"
+    "translation": "Antet invalid."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "Id incorect."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "Scop nevalabil"
+    "translation": "Scop invalid."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Tip invalid"
+    "translation": "Tip invalid."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "\"Update at\" trebuie să fie un timp valabil."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal invalid."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Valoare invalidă de notificare prin e-mail"
+    "translation": "Valoare de notificare e-mail invalidă."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",

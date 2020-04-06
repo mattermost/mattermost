@@ -7016,11 +7016,11 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "无法列出用户的团队"
+    "translation": "无法列出用户的团队。"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
+    "translation": "提交数据库事务失败。"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
@@ -7028,79 +7028,79 @@
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " 批量选择团队成员失败"
+    "translation": " 批量选择团队成员失败。"
   },
   {
     "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "更新团队成员失败"
+    "translation": "更新团队成员失败。"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "无法删除现有的团队"
+    "translation": "无法删除团队。"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "无法移除团队成员"
+    "translation": "无法移除团队成员。"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "我们无法重置团队方案"
+    "translation": "我们无法重置团队方案。"
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "无法保存团队"
+    "translation": "无法保存团队。"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "已有团队拥有此名称"
+    "translation": "已存在拥有此名称的团队。"
   },
   {
     "id": "store.sql_team.save.existing.app_error",
-    "translation": "必须对现有的团队执行更新"
+    "translation": "必须对现有的团队执行更新。"
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "已存在拥有此 ID 的团队成员"
+    "translation": "已存在拥有此 ID 的团队成员。"
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "无法保存团队成员"
+    "translation": "无法保存团队成员。"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
-    "translation": "我们搜索团队时遇到错误"
+    "translation": "我们在搜索团队时遇到错误。"
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "我们搜索公开团队时遇到错误"
+    "translation": "我们在搜索公开团队时遇到错误。"
   },
   {
     "id": "store.sql_team.search_private_team.app_error",
-    "translation": "我们搜索私有团队时遇到错误"
+    "translation": "我们在搜索私有团队时遇到错误。"
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "无法更新团队"
+    "translation": "无法更新团队。"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "没找到现有的团队以更新"
+    "translation": "未找到可更新的现有团队。"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
-    "translation": "我们查找团队时遇到错误"
+    "translation": "我们在查找团队时遇到错误。"
   },
   {
     "id": "store.sql_team.update.updating.app_error",
-    "translation": "我们更新该团队时遇到一个错误"
+    "translation": "我们在更新该团队时遇到错误。"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "无法更新团队图标更新日期"
+    "translation": "无法更新团队图标更新日期。"
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "无法确定用户是否属于这些团队"
+    "translation": "无法确定用户是否属于这些团队。"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -7120,55 +7120,55 @@
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "无法在请求时间内获取活动用户"
+    "translation": "无法在请求时间内获取活跃用户。"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "我们无法计算未活动的用户数"
+    "translation": "我们无法统计未活动的用户数。"
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "无法获取系统管理数"
+    "translation": "无法获取系统管理数。"
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "建立查询失败"
+    "translation": "建立查询失败。"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
+    "translation": "提交数据库事务失败。"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
+    "translation": "开始数据库事务失败。"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "获取用户失败"
+    "translation": "获取用户失败。"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "更新用户失败"
+    "translation": "更新用户失败。"
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions 不正常"
+    "translation": "UserCountOptions 不合理。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "更新频道成员失败"
+    "translation": "更新频道成员失败。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
+    "translation": "提交数据库事务失败。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
+    "translation": "开始数据库事务失败。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "更新团队成员失败"
+    "translation": "更新团队成员失败。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -7176,7 +7176,7 @@
   },
   {
     "id": "store.sql_user.get.app_error",
-    "translation": "我们查找帐户遇到了一个错误"
+    "translation": "我们在查找帐户遇到错误。"
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
@@ -7200,23 +7200,23 @@
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
-    "translation": "我们在查找新用户时发生错误"
+    "translation": "我们在查找新用户时遇到错误。"
   },
   {
     "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "我们查找用户档案时遇到错误"
+    "translation": "我们在查找用户档案时遇到错误。"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
-    "translation": "我们查找用户档案时遇到错误"
+    "translation": "我们在查找用户档案时遇到错误。"
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "查找最近活动的用户时遇到错误"
+    "translation": "我们在查找最近活跃用户时遇到错误。"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "我们查找用户档案时遇到错误"
+    "translation": "我们在查找用户档案时遇到错误。"
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
@@ -7224,27 +7224,27 @@
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "我们无法计算用户数"
+    "translation": "我们无法统计用户数。"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "我们无法为用户获取到未读信息数量"
+    "translation": "我们无法为用户获取到未读信息数。"
   },
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "我们无法为用户和频道获取未读信息数量"
+    "translation": "我们无法为用户和频道获取未读信息数。"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "无法为索引获取频道成员"
+    "translation": "无法为索引获取频道成员。"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "无法为索引获取批量团队成员"
+    "translation": "无法为索引获取批量团队成员。"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "无法为索引获取批量用户"
+    "translation": "无法为索引获取批量用户。"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -7252,23 +7252,23 @@
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "无法删除现有的帐号"
+    "translation": "无法删除现有帐号。"
   },
   {
     "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "更新频道成员失败"
+    "translation": "更新频道成员失败。"
   },
   {
     "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
+    "translation": "提交数据库事务失败。"
   },
   {
     "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
+    "translation": "开始数据库事务失败。"
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "更新团队成员失败"
+    "translation": "更新团队成员失败。"
   },
   {
     "id": "store.sql_user.promote_guest.user_update.app_error",
@@ -7292,7 +7292,7 @@
   },
   {
     "id": "store.sql_user.save.existing.app_error",
-    "translation": "必须对现有的用户执行更新"
+    "translation": "必须对现有的用户执行更新。"
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
@@ -7300,7 +7300,7 @@
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
-    "translation": "未能获得当前的团队成员计数"
+    "translation": "未能获得当前的团队成员数。"
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",
@@ -7316,7 +7316,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "无法找到符合搜索条件的用户"
+    "translation": "无法找到符合搜索条件的用户。"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -7324,7 +7324,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "无法更改 AD/LDAP 设定的字段"
+    "translation": "无法更改 AD/LDAP 设定的字段。"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -7332,15 +7332,15 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "未找到现有的帐号以更新"
+    "translation": "未找到现有的账户用于更新。"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
-    "translation": "我们查找帐户遇到了一个错误"
+    "translation": "我们在查找帐户时遇到错误。"
   },
   {
     "id": "store.sql_user.update.updating.app_error",
-    "translation": "我们更新用户时遇到了一个错误"
+    "translation": "我们在更新账户时遇到错误。"
   },
   {
     "id": "store.sql_user.update.username_taken.app_error",
@@ -7348,7 +7348,7 @@
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "无法获取已停用的访客 id 列表"
+    "translation": "无法获取已停用的访客 id 列表。"
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
@@ -7356,7 +7356,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "无法更新验证数据"
+    "translation": "无法更新验证数据。"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -7364,31 +7364,31 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "无法更新 failed_attempts"
+    "translation": "无法更新 failed_attempts。"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "无法更新 update_at"
+    "translation": "无法更新 update_at。"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "我们在更新用户的多重验证使用状态时遇到一个错误"
+    "translation": "我们在更新用户的多重验证使用状态时遇到错误。"
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "我们在更新用户的多重验证密码时遇到一个错误"
+    "translation": "我们在更新用户的多重验证密钥时遇到错误。"
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "无法更新用户密码"
+    "translation": "无法更新用户密码。"
   },
   {
     "id": "store.sql_user.update_update.app_error",
-    "translation": "我们无法更新用户最近更新的日期"
+    "translation": "我们无法更新用户最近更新的日期。"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
-    "translation": "无法更新验证电子邮件字段"
+    "translation": "无法更新验证电子邮件字段。"
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
@@ -7404,11 +7404,11 @@
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "无法从令牌获取个人访问令牌"
+    "translation": "无法从令牌获取个人访问令牌。"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "无法从用户获取个人访问令牌"
+    "translation": "无法从用户获取个人访问令牌。"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
