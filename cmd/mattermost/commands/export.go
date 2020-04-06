@@ -164,7 +164,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		if warningsCount == 0 {
 			CommandPrettyPrintln("SUCCESS: Your data was exported.")
 		} else {
-			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see error.log for details.", warningsCount))
+			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
 		}
 
 		return nil
