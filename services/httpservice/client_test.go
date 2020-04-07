@@ -48,8 +48,7 @@ func TestHTTPClient(t *testing.T) {
 		for _, testCase := range testCases {
 			t.Run(testCase.description, func(t *testing.T) {
 				c := NewHTTPClient(NewTransport(testCase.enableInsecureConnections, nil, nil))
-				_, err := c.Get(testCase.url)
-				if testCase.expectedAllowed {
+				if _, err := c.Get(testCase.url); testCase.expectedAllowed {
 					require.NoError(t, err)
 				} else {
 					require.Error(t, err)
@@ -86,8 +85,7 @@ func TestHTTPClient(t *testing.T) {
 		for _, testCase := range testCases {
 			t.Run(testCase.description, func(t *testing.T) {
 				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIp))
-				_, err := c.Get(mockHTTP.URL)
-				if testCase.expectedAllowed {
+				if _, err := c.Get(mockHTTP.URL); testCase.expectedAllowed {
 					require.NoError(t, err)
 				} else {
 					require.IsType(t, &url.Error{}, err)
