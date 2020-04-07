@@ -202,7 +202,7 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
-	MigrateFavoriteChannels() error
+	MigrateChannelsToSidebar() error
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)

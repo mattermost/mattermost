@@ -780,7 +780,7 @@ func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
 	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 
-	if err := sqlStore.Channel().MigrateFavoriteChannels(); err != nil {
+	if err := sqlStore.Channel().MigrateChannelsToSidebar(); err != nil {
 		mlog.Critical("Failed to migrate Favorite channels", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
