@@ -492,7 +492,6 @@ pipeline {
 						tar -czvf docker_logs.tar.gz docker-compose_logs docker_ps docker_stats
 
 						docker-compose --no-ansi down -v
-						docker network prune --force
 					"""
 				}
 				archiveArtifacts 'docker_logs.tar.gz'
