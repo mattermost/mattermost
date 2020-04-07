@@ -162,7 +162,16 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
+	guest := th.CreateGuest()
+	user4 := th.CreateUser()
+	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteUser(guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.App.AddUserToChannel(guest, channel)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -174,6 +183,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return only visible users not in the channel (for guests)", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+
+		require.Nil(t, err)
+		require.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
