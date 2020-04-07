@@ -17,7 +17,7 @@ func TestParseStaticListArgument(t *testing.T) {
 	argument := &model.AutocompleteArg{
 		Name:     "", //positional
 		HelpText: "some_help",
-		Type:     model.AutocompleteStaticListArgType,
+		Type:     model.AutocompleteArgTypeStaticList,
 		Data:     fixedArgs,
 	}
 	found, _, suggestions := parseStaticListArgument(argument, "")
@@ -77,7 +77,7 @@ func TestParseInputTextArgument(t *testing.T) {
 	argument := &model.AutocompleteArg{
 		Name:     "", //positional
 		HelpText: "some_help",
-		Type:     model.AutocompleteTextArgType,
+		Type:     model.AutocompleteArgTypeText,
 		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
 	}
 	found, _, suggestion := parseInputTextArgument(argument, "")
@@ -107,6 +107,10 @@ func TestParseInputTextArgument(t *testing.T) {
 	found, changedInput, _ = parseInputTextArgument(argument, "\"abc def\" abc")
 	assert.False(t, found)
 	assert.Equal(t, "abc", changedInput)
+
+	found, changedInput, _ = parseInputTextArgument(argument, "\"abc def\"")
+	assert.False(t, found)
+	assert.Equal(t, "", changedInput)
 }
 
 func TestSuggestions(t *testing.T) {

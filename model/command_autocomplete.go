@@ -13,9 +13,9 @@ import (
 
 // Argument types
 const (
-	AutocompleteTextArgType        = "TextInput"
-	AutocompleteStaticListArgType  = "StaticList"
-	AutocompleteDynamicListArgType = "DynamicList"
+	AutocompleteArgTypeText        = "TextInput"
+	AutocompleteArgTypeStaticList  = "StaticList"
+	AutocompleteArgTypeDynamicList = "DynamicList"
 )
 
 // AutocompleteData describes slash command autocomplete information.
@@ -44,7 +44,7 @@ type AutocompleteArg struct {
 	HelpText string
 	// Type of the argument
 	Type string
-	// Actual data of the argument(depends on the Type)
+	// Actual data of the argument (depends on the Type)
 	Data interface{}
 }
 
@@ -56,8 +56,8 @@ type AutocompleteTextArg struct {
 	Pattern string
 }
 
-// AutocompleteStaticListIem describes an item in the AutocompleteStaticListArg.
-type AutocompleteStaticListIem struct {
+// AutocompleteStaticListItem describes an item in the AutocompleteStaticListArg.
+type AutocompleteStaticListItem struct {
 	Item     string
 	HelpText string
 }
@@ -65,7 +65,7 @@ type AutocompleteStaticListIem struct {
 // AutocompleteStaticListArg is used to input one of the arguments from the list,
 // for example [yes, no], [on, off], and so on.
 type AutocompleteStaticListArg struct {
-	PossibleArguments []AutocompleteStaticListIem
+	PossibleArguments []AutocompleteStaticListItem
 }
 
 // AutocompleteDynamicListArg is used when user wants to download possible argument list from the URL.
@@ -73,7 +73,7 @@ type AutocompleteDynamicListArg struct {
 	FetchURL string
 }
 
-// AutocompleteSuggestion describes single suggestion item sent to front
+// AutocompleteSuggestion describes a single suggestion item sent to the frontend
 type AutocompleteSuggestion struct {
 	// Hint describes what user might want to input
 	Hint string
@@ -92,39 +92,39 @@ func NewAutocompleteData(trigger string, helpText string) *AutocompleteData {
 	}
 }
 
-// AddCommand add a subcommand to the autocomplete data.
+// AddCommand adds a subcommand to the autocomplete data.
 func (ad *AutocompleteData) AddCommand(command *AutocompleteData) {
 	ad.SubCommands = append(ad.SubCommands, command)
 }
 
-// AddTextArgument adds AutocompleteTextArgType argument to the command.
+// AddTextArgument adds AutocompleteArgTypeText argument to the command.
 func (ad *AutocompleteData) AddTextArgument(name, helpText, hint, pattern string) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     AutocompleteTextArgType,
+		Type:     AutocompleteArgTypeText,
 		Data:     &AutocompleteTextArg{Hint: hint, Pattern: pattern},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
-// AddStaticListArgument adds AutocompleteStaticListArgType argument to the command.
+// AddStaticListArgument adds AutocompleteArgTypeStaticList argument to the command.
 func (ad *AutocompleteData) AddStaticListArgument(name, helpText string, listArgument *AutocompleteStaticListArg) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     AutocompleteStaticListArgType,
+		Type:     AutocompleteArgTypeStaticList,
 		Data:     listArgument,
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
-// AddDynamicListArgument adds AutocompleteDynamicListArgType argument to the command.
+// AddDynamicListArgument adds AutocompleteArgTypeDynamicList argument to the command.
 func (ad *AutocompleteData) AddDynamicListArgument(name, helpText, url string) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
-		Type:     AutocompleteDynamicListArgType,
+		Type:     AutocompleteArgTypeDynamicList,
 		Data:     &AutocompleteDynamicListArg{FetchURL: url},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
@@ -139,10 +139,7 @@ func (ad *AutocompleteData) Equals(command *AutocompleteData) bool {
 		return false
 	}
 	for i := range ad.Arguments {
-		if ad.Arguments[i].Name != command.Arguments[i].Name ||
-			ad.Arguments[i].HelpText != command.Arguments[i].HelpText ||
-			ad.Arguments[i].Type != command.Arguments[i].Type ||
-			!reflect.DeepEqual(ad.Arguments[i].Data, command.Arguments[i].Data) {
+		if !ad.Arguments[i].Equals(command.Arguments[i]) {
 			return false
 		}
 	}
@@ -166,7 +163,7 @@ func (ad *AutocompleteData) IsValid() error {
 	if len(ad.Arguments) > 0 {
 		namedArgumentIndex := -1
 		for i, arg := range ad.Arguments {
-			if !(arg.Name == "") { // it's a named argument
+			if arg.Name != "" { // it's a named argument
 				if namedArgumentIndex == -1 { // first named argument
 					namedArgumentIndex = i
 				}
@@ -175,26 +172,26 @@ func (ad *AutocompleteData) IsValid() error {
 					return errors.New("Named argument should not be before positional argument")
 				}
 			}
-			if arg.Type == AutocompleteDynamicListArgType {
-				DynamicList, ok := arg.Data.(*AutocompleteDynamicListArg)
+			if arg.Type == AutocompleteArgTypeDynamicList {
+				dynamicList, ok := arg.Data.(*AutocompleteDynamicListArg)
 				if !ok {
 					return errors.New("Not a proper DynamicList type argument")
 				}
-				_, err := url.ParseRequestURI(DynamicList.FetchURL)
+				_, err := url.ParseRequestURI(dynamicList.FetchURL)
 				if err != nil {
 					return errors.Wrapf(err, "FetchURL is not a proper url")
 				}
-			} else if arg.Type == AutocompleteStaticListArgType {
-				StaticList, ok := arg.Data.(*AutocompleteStaticListArg)
+			} else if arg.Type == AutocompleteArgTypeStaticList {
+				staticList, ok := arg.Data.(*AutocompleteStaticListArg)
 				if !ok {
 					return errors.New("Not a proper StaticList type argument")
 				}
-				for _, arg := range StaticList.PossibleArguments {
+				for _, arg := range staticList.PossibleArguments {
 					if arg.Item == "" {
 						return errors.New("Possible argument name not set in StaticList argument")
 					}
 				}
-			} else if arg.Type == AutocompleteTextArgType {
+			} else if arg.Type == AutocompleteArgTypeText {
 				if _, ok := arg.Data.(*AutocompleteTextArg); !ok {
 					return errors.New("Not a proper TextInput type argument")
 				}
@@ -219,13 +216,24 @@ func (ad *AutocompleteData) ToJSON() ([]byte, error) {
 	return b, nil
 }
 
-// AutocompleteDataFromJSON decodes AutocompleteData struct form the json
+// AutocompleteDataFromJSON decodes AutocompleteData struct from the json
 func AutocompleteDataFromJSON(data []byte) (*AutocompleteData, error) {
 	var ad AutocompleteData
 	if err := json.Unmarshal(data, &ad); err != nil {
-		return nil, errors.Wrap(err, "can't unmarshal slash command data")
+		return nil, errors.Wrap(err, "can't unmarshal AutocompleteData")
 	}
 	return &ad, nil
+}
+
+// Equals method checks if argument is the same.
+func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
+	if a.Name != arg.Name ||
+		a.HelpText != arg.HelpText ||
+		a.Type != arg.Type ||
+		!reflect.DeepEqual(a.Data, arg.Data) {
+		return false
+	}
+	return true
 }
 
 // UnmarshalJSON will unmarshal argument
@@ -234,90 +242,99 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
-	name, ok := arg["Name"]
+	name, ok := arg["Name"].(string)
 	if !ok {
 		return errors.Errorf("No field Name in the argument %s", string(b))
 	}
-	a.Name = name.(string)
+	a.Name = name
 
-	helpText, ok := arg["HelpText"]
+	helpText, ok := arg["HelpText"].(string)
 	if !ok {
 		return errors.Errorf("No field HelpText in the argument %s", string(b))
 	}
-	a.HelpText = helpText.(string)
+	a.HelpText = helpText
 
-	argType, ok := arg["Type"]
+	argType, ok := arg["Type"].(string)
 	if !ok {
 		return errors.Errorf("No field Type in the argument %s", string(b))
 	}
-	a.Type = argType.(string)
+	a.Type = argType
 
 	data, ok := arg["Data"]
 	if !ok {
 		return errors.Errorf("No field Data in the argument %s", string(b))
 	}
 
-	if a.Type == AutocompleteTextArgType {
-		m := data.(map[string]interface{})
-		pattern, ok := m["Pattern"]
+	if a.Type == AutocompleteArgTypeText {
+		m, ok := data.(map[string]interface{})
+		if !ok {
+			return errors.Errorf("Wrong Data type in the TextInput argument %s", string(b))
+		}
+		pattern, ok := m["Pattern"].(string)
 		if !ok {
 			return errors.Errorf("No field Pattern in the TextInput argument %s", string(b))
 		}
-		hint, ok := m["Hint"]
+		hint, ok := m["Hint"].(string)
 		if !ok {
 			return errors.Errorf("No field Hint in the TextInput argument %s", string(b))
 		}
-		a.Data = &AutocompleteTextArg{Hint: hint.(string), Pattern: pattern.(string)}
-	} else if a.Type == AutocompleteStaticListArgType {
-		m := data.(map[string]interface{})
-		listInterface, ok := m["PossibleArguments"]
+		a.Data = &AutocompleteTextArg{Hint: hint, Pattern: pattern}
+	} else if a.Type == AutocompleteArgTypeStaticList {
+		m, ok := data.(map[string]interface{})
+		if !ok {
+			return errors.Errorf("Wrong Data type in the StaticList argument %s", string(b))
+		}
+		list, ok := m["PossibleArguments"].([]interface{})
 		if !ok {
 			return errors.Errorf("No field PossibleArguments in the StaticList argument %s", string(b))
 		}
 
-		list := listInterface.([]interface{})
-		possibleArguments := []AutocompleteStaticListIem{}
+		possibleArguments := []AutocompleteStaticListItem{}
 		for i := range list {
-			args := list[i].(map[string]interface{})
-			itemInt, ok := args["Item"]
+			args, ok := list[i].(map[string]interface{})
+			if !ok {
+				return errors.Errorf("Wrong AutocompleteStaticListItem type in the StaticList argument %s", string(b))
+			}
+			item, ok := args["Item"].(string)
 			if !ok {
 				return errors.Errorf("No field Item in the StaticList's possible arguments %s", string(b))
 			}
-			item := itemInt.(string)
 
-			helpTextInt, ok := args["HelpText"]
+			helpText, ok := args["HelpText"].(string)
 			if !ok {
 				return errors.Errorf("No field HelpText in the StaticList's possible arguments %s", string(b))
 			}
-			helpText := helpTextInt.(string)
 
-			possibleArguments = append(possibleArguments, AutocompleteStaticListIem{
+			possibleArguments = append(possibleArguments, AutocompleteStaticListItem{
 				Item:     item,
 				HelpText: helpText,
 			})
 		}
 		a.Data = &AutocompleteStaticListArg{PossibleArguments: possibleArguments}
-	} else if a.Type == AutocompleteDynamicListArgType {
-		m := data.(map[string]interface{})
-		url, ok := m["FetchURL"]
+	} else if a.Type == AutocompleteArgTypeDynamicList {
+		m, ok := data.(map[string]interface{})
+		if !ok {
+			return errors.Errorf("Wrong Data type in the DynamicList argument %s", string(b))
+		}
+		url, ok := m["FetchURL"].(string)
 		if !ok {
 			return errors.Errorf("No field FetchURL in the DynamicList's argument %s", string(b))
 		}
-		a.Data = &AutocompleteDynamicListArg{FetchURL: url.(string)}
+		a.Data = &AutocompleteDynamicListArg{FetchURL: url}
 	}
 	return nil
 }
 
-// NewAutocompleteStaticListArg returned empty AutocompleteStaticListArgType argument.
+// NewAutocompleteStaticListArg returns an empty AutocompleteArgTypeStaticList argument.
 func NewAutocompleteStaticListArg() *AutocompleteStaticListArg {
 	return &AutocompleteStaticListArg{
-		PossibleArguments: []AutocompleteStaticListIem{},
+		PossibleArguments: []AutocompleteStaticListItem{},
 	}
 }
 
 // AddArgument adds a static argument to the StaticList argument.
 func (a *AutocompleteStaticListArg) AddArgument(text, helpText string) {
-	argument := AutocompleteStaticListIem{
+	argument := AutocompleteStaticListItem{
 		Item:     text,
 		HelpText: helpText,
 	}

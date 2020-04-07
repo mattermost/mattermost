@@ -37,21 +37,21 @@ func (a *App) GetSuggestions(commands []*model.AutocompleteData, userInput, role
 		}
 		if command.Arguments[0].Name == "" { //Positional argument
 			for _, arg := range command.Arguments {
-				if arg.Type == model.AutocompleteTextArgType {
+				if arg.Type == model.AutocompleteArgTypeText {
 					found, changedInput, suggestion := parseInputTextArgument(arg, input)
 					if found {
 						suggestions = append(suggestions, suggestion)
 						break
 					}
 					input = changedInput
-				} else if arg.Type == model.AutocompleteStaticListArgType {
+				} else if arg.Type == model.AutocompleteArgTypeStaticList {
 					found, changedInput, StaticListsuggestions := parseStaticListArgument(arg, input)
 					if found {
 						suggestions = append(suggestions, StaticListsuggestions...)
 						break
 					}
 					input = changedInput
-				} else if arg.Type == model.AutocompleteDynamicListArgType {
+				} else if arg.Type == model.AutocompleteArgTypeDynamicList {
 					// TODO https://mattermost.atlassian.net/browse/MM-21491
 				}
 			}
@@ -62,25 +62,26 @@ func (a *App) GetSuggestions(commands []*model.AutocompleteData, userInput, role
 	return suggestions
 }
 
-func parseInputTextArgument(arg *model.AutocompleteArg, userInput string) (bool, string, model.AutocompleteSuggestion) {
+func parseInputTextArgument(arg *model.AutocompleteArg, userInput string) (found bool, chanedInput string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(userInput, " ")
 	a := arg.Data.(*model.AutocompleteTextArg)
-	if len(in) == 0 { //typing of the argument is not started
+	if len(in) == 0 { //The user has not started typing the argument.
 		return true, "", model.AutocompleteSuggestion{Hint: a.Hint, Description: arg.HelpText}
 	}
 	if in[0] == '"' { //input with multiple words
-		indexOfSecondQuote := strings.Index(in[1:], "\"")
+		in = in[1:]
+		indexOfSecondQuote := strings.Index(in, `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
 			return true, "", model.AutocompleteSuggestion{Hint: a.Hint, Description: arg.HelpText}
 		}
 		// this argument is typed already
-		in = in[indexOfSecondQuote+2:]
+		in = in[indexOfSecondQuote+1:]
 		in = strings.TrimPrefix(in, " ")
 		return false, in, model.AutocompleteSuggestion{}
 	}
 	// input with a single word
 	index := strings.Index(in, " ")
-	if index == -1 { // typing of the single word argument is not finished
+	if index == -1 { // user has not finished typing the single word argument
 		return true, "", model.AutocompleteSuggestion{Hint: a.Hint, Description: arg.HelpText}
 	}
 	// single word argument already typed
@@ -89,10 +90,9 @@ func parseInputTextArgument(arg *model.AutocompleteArg, userInput string) (bool,
 	return false, in, model.AutocompleteSuggestion{}
 }
 
-func parseStaticListArgument(arg *model.AutocompleteArg, userInput string) (bool, string, []model.AutocompleteSuggestion) {
+func parseStaticListArgument(arg *model.AutocompleteArg, userInput string) (found bool, changedInput string, suggestions []model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(userInput, " ")
 	a := arg.Data.(*model.AutocompleteStaticListArg)
-	suggestions := []model.AutocompleteSuggestion{}
 	maxPrefix := ""
 	for _, arg := range a.PossibleArguments {
 		if strings.HasPrefix(in, arg.Item+" ") && len(maxPrefix) < len(arg.Item)+1 {
@@ -102,7 +102,7 @@ func parseStaticListArgument(arg *model.AutocompleteArg, userInput string) (bool
 	if maxPrefix != "" { //typing StaticArgument finished
 		return false, in[len(maxPrefix):], []model.AutocompleteSuggestion{}
 	}
-	// typing static argument not finished
+	// user has not finished typing static argument
 	for _, arg := range a.PossibleArguments {
 		if strings.HasPrefix(arg.Item, in) {
 			suggestions = append(suggestions, model.AutocompleteSuggestion{Hint: arg.Item, Description: arg.HelpText})
