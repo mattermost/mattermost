@@ -32,7 +32,7 @@ func findPath(path string, baseSearchPaths []string, workingDirFirst bool, filte
 	}
 
 	// Attempt to search relative to the location of the running binary either before
-	// or after searching relative to working directory, depending on `workingDirFirst`.
+	// or after searching relative to the working directory, depending on `workingDirFirst`.
 	var binaryDir string
 	if exe, err := os.Executable(); err == nil {
 		if exe, err = filepath.EvalSymlinks(exe); err == nil {
