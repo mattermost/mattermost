@@ -1,0 +1,74 @@
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.0.5
+  tools: gotest/tools@0.0.13
+
+
+executors:
+  default:
+    docker:
+      - image: circleci/golang:1.14
+
+aliases:
+- &restore_cache
+  restore_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+- &save_cache
+  save_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+    paths:
+    - "/go/pkg/mod"
+
+jobs:
+  lint:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - tools/install-golangci-lint:
+          version: "1.24.0"
+      - *restore_cache
+      - run:
+          name: Checking code style
+          command: make check-style
+      - run: go mod tidy -v
+      - run:
+          name: Check git diff
+          command: |
+            git --no-pager diff --exit-code go.mod go.sum
+      - *save_cache
+
+  test:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - *restore_cache
+      - run: 
+          name: Running tests
+          command: make coverage
+      - *save_cache
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage.txt
+
+  coverage:
+    executor:
+      name: default
+    steps:
+      - attach_workspace:
+          at: .
+      - codecov/upload:
+        file:  coverage.txt
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - lint
+      - test
+      - coverage:
+          requires:
+            - test
