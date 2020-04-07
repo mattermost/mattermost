@@ -2113,7 +2113,11 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 
 			notify := member.NotifyProps[model.PUSH_NOTIFY_PROP]
 			if notify == model.CHANNEL_NOTIFY_DEFAULT {
-				user, _ := a.GetUser(userId)
+				user, err := a.GetUser(userId)
+				if err != nil {
+					mlog.Warn("Failed to get user", mlog.String("user_id", userId), mlog.Err(err))
+					continue
+				}
 				notify = user.NotifyProps[model.PUSH_NOTIFY_PROP]
 			}
 			if notify == model.USER_NOTIFY_ALL {
