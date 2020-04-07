@@ -797,10 +797,11 @@ func (t *UploadFileTask) postprocessImage() {
 		return
 	}
 
+	const jpegQuality = 90
 	writeJPEG := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			err := jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
+			err := jpeg.Encode(w, img, &jpeg.Options{Quality: jpegQuality})
 			if err != nil {
 				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
 				w.CloseWithError(err)

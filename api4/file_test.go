@@ -6,7 +6,6 @@ package api4
 import (
 	"bytes"
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -222,13 +221,13 @@ func TestUploadFiles(t *testing.T) {
 		// Upload a bunch of files, mixed images and non-images
 		{
 			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test_compressed_tiff.tiff"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of files, with clientIds
 		{
 			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test_compressed_tiff.tiff"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
 			clientIds:         []string{"1", "2", "3", "4", "5"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
@@ -357,18 +356,7 @@ func TestUploadFiles(t *testing.T) {
 		// TIFF preview test
 		{
 			title:                       "Happy image thumbnail/preview 9",
-			names:                       []string{"test_compressed_tiff.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
-			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
-			expectImage:                 true,
-			expectedImageWidths:         []int{701},
-			expectedImageHeights:        []int{701},
-			expectedImageHasPreview:     []bool{true},
-			expectedCreatorId:           th.BasicUser.Id,
-		},
-		{
-			title:                       "Happy image thumbnail/preview 10",
-			names:                       []string{"test_raw_tiff.tiff"},
+			names:                       []string{"test.tiff"},
 			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
 			expectImage:                 true,
@@ -625,12 +613,7 @@ func TestUploadFiles(t *testing.T) {
 								require.Nil(t, err)
 								_, err = io.Copy(tf, bytes.NewReader(data))
 								require.Nil(t, err)
-								if strings.Contains(name, "test_expected_tiff") {
-									// TODO: remove this once MM-22056 is fixed.
-									t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d. Previewer Image: \n\n%s\n", name, tf.Name(), len(expected), len(data), hex.Dump(data))
-								} else {
-									t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
-								}
+								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
 						if len(tc.expectedPayloadNames) == 0 {
