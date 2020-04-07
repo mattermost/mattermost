@@ -17,12 +17,14 @@ type SearchStore struct {
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
+	config       *model.Config
 }
 
-func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker) SearchStore {
+func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) SearchStore {
 	searchStore := SearchStore{
 		Store:        baseStore,
 		searchEngine: searchEngine,
+		config:       cfg,
 	}
 	searchStore.channel = &SearchChannelStore{ChannelStore: baseStore.Channel(), rootStore: &searchStore}
 	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: &searchStore}

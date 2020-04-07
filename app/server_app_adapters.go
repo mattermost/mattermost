@@ -70,6 +70,7 @@ func (s *Server) RunOldAppInitialization() error {
 						s.CacheProvider,
 					),
 					s.SearchEngine,
+					s.Config(),
 				),
 				s.Metrics,
 			)
