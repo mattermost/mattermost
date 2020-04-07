@@ -446,7 +446,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		outOfChannelUsers = allUsers.FilterWithoutID(nonMemberIDs)
 		outOfGroupsUsers = allUsers.FilterByID(nonMemberIDs)
 	} else {
-		outOfChannelUsers = users
+		outOfChannelUsers = allUsers
 	}
 
 	return outOfChannelUsers, outOfGroupsUsers, nil
