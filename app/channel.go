@@ -726,7 +726,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if len(higherScopedGuestRoleName) > 0 {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -738,19 +738,30 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 
 // PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
 func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	higherScopedGuestRoleName, higherScopedMemberRoleName, _, err := a.GetTeamSchemeChannelRoles(channel.TeamId)
+	if err != nil {
+		return nil, err
+	}
+
 	higherScopedMemberRole, err := a.GetRoleByName(higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	higherScopedGuestRole, err := a.GetRoleByName(higherScopedGuestRoleName)
-	if err != nil {
-		return nil, err
+	var higherScopedGuestRole *model.Role
+	if len(higherScopedGuestRoleName) > 0 {
+		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	higherScopedMemberPermissions := higherScopedMemberRole.GetChannelModeratedPermissions(channel.Type)
-	higherScopedGuestPermissions := higherScopedGuestRole.GetChannelModeratedPermissions(channel.Type)
+
+	var higherScopedGuestPermissions map[string]bool
+	if higherScopedGuestRole != nil {
+		higherScopedGuestPermissions = higherScopedGuestRole.GetChannelModeratedPermissions(channel.Type)
+	}
 
 	for _, moderationPatch := range channelModerationsPatch {
 		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
@@ -772,19 +783,29 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
 	}
 
-	guestRoleName, memberRoleName, _, _ := a.GetSchemeRolesForChannel(channel.Id)
+	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
+	if err != nil {
+		return nil, err
+	}
+
 	memberRole, err := a.GetRoleByName(memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
-	guestRole, err := a.GetRoleByName(guestRoleName)
-	if err != nil {
-		return nil, err
+	var guestRole *model.Role
+	if len(guestRoleName) > 0 {
+		guestRole, err = a.GetRoleByName(guestRoleName)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	memberRolePatch := memberRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "members")
-	guestRolePatch := guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
+	var guestRolePatch *model.RolePatch
+	if guestRole != nil {
+		guestRolePatch = guestRole.RolePatchFromChannelModerationsPatch(channelModerationsPatch, "guests")
+	}
 
 	for _, channelModerationPatch := range channelModerationsPatch {
 		permissionModified := *channelModerationPatch.Name
@@ -2113,7 +2134,11 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 
 			notify := member.NotifyProps[model.PUSH_NOTIFY_PROP]
 			if notify == model.CHANNEL_NOTIFY_DEFAULT {
-				user, _ := a.GetUser(userId)
+				user, err := a.GetUser(userId)
+				if err != nil {
+					mlog.Warn("Failed to get user", mlog.String("user_id", userId), mlog.Err(err))
+					continue
+				}
 				notify = user.NotifyProps[model.PUSH_NOTIFY_PROP]
 			}
 			if notify == model.USER_NOTIFY_ALL {
