@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -3138,6 +3140,34 @@ func TestGetChannelModerations(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+	})
 }
 
 func TestPatchChannelModerations(t *testing.T) {
@@ -3250,6 +3280,71 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		scheme, _ = th.App.GetScheme(*schemeId)
 		require.NotEqual(t, scheme.DeleteAt, int64(0))
+	})
+
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		team := th.BasicTeam
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
+
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+			},
+		}
+
+		moderations, res = th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
 	})
 
 }
