@@ -2255,6 +2255,38 @@ func (s *NativeAppSettings) SetDefaults() {
 	}
 }
 
+type DatabaseSearchSettings struct {
+	EnableIndexing     *bool `restricted:"true"`
+	EnableSearching    *bool `restricted:"true"`
+	EnableAutocomplete *bool `restricted:"true"`
+}
+
+func (s *DatabaseSearchSettings) SetDefaults() {
+	if s.EnableIndexing == nil {
+		s.EnableIndexing = NewBool(true)
+	}
+
+	if s.EnableSearching == nil {
+		s.EnableSearching = NewBool(true)
+	}
+
+	if s.EnableAutocomplete == nil {
+		s.EnableAutocomplete = NewBool(true)
+	}
+}
+
+func (s *DatabaseSearchSettings) isValid() *AppError {
+	if *s.EnableSearching && !*s.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableAutocomplete && !*s.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type ElasticsearchSettings struct {
 	ConnectionUrl                 *string `restricted:"true"`
 	Username                      *string `restricted:"true"`
