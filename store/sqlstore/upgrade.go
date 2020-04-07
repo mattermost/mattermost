@@ -18,7 +18,9 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_21_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_22_0
+	VERSION_5_23_0           = "5.23.0"
+	VERSION_5_22_0           = "5.22.0"
 	VERSION_5_21_0           = "5.21.0"
 	VERSION_5_20_0           = "5.20.0"
 	VERSION_5_19_0           = "5.19.0"
@@ -174,6 +176,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion520(sqlStore)
 	upgradeDatabaseToVersion521(sqlStore)
 	upgradeDatabaseToVersion522(sqlStore)
+	upgradeDatabaseToVersion523(sqlStore)
 
 	return nil
 }
@@ -772,23 +775,25 @@ func upgradeDatabaseToVersion521(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion522(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
-	sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
-	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-	sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
-	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
-	sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
+	if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
+		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 
+		saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	}
+}
+
+func upgradeDatabaseToVersion523(sqlStore SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_22_0, VERSION_5_23_0) {
 	if err := sqlStore.Channel().MigrateChannelsToSidebar(); err != nil {
 		mlog.Critical("Failed to migrate Favorite channels", mlog.Err(err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
-
-	// sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
-	// sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	// 	saveSchemaVersion(sqlStore, VERSION_5_23_0)
 	// }
 }
