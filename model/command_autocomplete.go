@@ -161,22 +161,24 @@ func (ad *AutocompleteData) Equals(command *AutocompleteData) bool {
 // UpdateRelativeURLsForPluginCommands method updates relative urls for plugin commands
 func (ad *AutocompleteData) UpdateRelativeURLsForPluginCommands(baseURL *url.URL) error {
 	for _, arg := range ad.Arguments {
-		if arg.Type == AutocompleteArgTypeDynamicList {
-			dynamicList, ok := arg.Data.(*AutocompleteDynamicListArg)
-			if !ok {
-				return errors.New("Not a proper DynamicList type argument")
-			}
-			dynamicListURL, err := url.Parse(dynamicList.FetchURL)
-			if err != nil {
-				return errors.Wrapf(err, "FetchURL is not a proper url")
-			}
-			if !dynamicListURL.IsAbs() {
-				absURL := &url.URL{}
-				*absURL = *baseURL
-				absURL.Path = path.Join(absURL.Path, dynamicList.FetchURL)
-				dynamicList.FetchURL = absURL.String()
-			}
+		if arg.Type != AutocompleteArgTypeDynamicList {
+			continue
 		}
+		dynamicList, ok := arg.Data.(*AutocompleteDynamicListArg)
+		if !ok {
+			return errors.New("Not a proper DynamicList type argument")
+		}
+		dynamicListURL, err := url.Parse(dynamicList.FetchURL)
+		if err != nil {
+			return errors.Wrapf(err, "FetchURL is not a proper url")
+		}
+		if !dynamicListURL.IsAbs() {
+			absURL := &url.URL{}
+			*absURL = *baseURL
+			absURL.Path = path.Join(absURL.Path, dynamicList.FetchURL)
+			dynamicList.FetchURL = absURL.String()
+		}
+
 	}
 	for _, command := range ad.SubCommands {
 		err := command.UpdateRelativeURLsForPluginCommands(baseURL)
@@ -278,7 +280,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &arg); err != nil {
 		return errors.Wrapf(err, "Can't unmarshal argument %s", string(b))
 	}
-	ok := true
+	var ok bool
 	a.Name, ok = arg["Name"].(string)
 	if !ok {
 		return errors.Errorf("No field Name in the argument %s", string(b))
@@ -359,7 +361,7 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NewAutocompleteStaticListArg returned empty AutocompleteStaticListArgType argument.
+// NewAutocompleteStaticListArg returns an empty AutocompleteArgTypeStaticList argument.
 func NewAutocompleteStaticListArg() *AutocompleteStaticListArg {
 	return &AutocompleteStaticListArg{
 		PossibleArguments: []AutocompleteStaticListItem{},

@@ -21,9 +21,9 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 	index := strings.Index(inputToBeParsed, " ")
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, inputToBeParsed) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") { //TODO introduce permitted roles array
-				suggestion := inputParsed + command.Trigger                                                                                      // TODO check this maybe it needs a space
-				suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: suggestion, Hint: "", Description: command.HelpText}) // TODO maybe we want to have a hint here?
+			if strings.HasPrefix(command.Trigger, inputToBeParsed) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+				suggestion := inputParsed + command.Trigger
+				suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: suggestion, Hint: command.Hint, Description: command.HelpText})
 			}
 		}
 		return suggestions

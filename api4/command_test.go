@@ -430,13 +430,13 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		foundShrug := false
 		foundCustom := false
 		for _, command := range suggestions {
-			if command.Hint == "echo" {
+			if command.Suggestion == "echo" {
 				foundEcho = true
 			}
-			if command.Hint == "shrug" {
+			if command.Suggestion == "shrug" {
 				foundShrug = true
 			}
-			if command.Hint == "custom_command" {
+			if command.Suggestion == "custom_command" {
 				foundCustom = true
 			}
 		}
@@ -452,10 +452,10 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		foundEcho := false
 		foundShrug := false
 		for _, command := range suggestions {
-			if command.Hint == "echo" {
+			if command.Suggestion == "echo" {
 				foundEcho = true
 			}
-			if command.Hint == "shrug" {
+			if command.Suggestion == "shrug" {
 				foundShrug = true
 			}
 		}
@@ -470,10 +470,10 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		foundEcho := false
 		foundCustom := false
 		for _, suggestion := range suggestions {
-			if suggestion.Hint == "echo" {
+			if suggestion.Suggestion == "echo" {
 				foundEcho = true
 			}
-			if suggestion.Hint == "custom_command" {
+			if suggestion.Suggestion == "custom_command" {
 				foundCustom = true
 			}
 		}

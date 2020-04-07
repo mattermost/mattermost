@@ -395,9 +395,6 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 
 	autocompleteData := []*model.AutocompleteData{}
 	for _, command := range commands {
-		if !command.AutoComplete {
-			continue
-		}
 		if command.AutocompleteData == nil {
 			if strings.HasPrefix(command.Trigger, userInput) {
 				suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: command.Trigger, Description: command.AutoCompleteDesc, Hint: command.AutoCompleteHint})
