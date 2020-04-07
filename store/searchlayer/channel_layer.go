@@ -67,7 +67,7 @@ func (c *SearchChannelStore) UpdateMember(cm *model.ChannelMember) (*model.Chann
 		c.rootStore.indexUserFromID(cm.UserId)
 		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
 		if channelErr != nil {
-			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(err))
+			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(channelErr))
 		} else {
 			c.rootStore.indexUserFromID(channel.CreatorId)
 		}
@@ -81,7 +81,7 @@ func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.Channel
 		c.rootStore.indexUserFromID(cm.UserId)
 		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
 		if channelErr != nil {
-			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(err))
+			mlog.Error("Encountered error indexing user in channel", mlog.String("channel_id", member.ChannelId), mlog.Err(channelErr))
 		} else {
 			c.rootStore.indexUserFromID(channel.CreatorId)
 		}
