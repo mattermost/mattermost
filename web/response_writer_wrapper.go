@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-type ResponseWriterWrapper struct {
+type responseWriterWrapper struct {
 	http.ResponseWriter
 	statusCode        int
 	statusCodeWritten bool
@@ -18,10 +18,10 @@ type ResponseWriterWrapper struct {
 	flusher           http.Flusher
 }
 
-func BuildResponseWriter(original http.ResponseWriter) *ResponseWriterWrapper {
+func newWrappedWriter(original http.ResponseWriter) *responseWriterWrapper {
 	hijacker, _ := original.(http.Hijacker)
 	flusher, _ := original.(http.Flusher)
-	return &ResponseWriterWrapper{
+	return &responseWriterWrapper{
 		ResponseWriter:    original,
 		statusCodeWritten: false,
 		hijacker:          hijacker,
@@ -29,17 +29,17 @@ func BuildResponseWriter(original http.ResponseWriter) *ResponseWriterWrapper {
 	}
 }
 
-func (rw *ResponseWriterWrapper) StatusCode() int {
+func (rw *responseWriterWrapper) StatusCode() int {
 	return rw.statusCode
 }
 
-func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
+func (rw *responseWriterWrapper) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.statusCodeWritten = true
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
-func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
+func (rw *responseWriterWrapper) Write(data []byte) (int, error) {
 	if !rw.statusCodeWritten {
 		rw.statusCode = http.StatusOK
 	}
@@ -48,14 +48,14 @@ func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
 
 // Using as embedded makes the ResponseWrite be stored as interface and that way
 // it loses the access to the implementation for Hijack or Flush
-func (rw *ResponseWriterWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (rw *responseWriterWrapper) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if rw.hijacker == nil {
 		return nil, nil, errors.New("Hijacker interface not supported by the wrapped ResponseWriter")
 	}
 	return rw.hijacker.Hijack()
 }
 
-func (rw *ResponseWriterWrapper) Flush() {
+func (rw *responseWriterWrapper) Flush() {
 	if rw.flusher != nil {
 		rw.flusher.Flush()
 	}

@@ -80,7 +80,7 @@ type Handler struct {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	newWriter := BuildResponseWriter(w)
+	newWriter := newWrappedWriter(w)
 	now := time.Now()
 
 	requestID := model.NewId()
