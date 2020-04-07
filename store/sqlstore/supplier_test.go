@@ -4,11 +4,13 @@
 package sqlstore_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
@@ -140,6 +142,29 @@ func TestGetReplica(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetDbVersion(t *testing.T) {
+	driverName := model.DATABASE_DRIVER_SQLITE
+	dataSource := ":memory:"
+	maxIdleConns := 1
+	connMaxLifetimeMilliseconds := 3600000
+	maxOpenConns := 1
+	queryTimeout := 5
+
+	settings := model.SqlSettings{
+		DriverName:                  &driverName,
+		DataSource:                  &dataSource,
+		MaxIdleConns:                &maxIdleConns,
+		ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+		MaxOpenConns:                &maxOpenConns,
+		QueryTimeout:                &queryTimeout,
+	}
+	supplier := sqlstore.NewSqlSupplier(settings, nil)
+
+	version, err := supplier.GetDbVersion()
+	require.Nil(t, err)
+	require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 }
 
 func TestGetAllConns(t *testing.T) {
