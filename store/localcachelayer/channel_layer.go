@@ -167,3 +167,61 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 
 	return ch, err
 }
+
+func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	member, err := s.ChannelStore.SaveMember(member)
+	if err != nil {
+		return nil, err
+	}
+	s.InvalidateMemberCount(member.ChannelId)
+	return member, nil
+}
+
+func (s LocalCacheChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	members, err := s.ChannelStore.SaveMultipleMembers(members)
+	if err != nil {
+		return nil, err
+	}
+	for _, member := range members {
+		s.InvalidateMemberCount(member.ChannelId)
+	}
+	return members, nil
+}
+
+func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+	member, err := s.ChannelStore.UpdateMember(member)
+	if err != nil {
+		return nil, err
+	}
+	s.InvalidateMemberCount(member.ChannelId)
+	return member, nil
+}
+
+func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+	members, err := s.ChannelStore.UpdateMultipleMembers(members)
+	if err != nil {
+		return nil, err
+	}
+	for _, member := range members {
+		s.InvalidateMemberCount(member.ChannelId)
+	}
+	return members, nil
+}
+
+func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) *model.AppError {
+	err := s.ChannelStore.RemoveMember(channelId, userId)
+	if err != nil {
+		return err
+	}
+	s.InvalidateMemberCount(channelId)
+	return nil
+}
+
+func (s LocalCacheChannelStore) RemoveMembers(channelId string, userIds []string) *model.AppError {
+	err := s.ChannelStore.RemoveMembers(channelId, userIds)
+	if err != nil {
+		return err
+	}
+	s.InvalidateMemberCount(channelId)
+	return nil
+}

@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -63,7 +64,7 @@ func SetMainHelper(mh *testlib.MainHelper) {
 	mainHelper = mh
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
+func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool, updateConfig func(*model.Config)) *TestHelper {
 	tempWorkspace, err := ioutil.TempDir("", "apptest")
 	if err != nil {
 		panic(err)
@@ -100,6 +101,10 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCache bool, up
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
+	}
+
+	if searchEngine != nil {
+		th.App.SetSearchEngine(searchEngine)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -163,7 +168,8 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, true, true, nil)
+	searchEngine := mainHelper.GetSearchEngine()
+	return setupTestHelper(dbStore, searchEngine, true, true, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -178,7 +184,8 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, true, nil)
+	searchEngine := mainHelper.GetSearchEngine()
+	return setupTestHelper(dbStore, searchEngine, false, true, nil)
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -193,11 +200,12 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
-	return setupTestHelper(dbStore, false, true, updateConfig)
+	searchEngine := mainHelper.GetSearchEngine()
+	return setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, updateConfig)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -205,7 +213,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), false, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
@@ -213,7 +221,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), true, false, nil)
+	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
