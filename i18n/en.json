@@ -3851,6 +3851,10 @@
     "translation": "Unable to export a post."
   },
   {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Unable to create the warning file."
+  },
+  {
     "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Unable to create the zip export file."
   },
@@ -4157,10 +4161,6 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "error retrieving groups for user"
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Unable to add attachment to the Global Relay export."
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
