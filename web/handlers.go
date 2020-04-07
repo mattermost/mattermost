@@ -80,7 +80,7 @@ type Handler struct {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	newWriter := newWrappedWriter(w)
+	w = newWrappedWriter(w)
 	now := time.Now()
 
 	requestID := model.NewId()
@@ -91,7 +91,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.GetGlobalAppOptions()...,
 	)
 
-	t, _ := utils.GetTranslationsAndLocale(newWriter, r)
+	t, _ := utils.GetTranslationsAndLocale(w, r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
 	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
@@ -134,33 +134,33 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// So to keep it simple, we clamp it to the max file size.
 	// We add a buffer of bytes.MinRead so that file sizes close to max file size
 	// do not get cut off.
-	r.Body = http.MaxBytesReader(newWriter, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
+	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
-	newWriter.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
-	newWriter.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
+	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
-		newWriter.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
+		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
-		newWriter.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
-		newWriter.Header().Set("Content-Security-Policy", fmt.Sprintf(
+		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
 			h.cspShaDirective,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
-		newWriter.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json")
 
 		if r.Method == "GET" {
-			newWriter.Header().Set("Expires", "0")
+			w.Header().Set("Expires", "0")
 		}
 	}
 
@@ -173,7 +173,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
-				c.RemoveSessionCookie(newWriter, r)
+				c.RemoveSessionCookie(w, r)
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
@@ -183,7 +183,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Rate limit by UserID
-		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.App.Session().UserId, newWriter) {
+		if c.App.Srv().RateLimiter != nil && c.App.Srv().RateLimiter.UserIdRateLimit(c.App.Session().UserId, w) {
 			return
 		}
 
@@ -211,7 +211,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil {
-		h.HandleFunc(c, newWriter, r)
+		h.HandleFunc(c, w, r)
 	}
 
 	// Handle errors that have occurred
@@ -243,10 +243,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
-			newWriter.WriteHeader(c.Err.StatusCode)
-			newWriter.Write([]byte(c.Err.ToJson()))
+			w.WriteHeader(c.Err.StatusCode)
+			w.Write([]byte(c.Err.ToJson()))
 		} else {
-			utils.RenderWebAppError(c.App.Config(), newWriter, r, c.Err, c.App.AsymmetricSigningKey())
+			utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		}
 
 		if c.App.Metrics() != nil {
@@ -259,7 +259,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			statusCode := strconv.Itoa(newWriter.StatusCode())
+			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 			c.App.Metrics().ObserveHttpRequestDuration(elapsed)
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}

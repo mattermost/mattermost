@@ -14,19 +14,11 @@ import (
 )
 
 type TestHandler struct {
-	Wrapper  *responseWriterWrapper
 	TestFunc func(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *TestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.TestFunc(h.Wrapper, r)
-}
-
-func createTestHandler(wrapper *responseWriterWrapper, testFunc func(w http.ResponseWriter, r *http.Request)) http.Handler {
-	return &TestHandler{
-		Wrapper:  wrapper,
-		TestFunc: testFunc,
-	}
+	h.TestFunc(w, r)
 }
 
 type responseRecorderHijack struct {
@@ -43,46 +35,53 @@ func newResponseWithHijack(original *httptest.ResponseRecorder) *responseRecorde
 }
 
 func TestStatusCodeIsAccessible(t *testing.T) {
-	resp := httptest.NewRecorder()
+	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
-	wrapper := newWrappedWriter(resp)
-	handler := createTestHandler(wrapper, func(w http.ResponseWriter, r *http.Request) {
+	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
-	})
+	}}
 	handler.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusBadRequest, wrapper.StatusCode())
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode())
 }
 
 func TestStatusCodeShouldBe200IfNotHeaderWritten(t *testing.T) {
-	resp := httptest.NewRecorder()
+	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
-	wrapper := newWrappedWriter(resp)
-	handler := createTestHandler(wrapper, func(w http.ResponseWriter, r *http.Request) {
-		wrapper.Write([]byte{})
-	})
+	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte{})
+	}}
 	handler.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusOK, wrapper.StatusCode())
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 }
 
 func TestForUnsupportedHijack(t *testing.T) {
-	resp := httptest.NewRecorder()
+	resp := newWrappedWriter(httptest.NewRecorder())
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
-	wrapper := newWrappedWriter(resp)
-	handler := createTestHandler(wrapper, func(w http.ResponseWriter, r *http.Request) {
-		_, _, err := wrapper.Hijack()
+	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
+		_, _, err := w.(*responseWriterWrapper).Hijack()
 		assert.NotNil(t, err)
 		assert.Equal(t, "Hijacker interface not supported by the wrapped ResponseWriter", err.Error())
-	})
+	}}
 	handler.ServeHTTP(resp, req)
 }
 
 func TestForSupportedHijack(t *testing.T) {
-	resp := newResponseWithHijack(httptest.NewRecorder())
+	resp := newWrappedWriter(newResponseWithHijack(httptest.NewRecorder()))
 	req := httptest.NewRequest("GET", "/api/v4/test", nil)
-	wrapper := newWrappedWriter(resp)
-	handler := createTestHandler(wrapper, func(w http.ResponseWriter, r *http.Request) {
-		_, _, err := wrapper.Hijack()
+	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
+		_, _, err := w.(*responseWriterWrapper).Hijack()
 		assert.Nil(t, err)
-	})
+	}}
 	handler.ServeHTTP(resp, req)
+}
+
+func TestForSupportedFlush(t *testing.T) {
+	resp := newWrappedWriter(httptest.NewRecorder())
+	req := httptest.NewRequest("GET", "/api/v4/test", nil)
+	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte{})
+		w.(*responseWriterWrapper).Flush()
+	}}
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
 }
