@@ -157,7 +157,6 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	auditRec := c.MakeAuditRecord("uploadFileSimple", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", c.Params.ChannelId)
-	auditRec.AddMeta("filename", c.Params.Filename)
 
 	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
@@ -166,7 +165,6 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 
 	clientId := r.Form.Get("client_id")
 	auditRec.AddMeta("client_id", clientId)
-	auditRec.AddMeta("content_length", r.ContentLength)
 
 	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
 		app.UploadFileSetTeamId(FILE_TEAM_ID),
@@ -178,6 +176,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		c.Err = appErr
 		return nil
 	}
+	auditRec.AddMeta("file", info)
 
 	fileUploadResponse := &model.FileUploadResponse{
 		FileInfos: []*model.FileInfo{info},
@@ -328,7 +327,6 @@ NEXT_PART:
 
 		auditRec := c.MakeAuditRecord("uploadFileMultipart", audit.Fail)
 		auditRec.AddMeta("channel_id", c.Params.ChannelId)
-		auditRec.AddMeta("filename", filename)
 		auditRec.AddMeta("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
@@ -342,6 +340,8 @@ NEXT_PART:
 			c.LogAuditRec(auditRec)
 			return nil
 		}
+		auditRec.AddMeta("file", info)
+
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
 
@@ -430,7 +430,6 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", audit.Fail)
 		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("channel_id", channelId)
-		auditRec.AddMeta("filename", fileHeader.Filename)
 		auditRec.AddMeta("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
@@ -445,6 +444,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			c.LogAuditRec(auditRec)
 			return nil
 		}
+		auditRec.AddMeta("file", info)
 
 		auditRec.Success()
 		c.LogAuditRec(auditRec)
@@ -469,11 +469,16 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		forceDownload = false
 	}
 
+	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("force_download", forceDownload)
+
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("file", info)
 
 	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -487,6 +492,8 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer fileReader.Close()
+
+	auditRec.Success()
 
 	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 	if err != nil {
@@ -548,11 +555,15 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("getFileLink", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("file", info)
 
 	if info.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -565,7 +576,11 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := make(map[string]string)
-	resp["link"] = c.App.GeneratePublicLink(c.GetSiteURLHeader(), info)
+	link := c.App.GeneratePublicLink(c.GetSiteURLHeader(), info)
+	resp["link"] = link
+
+	auditRec.Success()
+	auditRec.AddMeta("link", link)
 
 	w.Write([]byte(model.MapToJson(resp)))
 }
