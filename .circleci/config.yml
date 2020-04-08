@@ -448,12 +448,15 @@ workflows:
           dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
           requires:
             - check-app-layers
+            - check-store-layers
       - test:
           name: test-postgres
           dbdriver: postgres
           dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
           requires:
             - check-app-layers
+            - check-store-layers
       - test-schema:
           requires:
             - check-app-layers
+            - check-store-layers
