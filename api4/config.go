@@ -28,7 +28,12 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("getConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	cfg := c.App.GetSanitizedConfig()
+
+	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))

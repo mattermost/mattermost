@@ -459,6 +459,73 @@ func TestPatchTeamSanitization(t *testing.T) {
 	})
 }
 
+func TestTeamUnicodeNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	t.Run("create team unicode", func(t *testing.T) {
+		team := &model.Team{
+			Name:        GenerateTestUsername(),
+			DisplayName: "Some\u206c Team",
+			Description: "A \ufffatest\ufffb channel.",
+			CompanyName: "\ufeffAcme Inc\ufffc",
+			Type:        model.TEAM_OPEN}
+		rteam, resp := Client.CreateTeam(team)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, "Some Team", rteam.DisplayName, "bad unicode should be filtered from display name")
+		require.Equal(t, "A test channel.", rteam.Description, "bad unicode should be filtered from description")
+		require.Equal(t, "Acme Inc", rteam.CompanyName, "bad unicode should be filtered from company name")
+	})
+
+	t.Run("update team unicode", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Description: "Some description",
+			CompanyName: "Bad Company",
+			Name:        model.NewRandomTeamName(),
+			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
+			Type:        model.TEAM_OPEN}
+		team, _ = Client.CreateTeam(team)
+
+		team.DisplayName = "\u206eThe Team\u206f"
+		team.Description = "A \u17a3great\u17d3 team."
+		team.CompanyName = "\u206aAcme Inc"
+		uteam, resp := Client.UpdateTeam(team)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "The Team", uteam.DisplayName, "bad unicode should be filtered from display name")
+		require.Equal(t, "A great team.", uteam.Description, "bad unicode should be filtered from description")
+		require.Equal(t, "Acme Inc", uteam.CompanyName, "bad unicode should be filtered from company name")
+	})
+
+	t.Run("patch team unicode", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Description: "Some description",
+			CompanyName: "Some company name",
+			Name:        model.NewRandomTeamName(),
+			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
+			Type:        model.TEAM_OPEN}
+		team, _ = Client.CreateTeam(team)
+
+		patch := &model.TeamPatch{}
+
+		patch.DisplayName = model.NewString("Goat\u206e Team")
+		patch.Description = model.NewString("\ufffaGreat team.")
+		patch.CompanyName = model.NewString("\u202bAcme Inc\u202c")
+
+		rteam, resp := Client.PatchTeam(team.Id, patch)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "Goat Team", rteam.DisplayName, "bad unicode should be filtered from display name")
+		require.Equal(t, "Great team.", rteam.Description, "bad unicode should be filtered from description")
+		require.Equal(t, "Acme Inc", rteam.CompanyName, "bad unicode should be filtered from company name")
+	})
+}
+
 func TestRegenerateTeamInviteId(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2366,7 +2433,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 
-	//Check if the email was send to the rigth email address
+	//Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mailservice.JSONMessageHeaderInbucket
 		err := mailservice.RetryInbucket(5, func() error {
@@ -2489,7 +2556,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
 
-	//Check if the email was send to the rigth email address
+	//Check if the email was send to the right email address
 	for _, email := range emailList {
 		var resultsMailbox mailservice.JSONMessageHeaderInbucket
 		err := mailservice.RetryInbucket(5, func() error {
