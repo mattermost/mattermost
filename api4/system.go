@@ -183,17 +183,23 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(audits.ToJson()))
 }
@@ -245,6 +251,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -255,6 +264,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
