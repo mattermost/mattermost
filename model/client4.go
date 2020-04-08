@@ -1274,7 +1274,7 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 
 // VerifyUser will verify a user by its Id. (Requires manage system role)
 func (c *Client4) VerifyUser(userId string) (*User, *Response) {
-	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/verify", "")
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/verify", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
