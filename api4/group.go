@@ -533,8 +533,9 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                  c.Params.Q,
-		IncludeMemberCount: c.Params.IncludeMemberCount,
+		Q:                    c.Params.Q,
+		IncludeMemberCount:   c.Params.IncludeMemberCount,
+		FilterAllowReference: c.Params.FilterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -574,8 +575,9 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                  c.Params.Q,
-		IncludeMemberCount: c.Params.IncludeMemberCount,
+		Q:                    c.Params.Q,
+		IncludeMemberCount:   c.Params.IncludeMemberCount,
+		FilterAllowReference: c.Params.FilterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
@@ -615,8 +617,9 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                  c.Params.Q,
-		IncludeMemberCount: c.Params.IncludeMemberCount,
+		Q:                    c.Params.Q,
+		IncludeMemberCount:   c.Params.IncludeMemberCount,
+		FilterAllowReference: c.Params.FilterAllowReference,
 	}
 	if c.Params.Paginate == nil || *c.Params.Paginate {
 		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
