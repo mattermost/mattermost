@@ -183,11 +183,21 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 		}
 	}
 
-	targetURL.Path = path.Join(bucketName, "") + "/"
-	targetURL.RawQuery = urlValues.Encode()
+	isVirtualHost := s3utils.IsVirtualHostSupported(targetURL, bucketName)
+
+	var urlStr string
+
+	//only suport Aliyun OSS for virtual hosted path,  compatible  Amazon & Google Endpoint
+	if isVirtualHost && s3utils.IsAliyunOSSEndpoint(targetURL) {
+		urlStr = c.endpointURL.Scheme + "://" + bucketName + "." + targetURL.Host + "/?location"
+	} else {
+		targetURL.Path = path.Join(bucketName, "") + "/"
+		targetURL.RawQuery = urlValues.Encode()
+		urlStr = targetURL.String()
+	}
 
 	// Get a new HTTP request for the method.
-	req, err := http.NewRequest("GET", targetURL.String(), nil)
+	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		return nil, err
 	}

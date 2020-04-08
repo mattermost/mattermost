@@ -130,7 +130,7 @@ type errorGroup interface {
 }
 
 // Errors returns a slice containing zero or more errors that the supplied
-// error is composed of. If the error is nil, the returned slice is empty.
+// error is composed of. If the error is nil, a nil slice is returned.
 //
 // 	err := multierr.Append(r.Close(), w.Close())
 // 	errors := multierr.Errors(err)

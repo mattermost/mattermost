@@ -32,8 +32,6 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("oauth_app_name", oauthApp.Name)
-	auditRec.AddMeta("oauth_app_desc", oauthApp.Description)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
@@ -53,8 +51,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("oauth_app_id", rapp.Id)
-	auditRec.AddMeta("client_id", rapp.Id)
+	auditRec.AddMeta("oauth_app", rapp)
 	c.LogAudit("client_id=" + rapp.Id)
 
 	w.WriteHeader(http.StatusCreated)
@@ -82,7 +79,6 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("oauth_app")
 		return
 	}
-	auditRec.AddMeta("oauth_app_name", oauthApp.Name)
 
 	// The app being updated in the payload must be the same one as indicated in the URL.
 	if oauthApp.Id != c.Params.AppId {
@@ -95,6 +91,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("oauth_app", oldOauthApp)
 
 	if c.App.Session().UserId != oldOauthApp.CreatorId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
@@ -112,6 +109,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("update", updatedOauthApp)
 	c.LogAudit("success")
 
 	w.Write([]byte(updatedOauthApp.ToJson()))
@@ -204,7 +202,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("oauth_app_name", oauthApp.Name)
+	auditRec.AddMeta("oauth_app", oauthApp)
 
 	if c.App.Session().UserId != oauthApp.CreatorId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
@@ -243,7 +241,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("oauth_app_name", oauthApp.Name)
+	auditRec.AddMeta("oauth_app", oauthApp)
 
 	if oauthApp.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
