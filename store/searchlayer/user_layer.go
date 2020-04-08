@@ -4,6 +4,7 @@
 package searchlayer
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -20,13 +21,13 @@ type SearchUserStore struct {
 func (s *SearchUserStore) deleteUserIndex(user *model.User) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			go (func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUser(user); err != nil {
 					mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
 				mlog.Debug("Removed user from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
-			})(engine)
+			})
 		}
 	}
 }
@@ -39,17 +40,20 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			if len(listOfAllowedChannels) == 0 {
+
+			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 				return []*model.User{}, nil
 			}
 
 			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 			if err != nil {
+				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 
 			users, err := s.UserStore.GetProfileByIds(usersIds, nil, false)
 			if err != nil {
+				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 
@@ -58,6 +62,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 		}
 	}
 	mlog.Debug("Using database search because no other search engine is available")
+
 	return s.UserStore.Search(teamId, term, options)
 }
 
@@ -138,7 +143,15 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 }
 
 func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
+	if len(teamId) == 0 {
+		return nil, model.NewAppError("SearchUserStore", "store.search_user_store.empty_team_id", nil, "", http.StatusInternalServerError)
+	}
+
 	var listOfAllowedChannels []string
+	if viewRestrictions == nil && teamId == "" {
+		return nil, nil
+	}
+
 	if viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {
@@ -152,7 +165,12 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 		return channelIds, nil
 	}
 
+	if len(viewRestrictions.Channels) == 0 {
+		return []string{}, nil
+	}
+
 	channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
+
 	if err != nil {
 		return nil, err
 	}

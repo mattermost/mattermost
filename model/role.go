@@ -204,6 +204,10 @@ func PermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 	var result []string
 
+	if role == nil {
+		return result
+	}
+
 	if patch.Permissions == nil {
 		return result
 	}
