@@ -113,7 +113,6 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("group_id", c.Params.GroupId)
 
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
@@ -130,9 +129,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("old_group_name", group.Name)
-	auditRec.AddMeta("old_group_display", group.DisplayName)
-	auditRec.AddMeta("old_group_desc", group.Description)
+	auditRec.AddMeta("group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
 		tmp := model.NewId()
@@ -148,10 +145,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
-	auditRec.AddMeta("new_group_name", group.Name)
-	auditRec.AddMeta("new_group_display", group.DisplayName)
-	auditRec.AddMeta("new_group_desc", group.Description)
+	auditRec.AddMeta("patch", group)
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
@@ -160,7 +154,6 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-
 	w.Write(b)
 }
 
