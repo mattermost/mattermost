@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -195,6 +196,12 @@ type AppIface interface {
 	License() *model.License
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
+	// LogAuditRec logs an audit record using default CLILevel.
+	LogAuditRec(rec *audit.Record, err error)
+	// LogAuditRecWithLevel logs an audit record using specified Level.
+	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	// MakeAuditRecord creates a audit record pre-populated with defaults.
+	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
