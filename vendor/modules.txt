@@ -49,6 +49,7 @@ github.com/fatih/color
 # github.com/fortytw2/leaktest v1.3.0
 ## explicit
 # github.com/francoispqt/gojay v1.2.13
+## explicit
 github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.7
 ## explicit
