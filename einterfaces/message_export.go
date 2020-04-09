@@ -5,9 +5,13 @@ package einterfaces
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+// just done so server will pass i18n-export
+var DummyError = model.NewAppError("saveConfig", "ent.compliance.csv.warning.appError", nil, "", http.StatusForbidden)
 
 type MessageExportInterface interface {
 	StartSynchronizeJob(ctx context.Context, exportFromTimestamp int64) (*model.Job, *model.AppError)
