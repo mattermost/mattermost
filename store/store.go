@@ -54,6 +54,7 @@ type Store interface {
 	UnlockFromMaster()
 	DropAllTables()
 	GetCurrentSchemaVersion() string
+	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
