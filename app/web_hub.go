@@ -9,7 +9,6 @@ import (
 	"runtime/debug"
 	"strconv"
 	"sync/atomic"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -17,8 +16,6 @@ import (
 
 const (
 	BROADCAST_QUEUE_SIZE = 4096
-	DEADLOCK_TICKER      = 15 * time.Second                  // check every 15 seconds
-	DEADLOCK_WARN        = (BROADCAST_QUEUE_SIZE * 99) / 100 // number of buffered messages before printing stack trace
 )
 
 type WebConnActivityMessage struct {
@@ -67,7 +64,6 @@ func (a *App) HubStart() {
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	a.Srv().SetHubs(make([]*Hub, numberOfHubs))
-	a.Srv().HubsStopCheckingForDeadlock = make(chan bool, 1)
 
 	for i := 0; i < len(a.Srv().GetHubs()); i++ {
 		newHub := a.NewWebHub()
@@ -79,42 +75,10 @@ func (a *App) HubStart() {
 		}
 		newHub.Start()
 	}
-
-	go func() {
-		ticker := time.NewTicker(DEADLOCK_TICKER)
-
-		defer func() {
-			ticker.Stop()
-		}()
-
-		for {
-			select {
-			case <-ticker.C:
-				for _, hub := range a.Srv().GetHubs() {
-					if len(hub.broadcast) >= DEADLOCK_WARN {
-						mlog.Error(
-							"Websocket hub queue is filled to 99% of its capacity",
-							mlog.Int("hub", hub.connectionIndex),
-							mlog.Int("events", len(hub.broadcast)),
-						)
-					}
-				}
-
-			case <-a.Srv().HubsStopCheckingForDeadlock:
-				return
-			}
-		}
-	}()
 }
 
 func (a *App) HubStop() {
 	mlog.Info("stopping websocket hub connections")
-
-	select {
-	case a.Srv().HubsStopCheckingForDeadlock <- true:
-	default:
-		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
-	}
 
 	for _, hub := range a.Srv().GetHubs() {
 		hub.Stop()

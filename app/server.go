@@ -73,9 +73,8 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	hubsLock                    sync.RWMutex
-	hubs                        []*Hub
-	HubsStopCheckingForDeadlock chan bool
+	hubsLock sync.RWMutex
+	hubs     []*Hub
 
 	PushNotificationsHub PushNotificationsHub
 
