@@ -3707,11 +3707,11 @@ type Z_GetPluginStatusesArgs struct {
 }
 
 type Z_GetPluginStatusesReturns struct {
-	A model.PluginStatuses
+	A []*model.PluginStatus
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (g *apiRPCClient) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
 	_args := &Z_GetPluginStatusesArgs{}
 	_returns := &Z_GetPluginStatusesReturns{}
 	if err := g.client.Call("Plugin.GetPluginStatuses", _args, _returns); err != nil {
@@ -3722,7 +3722,7 @@ func (g *apiRPCClient) GetPluginStatuses() (model.PluginStatuses, *model.AppErro
 
 func (s *apiRPCServer) GetPluginStatuses(args *Z_GetPluginStatusesArgs, returns *Z_GetPluginStatusesReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPluginStatuses() (model.PluginStatuses, *model.AppError)
+		GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetPluginStatuses()
 	} else {
