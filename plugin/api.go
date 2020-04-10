@@ -738,7 +738,7 @@ type API interface {
 	// GetPluginStatuses will return the statuses of plugins.
 	//
 	// @tag Plugin
-	// Minimum server version: 5.6
+	// Minimum server version: 5.24
 	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
 
 	// InstallPlugin will upload another plugin with tar.gz file.
