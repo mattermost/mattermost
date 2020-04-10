@@ -36,7 +36,10 @@ imports/imports.go
 # Folders
 _obj
 _test
+
+# VSCode
 .vscode
+*.code-workspace
 
 # Architecture specific extensions/prefixes
 [568vq].out
