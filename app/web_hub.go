@@ -4,12 +4,10 @@
 package app
 
 import (
-	"fmt"
 	"hash/fnv"
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -43,7 +41,6 @@ type Hub struct {
 	invalidateUser  chan string
 	activity        chan *WebConnActivityMessage
 	ExplicitStop    bool
-	goroutineId     int
 }
 
 func (a *App) NewWebHub() *Hub {
@@ -98,19 +95,8 @@ func (a *App) HubStart() {
 						mlog.Error(
 							"Websocket hub queue is filled to 99% of its capacity",
 							mlog.Int("hub", hub.connectionIndex),
-							mlog.Int("goroutine", hub.goroutineId),
 							mlog.Int("events", len(hub.broadcast)),
 						)
-						buf := make([]byte, 1<<16)
-						runtime.Stack(buf, true)
-						output := fmt.Sprintf("%s", buf)
-						splits := strings.Split(output, "goroutine ")
-
-						for _, part := range splits {
-							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
-								mlog.Error("Trace for possible deadlock goroutine", mlog.String("trace", part))
-							}
-						}
 					}
 				}
 
@@ -374,17 +360,6 @@ func (h *Hub) UpdateActivity(userId, sessionToken string, activityAt int64) {
 	}
 }
 
-func getGoroutineId() int {
-	var buf [64]byte
-	n := runtime.Stack(buf[:], false)
-	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
-	id, err := strconv.Atoi(idField)
-	if err != nil {
-		id = -1
-	}
-	return id
-}
-
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
@@ -396,8 +371,7 @@ func (h *Hub) Start() {
 	var doRecover func()
 
 	doStart = func() {
-		h.goroutineId = getGoroutineId()
-		mlog.Debug("Hub for index is starting with goroutine", mlog.Int("index", h.connectionIndex), mlog.Int("goroutine", h.goroutineId))
+		mlog.Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
 
 		connections := newHubConnectionIndex()
 
