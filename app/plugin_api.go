@@ -694,7 +694,7 @@ func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.Ap
 	return api.app.GetPluginStatus(id)
 }
 
-func (api *PluginAPI) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (api *PluginAPI) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
 	return api.app.GetPluginStatuses()
 }
 
