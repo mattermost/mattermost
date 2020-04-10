@@ -112,21 +112,43 @@ func EpochNanosTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
 	enc.AppendInt64(t.UnixNano())
 }
 
+func encodeTimeLayout(t time.Time, layout string, enc PrimitiveArrayEncoder) {
+	type appendTimeEncoder interface {
+		AppendTimeLayout(time.Time, string)
+	}
+
+	if enc, ok := enc.(appendTimeEncoder); ok {
+		enc.AppendTimeLayout(t, layout)
+		return
+	}
+
+	enc.AppendString(t.Format(layout))
+}
+
 // ISO8601TimeEncoder serializes a time.Time to an ISO8601-formatted string
 // with millisecond precision.
+//
+// If enc supports AppendTimeLayout(t time.Time,layout string), it's used
+// instead of appending a pre-formatted string value.
 func ISO8601TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format("2006-01-02T15:04:05.000Z0700"))
+	encodeTimeLayout(t, "2006-01-02T15:04:05.000Z0700", enc)
 }
 
 // RFC3339TimeEncoder serializes a time.Time to an RFC3339-formatted string.
+//
+// If enc supports AppendTimeLayout(t time.Time,layout string), it's used
+// instead of appending a pre-formatted string value.
 func RFC3339TimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format(time.RFC3339))
+	encodeTimeLayout(t, time.RFC3339, enc)
 }
 
 // RFC3339NanoTimeEncoder serializes a time.Time to an RFC3339-formatted string
 // with nanosecond precision.
+//
+// If enc supports AppendTimeLayout(t time.Time,layout string), it's used
+// instead of appending a pre-formatted string value.
 func RFC3339NanoTimeEncoder(t time.Time, enc PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format(time.RFC3339Nano))
+	encodeTimeLayout(t, time.RFC3339Nano, enc)
 }
 
 // UnmarshalText unmarshals text to a TimeEncoder.
@@ -168,6 +190,12 @@ func NanosDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
 	enc.AppendInt64(int64(d))
 }
 
+// MillisDurationEncoder serializes a time.Duration to an integer number of
+// milliseconds elapsed.
+func MillisDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
+	enc.AppendInt64(d.Nanoseconds() / 1e6)
+}
+
 // StringDurationEncoder serializes a time.Duration using its built-in String
 // method.
 func StringDurationEncoder(d time.Duration, enc PrimitiveArrayEncoder) {
@@ -183,6 +211,8 @@ func (e *DurationEncoder) UnmarshalText(text []byte) error {
 		*e = StringDurationEncoder
 	case "nanos":
 		*e = NanosDurationEncoder
+	case "ms":
+		*e = MillisDurationEncoder
 	default:
 		*e = SecondsDurationEncoder
 	}

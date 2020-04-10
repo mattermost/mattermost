@@ -1567,6 +1567,69 @@ func TestPatchUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUserUnicodeNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	t.Run("create user unicode", func(t *testing.T) {
+		user := model.User{
+			Email:     th.GenerateTestEmail(),
+			FirstName: "Andrew\u202e",
+			LastName:  "\ufeffWiggin",
+			Nickname:  "Ender\u2028 Wiggin",
+			Password:  "hello1",
+			Username:  "\ufeffwiggin77",
+			Roles:     model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		ruser, resp := Client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		_, _ = Client.Login(user.Email, user.Password)
+
+		require.Equal(t, "wiggin77", ruser.Username, "Bad Unicode not filtered from username")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "Bad Unicode not filtered from displayname")
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad Unicode not filtered from nickname")
+	})
+
+	t.Run("update user unicode", func(t *testing.T) {
+		user := th.CreateUser()
+		Client.Login(user.Email, user.Password)
+
+		user.Username = "wiggin\ufff9"
+		user.Nickname = "Ender\u0340 \ufffcWiggin"
+		user.FirstName = "Andrew\ufff9"
+		user.LastName = "Wig\u206fgin"
+
+		ruser, resp := Client.UpdateUser(user)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "wiggin", ruser.Username, "bad unicode should be filtered from username")
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "bad unicode should be filtered from nickname")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "bad unicode should be filtered from display name")
+	})
+
+	t.Run("patch user unicode", func(t *testing.T) {
+		user := th.CreateUser()
+		Client.Login(user.Email, user.Password)
+
+		patch := &model.UserPatch{}
+		patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
+		patch.LastName = model.NewString("\u2028Wiggin\u2029")
+
+		ruser, resp := Client.PatchUser(user.Id, patch)
+		CheckNoError(t, resp)
+		CheckUserSanitization(t, ruser)
+
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad unicode should be filtered from nickname")
+		require.Equal(t, "Andrew", ruser.FirstName, "Bad unicode should be filtered from first name")
+		require.Equal(t, "Wiggin", ruser.LastName, "Bad unicode should be filtered from last name")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "Bad unicode should be filtered from display name")
+	})
+}
+
 func TestUpdateUserAuth(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
