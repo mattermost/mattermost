@@ -58,6 +58,10 @@ _testmain.go
 *.log.jsonl
 *.log.gz
 
+# Fuzz binaries and working dir
+*fuzz.zip
+app/workdir
+
 .tmp
 
 # Vim temporary files

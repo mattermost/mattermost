@@ -301,6 +301,27 @@ func (ss *SqlSupplier) GetCurrentSchemaVersion() string {
 	return version
 }
 
+func (ss *SqlSupplier) GetDbVersion() (string, error) {
+	var sqlVersion string
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sqlVersion = `SHOW server_version`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		sqlVersion = `SELECT version()`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		sqlVersion = `SELECT sqlite_version()`
+	} else {
+		return "", errors.New("Not supported driver")
+	}
+
+	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	if err != nil {
+		return "", err
+	}
+
+	return version, nil
+
+}
+
 func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 	return ss.master
 }

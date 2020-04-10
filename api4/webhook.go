@@ -40,9 +40,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createIncomingHook", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("channel_id", channel.Id)
-	auditRec.AddMeta("channel_name", channel.Name)
-	auditRec.AddMeta("team_id", channel.TeamId)
+	auditRec.AddMeta("channel", channel)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), channel.TeamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
@@ -63,8 +61,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("hook_id", incomingHook.Id)
-	auditRec.AddMeta("hook_display", incomingHook.DisplayName)
+	auditRec.AddMeta("hook", incomingHook)
 	c.LogAudit("success")
 
 	w.WriteHeader(http.StatusCreated)
