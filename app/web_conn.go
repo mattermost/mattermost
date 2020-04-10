@@ -30,9 +30,6 @@ type WebConn struct {
 	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App                       *App
 	WebSocket                 *websocket.Conn
-	Send                      chan model.WebSocketMessage
-	sessionToken              atomic.Value
-	session                   atomic.Value
 	LastUserActivityAt        int64
 	UserId                    string
 	T                         goi18n.TranslateFunc
@@ -40,9 +37,13 @@ type WebConn struct {
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
-	closeOnce                 sync.Once
-	endWritePump              chan struct{}
-	pumpFinished              chan struct{}
+
+	send         chan model.WebSocketMessage
+	sessionToken atomic.Value
+	session      atomic.Value
+	closeOnce    sync.Once
+	endWritePump chan struct{}
+	pumpFinished chan struct{}
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
@@ -55,7 +56,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 
 	wc := &WebConn{
 		App:                a,
-		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
 		WebSocket:          ws,
 		LastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
@@ -166,7 +167,7 @@ func (wc *WebConn) writePump() {
 
 	for {
 		select {
-		case msg, ok := <-wc.Send:
+		case msg, ok := <-wc.send:
 			if !ok {
 				wc.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 				wc.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
@@ -176,11 +177,12 @@ func (wc *WebConn) writePump() {
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
 			skipSend := false
-			if len(wc.Send) >= SEND_SLOW_WARN {
+			if len(wc.send) >= SEND_SLOW_WARN {
 				// When the pump starts to get slow we'll drop non-critical messages
-				if msg.EventType() == model.WEBSOCKET_EVENT_TYPING ||
-					msg.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE ||
-					msg.EventType() == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
+				switch msg.EventType() {
+				case model.WEBSOCKET_EVENT_TYPING,
+					model.WEBSOCKET_EVENT_STATUS_CHANGE,
+					model.WEBSOCKET_EVENT_CHANNEL_VIEWED:
 					mlog.Info(
 						"websocket.slow: dropping message",
 						mlog.String("user_id", wc.UserId),
@@ -201,7 +203,7 @@ func (wc *WebConn) writePump() {
 					msgBytes = []byte(msg.ToJson())
 				}
 
-				if len(wc.Send) >= SEND_DEADLOCK_WARN {
+				if len(wc.send) >= SEND_DEADLOCK_WARN {
 					if evtOk {
 						mlog.Warn(
 							"websocket.full",
