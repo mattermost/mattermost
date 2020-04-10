@@ -1231,15 +1231,15 @@ func (_m *API) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError)
 }
 
 // GetPluginStatuses provides a mock function with given fields:
-func (_m *API) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
+func (_m *API) GetPluginStatuses() ([]*model.PluginStatus, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 model.PluginStatuses
-	if rf, ok := ret.Get(0).(func() model.PluginStatuses); ok {
+	var r0 []*model.PluginStatus
+	if rf, ok := ret.Get(0).(func() []*model.PluginStatus); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.PluginStatuses)
+			r0 = ret.Get(0).([]*model.PluginStatus)
 		}
 	}
 
