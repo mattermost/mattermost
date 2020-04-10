@@ -739,7 +739,7 @@ type API interface {
 	//
 	// @tag Plugin
 	// Minimum server version: 5.24
-	GetPluginStatuses() (model.PluginStatuses, *model.AppError)
+	GetPluginStatuses() ([]*model.PluginStatus, *model.AppError)
 
 	// InstallPlugin will upload another plugin with tar.gz file.
 	// Previous version will be replaced on replace true.
