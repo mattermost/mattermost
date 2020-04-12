@@ -313,6 +313,95 @@ func (a* App) sendChannelWideMentionsDisabledPost(sender *model.User, post *mode
 	}
 }
 
+// Send Push Notifications based on mentioned or active user
+func (a* App) sendPushNotifications(mentionedUsersList []string, profileMap map[string]*model.User, post *model.Post, notification *PostNotification, mentions *ExplicitMentions, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) {
+	sendPushNotifications := false
+	if *a.Config().EmailSettings.SendPushNotifications {
+		pushServer := *a.Config().EmailSettings.PushNotificationServer
+		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
+			sendPushNotifications = false
+		} else {
+			sendPushNotifications = true
+		}
+	}
+
+	if sendPushNotifications {
+		for _, id := range mentionedUsersList {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			var status *model.Status
+			var err *model.AppError
+			if status, err = a.GetStatus(id); err != nil {
+				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			}
+
+			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
+				mentionType := mentions.MentionedUserIds[id]
+
+				replyToThreadType := ""
+				if mentionType == ThreadMention {
+					replyToThreadType = model.COMMENTS_NOTIFY_ANY
+				} else if mentionType == CommentMention {
+					replyToThreadType = model.COMMENTS_NOTIFY_ROOT
+				}
+
+				a.sendPushNotification(
+					notification,
+					profileMap[id],
+					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
+					mentionType == ChannelMention,
+					replyToThreadType,
+				)
+			} else {
+				// register that a notification was not sent
+				a.NotificationsLog().Warn("Notification not sent",
+					mlog.String("ackId", ""),
+					mlog.String("type", model.PUSH_TYPE_MESSAGE),
+					mlog.String("userId", id),
+					mlog.String("postId", post.Id),
+					mlog.String("status", model.PUSH_NOT_SENT),
+				)
+			}
+		}
+
+		for _, id := range allActivityPushUserIds {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			if _, ok := mentions.MentionedUserIds[id]; !ok {
+				var status *model.Status
+				var err *model.AppError
+				if status, err = a.GetStatus(id); err != nil {
+					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+				}
+
+				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+					a.sendPushNotification(
+						notification,
+						profileMap[id],
+						false,
+						false,
+						"",
+					)
+				} else {
+					// register that a notification was not sent
+					a.NotificationsLog().Warn("Notification not sent",
+						mlog.String("ackId", ""),
+						mlog.String("type", model.PUSH_TYPE_MESSAGE),
+						mlog.String("userId", id),
+						mlog.String("postId", post.Id),
+						mlog.String("status", model.PUSH_NOT_SENT),
+					)
+				}
+			}
+		}
+	}
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -420,91 +509,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	sendPushNotifications := false
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			sendPushNotifications = false
-		} else {
-			sendPushNotifications = true
-		}
-	}
-
-	if sendPushNotifications {
-		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
-				continue
-			}
-
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-			}
-
-			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				mentionType := mentions.MentionedUserIds[id]
-
-				replyToThreadType := ""
-				if mentionType == ThreadMention {
-					replyToThreadType = model.COMMENTS_NOTIFY_ANY
-				} else if mentionType == CommentMention {
-					replyToThreadType = model.COMMENTS_NOTIFY_ROOT
-				}
-
-				a.sendPushNotification(
-					notification,
-					profileMap[id],
-					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
-					mentionType == ChannelMention,
-					replyToThreadType,
-				)
-			} else {
-				// register that a notification was not sent
-				a.NotificationsLog().Warn("Notification not sent",
-					mlog.String("ackId", ""),
-					mlog.String("type", model.PUSH_TYPE_MESSAGE),
-					mlog.String("userId", id),
-					mlog.String("postId", post.Id),
-					mlog.String("status", model.PUSH_NOT_SENT),
-				)
-			}
-		}
-
-		for _, id := range allActivityPushUserIds {
-			if profileMap[id] == nil {
-				continue
-			}
-
-			if _, ok := mentions.MentionedUserIds[id]; !ok {
-				var status *model.Status
-				var err *model.AppError
-				if status, err = a.GetStatus(id); err != nil {
-					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-				}
-
-				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					a.sendPushNotification(
-						notification,
-						profileMap[id],
-						false,
-						false,
-						"",
-					)
-				} else {
-					// register that a notification was not sent
-					a.NotificationsLog().Warn("Notification not sent",
-						mlog.String("ackId", ""),
-						mlog.String("type", model.PUSH_TYPE_MESSAGE),
-						mlog.String("userId", id),
-						mlog.String("postId", post.Id),
-						mlog.String("status", model.PUSH_NOT_SENT),
-					)
-				}
-			}
-		}
-	}
+	// Decide whether a notification should be sent or should be registered as not sen
+	a.sendPushNotifications(mentionedUsersList, profileMap, post, notification, mentions, channelMemberNotifyPropsMap, allActivityPushUserIds)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 
