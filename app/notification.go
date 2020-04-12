@@ -316,54 +316,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	} else {
 		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
 		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
-
 		mentions = getExplicitMentions(post, keywords)
-
-		// Add an implicit mention when a user is added to a channel
-		// even if the user has set 'username mentions' to false in account settings.
-		if post.Type == model.POST_ADD_TO_CHANNEL {
-			addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
-			if ok {
-				mentions.addMention(addedUserId, KeywordMention)
-			}
-		}
-
-		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 && parentPostList != nil {
-			for _, threadPost := range parentPostList.Posts {
-				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
-					mentionType := ThreadMention
-					if threadPost.Id == parentPostList.Order[0] {
-						mentionType = CommentMention
-					}
-
-					mentions.addMention(threadPost.UserId, mentionType)
-				}
-			}
-		}
-
-		// prevent the user from mentioning themselves
-		if post.GetProp("from_webhook") != "true" {
-			mentions.removeMention(post.UserId)
-		}
-
-		go func() {
-			_, err := a.sendOutOfChannelMentions(sender, post, channel, mentions.OtherPotentialMentions)
-			if err != nil {
-				mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
-			}
-		}()
-
-		// find which users in the channel are set up to always receive mobile notifications
-		for _, profile := range profileMap {
-			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
-				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
-				(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
-				!post.IsSystemMessage() {
-				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
-			}
-		}
+		allActivityPushUserIds, channelMemberNotifyPropsMap = a.getMentionedUsersFromOtherChannels(post, mentions, profileMap, parentPostList, channel, sender, channelMemberNotifyPropsMap, allActivityPushUserIds)
 	}
 
 	mentionedUsersList := make([]string, 0, len(mentions.MentionedUserIds))
@@ -818,6 +772,58 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 	}
 
 	return keywords
+}
+
+// Get a active and mentioned users from all channels
+func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMentions, profileMap map[string]*model.User, parentPostList *model.PostList, channel *model.Channel, sender *model.User, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) ([]string, map[string]model.StringMap) {
+	// Add an implicit mention when a user is added to a channel
+	// even if the user has set 'username mentions' to false in account settings.
+
+	if post.Type == model.POST_ADD_TO_CHANNEL {
+		addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
+		if ok {
+			m.addMention(addedUserId, KeywordMention)
+		}
+	}
+
+	// get users that have comment thread mentions enabled
+	if len(post.RootId) > 0 && parentPostList != nil {
+		for _, threadPost := range parentPostList.Posts {
+			profile := profileMap[threadPost.UserId]
+			if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				mentionType := ThreadMention
+				if threadPost.Id == parentPostList.Order[0] {
+					mentionType = CommentMention
+				}
+
+				m.addMention(threadPost.UserId, mentionType)
+			}
+		}
+	}
+
+	// prevent the user from mentioning themselves
+	if post.GetProp("from_webhook") != "true" {
+		m.removeMention(post.UserId)
+	}
+
+	go func() {
+		_, err := a.sendOutOfChannelMentions(sender, post, channel, m.OtherPotentialMentions)
+		if err != nil {
+			mlog.Error("Failed to send warning for out of channel mentions", mlog.String("user_id", sender.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+		}
+	}()
+
+	// find which users in the channel are set up to always receive mobile notifications
+	for _, profile := range profileMap {
+		if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
+			channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
+			(post.UserId != profile.Id || post.GetProp("from_webhook") == "true") &&
+			!post.IsSystemMessage() {
+			allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+		}
+	}
+
+	return allActivityPushUserIds, channelMemberNotifyPropsMap
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name
