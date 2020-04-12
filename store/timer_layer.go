@@ -6472,6 +6472,22 @@ func (s *TimerLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.AnalyticsGetGuestCount()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsGetGuestCount", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
 	start := timemodule.Now()
 

@@ -3399,6 +3399,10 @@
     "translation": "User AuthData and Password are mutually exclusive."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
