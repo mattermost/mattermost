@@ -275,6 +275,44 @@ func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map
 	}
 }
 
+// Notify the user that a system mentions wont be sent to the channe
+func (a* App) sendChannelWideMentionsDisabledPost(sender *model.User, post *model.Post, mentions *ExplicitMentions) {
+	T := utils.GetUserTranslations(sender.Locale)
+
+	if mentions.HereMentioned {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	if mentions.ChannelMentioned {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	if mentions.AllMentioned {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -365,40 +403,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		T := utils.GetUserTranslations(sender.Locale)
-
-		if mentions.HereMentioned {
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-					CreateAt:  post.CreateAt + 1,
-				},
-			)
-		}
-
-		if mentions.ChannelMentioned {
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-					CreateAt:  post.CreateAt + 1,
-				},
-			)
-		}
-
-		if mentions.AllMentioned {
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: post.ChannelId,
-					Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-					CreateAt:  post.CreateAt + 1,
-				},
-			)
-		}
+		a.sendChannelWideMentionsDisabledPost(sender, post, mentions)
 	}
 
 	// Make sure all mention updates are complete to prevent race
