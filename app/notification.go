@@ -257,6 +257,24 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 	return true
 }
 
+func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map[string]*model.User, channelMemberNotifyPropsMap map[string]model.StringMap, post *model.Post, notification *PostNotification, team *model.Team) {
+	for _, id := range mentionedUsersList {
+		if profileMap[id] == nil {
+			continue
+		}
+
+		//If email verification is required and user email is not verified don't send email.
+		if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+			mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+			continue
+		}
+
+		if a.shouldSendEmailNotificationToUser(profileMap[id], channelMemberNotifyPropsMap[id], post) {
+			a.sendNotificationEmail(notification, profileMap[id], team)
+		}
+	}
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -342,21 +360,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	if *a.Config().EmailSettings.SendEmailNotifications {
-		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
-				continue
-			}
-
-			//If email verification is required and user email is not verified don't send email.
-			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
-				continue
-			}
-
-			if a.shouldSendEmailNotificationToUser(profileMap[id], channelMemberNotifyPropsMap[id], post) {
-				a.sendNotificationEmail(notification, profileMap[id], team)
-			}
-		}
+		a.sendEmailNotifications(mentionedUsersList, profileMap, channelMemberNotifyPropsMap, post, notification, team)
 	}
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
