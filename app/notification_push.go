@@ -135,8 +135,8 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 func (a *App) sendPushNotification(notification *PostNotification, user *model.User, explicitMention, channelWideMention bool, replyToThreadType string) {
 	cfg := a.Config()
-	channel := notification.Channel
-	post := notification.Post
+	channel := notification.channel
+	post := notification.post
 
 	nameFormat := a.GetNotificationNameFormat(user)
 

@@ -1300,12 +1300,12 @@ func TestAllPushNotifications(t *testing.T) {
 			go func(user model.User) {
 				defer wg.Done()
 				notification := &PostNotification{
-					Post:    th.CreatePost(th.BasicChannel),
-					Channel: th.BasicChannel,
-					ProfileMap: map[string]*model.User{
+					post:    th.CreatePost(th.BasicChannel),
+					channel: th.BasicChannel,
+					profileMap: map[string]*model.User{
 						user.Id: &user,
 					},
-					Sender: &user,
+					sender: &user,
 				}
 				// testing all 3 notification types.
 				th.App.sendPushNotification(notification, &user, true, false, model.COMMENTS_NOTIFY_ANY)
@@ -1452,12 +1452,12 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 						CreateAt:  model.GetMillis(),
 					}
 					notification := &PostNotification{
-						Post:    post,
-						Channel: ch,
-						ProfileMap: map[string]*model.User{
+						post:    post,
+						channel: ch,
+						profileMap: map[string]*model.User{
 							user.Id: &user,
 						},
-						Sender: &user,
+						sender: &user,
 					}
 					th.App.sendPushNotification(notification, &user, true, false, model.COMMENTS_NOTIFY_ANY)
 				}(*data.user)

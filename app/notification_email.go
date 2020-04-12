@@ -19,8 +19,8 @@ import (
 )
 
 func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) *model.AppError {
-	channel := notification.Channel
-	post := notification.Post
+	channel := notification.channel
+	post := notification.post
 
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)

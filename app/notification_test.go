@@ -1567,9 +1567,9 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			notification := &PostNotification{
-				Channel:    testCase.channel,
-				Sender:     sender,
-				ProfileMap: profileMap,
+				channel:    testCase.channel,
+				sender:     sender,
+				profileMap: profileMap,
 			}
 
 			recipientId := recipient.Id
@@ -1652,9 +1652,9 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			}
 
 			notification := &PostNotification{
-				Channel: channel,
-				Post:    post,
-				Sender:  sender,
+				channel: channel,
+				post:    post,
+				sender:  sender,
 			}
 
 			assert.Equal(t, testCase.expected, notification.GetSenderName(testCase.nameFormat, testCase.allowOverrides))
