@@ -7356,6 +7356,23 @@ func (a *OpenTracingAppLayer) GetSessionById(sessionId string) (*model.Session, 
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetSessionLengthInMillis(session *model.Session) int64 {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSessionLengthInMillis")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetSessionLengthInMillis(session)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSessions")

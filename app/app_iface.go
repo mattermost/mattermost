@@ -177,6 +177,9 @@ type AppIface interface {
 	GetSanitizedConfig() *model.Config
 	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 	GetSchemeRolesForChannel(channelId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
+	// GetSessionLengthInMillis returns the session length, in milliseconds,
+	// based on the type of session (Mobile, SSO, Web/LDAP).
+	GetSessionLengthInMillis(session *model.Session) int64
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
@@ -438,6 +441,7 @@ type AppIface interface {
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
 	ExportPermissions(w io.Writer) error
+	ExtendSessionExpiryIfNeeded(session *model.Session)
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
@@ -923,7 +927,6 @@ type AppIface interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	UpdateLastActivityAtIfNeeded(session model.Session)
-	ExtendSessionExpiryIfNeeded(session *model.Session)
 	UpdateMfa(activate bool, userId, token string) *model.AppError
 	UpdateMobileAppBadge(userId string)
 	UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError
