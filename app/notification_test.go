@@ -2048,7 +2048,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.True(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.True(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
@@ -2061,7 +2061,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
@@ -2074,7 +2074,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
@@ -2087,7 +2087,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_MENTION,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: "some-post-type"}))
 	})
 
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
@@ -2100,7 +2100,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
 	})
 
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
@@ -2113,7 +2113,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
 	})
 
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
@@ -2126,7 +2126,7 @@ func TestUserAllowsEmail(t *testing.T) {
 			model.MARK_UNREAD_NOTIFY_PROP: model.CHANNEL_MARK_UNREAD_ALL,
 		}
 
-		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
+		assert.False(t, th.App.shouldSendEmailNotificationToUser(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
 	})
 
 }

@@ -206,7 +206,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 	}
 }
 
-func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
+func (a *App) shouldSendEmailNotificationToUser(user *model.User, channelMemberNotificationProps model.StringMap, post *model.Post) bool {
 	userAllowsEmails := user.NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
 	if channelEmail, ok := channelMemberNotificationProps[model.EMAIL_NOTIFY_PROP]; ok {
 		if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
@@ -399,7 +399,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			if a.userAllowsEmail(profileMap[id], channelMemberNotifyPropsMap[id], post) {
+			if a.shouldSendEmailNotificationToUser(profileMap[id], channelMemberNotifyPropsMap[id], post) {
 				a.sendNotificationEmail(notification, profileMap[id], team)
 			}
 		}
