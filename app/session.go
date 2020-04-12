@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -309,9 +310,15 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
 		return
 	}
 
+	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(auditRec, nil)
+	auditRec.AddMeta("session", session)
+
 	newExpiry := now + sessionLength
 	if err := a.Srv().Store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
 		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		auditRec.AddMeta("err", err.Error())
+		return
 	}
 
 	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
@@ -320,10 +327,8 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
 	session.ExpiresAt = newExpiry
 	a.AddSessionToCache(session)
 
-	mlog.Debug("Session expiry extended",
-		mlog.String("user_id", session.UserId),
-		mlog.String("session_id", session.Id),
-		mlog.Int64("ExpiresAt", newExpiry))
+	auditRec.Success()
+	auditRec.AddMeta("extended_session", session)
 }
 
 // GetSessionLengthInMillis returns the session length, in milliseconds,
