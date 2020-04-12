@@ -90,6 +90,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
+	c.App.ExtendSessionExpiryIfNeeded(c.App.Session())
 
 	w.WriteHeader(http.StatusCreated)
 

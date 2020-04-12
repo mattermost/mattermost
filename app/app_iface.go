@@ -902,6 +902,7 @@ type AppIface interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	UpdateLastActivityAtIfNeeded(session model.Session)
+	ExtendSessionExpiryIfNeeded(session *model.Session)
 	UpdateMfa(activate bool, userId, token string) *model.AppError
 	UpdateMobileAppBadge(userId string)
 	UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError

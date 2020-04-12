@@ -283,6 +283,7 @@ type ServiceSettings struct {
 	CorsAllowCredentials                              *bool   `restricted:"true"`
 	CorsDebug                                         *bool   `restricted:"true"`
 	AllowCookiesForSubdomains                         *bool   `restricted:"true"`
+	ExtendSessionLengthWithActivity                   *bool   `restricted:"true"`
 	SessionLengthWebInDays                            *int    `restricted:"true"`
 	SessionLengthMobileInDays                         *int    `restricted:"true"`
 	SessionLengthSSOInDays                            *int    `restricted:"true"`
@@ -521,12 +522,16 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableTutorial = NewBool(true)
 	}
 
+	if s.ExtendSessionLengthWithActivity == nil {
+		s.ExtendSessionLengthWithActivity = NewBool(true)
+	}
+
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(180)
+		s.SessionLengthWebInDays = NewInt(30)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(180)
+		s.SessionLengthMobileInDays = NewInt(30)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
