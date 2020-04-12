@@ -39,8 +39,8 @@ const (
 )
 
 type ExplicitMentions struct {
-	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
-	Mentions map[string]MentionType
+	// MentionedUserIds contains the ID of each user that was mentioned and how they were mentioned.
+	MentionedUserIds map[string]MentionType
 
 	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
 	// a corresponding keyword.
@@ -73,19 +73,19 @@ func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType
 }
 
 func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
-	if m.Mentions == nil {
-		m.Mentions = make(map[string]MentionType)
+	if m.MentionedUserIds == nil {
+		m.MentionedUserIds = make(map[string]MentionType)
 	}
 
-	if currentType, ok := m.Mentions[userId]; ok && currentType >= mentionType {
+	if currentType, ok := m.MentionedUserIds[userId]; ok && currentType >= mentionType {
 		return
 	}
 
-	m.Mentions[userId] = mentionType
+	m.MentionedUserIds[userId] = mentionType
 }
 
 func (m *ExplicitMentions) removeMention(userId string) {
-	delete(m.Mentions, userId)
+	delete(m.MentionedUserIds, userId)
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
@@ -366,10 +366,10 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
+	mentionedUsersList := make([]string, 0, len(mentions.MentionedUserIds))
 	updateMentionChans := []chan *model.AppError{}
 
-	for id := range mentions.Mentions {
+	for id := range mentions.MentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
 
 		umc := make(chan *model.AppError, 1)
@@ -481,7 +481,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				mentionType := mentions.Mentions[id]
+				mentionType := mentions.MentionedUserIds[id]
 
 				replyToThreadType := ""
 				if mentionType == ThreadMention {
@@ -514,7 +514,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				continue
 			}
 
-			if _, ok := mentions.Mentions[id]; !ok {
+			if _, ok := mentions.MentionedUserIds[id]; !ok {
 				var status *model.Status
 				var err *model.AppError
 				if status, err = a.GetStatus(id); err != nil {

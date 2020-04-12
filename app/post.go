@@ -1231,7 +1231,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 	// Check for keyword mentions
 	mentions := getExplicitMentions(post, keywords)
-	if _, ok := mentions.Mentions[user.Id]; ok {
+	if _, ok := mentions.MentionedUserIds[user.Id]; ok {
 		return true
 	}
 
