@@ -627,3 +627,14 @@ func (c *Context) RequireBotUserId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequirePrivacy() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Privacy != "public" && c.Params.Privacy != "private" {
+		c.SetInvalidUrlParam("privacy")
+	}
+	return c
+}

@@ -76,6 +76,7 @@ type Params struct {
 	IncludeTotalCount      bool
 	IncludeDeleted         bool
 	FilterAllowReference   bool
+	Privacy                string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -305,6 +306,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
 		params.IncludeDeleted = val
 	}
+
+	params.Privacy = query.Get("privacy")
 
 	return params
 }
