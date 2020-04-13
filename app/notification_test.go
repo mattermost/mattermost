@@ -2130,3 +2130,96 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 }
+
+func TestAddMentionedUsers(t *testing.T) {
+	id1 := model.NewId()
+	id2 := model.NewId()
+	id3 := model.NewId()
+	id4 := model.NewId()
+	id5 := model.NewId()
+	id6 := model.NewId()
+	id7 := model.NewId()
+	id8 := model.NewId()
+	id9 := model.NewId()
+
+	for name, tc := range map[string]struct {
+		Mentions         []string
+		ExplicitMentions *ExplicitMentions
+		Expected         *ExplicitMentions
+	}{
+		"test": {
+			Mentions: []string{id1},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{
+					id1: CommentMention,
+				},
+			},
+		},
+		"two users": {
+			Mentions: []string{id1, id2},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{
+					id1: CommentMention,
+					id2: CommentMention,
+				},
+			},
+		},
+		"no users": {
+			Mentions: []string{},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+		},
+		"five users": {
+			Mentions: []string{id1, id5, id4, id8, id9},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{
+					id1: CommentMention,
+					id4: CommentMention,
+					id5: CommentMention,
+					id8: CommentMention,
+					id9: CommentMention,
+				},
+			},
+		},
+		"nine users": {
+			Mentions: []string{id1, id2, id3, id4, id5, id6, id7, id8, id9},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]MentionType{
+					id1: CommentMention,
+					id2: CommentMention,
+					id3: CommentMention,
+					id4: CommentMention,
+					id5: CommentMention,
+					id6: CommentMention,
+					id7: CommentMention,
+					id8: CommentMention,
+					id9: CommentMention,
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			tc.ExplicitMentions.addMentionedUsers(tc.Mentions, CommentMention)
+			if tc.ExplicitMentions.MentionedUserIds == nil {
+				tc.ExplicitMentions.MentionedUserIds = make(map[string]MentionType)
+			}
+			assert.EqualValues(t, tc.Expected.MentionedUserIds, tc.ExplicitMentions.MentionedUserIds)
+		})
+	}
+}
