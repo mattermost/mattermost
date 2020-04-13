@@ -527,11 +527,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(30)
+		s.SessionLengthWebInDays = NewInt(180)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(30)
+		s.SessionLengthMobileInDays = NewInt(180)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
