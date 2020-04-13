@@ -196,6 +196,15 @@ func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*mod
 	return groups, int(count), nil
 }
 
+func (a *App) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+	groupsAssociatedByChannelId, err := a.Srv().Store.Group().GetGroupsAssociatedToChannelsByTeam(teamId, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return groupsAssociatedByChannelId, nil
+}
+
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	return a.Srv().Store.Group().GetGroups(page, perPage, opts)
 }
