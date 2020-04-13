@@ -523,7 +523,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExtendSessionLengthWithActivity == nil {
-		s.ExtendSessionLengthWithActivity = NewBool(true)
+		if BuildEnterpriseReady == "true" {
+			s.ExtendSessionLengthWithActivity = NewBool(false)
+		} else {
+			s.ExtendSessionLengthWithActivity = NewBool(true)
+		}
 	}
 
 	if s.SessionLengthWebInDays == nil {
