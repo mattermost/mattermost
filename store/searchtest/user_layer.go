@@ -454,7 +454,6 @@ func testAutocompleteUserByUsernameWithDot(t *testing.T, th *SearchTestHelper) {
 	options := &model.UserSearchOptions{
 		Limit: model.USER_SEARCH_DEFAULT_LIMIT,
 	}
-	// Should return results when searching for the whole username with Dot
 	t.Run("Should return results when searching for the whole username with Dot", func(t *testing.T) {
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "alternate.username", options)
 		require.Nil(t, apperr)
@@ -464,6 +463,13 @@ func testAutocompleteUserByUsernameWithDot(t *testing.T, th *SearchTestHelper) {
 	})
 	t.Run("Should return results when searching for part of the username including the Dot", func(t *testing.T) {
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, ".username", options)
+		require.Nil(t, apperr)
+		userAlternate.Sanitize(map[string]bool{})
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
+	t.Run("Should return results when searching for part of the username not including the Dot", func(t *testing.T) {
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "username", options)
 		require.Nil(t, apperr)
 		userAlternate.Sanitize(map[string]bool{})
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
@@ -495,6 +501,13 @@ func testAutocompleteUserByUsernameWithUnderscore(t *testing.T, th *SearchTestHe
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
+	t.Run("Should return results when searching for part of the username not including the underscore", func(t *testing.T) {
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "username", options)
+		require.Nil(t, apperr)
+		userAlternate.Sanitize(map[string]bool{})
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
 }
 func testAutocompleteUserByUsernameWithHyphen(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternate-username", "alternatenickname", "firstname", "altlastname")
@@ -516,6 +529,13 @@ func testAutocompleteUserByUsernameWithHyphen(t *testing.T, th *SearchTestHelper
 	})
 	t.Run("Should return results when searching for part of the username including the hyphen", func(t *testing.T) {
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "-username", options)
+		require.Nil(t, apperr)
+		userAlternate.Sanitize(map[string]bool{})
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
+	t.Run("Should return results when searching for part of the username not including the hyphen", func(t *testing.T) {
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "username", options)
 		require.Nil(t, apperr)
 		userAlternate.Sanitize(map[string]bool{})
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
