@@ -1198,11 +1198,6 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		`, opts.NotAssociatedToChannel)
 	}
 
-	if opts.FilterAllowReference {
-		// Todo uncomment after column has been added
-		// 	groupsQuery = groupsQuery.Where("g.AllowReference = 1")
-	}
-
 	queryString, args, err := groupsQuery.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
