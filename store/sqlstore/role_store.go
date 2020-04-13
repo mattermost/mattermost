@@ -251,10 +251,10 @@ func (s *SqlRoleStore) PermanentDeleteAll() *model.AppError {
 func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) string {
 	sqlTmpl := `
 		SELECT
-			RoleSchemes.DefaultChannelGuestRole AS GuestRoleName,
+			'' AS GuestRoleName,
 			RoleSchemes.DefaultChannelUserRole AS UserRoleName,
 			RoleSchemes.DefaultChannelAdminRole AS AdminRoleName,
-			GuestRoles.Permissions AS HigherScopedGuestPermissions,
+			'' AS HigherScopedGuestPermissions,
 			UserRoles.Permissions AS HigherScopedUserPermissions,
 			AdminRoles.Permissions AS HigherScopedAdminPermissions
 		FROM
@@ -262,14 +262,32 @@ func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) s
 			JOIN Channels ON Channels.SchemeId = RoleSchemes.Id
 			JOIN Teams ON Teams.Id = Channels.TeamId
 			JOIN Schemes ON Schemes.Id = Teams.SchemeId
-			JOIN Roles AS GuestRoles ON GuestRoles.Name = Schemes.DefaultChannelGuestRole
-			JOIN Roles AS UserRoles ON UserRoles.Name = Schemes.DefaultChannelUserRole
-			JOIN Roles AS AdminRoles ON AdminRoles.Name = Schemes.DefaultChannelAdminRole
+			RIGHT JOIN Roles AS UserRoles ON UserRoles.Name = Schemes.DefaultChannelUserRole
+			RIGHT JOIN Roles AS AdminRoles ON AdminRoles.Name = Schemes.DefaultChannelAdminRole
+		WHERE
+			RoleSchemes.DefaultChannelUserRole IN ('%[1]s')
+			OR RoleSchemes.DefaultChannelAdminRole IN ('%[1]s')
+
+		UNION
+
+		SELECT
+			RoleSchemes.DefaultChannelGuestRole AS GuestRoleName,
+			'' AS UserRoleName,
+			'' AS AdminRoleName,
+			GuestRoles.Permissions AS HigherScopedGuestPermissions,
+			'' AS HigherScopedUserPermissions,
+			'' AS HigherScopedAdminPermissions
+		FROM
+			Schemes AS RoleSchemes
+			JOIN Channels ON Channels.SchemeId = RoleSchemes.Id
+			JOIN Teams ON Teams.Id = Channels.TeamId
+			JOIN Schemes ON Schemes.Id = Teams.SchemeId
+			RIGHT JOIN Roles AS GuestRoles ON GuestRoles.Name = Schemes.DefaultChannelGuestRole
 		WHERE
 			RoleSchemes.DefaultChannelGuestRole IN ('%[1]s')
-			OR RoleSchemes.DefaultChannelUserRole IN ('%[1]s')
-			OR RoleSchemes.DefaultChannelAdminRole IN ('%[1]s')
+
 		UNION
+
 		SELECT
 			Schemes.DefaultChannelGuestRole AS GuestRoleName,
 			Schemes.DefaultChannelUserRole AS UserRoleName,

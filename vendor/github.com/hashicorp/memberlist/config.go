@@ -116,6 +116,10 @@ type Config struct {
 	// indirect UDP pings.
 	DisableTcpPings bool
 
+	// DisableTcpPingsForNode is like DisableTcpPings, but lets you control
+	// whether to perform TCP pings on a node-by-node basis.
+	DisableTcpPingsForNode func(nodeName string) bool
+
 	// AwarenessMaxMultiplier will increase the probe interval if the node
 	// becomes aware that it might be degraded and not meeting the soft real
 	// time requirements to reliably probe other nodes.
@@ -220,6 +224,10 @@ type Config struct {
 	// reclaimed by one with a different address or port. By default, this is 0,
 	// meaning nodes cannot be reclaimed this way.
 	DeadNodeReclaimTime time.Duration
+
+	// RequireNodeNames controls if the name of a node is required when sending
+	// a message to that node.
+	RequireNodeNames bool
 }
 
 // DefaultLANConfig returns a sane set of configurations for Memberlist.
