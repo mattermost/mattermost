@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/minio/minio-go/v6/pkg/encrypt"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
@@ -43,6 +44,15 @@ func (c Client) CopyObjectWithProgress(dst DestinationInfo, src SourceInfo, prog
 	if dst.opts.ReplaceTags && len(dst.opts.UserTags) != 0 {
 		header.Set(amzTaggingHeaderDirective, "REPLACE")
 		header.Set(amzTaggingHeader, s3utils.TagEncode(dst.opts.UserTags))
+	}
+
+	if dst.opts.LegalHold != LegalHoldStatus("") {
+		header.Set(amzLegalHoldHeader, dst.opts.LegalHold.String())
+	}
+
+	if dst.opts.Mode != RetentionMode("") && !dst.opts.RetainUntilDate.IsZero() {
+		header.Set(amzLockMode, dst.opts.Mode.String())
+		header.Set(amzLockRetainUntil, dst.opts.RetainUntilDate.Format(time.RFC3339))
 	}
 
 	var err error
