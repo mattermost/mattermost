@@ -84,10 +84,6 @@ func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
 	m.MentionedUserIds[userId] = mentionType
 }
 
-func (m *ExplicitMentions) removeMention(userId string) {
-	delete(m.MentionedUserIds, userId)
-}
-
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
 func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 	var mentionType MentionType
@@ -823,7 +819,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 
 	// prevent the user from mentioning themselves
 	if post.GetProp("from_webhook") != "true" {
-		m.removeMention(post.UserId)
+		delete(m.MentionedUserIds, post.UserId)
 	}
 
 	go func() {
