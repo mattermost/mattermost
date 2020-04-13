@@ -80,11 +80,7 @@ func testAutocompleteChannelByName(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
@@ -93,11 +89,7 @@ func testAutocompleteChannelByDisplayName(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "ChannelA", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchTestHelper) {
@@ -106,11 +98,7 @@ func testAutocompleteChannelByNameSplittedWithDashChar(t *testing.T, th *SearchT
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
 func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *SearchTestHelper) {
@@ -119,11 +107,7 @@ func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *S
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel_a", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
 }
 
 func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th *SearchTestHelper) {
@@ -132,11 +116,7 @@ func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th 
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "Channel A", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{alternate.Id}, res)
 }
 func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
@@ -147,11 +127,7 @@ func testAutocompleteAllChannelsIfTermIsEmpty(t *testing.T, th *SearchTestHelper
 	defer th.deleteChannel(other)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, other.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id, other.Id}, res)
 }
 
 func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelper) {
@@ -160,18 +136,10 @@ func testSearchChannelsInCaseInsensitiveManner(t *testing.T, th *SearchTestHelpe
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channela", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 	res, apperr = th.Store.Channel().AutocompleteInTeam(th.Team.Id, "ChAnNeL-a", false)
 	require.Nil(t, apperr)
-	channelIds = make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
 func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
@@ -180,11 +148,7 @@ func testSearchOnlyPublicChannels(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-a", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id}, res)
 }
 
 func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *SearchTestHelper) {
@@ -193,19 +157,11 @@ func testSearchShouldSupportHavingHyphenAsLastCharacter(t *testing.T, th *Search
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-", false)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, alternate.Id}, res)
 }
 
 func testSearchShouldSupportAutocompleteWithArchivedChannels(t *testing.T, th *SearchTestHelper) {
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "channel-", true)
 	require.Nil(t, apperr)
-	channelIds := make([]string, len(*res))
-	for i, channel := range *res {
-		channelIds[i] = channel.Id
-	}
-	require.ElementsMatch(t, []string{th.ChannelBasic.Id, th.ChannelDeleted.Id}, channelIds)
+	th.checkChannelIdsMatch(t, []string{th.ChannelBasic.Id, th.ChannelDeleted.Id}, res)
 }

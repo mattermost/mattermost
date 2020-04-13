@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type SearchTestHelper struct {
@@ -433,6 +434,15 @@ func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string
 		postIDS = append(postIDS, ID)
 	}
 	assert.Contains(t, postIDS, postID, "Did not find expected post in search results.")
+}
+
+func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {
+	t.Helper()
+	channelIds := make([]string, len(*results))
+	for i, channel := range *results {
+		channelIds[i] = channel.Id
+	}
+	require.ElementsMatch(t, expected, channelIds)
 }
 
 type ByChannelDisplayName model.ChannelList
