@@ -94,7 +94,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name:        "Should be able to search inactive users",
 		Fn:          testShouldBeAbleToSearchInactiveUsers,
-		Tags:        []string{ENGINE_NONE},
+		Tags:        []string{ENGINE_ALL},
 		Skip:        true,
 		SkipMessage: "Not working",
 	},

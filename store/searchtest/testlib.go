@@ -12,7 +12,6 @@ import (
 
 const (
 	ENGINE_ALL           = "all"
-	ENGINE_NONE          = "none"
 	ENGINE_MYSQL         = "mysql"
 	ENGINE_POSTGRES      = "postgres"
 	ENGINE_ELASTICSEARCH = "elasticsearch"
@@ -51,15 +50,17 @@ func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 }
 
 func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTest, th *SearchTestHelper) {
+	if testing.Short() {
+		t.Skip("Skipping advanced search test")
+		return
+	}
+
 	filteredTests := filterTestsByTag(tests, testEngine.Driver)
 
 	for _, test := range filteredTests {
-		if testing.Short() {
-			t.Skip("Skipping advanced search test")
-			continue
-		}
 
 		if test.Skip {
+			t.Log("SKIPPED: " + test.Name + ". Reason: " + test.SkipMessage)
 			continue
 		}
 
