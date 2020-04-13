@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"os/user"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -31,6 +32,51 @@ func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError
 
 func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
 	return a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+}
+
+// LogAuditRec logs an audit record using default CLILevel.
+func (a *App) LogAuditRec(rec *audit.Record, err error) {
+	a.LogAuditRecWithLevel(rec, CLILevel, err)
+}
+
+// LogAuditRecWithLevel logs an audit record using specified Level.
+func (a *App) LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error) {
+	if rec == nil {
+		return
+	}
+	if err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			rec.AddMeta("err", appErr.Error())
+			rec.AddMeta("code", appErr.StatusCode)
+		} else {
+			rec.AddMeta("err", err)
+		}
+		rec.Fail()
+	}
+	a.Srv().Audit.LogRecord(level, *rec)
+}
+
+// MakeAuditRecord creates a audit record pre-populated with defaults.
+func (a *App) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+	var userID string
+	user, err := user.Current()
+	if err == nil {
+		userID = fmt.Sprintf("%s:%s", user.Uid, user.Username)
+	}
+
+	rec := &audit.Record{
+		APIPath:   "",
+		Event:     event,
+		Status:    initialStatus,
+		UserID:    userID,
+		SessionID: "",
+		Client:    fmt.Sprintf("server %s-%s", model.BuildNumber, model.BuildHash),
+		IPAddress: "",
+		Meta:      audit.Meta{audit.KeyClusterID: a.GetClusterId()},
+	}
+	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
+
+	return rec
 }
 
 func (s *Server) configureAudit(adt *audit.Audit) {

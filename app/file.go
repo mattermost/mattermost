@@ -26,6 +26,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -796,29 +797,29 @@ func (t *UploadFileTask) postprocessImage() {
 		return
 	}
 
+	const jpegQuality = 90
 	writeJPEG := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			_, aerr := t.writeFile(r, path)
-			if aerr != nil {
-				mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
-				return
+			err := jpeg.Encode(w, img, &jpeg.Options{Quality: jpegQuality})
+			if err != nil {
+				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
+				w.CloseWithError(err)
+			} else {
+				w.Close()
 			}
 		}()
-
-		err := jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
-		if err != nil {
-			mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
-			w.CloseWithError(err)
-		} else {
-			w.Close()
+		_, aerr := t.writeFile(r, path)
+		if aerr != nil {
+			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			return
 		}
 	}
 
 	w := decoded.Bounds().Dx()
 	h := decoded.Bounds().Dy()
 
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()

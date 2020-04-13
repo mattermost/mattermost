@@ -432,6 +432,7 @@ func TestPostChannelMentions(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
+			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
 
@@ -441,6 +442,7 @@ func TestPostChannelMentions(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
+			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
 }

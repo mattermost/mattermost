@@ -38,6 +38,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
+	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
@@ -351,10 +352,8 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 }
 
 func sanitized(user *model.User) *model.User {
-	clonedUser := model.UserFromJson(strings.NewReader(user.ToJson()))
-	clonedUser.AuthData = new(string)
-	*clonedUser.AuthData = ""
-	clonedUser.Props = model.StringMap{}
+	clonedUser := user.DeepCopy()
+	clonedUser.Sanitize(map[string]bool{})
 
 	return clonedUser
 }
@@ -1276,25 +1275,25 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1)}, users)
+		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
+		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
 		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
 		require.Nil(t, err)
-		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
+		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
@@ -1310,7 +1309,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		// u3 comes from the cache, and u4 does not
-		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u4)}, users)
+		assert.Equal(t, []*model.User{u3, u4}, users)
 	})
 }
 
@@ -3164,6 +3163,42 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 
 }
 
+func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
+	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Username = model.NewId()
+	u2.Roles = "system_user"
+
+	u3 := model.User{}
+	u3.Email = MakeEmail()
+	u3.Username = model.NewId()
+	u3.Roles = "system_guest"
+
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	_, err = ss.User().Save(&u3)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	result, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
+	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
+}
+
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
@@ -4580,6 +4615,8 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
+
+	ss.User().InvalidateProfileCacheForUser(u1.Id)
 
 	user2, err := ss.User().Get(u1.Id)
 	require.Nil(t, err)

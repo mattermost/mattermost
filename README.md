@@ -65,7 +65,7 @@ Receive notifications of critical security updates. The sophistication of online
 - **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
 - **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
-- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676). 
+- **Mattermost** - Join the ~contributors channel on [the Mattermost Community Server](https://community.mattermost.com). 
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!

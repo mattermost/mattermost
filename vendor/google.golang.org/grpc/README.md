@@ -93,6 +93,22 @@ To build Go code, there are several options:
 
 #### Compiling error, undefined: grpc.SupportPackageIsVersion
 
+##### If you are using Go modules:
+
+Please ensure your gRPC-Go version is `require`d at the appropriate version in
+the same module containing the generated `.pb.go` files.  For example,
+`SupportPackageIsVersion6` needs `v1.27.0`, so in your `go.mod` file:
+
+```
+module <your module name>
+
+require (
+    google.golang.org/grpc v1.27.0
+)
+```
+
+##### If you are *not* using Go modules:
+
 Please update proto package, gRPC package and rebuild the proto files:
  - `go get -u github.com/golang/protobuf/{proto,protoc-gen-go}`
  - `go get -u google.golang.org/grpc`
