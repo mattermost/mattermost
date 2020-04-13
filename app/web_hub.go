@@ -369,24 +369,24 @@ func (h *Hub) Start() {
 
 		for {
 			select {
-			case webCon := <-h.register:
-				connIndex.Add(webCon)
+			case webConn := <-h.register:
+				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
-				if webCon.IsAuthenticated() {
-					webCon.send <- webCon.createHelloMessage()
+				if webConn.IsAuthenticated() {
+					webConn.send <- webConn.createHelloMessage()
 				}
-			case webCon := <-h.unregister:
-				connIndex.Remove(webCon)
+			case webConn := <-h.unregister:
+				connIndex.Remove(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
 
-				if len(webCon.UserId) == 0 {
+				if len(webConn.UserId) == 0 {
 					continue
 				}
 
-				conns := connIndex.ForUser(webCon.UserId)
+				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 {
 					h.app.Srv().Go(func() {
-						h.app.SetStatusOffline(webCon.UserId, false)
+						h.app.SetStatusOffline(webConn.UserId, false)
 					})
 					continue
 				}
@@ -396,19 +396,20 @@ func (h *Hub) Start() {
 						latestActivity = conn.LastUserActivityAt
 					}
 				}
+
 				if h.app.IsUserAway(latestActivity) {
 					h.app.Srv().Go(func() {
-						h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
+						h.app.SetStatusLastActivityAt(webConn.UserId, latestActivity)
 					})
 				}
 			case userId := <-h.invalidateUser:
-				for _, webCon := range connIndex.ForUser(userId) {
-					webCon.InvalidateCache()
+				for _, webConn := range connIndex.ForUser(userId) {
+					webConn.InvalidateCache()
 				}
 			case activity := <-h.activity:
-				for _, webCon := range connIndex.ForUser(activity.userId) {
-					if webCon.GetSessionToken() == activity.sessionToken {
-						webCon.LastUserActivityAt = activity.activityAt
+				for _, webConn := range connIndex.ForUser(activity.userId) {
+					if webConn.GetSessionToken() == activity.sessionToken {
+						webConn.lastUserActivityAt = activity.activityAt
 					}
 				}
 			case directMsg := <-h.directMsg:
@@ -431,24 +432,24 @@ func (h *Hub) Start() {
 					candidates = connIndex.ForUser(msg.GetBroadcast().UserId)
 				}
 				msg = msg.PrecomputeJSON()
-				for _, webCon := range candidates {
-					if !connIndex.Has(webCon) {
+				for _, webConn := range candidates {
+					if !connIndex.Has(webConn) {
 						continue
 					}
-					if webCon.ShouldSendEvent(msg) {
+					if webConn.shouldSendEvent(msg) {
 						select {
-						case webCon.send <- msg:
+						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
-							close(webCon.send)
-							connIndex.Remove(webCon)
+							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							close(webConn.send)
+							connIndex.Remove(webConn)
 						}
 					}
 				}
 			case <-h.stop:
-				for _, webCon := range connIndex.All() {
-					webCon.Close()
-					h.app.SetStatusOffline(webCon.UserId, false)
+				for _, webConn := range connIndex.All() {
+					webConn.Close()
+					h.app.SetStatusOffline(webConn.UserId, false)
 				}
 
 				h.explicitStop = true
