@@ -66,13 +66,14 @@ type PostNotification struct {
 	sender     *model.User
 }
 
-func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
+func (m *ExplicitMentions) addMentionedUsers(userIds []string, mentionType MentionType) {
 	for _, userId := range userIds {
-		m.addMention(userId, mentionType)
+		m.addMentionedUser(userId, mentionType)
 	}
 }
 
-func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
+// addMentionedUser will add the user id to the struct's list for mentioned users
+func (m *ExplicitMentions) addMentionedUser(userId string, mentionType MentionType) {
 	if m.MentionedUserIds == nil {
 		m.MentionedUserIds = make(map[string]MentionType)
 	}
@@ -103,13 +104,13 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		m.addMentions(ids, mentionType)
+		m.addMentionedUsers(ids, mentionType)
 		return true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		m.addMentions(ids, mentionType)
+		m.addMentionedUsers(ids, mentionType)
 		return true
 	}
 
@@ -197,7 +198,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		}
 
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			m.addMentions(ids, KeywordMention)
+			m.addMentionedUsers(ids, KeywordMention)
 		}
 	}
 }
@@ -485,11 +486,11 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		_, ok := profileMap[otherUserId]
 		if ok {
-			mentions.addMention(otherUserId, DMMention)
+			mentions.addMentionedUser(otherUserId, DMMention)
 		}
 
 		if post.GetProp("from_webhook") == "true" {
-			mentions.addMention(post.UserId, DMMention)
+			mentions.addMentionedUser(post.UserId, DMMention)
 		}
 	} else {
 		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
@@ -798,7 +799,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 	if post.Type == model.POST_ADD_TO_CHANNEL {
 		addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
 		if ok {
-			m.addMention(addedUserId, KeywordMention)
+			m.addMentionedUser(addedUserId, KeywordMention)
 		}
 	}
 
@@ -812,7 +813,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 					mentionType = CommentMention
 				}
 
-				m.addMention(threadPost.UserId, mentionType)
+				m.addMentionedUser(threadPost.UserId, mentionType)
 			}
 		}
 	}

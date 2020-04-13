@@ -1776,8 +1776,8 @@ func TestAddMention(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMentionedUser(userId1, KeywordMention)
+		m.addMentionedUser(userId2, CommentMention)
 
 		assert.Equal(t, map[string]MentionType{
 			userId1: KeywordMention,
@@ -1791,11 +1791,11 @@ func TestAddMention(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
 
-		m.addMention(userId1, ThreadMention)
-		m.addMention(userId2, DMMention)
+		m.addMentionedUser(userId1, ThreadMention)
+		m.addMentionedUser(userId2, DMMention)
 
-		m.addMention(userId1, ChannelMention)
-		m.addMention(userId2, KeywordMention)
+		m.addMentionedUser(userId1, ChannelMention)
+		m.addMentionedUser(userId2, KeywordMention)
 
 		assert.Equal(t, map[string]MentionType{
 			userId1: ChannelMention,
@@ -1809,11 +1809,11 @@ func TestAddMention(t *testing.T) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMentionedUser(userId1, KeywordMention)
+		m.addMentionedUser(userId2, CommentMention)
 
-		m.addMention(userId1, DMMention)
-		m.addMention(userId2, ThreadMention)
+		m.addMentionedUser(userId1, DMMention)
+		m.addMentionedUser(userId2, ThreadMention)
 
 		assert.Equal(t, map[string]MentionType{
 			userId1: KeywordMention,
