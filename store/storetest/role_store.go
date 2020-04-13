@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func TestRoleStore(t *testing.T, ss store.Store) {
+func TestRoleStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, ss) })
 	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, ss) })
 	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, ss) })
@@ -22,6 +23,7 @@ func TestRoleStore(t *testing.T, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, ss) })
 	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, ss) })
+	t.Run("ChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest", func(t *testing.T) { testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t, ss, s) })
 }
 
 func testRoleStoreSave(t *testing.T, ss store.Store) {
@@ -512,4 +514,84 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 			}
 		})
 	})
+}
+
+func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *testing.T, ss store.Store, s SqlSupplier) {
+	teamScheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, err := ss.Scheme().Save(teamScheme)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme.Id)
+
+	channelScheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, err = ss.Scheme().Save(channelScheme)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme.Id)
+
+	team := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme.Id,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team.Id)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme.Id,
+	}
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
+	defer ss.Channel().Delete(channel.Id, 0)
+
+	channelSchemeUserRole, err := ss.Role().GetByName(channelScheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	channelSchemeUserRole.Permissions = []string{}
+	_, err = ss.Role().Save(channelSchemeUserRole)
+	require.Nil(t, err)
+
+	teamSchemeUserRole, err := ss.Role().GetByName(teamScheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	teamSchemeUserRole.Permissions = []string{model.PERMISSION_UPLOAD_FILE.Id}
+	_, err = ss.Role().Save(teamSchemeUserRole)
+	require.Nil(t, err)
+
+	// get the channel scheme user role again and ensure that it has the permission inherited from the team
+	// scheme user role
+	roleMapBefore, err := ss.Role().ChannelHigherScopedPermissions([]string{channelSchemeUserRole.Name})
+	require.Nil(t, err)
+
+	// blank-out the guest role to simulate an old team scheme, ensure it's blank
+	result, sqlErr := s.GetMaster().Exec(fmt.Sprintf("UPDATE Schemes SET DefaultChannelGuestRole = '' WHERE Id = '%s'", teamScheme.Id))
+	require.Nil(t, sqlErr)
+	rows, serr := result.RowsAffected()
+	require.Nil(t, serr)
+	require.Equal(t, int64(1), rows)
+	teamScheme, err = ss.Scheme().Get(teamScheme.Id)
+	require.Nil(t, err)
+	require.Equal(t, "", teamScheme.DefaultChannelGuestRole)
+
+	// trigger a cache clear
+	_, err = ss.Role().Save(channelSchemeUserRole)
+	require.Nil(t, err)
+
+	roleMapAfter, err := ss.Role().ChannelHigherScopedPermissions([]string{channelSchemeUserRole.Name})
+	require.Nil(t, err)
+
+	require.Equal(t, len(roleMapBefore), len(roleMapAfter))
 }
