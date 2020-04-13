@@ -4596,7 +4596,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://"
+    "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -5296,7 +5296,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
-    "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://"
+    "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://."
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
