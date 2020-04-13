@@ -833,7 +833,7 @@ func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.Fil
 	if err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if config.Width*config.Height > model.MaxImageSize {
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 

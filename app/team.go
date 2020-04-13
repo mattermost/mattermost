@@ -1510,7 +1510,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if config.Width*config.Height > model.MaxImageSize {
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 

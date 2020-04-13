@@ -38,7 +38,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if config.Width*config.Height > model.MaxImageSize {
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
