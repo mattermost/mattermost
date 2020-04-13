@@ -414,11 +414,13 @@ func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []str
 func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
 	expectedUsernames := make([]string, 0, len(expected))
 	for _, user := range expected {
+		user.Sanitize(map[string]bool{})
 		expectedUsernames = append(expectedUsernames, user.Username)
 	}
 
 	actualUsernames := make([]string, 0, len(actual))
 	for _, user := range actual {
+		user.Sanitize(map[string]bool{})
 		actualUsernames = append(actualUsernames, user.Username)
 	}
 
