@@ -210,8 +210,6 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 	group.CreateAt = retrievedGroup.CreateAt
 	group.UpdateAt = model.GetMillis()
 
-	group.UpdateAt = model.GetMillis()
-
 	if err := group.IsValidForUpdate(); err != nil {
 		return nil, err
 	}
