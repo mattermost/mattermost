@@ -34,6 +34,10 @@ func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cf
 	return searchStore
 }
 
+func (s SearchStore) UpdateConfig(cfg *model.Config) {
+	s.config = cfg
+}
+
 func (s SearchStore) Channel() store.ChannelStore {
 	return s.channel
 }
