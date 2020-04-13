@@ -314,7 +314,7 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
-	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalSidebarFeatures            			  *string
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -652,8 +652,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
+	if s.ExperimentalSidebarFeatures == nil {
+		s.ExperimentalSidebarFeatures = NewString("disabled")
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
