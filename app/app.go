@@ -7,6 +7,7 @@ import (
 	"context"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -183,6 +184,18 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
+}
+
+func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
+	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	if appErr != nil {
+		return 0, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
 }
 
 func (a *App) Srv() *Server {

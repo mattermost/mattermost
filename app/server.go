@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -23,7 +22,6 @@ import (
 	"github.com/rs/cors"
 	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
-	"github.com/throttled/throttled/store/memstore"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -940,103 +938,6 @@ func (s *Server) ensureDiagnosticId() {
 
 func (s *Server) configOrLicenseListener() {
 	s.regenerateClientConfig()
-}
-
-func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-	if appErr != nil {
-		return 0, appErr
-	}
-	value, err := strconv.ParseInt(systemData.Value, 10, 64)
-	if err != nil {
-		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return value, nil
-}
-
-func (s *Server) setupInviteEmailRateLimiting() error {
-	store, err := memstore.New(emailRateLimitingMemstoreSize)
-	if err != nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
-	}
-
-	quota := throttled.RateQuota{
-		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
-		MaxBurst: emailRateLimitingMaxBurst,
-	}
-
-	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-	if err != nil || rateLimiter == nil {
-		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
-	}
-
-	s.EmailRateLimiter = rateLimiter
-	return nil
-}
-
-func (s *Server) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	role, err := s.Store.Role().GetByName(name)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.mergeChannelHigherScopedPermissions([]*model.Role{role})
-	if err != nil {
-		return nil, err
-	}
-
-	return role, nil
-}
-
-func (s *Server) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
-	var higherScopeNamesToQuery []string
-
-	for _, role := range roles {
-		if role.SchemeManaged {
-			higherScopeNamesToQuery = append(higherScopeNamesToQuery, role.Name)
-		}
-	}
-
-	if len(higherScopeNamesToQuery) == 0 {
-		return nil
-	}
-
-	higherScopedPermissionsMap, err := s.Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
-	if err != nil {
-		return err
-	}
-
-	for _, role := range roles {
-		if role.SchemeManaged {
-			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
-				role.MergeChannelHigherScopedPermissions(higherScopedPermissions)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
-	if s.phase2PermissionsMigrationComplete {
-		return nil
-	}
-
-	if _, err := s.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
-		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
-	}
-
-	s.phase2PermissionsMigrationComplete = true
-
-	return nil
-}
-
-func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
-	if err := s.IsPhase2MigrationCompleted(); err != nil {
-		return nil, err
-	}
-
-	return s.Store.Scheme().GetAllPage(scope, offset, limit)
 }
 
 func (s *Server) ClientConfigHash() string {
