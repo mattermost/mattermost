@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
@@ -36,6 +37,31 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 			}
 			f(t, st.Store)
 		})
+	}
+}
+
+func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store, *searchtest.SearchTestEngine)) {
+	defer func() {
+		if err := recover(); err != nil {
+			tearDownStores()
+			panic(err)
+		}
+	}()
+
+	for _, st := range storeTypes {
+		st := st
+		searchTestEngine := &searchtest.SearchTestEngine{
+			Driver: *st.SqlSettings.DriverName,
+			AfterTest: func(t *testing.T, s store.Store) {
+				t.Helper()
+
+				st.SqlSupplier.GetMaster().Exec("TRUNCATE Teams")
+				st.SqlSupplier.GetMaster().Exec("TRUNCATE Channels")
+				st.SqlSupplier.GetMaster().Exec("TRUNCATE Users")
+			},
+		}
+
+		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, searchTestEngine) })
 	}
 }
 

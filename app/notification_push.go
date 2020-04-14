@@ -90,17 +90,6 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		)
 	}
 
-	notification, parseError := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
-	if parseError != nil {
-		return model.NewAppError(
-			"pushNotification",
-			"api.push_notifications.message.parse.app_error",
-			nil,
-			parseError.Error(),
-			http.StatusInternalServerError,
-		)
-	}
-
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
@@ -108,11 +97,11 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		}
 
 		// We made a copy to avoid decoding and parsing all the time
-		tmpMessage := notification
+		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 
-		err := a.sendToPushProxy(*tmpMessage, session)
+		err := a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
 			a.NotificationsLog().Error("Notification error",
 				mlog.String("ackId", tmpMessage.AckId),
@@ -123,7 +112,6 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 				mlog.String("deviceId", tmpMessage.DeviceId),
 				mlog.String("status", err.Error()),
 			)
-
 			continue
 		}
 
@@ -316,7 +304,7 @@ func (a *App) StopPushNotificationsHubWorkers() {
 	}
 }
 
-func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
+func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.DiagnosticId()
 
 	a.NotificationsLog().Info("Notification will be sent",

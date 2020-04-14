@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 )
 
 func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
@@ -42,4 +43,8 @@ func (a *App) PurgeElasticsearchIndexes() *model.AppError {
 	}
 
 	return nil
+}
+
+func (a *App) SetSearchEngine(se *searchengine.Broker) {
+	a.searchEngine = se
 }

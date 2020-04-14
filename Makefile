@@ -52,7 +52,7 @@ else
 endif
 
 # Go Flags
-GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
@@ -200,9 +200,8 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-    # The following commented commands can be used to re-generate the AppIface from the App struct
-	#env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
-	#$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
+	$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -236,7 +235,7 @@ einterfaces-mocks: ## Creates mock files for einterfaces.
 
 searchengine-mocks: ## Creates mock files for searchengines.
 	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
+	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -517,9 +516,14 @@ vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
+	fi;
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
+		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
+	else \
+		echo "MM_VET_OPENSPEC_PATH not set or spec yaml path in it is incorrect. Skipping API check"; \
 	fi; \
-
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...

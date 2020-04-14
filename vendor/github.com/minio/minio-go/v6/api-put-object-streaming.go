@@ -18,10 +18,14 @@
 package minio
 
 import (
+	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
+	"runtime/debug"
 	"sort"
 	"strings"
 
@@ -40,11 +44,11 @@ import (
 func (c Client) putObjectMultipartStream(ctx context.Context, bucketName, objectName string,
 	reader io.Reader, size int64, opts PutObjectOptions) (n int64, err error) {
 
-	if !isObject(reader) && isReadAt(reader) {
+	if !isObject(reader) && isReadAt(reader) && !opts.SendContentMd5 {
 		// Verify if the reader implements ReadAt and it is not a *minio.Object then we will use parallel uploader.
 		n, err = c.putObjectMultipartStreamFromReadAt(ctx, bucketName, objectName, reader.(io.ReaderAt), size, opts)
 	} else {
-		n, err = c.putObjectMultipartStreamNoChecksum(ctx, bucketName, objectName, reader, size, opts)
+		n, err = c.putObjectMultipartStreamOptionalChecksum(ctx, bucketName, objectName, reader, size, opts)
 	}
 	if err != nil {
 		errResp := ToErrorResponse(err)
@@ -56,7 +60,7 @@ func (c Client) putObjectMultipartStream(ctx context.Context, bucketName, object
 				return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
 			}
 			// Fall back to uploading as single PutObject operation.
-			return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
+			return c.putObject(ctx, bucketName, objectName, reader, size, opts)
 		}
 	}
 	return n, err
@@ -220,7 +224,7 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 	return totalUploadedSize, nil
 }
 
-func (c Client) putObjectMultipartStreamNoChecksum(ctx context.Context, bucketName, objectName string,
+func (c Client) putObjectMultipartStreamOptionalChecksum(ctx context.Context, bucketName, objectName string,
 	reader io.Reader, size int64, opts PutObjectOptions) (n int64, err error) {
 	// Input validation.
 	if err = s3utils.CheckValidBucketName(bucketName); err != nil {
@@ -257,20 +261,47 @@ func (c Client) putObjectMultipartStreamNoChecksum(ctx context.Context, bucketNa
 	// Initialize parts uploaded map.
 	partsInfo := make(map[int]ObjectPart)
 
+	// Create a buffer.
+	buf := make([]byte, partSize)
+	defer debug.FreeOSMemory()
+
+	// Avoid declaring variables in the for loop
+	var md5Base64 string
+	var hookReader io.Reader
+
 	// Part number always starts with '1'.
 	var partNumber int
 	for partNumber = 1; partNumber <= totalPartsCount; partNumber++ {
-		// Update progress reader appropriately to the latest offset
-		// as we read from the source.
-		hookReader := newHook(reader, opts.Progress)
 
 		// Proceed to upload the part.
 		if partNumber == totalPartsCount {
 			partSize = lastPartSize
 		}
+
+		if opts.SendContentMd5 {
+			length, rerr := io.ReadFull(reader, buf)
+			if rerr == io.EOF && partNumber > 1 {
+				break
+			}
+			if rerr != nil && rerr != io.ErrUnexpectedEOF && rerr != io.EOF {
+				return 0, rerr
+			}
+			// Calculate md5sum.
+			hash := md5.New()
+			hash.Write(buf[:length])
+			md5Base64 = base64.StdEncoding.EncodeToString(hash.Sum(nil))
+			// Update progress reader appropriately to the latest offset
+			// as we read from the source.
+			hookReader = newHook(bytes.NewReader(buf[:length]), opts.Progress)
+		} else {
+			// Update progress reader appropriately to the latest offset
+			// as we read from the source.
+			hookReader = newHook(reader, opts.Progress)
+		}
+
 		objPart, uerr := c.uploadPart(ctx, bucketName, objectName, uploadID,
 			io.LimitReader(hookReader, partSize),
-			partNumber, "", "", partSize, opts.ServerSideEncryption)
+			partNumber, md5Base64, "", partSize, opts.ServerSideEncryption)
 		if uerr != nil {
 			return totalUploadedSize, uerr
 		}
@@ -316,9 +347,9 @@ func (c Client) putObjectMultipartStreamNoChecksum(ctx context.Context, bucketNa
 	return totalUploadedSize, nil
 }
 
-// putObjectNoChecksum special function used Google Cloud Storage. This special function
+// putObject special function used Google Cloud Storage. This special function
 // is used for Google Cloud Storage since Google's multipart API is not S3 compatible.
-func (c Client) putObjectNoChecksum(ctx context.Context, bucketName, objectName string, reader io.Reader, size int64, opts PutObjectOptions) (n int64, err error) {
+func (c Client) putObject(ctx context.Context, bucketName, objectName string, reader io.Reader, size int64, opts PutObjectOptions) (n int64, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return 0, err
@@ -343,13 +374,30 @@ func (c Client) putObjectNoChecksum(ctx context.Context, bucketName, objectName 
 		}
 	}
 
+	var md5Base64 string
+	if opts.SendContentMd5 {
+		// Create a buffer.
+		buf := make([]byte, size)
+		defer debug.FreeOSMemory()
+
+		length, rErr := io.ReadFull(reader, buf)
+		if rErr != nil && rErr != io.ErrUnexpectedEOF {
+			return 0, rErr
+		}
+
+		// Calculate md5sum.
+		hash := md5.New()
+		hash.Write(buf[:length])
+		md5Base64 = base64.StdEncoding.EncodeToString(hash.Sum(nil))
+	}
+
 	// Update progress reader appropriately to the latest offset as we
 	// read from the source.
 	readSeeker := newHook(reader, opts.Progress)
 
 	// This function does not calculate sha256 and md5sum for payload.
 	// Execute put object.
-	st, err := c.putObjectDo(ctx, bucketName, objectName, readSeeker, "", "", size, opts)
+	st, err := c.putObjectDo(ctx, bucketName, objectName, readSeeker, md5Base64, "", size, opts)
 	if err != nil {
 		return 0, err
 	}

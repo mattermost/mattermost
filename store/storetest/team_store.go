@@ -46,13 +46,13 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("TeamPublicCount", func(t *testing.T) { testPublicTeamCount(t, ss) })
 	t.Run("TeamPrivateCount", func(t *testing.T) { testPrivateTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
+	t.Run("TestGetMembers", func(t *testing.T) { testGetMembers(t, ss) })
 	t.Run("SaveMember", func(t *testing.T) { testTeamSaveMember(t, ss) })
 	t.Run("SaveMultipleMembers", func(t *testing.T) { testTeamSaveMultipleMembers(t, ss) })
 	t.Run("UpdateMember", func(t *testing.T) { testTeamUpdateMember(t, ss) })
 	t.Run("UpdateMultipleMembers", func(t *testing.T) { testTeamUpdateMultipleMembers(t, ss) })
 	t.Run("RemoveMember", func(t *testing.T) { testTeamRemoveMember(t, ss) })
 	t.Run("RemoveMembers", func(t *testing.T) { testTeamRemoveMembers(t, ss) })
-	t.Run("GetMembersOrder", func(t *testing.T) { testGetMembersOrder(t, ss) })
 	t.Run("SaveTeamMemberMaxMembers", func(t *testing.T) { testSaveTeamMemberMaxMembers(t, ss) })
 	t.Run("GetTeamMember", func(t *testing.T) { testGetTeamMember(t, ss) })
 	t.Run("GetTeamMembersByIds", func(t *testing.T) { testGetTeamMembersByIds(t, ss) })
@@ -875,28 +875,135 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	require.Equal(t, countNotIncludingDeleted+1, countIncludingDeleted)
 }
 
-func testGetMembersOrder(t *testing.T, ss store.Store) {
-	teamId1 := model.NewId()
-	teamId2 := model.NewId()
+func testGetMembers(t *testing.T, ss store.Store) {
+	// Each user should have a mention count of exactly 1 in the DB at this point.
+	t.Run("Test GetMembers Order By UserID", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
 
-	m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
-	m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
-	m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
-	m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
-	m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
-	m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: "55555555555555555555555555"}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: "11111111111111111111111111"}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: "33333333333333333333333333"}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: "22222222222222222222222222"}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
 
-	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
-	require.Nil(t, err)
+		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, err)
 
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
-	require.Nil(t, err)
-	assert.Len(t, ms, 5)
-	assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
-	assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
-	assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
-	assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
-	assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
+		// Gets users ordered by UserId
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+		require.Nil(t, err)
+		assert.Len(t, ms, 5)
+		assert.Equal(t, "11111111111111111111111111", ms[0].UserId)
+		assert.Equal(t, "22222222222222222222222222", ms[1].UserId)
+		assert.Equal(t, "33333333333333333333333333", ms[2].UserId)
+		assert.Equal(t, "44444444444444444444444444", ms[3].UserId)
+		assert.Equal(t, "55555555555555555555555555", ms[4].UserId)
+	})
+
+	t.Run("Test GetMembers Order By Username And Exclude Deleted Members", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
+
+		u1 := &model.User{Username: "a", Email: MakeEmail(), DeleteAt: int64(1)}
+		u2 := &model.User{Username: "c", Email: MakeEmail()}
+		u3 := &model.User{Username: "b", Email: MakeEmail(), DeleteAt: int64(1)}
+		u4 := &model.User{Username: "f", Email: MakeEmail()}
+		u5 := &model.User{Username: "e", Email: MakeEmail(), DeleteAt: int64(1)}
+		u6 := &model.User{Username: "d", Email: MakeEmail()}
+
+		u1, err := ss.User().Save(u1)
+		require.Nil(t, err)
+		u2, err = ss.User().Save(u2)
+		require.Nil(t, err)
+		u3, err = ss.User().Save(u3)
+		require.Nil(t, err)
+		u4, err = ss.User().Save(u4)
+		require.Nil(t, err)
+		u5, err = ss.User().Save(u5)
+		require.Nil(t, err)
+		u6, err = ss.User().Save(u6)
+		require.Nil(t, err)
+
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: u4.Id}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
+
+		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, err)
+
+		// Gets users ordered by UserName
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME})
+		require.Nil(t, err)
+		assert.Len(t, ms, 5)
+		assert.Equal(t, u1.Id, ms[0].UserId)
+		assert.Equal(t, u3.Id, ms[1].UserId)
+		assert.Equal(t, u2.Id, ms[2].UserId)
+		assert.Equal(t, u5.Id, ms[3].UserId)
+		assert.Equal(t, u4.Id, ms[4].UserId)
+
+		// Gets users ordered by UserName and excludes deleted members
+		ms, err = ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME, ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+		assert.Len(t, ms, 2)
+		assert.Equal(t, u2.Id, ms[0].UserId)
+		assert.Equal(t, u4.Id, ms[1].UserId)
+	})
+
+	t.Run("Test GetMembers Excluded Deleted Users", func(t *testing.T) {
+		teamId1 := model.NewId()
+		teamId2 := model.NewId()
+
+		u1 := &model.User{Email: MakeEmail()}
+		u2 := &model.User{Email: MakeEmail(), DeleteAt: int64(1)}
+		u3 := &model.User{Email: MakeEmail()}
+		u4 := &model.User{Email: MakeEmail(), DeleteAt: int64(3)}
+		u5 := &model.User{Email: MakeEmail()}
+		u6 := &model.User{Email: MakeEmail(), DeleteAt: int64(5)}
+
+		u1, err := ss.User().Save(u1)
+		require.Nil(t, err)
+		u2, err = ss.User().Save(u2)
+		require.Nil(t, err)
+		u3, err = ss.User().Save(u3)
+		require.Nil(t, err)
+		u4, err = ss.User().Save(u4)
+		require.Nil(t, err)
+		u5, err = ss.User().Save(u5)
+		require.Nil(t, err)
+		u6, err = ss.User().Save(u6)
+		require.Nil(t, err)
+
+		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
+		m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
+		m3 := &model.TeamMember{TeamId: teamId1, UserId: u3.Id}
+		m4 := &model.TeamMember{TeamId: teamId1, UserId: u4.Id}
+		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
+		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
+
+		t1, err := ss.Team().SaveMember(m1, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m2, -1)
+		require.Nil(t, err)
+		t3, err := ss.Team().SaveMember(m3, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m4, -1)
+		require.Nil(t, err)
+		t5, err := ss.Team().SaveMember(m5, -1)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(m6, -1)
+		require.Nil(t, err)
+
+		// Gets users ordered by UserName
+		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+		assert.Len(t, ms, 3)
+		require.ElementsMatch(t, ms, [3]*model.TeamMember{t1, t3, t5})
+	})
 }
 
 func testTeamMembers(t *testing.T, ss store.Store) {
