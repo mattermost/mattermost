@@ -39,7 +39,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	}
 
 	// This casting is done to prevent overflow on 32 bit systems (not needed
-	// in 64 bits systems because images can have more than 32 bits height or
+	// in 64 bits systems because images can't have more than 32 bits height or
 	// width)
 	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, "", http.StatusBadRequest)
