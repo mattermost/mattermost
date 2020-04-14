@@ -1794,6 +1794,18 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// UpdateTeamPrivacy modifies the team type (model.TEAM_OPEN <--> model.TEAM_INVITE) and sets
+// the corresponding AllowOpenInvite appropriately.
+func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) *Response {
+	query := fmt.Sprintf("?privacy=%s", privacy)
+	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy"+query, "")
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
