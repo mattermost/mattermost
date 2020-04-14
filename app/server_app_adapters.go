@@ -72,7 +72,7 @@ func (s *Server) RunOldAppInitialization() error {
 				s.Config(),
 			)
 
-			s.FakeApp().AddConfigListener(func(prevCfg, cfg *model.Config) {
+			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
 				searchStore.UpdateConfig(cfg)
 			})
 
