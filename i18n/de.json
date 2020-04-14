@@ -2896,7 +2896,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die nun deaktiviert wurden.\n\n{{.BotNames}}{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die nun deaktiviert wurden, darunter die folgenden:\n\n{{.BotNames}}{{end}}Sie können den Besitz jedes Bots übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Accounts, die noch aktiviert sind.\n\n{{.BotNames}}\n{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die immer noch aktiviert sind, einschließlich der folgenden:\n\n{{.BotNames}}{{end}}Wir empfehlen Ihnen dringend, die Eigentumsrechte an jedem Bot zu übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** wieder aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation] (https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nWenn Sie möchten, dass Bot-Konten nach der Benutzerdeaktivierung automatisch deaktiviert werden, setzen Sie \"Bot-Konten nach der Benutzerdeaktivierung deaktivieren\" in **Systemkonsole > Integrationen > Bot-Konten** auf wahr.{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die nun deaktiviert wurden.\n\n{{.BotNames}}{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die nun deaktiviert wurden, darunter die folgenden:\n\n{{.BotNames}}{{end}}Sie können den Besitz jedes Bots übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die noch aktiviert sind.\n\n{{.BotNames}}\n{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die immer noch aktiviert sind, einschließlich der folgenden:\n\n{{.BotNames}}{{end}}Wir empfehlen Ihnen dringend, die Eigentumsrechte an jedem Bot zu übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** wieder aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation] (https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nWenn Sie möchten, dass Bot-Konten nach der Benutzerdeaktivierung automatisch deaktiviert werden, setzen Sie \"Bot-Konten nach der Benutzerdeaktivierung deaktivieren\" in **Systemkonsole > Integrationen > Bot-Konten** auf wahr.{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2968,11 +2968,11 @@
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": "Some teams not found"
+    "translation": "Einige Teams nicht gefunden"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Some users not found"
+    "translation": "Einige Benutzer nicht gefunden"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -4932,7 +4932,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Site-URL muss eine gültige URL sein und mit http:// oder https:// beginnen"
+    "translation": "Site-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -5328,7 +5328,7 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+    "translation": "Kanalbenachrichtigungen sind in {{.ChannelName}} deaktiviert. {{.Mention}} hat keine Benachrichtigungen ausgelöst."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -6984,7 +6984,7 @@
   },
   {
     "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
+    "translation": "Konnte einige der angeforderten Teams nicht finden."
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
