@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -8656,23 +8655,6 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(userId string) (*model.Vi
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) HTMLTemplates() *template.Template {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HTMLTemplates")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.HTMLTemplates()
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) Handle404(w http.ResponseWriter, r *http.Request) {

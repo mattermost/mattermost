@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -660,7 +659,6 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
-	HTMLTemplates() *template.Template
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
