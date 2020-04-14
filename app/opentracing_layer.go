@@ -616,7 +616,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *htt
 	a.app.AttachSessionCookies(w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
 
@@ -1878,7 +1878,7 @@ func (a *OpenTracingAppLayer) CreatePasswordRecoveryToken(userId string, email s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePost")
 
@@ -7230,7 +7230,7 @@ func (a *OpenTracingAppLayer) GetSchemeByName(name string) (*model.Scheme, *mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelId string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSchemeRolesForChannel")
 
@@ -7242,14 +7242,14 @@ func (a *OpenTracingAppLayer) GetSchemeRolesForChannel(channelId string) (string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSchemeRolesForChannel(channelId)
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetSchemeRolesForChannel(channelId)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar3 != nil {
+		span.LogFields(spanlog.Error(resultVar3))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2, resultVar3
 }
 
 func (a *OpenTracingAppLayer) GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError) {
@@ -7726,7 +7726,7 @@ func (a *OpenTracingAppLayer) GetTeamMembersForUserWithPagination(userId string,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamId string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamSchemeChannelRoles")
 
@@ -7738,14 +7738,14 @@ func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamId string) (string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetTeamSchemeChannelRoles(teamId)
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetTeamSchemeChannelRoles(teamId)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar3 != nil {
+		span.LogFields(spanlog.Error(resultVar3))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2, resultVar3
 }
 
 func (a *OpenTracingAppLayer) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
@@ -8952,7 +8952,7 @@ func (a *OpenTracingAppLayer) ImageProxyAdder() func(string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ImageProxyRemover() func(string) string {
+func (a *OpenTracingAppLayer) ImageProxyRemover() (f func(string) string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ImageProxyRemover")
 
