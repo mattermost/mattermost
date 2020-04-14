@@ -113,7 +113,6 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestCreateChannel(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
