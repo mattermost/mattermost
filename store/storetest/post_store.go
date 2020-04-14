@@ -216,8 +216,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to save/get")
 	}
 
-	o1a := &model.Post{}
-	*o1a = *ro1
+	o1a := ro1.Clone()
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
 	if _, err = ss.Post().Update(o1a, ro1); err != nil {
 		t.Fatal(err)
@@ -233,8 +232,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to update/get")
 	}
 
-	o2a := &model.Post{}
-	*o2a = *ro2
+	o2a := ro2.Clone()
 	o2a.Message = ro2.Message + "DDDDDDD"
 	if _, err = ss.Post().Update(o2a, ro2); err != nil {
 		t.Fatal(err)
@@ -250,8 +248,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to update/get")
 	}
 
-	o3a := &model.Post{}
-	*o3a = *ro3
+	o3a := ro3.Clone()
 	o3a.Message = ro3.Message + "WWWWWWW"
 	if _, err = ss.Post().Update(o3a, ro3); err != nil {
 		t.Fatal(err)
@@ -281,8 +278,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	}
 	ro4 := r4.Posts[o4.Id]
 
-	o4a := &model.Post{}
-	*o4a = *ro4
+	o4a := ro4.Clone()
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
 	if _, err = ss.Post().Update(o4a, ro4); err != nil {
@@ -330,7 +326,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
 	post := posts[0]
-	actual := post.Props[model.POST_PROPS_DELETE_BY]
+	actual := post.GetProp(model.POST_PROPS_DELETE_BY)
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 	}
@@ -2161,8 +2157,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to save/get")
 	}
 
-	o1a := &model.Post{}
-	*o1a = *ro1
+	o1a := ro1.Clone()
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
 	_, err = ss.Post().Overwrite(o1a)
 	if err != nil {
@@ -2179,8 +2174,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to overwrite/get")
 	}
 
-	o2a := &model.Post{}
-	*o2a = *ro2
+	o2a := ro2.Clone()
 	o2a.Message = ro2.Message + "DDDDDDD"
 	_, err = ss.Post().Overwrite(o2a)
 	if err != nil {
@@ -2197,8 +2191,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		t.Fatal("Failed to overwrite/get")
 	}
 
-	o3a := &model.Post{}
-	*o3a = *ro3
+	o3a := ro3.Clone()
 	o3a.Message = ro3.Message + "WWWWWWW"
 	_, err = ss.Post().Overwrite(o3a)
 	if err != nil {
@@ -2229,8 +2222,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	}
 	ro4 := r4.Posts[o4.Id]
 
-	o4a := &model.Post{}
-	*o4a = *ro4
+	o4a := ro4.Clone()
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
 	_, err = ss.Post().Overwrite(o4a)
@@ -2684,8 +2676,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	p1, err = ss.Post().Save(p1)
 	require.Nil(t, err)
 
-	o1a := &model.Post{}
-	*o1a = *p1
+	o1a := p1.Clone()
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
 	if _, err = ss.Post().Update(o1a, p1); err != nil {

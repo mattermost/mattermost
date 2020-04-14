@@ -255,13 +255,13 @@ func TestUpdatePostEditAt(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{}
-	*post = *th.BasicPost
+	post = th.BasicPost.Clone()
 
 	post.IsPinned = true
 	saved, err := th.App.UpdatePost(post, true)
 	require.Nil(t, err)
 	assert.Equal(t, saved.EditAt, post.EditAt, "shouldn't have updated post.EditAt when pinning post")
-	*post = *saved
+	post = saved.Clone()
 
 	time.Sleep(time.Millisecond * 100)
 
@@ -278,7 +278,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{}
-	*post = *th.BasicPost
+	post = th.BasicPost.Clone()
 
 	th.App.SetLicense(model.NewTestLicense())
 
@@ -432,7 +432,7 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.Props["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 
 	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
 	result, err = th.App.UpdatePost(post, false)
@@ -441,7 +441,7 @@ func TestPostChannelMentions(t *testing.T) {
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
 		},
-	}, result.Props["channel_mentions"])
+	}, result.GetProp("channel_mentions"))
 }
 
 func TestImageProxy(t *testing.T) {

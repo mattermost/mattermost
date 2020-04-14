@@ -73,7 +73,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 	}
 
 	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
-	if _, ok := post.Props["from_webhook"]; !ok {
+	if _, ok := post.GetProps()["from_webhook"]; !ok {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(
 				"Encountered error updating last viewed",
@@ -225,12 +225,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
-	if attachments, ok := post.Props["attachments"].([]*model.SlackAttachment); ok {
+	if attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment); ok {
 		jsonAttachments, err := json.Marshal(attachments)
 		if err == nil {
 			attachmentsInterface := []interface{}{}
 			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
-			post.Props["attachments"] = attachmentsInterface
+			post.AddProp("attachments", attachmentsInterface)
 		}
 		if err != nil {
 			mlog.Error("Could not convert post attachments to map interface.", mlog.Err(err))
@@ -371,8 +371,8 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 
 	if len(channelMentionsProp) > 0 {
 		post.AddProp("channel_mentions", channelMentionsProp)
-	} else if post.Props != nil {
-		delete(post.Props, "channel_mentions")
+	} else if post.GetProps() != nil {
+		post.DelProp("channel_mentions")
 	}
 
 	return nil
@@ -426,8 +426,8 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	if post.CreateAt == 0 {
 		post.CreateAt = model.GetMillis()
 	}
-	if post.Props == nil {
-		post.Props = model.StringInterface{}
+	if post.GetProps() == nil {
+		post.SetProps(make(model.StringInterface))
 	}
 
 	post.GenerateActionIds()
@@ -444,8 +444,8 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	post.UpdateAt = model.GetMillis()
-	if post.Props == nil {
-		post.Props = model.StringInterface{}
+	if post.GetProps() == nil {
+		post.SetProps(make(model.StringInterface))
 	}
 
 	post.GenerateActionIds()
@@ -513,7 +513,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	newPost := &model.Post{}
-	*newPost = *oldPost
+	newPost = oldPost.Clone()
 
 	if newPost.Message != post.Message {
 		newPost.Message = post.Message
@@ -525,7 +525,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.IsPinned = post.IsPinned
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
-		newPost.Props = post.Props
+		newPost.SetProps(post.GetProps())
 	}
 
 	// Avoid deep-equal checks if EditAt was already modified through message change
@@ -1290,7 +1290,7 @@ func isCommentMention(user *model.User, post *model.Post, otherPosts map[string]
 
 func isPostMention(user *model.User, post *model.Post, keywords map[string][]string, otherPosts map[string]*model.Post, mentionedByThread map[string]bool, checkForCommentMentions bool) bool {
 	// Prevent the user from mentioning themselves
-	if post.UserId == user.Id && post.Props["from_webhook"] != "true" {
+	if post.UserId == user.Id && post.GetProp("from_webhook") != "true" {
 		return false
 	}
 
@@ -1302,7 +1302,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 	// Check for mentions caused by being added to the channel
 	if post.Type == model.POST_ADD_TO_CHANNEL {
-		if addedUserId, ok := post.Props[model.POST_PROPS_ADDED_USER_ID].(string); ok && addedUserId == user.Id {
+		if addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string); ok && addedUserId == user.Id {
 			return true
 		}
 	}
