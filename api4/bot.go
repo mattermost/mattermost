@@ -11,7 +11,6 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -116,10 +115,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if err != nil {
-		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
-	}
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
 	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
 	if appErr != nil {
@@ -152,15 +148,8 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if err != nil {
-		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
-	}
-
-	onlyOrphaned, err := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
-	if err != nil {
-		mlog.Debug("Unexpected value for onlyOrphaned", mlog.String("only_orphaned", r.URL.Query().Get("only_orphaned")))
-	}
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	onlyOrphaned, _ := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
 
 	var OwnerId string
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHERS_BOTS) {

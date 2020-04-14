@@ -106,10 +106,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	force, err := strconv.ParseBool(r.URL.Query().Get("force"))
-	if err != nil {
-		mlog.Debug("Unexpected value for force", mlog.String("force", r.URL.Query().Get("force")))
-	}
+	force, _ := strconv.ParseBool(r.URL.Query().Get("force"))
 	downloadURL := r.URL.Query().Get("plugin_download_url")
 	auditRec.AddMeta("url", downloadURL)
 
@@ -367,11 +364,7 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 
 	filter := u.Query().Get("filter")
 	serverVersion := u.Query().Get("server_version")
-	localOnly, err := strconv.ParseBool(u.Query().Get("local_only"))
-	if err != nil {
-		localOnly = false
-	}
-
+	localOnly, _ := strconv.ParseBool(u.Query().Get("local_only"))
 	return &model.MarketplacePluginFilter{
 		Page:          page,
 		PerPage:       perPage,

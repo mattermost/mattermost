@@ -967,10 +967,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if err != nil {
-		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
-	}
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
@@ -1048,11 +1045,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if err != nil {
-		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
-	}
-
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	channel, appErr := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
@@ -1086,11 +1079,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	includeDeleted, err := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
-	if err != nil {
-		mlog.Debug("Unexpected value for includeDeleted", mlog.String("include_deleted", r.URL.Query().Get("include_deleted")))
-	}
-
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	channel, appErr := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr

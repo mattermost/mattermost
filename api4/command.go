@@ -212,10 +212,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
-	customOnly, failConv := strconv.ParseBool(r.URL.Query().Get("custom_only"))
-	if failConv != nil {
-		customOnly = false
-	}
+	customOnly, _ := strconv.ParseBool(r.URL.Query().Get("custom_only"))
 
 	teamId := r.URL.Query().Get("team_id")
 	if len(teamId) == 0 {
