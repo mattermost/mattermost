@@ -54,8 +54,7 @@ func NewSyslogTLSTarget(filter logr.Filter, formatter logr.Formatter, params *Sy
 	return s, nil
 }
 
-// Shutdown stops processing log records after making best
-// effort to flush queue.
+// Shutdown stops processing log records after making best effort to flush queue.
 func (s *SyslogTLS) Shutdown(ctx context.Context) error {
 	errs := merror.New()
 

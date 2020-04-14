@@ -1349,7 +1349,8 @@ func TestAllPushNotifications(t *testing.T) {
 	assert.Equal(t, 6, numUpdateBadges)
 }
 
-func BenchmarkPushNotification(b *testing.B) {
+// Run it with | grep -v '{"level"' to prevent spamming the console.
+func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
 	defer th.TearDown()
 
@@ -1432,9 +1433,10 @@ func BenchmarkPushNotification(b *testing.B) {
 	b.ResetTimer()
 	// We have an inner loop which ranges the testdata slice
 	// and we just repeat that.
-	// TODO: replace 10 by b.N
 	then := time.Now()
-	for i := 0; i < 10; i++ {
+	cnt := 0
+	for i := 0; i < b.N; i++ {
+		cnt++
 		var wg sync.WaitGroup
 		for j, data := range testData {
 			wg.Add(1)
@@ -1473,7 +1475,7 @@ func BenchmarkPushNotification(b *testing.B) {
 		}
 		wg.Wait()
 	}
-	b.Logf("time taken: %v", time.Since(then))
+	b.Logf("throughput: %f reqs/s", float64(len(testData)*cnt)/time.Since(then).Seconds())
 	b.StopTimer()
 	time.Sleep(2 * time.Second)
 }

@@ -81,7 +81,7 @@ fi
 
 # - Do not import math/rand for real library code.  Use internal/grpcrand for
 #   thread safety.
-git grep -l '"math/rand"' -- "*.go" 2>&1 | (! grep -v '^examples\|^stress\|grpcrand\|wrr_test')
+git grep -l '"math/rand"' -- "*.go" 2>&1 | (! grep -v '^examples\|^stress\|grpcrand\|^benchmark\|wrr_test')
 
 # - Ensure all ptypes proto packages are renamed when importing.
 (! git grep "\(import \|^\s*\)\"github.com/golang/protobuf/ptypes/" -- "*.go")
@@ -94,7 +94,7 @@ go list -f {{.Dir}} ./... | xargs go run test/go_vet/vet.go
 gofmt -s -d -l . 2>&1 | fail_on_output
 goimports -l . 2>&1 | (! grep -vE "(_mock|\.pb)\.go")
 golint ./... 2>&1 | (! grep -vE "(_mock|\.pb)\.go:")
-go vet -all .
+go vet -all ./...
 
 misspell -error .
 
@@ -151,6 +151,7 @@ grpc.WithMaxMsgSize
 grpc.WithServiceConfig
 grpc.WithTimeout
 http.CloseNotifier
+info.SecurityVersion
 naming.Resolver
 naming.Update
 naming.Watcher
