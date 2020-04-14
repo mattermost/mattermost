@@ -238,14 +238,27 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequirePrivacy()
-	if c.Err != nil {
+	props := model.StringInterfaceFromJson(r.Body)
+	privacy, ok := props["privacy"].(string)
+	if !ok {
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	var openInvite bool
+	switch privacy {
+	case model.TEAM_OPEN:
+		openInvite = true
+	case model.TEAM_INVITE:
+		openInvite = false
+	default:
+		c.SetInvalidParam("privacy")
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("updateTeamPrivacy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("privacy", c.Params.Privacy)
+	auditRec.AddMeta("privacy", privacy)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		auditRec.AddMeta("team_id", c.Params.TeamId)
@@ -253,32 +266,22 @@ func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
-		auditRec.AddMeta("team", team)
-	}
-
-	var teamType string
-	var openInvite bool
-	switch c.Params.Privacy {
-	case "public":
-		teamType = model.TEAM_OPEN
-		openInvite = true
-	case "private":
-		teamType = model.TEAM_INVITE
-		openInvite = false
-	default:
-		c.SetInvalidUrlParam("privacy")
+	if err := c.App.UpdateTeamPrivacy(c.Params.TeamId, privacy, openInvite); err != nil {
+		c.Err = err
 		return
 	}
 
-	err := c.App.UpdateTeamPrivacy(c.Params.TeamId, teamType, openInvite)
+	// Return the updated team to be consistent with UpdateChannelPrivacy
+	team, err := c.App.GetTeam(c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.AddMeta("team", team)
 	auditRec.Success()
-	ReturnStatusOK(w)
+
+	w.Write([]byte(team.ToJson()))
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {

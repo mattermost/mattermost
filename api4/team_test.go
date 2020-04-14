@@ -494,16 +494,16 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		wantOpenInvite bool
 	}{
 		{name: "bad privacy", team: teamPublic, privacy: "blap", wantErr: true, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "bad team", team: &model.Team{Id: model.NewId() + "nope"}, privacy: "public", wantErr: true, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to private", team: teamPublic, privacy: "private", wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
-		{name: "private to public", team: teamPrivate, privacy: "public", wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to public", team: teamPublic2, privacy: "public", wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "private to private", team: teamPrivate2, privacy: "private", wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "bad team", team: &model.Team{Id: model.NewId() + "nope"}, privacy: model.TEAM_OPEN, wantErr: true, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			resp := Client.UpdateTeamPrivacy(test.team.Id, test.privacy)
+			team, resp := Client.UpdateTeamPrivacy(test.team.Id, test.privacy)
 			if test.wantErr {
 				CheckBadRequestStatus(t, resp)
 				return
@@ -511,14 +511,22 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 				CheckNoError(t, resp)
 				CheckOKStatus(t, resp)
 			}
-
-			team, err := th.App.GetTeam(test.team.Id)
-			require.Nil(t, err)
-
 			require.Equal(t, test.wantType, team.Type)
 			require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
 		})
 	}
+
+	t.Run("not logged in", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.UpdateTeamPrivacy(teamPublic.Id, model.TEAM_INVITE)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("no permission to manage team", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.UpdateTeamPrivacy(teamPublic.Id, model.TEAM_INVITE)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestTeamUnicodeNames(t *testing.T) {

@@ -1796,14 +1796,14 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 
 // UpdateTeamPrivacy modifies the team type (model.TEAM_OPEN <--> model.TEAM_INVITE) and sets
 // the corresponding AllowOpenInvite appropriately.
-func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) *Response {
-	query := fmt.Sprintf("?privacy=%s", privacy)
-	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy"+query, "")
+func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Response) {
+	requestBody := map[string]string{"privacy": privacy}
+	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy", MapToJson(requestBody))
 	if err != nil {
-		return BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return BuildResponse(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
