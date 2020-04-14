@@ -230,6 +230,9 @@ func (o *Channel) PreSave() {
 		o.Id = NewId()
 	}
 
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
@@ -237,6 +240,8 @@ func (o *Channel) PreSave() {
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
 }
 
 func (o *Channel) IsGroupOrDirect() bool {

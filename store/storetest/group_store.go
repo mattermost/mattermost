@@ -55,6 +55,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("ChannelMembersToRemove_SingleChannel", func(t *testing.T) { testChannelMembersToRemoveSingleChannel(t, ss) })
 
 	t.Run("GetGroupsByChannel", func(t *testing.T) { testGetGroupsByChannel(t, ss) })
+	t.Run("GetGroupsAssociatedToChannelsByTeam", func(t *testing.T) { testGetGroupsAssociatedToChannelsByTeam(t, ss) })
 	t.Run("GetGroupsByTeam", func(t *testing.T) { testGetGroupsByTeam(t, ss) })
 
 	t.Run("GetGroups", func(t *testing.T) { testGetGroups(t, ss) })
@@ -2055,27 +2056,30 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 
 	// Create Groups 1, 2 and a deleted group
 	group1, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-1",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-1",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-2",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-2",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: false,
 	})
 	require.Nil(t, err)
 
 	deletedGroup, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-deleted",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
-		DeleteAt:    1,
+		Name:           model.NewId(),
+		DisplayName:    "group-deleted",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
+		DeleteAt:       1,
 	})
 	require.Nil(t, err)
 
@@ -2102,10 +2106,11 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-3",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-3",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
@@ -2242,6 +2247,14 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
 			},
 		},
+		{
+			Name:      "Include allow reference",
+			ChannelId: channel1.Id,
+			Opts:      model.GroupSearchOpts{FilterAllowReference: true},
+			Page:      0,
+			PerPage:   100,
+			Result:    []*model.GroupWithSchemeAdmin{group1WSA},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -2264,6 +2277,249 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	}
 }
 
+func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
+	// Create Team1
+	team1 := &model.Team{
+		DisplayName:     "Team1",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            "zz" + model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team1, errt := ss.Team().Save(team1)
+	require.Nil(t, errt)
+
+	// Create Channel1
+	channel1 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel1",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel1, err := ss.Channel().Save(channel1, 9999)
+	require.Nil(t, err)
+
+	// Create Groups 1, 2 and a deleted group
+	group1, err := ss.Group().Create(&model.Group{
+		Name:           model.NewId(),
+		DisplayName:    "group-1",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: false,
+	})
+	require.Nil(t, err)
+
+	group2, err := ss.Group().Create(&model.Group{
+		Name:           model.NewId(),
+		DisplayName:    "group-2",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
+	})
+	require.Nil(t, err)
+
+	deletedGroup, err := ss.Group().Create(&model.Group{
+		Name:           model.NewId(),
+		DisplayName:    "group-deleted",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
+		DeleteAt:       1,
+	})
+	require.Nil(t, err)
+
+	// And associate them with Channel1
+	for _, g := range []*model.Group{group1, group2, deletedGroup} {
+		_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+			AutoAdd:    true,
+			SyncableId: channel1.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    g.Id,
+		})
+		require.Nil(t, err)
+	}
+
+	// Create Channel2
+	channel2 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel2",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel2, err = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, err)
+
+	// Create Group3
+	group3, err := ss.Group().Create(&model.Group{
+		Name:           model.NewId(),
+		DisplayName:    "group-3",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
+	})
+	require.Nil(t, err)
+
+	// And associate it to Channel2
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: channel2.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group3.Id,
+	})
+	require.Nil(t, err)
+
+	// add members
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+
+	user2.DeleteAt = 1
+	_, err = ss.User().Update(user2, true)
+	require.Nil(t, err)
+
+	group1WithMemberCount := *group1
+	group1WithMemberCount.MemberCount = model.NewInt(1)
+
+	group2WithMemberCount := *group2
+	group2WithMemberCount.MemberCount = model.NewInt(0)
+
+	group3WithMemberCount := *group3
+	group3WithMemberCount.MemberCount = model.NewInt(0)
+
+	group1WSA := &model.GroupWithSchemeAdmin{Group: *group1, SchemeAdmin: model.NewBool(false)}
+	group2WSA := &model.GroupWithSchemeAdmin{Group: *group2, SchemeAdmin: model.NewBool(false)}
+	group3WSA := &model.GroupWithSchemeAdmin{Group: *group3, SchemeAdmin: model.NewBool(false)}
+
+	testCases := []struct {
+		Name    string
+		TeamId  string
+		Page    int
+		PerPage int
+		Result  map[string][]*model.GroupWithSchemeAdmin
+		Opts    model.GroupSearchOpts
+	}{
+		{
+			Name:    "Get the groups for Channel1 and Channel2",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
+			Page:    0,
+			PerPage: 60,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA, group2WSA}, channel2.Id: {group3WSA}},
+		},
+		{
+			Name:    "Get first Group for Channel1 with page 0 with 1 element",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
+			Page:    0,
+			PerPage: 1,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA}},
+		},
+		{
+			Name:    "Get second Group for Channel1 with page 1 with 1 element",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
+			Page:    1,
+			PerPage: 1,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group2WSA}},
+		},
+		{
+			Name:    "Get empty Groups for a fake id",
+			TeamId:  model.NewId(),
+			Opts:    model.GroupSearchOpts{},
+			Page:    0,
+			PerPage: 60,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{},
+		},
+		{
+			Name:    "Get group matching name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low chance of a name collision
+			Page:    0,
+			PerPage: 100,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA}},
+		},
+		{
+			Name:    "Get group matching display name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "rouP-1"},
+			Page:    0,
+			PerPage: 100,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA}},
+		},
+		{
+			Name:    "Get group matching multiple display names",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "roUp-"},
+			Page:    0,
+			PerPage: 100,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA, group2WSA}, channel2.Id: {group3WSA}},
+		},
+		{
+			Name:    "Include member counts",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 10,
+			Result: map[string][]*model.GroupWithSchemeAdmin{
+				channel1.Id: {
+					{Group: group1WithMemberCount, SchemeAdmin: model.NewBool(false)},
+					{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				},
+				channel2.Id: {
+					{Group: group3WithMemberCount, SchemeAdmin: model.NewBool(false)},
+				},
+			},
+		},
+		{
+			Name:    "Include allow reference",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true},
+			Page:    0,
+			PerPage: 2,
+			Result: map[string][]*model.GroupWithSchemeAdmin{
+				channel1.Id: {
+					group2WSA,
+				},
+				channel2.Id: {
+					group3WSA,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			if tc.Opts.PageOpts == nil {
+				tc.Opts.PageOpts = &model.PageOpts{}
+			}
+			tc.Opts.PageOpts.Page = tc.Page
+			tc.Opts.PageOpts.PerPage = tc.PerPage
+			groups, err := ss.Group().GetGroupsAssociatedToChannelsByTeam(tc.TeamId, tc.Opts)
+			require.Nil(t, err)
+			assert.Equal(t, tc.Result, groups)
+		})
+	}
+}
+
 func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	// Create Team1
 	team1 := &model.Team{
@@ -2281,27 +2537,30 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	// Create Groups 1, 2 and a deleted group
 	group1, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-1",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-1",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: false,
 	})
 	require.Nil(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-2",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-2",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
 	deletedGroup, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-deleted",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
-		DeleteAt:    1,
+		Name:           model.NewId(),
+		DisplayName:    "group-deleted",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
+		DeleteAt:       1,
 	})
 	require.Nil(t, err)
 
@@ -2332,10 +2591,11 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-3",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-3",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
@@ -2476,6 +2736,14 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 				{Group: group2WithMemberCount, SchemeAdmin: model.NewBool(false)},
 			},
 		},
+		{
+			Name:    "Include allow reference",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.GroupWithSchemeAdmin{group2WSA},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -2525,27 +2793,30 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	// Create Groups 1 and 2
 	group1, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
-		DisplayName: "group-1",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId(),
+		DisplayName:    "group-1",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId() + "-group-2",
-		DisplayName: "group-2",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId() + "-group-2",
+		DisplayName:    "group-2",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: false,
 	})
 	require.Nil(t, err)
 
 	deletedGroup, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId() + "-group-deleted",
-		DisplayName: "group-deleted",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
-		DeleteAt:    1,
+		Name:           model.NewId() + "-group-deleted",
+		DisplayName:    "group-deleted",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: false,
+		DeleteAt:       1,
 	})
 	require.Nil(t, err)
 
@@ -2586,10 +2857,11 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId() + "-group-3",
-		DisplayName: "group-3",
-		RemoteId:    model.NewId(),
-		Source:      model.GroupSourceLdap,
+		Name:           model.NewId() + "-group-3",
+		DisplayName:    "group-3",
+		RemoteId:       model.NewId(),
+		Source:         model.GroupSourceLdap,
+		AllowReference: true,
 	})
 	require.Nil(t, err)
 
@@ -2779,6 +3051,26 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				}
 				for _, g := range groups {
 					if g.Id == group1.Id || g.Id == group2.Id {
+						return false
+					}
+					if g.DeleteAt != 0 {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Name:    "Include allow reference",
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
+				for _, g := range groups {
+					if !g.AllowReference {
 						return false
 					}
 					if g.DeleteAt != 0 {
