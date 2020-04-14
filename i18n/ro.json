@@ -3620,11 +3620,11 @@
   },
   {
     "id": "app.plugin.invalid_version.app_error",
-    "translation": "Versiunea pluginului nu a putut fi analizată"
+    "translation": "Versiunea pluginului nu a putut fi analizată."
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Nu se poate găsi un manifest pentru plugin extras"
+    "translation": "Imposibil de găsit manifest pentru pluginul extras."
   },
   {
     "id": "app.plugin.marketplace_client.app_error",
@@ -3664,11 +3664,11 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Modulul% 1 nu este instalat"
+    "translation": "Pluginul nu este instalat."
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Imposibil de șters plugin"
+    "translation": "Pluginul nu poate fi șters."
   },
   {
     "id": "app.plugin.remove_bundle.app_error",
@@ -3720,7 +3720,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "A apărut o eroare la salvarea configurației"
+    "translation": "A apărut o eroare la salvarea configurației."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3732,7 +3732,7 @@
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
-    "translation": "Nu a putut fi analizată data de instalare"
+    "translation": "Nu a putut fi analizată data de instalare."
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
@@ -4004,27 +4004,27 @@
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch este deja pornit"
+    "translation": "Elasticsearch este deja pornit."
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Imposibil de creat Elasticsearch bulk procesor"
+    "translation": "Nu a reușit să creeze procesorul vrac Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Nu a reușit să obțină versiunea serverului Elasticsearch"
+    "translation": "Nu a reușit să obțină versiunea serverului Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Nu a reușit să analizeze versiunea serverului Elasticsearch"
+    "translation": "Nu a reușit să analizeze versiunea serverului Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed la spre scrobeală Elasticsearch bulk procesor"
+    "translation": "Nu a reușit să pornească procesorul în vrac Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch este deja oprit"
+    "translation": "Elasticsearch este deja oprit."
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4048,7 +4048,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "interfața ldap a fost zero"
+    "translation": "Interfața ldap era nulă."
   },
   {
     "id": "ent.ldap.create_fail",
@@ -4064,7 +4064,7 @@
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
-    "translation": "Parolă incorectă"
+    "translation": "Parolă Invalidă."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -4072,15 +4072,15 @@
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "Numele de utilizator dat meciuri mai mulţi utilizatori"
+    "translation": "Numele de utilizator dat corespunde mai multor utilizatori."
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Nu a reuşit să Căutaţi serverul AD/LDAP"
+    "translation": "Nu a reușit să caute pe serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Incapabil să se conecteze la serverul AD/LDAP"
+    "translation": "Imposibil de conectat la serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -4088,7 +4088,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Utilizatorul nu inregistrat pe serverul AD/LDAP"
+    "translation": "Utilizator neînregistrat pe serverul AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -4096,11 +4096,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Imposibilitatea de a obţine toate utilizatori folosind AD/LDAP"
+    "translation": "Nu se pot obține toți utilizatorii care utilizează AD/LDAP."
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "eroare de recuperare a grupurilor"
+    "translation": "eroare la găsirea grupurilor."
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -4116,15 +4116,15 @@
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
-    "translation": "Filtrul invitat AD/LDAP invalid"
+    "translation": "Filtrul admin AD/LDAP invalid."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "AD/LDAP invalidă filtru"
+    "translation": "Filtru AD/LDAP invalid."
   },
   {
     "id": "ent.ldap.validate_guest_filter.app_error",
-    "translation": "Filtrul invitat AD/LDAP invalid"
+    "translation": "Filtrul invitat AD/LDAP invalid."
   },
   {
     "id": "ent.ldap_groups.group_search_error",
@@ -4188,15 +4188,15 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Imposibilitatea de a obţine informaţiile din fişierul de export temporar"
+    "translation": "Imposibil de obținut informațiile despre fișierul temporar de export."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Imposibilitatea de a obţine un e-mail de la fişierul temporar"
+    "translation": "Imposibil de a primi un e-mail din fișierul temporar."
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Imposibil de deschis fişierul de export temporar"
+    "translation": "Imposibil de deschis fișierul temporar de export."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4252,7 +4252,7 @@
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Am primit un raspuns gol la furnizorul de identitate"
+    "translation": "Am primit un raspuns gol la furnizorul de identitate."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -4328,11 +4328,11 @@
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Imposibil de analizat URL"
+    "translation": "Imposibil de analizat URL."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
-    "translation": "Imposibil de obținut canale"
+    "translation": "Imposibil de obținut canale."
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4340,31 +4340,31 @@
   },
   {
     "id": "mfa.activate.authenticate.app_error",
-    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
+    "translation": "Eroare la încercarea de a autentifica tokenul MFA."
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Simbol MFA invalidă."
+    "translation": "Token MFA invalid."
   },
   {
     "id": "mfa.activate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
   },
   {
     "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator."
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
-    "translation": "Eroare la eliminarea secretului MFA"
+    "translation": "Eroare la eliminarea secretului MFA."
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "Eroare la generarea codului QR"
+    "translation": "Eroare la generarea codului QR."
   },
   {
     "id": "mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Eroare la salvarea secretului MFA"
+    "translation": "Eroare la salvarea secretului MFA."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -4384,275 +4384,275 @@
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
-    "translation": "Etichetă de acces invalidă"
+    "translation": "Etichetă de acces invalidă."
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
-    "translation": "Id-ul de client invalid"
+    "translation": "Id-ul de client invalid."
   },
   {
     "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Redirecturi invalide"
+    "translation": "Redirecturi url invalid."
   },
   {
     "id": "model.access.is_valid.refresh_token.app_error",
-    "translation": "Etichetă de reîmprospătare invalidă"
+    "translation": "Jetonul de actualizare nu este valabil."
   },
   {
     "id": "model.access.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.authorize.is_valid.auth_code.app_error",
-    "translation": "Cod de autorizare invalid"
+    "translation": "Cod de autorizare invalid."
   },
   {
     "id": "model.authorize.is_valid.client_id.app_error",
-    "translation": "Id-ul de client invalid"
+    "translation": "Id-ul de client invalid."
   },
   {
     "id": "model.authorize.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Creați la trebuie să fie un timp valabil."
   },
   {
     "id": "model.authorize.is_valid.expires.app_error",
-    "translation": "Expirarea trebuie să fie stabilită"
+    "translation": "Expirarea trebuie să fie setată."
   },
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
-    "translation": "Redirecturi invalide"
+    "translation": "Redirecturi uri invalid."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Răspuns invalid"
+    "translation": "Tip de răspuns invalid."
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
-    "translation": "Scop invalid"
+    "translation": "Scop invalid."
   },
   {
     "id": "model.authorize.is_valid.state.app_error",
-    "translation": "Stare invalidă"
+    "translation": "Stare invalidă."
   },
   {
     "id": "model.authorize.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Crearea invalidă la"
+    "translation": "Creare invalidă la."
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Actualizare invalidă la"
+    "translation": "Actualizare invalidă \"update at\"."
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Nume de utilizator invalid."
+    "translation": "Utilizator invalid."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Numele trebuie să fie de 2 sau mai multe caractere alfanumerice minuscule"
+    "translation": "Numele trebuie să aibă 2 sau mai multe caractere alfanumerice cu minuscule."
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Nume afișat invalid"
+    "translation": "Nume afișat invalid."
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "Antetul invalid"
+    "translation": "Antet invalid."
   },
   {
     "id": "model.channel.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "Id incorect."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "Scop nevalabil"
+    "translation": "Scop invalid."
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Tip invalid"
+    "translation": "Tip invalid."
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "\"Update at\" trebuie să fie un timp valabil."
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal invalid."
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Valoare invalidă de notificare prin e-mail"
+    "translation": "Valoare de notificare e-mail invalidă."
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Starea de ignorare a canalelor ignorate este nevalidă"
+    "translation": "Invalid ignora starea mențiunilor canalului."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": "Nivel de notificare invalid"
+    "translation": "Nivel de notificare invalid."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Nivelul de notificare cu împingere invalid"
+    "translation": "Nivel de notificare push invalid."
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "Valoarea invalidă a marcajului invalid este invalidă"
+    "translation": "Nivelul necitit al marcajului este nevalid."
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.client.connecting.app_error",
-    "translation": "Am întâmpinat o eroare în timpul conectării la server"
+    "translation": "Am întâlnit o eroare la conectarea la server."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "CreateAt trebuie să fie setat"
+    "translation": "CreateAt trebuie să fie setat."
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "Trebuie setat hostname"
+    "translation": "Trebuie setat hostname."
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID invalid."
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "LastPingAt trebuie să fie setat"
+    "translation": "LastPingAt trebuie să fie setat."
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "ClusterName trebuie să fie setat"
+    "translation": "ClusterName trebuie să fie setat."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "Tipul trebuie să fie setat"
+    "translation": "Type trebuie să fie setat."
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "\"Creați la\" trebuie să fie un timp valabil."
   },
   {
     "id": "model.command.is_valid.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Titlu incorect"
+    "translation": "Titlu incorect."
   },
   {
     "id": "model.command.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID invalid."
   },
   {
     "id": "model.command.is_valid.method.app_error",
-    "translation": "Metodă de transport necorespunzătoare"
+    "translation": "Metoda invalidă."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
-    "translation": "Echipa invalid ID"
+    "translation": "ID echipa invalid."
   },
   {
     "id": "model.command.is_valid.token.app_error",
-    "translation": "Token invalid."
+    "translation": "Jeton invalid."
   },
   {
     "id": "model.command.is_valid.trigger.app_error",
-    "translation": "Invalid de declanşare"
+    "translation": "Declanşator invalid."
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "\"Actualizarea la\" trebuie să fie o dată valabilă."
   },
   {
     "id": "model.command.is_valid.url.app_error",
-    "translation": "URL invalid"
+    "translation": "URL invalid."
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "URL invalidă. Trebuie să fie un URL valid şi începe cu http:// sau https://"
+    "translation": "URL invalid. Trebuie să fie un URL valid şi începe cu http:// sau https://."
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal invalid."
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Id de comandă"
+    "translation": "Id comandă invalid."
   },
   {
     "id": "model.command_hook.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "\"Crearea la\" trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Id de cârlig comandă"
+    "translation": "ID-ul cârligului de comandă invalid."
   },
   {
     "id": "model.command_hook.parent_id.app_error",
-    "translation": "Părinte invalid id"
+    "translation": "ID părinte invalid."
   },
   {
     "id": "model.command_hook.root_id.app_error",
-    "translation": "Identitate root invalidă"
+    "translation": "Identitate root invalidă."
   },
   {
     "id": "model.command_hook.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.compliance.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "\"Crearea la\" trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.compliance.is_valid.desc.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.compliance.is_valid.end_at.app_error",
-    "translation": "A trebuie să fie o oră validă"
+    "translation": "Trebuie să fie un timp valabil."
   },
   {
     "id": "model.compliance.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID invalid."
   },
   {
     "id": "model.compliance.is_valid.start_at.app_error",
-    "translation": "La trebuie să fie o oră validă"
+    "translation": "De la trebuie să fie un timp valabil."
   },
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
-    "translation": "Catre trebuie să fie mai mare față De"
+    "translation": "Catre trebuie să fie mai mare față De."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
@@ -4688,7 +4688,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Setarea de AggregatePostsAfterDays Elasticsearch trebuie să fie un număr mai mare sau egal cu 1"
+    "translation": "Setarea de AggregatePostsAfterDays Elasticsearch trebuie să fie un număr mai mare sau egal cu 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
@@ -4708,11 +4708,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live indexarea mărimea lotului trebuie să fie cel puţin 1"
+    "translation": "Elasticsearch Live indexarea mărimea lotului trebuie să fie cel puţin 1."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Setarea de PostsAggregatorJobStartTime Elasticsearch trebuie să fie o dată în formatul \"hh\""
+    "translation": "Setarea de PostsAggregatorJobStartTime Elasticsearch trebuie să fie o dată în formatul \"hh:mm\"."
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
@@ -4740,7 +4740,7 @@
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
-    "translation": "Numele de driver incorect pentru setările de fişier. Trebuie să fie 'locale' sau 'amazons3'"
+    "translation": "Numele de driver incorect pentru setările de fişier. Trebuie să fie 'local' sau 'amazons3'."
   },
   {
     "id": "model.config.is_valid.file_salt.app_error",
@@ -4776,7 +4776,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Conectare invalide de securitate pentru setările AD/LDAP. Trebuie să fie '', 'TLS', sau 'STARTTLS'"
+    "translation": "Conectare invalidă de securitate pentru setările AD/LDAP. Trebuie să fie '', 'TLS', sau 'STARTTLS'."
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4796,7 +4796,7 @@
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Limbile disponibile trebuie să conțină limba implicită a clientului"
+    "translation": "Limbile disponibile trebuie să conțină Limba client implicită."
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Mesajul de export al mesajului BatchSize trebuie să fie un număr întreg pozitiv"
+    "translation": "Jobul de export de mesaje BatchSize trebuie să fie un număr întreg pozitiv."
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
@@ -4832,7 +4832,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Activarea exportului mesajului Setarea EnableExport trebuie să fie adevărată sau falsă"
+    "translation": "Jobul de exportare a mesajului Setarea EnableExport trebuie să fie adevărată sau falsă."
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
@@ -4840,27 +4840,27 @@
   },
   {
     "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Mesajul de export al mesajului ExportFormat trebuie să fie unul dintre 'actiance', 'csv' sau 'globalrelay'"
+    "translation": "Job de export de mesaje ExportFormat trebuie să fie unul 'actiance', 'csv' sau 'globalrelay'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
-    "translation": "Job de export mesaj ExportFormat este setat la 'globalrelay', dar lipsesc GlobalRelaySettings"
+    "translation": "Job de export mesaj ExportFormat este setat la 'globalrelay', dar lipsesc GlobalRelaySettings."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Mesajul de export GlobalRelaySettings.CustomerType trebuie să fie setat la unul dintre 'A9' sau 'A10'"
+    "translation": "Mesajul de export GlobalRelaySettings.CustomerType trebuie să fie setat la unul dintre 'A9' sau 'A10'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
-    "translation": "Mesajul de export de mesaje GlobalRelaySettings.EmailAddress trebuie setat la o adresă de e-mail validă"
+    "translation": "Mesajul de export de mesaje GlobalRelaySettings.EmailAddress trebuie setat la o adresă de e-mail validă."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Mesajul de export al mesajului GlobalRelaySettings.SmtpPassword trebuie setat"
+    "translation": "Mesajul de export al mesajului GlobalRelaySettings.SmtpPassword trebuie setat."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
-    "translation": "Mesajul de export de mesaje GlobalRelaySettings.SmtpUsername trebuie setat"
+    "translation": "Mesajul de export de mesaje GlobalRelaySettings.SmtpUsername trebuie setat."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -4868,11 +4868,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Invalid memorie magazin dimensiune pentru setările de limită de rata. Trebuie să fie un număr pozitiv"
+    "translation": "Invalid memorie magazin dimensiune pentru setările de limită de rata. Trebuie să fie un număr pozitiv."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Invalid pe secundă pentru setările de limită de rata. Trebuie să fie un număr pozitiv"
+    "translation": "Invalid pe secundă pentru setările de limită de rata. Trebuie să fie un număr pozitiv."
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -4880,11 +4880,11 @@
   },
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
-    "translation": "Restricție invalidă mesaj direct. Trebuie să fie 'orice', sau 'team'"
+    "translation": "Restricție invalidă mesaj direct. Trebuie să fie 'orice', sau 'team'."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
-    "translation": "Atribut administrativ invalid. Trebuie să fie sub forma 'câmp=valoare'"
+    "translation": "Atribut administrativ invalid. Trebuie să fie sub forma 'câmp=valoare'."
   },
   {
     "id": "model.config.is_valid.saml_assertion_consumer_service_url.app_error",
@@ -4900,7 +4900,7 @@
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
-    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'"
+    "translation": "Atribut invitat nevalid. Trebuie să fie sub forma 'câmp=valoare'."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4932,7 +4932,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Site-ul URL-ul trebuie să fie un URL valid şi începe cu http:// sau https://"
+    "translation": "Site-ul URL-ul trebuie să fie un URL valid şi începe cu http:// sau https://."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4952,7 +4952,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Numele de driver incorect pentru setările de SQL. Trebuie să fie 'mysql' sau 'postgres'"
+    "translation": "Numele de driver incorect pentru setările de SQL. Trebuie să fie 'mysql' sau 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4968,7 +4968,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Display invalidă coechipier. Trebuie să fie 'full_name', 'nickname_full_name' sau 'username'"
+    "translation": "Display invalidă coechipier. Trebuie să fie 'full_name', 'nickname_full_name' sau 'username'."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4976,15 +4976,15 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Valoare nevalidă pentru fișierul de certificat TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul de certificat existent"
+    "translation": "Valoare nevalidă pentru fișierul de certificat TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul de certificat existent."
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Valoare nevalidă pentru fișierul cheie TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul cheie existent"
+    "translation": "Valoare nevalidă pentru fișierul cheie TLS - Fie utilizați LetsEncrypt, fie setați calea către fișierul cheie existent."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Valoare nevalidă transmisă pentru cifrul de suprascriere TLS - Consultați documentația pentru valori valide"
+    "translation": "Valoare nevalidă transmisă pentru cifrul de suprascriere TLS - Consultați documentația pentru valori valide."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4992,7 +4992,7 @@
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
-    "translation": "Websocket URL trebuie să fie un URL valid şi începe cu ws:// sau wss://"
+    "translation": "Websocket URL trebuie să fie un URL valid şi începe cu ws:// sau wss://."
   },
   {
     "id": "model.config.is_valid.write_timeout.app_error",
@@ -5000,23 +5000,23 @@
   },
   {
     "id": "model.emoji.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "\"Creați la\" trebuie să fie un timp valabil."
   },
   {
     "id": "model.emoji.id.app_error",
-    "translation": "Identitate emoji invalidă"
+    "translation": "Id emoji invalid."
   },
   {
     "id": "model.emoji.name.app_error",
-    "translation": "Numele trebuie să fie 1-64 caractere alfanumerice cu litere mici"
+    "translation": "Numele trebuie să fie de la 1 la 64 de caractere alfanumerice minuscule."
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "Actualizarea la trebuie să fie o dată valabilă."
   },
   {
     "id": "model.emoji.user_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.file_info.get.gif.app_error",
@@ -5048,115 +5048,115 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "creare nevalidă la proprietate pentru grup"
+    "translation": "Invalid \"create at\" proprietate pentru grup."
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "ștergere invalidă la proprietate pentru grup"
+    "translation": "Invalid \"delete at\" proprietate pentru grup."
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "descriere nevalidă pentru proprietatea de grup"
+    "translation": "descriere invalidă pentru proprietatea de grup."
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "numele de afișare invalid pentru grup"
+    "translation": "numele de afișare invalid pentru grup."
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "id invalid pentru grup"
+    "translation": "id invalid pentru grup."
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "nume de proprietate invalidă pentru grup"
+    "translation": "nume de proprietate invalidă pentru grup."
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid id proprietate id pentru grup"
+    "translation": "proprietate de identitate la distanță nevalidă pentru grup."
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "sursă invalidă pentru grup"
+    "translation": "proprietate sursă invalidă pentru grup."
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update la proprietate de grup"
+    "translation": "actualizare invalidă la proprietatea pentru grup."
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid id-ul grupului de proprietate pentru un membru al grupului"
+    "translation": "proprietatea ID-ului de grup nevalid pentru membrul grupului."
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid id-ul de utilizator de proprietate pentru un membru al grupului"
+    "translation": "proprietatea ID-ului de utilizator invalid pentru membrul grupului."
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid proprietate id grup pentru sincronizare de grup"
+    "translation": "proprietate de id de grup invalid pentru sincronizarea grupului."
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "id sincronizat invalid pentru sincronizare în grup"
+    "translation": "ID de sincronizare nevalid pentru grupul care poate fi sincronizat."
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "tipul de proprietate invalidă pentru gruparea sincronizabilă"
+    "translation": "proprietate de tip nevalid pentru sincronizarea grupului."
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
-    "translation": "Canal invalid"
+    "translation": "Canal invalid."
   },
   {
     "id": "model.guest.is_valid.channels.app_error",
-    "translation": "Canale invalide"
+    "translation": "Canale invalide."
   },
   {
     "id": "model.guest.is_valid.email.app_error",
-    "translation": "E-mail invalid"
+    "translation": "E-mail invalid."
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
-    "translation": "E-mailuri invalide"
+    "translation": "E-mailuri invalide."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal invalid."
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.incoming_hook.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Titlu incorect"
+    "translation": "Titlu incorect."
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Articol invalid"
+    "translation": "Pictograma post invalidă."
   },
   {
     "id": "model.incoming_hook.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID invalid."
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
-    "translation": "Imposibil de analizat datelor primite"
+    "translation": "Imposibil de analizat datele primite."
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
-    "translation": "Echipa invalid ID"
+    "translation": "ID-ul echipei invalid."
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "Actualizarea la trebuie să fie o dată valabilă."
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.incoming_hook.username.app_error",
@@ -5164,19 +5164,19 @@
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.job.is_valid.id.app_error",
-    "translation": "Job invalid"
+    "translation": "ID-ul de lucru invalid."
   },
   {
     "id": "model.job.is_valid.status.app_error",
-    "translation": "Stare activitate invalidă"
+    "translation": "Starea procesului invalidă."
   },
   {
     "id": "model.job.is_valid.type.app_error",
-    "translation": "Job invalid"
+    "translation": "Tip de lucru invalid."
   },
   {
     "id": "model.license_record.is_valid.create_at.app_error",
@@ -5188,27 +5188,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link datele de metadate nu pot fi zero"
+    "translation": "Datele de metadate ale linkului nu pot fi nule."
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Datele metadatelor de legătură nu corespund tipului dat"
+    "translation": "Datele de metadate ale legăturii nu corespund tipului dat."
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Legătura temporală a metadatelor de legătură trebuie să fie nonzero și rotunjită la cea mai apropiată oră"
+    "translation": "Timpul de metadate al legăturii trebuie să fie zero și rotunjit la cea mai apropiată oră."
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Tip de metadate de legătură invalidă"
+    "translation": "Tip de metadate de legătură invalide."
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Adresa URL a metadatelor de legătură trebuie să fie setată"
+    "translation": "URL-ul metadatelor de legături trebuie setat."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
-    "translation": "Identitate app invalidă"
+    "translation": "Identitate app invalidă."
   },
   {
     "id": "model.oauth.is_valid.callback.app_error",
@@ -5216,19 +5216,19 @@
   },
   {
     "id": "model.oauth.is_valid.client_secret.app_error",
-    "translation": "Secretul client invalidă"
+    "translation": "Secretul clientului este invalid."
   },
   {
     "id": "model.oauth.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.oauth.is_valid.creator_id.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Identitate creatorului invalidă."
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
@@ -5240,47 +5240,47 @@
   },
   {
     "id": "model.oauth.is_valid.name.app_error",
-    "translation": "Nume invalid"
+    "translation": "Nume invalid."
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "Actualizarea la trebuie să fie o dată valabilă."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
-    "translation": "Icoană invalidă"
+    "translation": "Icoană invalidă."
   },
   {
     "id": "model.outgoing_hook.is_valid.callback.app_error",
-    "translation": "URL-uri invalide de apel invers"
+    "translation": "URL-uri invalide de callback."
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal invalid."
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
-    "translation": "Valoare invalidă pentru content_type"
+    "translation": "Valoare invalidă pentru content_type."
   },
   {
     "id": "model.outgoing_hook.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.outgoing_hook.is_valid.description.app_error",
-    "translation": "Descriere invalidă"
+    "translation": "Descriere invalidă."
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Titlu incorect"
+    "translation": "Titlu incorect."
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID Incorect."
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Echipa invalid ID"
+    "translation": "ID-ul echipei invalid."
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -5288,27 +5288,27 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
-    "translation": "Cuvinte în invalid de declanşare"
+    "translation": "Cuvinte de declanșare invalide."
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "Actualizarea la trebuie să fie o dată valabilă."
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
-    "translation": "URL-uri invalide de apel invers. Fiecare trebuie să fie un URL valid şi începe cu http:// sau https://"
+    "translation": "Adrese URL de apel invers invalide. Fiecare trebuie să fie o adresă URL validă și să înceapă cu http:// sau https//."
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
-    "translation": "Cuvinte în invalid de declanşare"
+    "translation": "Cuvinte de declanșare invalide."
   },
   {
     "id": "model.outgoing_hook.username.app_error",
-    "translation": "Nume de utilizator invalid."
+    "translation": "Utilizator invalid."
   },
   {
     "id": "model.plugin_command.error.app_error",
@@ -5328,15 +5328,15 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+    "translation": "Notificările canalului sunt dezactivate în {{.ChannelName}}. {{.Mention}} nu a declanșat nicio notificare."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
-    "translation": "Cod de identificare invalid"
+    "translation": "ID canal nevalid."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "Creați la trebuie să fie un timp valabil"
+    "translation": "Crearea la trebuie să fie o perioadă valabilă."
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
@@ -5344,67 +5344,67 @@
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
-    "translation": "Nume de fișiere invalide"
+    "translation": "Nume de fișiere invalide."
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Hashtags în invalid"
+    "translation": "Hashtag-uri invalide."
   },
   {
     "id": "model.post.is_valid.id.app_error",
-    "translation": "ID Incorect"
+    "translation": "ID Invalid."
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Mesaj inexistent"
+    "translation": "Mesaj invalid."
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
-    "translation": "Identitatea originala invalidă"
+    "translation": "ID original invalid."
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "Părinte invalid id"
+    "translation": "ID părinte invalid."
   },
   {
     "id": "model.post.is_valid.props.app_error",
-    "translation": "Recuzita de invalid"
+    "translation": "Recuzită invalidă."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "Identitate root invalidă"
+    "translation": "Identitate root invalidă."
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
-    "translation": "Trebuie setat ID invalid root dacă mamă ID set"
+    "translation": "ID-ul rădăcină nevalid este necesar să fie stabilit dacă ID-ul părinte este setat."
   },
   {
     "id": "model.post.is_valid.type.app_error",
-    "translation": "Tip invalid"
+    "translation": "Tip invalid."
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "Actualizați la trebuie să fie un timp valabil"
+    "translation": "Actualizați la trebuie să fie un timp valabil."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
-    "translation": "Categorie eronată"
+    "translation": "Categorie eronată."
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "Id utilizator invalid"
+    "translation": "Id utilizator invalid."
   },
   {
     "id": "model.preference.is_valid.name.app_error",
-    "translation": "Nume invalid"
+    "translation": "Nume invalid."
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
-    "translation": "Tema în invalid"
+    "translation": "Tema invalidă."
   },
   {
     "id": "model.preference.is_valid.value.app_error",
@@ -6984,7 +6984,7 @@
   },
   {
     "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
+    "translation": "Nu am putut găsi unele dintre echipele solicitate"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",

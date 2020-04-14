@@ -129,7 +129,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "사용자의 Mattermost 이메일이 잘 설정되었습니다!"
+    "translation": "사용자의 Mattermost 전자우편이 잘 설정되었습니다!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -141,7 +141,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - 이메일 설정 테스트중"
+    "translation": "Mattermost - 전자우편 설정 검사 중"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -173,15 +173,15 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "프로필 이미지를 삭제할 수 없습니다"
+    "translation": "아이콘 이미지를 삭제할 수 없습니다."
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "프로필 이미지파일을 불러오지 못했습니다"
+    "translation": "아이콘 이미지 파일을 읽을 수 없습니다."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "프로필 이미지를 업로드 할 수 없습니다"
+    "translation": "아이콘 이미지를 업로드 할 수 없습니다."
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -225,7 +225,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "사용자를 채널에 추가하는 데 실패하였습니다"
+    "translation": "사용자를 채널에 추가하는 데 실패하였습니다."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "이 유형의 채널엔 사용자를 추가할 수 없습니다"
+    "translation": "이 유형의 채널엔 사용자를 추가할 수 없습니다."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -517,15 +517,15 @@
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
-    "translation": "이메일 초대가 막혀있습니다, 초대가 보내지지 않았습니다."
+    "translation": "전자우편 초대가 막혀있습니다, 초대가 보내지지 않았습니다."
   },
   {
     "id": "api.command.invite_people.email_off",
-    "translation": "이메일이 설정되어 있지 않아서 초대메일 보낼 수 없음"
+    "translation": "전자우편이 설정되어 있지 않아서 초대를 보낼 수 없음"
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "초대 이메일을 보낼 때 오류가 발생했습니다"
+    "translation": "초대 전자우편을 보내던 중에 오류가 발생했습니다"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -541,11 +541,11 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "정확한 이메일을 입력해주세요"
+    "translation": "정확한 전자우편 주소를 입력해주세요"
   },
   {
     "id": "api.command.invite_people.sent",
-    "translation": "초대 이메일을 보냈습니다"
+    "translation": "초대 전자우편을 보냈습니다"
   },
   {
     "id": "api.command.team_mismatch.app_error",
@@ -960,7 +960,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "지정된 현재 채널 또는[채널]에 대해 데스크 톱, 이메일 및 푸시 알림 기능을 해제합니다."
+    "translation": "지정된 현재 채널 또는 [채널]에 대해 데스크톱, 전자우편 및 푸시 알림 기능을 해제합니다."
   },
   {
     "id": "api.command_mute.error",
@@ -1172,11 +1172,11 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "이메일 배치 작업을 받는 채널이 가득 찼습니다. EmailBatchingBufferSize를 늘려주세요."
+    "translation": "전자우편 배치 작업을 받는 채널이 가득 찼습니다. EmailBatchingBufferSize를 늘려주세요."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "시스템 관리자가 이메일 배치 기능을 비활성화 했습니다."
+    "translation": "시스템 관리자가 전자우편 배치 발송 기능을 비활성화 했습니다."
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1458,7 +1458,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "시스템이 {{.Count}} 유니크 사용자를 가질 때, 이 라이센스는 {{.Users}} 사용자 만을 지원합니다. 유니크 사용자는 이메일 주소 개수로 구분 됩니다. 사용자 수는 사이트 리포트 -> 통계 보기에서 확인할 수 있습니다."
+    "translation": "시스템에 {{.Count}}명의 사용자가 있을 때, 이 라이센스는 {{.Users}}명의 사용자를 지원합니다. 사용자는 전자우편 주소의 개수로 구분됩니다. 사용자 수는 사이트 통계 -> 통계에서 확인할 수 있습니다."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1852,7 +1852,7 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}를 사용하는 Slack Bot 계정이 추가되었습니다.\r\n"
+    "translation": "전자우편이 {{.Email}}이고, 비밀번호가 {{.Password}}인 Slack 봇 계정이 추가되었습니다.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -1880,19 +1880,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "이메일 {{.Email}}, 비밀번호 {{.Password}}의 Slack사용자가 추가되었습니다.\r\n"
+    "translation": "전자우편이 {{.Email}}이고, 비밀번호가 {{.Password}}인 Slack 사용자가 추가되었습니다.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "이메일 {{.Email}}, 사용자명 {{.Username}}을 통해 Slack유저와 Mattermost에 존재하는 유저를 통합하였습니다.\r\n"
+    "translation": "전자우편이 {{.Email}}이고, 사용자명이 {{.Username}}인 사용자를 통해 Slack 유저와 Mattermost에 존재하는 사용자를 통합하였습니다.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "이메일 {{.Email}}, 사용자명 {{.Username}}을 통해 Slack유저와 Mattermost에 존재하는 유저를 통합하였습니다, 하지만 팀에는 추가하지 못했습니다.\r\n"
+    "translation": "전자우편이 {{.Email}}이고, 사용자명이 {{.Username}}인 사용자를 통해 Slack 사용자와 Mattermost에 존재하는 사용자를 통합하였습니다, 하지만 팀에는 추가하지 못했습니다.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "사용자 {{.Username}}은(는) Slack 추출 정보에 이메일 계정이 없습니다. {{.Email}}을(를) 표시합니다. 사용자는 시스템에 접속하여 이메일 주소를 업데이트 해야 합니다.\r\n"
+    "translation": "사용자 {{.Username}}은(는) Slack 추출 정보에 전자우편 주소가 없습니다. {{.Email}}을(를) 표시합니다. 사용자는 시스템에 접속하여 전자우편 주소를 업데이트해야 합니다.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2016,7 +2016,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "이메일 초대에서 유효하지않는 오류가 발생했습니다."
+    "translation": "전자우편 초대에서 유효하지 않는 오류가 발생했습니다."
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
@@ -2032,11 +2032,11 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "이메일 초대가 막혀있습니다."
+    "translation": "전자우편 초대가 비활성화되어 있습니다."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "해당 이메일은 허가된 도메인이 아닙니다: {{.Addresses}}. 시스템 어드민에게 문의해 주세요."
+    "translation": "해당 전자우편 주소는 허가된 도메인이 아닙니다: {{.Addresses}}. 시스템 관리자에게 문의해 주세요."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2048,7 +2048,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "허용된 도메인의 이메일만 사용하세요. (예시: @example.com). 자세한 사항은 시스템 관리자에게 문의해보세요."
+    "translation": "허용된 도메인의 전자우편 주소(예시: @example.com)를 사용해야 합니다. 자세한 사항은 시스템 관리자에게 문의해보세요."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2056,7 +2056,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "허용된 도메인의 이메일만 사용하세요. (예시: @example.com). 자세한 사항은 팀 관리자 또는 시스템 관리자에게 문의해보세요."
+    "translation": "허용된 도메인의 전자우편 주소(예시: @example.com)를 사용해야 합니다. 자세한 사항은 팀 관리자 또는 시스템 관리자에게 문의해보세요."
   },
   {
     "id": "api.team.leave.left",
@@ -2180,15 +2180,15 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "{{.TeamDisplayName}}에 속한 당신의 이메일 주소가 {{.NewEmail}}로 변경되었습니다."
+    "translation": "{{.TeamDisplayName}}에 속한 당신의 전자우편 주소가 {{.NewEmail}}로 변경되었습니다."
   },
   {
     "id": "api.templates.email_change_body.title",
-    "translation": "이메일을 변경하였습니다."
+    "translation": "전자우편 주소를 변경하였습니다"
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}], 당신의 이메일 주소가 변경되었습니다."
+    "translation": "[{{ .SiteName }}], 당신의 전자우편 주소가 변경되었습니다"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2196,15 +2196,15 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "{{.TeamDisplayName}}의 이메일 주소 변경을 완료하려면, 아래 링크를 클릭하여 검증하세요."
+    "translation": "{{.TeamDisplayName}}의 전자우편 주소 변경을 완료하려면, 아래 링크를 클릭하여 검증하세요."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "이메일을 변경하였습니다."
+    "translation": "전자우편 주소를 변경하였습니다"
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}], 새로운 이메일 주소를 확인하세요."
+    "translation": "[{{ .SiteName }}], 새로운 전자우편 주소를 확인하세요."
   },
   {
     "id": "api.templates.email_footer",
@@ -2304,7 +2304,7 @@
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "만약 비밀번호를 초기화 할 의사가 없다면, 이 이메일은 무시하세요. 당신의 비밀번호는 변경되지 않을 것입니다. 비밀번호 변경 링크는 24시간 안에 폐기됩니다."
+    "translation": "만약 비밀번호를 초기화할 의사가 없다면, 이 전자우편은 무시하세요. 당신의 비밀번호는 변경되지 않을 것입니다. 비밀번호 변경 링크는 24시간 안에 폐기됩니다."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2320,7 +2320,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
-    "translation": "이메일과 비밀번호"
+    "translation": "전자우편과 비밀번호"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
@@ -2356,11 +2356,11 @@
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "이메일 검증"
+    "translation": "전자우편 주소 검증"
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "이메일을 검증하려면 클릭하세요."
+    "translation": "전자우편을 검증하려면 클릭하세요."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -2368,7 +2368,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] 이메일 확인"
+    "translation": "[{{ .SiteName }}] 전자우편 검증"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -4716,7 +4716,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Elasticsearch Request Timeout은 최소 1초 이상이어야 합니다."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -5020,7 +5020,7 @@
   },
   {
     "id": "model.file_info.get.gif.app_error",
-    "translation": "Could not decode gif."
+    "translation": "gif파일을 디코딩 할 수 없습니다."
   },
   {
     "id": "model.file_info.is_valid.create_at.app_error",
@@ -5544,15 +5544,15 @@
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters."
+    "translation": "비밀번호는 최소 {{.Min}}글자 이상이어야 합니다."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter."
+    "translation": "비밀번호는 최소 하나 이상의 소문자로 구성된 {{.Min}}글자 이상이어야 합니다."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Your password must contain at least {{.Min}} characters made up of at least one lowercase letter and at least one number."
+    "translation": "비밀번호는 최소 하나 이상의 소문자와 하나 이상의 숫자로 구성된 {{.Min}}글자 이상이어야 합니다."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
