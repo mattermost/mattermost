@@ -391,20 +391,7 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	suggestions := []model.AutocompleteSuggestion{}
-
-	autocompleteData := []*model.AutocompleteData{}
-	for _, command := range commands {
-		if command.AutocompleteData == nil {
-			if strings.HasPrefix(command.Trigger, userInput) {
-				suggestions = append(suggestions, model.AutocompleteSuggestion{Suggestion: command.Trigger, Description: command.AutoCompleteDesc, Hint: command.AutoCompleteHint})
-			}
-			continue
-		}
-		autocompleteData = append(autocompleteData, command.AutocompleteData)
-	}
-	sug := c.App.GetSuggestions(autocompleteData, userInput, roleId)
-	suggestions = append(suggestions, sug...)
+	suggestions := c.App.GetSuggestions(commands, userInput, roleId)
 
 	w.Write(model.AutocompleteSuggestionsToJSON(suggestions))
 }

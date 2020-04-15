@@ -175,7 +175,7 @@ type AppIface interface {
 	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 	GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError)
 	// GetSuggestions returns suggestions for user input.
-	GetSuggestions(commands []*model.AutocompleteData, userInput, roleID string) []model.AutocompleteSuggestion
+	GetSuggestions(commands []*model.Command, userInput, roleID string) []model.AutocompleteSuggestion
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.

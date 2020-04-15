@@ -17,9 +17,9 @@ func TestAutocompleteData(t *testing.T) {
 	assert.NotNil(t, ad.IsValid())
 	ad.RoleID = SYSTEM_ADMIN_ROLE_ID
 	assert.Nil(t, ad.IsValid())
-	ad.AddDynamicListArgument("", "help", "/some/url")
+	ad.AddDynamicListArgument("help", "/some/url")
 	assert.Nil(t, ad.IsValid())
-	ad.AddTextArgument("name", "help", "[text]", "")
+	ad.AddNamedTextArgument("name", "help", "[text]", "")
 	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
@@ -30,50 +30,63 @@ func TestAutocompleteData(t *testing.T) {
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
-	command.AddTextArgument("", "help", "[text]", "")
-	command.AddTextArgument("some", "help", "[text]", "")
+	command.AddTextArgument("help", "[text]", "")
+	command.AddNamedTextArgument("some", "help", "[text]", "")
 	ad.AddCommand(command)
 	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
-	command.AddDynamicListArgument("", "help", "valid_url")
+	command.AddDynamicListArgument("help", "valid_url")
 	ad.AddCommand(command)
 	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	command = NewAutocompleteData("disconnect", "", "disconnect")
-	command.AddDynamicListArgument("", "help", "/valid/url")
-	staticList := NewAutocompleteStaticListArg()
-	staticList.AddArgument("", "help")
-	command.AddStaticListArgument("", "help", staticList)
+	command.AddDynamicListArgument("help", "/valid/url")
+	items := []AutocompleteListItem{
+		{
+			Hint:     "help",
+			Item:     "",
+			HelpText: "text",
+		},
+	}
+	command.AddStaticListArgument("help", items)
 	ad.AddCommand(command)
 	assert.NotNil(t, ad.IsValid())
 }
 
 func TestAutocompleteDataJSON(t *testing.T) {
-	jira := CreateJiraAutocompleteData()
-	b, err := jira.ToJSON()
+	ad := getAutocompleteData()
+	b, err := ad.ToJSON()
 	assert.Nil(t, err)
-	jira2, err := AutocompleteDataFromJSON(b)
+	ad2, err := AutocompleteDataFromJSON(b)
 	assert.Nil(t, err)
-	assert.True(t, jira2.Equals(jira))
+	assert.True(t, ad2.Equals(ad))
 }
 
 func getAutocompleteData() *AutocompleteData {
 	ad := NewAutocompleteData("jira", "", "Avaliable commands:")
 	ad.RoleID = SYSTEM_USER_ROLE_ID
-	ad.AddDynamicListArgument("", "help", "/some/url")
-	ad.AddTextArgument("", "help", "[text]", "")
-	StaticList := NewAutocompleteStaticListArg()
-	StaticList.AddArgument("arg1", "help1")
-	StaticList.AddArgument("arg2", "help2")
-	ad.AddStaticListArgument("", "help", StaticList)
+	ad.AddDynamicListArgument("help", "/some/url")
+	ad.AddTextArgument("help", "[text]", "")
+	items := []AutocompleteListItem{
+		{
+			Hint:     "arg1",
+			Item:     "help1",
+			HelpText: "text1",
+		}, {
+			Hint:     "arg2",
+			Item:     "help2",
+			HelpText: "text2",
+		},
+	}
+	ad.AddStaticListArgument("help", items)
 
 	command := NewAutocompleteData("connect", "", "Connect to mattermost")
 	command.RoleID = SYSTEM_ADMIN_ROLE_ID
-	command.AddTextArgument("some", "help", "[text]", "")
-	command.AddDynamicListArgument("other", "help", "/other/url")
+	command.AddNamedTextArgument("some", "help", "[text]", "")
+	command.AddNamedDynamicListArgument("other", "help", "/other/url")
 	ad.AddCommand(command)
 	return ad
 }
