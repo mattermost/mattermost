@@ -45,7 +45,6 @@ type WebConn struct {
 	send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
-	closeOnce                 sync.Once
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
@@ -81,9 +80,6 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 // Close closes the WebConn.
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
-	wc.closeOnce.Do(func() {
-		close(wc.endWritePump)
-	})
 	<-wc.pumpFinished
 }
 
@@ -124,16 +120,15 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	ch := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		wc.writePump()
-		close(ch)
 	}()
 	wc.readPump()
-	wc.closeOnce.Do(func() {
-		close(wc.endWritePump)
-	})
-	<-ch
+	close(wc.endWritePump)
+	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
 }
@@ -157,12 +152,7 @@ func (wc *WebConn) readPump() {
 	for {
 		var req model.WebSocketRequest
 		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			// browsers will appear as CloseNoStatusReceived
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				mlog.Debug("websocket.read: client side closed socket", mlog.String("user_id", wc.UserId))
-			} else {
-				mlog.Debug("websocket.read: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
-			}
+			wc.logSocketErr("websocket.read", err)
 			return
 		}
 		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
@@ -218,32 +208,21 @@ func (wc *WebConn) writePump() {
 				}
 
 				if len(wc.send) >= sendFullWarn {
-					if evtOk {
-						mlog.Warn(
-							"websocket.full",
-							mlog.String("user_id", wc.UserId),
-							mlog.String("type", msg.EventType()),
-							mlog.String("channel_id", evt.GetBroadcast().ChannelId),
-							mlog.Int("size", len(msgBytes)),
-						)
-					} else {
-						mlog.Warn(
-							"websocket.full",
-							mlog.String("user_id", wc.UserId),
-							mlog.String("type", msg.EventType()),
-							mlog.Int("size", len(msgBytes)),
-						)
+					logData := []mlog.Field{
+						mlog.String("user_id", wc.UserId),
+						mlog.String("type", msg.EventType()),
+						mlog.Int("size", len(msgBytes)),
 					}
+					if evtOk {
+						logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
+					}
+
+					mlog.Warn("websocket.full", logData...)
 				}
 
 				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
 				if err := wc.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-					// browsers will appear as CloseNoStatusReceived
-					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-						mlog.Debug("websocket.send: client side closed socket", mlog.String("user_id", wc.UserId))
-					} else {
-						mlog.Debug("websocket.send: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
-					}
+					wc.logSocketErr("websocket.send", err)
 					return
 				}
 
@@ -255,12 +234,7 @@ func (wc *WebConn) writePump() {
 		case <-ticker.C:
 			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
 			if err := wc.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				// browsers will appear as CloseNoStatusReceived
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					mlog.Debug("websocket.ticker: client side closed socket", mlog.String("user_id", wc.UserId))
-				} else {
-					mlog.Debug("websocket.ticker: closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
-				}
+				wc.logSocketErr("websocket.ticker", err)
 				return
 			}
 
@@ -434,4 +408,13 @@ func (wc *WebConn) IsMemberOfTeam(teamId string) bool {
 	}
 
 	return currentSession.GetTeamByTeamId(teamId) != nil
+}
+
+func (wc *WebConn) logSocketErr(source string, err error) {
+	// browsers will appear as CloseNoStatusReceived
+	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
+	} else {
+		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
+	}
 }
