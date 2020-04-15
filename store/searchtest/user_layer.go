@@ -87,8 +87,8 @@ func testSearchDatabaseUserSearch(t *testing.T, s store.Store) {
 
 	team, err := s.Team().Save(&model.Team{Name: "t1", DisplayName: "t1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
-	channel, err := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "c1", DisplayName: "c1", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel, nErr := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "c1", DisplayName: "c1", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	_, err = s.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: u1.Id}, -1)
 	require.Nil(t, err)
@@ -395,17 +395,17 @@ func testSearchESSearchUsersInChannel(t *testing.T, s store.Store) {
 	team1, err := s.Team().Save(&model.Team{Name: "team1", DisplayName: "team1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team1.Id)) }()
-	channel1, err := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
-	channel2, err := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel1, nErr := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
+	channel2, nErr := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	// Channels for team 2
 	team2, err := s.Team().Save(&model.Team{Name: "team2", DisplayName: "team2", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.Team().PermanentDelete(team2.Id)) }()
-	channel3, err := s.Channel().Save(&model.Channel{TeamId: team2.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel3, nErr := s.Channel().Save(&model.Channel{TeamId: team2.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	// Users in team 1
 	user1, err := s.User().Save(createUser("test.one", "userone", "User", "One"))
@@ -544,17 +544,17 @@ func testSearchESSearchUsersInTeam(t *testing.T, s store.Store) {
 	team1, err := s.Team().Save(&model.Team{Name: "team1", DisplayName: "team1", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer require.Nil(t, s.Team().PermanentDelete(team1.Id))
-	channel1, err := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
-	channel2, err := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel1, nErr := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
+	channel2, nErr := s.Channel().Save(&model.Channel{TeamId: team1.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	// Channels for team 2
 	team2, err := s.Team().Save(&model.Team{Name: "team2", DisplayName: "team2", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
 	defer require.Nil(t, s.Team().PermanentDelete(team2.Id))
-	channel3, err := s.Channel().Save(&model.Channel{TeamId: team2.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel3, nErr := s.Channel().Save(&model.Channel{TeamId: team2.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	// Users in team 1
 	user1, err := s.User().Save(createUser("test.one.split", "userone", "User", "One"))

@@ -2947,6 +2947,10 @@
     "translation": "An error occurred marshalling the JSON data for export."
   },
   {
+    "id": "app.generic_error",
+    "translation": "Unexpected error occurred."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },

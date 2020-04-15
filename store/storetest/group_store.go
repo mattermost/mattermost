@@ -1363,8 +1363,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
-	channel, err = ss.Channel().Save(channel, 9999)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, 9999)
+	require.Nil(t, nErr)
 
 	// Create GroupChannel
 	syncable, err := ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
@@ -1553,16 +1553,16 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel1, err = ss.Channel().Save(channel1, 999)
-	require.Nil(t, err)
+	channel1, nErr := ss.Channel().Save(channel1, 999)
+	require.Nil(t, nErr)
 
 	channel2 := &model.Channel{
 		DisplayName: "Name",
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel2, err = ss.Channel().Save(channel2, 999)
-	require.Nil(t, err)
+	channel2, nErr = ss.Channel().Save(channel2, 999)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group1.Id, channel1.Id, true))
 	require.Nil(t, err)
@@ -1838,8 +1838,8 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 		Type:             model.CHANNEL_OPEN,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel1, err = ss.Channel().Save(channel1, 999)
-	require.Nil(t, err)
+	channel1, nErr := ss.Channel().Save(channel1, 999)
+	require.Nil(t, nErr)
 
 	channel2 := &model.Channel{
 		DisplayName:      "Name",
@@ -1847,8 +1847,8 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 		Type:             model.CHANNEL_OPEN,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel2, err = ss.Channel().Save(channel2, 999)
-	require.Nil(t, err)
+	channel2, nErr = ss.Channel().Save(channel2, 999)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1940,8 +1940,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
-	channelConstrained, err = ss.Channel().Save(channelConstrained, 9999)
-	require.Nil(t, err)
+	channelConstrained, nErr := ss.Channel().Save(channelConstrained, 9999)
+	require.Nil(t, nErr)
 
 	channelUnconstrained := &model.Channel{
 		TeamId:      model.NewId(),
@@ -1949,8 +1949,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channelUnconstrained, err = ss.Channel().Save(channelUnconstrained, 9999)
-	require.Nil(t, err)
+	channelUnconstrained, nErr = ss.Channel().Save(channelUnconstrained, 9999)
+	require.Nil(t, nErr)
 
 	// create teams
 	teamConstrained := &model.Team{
@@ -2101,8 +2101,8 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel2, err = ss.Channel().Save(channel2, 9999)
-	require.Nil(t, err)
+	channel2, nErr := ss.Channel().Save(channel2, 9999)
+	require.Nil(t, nErr)
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
@@ -2788,8 +2788,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channel1, err = ss.Channel().Save(channel1, 9999)
-	require.Nil(t, err)
+	channel1, nErr := ss.Channel().Save(channel1, 9999)
+	require.Nil(t, nErr)
 
 	// Create Groups 1 and 2
 	group1, err := ss.Group().Create(&model.Group{
@@ -2852,8 +2852,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channel2, err = ss.Channel().Save(channel2, 9999)
-	require.Nil(t, err)
+	channel2, nErr = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, nErr)
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
@@ -3488,8 +3488,8 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, ss store.Sto
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, 9999)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, 9999)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:     true,
@@ -3785,8 +3785,8 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, 9999)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, 9999)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:     true,

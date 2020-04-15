@@ -55,8 +55,8 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	o1.DisplayName = "ChannelA"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	_, err = s.Channel().Save(&o1, -1)
-	require.Nil(t, err)
+	_, nErr := s.Channel().Save(&o1, -1)
+	require.Nil(t, nErr)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o1.Id
@@ -70,8 +70,8 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	o2.DisplayName = "Channel2"
 	o2.Name = "zz" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_OPEN
-	_, err = s.Channel().Save(&o2, -1)
-	require.Nil(t, err)
+	_, nErr = s.Channel().Save(&o2, -1)
+	require.Nil(t, nErr)
 
 	m2 := model.ChannelMember{}
 	m2.ChannelId = o2.Id
@@ -85,8 +85,8 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	o3.DisplayName = "ChannelA"
 	o3.Name = "zz" + model.NewId() + "b"
 	o3.Type = model.CHANNEL_OPEN
-	_, err = s.Channel().Save(&o3, -1)
-	require.Nil(t, err)
+	_, nErr = s.Channel().Save(&o3, -1)
+	require.Nil(t, nErr)
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = o3.Id
@@ -103,8 +103,8 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	o4.DisplayName = "ChannelA"
 	o4.Name = "zz" + model.NewId() + "b"
 	o4.Type = model.CHANNEL_PRIVATE
-	_, err = s.Channel().Save(&o4, -1)
-	require.Nil(t, err)
+	_, nErr = s.Channel().Save(&o4, -1)
+	require.Nil(t, nErr)
 
 	m4 := model.ChannelMember{}
 	m4.ChannelId = o4.Id
@@ -118,8 +118,8 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	o5.DisplayName = "ChannelC"
 	o5.Name = "zz" + model.NewId() + "b"
 	o5.Type = model.CHANNEL_PRIVATE
-	_, err = s.Channel().Save(&o5, -1)
-	require.Nil(t, err)
+	_, nErr = s.Channel().Save(&o5, -1)
+	require.Nil(t, nErr)
 
 	_, err = s.Channel().CreateDirectChannel(u1, u2)
 	require.Nil(t, err)
@@ -155,12 +155,12 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 func testSearchESSearchChannels(t *testing.T, s store.Store) {
 	team, err := s.Team().Save(&model.Team{Name: "team", DisplayName: "team", Type: model.TEAM_OPEN})
 	require.Nil(t, err)
-	channel1, err := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
-	channel2, err := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
-	channel3, err := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
-	require.Nil(t, err)
+	channel1, nErr := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel", DisplayName: "Test One", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
+	channel2, nErr := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel-second", DisplayName: "Test Two", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
+	channel3, nErr := s.Channel().Save(&model.Channel{TeamId: team.Id, Name: "channel_third", DisplayName: "Test Three", Type: model.CHANNEL_OPEN}, -1)
+	require.Nil(t, nErr)
 
 	testCases := []struct {
 		Name     string
