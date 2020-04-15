@@ -318,7 +318,7 @@ func (h *Hub) Unregister(webConn *WebConn) {
 
 // Broadcast broadcasts the message to all connections in the hub.
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	if h != nil && h.broadcast != nil && message != nil {
+	if message != nil {
 		if metrics := h.app.Metrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
@@ -443,6 +443,9 @@ func (h *Hub) Start() {
 				}
 				msg = msg.PrecomputeJSON()
 				for _, webCon := range candidates {
+					if !connections.Has(webCon) {
+						continue
+					}
 					if webCon.ShouldSendEvent(msg) {
 						select {
 						case webCon.send <- msg:
