@@ -452,6 +452,10 @@ func CreateJiraAutocompleteData() *AutocompleteData {
 	settings.AddCommand(notifications)
 	jira.AddCommand(settings)
 
+	timezone := NewAutocompleteData("timezone", "", "Update your timezone")
+	timezone.AddTextArgument("zone", "Set timezone", "[UTC+07:00]", "")
+	jira.AddCommand(timezone)
+
 	install := NewAutocompleteData("install", "", "Connect Mattermost to a Jira instance")
 	install.RoleID = SYSTEM_ADMIN_ROLE_ID
 	cloud := NewAutocompleteData("cloud", "", "Connect to a Jira Cloud instance")
