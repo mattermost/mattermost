@@ -327,6 +327,8 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
 	EnableLatex                                       *bool
+	EnableLocalMode                                   *bool
+	LocalModeSocketLocation                           *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -706,6 +708,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableLatex = NewBool(false)
 		}
+	}
+
+	if s.EnableLocalMode == nil {
+		s.EnableLocalMode = NewBool(false)
+	}
+
+	if s.LocalModeSocketLocation == nil {
+		s.LocalModeSocketLocation = NewString("/var/tmp/mattermost_local.socket")
 	}
 }
 
