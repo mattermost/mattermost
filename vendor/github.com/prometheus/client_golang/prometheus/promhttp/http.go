@@ -167,12 +167,15 @@ func HandlerFor(reg prometheus.Gatherer, opts HandlerOpts) http.Handler {
 
 		enc := expfmt.NewEncoder(w, contentType)
 
+		var lastErr error
+
 		// handleError handles the error according to opts.ErrorHandling
 		// and returns true if we have to abort after the handling.
 		handleError := func(err error) bool {
 			if err == nil {
 				return false
 			}
+			lastErr = err
 			if opts.ErrorLog != nil {
 				opts.ErrorLog.Println("error encoding and sending metric family:", err)
 			}
@@ -181,10 +184,7 @@ func HandlerFor(reg prometheus.Gatherer, opts HandlerOpts) http.Handler {
 			case PanicOnError:
 				panic(err)
 			case HTTPErrorOnError:
-				// We cannot really send an HTTP error at this
-				// point because we most likely have written
-				// something to rsp already. But at least we can
-				// stop sending.
+				httpError(rsp, err)
 				return true
 			}
 			// Do nothing in all other cases, including ContinueOnError.
@@ -201,6 +201,10 @@ func HandlerFor(reg prometheus.Gatherer, opts HandlerOpts) http.Handler {
 			if handleError(closer.Close()) {
 				return
 			}
+		}
+
+		if lastErr != nil {
+			httpError(rsp, lastErr)
 		}
 	})
 
@@ -272,12 +276,7 @@ type HandlerErrorHandling int
 // errors are encountered.
 const (
 	// Serve an HTTP status code 500 upon the first error
-	// encountered. Report the error message in the body. Note that HTTP
-	// errors cannot be served anymore once the beginning of a regular
-	// payload has been sent. Thus, in the (unlikely) case that encoding the
-	// payload into the negotiated wire format fails, serving the response
-	// will simply be aborted. Set an ErrorLog in HandlerOpts to detect
-	// those errors.
+	// encountered. Report the error message in the body.
 	HTTPErrorOnError HandlerErrorHandling = iota
 	// Ignore errors and try to serve as many metrics as possible.  However,
 	// if no metrics can be served, serve an HTTP status code 500 and the
@@ -366,9 +365,11 @@ func gzipAccepted(header http.Header) bool {
 }
 
 // httpError removes any content-encoding header and then calls http.Error with
-// the provided error and http.StatusInternalServerError. Error contents is
-// supposed to be uncompressed plain text. Same as with a plain http.Error, this
-// must not be called if the header or any payload has already been sent.
+// the provided error and http.StatusInternalServerErrer. Error contents is
+// supposed to be uncompressed plain text. However, same as with a plain
+// http.Error, any header settings will be void if the header has already been
+// sent. The error message will still be written to the writer, but it will
+// probably be of limited use.
 func httpError(rsp http.ResponseWriter, err error) {
 	rsp.Header().Del(contentEncodingHeader)
 	http.Error(

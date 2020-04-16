@@ -100,7 +100,7 @@ func (c Client) PutObjectRetention(bucketName, objectName string, opts PutObject
 
 	if opts.GovernanceBypass {
 		// Set the bypass goverenance retention header
-		headers.Set(amzBypassGovernance, "true")
+		headers.Set("x-amz-bypass-governance-retention", "True")
 	}
 
 	reqMetadata := requestMetadata{

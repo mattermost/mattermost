@@ -28,7 +28,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -160,120 +159,27 @@ func isValidExpiry(expires time.Duration) error {
 	return nil
 }
 
-// Extract only necessary metadata header key/values by
-// filtering them out with a list of custom header keys.
-func extractObjMetadata(header http.Header) http.Header {
-	preserveKeys := []string{
-		"Content-Type",
-		"Cache-Control",
-		"Content-Encoding",
-		"Content-Language",
-		"Content-Disposition",
-		"X-Amz-Storage-Class",
-		"X-Amz-Object-Lock-Mode",
-		"X-Amz-Object-Lock-Retain-Until-Date",
-		"X-Amz-Object-Lock-Legal-Hold",
-		"X-Amz-Website-Redirect-Location",
-		"X-Amz-Server-Side-Encryption",
-		"X-Amz-Meta-",
-		// Add new headers to be preserved.
-		// if you add new headers here, please extend
-		// PutObjectOptions{} to preserve them
-		// upon upload as well.
+// make a copy of http.Header
+func cloneHeader(h http.Header) http.Header {
+	h2 := make(http.Header, len(h))
+	for k, vv := range h {
+		vv2 := make([]string, len(vv))
+		copy(vv2, vv)
+		h2[k] = vv2
 	}
-	filteredHeader := make(http.Header)
-	for k, v := range header {
-		var found bool
-		for _, prefix := range preserveKeys {
-			if !strings.HasPrefix(k, prefix) {
-				continue
-			}
-			found = true
-			break
-		}
-		if found {
-			filteredHeader[k] = v
-		}
-	}
-	return filteredHeader
+	return h2
 }
 
-// ToObjectInfo converts http header values into ObjectInfo type,
-// extracts metadata and fills in all the necessary fields in ObjectInfo.
-func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectInfo, error) {
-	var err error
-	// Trim off the odd double quotes from ETag in the beginning and end.
-	etag := trimEtag(h.Get("ETag"))
-
-	// Parse content length is exists
-	var size int64 = -1
-	contentLengthStr := h.Get("Content-Length")
-	if contentLengthStr != "" {
-		size, err = strconv.ParseInt(contentLengthStr, 10, 64)
-		if err != nil {
-			// Content-Length is not valid
-			return ObjectInfo{}, ErrorResponse{
-				Code:       "InternalError",
-				Message:    "Content-Length is invalid. " + reportIssue,
-				BucketName: bucketName,
-				Key:        objectName,
-				RequestID:  h.Get("x-amz-request-id"),
-				HostID:     h.Get("x-amz-id-2"),
-				Region:     h.Get("x-amz-bucket-region"),
-			}
-		}
+// Filter relevant response headers from
+// the HEAD, GET http response. The function takes
+// a list of headers which are filtered out and
+// returned as a new http header.
+func filterHeader(header http.Header, filterKeys []string) (filteredHeader http.Header) {
+	filteredHeader = cloneHeader(header)
+	for _, key := range filterKeys {
+		filteredHeader.Del(key)
 	}
-
-	// Parse Last-Modified has http time format.
-	date, err := time.Parse(http.TimeFormat, h.Get("Last-Modified"))
-	if err != nil {
-		return ObjectInfo{}, ErrorResponse{
-			Code:       "InternalError",
-			Message:    "Last-Modified time format is invalid. " + reportIssue,
-			BucketName: bucketName,
-			Key:        objectName,
-			RequestID:  h.Get("x-amz-request-id"),
-			HostID:     h.Get("x-amz-id-2"),
-			Region:     h.Get("x-amz-bucket-region"),
-		}
-	}
-
-	// Fetch content type if any present.
-	contentType := strings.TrimSpace(h.Get("Content-Type"))
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	expiryStr := h.Get("Expires")
-	var expTime time.Time
-	if t, err := time.Parse(http.TimeFormat, expiryStr); err == nil {
-		expTime = t.UTC()
-	}
-
-	metadata := extractObjMetadata(h)
-	userMetadata := make(map[string]string)
-	for k, v := range metadata {
-		if strings.HasPrefix(k, "X-Amz-Meta-") {
-			userMetadata[strings.TrimPrefix(k, "X-Amz-Meta-")] = v[0]
-		}
-	}
-	userTags := s3utils.TagDecode(h.Get(amzTaggingHeader))
-
-	// Save object metadata info.
-	return ObjectInfo{
-		ETag:         etag,
-		Key:          objectName,
-		Size:         size,
-		LastModified: date,
-		ContentType:  contentType,
-		Expires:      expTime,
-		// Extract only the relevant header keys describing the object.
-		// following function filters out a list of standard set of keys
-		// which are not part of object metadata.
-		Metadata:     metadata,
-		UserMetadata: userMetadata,
-		UserTags:     userTags,
-	}, nil
+	return filteredHeader
 }
 
 // regCred matches credential string in HTTP header
