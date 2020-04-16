@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/stretchr/testify/require"
 )
@@ -191,6 +192,204 @@ func BenchmarkLRU(b *testing.B) {
 			require.Nil(b, err)
 
 			var val obj
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
+	})
+
+	user := &model.User{
+		Id:             "id",
+		CreateAt:       11111,
+		UpdateAt:       11111,
+		DeleteAt:       11111,
+		Username:       "username",
+		Password:       "password",
+		AuthService:    "AuthService",
+		AuthData:       nil,
+		Email:          "Email",
+		EmailVerified:  true,
+		Nickname:       "Nickname",
+		FirstName:      "FirstName",
+		LastName:       "LastName",
+		Position:       "Position",
+		Roles:          "Roles",
+		AllowMarketing: true,
+		Props: map[string]string{
+			"key0": "value0",
+			"key1": "value value1",
+			"key2": "value value value2",
+			"key3": "value value value value3",
+			"key4": "value value value value value4",
+			"key5": "value value value value value value5",
+			"key6": "value value value value value value value6",
+			"key7": "value value value value value value value value7",
+			"key8": "value value value value value value value value value8",
+			"key9": "value value value value value value value value value value9",
+		},
+		NotifyProps: map[string]string{
+			"key0": "value0",
+			"key1": "value value1",
+			"key2": "value value value2",
+			"key3": "value value value value3",
+			"key4": "value value value value value4",
+			"key5": "value value value value value value5",
+			"key6": "value value value value value value value6",
+			"key7": "value value value value value value value value7",
+			"key8": "value value value value value value value value value8",
+			"key9": "value value value value value value value value value value9",
+		},
+		LastPasswordUpdate: 111111,
+		LastPictureUpdate:  111111,
+		FailedAttempts:     111111,
+		Locale:             "Locale",
+		Timezone: map[string]string{
+			"key0": "value0",
+			"key1": "value value1",
+			"key2": "value value value2",
+			"key3": "value value value value3",
+			"key4": "value value value value value4",
+			"key5": "value value value value value value5",
+			"key6": "value value value value value value value6",
+			"key7": "value value value value value value value value7",
+			"key8": "value value value value value value value value value8",
+			"key9": "value value value value value value value value value value9",
+		},
+		MfaActive:              true,
+		MfaSecret:              "MfaSecret",
+		LastActivityAt:         111111,
+		IsBot:                  true,
+		BotDescription:         "field5 is a looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong string",
+		BotLastIconUpdate:      111111,
+		TermsOfServiceId:       "TermsOfServiceId",
+		TermsOfServiceCreateAt: 111111,
+	}
+
+	// b.Run("User=old", func(b *testing.B) {
+	// 	for i := 0; i < b.N; i++ {
+	// 		l := lru.New(1)
+	// 		l.Add("test", user)
+	// 		_, ok := l.Get("test")
+	// 		require.True(b, ok)
+	// 	}
+	// })
+	b.Run("User=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			err := l2.Set("test", user)
+			require.Nil(b, err)
+
+			var val model.User
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
+	})
+
+	post := &model.Post{
+		Id:            "id",
+		CreateAt:      11111,
+		UpdateAt:      11111,
+		DeleteAt:      11111,
+		EditAt:        111111,
+		IsPinned:      true,
+		UserId:        "UserId",
+		ChannelId:     "ChannelId",
+		RootId:        "RootId",
+		ParentId:      "ParentId",
+		OriginalId:    "OriginalId",
+		Message:       "OriginalId",
+		MessageSource: "MessageSource",
+		Type:          "Type",
+		Props: map[string]interface{}{
+			"key": "val",
+		},
+		Hashtags:      "Hashtags",
+		Filenames:     []string{"item1", "item2"},
+		FileIds:       []string{"item1", "item2"},
+		PendingPostId: "PendingPostId",
+		HasReactions:  true,
+
+		// Transient data populated before sending a post to the client
+		ReplyCount: 11111,
+		Metadata: &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{
+					Type: "Type",
+					URL:  "URL",
+					Data: "some data",
+				},
+				{
+					Type: "Type 2",
+					URL:  "URL 2",
+					Data: "some data 2",
+				},
+			},
+			Emojis: []*model.Emoji{
+				{
+					Id:   "id",
+					Name: "name",
+				},
+			},
+			Files: nil,
+			Images: map[string]*model.PostImage{
+				"key": {
+					Width:      1,
+					Height:     1,
+					Format:     "format",
+					FrameCount: 1,
+				},
+				"key2": {
+					Width:      999,
+					Height:     888,
+					Format:     "format 2",
+					FrameCount: 1000,
+				},
+			},
+			Reactions: []*model.Reaction{},
+		},
+	}
+
+	b.Run("Post=old", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l := lru.New(1)
+			l.Add("test", post)
+			_, ok := l.Get("test")
+			require.True(b, ok)
+		}
+	})
+	b.Run("Post=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			err := l2.Set("test", post)
+			require.Nil(b, err)
+
+			var val model.Post
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
+	})
+
+	status := model.Status{
+		UserId:         "UserId",
+		Status:         "Status",
+		Manual:         true,
+		LastActivityAt: 111111,
+		ActiveChannel:  "ActiveChannel",
+	}
+	b.Run("Status=old", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l := lru.New(1)
+			l.Add("test", status)
+			_, ok := l.Get("test")
+			require.True(b, ok)
+		}
+	})
+	b.Run("Status=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			err := l2.Set("test", status)
+			require.Nil(b, err)
+
+			var val model.Status
 			err = l2.Get("test", &val)
 			require.Nil(b, err)
 		}
