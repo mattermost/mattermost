@@ -2852,6 +2852,7 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 		})
 	}
 }
+
 func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
