@@ -427,6 +427,74 @@ func TestPatchTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestRestoreTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	createTeam := func(t *testing.T, deleted bool, teamType string) *model.Team {
+		t.Helper()
+		team := &model.Team{
+			DisplayName:     "Some Team",
+			Description:     "Some description",
+			CompanyName:     "Some company name",
+			AllowOpenInvite: (teamType == model.TEAM_OPEN),
+			InviteId:        model.NewId(),
+			Name:            "aa-" + model.NewRandomTeamName() + "zz",
+			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+			Type:            teamType,
+		}
+		team, _ = Client.CreateTeam(team)
+		require.NotNil(t, team)
+		if deleted {
+			th.SystemAdminClient.SoftDeleteTeam(team.Id)
+		}
+		return team
+	}
+	teamPublic := createTeam(t, true, model.TEAM_OPEN)
+
+	t.Run("invalid team", func(t *testing.T) {
+		_, resp := Client.RestoreTeam(model.NewId())
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("restore archived public team", func(t *testing.T) {
+		team := createTeam(t, true, model.TEAM_OPEN)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_OPEN, team.Type)
+	})
+
+	t.Run("restore archived private team", func(t *testing.T) {
+		team := createTeam(t, true, model.TEAM_INVITE)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_INVITE, team.Type)
+	})
+
+	t.Run("restore active public team", func(t *testing.T) {
+		team := createTeam(t, false, model.TEAM_OPEN)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_OPEN, team.Type)
+	})
+
+	t.Run("not logged in", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.RestoreTeam(teamPublic.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("no permission to manage team", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.RestoreTeam(teamPublic.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestPatchTeamSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
