@@ -9,6 +9,7 @@ import (
 
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
 )
 
@@ -87,6 +88,11 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
+	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("file", args[1])
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -147,6 +153,9 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
+		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
+		auditRec.AddMeta("file", args[0])
+		a.LogAuditRec(auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}
