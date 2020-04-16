@@ -489,23 +489,23 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		name           string
 		team           *model.Team
 		privacy        string
-		wantErr        bool
+		errChecker     func(t *testing.T, resp *model.Response)
 		wantType       string
 		wantOpenInvite bool
 	}{
-		{name: "bad privacy", team: teamPublic, privacy: "blap", wantErr: true, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "bad team", team: &model.Team{Id: model.NewId() + "nope"}, privacy: model.TEAM_OPEN, wantErr: true, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
-		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, wantErr: false, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, wantErr: false, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "bad privacy", team: teamPublic, privacy: "blap", errChecker: CheckBadRequestStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "bad team", team: &model.Team{Id: model.NewId()}, privacy: model.TEAM_OPEN, errChecker: CheckForbiddenStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			team, resp := Client.UpdateTeamPrivacy(test.team.Id, test.privacy)
-			if test.wantErr {
-				CheckBadRequestStatus(t, resp)
+			if test.errChecker != nil {
+				test.errChecker(t, resp)
 				return
 			} else {
 				CheckNoError(t, resp)
