@@ -2396,3 +2396,27 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 		page++
 	}
 }
+
+func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+}
+
+func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategoryOrder(userId, teamId)
+}
+
+func (a *App) GetSidebarCategory(userId, teamId, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategory(userId, teamId, categoryId)
+}
+
+func (a *App) CreateSidebarCategory(userId, teamId, displayName string, categoryType model.SidebarCategoryType, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return a.Srv().Store.Channel().CreateSidebarCategory(userId, teamId, displayName, categoryType, channelIDs)
+}
+
+func (a *App) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+	return a.Srv().Store.Channel().UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
+}
+
+func (a *App) UpdateSidebarCategory(userId, teamId, categoryId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return a.Srv().Store.Channel().UpdateSidebarCategory(userId, teamId, categoryId, displayName, channelIDs)
+}

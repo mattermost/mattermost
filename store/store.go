@@ -204,6 +204,12 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
 	MigrateChannelsToSidebar() error
+	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetSidebarCategory(userId, teamId, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
+	CreateSidebarCategory(userId, teamId, displayName string, categoryType model.SidebarCategoryType, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
+	UpdateSidebarCategory(userId, teamId, categoryId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
