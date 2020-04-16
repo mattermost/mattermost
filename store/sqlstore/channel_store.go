@@ -506,7 +506,7 @@ func (s SqlChannelStore) quotedColumn(c string) string {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		return fmt.Sprintf("`%s`", c)
 	} else {
-		return fmt.Sprintf("'%s'", c)
+		return fmt.Sprintf("\"%s\"", c)
 	}
 }
 
