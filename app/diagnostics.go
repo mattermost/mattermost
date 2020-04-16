@@ -325,6 +325,7 @@ func (a *App) trackConfig() {
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
+		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
