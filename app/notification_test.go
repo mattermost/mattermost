@@ -2359,4 +2359,15 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, len(mentions.Mentions), 1)
 		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
 	})
+
+	t.Run("should return true if no members mentioned while in group", func(t *testing.T) {
+		groupChannel := &model.Channel{
+			Type: model.CHANNEL_GROUP,
+		}
+		mentions := &ExplicitMentions{}
+		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+
+		// Ensure group channel with no group members mentioned always returns true
+		require.Equal(t, usersMentioned, true)
+	})
 }

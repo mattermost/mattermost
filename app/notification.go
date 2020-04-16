@@ -754,8 +754,17 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
 func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
-	groupMembersInTeam, err := a.Srv().Store.Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
+	var err *model.AppError
+	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
+	isGroupOrDirect := channel.IsGroupOrDirect()
+
+	if isGroupOrDirect {
+		groupMembers, err = a.Srv().Store.Group().GetMemberUsers(group.Id)
+	} else {
+		groupMembers, err = a.Srv().Store.Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
+	}
+
 	if err != nil {
 		return false, err
 	}
@@ -764,7 +773,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 		mentions.Mentions = make(map[string]MentionType)
 	}
 
-	for _, member := range groupMembersInTeam {
+	for _, member := range groupMembers {
 		if _, ok := profileMap[member.Id]; ok {
 			mentions.Mentions[member.Id] = GroupMention
 		} else {
@@ -782,7 +791,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 		mentions.OtherPotentialMentions = append(mentions.OtherPotentialMentions, potentialGroupMembersMentioned...)
 	}
 
-	return len(groupMembersInTeam) > 0, nil
+	return isGroupOrDirect || len(groupMembers) > 0, nil
 }
 
 // addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
