@@ -387,7 +387,7 @@ type AppIface interface {
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(session *model.Session) (*model.Session, *model.AppError)
-	CreateSidebarCategory(userId, teamId, displayName string, categoryType model.SidebarCategoryType, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	CreateSidebarCategory(userId, teamId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 	CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError)
 	CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError)

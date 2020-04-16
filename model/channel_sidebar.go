@@ -12,6 +12,7 @@ const (
 	SidebarCategoryChannels       SidebarCategoryType = "C"
 	SidebarCategoryDirectMessages SidebarCategoryType = "D"
 	SidebarCategoryFavorites      SidebarCategoryType = "F"
+	SidebarCategoryUser           SidebarCategoryType = "U"
 )
 
 type SidebarCategoryType string

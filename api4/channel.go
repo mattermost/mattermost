@@ -1764,7 +1764,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		c.Err = model.NewAppError("Api4.createCategoryForTeamForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest.DisplayName, categoryCreateRequest.Type, categoryCreateRequest.Channels)
+	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest.DisplayName, categoryCreateRequest.Channels)
 	if appErr != nil {
 		c.Err = appErr
 		return

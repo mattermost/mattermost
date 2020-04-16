@@ -2011,7 +2011,7 @@ func (a *OpenTracingAppLayer) CreateSession(session *model.Session) (*model.Sess
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateSidebarCategory(userId string, teamId string, displayName string, categoryType model.SidebarCategoryType, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateSidebarCategory(userId string, teamId string, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSidebarCategory")
 
@@ -2023,7 +2023,7 @@ func (a *OpenTracingAppLayer) CreateSidebarCategory(userId string, teamId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateSidebarCategory(userId, teamId, displayName, categoryType, channelIDs)
+	resultVar0, resultVar1 := a.app.CreateSidebarCategory(userId, teamId, displayName, channelIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

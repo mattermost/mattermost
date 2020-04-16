@@ -3365,7 +3365,7 @@ type sidebarCategoryForJoin struct {
 	ChannelId string
 }
 
-func (s SqlChannelStore) CreateSidebarCategory(userId, teamId, displayName string, categoryType model.SidebarCategoryType, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (s SqlChannelStore) CreateSidebarCategory(userId, teamId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	categoryId := model.NewId()
 	newCategory := &model.SidebarCategory{
 		DisplayName: displayName,
@@ -3373,7 +3373,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId, displayName strin
 		UserId:      userId,
 		TeamId:      teamId,
 		SortOrder:   0,
-		Type:        categoryType,
+		Type:        model.SidebarCategoryUser,
 	}
 	if err := s.GetReplica().Insert(newCategory); err != nil {
 		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
