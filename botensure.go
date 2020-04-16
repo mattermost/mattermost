@@ -18,6 +18,18 @@ type ensureBotOptions struct {
 
 type EnsureBotOption func(*ensureBotOptions)
 
+func ProfileImagePath(path string) EnsureBotOption {
+	return func(args *ensureBotOptions) {
+		args.ProfileImagePath = path
+	}
+}
+
+func IconImagePath(path string) EnsureBotOption {
+	return func(args *ensureBotOptions) {
+		args.IconImagePath = path
+	}
+}
+
 func (b *BotService) ensureServerVersion(required string) error {
 	serverVersion := b.api.GetServerVersion()
 	currentVersion := semver.MustParse(serverVersion)
