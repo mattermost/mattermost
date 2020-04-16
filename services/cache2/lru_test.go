@@ -264,14 +264,14 @@ func BenchmarkLRU(b *testing.B) {
 		TermsOfServiceCreateAt: 111111,
 	}
 
-	// b.Run("User=old", func(b *testing.B) {
-	// 	for i := 0; i < b.N; i++ {
-	// 		l := lru.New(1)
-	// 		l.Add("test", user)
-	// 		_, ok := l.Get("test")
-	// 		require.True(b, ok)
-	// 	}
-	// })
+	b.Run("User=old", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l := lru.New(1)
+			l.Add("test", user)
+			_, ok := l.Get("test")
+			require.True(b, ok)
+		}
+	})
 	b.Run("User=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			l2 := NewLRU(&LRUOptions{1, 0, ""})
