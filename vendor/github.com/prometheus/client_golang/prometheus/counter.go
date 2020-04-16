@@ -180,7 +180,7 @@ func NewCounterVec(opts CounterOpts, labelNames []string) *CounterVec {
 			if len(lvs) != len(desc.variableLabels) {
 				panic(makeInconsistentCardinalityError(desc.fqName, desc.variableLabels, lvs))
 			}
-			result := &counter{desc: desc, labelPairs: makeLabelPairs(desc, lvs)}
+			result := &counter{desc: desc, labelPairs: makeLabelPairs(desc, lvs), now: time.Now}
 			result.init(result) // Init self-collection.
 			return result
 		}),

@@ -711,6 +711,80 @@ func TestGetGroupsByChannel(t *testing.T) {
 	assert.Empty(t, groups)
 }
 
+func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	groupSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	_, response := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam("asdfasdf", opts)
+	CheckBadRequestStatus(t, response)
+
+	th.App.SetLicense(nil)
+
+	_, response = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	groups, response := th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	assert.Nil(t, response.Error)
+
+	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
+		th.BasicChannel.Id: {
+			{Group: *group, SchemeAdmin: model.NewBool(false)},
+		},
+	}, groups)
+
+	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
+	require.False(t, *groups[th.BasicChannel.Id][0].SchemeAdmin)
+
+	// set syncable to true
+	groupSyncable.SchemeAdmin = true
+	_, err = th.App.UpdateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+
+	// ensure that SchemeAdmin field is updated
+	groups, response = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	assert.Nil(t, response.Error)
+
+	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
+		th.BasicChannel.Id: {
+			{Group: *group, SchemeAdmin: model.NewBool(true)},
+		},
+	}, groups)
+
+	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
+	require.True(t, *groups[th.BasicChannel.Id][0].SchemeAdmin)
+
+	groups, response = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(model.NewId(), opts)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+}
+
 func TestGetGroupsByTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -749,9 +823,6 @@ func TestGetGroupsByTeam(t *testing.T) {
 	CheckNotImplementedStatus(t, response)
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
-
-	_, _, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, opts)
-	CheckForbiddenStatus(t, response)
 
 	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
@@ -812,9 +883,6 @@ func TestGetGroups(t *testing.T) {
 
 	opts.NotAssociatedToChannel = th.BasicChannel.Id
 
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
-
 	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_user channel_admin")
 	require.Nil(t, response.Error)
 
@@ -837,17 +905,10 @@ func TestGetGroups(t *testing.T) {
 	require.Nil(t, response.Error)
 
 	opts.NotAssociatedToTeam = th.BasicTeam.Id
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
 
 	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user team_admin")
 	require.Nil(t, response.Error)
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
-
-	opts.NotAssociatedToTeam = ""
-	opts.NotAssociatedToChannel = ""
-	_, response = th.Client.GetGroups(opts)
-	CheckForbiddenStatus(t, response)
 }

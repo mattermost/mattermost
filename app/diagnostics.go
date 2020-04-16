@@ -23,6 +23,7 @@ const (
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
+	TRACK_CONFIG_AUDIT              = "config_audit"
 	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
@@ -123,6 +124,7 @@ func pluginVersion(pluginsAvailable []*model.BundleInfo, pluginId string) string
 
 func (a *App) trackActivity() {
 	var userCount int64
+	var guestAccountsCount int64
 	var botAccountsCount int64
 	var inactiveUserCount int64
 	var publicChannelCount int64
@@ -153,6 +155,10 @@ func (a *App) trackActivity() {
 
 	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
+	}
+
+	if count, err := a.Srv().Store.User().AnalyticsGetGuestCount(); err == nil {
+		guestAccountsCount = count
 	}
 
 	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
@@ -225,6 +231,7 @@ func (a *App) trackActivity() {
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
+		"guest_accounts":               guestAccountsCount,
 		"active_users_daily":           activeUsersDailyCount,
 		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
@@ -283,6 +290,7 @@ func (a *App) trackConfig() {
 		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
 		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
 		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
+		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT),
 		"isdefault_google_developer_key":                          isDefault(cfg.ServiceSettings.GoogleDeveloperKey, ""),
 		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
 		"isdefault_cors_exposed_headers":                          isDefault(cfg.ServiceSettings.CorsExposedHeaders, ""),
@@ -384,6 +392,18 @@ func (a *App) trackConfig() {
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
+	a.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
+		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
+		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
+		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+	})
+
 	a.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
 		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
 		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
@@ -441,6 +461,7 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
+		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
@@ -794,6 +815,10 @@ func (a *App) trackServer() {
 
 	if scr, err := a.Srv().Store.User().AnalyticsGetSystemAdminCount(); err == nil {
 		data["system_admins"] = scr
+	}
+
+	if scr, err := a.Srv().Store.GetDbVersion(); err == nil {
+		data["database_version"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)

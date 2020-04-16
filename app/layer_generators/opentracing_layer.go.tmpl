@@ -58,9 +58,7 @@ func (a *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$ele
 		a.ctx = origCtx 
 	}()
 	{{range $paramIdx, $param := $element.Params}}
-		{{if index $element.ParamsToTrace $param.Name}}
-			span.SetTag("{{$param.Name}}", {{$param.Name}})
-		{{end}}	
+		{{ shouldTrace $element.ParamsToTrace $param.Name }}
 	{{end}}
 	defer span.Finish()
 	{{- if $element.Results | len | eq 0}}

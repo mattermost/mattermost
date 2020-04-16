@@ -100,15 +100,24 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 			}
 		}
 	}
+
 	if e.Results != nil {
-		for _, result := range e.Results.List {
-			results = append(results, formatNode(src, result.Type))
+		for _, r := range e.Results.List {
+			typeStr := formatNode(src, r.Type)
+			if len(r.Names) > 0 {
+				for _, k := range r.Names {
+					results = append(results, fmt.Sprintf("%s %s", k.Name, typeStr))
+				}
+			} else {
+				results = append(results, typeStr)
+			}
 		}
 	}
+
 	for paramName := range paramsToTrace {
 		found := false
 		for _, param := range params {
-			if param.Name == paramName {
+			if param.Name == paramName || strings.HasPrefix(paramName, param.Name+".") {
 				found = true
 				break
 			}
@@ -179,12 +188,6 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return strings.Join(results, ", ")
 		},
 		"joinResultsForSignature": func(results []string) string {
-			switch len(results) {
-			case 0:
-				return ""
-			case 1:
-				return strings.Join(results, ", ")
-			}
 			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
 		},
 		"genResultsVars": func(results []string) string {
@@ -196,7 +199,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorToBoolean": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == APP_ERROR_TYPE {
+				if strings.Contains(typeName, APP_ERROR_TYPE) {
 					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
@@ -204,7 +207,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {
-				if typeName == "*model.AppError" {
+				if strings.Contains(typeName, APP_ERROR_TYPE) {
 					return true
 				}
 			}
@@ -212,8 +215,19 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorVar": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == "*model.AppError" {
+				if strings.Contains(typeName, APP_ERROR_TYPE) {
 					return fmt.Sprintf("resultVar%d", i)
+				}
+			}
+			return ""
+		},
+		"shouldTrace": func(params map[string]bool, param string) string {
+			if _, ok := params[param]; ok {
+				return fmt.Sprintf(`span.SetTag("%s", %s)`, param, param)
+			}
+			for pName := range params {
+				if strings.HasPrefix(pName, param+".") {
+					return fmt.Sprintf(`span.SetTag("%s", %s)`, pName, pName)
 				}
 			}
 			return ""

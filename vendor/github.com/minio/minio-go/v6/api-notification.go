@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2017 MinIO, Inc.
+ * Copyright 2017-2020 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,11 +89,13 @@ type bucketMeta struct {
 
 // Notification event object metadata.
 type objectMeta struct {
-	Key       string `json:"key"`
-	Size      int64  `json:"size,omitempty"`
-	ETag      string `json:"eTag,omitempty"`
-	VersionID string `json:"versionId,omitempty"`
-	Sequencer string `json:"sequencer"`
+	Key          string            `json:"key"`
+	Size         int64             `json:"size,omitempty"`
+	ETag         string            `json:"eTag,omitempty"`
+	ContentType  string            `json:"contentType,omitempty"`
+	UserMetadata map[string]string `json:"userMetadata,omitempty"`
+	VersionID    string            `json:"versionId,omitempty"`
+	Sequencer    string            `json:"sequencer"`
 }
 
 // Notification event server specific metadata.
