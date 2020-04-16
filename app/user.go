@@ -2054,6 +2054,28 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	return nil
 }
 
+func (a *App) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	channel, err := a.GetChannel(channelId)
+	if err != nil {
+		return err
+	}
+
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[user.Id] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channel.Id, "", omitUsers)
+	event.Add("parent_id", parentId)
+	event.Add("user_id", user.Id)
+	a.Publish(event)
+
+	return nil
+}
+
 // invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
 func (a *App) invalidateUserCacheAndPublish(userId string) {
 	a.InvalidateCacheForUser(userId)

@@ -449,6 +449,10 @@ func (c *Client4) GetGroupsRoute() string {
 	return "/groups"
 }
 
+func (c *Client4) GetPublishUserTypingRoute(userId string) string {
+	return c.GetUserRoute(userId) + "/typing"
+}
+
 func (c *Client4) GetGroupRoute(groupID string) string {
 	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
 }
@@ -4981,4 +4985,14 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	}
 	defer closeBody(r)
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+// PublishUserTyping publishes a user is typing websocket event based on the provided TypingRequest.
+func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetPublishUserTypingRoute(userID), typingRequest.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
