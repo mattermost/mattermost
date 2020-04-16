@@ -1539,17 +1539,58 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelId strin
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) MigrateChannelsToSidebar() error {
+func (s *OpenTracingLayerChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateChannelsToSidebar")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateChannelsToSidebarChannels")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.MigrateChannelsToSidebar()
-	return resultVar0
+	resultVar0, resultVar1 := s.ChannelStore.MigrateChannelsToSidebarChannels(lastChannelId, lastUserId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateDirectGroupMessagesToSidebarChannels")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateFavoritesToSidebarChannels")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
@@ -1563,6 +1604,24 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	defer span.Finish()
 	resultVar0 := s.ChannelStore.MigratePublicChannels()
 	return resultVar0
+}
+
+func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateSidebarCategories")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) *model.AppError {

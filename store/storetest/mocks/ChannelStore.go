@@ -1340,18 +1340,79 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 	return r0, r1
 }
 
-// MigrateChannelsToSidebar provides a mock function with given fields:
-func (_m *ChannelStore) MigrateChannelsToSidebar() error {
-	ret := _m.Called()
+// MigrateChannelsToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId
+func (_m *ChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
+		r0 = rf(lastChannelId, lastUserId)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// MigrateDirectGroupMessagesToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId
+func (_m *ChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
+		r0 = rf(lastChannelId, lastUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId
+func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError) {
+	ret := _m.Called(lastUserId)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
+		r0 = rf(lastUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(lastUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // MigratePublicChannels provides a mock function with given fields:
@@ -1366,6 +1427,31 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 	}
 
 	return r0
+}
+
+// MigrateSidebarCategories provides a mock function with given fields: fromTeamId, fromUserId
+func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
+	ret := _m.Called(fromTeamId, fromUserId)
+
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
+		r0 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: channelId

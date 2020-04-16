@@ -789,11 +789,6 @@ func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion523(sqlStore SqlStore) {
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_22_0, VERSION_5_23_0) {
-	if err := sqlStore.Channel().MigrateChannelsToSidebar(); err != nil {
-		mlog.Critical("Failed to migrate Favorite channels", mlog.Err(err))
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
-	}
 	// 	saveSchemaVersion(sqlStore, VERSION_5_23_0)
 	// }
 }
