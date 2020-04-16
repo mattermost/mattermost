@@ -94,27 +94,16 @@ func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 		if hub != nil {
 			hub.Broadcast(message)
 		}
-	} else {
-		for _, hub := range a.Srv().GetHubs() {
-			hub.Broadcast(message)
-		}
+		return
+	}
+	for _, hub := range a.Srv().GetHubs() {
+		hub.Broadcast(message)
 	}
 }
 
 func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userId)
-
-	hub := a.GetHubForUserId(userId)
-	if hub != nil {
-		hub.InvalidateUser(userId)
-	}
-}
-
-func (a *App) invalidateCacheForUserTeamsSkipClusterSend(userId string) {
-	hub := a.GetHubForUserId(userId)
-	if hub != nil {
-		hub.InvalidateUser(userId)
-	}
+	a.InvalidateWebConnSessionCacheForUser(userId)
 }
 
 func (a *App) invalidateCacheForWebhook(webhookId string) {
@@ -279,7 +268,7 @@ func (a *App) InvalidateCacheForUser(userId string) {
 }
 
 func (a *App) invalidateCacheForUserTeams(userId string) {
-	a.invalidateCacheForUserTeamsSkipClusterSend(userId)
+	a.InvalidateWebConnSessionCacheForUser(userId)
 	a.Srv().Store.Team().InvalidateAllTeamIdsForUser(userId)
 
 	if a.Cluster() != nil {
@@ -399,18 +388,18 @@ func (h *Hub) Start() {
 					h.app.Srv().Go(func() {
 						h.app.SetStatusOffline(webCon.UserId, false)
 					})
-				} else {
-					var latestActivity int64 = 0
-					for _, conn := range conns {
-						if conn.LastUserActivityAt > latestActivity {
-							latestActivity = conn.LastUserActivityAt
-						}
+					continue
+				}
+				var latestActivity int64 = 0
+				for _, conn := range conns {
+					if conn.LastUserActivityAt > latestActivity {
+						latestActivity = conn.LastUserActivityAt
 					}
-					if h.app.IsUserAway(latestActivity) {
-						h.app.Srv().Go(func() {
-							h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
-						})
-					}
+				}
+				if h.app.IsUserAway(latestActivity) {
+					h.app.Srv().Go(func() {
+						h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
+					})
 				}
 			case userId := <-h.invalidateUser:
 				for _, webCon := range connections.ForUser(userId) {
@@ -457,15 +446,9 @@ func (h *Hub) Start() {
 					}
 				}
 			case <-h.stop:
-				userIds := make(map[string]bool)
-
 				for _, webCon := range connections.All() {
-					userIds[webCon.UserId] = true
 					webCon.Close()
-				}
-
-				for userId := range userIds {
-					h.app.SetStatusOffline(userId, false)
+					h.app.SetStatusOffline(webCon.UserId, false)
 				}
 
 				h.explicitStop = true
