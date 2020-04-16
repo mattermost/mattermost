@@ -2360,14 +2360,32 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
 	})
 
-	t.Run("should return true if no members mentioned while in group", func(t *testing.T) {
-		groupChannel := &model.Channel{
-			Type: model.CHANNEL_GROUP,
-		}
+	t.Run("should return true if no members mentioned while in group or direct message channel", func(t *testing.T) {
 		mentions := &ExplicitMentions{}
-		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+		emptyProfileMap := make(map[string]*model.User)
 
+		groupChannel := &model.Channel{Type: model.CHANNEL_GROUP}
+		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
+		require.Equal(t, len(mentions.Mentions), 0)
+
+		directChannel := &model.Channel{Type: model.CHANNEL_DIRECT}
+		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
+		// Ensure direct channel with no group members mentioned always returns true
+		require.Equal(t, usersMentioned, true)
+		require.Equal(t, len(mentions.Mentions), 0)
+	})
+
+	t.Run("should add mentions for members while in group channel", func(t *testing.T) {
+		groupChannel, err := th.App.CreateGroupChannel([]string{groupChannelMember.Id, nonGroupChannelMember.Id, th.BasicUser.Id}, groupChannelMember.Id)
+		require.Nil(t, err)
+
+		mentions := &ExplicitMentions{}
+		th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+
+		require.Equal(t, len(mentions.Mentions), 1)
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
 	})
 }
