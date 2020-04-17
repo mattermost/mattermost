@@ -62,8 +62,41 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		o1.UserId = model.NewId()
 		o1.Message = "zz" + model.NewId() + "b"
 
-		_, err := ss.Post().Save(&o1)
+		p, err := ss.Post().Save(&o1)
 		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(0), p.ReplyCount)
+	})
+
+	t.Run("Save replies", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.RootId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = o1.RootId
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = model.NewId()
+		o3.Message = "zz" + model.NewId() + "b"
+
+		p1, err := ss.Post().Save(&o1)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(1), p1.ReplyCount)
+
+		p2, err := ss.Post().Save(&o2)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(2), p2.ReplyCount)
+
+		p3, err := ss.Post().Save(&o3)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(1), p3.ReplyCount)
 	})
 
 	t.Run("Try to save existing post", func(t *testing.T) {
@@ -194,6 +227,39 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 			assert.Equal(t, post.Message, storedPost.Message)
 			assert.Equal(t, post.UserId, storedPost.UserId)
 		}
+	})
+
+	t.Run("Save replies", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.RootId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = o1.RootId
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = model.NewId()
+		o3.Message = "zz" + model.NewId() + "b"
+
+		o4 := model.Post{}
+		o4.ChannelId = model.NewId()
+		o4.UserId = model.NewId()
+		o4.Message = "zz" + model.NewId() + "b"
+
+		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		require.Nil(t, err, "couldn't save item")
+		assert.Len(t, newPosts, 4)
+		assert.Equal(t, int64(2), newPosts[0].ReplyCount)
+		assert.Equal(t, int64(2), newPosts[1].ReplyCount)
+		assert.Equal(t, int64(1), newPosts[2].ReplyCount)
+		assert.Equal(t, int64(0), newPosts[3].ReplyCount)
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {

@@ -204,13 +204,13 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
 	rootIds := []string{}
 	for _, post := range posts {
-		rootIds = append(rootIds, post.Id)
+		rootIds = append(rootIds, post.RootId)
 	}
 	countList := []struct {
 		RootId string
 		Count  int64
 	}{}
-	query := s.getQueryBuilder().Select("RootId, COUNT(Id)").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
+	query := s.getQueryBuilder().Select("RootId, COUNT(Id) AS Count").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
