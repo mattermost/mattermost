@@ -523,7 +523,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExtendSessionLengthWithActivity == nil {
-		if BuildEnterpriseReady == "true" {
+		// Must be manually enabled for existing installations.
+		if isUpdate {
 			s.ExtendSessionLengthWithActivity = NewBool(false)
 		} else {
 			s.ExtendSessionLengthWithActivity = NewBool(true)
