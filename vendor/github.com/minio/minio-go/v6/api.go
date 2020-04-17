@@ -104,7 +104,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.52"
+	libraryVersion = "v6.0.45"
 )
 
 // User Agent should always following the below style.
@@ -413,7 +413,7 @@ func (c *Client) SetS3TransferAccelerate(accelerateEndpoint string) {
 //  - For signature v4 request if the connection is insecure compute only sha256.
 //  - For signature v4 request if the connection is secure compute only md5.
 //  - For anonymous request compute md5.
-func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]hash.Hash, hashSums map[string][]byte) {
+func (c *Client) hashMaterials() (hashAlgos map[string]hash.Hash, hashSums map[string][]byte) {
 	hashSums = make(map[string][]byte)
 	hashAlgos = make(map[string]hash.Hash)
 	if c.overrideSignerType.IsV4() {
@@ -426,9 +426,6 @@ func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]hash.H
 		if c.overrideSignerType.IsAnonymous() {
 			hashAlgos["md5"] = md5.New()
 		}
-	}
-	if isMd5Requested {
-		hashAlgos["md5"] = md5.New()
 	}
 	return hashAlgos, hashSums
 }
@@ -591,16 +588,16 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		}
 	}
 
-	// Create cancel context to control 'newRetryTimer' go routine.
-	retryCtx, cancel := context.WithCancel(ctx)
+	// Create a done channel to control 'newRetryTimer' go routine.
+	doneCh := make(chan struct{}, 1)
 
 	// Indicate to our routine to exit cleanly upon return.
-	defer cancel()
+	defer close(doneCh)
 
 	// Blank indentifier is kept here on purpose since 'range' without
 	// blank identifiers is only supported since go1.4
 	// https://golang.org/doc/go1.4#forrange.
-	for range c.newRetryTimer(retryCtx, reqRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter) {
+	for range c.newRetryTimer(reqRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter, doneCh) {
 		// Retry executes the following function body if request has an
 		// error until maxRetries have been exhausted, retry attempts are
 		// performed after waiting for a given period of time in a
@@ -630,9 +627,6 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// Initiate the request.
 		res, err = c.do(req)
 		if err != nil {
-			if err == context.Canceled || err == context.DeadlineExceeded {
-				return nil, err
-			}
 			continue
 		}
 
@@ -675,23 +669,20 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 			case "InvalidRegion":
 				fallthrough
 			case "AccessDenied":
-				if errResponse.Region == "" {
-					// Region is empty we simply return the error.
-					return res, err
-				}
-				// Region is not empty figure out a way to
-				// handle this appropriately.
-				if metadata.bucketName != "" {
+				if metadata.bucketName != "" && errResponse.Region != "" {
 					// Gather Cached location only if bucketName is present.
 					if _, cachedOk := c.bucketLocCache.Get(metadata.bucketName); cachedOk {
 						c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 						continue // Retry.
 					}
 				} else {
-					// This is for ListBuckets() fallback.
+					// Most probably for ListBuckets()
 					if errResponse.Region != metadata.bucketLocation {
-						// Retry if the error response has a different region
-						// than the request we just made.
+						// Retry if the error
+						// response has a
+						// different region
+						// than the request we
+						// just made.
 						metadata.bucketLocation = errResponse.Region
 						continue // Retry
 					}
@@ -712,12 +703,6 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// For all other cases break out of the retry loop.
 		break
 	}
-
-	// Return an error when retry is canceled or deadlined
-	if e := retryCtx.Err(); e != nil {
-		return nil, e
-	}
-
 	return res, err
 }
 

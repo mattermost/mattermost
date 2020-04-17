@@ -51,7 +51,7 @@ func (level *Level) UnmarshalText(text []byte) error {
 		return err
 	}
 
-	*level = l
+	*level = Level(l)
 
 	return nil
 }
