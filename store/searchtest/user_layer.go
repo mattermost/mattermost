@@ -99,7 +99,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search filtering by role",
 		Fn:   testShouldBeAbleToSearchFilteringByRole,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL},
 	},
 	{
 		Name: "Should ignore leading @ when searching users",
@@ -590,10 +590,10 @@ func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
 }
 
 func testShouldBeAbleToSearchFilteringByRole(t *testing.T, th *SearchTestHelper) {
-	userAlternate, err := th.createUser("alternate-username", "alternatenickname", "firstname", "altlastname")
+	userAlternate, err := th.createUser("basicusernamealternate", "alternatenickname", "firstname", "altlastname")
 	require.Nil(t, err)
 	userAlternate.Roles = "system_admin"
-	_, apperr := th.Store.User().Update(userAlternate, false)
+	_, apperr := th.Store.User().Update(userAlternate, true)
 	require.Nil(t, apperr)
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
@@ -606,13 +606,13 @@ func testShouldBeAbleToSearchFilteringByRole(t *testing.T, th *SearchTestHelper)
 		Limit:         model.USER_SEARCH_DEFAULT_LIMIT,
 	}
 	t.Run("Should autocomplete users filtering by roles", func(t *testing.T) {
-		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "username", options)
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
 	t.Run("Should search users filtering by roles", func(t *testing.T) {
-		users, apperr := th.Store.User().Search(th.Team.Id, "username", options)
+		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
 	})
