@@ -316,8 +316,8 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	return canSee
 }
 
-// ShouldSendEvent returns whether the message should be sent or not.
-func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
+// shouldSendEvent returns whether the message should be sent or not.
+func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 	// IMPORTANT: Do not send event if WebConn does not have a session
 	if !wc.IsAuthenticated() {
 		return false
@@ -382,7 +382,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 	// Only report events to users who are in the team for the event
 	if msg.GetBroadcast().TeamId != "" {
-		return wc.IsMemberOfTeam(msg.GetBroadcast().TeamId)
+		return wc.isMemberOfTeam(msg.GetBroadcast().TeamId)
 	}
 
 	if wc.GetSession().Props[model.SESSION_PROP_IS_GUEST] == "true" {
@@ -394,7 +394,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 // IsMemberOfTeam returns whether the user of the WebConn
 // is a member of the given teamId or not.
-func (wc *WebConn) IsMemberOfTeam(teamId string) bool {
+func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 	currentSession := wc.GetSession()
 
 	if currentSession == nil || currentSession.Token == "" {

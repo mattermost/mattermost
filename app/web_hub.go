@@ -329,7 +329,7 @@ func (h *Hub) Start() {
 				}
 				msg = msg.PrecomputeJSON()
 				for _, webConn := range candidates {
-					if webConn.ShouldSendEvent(msg) {
+					if webConn.shouldSendEvent(msg) {
 						select {
 						case webConn.send <- msg:
 						default:
