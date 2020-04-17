@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 )
 
 var (

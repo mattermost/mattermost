@@ -168,6 +168,10 @@ type ec2RoleCredRespBody struct {
 // be sent to fetch the rolling access credentials.
 // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 func getIAMRoleURL(endpoint string) (*url.URL, error) {
+	if endpoint == "" {
+		endpoint = defaultIAMRoleEndpoint
+	}
+
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err

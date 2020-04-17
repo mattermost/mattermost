@@ -543,6 +543,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	return nil
 }
 
+// AnalyticsPublicTeamCount returns the number of active public teams.
 func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 1", map[string]interface{}{})
@@ -558,6 +559,7 @@ func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
+// AnalyticsPrivateTeamCount returns the number of active private teams.
 func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 0", map[string]interface{}{})
 
@@ -572,6 +574,7 @@ func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
+// AnalyticsTeamCount returns the total number of teams including deleted teams if parameter passed is set to 'true'.
 func (s SqlTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
 	query := s.getQueryBuilder().Select("COUNT(*) FROM Teams")
 	if !includeDeleted {
@@ -847,15 +850,32 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
-		OrderBy("UserId").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
-	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	if teamMembersGetOptions == nil || teamMembersGetOptions.Sort == "" {
+		query = query.OrderBy("UserId")
+	}
+
+	if teamMembersGetOptions != nil {
+		if teamMembersGetOptions.Sort == model.USERNAME || teamMembersGetOptions.ExcludeDeletedUsers {
+			query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
+		}
+
+		if teamMembersGetOptions.ExcludeDeletedUsers {
+			query = query.Where(sq.Eq{"Users.DeleteAt": 0})
+		}
+
+		if teamMembersGetOptions.Sort == model.USERNAME {
+			query = query.OrderBy(model.USERNAME)
+		}
+
+		query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1203,6 +1223,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 	return nil
 }
 
+// AnalyticsGetTeamCountForScheme returns the number of active teams that match the schemeId passed as parameter.
 func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError) {
 	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Teams WHERE SchemeId = :SchemeId AND DeleteAt = 0", map[string]interface{}{"SchemeId": schemeId})
 	if err != nil {

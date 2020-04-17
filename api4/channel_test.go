@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -313,6 +315,64 @@ func TestPatchChannel(t *testing.T) {
 	Client.Login(user3.Email, user3.Password)
 	_, resp = Client.PatchChannel(directChannel.Id, channelPatch)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestChannelUnicodeNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	team := th.BasicTeam
+
+	t.Run("create channel unicode", func(t *testing.T) {
+		channel := &model.Channel{
+			Name:        "\u206cenglish\u206dchannel",
+			DisplayName: "The \u206cEnglish\u206d Channel",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id}
+
+		rchannel, resp := Client.CreateChannel(channel)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, "englishchannel", rchannel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "The English Channel", rchannel.DisplayName, "bad unicode should be filtered from display name")
+	})
+
+	t.Run("update channel unicode", func(t *testing.T) {
+		channel := &model.Channel{
+			DisplayName: "Test API Name",
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, _ = Client.CreateChannel(channel)
+
+		channel.Name = "\u206ahistorychannel"
+		channel.DisplayName = "UFO's and \ufff9stuff\ufffb."
+
+		newChannel, resp := Client.UpdateChannel(channel)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "historychannel", newChannel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "UFO's and stuff.", newChannel.DisplayName, "bad unicode should be filtered from display name")
+	})
+
+	t.Run("patch channel unicode", func(t *testing.T) {
+		patch := &model.ChannelPatch{
+			Name:        new(string),
+			DisplayName: new(string),
+			Header:      new(string),
+			Purpose:     new(string),
+		}
+		*patch.Name = "\u206ecommunitychannel\u206f"
+		*patch.DisplayName = "Natalie Tran's \ufffcAwesome Channel"
+
+		channel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "communitychannel", channel.Name, "bad unicode should be filtered from name")
+		require.Equal(t, "Natalie Tran's Awesome Channel", channel.DisplayName, "bad unicode should be filtered from display name")
+	})
 }
 
 func TestCreateDirectChannel(t *testing.T) {
@@ -3138,6 +3198,34 @@ func TestGetChannelModerations(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		_, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
+		require.Nil(t, res.Error)
+	})
 }
 
 func TestPatchChannelModerations(t *testing.T) {
@@ -3250,6 +3338,71 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		scheme, _ = th.App.GetScheme(*schemeId)
 		require.NotEqual(t, scheme.DeleteAt, int64(0))
+	})
+
+	t.Run("Does not return an error if the team scheme has a blank DefaultChannelGuestRole field", func(t *testing.T) {
+		team := th.BasicTeam
+		scheme := th.SetupTeamScheme()
+		scheme.DefaultChannelGuestRole = ""
+
+		mockStore := mocks.Store{}
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
+		mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+		mockStore.On("User").Return(th.App.Srv().Store.User())
+		mockStore.On("Post").Return(th.App.Srv().Store.Post())
+		mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+		mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+		mockStore.On("System").Return(th.App.Srv().Store.System())
+		mockStore.On("License").Return(th.App.Srv().Store.License())
+		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().Store = &mockStore
+
+		team.SchemeId = &scheme.Id
+		_, err := th.App.UpdateTeamScheme(team)
+		require.Nil(t, err)
+
+		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
+
+		patch := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(true)},
+			},
+		}
+
+		moderations, res = th.SystemAdminClient.PatchChannelModerations(channel.Id, patch)
+		require.Nil(t, res.Error)
+		require.Equal(t, len(moderations), 4)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_members" {
+				require.Empty(t, moderation.Roles.Guests)
+			} else {
+				require.Equal(t, moderation.Roles.Guests.Value, false)
+				require.Equal(t, moderation.Roles.Guests.Enabled, false)
+			}
+
+			require.Equal(t, moderation.Roles.Members.Value, true)
+			require.Equal(t, moderation.Roles.Members.Enabled, true)
+		}
 	})
 
 }
