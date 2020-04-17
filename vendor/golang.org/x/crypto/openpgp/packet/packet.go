@@ -14,7 +14,6 @@ import (
 	"crypto/rsa"
 	"io"
 	"math/big"
-	"math/bits"
 
 	"golang.org/x/crypto/cast5"
 	"golang.org/x/crypto/openpgp/errors"
@@ -101,65 +100,33 @@ func (r *partialLengthReader) Read(p []byte) (n int, err error) {
 type partialLengthWriter struct {
 	w          io.WriteCloser
 	lengthByte [1]byte
-	sentFirst  bool
-	buf        []byte
 }
 
-// RFC 4880 4.2.2.4: the first partial length MUST be at least 512 octets long.
-const minFirstPartialWrite = 512
-
 func (w *partialLengthWriter) Write(p []byte) (n int, err error) {
-	off := 0
-	if !w.sentFirst {
-		if len(w.buf) > 0 || len(p) < minFirstPartialWrite {
-			off = len(w.buf)
-			w.buf = append(w.buf, p...)
-			if len(w.buf) < minFirstPartialWrite {
-				return len(p), nil
-			}
-			p = w.buf
-			w.buf = nil
-		}
-		w.sentFirst = true
-	}
-
-	power := uint8(30)
 	for len(p) > 0 {
-		l := 1 << power
-		if len(p) < l {
-			power = uint8(bits.Len32(uint32(len(p)))) - 1
-			l = 1 << power
-		}
-		w.lengthByte[0] = 224 + power
-		_, err = w.w.Write(w.lengthByte[:])
-		if err == nil {
-			var m int
-			m, err = w.w.Write(p[:l])
-			n += m
-		}
-		if err != nil {
-			if n < off {
-				return 0, err
+		for power := uint(14); power < 32; power-- {
+			l := 1 << power
+			if len(p) >= l {
+				w.lengthByte[0] = 224 + uint8(power)
+				_, err = w.w.Write(w.lengthByte[:])
+				if err != nil {
+					return
+				}
+				var m int
+				m, err = w.w.Write(p[:l])
+				n += m
+				if err != nil {
+					return
+				}
+				p = p[l:]
+				break
 			}
-			return n - off, err
 		}
-		p = p[l:]
 	}
-	return n - off, nil
+	return
 }
 
 func (w *partialLengthWriter) Close() error {
-	if len(w.buf) > 0 {
-		// In this case we can't send a 512 byte packet.
-		// Just send what we have.
-		p := w.buf
-		w.sentFirst = true
-		w.buf = nil
-		if _, err := w.Write(p); err != nil {
-			return err
-		}
-	}
-
 	w.lengthByte[0] = 0
 	_, err := w.w.Write(w.lengthByte[:])
 	if err != nil {

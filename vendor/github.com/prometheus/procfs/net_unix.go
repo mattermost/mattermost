@@ -15,6 +15,7 @@ package procfs
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,15 +27,25 @@ import (
 // see https://elixir.bootlin.com/linux/v4.17/source/net/unix/af_unix.c#L2815
 // and https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/net.h#L48.
 
-// Constants for the various /proc/net/unix enumerations.
-// TODO: match against x/sys/unix or similar?
+const (
+	netUnixKernelPtrIdx = iota
+	netUnixRefCountIdx
+	_
+	netUnixFlagsIdx
+	netUnixTypeIdx
+	netUnixStateIdx
+	netUnixInodeIdx
+
+	// Inode and Path are optional.
+	netUnixStaticFieldsCnt = 6
+)
+
 const (
 	netUnixTypeStream    = 1
 	netUnixTypeDgram     = 2
 	netUnixTypeSeqpacket = 5
 
-	netUnixFlagDefault = 0
-	netUnixFlagListen  = 1 << 16
+	netUnixFlagListen = 1 << 16
 
 	netUnixStateUnconnected  = 1
 	netUnixStateConnecting   = 2
@@ -42,127 +53,129 @@ const (
 	netUnixStateDisconnected = 4
 )
 
-// NetUNIXType is the type of the type field.
-type NetUNIXType uint64
+var errInvalidKernelPtrFmt = errors.New("Invalid Num(the kernel table slot number) format")
 
-// NetUNIXFlags is the type of the flags field.
-type NetUNIXFlags uint64
+// NetUnixType is the type of the type field.
+type NetUnixType uint64
 
-// NetUNIXState is the type of the state field.
-type NetUNIXState uint64
+// NetUnixFlags is the type of the flags field.
+type NetUnixFlags uint64
 
-// NetUNIXLine represents a line of /proc/net/unix.
-type NetUNIXLine struct {
+// NetUnixState is the type of the state field.
+type NetUnixState uint64
+
+// NetUnixLine represents a line of /proc/net/unix.
+type NetUnixLine struct {
 	KernelPtr string
 	RefCount  uint64
 	Protocol  uint64
-	Flags     NetUNIXFlags
-	Type      NetUNIXType
-	State     NetUNIXState
+	Flags     NetUnixFlags
+	Type      NetUnixType
+	State     NetUnixState
 	Inode     uint64
 	Path      string
 }
 
-// NetUNIX holds the data read from /proc/net/unix.
-type NetUNIX struct {
-	Rows []*NetUNIXLine
+// NetUnix holds the data read from /proc/net/unix.
+type NetUnix struct {
+	Rows []*NetUnixLine
 }
 
-// NetUNIX returns data read from /proc/net/unix.
-func (fs FS) NetUNIX() (*NetUNIX, error) {
-	return readNetUNIX(fs.proc.Path("net/unix"))
+// NewNetUnix returns data read from /proc/net/unix.
+func NewNetUnix() (*NetUnix, error) {
+	fs, err := NewFS(DefaultMountPoint)
+	if err != nil {
+		return nil, err
+	}
+
+	return fs.NewNetUnix()
 }
 
-// readNetUNIX reads data in /proc/net/unix format from the specified file.
-func readNetUNIX(file string) (*NetUNIX, error) {
-	// This file could be quite large and a streaming read is desirable versus
-	// reading the entire contents at once.
-	f, err := os.Open(file)
+// NewNetUnix returns data read from /proc/net/unix.
+func (fs FS) NewNetUnix() (*NetUnix, error) {
+	return NewNetUnixByPath(fs.proc.Path("net/unix"))
+}
+
+// NewNetUnixByPath returns data read from /proc/net/unix by file path.
+// It might returns an error with partial parsed data, if an error occur after some data parsed.
+func NewNetUnixByPath(path string) (*NetUnix, error) {
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-
-	return parseNetUNIX(f)
+	return NewNetUnixByReader(f)
 }
 
-// parseNetUNIX creates a NetUnix structure from the incoming stream.
-func parseNetUNIX(r io.Reader) (*NetUNIX, error) {
-	// Begin scanning by checking for the existence of Inode.
-	s := bufio.NewScanner(r)
-	s.Scan()
-
-	// From the man page of proc(5), it does not contain an Inode field,
-	// but in actually it exists. This code works for both cases.
-	hasInode := strings.Contains(s.Text(), "Inode")
-
-	// Expect a minimum number of fields, but Inode and Path are optional:
-	// Num       RefCount Protocol Flags    Type St Inode Path
-	minFields := 6
-	if hasInode {
-		minFields++
+// NewNetUnixByReader returns data read from /proc/net/unix by a reader.
+// It might returns an error with partial parsed data, if an error occur after some data parsed.
+func NewNetUnixByReader(reader io.Reader) (*NetUnix, error) {
+	nu := &NetUnix{
+		Rows: make([]*NetUnixLine, 0, 32),
 	}
+	scanner := bufio.NewScanner(reader)
+	// Omit the header line.
+	scanner.Scan()
+	header := scanner.Text()
+	// From the man page of proc(5), it does not contain an Inode field,
+	// but in actually it exists.
+	// This code works for both cases.
+	hasInode := strings.Contains(header, "Inode")
 
-	var nu NetUNIX
-	for s.Scan() {
-		line := s.Text()
-		item, err := nu.parseLine(line, hasInode, minFields)
+	minFieldsCnt := netUnixStaticFieldsCnt
+	if hasInode {
+		minFieldsCnt++
+	}
+	for scanner.Scan() {
+		line := scanner.Text()
+		item, err := nu.parseLine(line, hasInode, minFieldsCnt)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse /proc/net/unix data %q: %v", line, err)
+			return nu, err
 		}
-
 		nu.Rows = append(nu.Rows, item)
 	}
 
-	if err := s.Err(); err != nil {
-		return nil, fmt.Errorf("failed to scan /proc/net/unix data: %v", err)
-	}
-
-	return &nu, nil
+	return nu, scanner.Err()
 }
 
-func (u *NetUNIX) parseLine(line string, hasInode bool, min int) (*NetUNIXLine, error) {
+func (u *NetUnix) parseLine(line string, hasInode bool, minFieldsCnt int) (*NetUnixLine, error) {
 	fields := strings.Fields(line)
-
-	l := len(fields)
-	if l < min {
-		return nil, fmt.Errorf("expected at least %d fields but got %d", min, l)
+	fieldsLen := len(fields)
+	if fieldsLen < minFieldsCnt {
+		return nil, fmt.Errorf(
+			"Parse Unix domain failed: expect at least %d fields but got %d",
+			minFieldsCnt, fieldsLen)
 	}
-
-	// Field offsets are as follows:
-	// Num       RefCount Protocol Flags    Type St Inode Path
-
-	kernelPtr := strings.TrimSuffix(fields[0], ":")
-
-	users, err := u.parseUsers(fields[1])
+	kernelPtr, err := u.parseKernelPtr(fields[netUnixKernelPtrIdx])
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse ref count(%s): %v", fields[1], err)
+		return nil, fmt.Errorf("Parse Unix domain num(%s) failed: %s", fields[netUnixKernelPtrIdx], err)
 	}
-
-	flags, err := u.parseFlags(fields[3])
+	users, err := u.parseUsers(fields[netUnixRefCountIdx])
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse flags(%s): %v", fields[3], err)
+		return nil, fmt.Errorf("Parse Unix domain ref count(%s) failed: %s", fields[netUnixRefCountIdx], err)
 	}
-
-	typ, err := u.parseType(fields[4])
+	flags, err := u.parseFlags(fields[netUnixFlagsIdx])
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse type(%s): %v", fields[4], err)
+		return nil, fmt.Errorf("Parse Unix domain flags(%s) failed: %s", fields[netUnixFlagsIdx], err)
 	}
-
-	state, err := u.parseState(fields[5])
+	typ, err := u.parseType(fields[netUnixTypeIdx])
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse state(%s): %v", fields[5], err)
+		return nil, fmt.Errorf("Parse Unix domain type(%s) failed: %s", fields[netUnixTypeIdx], err)
 	}
-
+	state, err := u.parseState(fields[netUnixStateIdx])
+	if err != nil {
+		return nil, fmt.Errorf("Parse Unix domain state(%s) failed: %s", fields[netUnixStateIdx], err)
+	}
 	var inode uint64
 	if hasInode {
-		inode, err = u.parseInode(fields[6])
+		inodeStr := fields[netUnixInodeIdx]
+		inode, err = u.parseInode(inodeStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse inode(%s): %v", fields[6], err)
+			return nil, fmt.Errorf("Parse Unix domain inode(%s) failed: %s", inodeStr, err)
 		}
 	}
 
-	n := &NetUNIXLine{
+	nuLine := &NetUnixLine{
 		KernelPtr: kernelPtr,
 		RefCount:  users,
 		Type:      typ,
@@ -172,56 +185,57 @@ func (u *NetUNIX) parseLine(line string, hasInode bool, min int) (*NetUNIXLine, 
 	}
 
 	// Path field is optional.
-	if l > min {
-		// Path occurs at either index 6 or 7 depending on whether inode is
-		// already present.
-		pathIdx := 7
+	if fieldsLen > minFieldsCnt {
+		pathIdx := netUnixInodeIdx + 1
 		if !hasInode {
 			pathIdx--
 		}
-
-		n.Path = fields[pathIdx]
+		nuLine.Path = fields[pathIdx]
 	}
 
-	return n, nil
+	return nuLine, nil
 }
 
-func (u NetUNIX) parseUsers(s string) (uint64, error) {
-	return strconv.ParseUint(s, 16, 32)
+func (u NetUnix) parseKernelPtr(str string) (string, error) {
+	if !strings.HasSuffix(str, ":") {
+		return "", errInvalidKernelPtrFmt
+	}
+	return str[:len(str)-1], nil
 }
 
-func (u NetUNIX) parseType(s string) (NetUNIXType, error) {
-	typ, err := strconv.ParseUint(s, 16, 16)
+func (u NetUnix) parseUsers(hexStr string) (uint64, error) {
+	return strconv.ParseUint(hexStr, 16, 32)
+}
+
+func (u NetUnix) parseType(hexStr string) (NetUnixType, error) {
+	typ, err := strconv.ParseUint(hexStr, 16, 16)
 	if err != nil {
 		return 0, err
 	}
-
-	return NetUNIXType(typ), nil
+	return NetUnixType(typ), nil
 }
 
-func (u NetUNIX) parseFlags(s string) (NetUNIXFlags, error) {
-	flags, err := strconv.ParseUint(s, 16, 32)
+func (u NetUnix) parseFlags(hexStr string) (NetUnixFlags, error) {
+	flags, err := strconv.ParseUint(hexStr, 16, 32)
 	if err != nil {
 		return 0, err
 	}
-
-	return NetUNIXFlags(flags), nil
+	return NetUnixFlags(flags), nil
 }
 
-func (u NetUNIX) parseState(s string) (NetUNIXState, error) {
-	st, err := strconv.ParseInt(s, 16, 8)
+func (u NetUnix) parseState(hexStr string) (NetUnixState, error) {
+	st, err := strconv.ParseInt(hexStr, 16, 8)
 	if err != nil {
 		return 0, err
 	}
-
-	return NetUNIXState(st), nil
+	return NetUnixState(st), nil
 }
 
-func (u NetUNIX) parseInode(s string) (uint64, error) {
-	return strconv.ParseUint(s, 10, 64)
+func (u NetUnix) parseInode(inodeStr string) (uint64, error) {
+	return strconv.ParseUint(inodeStr, 10, 64)
 }
 
-func (t NetUNIXType) String() string {
+func (t NetUnixType) String() string {
 	switch t {
 	case netUnixTypeStream:
 		return "stream"
@@ -233,7 +247,7 @@ func (t NetUNIXType) String() string {
 	return "unknown"
 }
 
-func (f NetUNIXFlags) String() string {
+func (f NetUnixFlags) String() string {
 	switch f {
 	case netUnixFlagListen:
 		return "listen"
@@ -242,7 +256,7 @@ func (f NetUNIXFlags) String() string {
 	}
 }
 
-func (s NetUNIXState) String() string {
+func (s NetUnixState) String() string {
 	switch s {
 	case netUnixStateUnconnected:
 		return "unconnected"
