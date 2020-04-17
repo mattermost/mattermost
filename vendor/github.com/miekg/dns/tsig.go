@@ -115,7 +115,7 @@ func TsigGenerate(m *Msg, secret, requestMAC string, timersOnly bool) ([]byte, s
 
 	t := new(TSIG)
 	var h hash.Hash
-	switch CanonicalName(rr.Algorithm) {
+	switch strings.ToLower(rr.Algorithm) {
 	case HmacMD5:
 		h = hmac.New(md5.New, rawsecret)
 	case HmacSHA1:
@@ -182,7 +182,7 @@ func TsigVerify(msg []byte, secret, requestMAC string, timersOnly bool) error {
 	}
 
 	var h hash.Hash
-	switch CanonicalName(tsig.Algorithm) {
+	switch strings.ToLower(tsig.Algorithm) {
 	case HmacMD5:
 		h = hmac.New(md5.New, rawsecret)
 	case HmacSHA1:
@@ -232,10 +232,10 @@ func tsigBuffer(msgbuf []byte, rr *TSIG, requestMAC string, timersOnly bool) []b
 		tsigvar = tsigvar[:n]
 	} else {
 		tsig := new(tsigWireFmt)
-		tsig.Name = CanonicalName(rr.Hdr.Name)
+		tsig.Name = strings.ToLower(rr.Hdr.Name)
 		tsig.Class = ClassANY
 		tsig.Ttl = rr.Hdr.Ttl
-		tsig.Algorithm = CanonicalName(rr.Algorithm)
+		tsig.Algorithm = strings.ToLower(rr.Algorithm)
 		tsig.TimeSigned = rr.TimeSigned
 		tsig.Fudge = rr.Fudge
 		tsig.Error = rr.Error

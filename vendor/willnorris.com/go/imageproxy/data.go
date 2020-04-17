@@ -1,4 +1,4 @@
-// Copyright 2013 Google LLC. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ func (o Options) String() string {
 		opts = append(opts, optFit)
 	}
 	if o.Rotate != 0 {
-		opts = append(opts, fmt.Sprintf("%s%d", optRotatePrefix, o.Rotate))
+		opts = append(opts, fmt.Sprintf("%s%d", string(optRotatePrefix), o.Rotate))
 	}
 	if o.FlipVertical {
 		opts = append(opts, optFlipVertical)
@@ -108,10 +108,10 @@ func (o Options) String() string {
 		opts = append(opts, optFlipHorizontal)
 	}
 	if o.Quality != 0 {
-		opts = append(opts, fmt.Sprintf("%s%d", optQualityPrefix, o.Quality))
+		opts = append(opts, fmt.Sprintf("%s%d", string(optQualityPrefix), o.Quality))
 	}
 	if o.Signature != "" {
-		opts = append(opts, fmt.Sprintf("%s%s", optSignaturePrefix, o.Signature))
+		opts = append(opts, fmt.Sprintf("%s%s", string(optSignaturePrefix), o.Signature))
 	}
 	if o.ScaleUp {
 		opts = append(opts, optScaleUp)
@@ -120,16 +120,16 @@ func (o Options) String() string {
 		opts = append(opts, o.Format)
 	}
 	if o.CropX != 0 {
-		opts = append(opts, fmt.Sprintf("%s%v", optCropX, o.CropX))
+		opts = append(opts, fmt.Sprintf("%s%v", string(optCropX), o.CropX))
 	}
 	if o.CropY != 0 {
-		opts = append(opts, fmt.Sprintf("%s%v", optCropY, o.CropY))
+		opts = append(opts, fmt.Sprintf("%s%v", string(optCropY), o.CropY))
 	}
 	if o.CropWidth != 0 {
-		opts = append(opts, fmt.Sprintf("%s%v", optCropWidth, o.CropWidth))
+		opts = append(opts, fmt.Sprintf("%s%v", string(optCropWidth), o.CropWidth))
 	}
 	if o.CropHeight != 0 {
-		opts = append(opts, fmt.Sprintf("%s%v", optCropHeight, o.CropHeight))
+		opts = append(opts, fmt.Sprintf("%s%v", string(optCropHeight), o.CropHeight))
 	}
 	if o.SmartCrop {
 		opts = append(opts, optSmartCrop)

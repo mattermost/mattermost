@@ -15,5 +15,5 @@ import "net/http"
 // can be set by making a route that captures the required variables,
 // starting a server and sending the request to that server.
 func SetURLVars(r *http.Request, val map[string]string) *http.Request {
-	return requestWithVars(r, val)
+	return setVars(r, val)
 }

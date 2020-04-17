@@ -58,17 +58,22 @@ func CORSMethodMiddleware(r *Router) MiddlewareFunc {
 func getAllMethodsForRoute(r *Router, req *http.Request) ([]string, error) {
 	var allMethods []string
 
-	for _, route := range r.routes {
-		var match RouteMatch
-		if route.Match(req, &match) || match.MatchErr == ErrMethodMismatch {
-			methods, err := route.GetMethods()
-			if err != nil {
-				return nil, err
+	err := r.Walk(func(route *Route, _ *Router, _ []*Route) error {
+		for _, m := range route.matchers {
+			if _, ok := m.(*routeRegexp); ok {
+				if m.Match(req, &RouteMatch{}) {
+					methods, err := route.GetMethods()
+					if err != nil {
+						return err
+					}
+
+					allMethods = append(allMethods, methods...)
+				}
+				break
 			}
-
-			allMethods = append(allMethods, methods...)
 		}
-	}
+		return nil
+	})
 
-	return allMethods, nil
+	return allMethods, err
 }

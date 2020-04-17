@@ -543,6 +543,7 @@ func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	return nil
 }
 
+// AnalyticsPublicTeamCount returns the number of active public teams.
 func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 1", map[string]interface{}{})
@@ -558,6 +559,7 @@ func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
+// AnalyticsPrivateTeamCount returns the number of active private teams.
 func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 0", map[string]interface{}{})
 
@@ -572,6 +574,7 @@ func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	return c, nil
 }
 
+// AnalyticsTeamCount returns the total number of teams including deleted teams if parameter passed is set to 'true'.
 func (s SqlTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
 	query := s.getQueryBuilder().Select("COUNT(*) FROM Teams")
 	if !includeDeleted {
@@ -1220,6 +1223,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 	return nil
 }
 
+// AnalyticsGetTeamCountForScheme returns the number of active teams that match the schemeId passed as parameter.
 func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError) {
 	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Teams WHERE SchemeId = :SchemeId AND DeleteAt = 0", map[string]interface{}{"SchemeId": schemeId})
 	if err != nil {

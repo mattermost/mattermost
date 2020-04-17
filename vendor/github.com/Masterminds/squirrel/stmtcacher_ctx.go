@@ -24,23 +24,14 @@ type DBProxyContext interface {
 	PreparerContext
 }
 
-// NewStmtCache returns a *StmtCache wrapping a PreparerContext that caches Prepared Stmts.
+// NewStmtCacher returns a DBProxy wrapping prep that caches Prepared Stmts.
 //
 // Stmts are cached based on the string value of their queries.
-func NewStmtCache(prep PreparerContext) *StmtCache {
-	return &StmtCache{prep: prep, cache: make(map[string]*sql.Stmt)}
-}
-
-// NewStmtCacher is deprecated
-//
-// Use NewStmtCache instead
 func NewStmtCacher(prep PreparerContext) DBProxyContext {
-	return NewStmtCache(prep)
+	return &stmtCacher{prep: prep, cache: make(map[string]*sql.Stmt)}
 }
 
-// PrepareContext delegates down to the underlying PreparerContext and caches the result
-// using the provided query as a key
-func (sc *StmtCache) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+func (sc *stmtCacher) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	ctxPrep, ok := sc.prep.(PreparerContext)
 	if !ok {
 		return nil, NoContextSupport
@@ -58,8 +49,7 @@ func (sc *StmtCache) PrepareContext(ctx context.Context, query string) (*sql.Stm
 	return stmt, err
 }
 
-// ExecContext delegates down to the underlying PreparerContext using a prepared statement
-func (sc *StmtCache) ExecContext(ctx context.Context, query string, args ...interface{}) (res sql.Result, err error) {
+func (sc *stmtCacher) ExecContext(ctx context.Context, query string, args ...interface{}) (res sql.Result, err error) {
 	stmt, err := sc.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -67,8 +57,7 @@ func (sc *StmtCache) ExecContext(ctx context.Context, query string, args ...inte
 	return stmt.ExecContext(ctx, args...)
 }
 
-// QueryContext delegates down to the underlying PreparerContext using a prepared statement
-func (sc *StmtCache) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
+func (sc *stmtCacher) QueryContext(ctx context.Context, query string, args ...interface{}) (rows *sql.Rows, err error) {
 	stmt, err := sc.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -76,8 +65,7 @@ func (sc *StmtCache) QueryContext(ctx context.Context, query string, args ...int
 	return stmt.QueryContext(ctx, args...)
 }
 
-// QueryRowContext delegates down to the underlying PreparerContext using a prepared statement
-func (sc *StmtCache) QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner {
+func (sc *stmtCacher) QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner {
 	stmt, err := sc.PrepareContext(ctx, query)
 	if err != nil {
 		return &Row{err: err}

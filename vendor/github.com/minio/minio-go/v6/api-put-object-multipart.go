@@ -50,7 +50,7 @@ func (c Client) putObjectMultipart(ctx context.Context, bucketName, objectName s
 				return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
 			}
 			// Fall back to uploading as single PutObject operation.
-			return c.putObject(ctx, bucketName, objectName, reader, size, opts)
+			return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
 		}
 	}
 	return n, err
@@ -104,7 +104,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		// Choose hash algorithms to be calculated by hashCopyN,
 		// avoid sha256 with non-v4 signature request or
 		// HTTPS connection.
-		hashAlgos, hashSums := c.hashMaterials(opts.SendContentMd5)
+		hashAlgos, hashSums := c.hashMaterials()
 
 		length, rErr := io.ReadFull(reader, buf)
 		if rErr == io.EOF {
