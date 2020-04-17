@@ -224,7 +224,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			case invErr.Entity == "Channel" && invErr.Field == "Type":
 				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
 			}
 		case errors.As(nErr, &cErr):
 			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
@@ -447,7 +447,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			case invErr.Entity == "Channel" && invErr.Field == "Type":
 				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
-				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
 			}
 		case errors.As(nErr, &cErr):
 			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
