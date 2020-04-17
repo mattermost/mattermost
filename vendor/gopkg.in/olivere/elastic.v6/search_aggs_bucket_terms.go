@@ -32,7 +32,7 @@ type TermsAggregation struct {
 
 func NewTermsAggregation() *TermsAggregation {
 	return &TermsAggregation{
-		subAggregations: make(map[string]Aggregation),
+		subAggregations: make(map[string]Aggregation, 0),
 	}
 }
 
