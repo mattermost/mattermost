@@ -92,11 +92,9 @@ var searchUserStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
-		Name:        "Should be able to search inactive users",
-		Fn:          testShouldBeAbleToSearchInactiveUsers,
-		Tags:        []string{ENGINE_ALL},
-		Skip:        true,
-		SkipMessage: "Not working",
+		Name: "Should be able to search inactive users",
+		Fn:   testShouldBeAbleToSearchInactiveUsers,
+		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL},
 	},
 	{
 		Name: "Should be able to search filtering by role",
@@ -554,7 +552,7 @@ func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternate-username", "alternatenickname", "firstname", "altlastname")
 	require.Nil(t, err)
 	userAlternate.DeleteAt = model.GetMillis()
-	_, apperr := th.Store.User().Update(userAlternate, false)
+	_, apperr := th.Store.User().Update(userAlternate, true)
 	require.Nil(t, apperr)
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
