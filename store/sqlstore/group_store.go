@@ -909,6 +909,77 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 			OrderBy("ug.DisplayName")
 	}
 
+	if opts.FilterAllowReference && t == selectGroups {
+		query = query.Where("ug.AllowReference = true")
+	}
+
+	if len(opts.Q) > 0 {
+		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
+		}
+		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+	}
+
+	return query
+}
+
+func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
+	query := s.getQueryBuilder().
+		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
+		From("UserGroups ug").
+		LeftJoin(fmt.Sprintf(`(
+			SELECT
+				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
+			FROM
+				GroupChannels
+			LEFT JOIN
+				Channels ON (Channels.Id = GroupChannels.ChannelId)
+			WHERE
+				GroupChannels.DeleteAt = 0
+				AND Channels.DeleteAt = 0
+				AND Channels.TeamId = ?) AS gc
+			ON gc.GroupId = ug.Id`), teamID).
+		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
+		OrderBy("ug.DisplayName")
+
+	if opts.IncludeMemberCount {
+		query = s.getQueryBuilder().
+			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
+			From("UserGroups ug").
+			LeftJoin(fmt.Sprintf(`(
+				SELECT
+					GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.GroupId, GroupChannels.SchemeAdmin
+				FROM
+					GroupChannels
+				LEFT JOIN
+					Channels ON (Channels.Id = GroupChannels.ChannelId)
+				WHERE
+					GroupChannels.DeleteAt = 0
+					AND Channels.DeleteAt = 0
+					AND Channels.TeamId = ?) AS gc
+			ON gc.GroupId = ug.Id`), teamID).
+			LeftJoin(`(
+				SELECT
+					GroupMembers.GroupId, COUNT(*) AS MemberCount
+				FROM
+					GroupMembers
+				LEFT JOIN
+					Users ON Users.Id = GroupMembers.UserId
+				WHERE
+					GroupMembers.DeleteAt = 0
+					AND Users.DeleteAt = 0
+				GROUP BY GroupId) AS Members
+			ON Members.GroupId = ug.Id`).
+			Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
+			OrderBy("ug.DisplayName")
+	}
+
+	if opts.FilterAllowReference {
+		query = query.Where("ug.AllowReference = true")
+	}
+
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
@@ -960,6 +1031,42 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 	return groups, nil
 }
 
+func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+	query := s.getGroupsAssociatedToChannelsByTeam(model.GroupSyncableTypeTeam, teamId, opts)
+
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var tgroups []*model.GroupsAssociatedToChannelWithSchemeAdmin
+
+	_, err = s.GetReplica().Select(&tgroups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsAssociatedToChannelsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	groups := map[string][]*model.GroupWithSchemeAdmin{}
+	for _, tgroup := range tgroups {
+		var group = model.GroupWithSchemeAdmin{}
+		group.Group = tgroup.Group
+		group.SchemeAdmin = tgroup.SchemeAdmin
+
+		if val, ok := groups[tgroup.ChannelId]; ok {
+			groups[tgroup.ChannelId] = append(val, &group)
+		} else {
+			groups[tgroup.ChannelId] = []*model.GroupWithSchemeAdmin{&group}
+		}
+	}
+
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	var groups []*model.Group
 
@@ -977,6 +1084,10 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		Limit(uint64(perPage)).
 		Offset(uint64(page * perPage)).
 		OrderBy("g.DisplayName")
+
+	if opts.FilterAllowReference {
+		groupsQuery = groupsQuery.Where("g.AllowReference = true")
+	}
 
 	if len(opts.Q) > 0 {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
