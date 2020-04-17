@@ -929,7 +929,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 	query := s.getQueryBuilder().
 		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
 		From("UserGroups ug").
-		LeftJoin(fmt.Sprintf(`(
+		LeftJoin(`(
 			SELECT
 				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
 			FROM
@@ -940,7 +940,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 				GroupChannels.DeleteAt = 0
 				AND Channels.DeleteAt = 0
 				AND Channels.TeamId = ?) AS gc
-			ON gc.GroupId = ug.Id`), teamID).
+			ON gc.GroupId = ug.Id`, teamID).
 		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
 		OrderBy("ug.DisplayName")
 
@@ -948,7 +948,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 		query = s.getQueryBuilder().
 			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
 			From("UserGroups ug").
-			LeftJoin(fmt.Sprintf(`(
+			LeftJoin(`(
 				SELECT
 					GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.GroupId, GroupChannels.SchemeAdmin
 				FROM
@@ -959,7 +959,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 					GroupChannels.DeleteAt = 0
 					AND Channels.DeleteAt = 0
 					AND Channels.TeamId = ?) AS gc
-			ON gc.GroupId = ug.Id`), teamID).
+			ON gc.GroupId = ug.Id`, teamID).
 			LeftJoin(`(
 				SELECT
 					GroupMembers.GroupId, COUNT(*) AS MemberCount

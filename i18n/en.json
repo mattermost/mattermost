@@ -2911,6 +2911,10 @@
     "translation": "Must specify the team ID to create a channel."
   },
   {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Unable to save direct channel."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6007,10 +6011,6 @@
     "translation": "Use SaveDirectChannel to create a direct channel."
   },
   {
-    "id": "store.sql_channel.save_channel.current_count.app_error",
-    "translation": "Failed to get current channel count."
-  },
-  {
     "id": "store.sql_channel.save_channel.existing.app_error",
     "translation": "Must call update for existing channel."
   },
@@ -6023,24 +6023,8 @@
     "translation": "You've reached the limit of the number of allowed channels."
   },
   {
-    "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Unable to save the channel."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Unable to add direct channel members."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.commit.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.save_member.commit_transaction.app_error",

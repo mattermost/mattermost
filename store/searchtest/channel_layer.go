@@ -121,10 +121,10 @@ func testSearchDatabaseChannelAutocompleteInTeamForSearch(t *testing.T, s store.
 	_, nErr = s.Channel().Save(&o5, -1)
 	require.Nil(t, nErr)
 
-	_, err = s.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err)
-	_, err = s.Channel().CreateDirectChannel(u2, u3)
-	require.Nil(t, err)
+	_, nErr = s.Channel().CreateDirectChannel(u1, u2)
+	require.Nil(t, nErr)
+	_, nErr = s.Channel().CreateDirectChannel(u2, u3)
+	require.Nil(t, nErr)
 
 	tt := []struct {
 		name            string
