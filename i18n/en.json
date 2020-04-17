@@ -1601,6 +1601,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupDisplayName}} has no members on this team"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
     "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
