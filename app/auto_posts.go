@@ -41,41 +41,41 @@ func NewAutoPostCreator(client *model.Client4, channelid string) *AutoPostCreato
 	}
 }
 
-func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
+func (cfg *AutoPostCreator) UploadTestFile() ([]string, error) {
 	filename := cfg.ImageFilenames[utils.RandIntFromRange(utils.Range{Begin: 0, End: len(cfg.ImageFilenames) - 1})]
 
-	path, _ := fileutils.FindDir("web/static/images")
+	path, _ := fileutils.FindDir("tests")
 	file, err := os.Open(filepath.Join(path, filename))
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 	defer file.Close()
 
 	data := &bytes.Buffer{}
 	_, err = io.Copy(data, file)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
-	resp, appErr := cfg.client.UploadFile(data.Bytes(), cfg.channelid, filename)
-	if appErr != nil {
-		return nil, false
+	fileResp, resp := cfg.client.UploadFile(data.Bytes(), cfg.channelid, filename)
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
 
-	return []string{resp.FileInfos[0].Id}, true
+	return []string{fileResp.FileInfos[0].Id}, nil
 }
 
-func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, bool) {
+func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, error) {
 	return cfg.CreateRandomPostNested("", "")
 }
 
-func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*model.Post, bool) {
+func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*model.Post, error) {
 	var fileIds []string
 	if cfg.HasImage {
-		var err1 bool
-		fileIds, err1 = cfg.UploadTestFile()
-		if !err1 {
-			return nil, false
+		var err error
+		fileIds, err = cfg.UploadTestFile()
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -93,8 +93,8 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 		Message:   postText,
 		FileIds:   fileIds}
 	rpost, resp := cfg.client.CreatePost(post)
-	if resp != nil && resp.Error != nil {
-		return nil, false
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
-	return rpost, true
+	return rpost, nil
 }

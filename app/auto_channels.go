@@ -32,7 +32,7 @@ func NewAutoChannelCreator(client *model.Client4, team *model.Team) *AutoChannel
 	}
 }
 
-func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, bool) {
+func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, error) {
 	var displayName string
 	if cfg.Fuzzy {
 		displayName = utils.FuzzName()
@@ -50,24 +50,22 @@ func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, bool) {
 	println(cfg.client.GetTeamRoute(cfg.team.Id))
 	channel, resp := cfg.client.CreateChannel(channel)
 	if resp.Error != nil {
-		println(resp.Error.Error())
-		println(resp.Error.DetailedError)
-		return nil, false
+		return nil, resp.Error
 	}
-	return channel, true
+	return channel, nil
 }
 
-func (cfg *AutoChannelCreator) CreateTestChannels(num utils.Range) ([]*model.Channel, bool) {
+func (cfg *AutoChannelCreator) CreateTestChannels(num utils.Range) ([]*model.Channel, error) {
 	numChannels := utils.RandIntFromRange(num)
 	channels := make([]*model.Channel, numChannels)
 
 	for i := 0; i < numChannels; i++ {
-		var err bool
+		var err error
 		channels[i], err = cfg.createRandomChannel()
-		if !err {
-			return channels, false
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	return channels, true
+	return channels, nil
 }
