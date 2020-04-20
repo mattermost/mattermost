@@ -225,7 +225,7 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 		panic("unsupported driver " + driver)
 	}
 
-	if err := execAsRoot(settings, "DROP DATABASE "+dbName); err != nil {
+	if err := execAsRoot(settings, "DROP DATABASE IF EXISTS "+dbName); err != nil {
 		panic("failed to drop temporary database " + dbName + ": " + err.Error())
 	}
 
