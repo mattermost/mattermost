@@ -72,8 +72,10 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	defer os.RemoveAll(pluginDir)
-	defer os.RemoveAll(webappPluginDir)
+	t.Cleanup(func() {
+		os.RemoveAll(pluginDir)
+		os.RemoveAll(webappPluginDir)
+	})
 
 	env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
