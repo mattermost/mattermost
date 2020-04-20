@@ -3555,6 +3555,11 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense())
 
+	t.Run("Errors without read permission to the channel", func(t *testing.T) {
+		_, res := th.Client.GetChannelMemberCountsByGroup(model.NewId(), false, "")
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
 	t.Run("Returns empty for a channel with no members or groups", func(t *testing.T) {
 		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
 		require.Equal(t, []*model.ChannelMemberCountByGroup{}, memberCounts)

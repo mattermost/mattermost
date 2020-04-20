@@ -1651,6 +1651,11 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
 	channelMemberCounts, err := c.App.Srv().Store.Channel().GetMemberCountsByGroup(c.Params.ChannelId, includeTimezones)
