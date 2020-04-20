@@ -534,6 +534,7 @@ type AppIface interface {
 	GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)

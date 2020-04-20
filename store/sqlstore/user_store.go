@@ -1752,3 +1752,21 @@ func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string
 	autocomplete.OutOfChannel = users
 	return autocomplete, nil
 }
+
+func (us SqlUserStore) GetKnownUsers(userId string) ([]string, *model.AppError) {
+	var userIds []string
+	usersQuery, args, _ := us.getQueryBuilder().
+		Select("DISTINCT ocm.UserId").
+		From("ChannelMembers AS cm").
+		Join("ChannelMembers AS ocm ON ocm.ChannelId = cm.ChannelId").
+		Where(sq.NotEq{"ocm.UserId": userId}).
+		Where(sq.Eq{"cm.UserId": userId}).
+		ToSql()
+	fmt.Println(usersQuery, args)
+	_, err := us.GetSearchReplica().Select(&userIds, usersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetKnownUsers", "store.sql_user.get_known_users.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userIds, nil
+}

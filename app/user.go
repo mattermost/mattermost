@@ -2074,3 +2074,7 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 	message.Add("user", user)
 	a.Publish(message)
 }
+
+func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	return a.Srv().Store.User().GetKnownUsers(userID)
+}
