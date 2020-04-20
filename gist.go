@@ -1,12 +1,12 @@
 package model
 
 // Typed constants
-type ChannelType string
+type channelType string
 
 // CamelCase Constant Names
 const (
-	ChannelTypeOpen    ChannelType = "O"
-	ChannelTypePrivate ChannelType = "P"
+	ChannelTypeOpen    channelType = "O"
+	ChannelTypePrivate channelType = "P"
 )
 
 type Channel struct {
