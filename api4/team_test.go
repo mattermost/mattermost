@@ -447,7 +447,8 @@ func TestRestoreTeam(t *testing.T) {
 		team, _ = Client.CreateTeam(team)
 		require.NotNil(t, team)
 		if deleted {
-			th.SystemAdminClient.SoftDeleteTeam(team.Id)
+			_, resp := th.SystemAdminClient.SoftDeleteTeam(team.Id)
+			CheckOKStatus(t, resp)
 		}
 		return team
 	}
