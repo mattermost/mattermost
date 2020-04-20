@@ -1,6 +1,7 @@
 package model
 
-// Typed constants. Types are not exported as you can still export the values for use in `if` and `switch` statements.
+// Typed constants. Types are not exported as you can still export the values 
+// for use in `if` and `switch` statements.
 type channelType string
 
 // CamelCase Constant Names
