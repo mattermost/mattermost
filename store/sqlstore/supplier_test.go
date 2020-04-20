@@ -4,14 +4,17 @@
 package sqlstore_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestGetReplica(t *testing.T) {
@@ -73,24 +76,10 @@ func TestGetReplica(t *testing.T) {
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
 
-			driverName := model.DATABASE_DRIVER_SQLITE
-			dataSource := ":memory:"
-			maxIdleConns := 1
-			connMaxLifetimeMilliseconds := 3600000
-			maxOpenConns := 1
-			queryTimeout := 5
-
-			settings := model.SqlSettings{
-				DriverName:                  &driverName,
-				DataSource:                  &dataSource,
-				MaxIdleConns:                &maxIdleConns,
-				ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
-				MaxOpenConns:                &maxOpenConns,
-				QueryTimeout:                &queryTimeout,
-				DataSourceReplicas:          testCase.DataSourceReplicas,
-				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
-			}
-			supplier := sqlstore.NewSqlSupplier(settings, nil)
+			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+			settings.DataSourceReplicas = testCase.DataSourceReplicas
+			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -138,6 +127,26 @@ func TestGetReplica(t *testing.T) {
 					assert.Equal(t, supplier.GetMaster(), searchReplica)
 				}
 			}
+		})
+	}
+}
+
+func TestGetDbVersion(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+		model.DATABASE_DRIVER_SQLITE,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run("Should return db version for "+driver, func(t *testing.T) {
+			t.Parallel()
+			settings := makeSqlSettings(driver)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+			version, err := supplier.GetDbVersion()
+			require.Nil(t, err)
+			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
 	}
 }
@@ -210,27 +219,43 @@ func TestGetAllConns(t *testing.T) {
 		testCase := testCase
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
-
-			driverName := model.DATABASE_DRIVER_SQLITE
-			dataSource := ":memory:"
-			maxIdleConns := 1
-			connMaxLifetimeMilliseconds := 3600000
-			maxOpenConns := 1
-			queryTimeout := 5
-
-			settings := model.SqlSettings{
-				DriverName:                  &driverName,
-				DataSource:                  &dataSource,
-				MaxIdleConns:                &maxIdleConns,
-				ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
-				MaxOpenConns:                &maxOpenConns,
-				QueryTimeout:                &queryTimeout,
-				DataSourceReplicas:          testCase.DataSourceReplicas,
-				DataSourceSearchReplicas:    testCase.DataSourceSearchReplicas,
-			}
-			supplier := sqlstore.NewSqlSupplier(settings, nil)
+			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+			settings.DataSourceReplicas = testCase.DataSourceReplicas
+			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
 
 			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
 		})
+	}
+}
+
+func makeSqlSettings(driver string) *model.SqlSettings {
+	switch driver {
+	case model.DATABASE_DRIVER_POSTGRES:
+		return storetest.MakeSqlSettings(driver)
+	case model.DATABASE_DRIVER_MYSQL:
+		return storetest.MakeSqlSettings(driver)
+	case model.DATABASE_DRIVER_SQLITE:
+		return makeSqliteSettings()
+	}
+
+	return nil
+}
+
+func makeSqliteSettings() *model.SqlSettings {
+	driverName := model.DATABASE_DRIVER_SQLITE
+	dataSource := ":memory:"
+	maxIdleConns := 1
+	connMaxLifetimeMilliseconds := 3600000
+	maxOpenConns := 1
+	queryTimeout := 5
+
+	return &model.SqlSettings{
+		DriverName:                  &driverName,
+		DataSource:                  &dataSource,
+		MaxIdleConns:                &maxIdleConns,
+		ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+		MaxOpenConns:                &maxOpenConns,
+		QueryTimeout:                &queryTimeout,
 	}
 }
