@@ -37,14 +37,14 @@ func NewAutoTeamCreator(client *model.Client4) *AutoTeamCreator {
 	}
 }
 
-func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
+func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, error) {
 	var teamEmail string
 	var teamDisplayName string
 	var teamName string
 	if cfg.Fuzzy {
 		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.FuzzName()
-		teamName = utils.FuzzName()
+		teamName = model.NewRandomTeamName()
 	} else {
 		teamEmail = "success+" + model.NewId() + "simulator.amazonses.com"
 		teamDisplayName = utils.RandomName(cfg.NameLength, cfg.NameCharset)
@@ -57,24 +57,24 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	createdTeam, err := cfg.client.CreateTeam(team)
-	if err != nil {
-		return nil, false
+	createdTeam, resp := cfg.client.CreateTeam(team)
+	if resp.Error != nil {
+		return nil, resp.Error
 	}
-	return createdTeam, true
+	return createdTeam, nil
 }
 
-func (cfg *AutoTeamCreator) CreateTestTeams(num utils.Range) ([]*model.Team, bool) {
+func (cfg *AutoTeamCreator) CreateTestTeams(num utils.Range) ([]*model.Team, error) {
 	numTeams := utils.RandIntFromRange(num)
 	teams := make([]*model.Team, numTeams)
 
 	for i := 0; i < numTeams; i++ {
-		var err bool
+		var err error
 		teams[i], err = cfg.createRandomTeam()
-		if !err {
-			return teams, false
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	return teams, true
+	return teams, nil
 }

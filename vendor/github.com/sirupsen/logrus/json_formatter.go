@@ -28,9 +28,6 @@ type JSONFormatter struct {
 	// DisableTimestamp allows disabling automatic timestamps in output
 	DisableTimestamp bool
 
-	// DisableHTMLEscape allows disabling html escaping in output
-	DisableHTMLEscape bool
-
 	// DataKey allows users to put all the log entry parameters into a nested dictionary at a given key.
 	DataKey string
 
@@ -113,7 +110,6 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	}
 
 	encoder := json.NewEncoder(b)
-	encoder.SetEscapeHTML(!f.DisableHTMLEscape)
 	if f.PrettyPrint {
 		encoder.SetIndent("", "  ")
 	}

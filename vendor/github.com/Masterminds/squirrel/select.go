@@ -12,7 +12,7 @@ import (
 type selectData struct {
 	PlaceholderFormat PlaceholderFormat
 	RunWith           BaseRunner
-	Prefixes          []Sqlizer
+	Prefixes          exprs
 	Options           []string
 	Columns           []Sqlizer
 	From              Sqlizer
@@ -20,10 +20,10 @@ type selectData struct {
 	WhereParts        []Sqlizer
 	GroupBys          []string
 	HavingParts       []Sqlizer
-	OrderByParts      []Sqlizer
+	OrderBys          []string
 	Limit             string
 	Offset            string
-	Suffixes          []Sqlizer
+	Suffixes          exprs
 }
 
 func (d *selectData) Exec() (sql.Result, error) {
@@ -74,11 +74,7 @@ func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 	sql := &bytes.Buffer{}
 
 	if len(d.Prefixes) > 0 {
-		args, err = appendToSql(d.Prefixes, sql, " ", args)
-		if err != nil {
-			return
-		}
-
+		args, _ = d.Prefixes.AppendToSql(sql, " ", args)
 		sql.WriteString(" ")
 	}
 
@@ -133,12 +129,9 @@ func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 		}
 	}
 
-	if len(d.OrderByParts) > 0 {
+	if len(d.OrderBys) > 0 {
 		sql.WriteString(" ORDER BY ")
-		args, err = appendToSql(d.OrderByParts, sql, ", ", args)
-		if err != nil {
-			return
-		}
+		sql.WriteString(strings.Join(d.OrderBys, ", "))
 	}
 
 	if len(d.Limit) > 0 {
@@ -153,11 +146,7 @@ func (d *selectData) toSql() (sqlStr string, args []interface{}, err error) {
 
 	if len(d.Suffixes) > 0 {
 		sql.WriteString(" ")
-
-		args, err = appendToSql(d.Suffixes, sql, " ", args)
-		if err != nil {
-			return
-		}
+		args, _ = d.Suffixes.AppendToSql(sql, " ", args)
 	}
 
 	sqlStr = sql.String()
@@ -234,12 +223,7 @@ func (b SelectBuilder) toSqlRaw() (string, []interface{}, error) {
 
 // Prefix adds an expression to the beginning of the query
 func (b SelectBuilder) Prefix(sql string, args ...interface{}) SelectBuilder {
-	return b.PrefixExpr(Expr(sql, args...))
-}
-
-// PrefixExpr adds an expression to the very beginning of the query
-func (b SelectBuilder) PrefixExpr(expr Sqlizer) SelectBuilder {
-	return builder.Append(b, "Prefixes", expr).(SelectBuilder)
+	return builder.Append(b, "Prefixes", Expr(sql, args...)).(SelectBuilder)
 }
 
 // Distinct adds a DISTINCT clause to the query.
@@ -254,7 +238,7 @@ func (b SelectBuilder) Options(options ...string) SelectBuilder {
 
 // Columns adds result columns to the query.
 func (b SelectBuilder) Columns(columns ...string) SelectBuilder {
-	parts := make([]interface{}, 0, len(columns))
+	var parts []interface{}
 	for _, str := range columns {
 		parts = append(parts, newPart(str))
 	}
@@ -276,8 +260,6 @@ func (b SelectBuilder) From(from string) SelectBuilder {
 
 // FromSelect sets a subquery into the FROM clause of the query.
 func (b SelectBuilder) FromSelect(from SelectBuilder, alias string) SelectBuilder {
-	// Prevent misnumbered parameters in nested selects (#183).
-	from = from.PlaceholderFormat(Question)
 	return builder.Set(b, "From", Alias(from, alias)).(SelectBuilder)
 }
 
@@ -340,18 +322,9 @@ func (b SelectBuilder) Having(pred interface{}, rest ...interface{}) SelectBuild
 	return builder.Append(b, "HavingParts", newWherePart(pred, rest...)).(SelectBuilder)
 }
 
-// OrderByClause adds ORDER BY clause to the query.
-func (b SelectBuilder) OrderByClause(pred interface{}, args ...interface{}) SelectBuilder {
-	return builder.Append(b, "OrderByParts", newPart(pred, args...)).(SelectBuilder)
-}
-
 // OrderBy adds ORDER BY expressions to the query.
 func (b SelectBuilder) OrderBy(orderBys ...string) SelectBuilder {
-	for _, orderBy := range orderBys {
-		b = b.OrderByClause(orderBy)
-	}
-
-	return b
+	return builder.Extend(b, "OrderBys", orderBys).(SelectBuilder)
 }
 
 // Limit sets a LIMIT clause on the query.
@@ -369,17 +342,7 @@ func (b SelectBuilder) Offset(offset uint64) SelectBuilder {
 	return builder.Set(b, "Offset", fmt.Sprintf("%d", offset)).(SelectBuilder)
 }
 
-// RemoveOffset removes OFFSET clause.
-func (b SelectBuilder) RemoveOffset() SelectBuilder {
-	return builder.Delete(b, "Offset").(SelectBuilder)
-}
-
 // Suffix adds an expression to the end of the query
 func (b SelectBuilder) Suffix(sql string, args ...interface{}) SelectBuilder {
-	return b.SuffixExpr(Expr(sql, args...))
-}
-
-// SuffixExpr adds an expression to the end of the query
-func (b SelectBuilder) SuffixExpr(expr Sqlizer) SelectBuilder {
-	return builder.Append(b, "Suffixes", expr).(SelectBuilder)
+	return builder.Append(b, "Suffixes", Expr(sql, args...)).(SelectBuilder)
 }

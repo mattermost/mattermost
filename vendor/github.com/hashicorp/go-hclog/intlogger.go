@@ -58,9 +58,9 @@ type intLogger struct {
 	name       string
 	timeFormat string
 
-	// This is an interface so that it's shared by any derived loggers, since
+	// This is a pointer so that it's shared by any derived loggers, since
 	// those derived loggers share the bufio.Writer as well.
-	mutex  Locker
+	mutex  *sync.Mutex
 	writer *writer
 	level  *int32
 

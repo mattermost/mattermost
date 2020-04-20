@@ -351,15 +351,6 @@ func (s *SearchService) TrackScores(trackScores bool) *SearchService {
 	return s
 }
 
-// TrackTotalHits controls if the total hit count for the query should be tracked.
-//
-// See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-request-track-total-hits.html
-// for details.
-func (s *SearchService) TrackTotalHits(trackTotalHits bool) *SearchService {
-	s.searchSource = s.searchSource.TrackTotalHits(trackTotalHits)
-	return s
-}
-
 // SearchAfter allows a different form of pagination by using a live cursor,
 // using the results of the previous page to help the retrieval of the next.
 //

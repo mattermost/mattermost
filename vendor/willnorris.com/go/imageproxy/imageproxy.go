@@ -1,4 +1,4 @@
-// Copyright 2013 Google LLC. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,13 +30,11 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gregjones/httpcache"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	tphttp "willnorris.com/go/imageproxy/third_party/http"
 )
 
@@ -58,10 +56,6 @@ type Proxy struct {
 	// hosts are allowed.
 	Referrers []string
 
-	// IncludeReferer controls whether the original Referer request header
-	// is included in remote requests.
-	IncludeReferer bool
-
 	// DefaultBaseURL is the URL that relative remote URLs are resolved in
 	// reference to.  If nil, all remote URLs specified in requests must be
 	// absolute.
@@ -70,9 +64,8 @@ type Proxy struct {
 	// The Logger used by the image proxy
 	Logger *log.Logger
 
-	// SignatureKeys is a list of HMAC keys used to verify signed requests.
-	// Any of them can be used to verify signed requests.
-	SignatureKeys [][]byte
+	// SignatureKey is the HMAC key used to verify signed requests.
+	SignatureKey []byte
 
 	// Allow images to scale beyond their original dimensions.
 	ScaleUp bool
@@ -139,19 +132,10 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/metrics" {
-		var h http.Handler = promhttp.Handler()
-		h.ServeHTTP(w, r)
-		return
-	}
-
 	var h http.Handler = http.HandlerFunc(p.serveImage)
 	if p.Timeout > 0 {
 		h = tphttp.TimeoutHandler(h, p.Timeout, "Gateway timeout waiting for remote resource.")
 	}
-
-	timer := prometheus.NewTimer(metricRequestDuration)
-	defer timer.ObserveDuration()
 	h.ServeHTTP(w, r)
 }
 
@@ -181,29 +165,20 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 	if len(p.ContentTypes) != 0 {
 		actualReq.Header.Set("Accept", strings.Join(p.ContentTypes, ", "))
 	}
-	if p.IncludeReferer {
-		// pass along the referer header from the original request
-		copyHeader(actualReq.Header, r.Header, "referer")
-	}
 	resp, err := p.Client.Do(actualReq)
 
 	if err != nil {
 		msg := fmt.Sprintf("error fetching remote image: %v", err)
 		p.log(msg)
 		http.Error(w, msg, http.StatusInternalServerError)
-		metricRemoteErrors.Inc()
 		return
 	}
 	// close the original resp.Body, even if we wrap it in a NopCloser below
 	defer resp.Body.Close()
 
-	cached := resp.Header.Get(httpcache.XFromCache) == "1"
+	cached := resp.Header.Get(httpcache.XFromCache)
 	if p.Verbose {
-		p.logf("request: %+v (served from cache: %t)", *actualReq, cached)
-	}
-
-	if cached {
-		metricServedFromCache.Inc()
+		p.logf("request: %+v (served from cache: %t)", *actualReq, cached == "1")
 	}
 
 	copyHeader(w.Header(), resp.Header, "Cache-Control", "Last-Modified", "Expires", "Etag", "Link")
@@ -214,7 +189,7 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	contentType, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-	if contentType == "" || contentType == "application/octet-stream" || contentType == "binary/octet-stream" {
+	if contentType == "" {
 		// try to detect content type
 		b := bufio.NewReader(resp.Body)
 		resp.Body = ioutil.NopCloser(b)
@@ -240,7 +215,7 @@ func (p *Proxy) serveImage(w http.ResponseWriter, r *http.Request) {
 // the content type.  Returns empty string if error occurs.
 func peekContentType(p *bufio.Reader) string {
 	byt, err := p.Peek(512)
-	if err != nil && err != bufio.ErrBufferFull && err != io.EOF {
+	if err != nil && err != bufio.ErrBufferFull {
 		return ""
 	}
 	return http.DetectContentType(byt)
@@ -283,7 +258,7 @@ func (p *Proxy) allowed(r *Request) error {
 		return errDeniedHost
 	}
 
-	if len(p.AllowHosts) == 0 && len(p.SignatureKeys) == 0 {
+	if len(p.AllowHosts) == 0 && len(p.SignatureKey) == 0 {
 		return nil // no allowed hosts or signature key, all requests accepted
 	}
 
@@ -291,10 +266,8 @@ func (p *Proxy) allowed(r *Request) error {
 		return nil
 	}
 
-	for _, signatureKey := range p.SignatureKeys {
-		if len(signatureKey) > 0 && validSignature(signatureKey, r) {
-			return nil
-		}
+	if len(p.SignatureKey) > 0 && validSignature(p.SignatureKey, r) {
+		return nil
 	}
 
 	return errNotAllowed
@@ -307,7 +280,7 @@ func contentTypeMatches(patterns []string, contentType string) bool {
 	}
 
 	for _, pattern := range patterns {
-		if ok, err := path.Match(pattern, contentType); ok && err == nil {
+		if ok, err := filepath.Match(pattern, contentType); ok && err == nil {
 			return true
 		}
 	}
