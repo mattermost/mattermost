@@ -20,9 +20,6 @@ package minio
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
-	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,9 +49,6 @@ type PutObjectOptions struct {
 	StorageClass            string
 	WebsiteRedirectLocation string
 	PartSize                uint64
-	LegalHold               LegalHoldStatus
-	SendContentMd5          bool
-	DisableMultipart        bool
 }
 
 // getNumThreads - gets the number of threads to be used in the multipart
@@ -73,58 +67,48 @@ func (opts PutObjectOptions) getNumThreads() (numThreads int) {
 func (opts PutObjectOptions) Header() (header http.Header) {
 	header = make(http.Header)
 
-	contentType := opts.ContentType
-	if contentType == "" {
-		contentType = "application/octet-stream"
+	if opts.ContentType != "" {
+		header["Content-Type"] = []string{opts.ContentType}
+	} else {
+		header["Content-Type"] = []string{"application/octet-stream"}
 	}
-	header.Set("Content-Type", contentType)
-
 	if opts.ContentEncoding != "" {
-		header.Set("Content-Encoding", opts.ContentEncoding)
+		header["Content-Encoding"] = []string{opts.ContentEncoding}
 	}
 	if opts.ContentDisposition != "" {
-		header.Set("Content-Disposition", opts.ContentDisposition)
+		header["Content-Disposition"] = []string{opts.ContentDisposition}
 	}
 	if opts.ContentLanguage != "" {
-		header.Set("Content-Language", opts.ContentLanguage)
+		header["Content-Language"] = []string{opts.ContentLanguage}
 	}
 	if opts.CacheControl != "" {
-		header.Set("Cache-Control", opts.CacheControl)
+		header["Cache-Control"] = []string{opts.CacheControl}
 	}
 
 	if opts.Mode != nil {
-		header.Set(amzLockMode, opts.Mode.String())
+		header["x-amz-object-lock-mode"] = []string{opts.Mode.String()}
 	}
-
 	if opts.RetainUntilDate != nil {
-		header.Set("X-Amz-Object-Lock-Retain-Until-Date", opts.RetainUntilDate.Format(time.RFC3339))
-	}
-
-	if opts.LegalHold != "" {
-		header.Set(amzLegalHoldHeader, opts.LegalHold.String())
+		header["x-amz-object-lock-retain-until-date"] = []string{opts.RetainUntilDate.Format(time.RFC3339)}
 	}
 
 	if opts.ServerSideEncryption != nil {
 		opts.ServerSideEncryption.Marshal(header)
 	}
-
 	if opts.StorageClass != "" {
-		header.Set(amzStorageClass, opts.StorageClass)
+		header[amzStorageClass] = []string{opts.StorageClass}
 	}
-
 	if opts.WebsiteRedirectLocation != "" {
-		header.Set(amzWebsiteRedirectLocation, opts.WebsiteRedirectLocation)
+		header[amzWebsiteRedirectLocation] = []string{opts.WebsiteRedirectLocation}
 	}
-
 	if len(opts.UserTags) != 0 {
-		header.Set(amzTaggingHeader, s3utils.TagEncode(opts.UserTags))
+		header[amzTaggingHeader] = []string{s3utils.TagEncode(opts.UserTags)}
 	}
-
 	for k, v := range opts.UserMetadata {
 		if !isAmzHeader(k) && !isStandardHeader(k) && !isStorageClassHeader(k) {
-			header.Set("X-Amz-Meta-"+k, v)
+			header["X-Amz-Meta-"+k] = []string{v}
 		} else {
-			header.Set(k, v)
+			header[k] = []string{v}
 		}
 	}
 	return
@@ -144,9 +128,6 @@ func (opts PutObjectOptions) validate() (err error) {
 		if !opts.Mode.IsValid() {
 			return ErrInvalidArgument(opts.Mode.String() + " unsupported retention mode")
 		}
-	}
-	if opts.LegalHold != "" && !opts.LegalHold.IsValid() {
-		return ErrInvalidArgument(opts.LegalHold.String() + " unsupported legal-hold status")
 	}
 	return nil
 }
@@ -172,10 +153,6 @@ func (a completedParts) Less(i, j int) bool { return a[i].PartNumber < a[j].Part
 //    be uploaded through this operation will be 5TiB.
 func (c Client) PutObject(bucketName, objectName string, reader io.Reader, objectSize int64,
 	opts PutObjectOptions) (n int64, err error) {
-	if objectSize < 0 && opts.DisableMultipart {
-		return 0, errors.New("object size must be provided with disable multipart upload")
-	}
-
 	return c.PutObjectWithContext(context.Background(), bucketName, objectName, reader, objectSize, opts)
 }
 
@@ -187,7 +164,8 @@ func (c Client) putObjectCommon(ctx context.Context, bucketName, objectName stri
 
 	// NOTE: Streaming signature is not supported by GCS.
 	if s3utils.IsGoogleEndpoint(*c.endpointURL) {
-		return c.putObject(ctx, bucketName, objectName, reader, size, opts)
+		// Do not compute MD5 for Google Cloud Storage.
+		return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
 	}
 
 	partSize := opts.PartSize
@@ -196,8 +174,8 @@ func (c Client) putObjectCommon(ctx context.Context, bucketName, objectName stri
 	}
 
 	if c.overrideSignerType.IsV2() {
-		if size >= 0 && size < int64(partSize) || opts.DisableMultipart {
-			return c.putObject(ctx, bucketName, objectName, reader, size, opts)
+		if size >= 0 && size < int64(partSize) {
+			return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
 		}
 		return c.putObjectMultipart(ctx, bucketName, objectName, reader, size, opts)
 	}
@@ -205,10 +183,11 @@ func (c Client) putObjectCommon(ctx context.Context, bucketName, objectName stri
 		return c.putObjectMultipartStreamNoLength(ctx, bucketName, objectName, reader, opts)
 	}
 
-	if size < int64(partSize) || opts.DisableMultipart {
-		return c.putObject(ctx, bucketName, objectName, reader, size, opts)
+	if size < int64(partSize) {
+		return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
 	}
 
+	// For all sizes greater than 128MiB do multipart.
 	return c.putObjectMultipartStream(ctx, bucketName, objectName, reader, size, opts)
 }
 
@@ -264,21 +243,13 @@ func (c Client) putObjectMultipartStreamNoLength(ctx context.Context, bucketName
 			return 0, rerr
 		}
 
-		var md5Base64 string
-		if opts.SendContentMd5 {
-			// Calculate md5sum.
-			hash := md5.New()
-			hash.Write(buf[:length])
-			md5Base64 = base64.StdEncoding.EncodeToString(hash.Sum(nil))
-		}
-
 		// Update progress reader appropriately to the latest offset
 		// as we read from the source.
 		rd := newHook(bytes.NewReader(buf[:length]), opts.Progress)
 
 		// Proceed to upload the part.
 		objPart, uerr := c.uploadPart(ctx, bucketName, objectName, uploadID, rd, partNumber,
-			md5Base64, "", int64(length), opts.ServerSideEncryption)
+			"", "", int64(length), opts.ServerSideEncryption)
 		if uerr != nil {
 			return totalUploadedSize, uerr
 		}

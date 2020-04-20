@@ -55,7 +55,7 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize         = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize         = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 	ImageThumbnailWidth  = 120
 	ImageThumbnailHeight = 100
 	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
@@ -728,7 +728,10 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Height = config.Height
 
 	// Check dimensions before loading the whole thing into memory later on.
-	if t.fileinfo.Width*t.fileinfo.Height > MaxImageSize {
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
 			"", http.StatusBadRequest)
 	}
@@ -911,7 +914,10 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 
 	if info.IsImage() {
 		// Check dimensions before loading the whole thing into memory later on
-		if info.Width*info.Height > MaxImageSize {
+		// This casting is done to prevent overflow on 32 bit systems (not needed
+		// in 64 bits systems because images can't have more than 32 bits height or
+		// width)
+		if int64(info.Width)*int64(info.Height) > MaxImageSize {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, data, err
 		}

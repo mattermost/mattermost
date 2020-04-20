@@ -1,7 +1,7 @@
 # imageproxy
 
-[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/willnorris.com/go/imageproxy)
-[![Test Status](https://github.com/willnorris/imageproxy/workflows/tests/badge.svg)](https://github.com/willnorris/imageproxy/actions?query=workflow%3Atests)
+[![GoDoc](https://godoc.org/willnorris.com/go/imageproxy?status.svg)](https://godoc.org/willnorris.com/go/imageproxy)
+[![Build Status](https://travis-ci.org/willnorris/imageproxy.svg?branch=master)](https://travis-ci.org/willnorris/imageproxy)
 [![Test Coverage](https://codecov.io/gh/willnorris/imageproxy/branch/master/graph/badge.svg)](https://codecov.io/gh/willnorris/imageproxy)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2611/badge)](https://bestpractices.coreinfrastructure.org/projects/2611)
 
@@ -235,7 +235,7 @@ which contains the HMAC key.
 
 Try it out by running:
 
-    imageproxy -signatureKey "secretkey"
+    imageproxy -signatureKey "secret key"
 
 Reload the [codercat URL][], and you should see an error message.  Now load a
 [signed codercat URL][] (which contains the [signature option][]) and verify
@@ -245,11 +245,7 @@ that it loads properly.
 [signature option]: https://godoc.org/willnorris.com/go/imageproxy#hdr-Signature
 
 Some simple code samples for generating signatures in various languages can be
-found in [docs/url-signing.md](/docs/url-signing.md).  Multiple valid signature
-keys may be provided to support key rotation by repeating the `signatureKey`
-flag multiple times, or by providing a space-separated list of keys.  To use a
-key with a literal space character, load the key from a file using the "@"
-prefix documented above.
+found in [docs/url-signing.md](/docs/url-signing.md).
 
 If both a whiltelist and signatureKey are specified, requests can match either.
 In other words, requests that match one of the allowed hosts don't necessarily
@@ -307,7 +303,8 @@ All configuration flags have equivalent environment variables of the form
 ## Deploying ##
 
 In most cases, you can follow the normal procedure for building a deploying any
-go application.  For example:
+go application.  For example, I build it directly on my production debian server
+using:
 
  - `go build willnorris.com/go/imageproxy/cmd/imageproxy`
  - copy resulting binary to `/usr/local/bin`
@@ -334,13 +331,8 @@ docker run -p 8080:8080 willnorris/imageproxy -addr 0.0.0.0:8080
 Or in your Dockerfile:
 
 ```
-ENTRYPOINT ["/app/imageproxy", "-addr 0.0.0.0:8080"]
+ENTRYPOINT ["/go/bin/imageproxy", "-addr 0.0.0.0:8080"]
 ```
-
-If running imageproxy inside docker with a bind-mounted on-disk cache, make sure
-the container is running as a user that has write permission to the mounted host
-directory.  See more details in
-[#198](https://github.com/willnorris/imageproxy/issues/198).
 
 ### nginx ###
 

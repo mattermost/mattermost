@@ -1,0 +1,24 @@
+language: go
+
+go:
+  - "1.x"
+  - "1.11.x"
+
+go_import_path: willnorris.com/go/imageproxy
+
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
+env:
+  global:
+    - GO111MODULE=on
+
+script:
+  - diff -u <(echo -n) <(gofmt -d -s .)
+  - go vet ./...
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
