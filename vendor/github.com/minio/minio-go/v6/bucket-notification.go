@@ -81,7 +81,7 @@ func NewArn(partition, service, region, accountID, resource string) Arn {
 		Resource:  resource}
 }
 
-// String returns the string format of the ARN
+// Return the string format of the ARN
 func (arn Arn) String() string {
 	return "arn:" + arn.Partition + ":" + arn.Service + ":" + arn.Region + ":" + arn.AccountID + ":" + arn.Resource
 }
