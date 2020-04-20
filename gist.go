@@ -32,6 +32,10 @@ func (channel *Channel) ID() string {
 	return channel.id
 }
 
+func (channel *Channel) Name() string {
+	return channel.name
+}
+
 // Returning `interface{}` feels gross. Can we do better than this?
 func (channel *Channel) GetProp(key string) interface{} {
 	return channel.props[key]
