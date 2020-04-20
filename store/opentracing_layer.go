@@ -383,7 +383,7 @@ func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -393,15 +393,10 @@ func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*mod
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -411,15 +406,10 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.GetAll(options)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) *model.AppError {
+func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -429,15 +419,10 @@ func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) *model.AppErro
 
 	defer span.Finish()
 	resultVar0 := s.BotStore.PermanentDelete(userId)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0
 }
 
-func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -447,15 +432,10 @@ func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppE
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Save(bot)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Update")
 	s.Root.Store.SetContext(newCtx)
@@ -465,11 +445,6 @@ func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.Ap
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Update(bot)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
 	return resultVar0, resultVar1
 }
 

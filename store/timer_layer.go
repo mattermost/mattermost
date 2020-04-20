@@ -377,7 +377,7 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
@@ -385,7 +385,7 @@ func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if true {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.Get", success, elapsed)
@@ -393,7 +393,7 @@ func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.GetAll(options)
@@ -401,7 +401,7 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if true {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.GetAll", success, elapsed)
@@ -409,7 +409,7 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) PermanentDelete(userId string) *model.AppError {
+func (s *TimerLayerBotStore) PermanentDelete(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.BotStore.PermanentDelete(userId)
@@ -417,7 +417,7 @@ func (s *TimerLayerBotStore) PermanentDelete(userId string) *model.AppError {
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar0 == nil {
+		if true {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.PermanentDelete", success, elapsed)
@@ -425,7 +425,7 @@ func (s *TimerLayerBotStore) PermanentDelete(userId string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Save(bot)
@@ -433,7 +433,7 @@ func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if true {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.Save", success, elapsed)
@@ -441,7 +441,7 @@ func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Update(bot)
@@ -449,7 +449,7 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if true {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("BotStore.Update", success, elapsed)

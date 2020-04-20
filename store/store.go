@@ -333,11 +333,11 @@ type UserStore interface {
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
-	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
-	Save(bot *model.Bot) (*model.Bot, *model.AppError)
-	Update(bot *model.Bot) (*model.Bot, *model.AppError)
-	PermanentDelete(userId string) *model.AppError
+	Get(userId string, includeDeleted bool) (*model.Bot, error)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	Save(bot *model.Bot) (*model.Bot, error)
+	Update(bot *model.Bot) (*model.Bot, error)
+	PermanentDelete(userId string) error
 }
 
 type SessionStore interface {

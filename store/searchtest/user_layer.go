@@ -54,12 +54,12 @@ func testSearchDatabaseUserSearch(t *testing.T, s store.Store) {
 	_, err = s.User().Save(u3)
 	require.Nil(t, err)
 	defer func() { require.Nil(t, s.User().PermanentDelete(u3.Id)) }()
-	_, err = s.Bot().Save(&model.Bot{
+	_, nErr := s.Bot().Save(&model.Bot{
 		UserId:   u3.Id,
 		Username: u3.Username,
 		OwnerId:  u1.Id,
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	u3.IsBot = true
 	defer func() { require.Nil(t, s.Bot().PermanentDelete(u3.Id)) }()
 
