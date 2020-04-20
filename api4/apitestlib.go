@@ -55,6 +55,8 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 	tempWorkspace     string
 
+	LocalClient *model.Client4
+
 	IncludeCacheLayer bool
 }
 
@@ -78,6 +80,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	config := memoryStore.Get()
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	if updateConfig != nil {
 		updateConfig(config)
 	}
@@ -118,13 +122,16 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := th.Server.Start()
-	if serverErr != nil {
-		panic(serverErr)
+	if err := th.Server.Start(); err != nil {
+		panic(err)
+	}
+	if err := th.Server.StartLocalModeServer(); err != nil {
+		panic(err)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
 	th.App.DoAppMigrations()
@@ -148,6 +155,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
+
+	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
@@ -341,6 +350,22 @@ func (me *TestHelper) waitForConnectivity() {
 
 func (me *TestHelper) CreateClient() *model.Client4 {
 	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv().ListenAddr.Port))
+}
+
+// ToDo: maybe move this to NewAPIv4SocketClient and reuse it in mmctl
+func (me *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return net.Dial("unix", socketPath)
+			},
+		},
+	}
+
+	return &model.Client4{
+		ApiUrl: "http://_" + model.API_URL_SUFFIX,
+		HttpClient: httpClient,
+	}
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
