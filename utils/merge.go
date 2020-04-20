@@ -6,10 +6,12 @@ package utils
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 // StructFieldFilter defines a callback function used to decide if a patch value should be applied.
-type StructFieldFilter func(structField reflect.StructField, base reflect.Value, patch reflect.Value) bool
+type StructFieldFilter func(structField reflect.StructField, base reflect.Value, patch reflect.Value, parentTypeName string) bool
 
 // MergeConfig allows for optional merge customizations.
 type MergeConfig struct {
@@ -54,8 +56,9 @@ func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (inter
 	}
 
 	ret := reflect.New(commonType)
+	mlog.Info("Merge", mlog.String("commonTypeName", commonType.Name()))
 
-	val, ok := merge(baseVal, patchVal, mergeConfig)
+	val, ok := merge(baseVal, patchVal, mergeConfig, "")
 	if ok {
 		ret.Elem().Set(val)
 	}
@@ -63,7 +66,7 @@ func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (inter
 }
 
 // merge recursively merges patch into base and returns the new struct, ptr, slice/map, or value
-func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, bool) {
+func merge(base, patch reflect.Value, mergeConfig *MergeConfig, parentTypeName string) (reflect.Value, bool) {
 	commonType := base.Type()
 
 	switch commonType.Kind() {
@@ -74,12 +77,13 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 				continue
 			}
 			if mergeConfig != nil && mergeConfig.StructFieldFilter != nil {
-				if !mergeConfig.StructFieldFilter(commonType.Field(i), base.Field(i), patch.Field(i)) {
+				if !mergeConfig.StructFieldFilter(commonType.Field(i), base.Field(i), patch.Field(i), parentTypeName) {
 					merged.Field(i).Set(base.Field(i))
 					continue
 				}
 			}
-			val, ok := merge(base.Field(i), patch.Field(i), mergeConfig)
+			//mlog.Debug("merge", mlog.String("parentTypeName", parentTypeName), mlog.String("commonTypeName", commonType.Field(i).Name))
+			val, ok := merge(base.Field(i), patch.Field(i), mergeConfig, commonType.Field(i).Name)
 			if ok {
 				merged.Field(i).Set(val)
 			}
@@ -94,13 +98,13 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 
 		// clone reference values (if any)
 		if base.IsNil() {
-			val, _ := merge(patch.Elem(), patch.Elem(), mergeConfig)
+			val, _ := merge(patch.Elem(), patch.Elem(), mergeConfig, "")
 			mergedPtr.Elem().Set(val)
 		} else if patch.IsNil() {
-			val, _ := merge(base.Elem(), base.Elem(), mergeConfig)
+			val, _ := merge(base.Elem(), base.Elem(), mergeConfig, "")
 			mergedPtr.Elem().Set(val)
 		} else {
-			val, _ := merge(base.Elem(), patch.Elem(), mergeConfig)
+			val, _ := merge(base.Elem(), patch.Elem(), mergeConfig, "")
 			mergedPtr.Elem().Set(val)
 		}
 		return mergedPtr, true
@@ -114,7 +118,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 			merged := reflect.MakeSlice(commonType, 0, patch.Len())
 			for i := 0; i < patch.Len(); i++ {
 				// recursively merge patch with itself. This will clone reference values.
-				val, _ := merge(patch.Index(i), patch.Index(i), mergeConfig)
+				val, _ := merge(patch.Index(i), patch.Index(i), mergeConfig, "")
 				merged = reflect.Append(merged, val)
 			}
 			return merged, true
@@ -124,7 +128,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		for i := 0; i < base.Len(); i++ {
 
 			// recursively merge base with itself. This will clone reference values.
-			val, _ := merge(base.Index(i), base.Index(i), mergeConfig)
+			val, _ := merge(base.Index(i), base.Index(i), mergeConfig, "")
 			merged = reflect.Append(merged, val)
 		}
 		return merged, true
@@ -144,7 +148,7 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 		}
 		for _, key := range mapPtr.MapKeys() {
 			// clone reference values
-			val, ok := merge(mapPtr.MapIndex(key), mapPtr.MapIndex(key), mergeConfig)
+			val, ok := merge(mapPtr.MapIndex(key), mapPtr.MapIndex(key), mergeConfig, "")
 			if !ok {
 				val = reflect.New(mapPtr.MapIndex(key).Type()).Elem()
 			}
@@ -160,11 +164,11 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, 
 
 		// clone reference values (if any)
 		if base.IsNil() {
-			val, _ = merge(patch.Elem(), patch.Elem(), mergeConfig)
+			val, _ = merge(patch.Elem(), patch.Elem(), mergeConfig, "")
 		} else if patch.IsNil() {
-			val, _ = merge(base.Elem(), base.Elem(), mergeConfig)
+			val, _ = merge(base.Elem(), base.Elem(), mergeConfig, "")
 		} else {
-			val, _ = merge(base.Elem(), patch.Elem(), mergeConfig)
+			val, _ = merge(base.Elem(), patch.Elem(), mergeConfig, "")
 		}
 		return val, true
 

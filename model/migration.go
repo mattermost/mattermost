@@ -17,4 +17,5 @@ const (
 	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
 	MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS             = "channel_moderations_permissions"
 	MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION           = "add_use_group_mentions_permission"
+	MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSION               = "add_system_console_permission"
 )

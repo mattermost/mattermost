@@ -93,6 +93,51 @@ var PERMISSION_DEMOTE_TO_GUEST *Permission
 var PERMISSION_USE_CHANNEL_MENTIONS *Permission
 var PERMISSION_USE_GROUP_MENTIONS *Permission
 
+var PERMISSION_READ_SYSCONSOLE_ABOUT *Permission
+var PERMISSION_WRITE_SYSCONSOLE_ABOUT *Permission
+
+var PERMISSION_READ_SYSCONSOLE_REPORTING *Permission
+var PERMISSION_WRITE_SYSCONSOLE_REPORTING *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_ENVIRONMENT *Permission
+var PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT *Permission
+
+var PERMISSION_READ_SYSCONSOLE_SITE *Permission
+var PERMISSION_WRITE_SYSCONSOLE_SITE *Permission
+
+var PERMISSION_READ_SYSCONSOLE_AUTHENTICATION *Permission
+var PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION *Permission
+
+var PERMISSION_READ_SYSCONSOLE_PLUGINS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_PLUGINS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_INTEGRATIONS *Permission
+var PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS *Permission
+
+var PERMISSION_READ_SYSCONSOLE_COMPLIANCE *Permission
+var PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE *Permission
+
+var PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL *Permission
+var PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL *Permission
+
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
 // admin functions but not others
@@ -575,6 +620,199 @@ func initializePermissions() {
 		PERMISSION_SCOPE_CHANNEL,
 	}
 
+	PERMISSION_READ_SYSCONSOLE_ABOUT = &Permission{
+		"read_sysconsole_about",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_ABOUT = &Permission{
+		"write_sysconsole_about",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_REPORTING = &Permission{
+		"read_sysconsole_reporting",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_REPORTING = &Permission{
+		"write_sysconsole_reporting",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT = &Permission{
+		"read_sysconsole_user_management",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT = &Permission{
+		"write_sysconsole_user_management",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS = &Permission{
+		"read_sysconsole_user_management_users",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS = &Permission{
+		"write_sysconsole_user_management_users",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS = &Permission{
+		"read_sysconsole_user_management_groups",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS = &Permission{
+		"write_sysconsole_user_management_groups",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS = &Permission{
+		"read_sysconsole_user_management_teams",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS = &Permission{
+		"write_sysconsole_user_management_teams",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS = &Permission{
+		"read_sysconsole_user_management_channels",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS = &Permission{
+		"write_sysconsole_user_management_channels",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS = &Permission{
+		"read_sysconsole_user_management_permissions",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS = &Permission{
+		"write_sysconsole_user_management_permissions",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_ENVIRONMENT = &Permission{
+		"read_sysconsole_environment",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT = &Permission{
+		"write_sysconsole_environment",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_SITE = &Permission{
+		"read_sysconsole_site",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_SITE = &Permission{
+		"write_sysconsole_site",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_AUTHENTICATION = &Permission{
+		"read_sysconsole_authentication",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION = &Permission{
+		"write_sysconsole_authentication",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_PLUGINS = &Permission{
+		"read_sysconsole_plugins",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_PLUGINS = &Permission{
+		"write_sysconsole_plugins",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_INTEGRATIONS = &Permission{
+		"read_sysconsole_integrations",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS = &Permission{
+		"write_sysconsole_integrations",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_COMPLIANCE = &Permission{
+		"read_sysconsole_compliance",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE = &Permission{
+		"write_sysconsole_compliance",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_PLUGINS = &Permission{
+		"read_sysconsole_plugins",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_PLUGINS = &Permission{
+		"write_sysconsole_plugins",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL = &Permission{
+		"read_sysconsole_experimental",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL = &Permission{
+		"write_sysconsole_experimental",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+
 	ALL_PERMISSIONS = []*Permission{
 		PERMISSION_INVITE_USER,
 		PERMISSION_ADD_USER_TO_TEAM,
@@ -652,6 +890,36 @@ func initializePermissions() {
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_USE_CHANNEL_MENTIONS,
 		PERMISSION_USE_GROUP_MENTIONS,
+		PERMISSION_READ_SYSCONSOLE_ABOUT,
+		PERMISSION_WRITE_SYSCONSOLE_ABOUT,
+		PERMISSION_READ_SYSCONSOLE_REPORTING,
+		PERMISSION_WRITE_SYSCONSOLE_REPORTING,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
+		PERMISSION_READ_SYSCONSOLE_ENVIRONMENT,
+		PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT,
+		PERMISSION_READ_SYSCONSOLE_SITE,
+		PERMISSION_WRITE_SYSCONSOLE_SITE,
+		PERMISSION_READ_SYSCONSOLE_AUTHENTICATION,
+		PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
+		PERMISSION_READ_SYSCONSOLE_PLUGINS,
+		PERMISSION_WRITE_SYSCONSOLE_PLUGINS,
+		PERMISSION_READ_SYSCONSOLE_INTEGRATIONS,
+		PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS,
+		PERMISSION_READ_SYSCONSOLE_COMPLIANCE,
+		PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE,
+		PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL,
+		PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL,
 	}
 
 	CHANNEL_MODERATED_PERMISSIONS = []string{
