@@ -696,6 +696,10 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	return group
 }
 
+// TestForSystemAdminAndLocal runs a test function for both
+// SystemAdmin and Local clients. Several endpoints work in the same
+// way when used by a fully privileged user and through the local
+// mode, so this helper facilitates checking both
 func (me *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T, *model.Client4)) {
 	t.Run("SystemAdminClient", func(t *testing.T) {
 		f(t, me.SystemAdminClient)
