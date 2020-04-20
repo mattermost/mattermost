@@ -4399,6 +4399,10 @@
     "translation": "Unable to run migration job due to unknown migration key."
   },
   {
+    "id": "migrations.worker.run_sidebar_categories_phase_1_migration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
+  },
+  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token."
   },
@@ -5691,6 +5695,18 @@
     "translation": "Missing TO address."
   },
   {
+    "id": "sidebar.category.channels",
+    "translation": "Channels"
+  },
+  {
+    "id": "sidebar.category.dm",
+    "translation": "DM"
+  },
+  {
+    "id": "sidebar.category.favorites",
+    "translation": "Favorites"
+  },
+  {
     "id": "store.insert_error",
     "translation": "insert error"
   },
@@ -5761,6 +5777,14 @@
   {
     "id": "store.sql_bot.update.updating.app_error",
     "translation": "We encountered an error updating the bot."
+  },
+  {
+    "id": "store.sql_channel.MigrateSidebarCategories.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
+  },
+  {
+    "id": "store.sql_channel.MigrateSidebarCategories.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5919,6 +5943,10 @@
     "translation": "Unable to increment the mention count."
   },
   {
+    "id": "store.sql_channel.migrate_categories.select.app_error",
+    "translation": "Failed to perform database query."
+  },
+  {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction."
   },
@@ -5933,6 +5961,38 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
+  },
+  {
+    "id": "store.sql_channel.migrate_channels_sidebar.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
+  },
+  {
+    "id": "store.sql_channel.migrate_channels_sidebar.select.app_error",
+    "translation": "Failed to build query."
+  },
+  {
+    "id": "store.sql_channel.migrate_dms.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
+  },
+  {
+    "id": "store.sql_channel.migrate_dms.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
+  },
+  {
+    "id": "store.sql_channel.migrate_dms.select.app_error",
+    "translation": "Failed to build query."
+  },
+  {
+    "id": "store.sql_channel.migrate_favorites.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
+  },
+  {
+    "id": "store.sql_channel.migrate_favorites.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
+  },
+  {
+    "id": "store.sql_channel.migrate_favorites.select.app_error",
+    "translation": "Failed to build query."
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
@@ -6101,6 +6161,14 @@
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
     "translation": "Unable to update the materialized public channel."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
   },
   {
     "id": "store.sql_channel.update.app_error",

@@ -8,6 +8,7 @@ package store
 import (
 	"context"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -204,7 +205,7 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
 	MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId string) (map[string]string, *model.AppError)
-	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]string, *model.AppError)
+	MigrateSidebarCategories(fromTeamId, fromUserId string, T goi18n.TranslateFunc) (map[string]string, *model.AppError)
 	MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError)
 	MigrateChannelsToSidebarChannels(lastChannelId, lastUserId string) (map[string]string, *model.AppError)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)

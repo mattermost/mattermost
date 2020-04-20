@@ -87,7 +87,7 @@ func (worker *Worker) runSidebarCategoriesPhase1Migration(lastDone string) (bool
 	var nextStep ProgressStep
 	switch progress.CurrentStep {
 	case STEP_CATEGORIES:
-		result, err = worker.app.Srv().Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId)
+		result, err = worker.app.Srv().Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId, worker.app.GetT())
 		nextStep = STEP_FAVORITES
 	case STEP_CHANNELS:
 		result, err = worker.app.Srv().Store.Channel().MigrateChannelsToSidebarChannels(progress.LastChannelId, progress.LastUserId)
