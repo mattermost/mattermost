@@ -340,6 +340,19 @@ func TestRudderDiagnostics(t *testing.T) {
 		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
 	}
 
+	collectInfo := func(info *[]string) {
+		t.Helper()
+		for {
+			select {
+			case result := <-data:
+				assertPayload(t, result, "", nil)
+				*info = append(*info, result.Batch[0].Event)
+			case <-time.After(time.Second * 1):
+				return
+			}
+		}
+	}
+
 	// Should send a client identify message
 	select {
 	case identifyMessage := <-data:
@@ -369,18 +382,9 @@ func TestRudderDiagnostics(t *testing.T) {
 
 		var info []string
 		// Collect the info sent.
-	Loop:
-		for {
-			select {
-			case result := <-data:
-				assertPayload(t, result, "", nil)
-				info = append(info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
-				break Loop
-			}
-		}
+		collectInfo(&info)
 
-		expected := []string{
+		for _, item := range []string{
 			TRACK_CONFIG_SERVICE,
 			TRACK_CONFIG_TEAM,
 			TRACK_CONFIG_SQL,
@@ -407,8 +411,9 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			// TRACK_PLUGINS,
+		} {
+			require.Contains(t, info, item)
 		}
-		require.ElementsMatch(t, info, expected)
 	})
 
 	// Enable plugins for the remainder of the tests.
@@ -419,18 +424,9 @@ func TestRudderDiagnostics(t *testing.T) {
 
 		var info []string
 		// Collect the info sent.
-	Loop:
-		for {
-			select {
-			case result := <-data:
-				assertPayload(t, result, "", nil)
-				info = append(info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
-				break Loop
-			}
-		}
+		collectInfo(&info)
 
-		expected := []string{
+		for _, item := range []string{
 			TRACK_CONFIG_SERVICE,
 			TRACK_CONFIG_TEAM,
 			TRACK_CONFIG_SQL,
@@ -457,8 +453,9 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			TRACK_PLUGINS,
+		} {
+			require.Contains(t, info, item)
 		}
-		require.ElementsMatch(t, info, expected)
 	})
 
 	t.Run("SendDailyDiagnosticsNoRudderKey", func(t *testing.T) {
