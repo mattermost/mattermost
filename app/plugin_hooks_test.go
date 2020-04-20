@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -1136,13 +1137,9 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	var mockAPI plugintest.API
-	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-	mockAPI.On("LogDebug", model.PluginStateNotRunning).Return(nil)
-
-	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
-		[]string{
-			`
+	// plugin1 exists only so we can enable/disable and verify that the OnPluginStatusesChanged
+	// hook gets called relative to plugin2.
+	plugin1 := `
 		package main
 
 		import (
@@ -1153,28 +1150,89 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) OnPluginStatusesChanged(c *plugin.Context) {
-			p.API.GetPluginStatuses()
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+
+	// plugin2 listens for the new OnPluginStatusesChanged hook and broadcasts on a condition
+	// variable. We use this construct instead of a channel since OnPluginStatusesChanged will
+	// be called multiple times on startup.
+	plugin2 := `
+		package main
+
+		import (
+			"sync"
+			"net/http"
+
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+
+			lock sync.Mutex
+			cond *sync.Cond
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			p.cond = sync.NewCond(&p.lock)
+
+			return nil
+		}
+
+		func (p *MyPlugin) OnDeactivate() error {
+			p.cond.Broadcast()
+
+			return nil
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			p.lock.Lock()
+			defer p.lock.Unlock()
+
+			p.API.LogDebug("ServeHTTP blocking until OnPluginStatusesChanged")
+			p.cond.Wait()
+		}
+
+		func (p *MyPlugin) OnPluginStatusesChanged(c *plugin.Context) error {
+			p.API.LogDebug("OnPluginStatusesChanged signalling waiters")
+			p.cond.Broadcast()
+
+			return nil
 		}
 
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`
+
+	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(
+		t,
+		[]string{plugin1, plugin2},
+		th.App,
+		th.App.NewPluginAPI,
+	)
 	defer tearDown()
 
-	require.Len(t, pluginIds, 1)
-	pluginId := pluginIds[0]
+	// Make an HTTP request to plugin2, itself blocking until OnPluginStatusesChanged.
+	done := make(chan bool)
+	go func() {
+		defer close(done)
+		_, err := http.Get(fmt.Sprintf("http://%s/plugins/%s", th.Server.ListenAddr, pluginIds[1]))
+		require.NoError(t, err)
+	}()
 
-	pluginStatusesInitial, err := th.App.GetPluginStatuses()
-	require.Nil(t, err)
+	// Give the goroutine above time to block.
+	time.Sleep(1 * time.Second)
 
-	require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
-	require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+	// Disable plugin1, triggering OnPluginStatusesChanged.
+	th.App.Config().PluginSettings.PluginStates[pluginIds[0]].Enable = false
+	th.App.SyncPluginsActiveState()
 
-	pluginStatusesChanged, err := th.App.GetPluginStatuses()
-
-	require.Nil(t, err)
-	require.Equal(t, pluginStatusesInitial[0].PluginId, pluginStatusesChanged[0].PluginId)
-	require.NotEqual(t, pluginStatusesInitial[0].State, pluginStatusesChanged[0].State)
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "OnPluginStatusesChanged not triggered within 5 seconds")
+	}
 }
