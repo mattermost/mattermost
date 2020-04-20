@@ -198,5 +198,7 @@ type Hooks interface {
 	// No payload is included, making it the responsibility of the plugin to fetch the plugin statuses using the
 	// API. This approach avoids race conditions from concurrent status changes. Consider a backoff strategy
 	// to avoid making multiple requests early during server startup.
+	//
+	// Minimum server version: 5.24
 	OnPluginStatusesChanged(c *Context) error
 }
