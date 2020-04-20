@@ -26,7 +26,7 @@ type Channel struct {
 
 // Getters to access the member variables are provided. These *never* return pointers.
 // Correct capitalisation of initialisms
-func (channel *Channel) GetID() string {
+func (channel *Channel) ID() string {
 	return channel.id
 }
 
