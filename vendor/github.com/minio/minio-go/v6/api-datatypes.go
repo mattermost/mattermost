@@ -82,9 +82,6 @@ type ObjectInfo struct {
 	// x-amz-meta-* headers stripped "x-amz-meta-" prefix containing the first value.
 	UserMetadata StringMap `json:"userMetadata"`
 
-	// x-amz-tagging values in their k/v values.
-	UserTags map[string]string `json:"userTags"`
-
 	// Owner name.
 	Owner struct {
 		DisplayName string `json:"name"`

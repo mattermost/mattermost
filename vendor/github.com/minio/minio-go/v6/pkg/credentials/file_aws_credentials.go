@@ -36,12 +36,12 @@ type FileAWSCredentials struct {
 	// env value is empty will default to current user's home directory.
 	// Linux/OSX: "$HOME/.aws/credentials"
 	// Windows:   "%USERPROFILE%\.aws\credentials"
-	Filename string
+	filename string
 
 	// AWS Profile to extract credentials from the shared credentials file. If empty
 	// will default to environment variable "AWS_PROFILE" or "default" if
 	// environment variable is also not set.
-	Profile string
+	profile string
 
 	// retrieved states if the credentials have been successfully retrieved.
 	retrieved bool
@@ -51,34 +51,34 @@ type FileAWSCredentials struct {
 // wrapping the Profile file provider.
 func NewFileAWSCredentials(filename string, profile string) *Credentials {
 	return New(&FileAWSCredentials{
-		Filename: filename,
-		Profile:  profile,
+		filename: filename,
+		profile:  profile,
 	})
 }
 
 // Retrieve reads and extracts the shared credentials from the current
 // users home directory.
 func (p *FileAWSCredentials) Retrieve() (Value, error) {
-	if p.Filename == "" {
-		p.Filename = os.Getenv("AWS_SHARED_CREDENTIALS_FILE")
-		if p.Filename == "" {
+	if p.filename == "" {
+		p.filename = os.Getenv("AWS_SHARED_CREDENTIALS_FILE")
+		if p.filename == "" {
 			homeDir, err := homedir.Dir()
 			if err != nil {
 				return Value{}, err
 			}
-			p.Filename = filepath.Join(homeDir, ".aws", "credentials")
+			p.filename = filepath.Join(homeDir, ".aws", "credentials")
 		}
 	}
-	if p.Profile == "" {
-		p.Profile = os.Getenv("AWS_PROFILE")
-		if p.Profile == "" {
-			p.Profile = "default"
+	if p.profile == "" {
+		p.profile = os.Getenv("AWS_PROFILE")
+		if p.profile == "" {
+			p.profile = "default"
 		}
 	}
 
 	p.retrieved = false
 
-	iniProfile, err := loadProfile(p.Filename, p.Profile)
+	iniProfile, err := loadProfile(p.filename, p.profile)
 	if err != nil {
 		return Value{}, err
 	}

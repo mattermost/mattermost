@@ -258,13 +258,13 @@ func setWithProperType(t reflect.Type, key *Key, field reflect.Value, delim stri
 	case reflect.Slice:
 		return setSliceWithProperType(key, field, delim, allowShadow, isStrict)
 	default:
-		return fmt.Errorf("unsupported type %q", t)
+		return fmt.Errorf("unsupported type '%s'", t)
 	}
 	return nil
 }
 
-func parseTagOptions(tag string) (rawName string, omitEmpty bool, allowShadow bool, allowNonUnique bool) {
-	opts := strings.SplitN(tag, ",", 4)
+func parseTagOptions(tag string) (rawName string, omitEmpty bool, allowShadow bool) {
+	opts := strings.SplitN(tag, ",", 3)
 	rawName = opts[0]
 	if len(opts) > 1 {
 		omitEmpty = opts[1] == "omitempty"
@@ -272,13 +272,10 @@ func parseTagOptions(tag string) (rawName string, omitEmpty bool, allowShadow bo
 	if len(opts) > 2 {
 		allowShadow = opts[2] == "allowshadow"
 	}
-	if len(opts) > 3 {
-		allowNonUnique = opts[3] == "nonunique"
-	}
-	return rawName, omitEmpty, allowShadow, allowNonUnique
+	return rawName, omitEmpty, allowShadow
 }
 
-func (s *Section) mapToField(val reflect.Value, isStrict bool) error {
+func (s *Section) mapTo(val reflect.Value, isStrict bool) error {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
@@ -293,7 +290,7 @@ func (s *Section) mapToField(val reflect.Value, isStrict bool) error {
 			continue
 		}
 
-		rawName, _, allowShadow, allowNonUnique := parseTagOptions(tag)
+		rawName, _, allowShadow := parseTagOptions(tag)
 		fieldName := s.parseFieldName(tpField.Name, rawName)
 		if len(fieldName) == 0 || !field.CanSet() {
 			continue
@@ -308,92 +305,55 @@ func (s *Section) mapToField(val reflect.Value, isStrict bool) error {
 
 		if isAnonymous || isStruct || isStructPtr {
 			if sec, err := s.f.GetSection(fieldName); err == nil {
-				// Only set the field to non-nil struct value if we have a section for it.
-				// Otherwise, we end up with a non-nil struct ptr even though there is no data.
+				// Only set the field to non-nil struct value if we have
+				// a section for it. Otherwise, we end up with a non-nil
+				// struct ptr even though there is no data.
 				if isStructPtr && field.IsNil() {
 					field.Set(reflect.New(tpField.Type.Elem()))
 				}
-				if err = sec.mapToField(field, isStrict); err != nil {
-					return fmt.Errorf("map to field %q: %v", fieldName, err)
+				if err = sec.mapTo(field, isStrict); err != nil {
+					return fmt.Errorf("error mapping field(%s): %v", fieldName, err)
 				}
 				continue
 			}
 		}
-
-		// Map non-unique sections
-		if allowNonUnique && tpField.Type.Kind() == reflect.Slice {
-			newField, err := s.mapToSlice(fieldName, field, isStrict)
-			if err != nil {
-				return fmt.Errorf("map to slice %q: %v", fieldName, err)
-			}
-
-			field.Set(newField)
-			continue
-		}
-
 		if key, err := s.GetKey(fieldName); err == nil {
 			delim := parseDelim(tpField.Tag.Get("delim"))
 			if err = setWithProperType(tpField.Type, key, field, delim, allowShadow, isStrict); err != nil {
-				return fmt.Errorf("set field %q: %v", fieldName, err)
+				return fmt.Errorf("error mapping field(%s): %v", fieldName, err)
 			}
 		}
 	}
 	return nil
 }
 
-// mapToSlice maps all sections with the same name and returns the new value.
-// The type of the Value must be a slice.
-func (s *Section) mapToSlice(secName string, val reflect.Value, isStrict bool) (reflect.Value, error) {
-	secs, err := s.f.SectionsByName(secName)
-	if err != nil {
-		return reflect.Value{}, err
-	}
-
-	typ := val.Type().Elem()
-	for _, sec := range secs {
-		elem := reflect.New(typ)
-		if err = sec.mapToField(elem, isStrict); err != nil {
-			return reflect.Value{}, fmt.Errorf("map to field from section %q: %v", secName, err)
-		}
-
-		val = reflect.Append(val, elem.Elem())
-	}
-	return val, nil
-}
-
-// mapTo maps a section to object v.
-func (s *Section) mapTo(v interface{}, isStrict bool) error {
+// MapTo maps section to given struct.
+func (s *Section) MapTo(v interface{}) error {
 	typ := reflect.TypeOf(v)
 	val := reflect.ValueOf(v)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 		val = val.Elem()
 	} else {
-		return errors.New("not a pointer to a struct")
+		return errors.New("cannot map to non-pointer struct")
 	}
 
-	if typ.Kind() == reflect.Slice {
-		newField, err := s.mapToSlice(s.name, val, isStrict)
-		if err != nil {
-			return err
-		}
-
-		val.Set(newField)
-		return nil
-	}
-
-	return s.mapToField(val, isStrict)
-}
-
-// MapTo maps section to given struct.
-func (s *Section) MapTo(v interface{}) error {
-	return s.mapTo(v, false)
+	return s.mapTo(val, false)
 }
 
 // StrictMapTo maps section to given struct in strict mode,
 // which returns all possible error including value parsing error.
 func (s *Section) StrictMapTo(v interface{}) error {
-	return s.mapTo(v, true)
+	typ := reflect.TypeOf(v)
+	val := reflect.ValueOf(v)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+		val = val.Elem()
+	} else {
+		return errors.New("cannot map to non-pointer struct")
+	}
+
+	return s.mapTo(val, true)
 }
 
 // MapTo maps file to given struct.
@@ -471,7 +431,7 @@ func reflectSliceWithProperType(key *Key, field reflect.Value, delim string, all
 			if i == 0 {
 				keyWithShadows = newKey(key.s, key.name, val)
 			} else {
-				_ = keyWithShadows.AddShadow(val)
+				keyWithShadows.AddShadow(val)
 			}
 		}
 		key = keyWithShadows
@@ -524,7 +484,7 @@ func reflectWithProperType(t reflect.Type, key *Key, field reflect.Value, delim 
 			return reflectWithProperType(t.Elem(), key, field.Elem(), delim, allowShadow)
 		}
 	default:
-		return fmt.Errorf("unsupported type %q", t)
+		return fmt.Errorf("unsupported type '%s'", t)
 	}
 	return nil
 }
@@ -552,11 +512,6 @@ func isEmptyValue(v reflect.Value) bool {
 	return false
 }
 
-// StructReflector is the interface implemented by struct types that can extract themselves into INI objects.
-type StructReflector interface {
-	ReflectINIStruct(*File) error
-}
-
 func (s *Section) reflectFrom(val reflect.Value) error {
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -572,13 +527,9 @@ func (s *Section) reflectFrom(val reflect.Value) error {
 			continue
 		}
 
-		rawName, omitEmpty, allowShadow, allowNonUnique := parseTagOptions(tag)
+		rawName, omitEmpty, allowShadow := parseTagOptions(tag)
 		if omitEmpty && isEmptyValue(field) {
 			continue
-		}
-
-		if r, ok := field.Interface().(StructReflector); ok {
-			return r.ReflectINIStruct(s.f)
 		}
 
 		fieldName := s.parseFieldName(tpField.Name, rawName)
@@ -601,41 +552,12 @@ func (s *Section) reflectFrom(val reflect.Value) error {
 			}
 
 			if err = sec.reflectFrom(field); err != nil {
-				return fmt.Errorf("reflect from field %q: %v", fieldName, err)
+				return fmt.Errorf("error reflecting field (%s): %v", fieldName, err)
 			}
 			continue
 		}
 
-		if allowNonUnique && tpField.Type.Kind() == reflect.Slice {
-			slice := field.Slice(0, field.Len())
-			if field.Len() == 0 {
-				return nil
-			}
-			sliceOf := field.Type().Elem().Kind()
-
-			for i := 0; i < field.Len(); i++ {
-				if sliceOf != reflect.Struct && sliceOf != reflect.Ptr {
-					return fmt.Errorf("field %q is not a slice of pointer or struct", fieldName)
-				}
-
-				sec, err := s.f.NewSection(fieldName)
-				if err != nil {
-					return err
-				}
-
-				// Add comment from comment tag
-				if len(sec.Comment) == 0 {
-					sec.Comment = tpField.Tag.Get("comment")
-				}
-
-				if err := sec.reflectFrom(slice.Index(i)); err != nil {
-					return fmt.Errorf("reflect from field %q: %v", fieldName, err)
-				}
-			}
-			continue
-		}
-
-		// Note: Same reason as section.
+		// Note: Same reason as secion.
 		key, err := s.GetKey(fieldName)
 		if err != nil {
 			key, _ = s.NewKey(fieldName, "")
@@ -646,59 +568,23 @@ func (s *Section) reflectFrom(val reflect.Value) error {
 			key.Comment = tpField.Tag.Get("comment")
 		}
 
-		delim := parseDelim(tpField.Tag.Get("delim"))
-		if err = reflectWithProperType(tpField.Type, key, field, delim, allowShadow); err != nil {
-			return fmt.Errorf("reflect field %q: %v", fieldName, err)
+		if err = reflectWithProperType(tpField.Type, key, field, parseDelim(tpField.Tag.Get("delim")), allowShadow); err != nil {
+			return fmt.Errorf("error reflecting field (%s): %v", fieldName, err)
 		}
 
 	}
 	return nil
 }
 
-// ReflectFrom reflects section from given struct. It overwrites existing ones.
+// ReflectFrom reflects secion from given struct.
 func (s *Section) ReflectFrom(v interface{}) error {
 	typ := reflect.TypeOf(v)
 	val := reflect.ValueOf(v)
-
-	if s.name != DefaultSection && s.f.options.AllowNonUniqueSections &&
-		(typ.Kind() == reflect.Slice || typ.Kind() == reflect.Ptr) {
-		// Clear sections to make sure none exists before adding the new ones
-		s.f.DeleteSection(s.name)
-
-		if typ.Kind() == reflect.Ptr {
-			sec, err := s.f.NewSection(s.name)
-			if err != nil {
-				return err
-			}
-			return sec.reflectFrom(val.Elem())
-		}
-
-		slice := val.Slice(0, val.Len())
-		sliceOf := val.Type().Elem().Kind()
-		if sliceOf != reflect.Ptr {
-			return fmt.Errorf("not a slice of pointers")
-		}
-
-		for i := 0; i < slice.Len(); i++ {
-			sec, err := s.f.NewSection(s.name)
-			if err != nil {
-				return err
-			}
-
-			err = sec.reflectFrom(slice.Index(i))
-			if err != nil {
-				return fmt.Errorf("reflect from %dth field: %v", i, err)
-			}
-		}
-
-		return nil
-	}
-
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 		val = val.Elem()
 	} else {
-		return errors.New("not a pointer to a struct")
+		return errors.New("cannot reflect from non-pointer struct")
 	}
 
 	return s.reflectFrom(val)
