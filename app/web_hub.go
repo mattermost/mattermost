@@ -392,8 +392,8 @@ func (h *Hub) Start() {
 				}
 				var latestActivity int64 = 0
 				for _, conn := range conns {
-					if conn.LastUserActivityAt > latestActivity {
-						latestActivity = conn.LastUserActivityAt
+					if conn.lastUserActivityAt > latestActivity {
+						latestActivity = conn.lastUserActivityAt
 					}
 				}
 
