@@ -630,6 +630,10 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
+
+	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError)
+	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError)
+
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	PermanentDeleteMembersByUser(userId string) *model.AppError
@@ -662,6 +666,7 @@ type GroupStore interface {
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
+	GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)

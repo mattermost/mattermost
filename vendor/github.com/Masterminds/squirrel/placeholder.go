@@ -14,10 +14,6 @@ type PlaceholderFormat interface {
 	ReplacePlaceholders(sql string) (string, error)
 }
 
-type placeholderDebugger interface {
-	debugPlaceholder() string
-}
-
 var (
 	// Question is a PlaceholderFormat instance that leaves placeholders as
 	// question marks.
@@ -38,28 +34,16 @@ func (questionFormat) ReplacePlaceholders(sql string) (string, error) {
 	return sql, nil
 }
 
-func (questionFormat) debugPlaceholder() string {
-	return "?"
-}
-
 type dollarFormat struct{}
 
 func (dollarFormat) ReplacePlaceholders(sql string) (string, error) {
 	return replacePositionalPlaceholders(sql, "$")
 }
 
-func (dollarFormat) debugPlaceholder() string {
-	return "$"
-}
-
 type colonFormat struct{}
 
 func (colonFormat) ReplacePlaceholders(sql string) (string, error) {
 	return replacePositionalPlaceholders(sql, ":")
-}
-
-func (colonFormat) debugPlaceholder() string {
-	return ":"
 }
 
 // Placeholders returns a string with count ? placeholders joined with commas.

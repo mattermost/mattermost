@@ -151,7 +151,6 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Name"] = l.Customer.Name
 		props["Email"] = l.Customer.Email
 		props["Company"] = l.Customer.Company
-		props["PhoneNumber"] = l.Customer.PhoneNumber
 		props["EmailNotificationContents"] = strconv.FormatBool(*l.Features.EmailNotificationContents)
 		props["MessageExport"] = strconv.FormatBool(*l.Features.MessageExport)
 		props["CustomPermissionsSchemes"] = strconv.FormatBool(*l.Features.CustomPermissionsSchemes)

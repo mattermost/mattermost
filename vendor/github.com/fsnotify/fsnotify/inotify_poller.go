@@ -40,12 +40,12 @@ func newFdPoller(fd int) (*fdPoller, error) {
 	poller.fd = fd
 
 	// Create epoll fd
-	poller.epfd, errno = unix.EpollCreate1(unix.EPOLL_CLOEXEC)
+	poller.epfd, errno = unix.EpollCreate1(0)
 	if poller.epfd == -1 {
 		return nil, errno
 	}
 	// Create pipe; pipe[0] is the read end, pipe[1] the write end.
-	errno = unix.Pipe2(poller.pipe[:], unix.O_NONBLOCK|unix.O_CLOEXEC)
+	errno = unix.Pipe2(poller.pipe[:], unix.O_NONBLOCK)
 	if errno != nil {
 		return nil, errno
 	}

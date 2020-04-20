@@ -32,11 +32,10 @@ type License struct {
 }
 
 type Customer struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Company     string `json:"company"`
-	PhoneNumber string `json:"phone_number"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Company string `json:"company"`
 }
 
 type Features struct {
