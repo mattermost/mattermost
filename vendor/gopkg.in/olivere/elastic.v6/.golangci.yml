@@ -1,0 +1,78 @@
+run:
+  # 30min deadline
+  deadline: 30m
+  # Fail when any changes to go.mod are needed
+  # (enable after Go modules are introduced)
+  #modules-download-mode: readonly
+  # Skip certain directories
+  skip-dirs:
+    - node_modules$
+  # Skip certain auto-generated files
+  skip-files:
+    - ".*\\.pb\\.go$"
+
+linters-settings:
+  errcheck:
+    check-blank: false
+    ignore: fmt:.*,io/ioutil:^Read.*,os:^Write.*,net/http:^ParseForm.*,github.com/go-kit/kit/log:^Log.*,github.com/go-kit/kit/log/level:^Log.*
+  govet:
+    check-shadowing: false
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+          - (github.com/go-kit/kit/log.Logger).Log
+  golint:
+    min-confidence: 0.8
+  gocyclo:
+    min-complexity: 30
+  maligned:
+    suggest-new: true
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  depguard:
+    list-type: blacklist
+    packages:
+      - github.com/davecgh/go-spew/spew
+  misspell:
+    locale: US
+  lll:
+    line-length: 120
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: github.com/olivere/elastic
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+      - importShadow
+
+linters:
+  enable-all: true
+  disable:
+    - maligned
+    - prealloc
+    - gochecknoglobals
+    - gochecknoinits
+    - gocyclo
+    - dupl
+    - lll
+    - goconst
+
+issues:
+  exclude-rules:
+    - linters:
+        - lll
+      source: '^//go:generate '
+    - path: sage/
+      text: "ALL_CAPS|don't use underscores in Go names|struct field.*should be"

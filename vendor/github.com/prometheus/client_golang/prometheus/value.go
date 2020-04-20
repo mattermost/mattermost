@@ -28,8 +28,7 @@ import (
 // ValueType is an enumeration of metric types that represent a simple value.
 type ValueType int
 
-// Possible values for the ValueType enum. Use UntypedValue to mark a metric
-// with an unknown type.
+// Possible values for the ValueType enum.
 const (
 	_ ValueType = iota
 	CounterValue
