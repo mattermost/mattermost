@@ -960,7 +960,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Schakelt desktop, email and mobiele notificaties uit voor het huidige kanaal of het gespecificeerde kanaal."
+    "translation": "Schakelt desktop, e-mail and mobiele notificaties uit voor het huidige kanaal of het gespecificeerde kanaal."
   },
   {
     "id": "api.command_mute.error",
@@ -1176,7 +1176,7 @@
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder."
+    "translation": "Bulk e-mails zijn uitgeschakeld door de systeembeheerder."
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1458,7 +1458,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "De licentie ondersteund {{.Users}} gebruikers, wanneer het systeem {{.Count}} unieke gebruikers heeft. Unieke gebruikers worden geteld op basis het e-mail adress. Het totaal aantal gebruikers is te zien bij 'Server Overzichten' -> 'Bekijk statistieken'."
+    "translation": "De licentie ondersteund {{.Users}} gebruikers, wanneer het systeem {{.Count}} unieke gebruikers heeft. Unieke gebruikers worden geteld op basis het e-mailadres. Het totaal aantal gebruikers is te zien bij 'Server Overzichten' -> 'Bekijk statistieken'."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1852,7 +1852,7 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "De Integratie/Slack Bot gebruiker met email {{.Email}} en wachtwoord {{.Password}} werd geïmporteerd.\r\n"
+    "translation": "De Integratie/Slack Bot gebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} werd geïmporteerd.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -1880,11 +1880,11 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slackgebruiker met email {{.Email}} and wachtwoord {{.Password}} werd geïmporteerd.\r\n"
+    "translation": "Slackgebruiker met e-mail {{.Email}} and wachtwoord {{.Password}} werd geïmporteerd.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slackgebruiker werd samengevoegd met een bestaand Mattermost gebruiker met email {{.Email}} en gebruikersnaam {{.Username}}.\r\n"
+    "translation": "Slackgebruiker werd samengevoegd met een bestaand Mattermost gebruiker met e-mail {{.Email}} en gebruikersnaam {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",

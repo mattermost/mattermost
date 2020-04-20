@@ -1650,15 +1650,15 @@
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+    "translation": "由于频道使用者超过 {{.Users}} 人，已停用 @all。"
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+    "translation": "由于频道使用者超过 {{.Users}} 人，已停用 @channel。"
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here 已禁用因为频道超过 {{.Users}} 位用户。"
+    "translation": "由于频道使用者超过 {{.Users}} 人，已停用 @here。"
   },
   {
     "id": "api.post.do_action.action_id.app_error",
