@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -62,59 +61,6 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
-
-//settings not processed yet
-// {
-//     "ServiceSettings": {
-//         "WebsocketURL": "",
-//         "LicenseFileLocation": "",
-//         "TLSMinVer": "1.2",
-//         "TLSStrictTransport": false,
-//         "TLSStrictTransportMaxAge": 63072000,
-//         "TLSOverwriteCiphers": [],
-//         "TrustedProxyIPHeader": [],
-//         "IdleTimeout": 60,
-//         "GoroutineHealthThreshold": -1,
-//         "AllowCookiesForSubdomains": false,
-//         "WebsocketSecurePort": 443,
-//         "WebsocketPort": 80,
-//         "RestrictCustomEmojiCreation": "all",
-//         "RestrictPostDelete": "all",
-//         "AllowEditPost": "always",
-//         "PostEditTimeLimit": -1,
-//         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
-//         "EnablePostSearch": true,
-//         "EnableUserTypingMessages": true,
-//         "EnableChannelViewedMessages": true,
-//         "EnableUserStatuses": true,
-//         "ClusterLogTimeoutMilliseconds": 2000,
-//         "CloseUnusedDirectMessages": false,
-//         "EnablePreviewFeatures": true,
-//         "EnableTutorial": true,
-//         "ImageProxyType": "",
-//         "ImageProxyURL": "",
-//         "ImageProxyOptions": "",
-//         "EnableAPITeamDeletion": false,
-//         "DisableLegacyMFA": true,
-//TODO
-//sectionToPermission["ServiceSettings.EnableOpenTracing"] = model.PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT
-
-//     },
-//     "TeamSettings": {
-//         "EnableTeamCreation": true,
-//         "EnableUserDeactivation": false,
-//         "RestrictCreationToDomains": "",
-//         "RestrictTeamInvite": "all",
-//         "RestrictPublicChannelManagement": "all",
-//         "RestrictPrivateChannelManagement": "all",
-//         "RestrictPublicChannelCreation": "all",
-//         "RestrictPrivateChannelCreation": "all",
-//         "RestrictPublicChannelDeletion": "all",
-//         "RestrictPrivateChannelDeletion": "all",
-//         "RestrictPrivateChannelManageMembers": "all",
-//         "UserStatusAwayTimeout": 300,
-//     },
-// }
 
 func MakeConfigSectionToPermissionMap() map[string]*model.Permission {
 	sectionToPermission := make(map[string]*model.Permission)
@@ -388,49 +334,17 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	//if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 	// Start with the current configuration, and only merge values not marked as being
 	// restricted.
 	var err1 error
 	cfg, err1 = config.Merge(appCfg, cfg, &utils.MergeConfig{
-		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentTypeName string) bool {
-			path := parentTypeName
-
-			if _, ok := ConfigSettingsWhiteList()[path]; ok {
-				return true
-			}
-			if parentTypeName != "" {
-				path = parentTypeName + "." + structField.Name
-			}
-			if path != "" {
-				permission := MakeConfigSectionToPermissionMap()[path]
-
-				if permission == nil {
-					pathComponents := strings.SplitN(path, ".", -1)
-					if len(pathComponents) > 0 {
-						permission = MakeConfigSectionToPermissionMap()[pathComponents[0]]
-					}
-				}
-
-				if permission != nil {
-					if !c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-						mlog.Info("updateConfig(per)", mlog.String("no permission", permission.Id))
-						return false
-					}
-				}
-
-				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-					restricted := structField.Tag.Get("restricted") == "true"
-					return !restricted
-				}
-			}
-			return true
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+			return filterConfigByPermission(c, structField, parentStructFieldName)
 		},
 	})
 	if err1 != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err1.Error(), http.StatusInternalServerError)
 	}
-	//}
 
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
@@ -461,6 +375,38 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(cfg.ToJson()))
 }
 
+func filterConfigByPermission(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
+	path := parentStructFieldName
+
+	if _, ok := ConfigSettingsWhiteList()[path]; ok {
+		return true
+	}
+	if parentStructFieldName != "" {
+		path = parentStructFieldName + "." + structField.Name
+	}
+	if path != "" {
+		permission := MakeConfigSectionToPermissionMap()[path]
+
+		if permission == nil {
+			pathComponents := strings.SplitN(path, ".", -1)
+			if len(pathComponents) > 0 {
+				permission = MakeConfigSectionToPermissionMap()[pathComponents[0]]
+			}
+		}
+
+		if permission != nil {
+			if !c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
+				return false
+			}
+		}
+
+		if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+			restricted := structField.Tag.Get("restricted") == "true"
+			return !restricted
+		}
+	}
+	return true
+}
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 
@@ -512,16 +458,9 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	var filterFn utils.StructFieldFilter
-	// if *appCfg.ExperimentalSettings.RestrictSystemAdmin {
-	// 	filterFn = func(structField reflect.StructField, base, patch reflect.Value, parentTypeName "") bool {
-	// 		return !(structField.Tag.Get("restricted") == "true")
-	// 	}
-	// } else {
-	// 	filterFn = func(structField reflect.StructField, base, patch reflect.Value, "") bool {
-	// 		return true
-	// 	}
-	// }
+	filterFn := func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+		return filterConfigByPermission(c, structField, parentStructFieldName)
+	}
 
 	// Do not allow plugin uploads to be toggled through the API
 	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads

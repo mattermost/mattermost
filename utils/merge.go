@@ -6,12 +6,10 @@ package utils
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 // StructFieldFilter defines a callback function used to decide if a patch value should be applied.
-type StructFieldFilter func(structField reflect.StructField, base reflect.Value, patch reflect.Value, parentTypeName string) bool
+type StructFieldFilter func(structField reflect.StructField, base reflect.Value, patch reflect.Value, parentStructFieldName string) bool
 
 // MergeConfig allows for optional merge customizations.
 type MergeConfig struct {
@@ -56,7 +54,6 @@ func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (inter
 	}
 
 	ret := reflect.New(commonType)
-	mlog.Info("Merge", mlog.String("commonTypeName", commonType.Name()))
 
 	val, ok := merge(baseVal, patchVal, mergeConfig, "")
 	if ok {
@@ -66,7 +63,7 @@ func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (inter
 }
 
 // merge recursively merges patch into base and returns the new struct, ptr, slice/map, or value
-func merge(base, patch reflect.Value, mergeConfig *MergeConfig, parentTypeName string) (reflect.Value, bool) {
+func merge(base, patch reflect.Value, mergeConfig *MergeConfig, parentStructFieldName string) (reflect.Value, bool) {
 	commonType := base.Type()
 
 	switch commonType.Kind() {
@@ -77,12 +74,11 @@ func merge(base, patch reflect.Value, mergeConfig *MergeConfig, parentTypeName s
 				continue
 			}
 			if mergeConfig != nil && mergeConfig.StructFieldFilter != nil {
-				if !mergeConfig.StructFieldFilter(commonType.Field(i), base.Field(i), patch.Field(i), parentTypeName) {
+				if !mergeConfig.StructFieldFilter(commonType.Field(i), base.Field(i), patch.Field(i), parentStructFieldName) {
 					merged.Field(i).Set(base.Field(i))
 					continue
 				}
 			}
-			//mlog.Debug("merge", mlog.String("parentTypeName", parentTypeName), mlog.String("commonTypeName", commonType.Field(i).Name))
 			val, ok := merge(base.Field(i), patch.Field(i), mergeConfig, commonType.Field(i).Name)
 			if ok {
 				merged.Field(i).Set(val)
