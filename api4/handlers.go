@@ -42,7 +42,7 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		TrustRequester:      false,
 		RequireMfa:          true,
 		IsStatic:            false,
-		IsLocal: false,
+		IsLocal:             false,
 	}
 	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

@@ -363,7 +363,7 @@ func (me *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 
 	return &model.Client4{
-		ApiUrl: "http://_" + model.API_URL_SUFFIX,
+		ApiUrl:     "http://_" + model.API_URL_SUFFIX,
 		HttpClient: httpClient,
 	}
 }
@@ -694,6 +694,16 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	}
 	utils.EnableDebugLogForTest()
 	return group
+}
+
+func (me *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T, *model.Client4)) {
+	t.Run("SystemAdminClient", func(t *testing.T) {
+		f(t, me.SystemAdminClient)
+	})
+
+	t.Run("LocalClient", func(t *testing.T) {
+		f(t, me.LocalClient)
+	})
 }
 
 func GenerateTestUsername() string {
