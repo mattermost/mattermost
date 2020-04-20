@@ -1136,23 +1136,31 @@ func TestOnPluginStatusesChanged(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", model.PluginStateNotRunning).Return(nil)
+
 	tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
+
 		import (
 			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
+
 		type MyPlugin struct {
 			plugin.MattermostPlugin
 		}
+
 		func (p *MyPlugin) OnPluginStatusesChanged(c *plugin.Context) {
 			p.API.GetPluginStatuses()
 		}
+
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.App.NewPluginAPI)
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	require.Len(t, pluginIds, 1)
