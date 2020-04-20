@@ -5,6 +5,7 @@ package model
 type channelType string
 
 // CamelCase Constant Names
+// Constants are exported for use in `if` and `switch` statements and similar in other packages.
 const (
 	ChannelTypeOpen    channelType = "O"
 	ChannelTypePrivate channelType = "P"
