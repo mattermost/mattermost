@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -78,11 +79,16 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true); err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-	}
 
+		auditRec := a.MakeAuditRecord("makeSystemAdmin", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }
 
@@ -122,10 +128,15 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true); err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-	}
 
+		auditRec := a.MakeAuditRecord("makeMember", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }

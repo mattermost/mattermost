@@ -21,8 +21,8 @@ type Routes struct {
 
 	Users          *mux.Router // 'api/v4/users'
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
-	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9_-\.]+}'
-	UserByEmail    *mux.Router // 'api/v4/users/email/{email}'
+	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
+	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
 
 	Bots *mux.Router // 'api/v4/bots'
 	Bot  *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
@@ -32,8 +32,8 @@ type Routes struct {
 	Team               *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}'
 	TeamForUser        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}'
 	TeamByName         *mux.Router // 'api/v4/teams/name/{team_name:[A-Za-z0-9_-]+}'
-	TeamMembers        *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members'
-	TeamMember         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9_-]+}/members/{user_id:[A-Za-z0-9_-]+}'
+	TeamMembers        *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/members'
+	TeamMember         *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/members/{user_id:[A-Za-z0-9]+}'
 	TeamMembersForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/members'
 
 	Channels                 *mux.Router // 'api/v4/channels'
@@ -57,9 +57,9 @@ type Routes struct {
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
 
 	Plugins *mux.Router // 'api/v4/plugins'
-	Plugin  *mux.Router // 'api/v4/plugins/{plugin_id:[A-Za-z0-9_-]+}'
+	Plugin  *mux.Router // 'api/v4/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}'
 
-	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
+	PublicFile *mux.Router // '/files/{file_id:[A-Za-z0-9]+}/public'
 
 	Commands *mux.Router // 'api/v4/commands'
 	Command  *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
@@ -107,11 +107,11 @@ type Routes struct {
 
 	Emojis      *mux.Router // 'api/v4/emoji'
 	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
-	EmojiByName *mux.Router // 'api/v4/emoji/name/{emoji_name:[A-Za-z0-9_-\.]+}'
+	EmojiByName *mux.Router // 'api/v4/emoji/name/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}'
 
-	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
+	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}'
 
-	TermsOfService *mux.Router // 'api/v4/terms_of_service
+	TermsOfService *mux.Router // 'api/v4/terms_of_service'
 	Groups         *mux.Router // 'api/v4/groups'
 }
 
