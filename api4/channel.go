@@ -865,11 +865,6 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
-		return
-	}
-
 	name := r.URL.Query().Get("name")
 
 	channels, err := c.App.AutocompleteChannelsForSearch(c.Params.TeamId, c.App.Session().UserId, name)
@@ -877,8 +872,6 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 		c.Err = err
 		return
 	}
-
-	// Don't fill in channels props, since unused by client and potentially expensive.
 
 	w.Write([]byte(channels.ToJson()))
 }
