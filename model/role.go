@@ -19,6 +19,9 @@ func init() {
 		SYSTEM_POST_ALL_ROLE_ID,
 		SYSTEM_POST_ALL_PUBLIC_ROLE_ID,
 		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
+		SYSTEM_USER_MANAGER_ROLE_ID,
+		SYSTEM_CONSOLE_VIEWER_ROLE_ID,
+		SYSTEM_JUNIOR_ADMIN_ROLE_ID,
 
 		TEAM_GUEST_ROLE_ID,
 		TEAM_USER_ROLE_ID,
@@ -42,6 +45,9 @@ const (
 	SYSTEM_POST_ALL_ROLE_ID          = "system_post_all"
 	SYSTEM_POST_ALL_PUBLIC_ROLE_ID   = "system_post_all_public"
 	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
+	SYSTEM_USER_MANAGER_ROLE_ID      = "system_user_manager"
+	SYSTEM_CONSOLE_VIEWER_ROLE_ID    = "system_console_viewer"
+	SYSTEM_JUNIOR_ADMIN_ROLE_ID      = "system_junior_admin"
 
 	TEAM_GUEST_ROLE_ID           = "team_guest"
 	TEAM_USER_ROLE_ID            = "team_user"
@@ -561,6 +567,68 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	roles[SYSTEM_USER_MANAGER_ROLE_ID] = &Role{
+		Name:        "system_user_manager",
+		DisplayName: "authentication.roles.system_user_access_token.name",
+		Description: "authentication.roles.system_user_access_token.description",
+		Permissions: []string{
+			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT.Id,
+			PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS.Id,
+			PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS.Id,
+			PERMISSION_READ_SYSCONSOLE_AUTHENTICATION.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SYSTEM_CONSOLE_VIEWER_ROLE_ID] = &Role{
+		Name:        "system_console_viewer",
+		DisplayName: "authentication.roles.system_user_access_token.name",
+		Description: "authentication.roles.system_user_access_token.description",
+		Permissions: []string{
+			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			PERMISSION_READ_SYSCONSOLE_REPORTING.Id,
+			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT.Id,
+			PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id,
+			PERMISSION_READ_SYSCONSOLE_SITE.Id,
+			PERMISSION_READ_SYSCONSOLE_AUTHENTICATION.Id,
+			PERMISSION_READ_SYSCONSOLE_PLUGINS.Id,
+			PERMISSION_READ_SYSCONSOLE_INTEGRATIONS.Id,
+			PERMISSION_READ_SYSCONSOLE_COMPLIANCE.Id,
+			PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SYSTEM_JUNIOR_ADMIN_ROLE_ID] = &Role{
+		Name:        "system_junior_admin",
+		DisplayName: "authentication.roles.system_user_access_token.name",
+		Description: "authentication.roles.system_user_access_token.description",
+		Permissions: []string{
+			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			PERMISSION_WRITE_SYSCONSOLE_REPORTING.Id,
+			PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT.Id,
+			PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT.Id,
+			PERMISSION_WRITE_SYSCONSOLE_SITE.Id,
+			PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION.Id,
+			PERMISSION_WRITE_SYSCONSOLE_PLUGINS.Id,
+			PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
 	roles[SYSTEM_ADMIN_ROLE_ID] = &Role{
 		Name:        "system_admin",
 		DisplayName: "authentication.roles.global_admin.name",
@@ -614,6 +682,16 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_LIST_PRIVATE_TEAMS.Id,
 							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 							PERMISSION_VIEW_MEMBERS.Id,
+							PERMISSION_WRITE_SYSCONSOLE_ABOUT.Id,
+							PERMISSION_WRITE_SYSCONSOLE_REPORTING.Id,
+							PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT.Id,
+							PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT.Id,
+							PERMISSION_WRITE_SYSCONSOLE_SITE.Id,
+							PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION.Id,
+							PERMISSION_WRITE_SYSCONSOLE_PLUGINS.Id,
+							PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS.Id,
+							PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE.Id,
+							PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),
