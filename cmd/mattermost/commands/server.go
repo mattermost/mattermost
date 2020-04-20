@@ -87,6 +87,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 			mlog.Critical(err.Error())
 			return err
 		}
+		api4.InitLocal(server, server.AppOptions, server.LocalRouter)
 		defer server.StopLocalModeServer()
 	}
 

@@ -45,6 +45,7 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 }
 
@@ -74,6 +75,7 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	IsLocal             bool
 	DisableWhenBusy     bool
 
 	cspShaDirective string
@@ -210,6 +212,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
+	if c.Err == nil && h.IsLocal && *c.App.Config().ServiceSettings.EnableLocalMode {
+		c.App.SetSession(&model.Session{Local: true})
+	}
+
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
@@ -324,6 +330,7 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -343,6 +350,7 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		TrustRequester:      true,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -361,6 +369,7 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		TrustRequester:      false,
 		RequireMfa:          true,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
