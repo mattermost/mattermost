@@ -394,11 +394,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	}
 
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
-		post.AddProp("disable_channel_highlight", true)
+		post.AddProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
 	}
 
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
-		post.AddProp("disable_group_highlight", true)
+		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
 	}
 
 	return nil
