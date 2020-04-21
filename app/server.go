@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
@@ -114,6 +115,7 @@ type Server struct {
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
+	rudderClient     rudder.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -871,13 +873,47 @@ func (s *Server) initDiagnostics(endpoint string) {
 	}
 }
 
+func (s *Server) initRudder(endpoint string) {
+	if s.rudderClient == nil {
+		config := rudder.Config{}
+		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
+		config.Endpoint = endpoint
+		// For testing
+		if endpoint != RUDDER_DATAPLANE_URL {
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, err := rudder.NewWithConfig(RUDDER_KEY, config)
+		if err != nil {
+			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
+			return
+		}
+		client.Enqueue(rudder.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.rudderClient = client
+	}
+}
+
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
+	var segmentErr, rudderErr error
 	if s.diagnosticClient != nil {
-		return s.diagnosticClient.Close()
+		segmentErr = s.diagnosticClient.Close()
 	}
 
-	return nil
+	if s.rudderClient != nil {
+		rudderErr = s.rudderClient.Close()
+	}
+
+	if segmentErr != nil && rudderErr != nil {
+		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
+	} else if segmentErr != nil {
+		return segmentErr
+	}
+
+	return rudderErr
 }
 
 // GetHubs returns the list of hubs. This method is safe
