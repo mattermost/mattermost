@@ -4539,6 +4539,7 @@ func TestGetKnownUsers(t *testing.T) {
 		Email:       th.GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	})
+	require.Nil(t, err, "failed to create team")
 
 	t2, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -4546,6 +4547,7 @@ func TestGetKnownUsers(t *testing.T) {
 		Email:       th.GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	})
+	require.Nil(t, err, "failed to create team")
 
 	t3, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -4553,7 +4555,6 @@ func TestGetKnownUsers(t *testing.T) {
 		Email:       th.GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	})
-
 	require.Nil(t, err, "failed to create team")
 
 	c1, err := th.App.CreateChannel(&model.Channel{
