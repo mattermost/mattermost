@@ -2056,6 +2056,22 @@ func (_m *ChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string,
 	return r0
 }
 
+// UpdateSidebarChannelByPreference provides a mock function with given fields: preference
+func (_m *ChannelStore) UpdateSidebarChannelByPreference(preference *model.Preference) *model.AppError {
+	ret := _m.Called(preference)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Preference) *model.AppError); ok {
+		r0 = rf(preference)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds
 func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, channelIds)

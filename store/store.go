@@ -214,6 +214,7 @@ type ChannelStore interface {
 	CreateSidebarCategory(userId, teamId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateSidebarCategory(userId, teamId, categoryId, displayName string, channelIDs []string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarChannelByPreference(preference *model.Preference) *model.AppError
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)

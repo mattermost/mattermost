@@ -90,6 +90,10 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		"Value":    preference.Value,
 	}
 
+	if err := s.Channel().UpdateSidebarChannelByPreference(preference); err != nil {
+		return err
+	}
+
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if _, err := transaction.Exec(
 			`INSERT INTO

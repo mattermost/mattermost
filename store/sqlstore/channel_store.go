@@ -3497,12 +3497,12 @@ func (s SqlChannelStore) UpdateSidebarCategory(userId, teamId, categoryId, displ
 	defer finalizeTransaction(transaction)
 
 	var category *model.SidebarCategory
-	if err := transaction.SelectOne(&category, "SELECT * FROM SidebarCategory WHERE Id = :Id", map[string]interface{}{"Id": category.Id}); err != nil {
+	if err = transaction.SelectOne(&category, "SELECT * FROM SidebarCategory WHERE Id = :Id", map[string]interface{}{"Id": category.Id}); err != nil {
 		return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	category.DisplayName = displayName
-	if _, err := transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
+	if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
 		return col.ColumnName == "DisplayName"
 	}, category); err != nil {
 		return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -3512,7 +3512,7 @@ func (s SqlChannelStore) UpdateSidebarCategory(userId, teamId, categoryId, displ
 		return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := transaction.Exec(sql, args...); err != nil {
+	if _, err = transaction.Exec(sql, args...); err != nil {
 		return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	var channels []interface{}
@@ -3524,16 +3524,47 @@ func (s SqlChannelStore) UpdateSidebarCategory(userId, teamId, categoryId, displ
 			UserId:     userId,
 		})
 	}
-	if err := transaction.Insert(channels...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err = transaction.Insert(channels...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.MigrateSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return &model.SidebarCategoryWithChannels{
 		SidebarCategory: *category,
 		Channels:        channelIDs,
 	}, nil
+}
+
+func (s SqlChannelStore) UpdateSidebarChannelByPreference(preference *model.Preference) *model.AppError {
+	if preference.Category != model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW && preference.Category != model.PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW && preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		return nil
+	}
+	params := map[string]interface{}{
+		"UserId":       preference.UserId,
+		"ChannelId":    preference.Name,
+		"CategoryType": "",
+	}
+
+	switch preference.Category {
+	case model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL:
+		params["CategoryType"] = "F"
+	case model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW:
+	case model.PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW:
+		params["CategoryType"] = "D"
+	}
+	// if new preference is false - remove the channel from the appropriate sidebar category
+	if preference.Value == "false" {
+		if _, err := s.GetReplica().Exec("DELETE SidebarChannel FROM SidebarChannel LEFT JOIN SidebarCategory ON SidebarCategory.Id = SidebarChannel.CategoryId WHERE SidebarCategory.Type=:CategoryType AND SidebarCategory.UserId=:UserId AND SidebarChannel.UserId=:UserId AND ChannelId=:ChannelId", params); err != nil {
+			return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		// otherwise - insert new channel into the apropriate category. ignore duplicate error
+		if _, err := s.GetReplica().Exec("INSERT INTO SidebarChannel (ChannelId, UserId, CategoryId) SELECT Id as CategoryId, UserId=:UserId, ChannelId=:ChannelId FROM SidebarCategory WHERE SidebarCategory.Type=:CategoryType AND SidebarCategory.UserId=:UserId", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+			return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return nil
 }
