@@ -154,6 +154,10 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetKnownUsers returns the list of user ids of users with any direct
+	// relationship with a user. That means any user sharing any channel, including
+	// direct and group channels.
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -534,7 +538,6 @@ type AppIface interface {
 	GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError)
 	GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
-	GetKnownUsers(userID string) ([]string, *model.AppError)
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)
