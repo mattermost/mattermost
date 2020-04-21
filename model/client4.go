@@ -4958,3 +4958,66 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	defer closeBody(r)
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories")
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return OrderedSidebarCategoriesFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response) {
+	payload, _ := json.Marshal(category)
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories")
+	r, err := c.doApiPostBytes(route, payload)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return SidebarCategoryFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag string) ([]string, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories/order")
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string, order []string) ([]string, *Response) {
+	payload, _ := json.Marshal(order)
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories/order")
+	r, err := c.doApiPutBytes(route, payload)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories/" + categoryID)
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return SidebarCategoryFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response) {
+	payload, _ := json.Marshal(category)
+	route := fmt.Sprintf(c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories/" + categoryID)
+	r, err := c.doApiPutBytes(route, payload)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return SidebarCategoryFromJson(r.Body), BuildResponse(r)
+}

@@ -34,11 +34,11 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
 
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories", api.ApiSessionRequired(getCategoriesForTeamForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories", api.ApiSessionRequired(createCategoryForTeamForUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories", api.ApiSessionRequired(createCategoryForTeamForUser)).Methods("POST")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/order", api.ApiSessionRequired(getCategoryOrderForTeamForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/order", api.ApiSessionRequired(updateCategoryOrderForTeamForUser)).Methods("POST")
+	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/order", api.ApiSessionRequired(updateCategoryOrderForTeamForUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getCategoryForTeamForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateCategoryForTeamForUser)).Methods("POST")
+	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/categories/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateCategoryForTeamForUser)).Methods("PUT")
 
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
@@ -1759,11 +1759,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	}
 	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	categoryCreateRequest, err := model.SidebarCategoryFromJson(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.createCategoryForTeamForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	categoryCreateRequest := model.SidebarCategoryFromJson(r.Body)
 	category, appErr := c.App.CreateSidebarCategory(c.Params.UserId, c.Params.TeamId, categoryCreateRequest.DisplayName, categoryCreateRequest.Channels)
 	if appErr != nil {
 		c.Err = appErr
@@ -1837,14 +1833,10 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryCreateRequest, err := model.SidebarCategoryFromJson(r.Body)
-	if err != nil {
-		c.Err = model.NewAppError("Api4.createCategoryForTeamForUser", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	categoryCreateRequest := model.SidebarCategoryFromJson(r.Body)
 
 	categories, appErr := c.App.UpdateSidebarCategory(c.Params.UserId, c.Params.TeamId, c.Params.CategoryId, categoryCreateRequest.DisplayName, categoryCreateRequest.Channels)
-	if err != nil {
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}

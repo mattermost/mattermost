@@ -48,12 +48,16 @@ type SidebarChannel struct {
 type SidebarChannels []*SidebarChannel
 type SidebarCategoriesWithChannels []*SidebarCategoryWithChannels
 
-func SidebarCategoryFromJson(data io.Reader) (*SidebarCategoryWithChannels, error) {
+func SidebarCategoryFromJson(data io.Reader) *SidebarCategoryWithChannels {
 	var o *SidebarCategoryWithChannels
-	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil, err
-	}
-	return o, nil
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func OrderedSidebarCategoriesFromJson(data io.Reader) *OrderedSidebarCategories {
+	var o *OrderedSidebarCategories
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o SidebarCategoryWithChannels) ToJson() []byte {
