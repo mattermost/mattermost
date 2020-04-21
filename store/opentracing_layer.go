@@ -9,6 +9,7 @@ package store
 import (
 	"context"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/opentracing/opentracing-go/ext"
@@ -1606,7 +1607,7 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string, T goi18n.TranslateFunc) (map[string]string, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateSidebarCategories")
 	s.Root.Store.SetContext(newCtx)
@@ -1615,7 +1616,7 @@ func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
+	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId, T)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
