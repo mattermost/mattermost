@@ -5,6 +5,7 @@ package squirrel
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -60,34 +61,31 @@ type Runner interface {
 	QueryRower
 }
 
-// WrapStdSql wraps a type implementing the standard SQL interface with methods that
-// squirrel expects.
-func WrapStdSql(stdSql StdSql) Runner {
-	return &stdsqlRunner{stdSql}
-}
-
-// StdSql encompasses the standard methods of the *sql.DB type, and other types that
-// wrap these methods.
-type StdSql interface {
+type stdsql interface {
 	Query(string, ...interface{}) (*sql.Rows, error)
+	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
 	QueryRow(string, ...interface{}) *sql.Row
+	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 	Exec(string, ...interface{}) (sql.Result, error)
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 }
 
 type stdsqlRunner struct {
-	StdSql
+	stdsql
 }
 
 func (r *stdsqlRunner) QueryRow(query string, args ...interface{}) RowScanner {
-	return r.StdSql.QueryRow(query, args...)
+	return r.stdsql.QueryRow(query, args...)
 }
 
-func setRunWith(b interface{}, runner BaseRunner) interface{} {
-	switch r := runner.(type) {
-	case StdSqlCtx:
-		runner = WrapStdSqlCtx(r)
-	case StdSql:
-		runner = WrapStdSql(r)
+func setRunWith(b interface{}, baseRunner BaseRunner) interface{} {
+	var runner Runner
+	switch r := baseRunner.(type) {
+	case Runner:
+		runner = r
+	case stdsql:
+		runner = &stdsqlRunner{r}
+
 	}
 	return builder.Set(b, "RunWith", runner)
 }
@@ -137,18 +135,11 @@ func DebugSqlizer(s Sqlizer) string {
 		return fmt.Sprintf("[ToSql error: %s]", err)
 	}
 
-	var placeholder string
-	downCast, ok := s.(placeholderDebugger)
-	if !ok {
-		placeholder = "?"
-	} else {
-		placeholder = downCast.debugPlaceholder()
-	}
 	// TODO: dedupe this with placeholder.go
 	buf := &bytes.Buffer{}
 	i := 0
 	for {
-		p := strings.Index(sql, placeholder)
+		p := strings.Index(sql, "?")
 		if p == -1 {
 			break
 		}
@@ -167,7 +158,6 @@ func DebugSqlizer(s Sqlizer) string {
 			}
 			buf.WriteString(sql[:p])
 			fmt.Fprintf(buf, "'%v'", args[i])
-			// advance our sql string "cursor" beyond the arg we placed
 			sql = sql[p+1:]
 			i++
 		}
@@ -177,7 +167,6 @@ func DebugSqlizer(s Sqlizer) string {
 			"[DebugSqlizer error: not enough placeholders in %#v for %d args]",
 			sql, len(args))
 	}
-	// "append" any remaning sql that won't need interpolating
 	buf.WriteString(sql)
 	return buf.String()
 }

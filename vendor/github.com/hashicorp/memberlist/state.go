@@ -19,7 +19,6 @@ const (
 	stateAlive nodeStateType = iota
 	stateSuspect
 	stateDead
-	stateLeft
 )
 
 // Node represents a node in the cluster.
@@ -42,15 +41,6 @@ func (n *Node) Address() string {
 	return joinHostPort(n.Addr.String(), n.Port)
 }
 
-// FullAddress returns the node name and host:port form of a node's address,
-// suitable for use with a transport.
-func (n *Node) FullAddress() Address {
-	return Address{
-		Addr: joinHostPort(n.Addr.String(), n.Port),
-		Name: n.Name,
-	}
-}
-
 // String returns the node name
 func (n *Node) String() string {
 	return n.Name
@@ -68,16 +58,6 @@ type nodeState struct {
 // with a transport.
 func (n *nodeState) Address() string {
 	return n.Node.Address()
-}
-
-// FullAddress returns the node name and host:port form of a node's address,
-// suitable for use with a transport.
-func (n *nodeState) FullAddress() Address {
-	return n.Node.FullAddress()
-}
-
-func (n *nodeState) DeadOrLeft() bool {
-	return n.State == stateDead || n.State == stateLeft
 }
 
 // ackHandler is used to register handlers for incoming acks and nacks.
@@ -238,7 +218,7 @@ START:
 	node = *m.nodes[m.probeIndex]
 	if node.Name == m.config.Name {
 		skip = true
-	} else if node.DeadOrLeft() {
+	} else if node.State == stateDead {
 		skip = true
 	}
 
@@ -291,14 +271,7 @@ func (m *Memberlist) probeNode(node *nodeState) {
 	}
 
 	// Prepare a ping message and setup an ack handler.
-	selfAddr, selfPort := m.getAdvertise()
-	ping := ping{
-		SeqNo:      m.nextSeqNo(),
-		Node:       node.Name,
-		SourceAddr: selfAddr,
-		SourcePort: selfPort,
-		SourceNode: m.config.Name,
-	}
+	ping := ping{SeqNo: m.nextSeqNo(), Node: node.Name}
 	ackCh := make(chan ackMessage, m.config.IndirectChecks+1)
 	nackCh := make(chan struct{}, m.config.IndirectChecks+1)
 	m.setProbeChannels(ping.SeqNo, ackCh, nackCh, probeInterval)
@@ -322,7 +295,7 @@ func (m *Memberlist) probeNode(node *nodeState) {
 		m.awareness.ApplyDelta(awarenessDelta)
 	}()
 	if node.State == stateAlive {
-		if err := m.encodeAndSendMsg(node.FullAddress(), pingMsg, &ping); err != nil {
+		if err := m.encodeAndSendMsg(addr, pingMsg, &ping); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send ping: %s", err)
 			if failedRemote(err) {
 				goto HANDLE_REMOTE_FAILURE
@@ -347,7 +320,7 @@ func (m *Memberlist) probeNode(node *nodeState) {
 		}
 
 		compound := makeCompoundMessage(msgs)
-		if err := m.rawSendMsgPacket(node.FullAddress(), &node.Node, compound.Bytes()); err != nil {
+		if err := m.rawSendMsgPacket(addr, &node.Node, compound.Bytes()); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send compound ping and suspect message to %s: %s", addr, err)
 			if failedRemote(err) {
 				goto HANDLE_REMOTE_FAILURE
@@ -402,16 +375,7 @@ HANDLE_REMOTE_FAILURE:
 
 	// Attempt an indirect ping.
 	expectedNacks := 0
-	selfAddr, selfPort = m.getAdvertise()
-	ind := indirectPingReq{
-		SeqNo:      ping.SeqNo,
-		Target:     node.Addr,
-		Port:       node.Port,
-		Node:       node.Name,
-		SourceAddr: selfAddr,
-		SourcePort: selfPort,
-		SourceNode: m.config.Name,
-	}
+	ind := indirectPingReq{SeqNo: ping.SeqNo, Target: node.Addr, Port: node.Port, Node: node.Name}
 	for _, peer := range kNodes {
 		// We only expect nack to be sent from peers who understand
 		// version 4 of the protocol.
@@ -419,7 +383,7 @@ HANDLE_REMOTE_FAILURE:
 			expectedNacks++
 		}
 
-		if err := m.encodeAndSendMsg(peer.FullAddress(), indirectPingMsg, &ind); err != nil {
+		if err := m.encodeAndSendMsg(peer.Address(), indirectPingMsg, &ind); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send indirect ping: %s", err)
 		}
 	}
@@ -435,13 +399,10 @@ HANDLE_REMOTE_FAILURE:
 	// which protocol version we are speaking. That's why we've included a
 	// config option to turn this off if desired.
 	fallbackCh := make(chan bool, 1)
-
-	disableTcpPings := m.config.DisableTcpPings ||
-		(m.config.DisableTcpPingsForNode != nil && m.config.DisableTcpPingsForNode(node.Name))
-	if (!disableTcpPings) && (node.PMax >= 3) {
+	if (!m.config.DisableTcpPings) && (node.PMax >= 3) {
 		go func() {
 			defer close(fallbackCh)
-			didContact, err := m.sendPingAndWaitForAck(node.FullAddress(), ping, deadline)
+			didContact, err := m.sendPingAndWaitForAck(node.Address(), ping, deadline)
 			if err != nil {
 				m.logger.Printf("[ERR] memberlist: Failed fallback ping: %s", err)
 			} else {
@@ -498,21 +459,12 @@ HANDLE_REMOTE_FAILURE:
 // Ping initiates a ping to the node with the specified name.
 func (m *Memberlist) Ping(node string, addr net.Addr) (time.Duration, error) {
 	// Prepare a ping message and setup an ack handler.
-	selfAddr, selfPort := m.getAdvertise()
-	ping := ping{
-		SeqNo:      m.nextSeqNo(),
-		Node:       node,
-		SourceAddr: selfAddr,
-		SourcePort: selfPort,
-		SourceNode: m.config.Name,
-	}
+	ping := ping{SeqNo: m.nextSeqNo(), Node: node}
 	ackCh := make(chan ackMessage, m.config.IndirectChecks+1)
 	m.setProbeChannels(ping.SeqNo, ackCh, nil, m.config.ProbeInterval)
 
-	a := Address{Addr: addr.String(), Name: node}
-
 	// Send a ping to the node.
-	if err := m.encodeAndSendMsg(a, pingMsg, &ping); err != nil {
+	if err := m.encodeAndSendMsg(addr.String(), pingMsg, &ping); err != nil {
 		return 0, err
 	}
 
@@ -601,13 +553,13 @@ func (m *Memberlist) gossip() {
 		addr := node.Address()
 		if len(msgs) == 1 {
 			// Send single message as is
-			if err := m.rawSendMsgPacket(node.FullAddress(), &node.Node, msgs[0]); err != nil {
+			if err := m.rawSendMsgPacket(addr, &node.Node, msgs[0]); err != nil {
 				m.logger.Printf("[ERR] memberlist: Failed to send gossip to %s: %s", addr, err)
 			}
 		} else {
 			// Otherwise create and send a compound message
 			compound := makeCompoundMessage(msgs)
-			if err := m.rawSendMsgPacket(node.FullAddress(), &node.Node, compound.Bytes()); err != nil {
+			if err := m.rawSendMsgPacket(addr, &node.Node, compound.Bytes()); err != nil {
 				m.logger.Printf("[ERR] memberlist: Failed to send gossip to %s: %s", addr, err)
 			}
 		}
@@ -634,17 +586,17 @@ func (m *Memberlist) pushPull() {
 	node := nodes[0]
 
 	// Attempt a push pull
-	if err := m.pushPullNode(node.FullAddress(), false); err != nil {
+	if err := m.pushPullNode(node.Address(), false); err != nil {
 		m.logger.Printf("[ERR] memberlist: Push/Pull with %s failed: %s", node.Name, err)
 	}
 }
 
 // pushPullNode does a complete state exchange with a specific node.
-func (m *Memberlist) pushPullNode(a Address, join bool) error {
+func (m *Memberlist) pushPullNode(addr string, join bool) error {
 	defer metrics.MeasureSince([]string{"memberlist", "pushPullNode"}, time.Now())
 
 	// Attempt to send and receive with the node
-	remote, userState, err := m.sendAndReceiveState(a, join)
+	remote, userState, err := m.sendAndReceiveState(addr, join)
 	if err != nil {
 		return err
 	}
@@ -1011,8 +963,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 				time.Since(state.StateChange) > m.config.DeadNodeReclaimTime)
 
 			// Allow the address to be updated if a dead node is being replaced.
-			if state.State == stateLeft || (state.State == stateDead && canReclaim) {
-				m.logger.Printf("[INFO] memberlist: Updating address for left or failed node %s from %v:%d to %v:%d",
+			if state.State == stateDead && canReclaim {
+				m.logger.Printf("[INFO] memberlist: Updating address for failed node %s from %v:%d to %v:%d",
 					state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port)
 				updatesNode = true
 			} else {
@@ -1107,8 +1059,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 
 	// Notify the delegate of any relevant updates
 	if m.config.Events != nil {
-		if oldState == stateDead || oldState == stateLeft {
-			// if Dead/Left -> Alive, notify of join
+		if oldState == stateDead {
+			// if Dead -> Alive, notify of join
 			m.config.Events.NotifyJoin(&state.Node)
 
 		} else if !bytes.Equal(oldMeta, state.Meta) {
@@ -1227,7 +1179,7 @@ func (m *Memberlist) deadNode(d *dead) {
 	delete(m.nodeTimers, d.Node)
 
 	// Ignore if node is already dead
-	if state.DeadOrLeft() {
+	if state.State == stateDead {
 		return
 	}
 
@@ -1251,14 +1203,7 @@ func (m *Memberlist) deadNode(d *dead) {
 
 	// Update the state
 	state.Incarnation = d.Incarnation
-
-	// If the dead message was send by the node itself, mark it is left
-	// instead of dead.
-	if d.Node == d.From {
-		state.State = stateLeft
-	} else {
-		state.State = stateDead
-	}
+	state.State = stateDead
 	state.StateChange = time.Now()
 
 	// Notify of death
@@ -1283,9 +1228,6 @@ func (m *Memberlist) mergeState(remote []pushNodeState) {
 			}
 			m.aliveNode(&a, nil, false)
 
-		case stateLeft:
-			d := dead{Incarnation: r.Incarnation, Node: r.Name, From: r.Name}
-			m.deadNode(&d)
 		case stateDead:
 			// If the remote node believes a node is dead, we prefer to
 			// suspect that node instead of declaring it dead instantly
