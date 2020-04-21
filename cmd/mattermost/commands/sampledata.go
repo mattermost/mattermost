@@ -17,6 +17,7 @@ import (
 
 	"github.com/icrowley/fake"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
@@ -365,10 +366,15 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.New("Unable to read correctly the temporary file.")
 		}
+
+		var importErr *model.AppError
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
+		auditRec := a.MakeAuditRecord("sampleData", audit.Success)
+		auditRec.AddMeta("file", bulkFile.Name())
+		a.LogAuditRec(auditRec, nil)
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {

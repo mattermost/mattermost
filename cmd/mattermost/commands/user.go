@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
@@ -303,9 +304,15 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user.IsSSOUser() {
 		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	if _, err := a.UpdateActive(user, activate); err != nil {
+	updatedUser, err := a.UpdateActive(user, activate)
+	if err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
+
+	auditRec := a.MakeAuditRecord("changeActiveUserStatus", audit.Success)
+	auditRec.AddMeta("user", updatedUser)
+	auditRec.AddMeta("activate", activate)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -388,6 +395,11 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("email: " + ruser.Email)
 	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
+	auditRec := a.MakeAuditRecord("userCreate", audit.Success)
+	auditRec.AddMeta("user", ruser)
+	auditRec.AddMeta("system_admin", systemAdmin)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -406,6 +418,10 @@ func usersToBots(args []string, a *app.App) {
 		}
 
 		CommandPrettyPrintln(fmt.Sprintf("User %s is converted to bot successfully", bot.UserId))
+
+		auditRec := a.MakeAuditRecord("userToBot", audit.Success)
+		auditRec.AddMeta("user", user)
+		a.LogAuditRec(auditRec, nil)
 	}
 }
 
@@ -526,6 +542,12 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 	CommandPrettyPrintln("last_name: " + user.LastName)
 	CommandPrettyPrintln("roles: " + user.Roles)
 	CommandPrettyPrintln("locale: " + user.Locale)
+
+	auditRec := a.MakeAuditRecord("botToUser", audit.Success)
+	auditRec.AddMeta("bot", user)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -604,6 +626,11 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 	a.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
+	auditRec := a.MakeAuditRecord("inviteUser", audit.Success)
+	auditRec.AddMeta("email", email)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -627,6 +654,10 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	if err := a.Srv().Store.User().UpdatePassword(user.Id, model.HashPassword(password)); err != nil {
 		return err
 	}
+
+	auditRec := a.MakeAuditRecord("resetUserPassword", audit.Success)
+	auditRec.AddMeta("user", user)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -663,6 +694,11 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 		return errors.New(errUpdate.Message)
 	}
 
+	auditRec := a.MakeAuditRecord("updateUserEmail", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("email", newEmail)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -678,7 +714,6 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	}
 
 	users := getUsersFromUserArgs(a, args)
-
 	for i, user := range users {
 		if user == nil {
 			return errors.New("Unable to find user '" + args[i] + "'")
@@ -687,6 +722,10 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 		if err := a.DeactivateMfa(user.Id); err != nil {
 			return err
 		}
+
+		auditRec := a.MakeAuditRecord("resetUserMfa", audit.Success)
+		auditRec.AddMeta("user", user)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	return nil
@@ -735,6 +774,11 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 				return err
 			}
 		}
+
+		auditRec := a.MakeAuditRecord("deleteUser", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("isBot", user.IsBot)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	return nil
@@ -770,8 +814,10 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	if err := a.PermanentDeleteAllUsers(); err != nil {
 		return err
 	}
-
 	CommandPrettyPrintln("All user accounts successfully deleted.")
+
+	auditRec := a.MakeAuditRecord("deleteAllUsers", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -815,8 +861,15 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToLdap", audit.Success)
+			auditRec.AddMeta("fromAuth", fromAuth)
+			auditRec.AddMeta("matchField", matchField)
+			auditRec.AddMeta("force", forceFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 
@@ -871,8 +924,13 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 		}
 
 		CommandPrettyPrintln("Successfully migrated accounts.")
-	}
 
+		if !dryRunFlag {
+			auditRec := a.MakeAuditRecord("migrateAuthToSaml", audit.Success)
+			auditRec.AddMeta("auto", autoFlag)
+			a.LogAuditRec(auditRec, nil)
+		}
+	}
 	return nil
 }
 

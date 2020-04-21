@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
@@ -51,6 +52,8 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP Synchronization Complete")
+			auditRec := a.MakeAuditRecord("ldapSync", audit.Success)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
 
@@ -70,6 +73,8 @@ func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("ERROR: AD/LDAP IdAttribute migration failed! Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
+			auditRec := a.MakeAuditRecord("ldapMigrate", audit.Success)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
 

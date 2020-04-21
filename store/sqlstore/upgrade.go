@@ -175,7 +175,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion520(sqlStore)
 	upgradeDatabaseToVersion521(sqlStore)
 	upgradeDatabaseToVersion522(sqlStore)
-
+	upgradeDatabaseToVersion523(sqlStore)
+	upgradeDatabaseToVersion524(sqlStore)
 	return nil
 }
 
@@ -783,4 +784,22 @@ func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_5_22_0)
 	}
+}
+
+func upgradeDatabaseToVersion523(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.23
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_22_0, VERSION_5_23_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_23_0)
+	// }
+}
+
+func upgradeDatabaseToVersion524(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.24
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_24_0) {
+
+	sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_24_0)
+	// }
 }
