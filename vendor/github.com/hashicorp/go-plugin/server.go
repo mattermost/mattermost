@@ -15,8 +15,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
-	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-hclog"
+
 	"google.golang.org/grpc"
 )
 
@@ -335,11 +337,11 @@ func Serve(opts *ServeConfig) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt)
 	go func() {
-		count := 0
+		var count int32 = 0
 		for {
 			<-ch
-			count++
-			logger.Trace("plugin received interrupt signal, ignoring", "count", count)
+			newCount := atomic.AddInt32(&count, 1)
+			logger.Debug("plugin received interrupt signal, ignoring", "count", newCount)
 		}
 	}()
 
