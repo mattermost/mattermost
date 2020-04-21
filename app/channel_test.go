@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -1647,4 +1649,30 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestMarkChannelsAsViewedPanic verifies that returning an error from a.GetUser
+// does not cause a panic.
+func TestMarkChannelsAsViewedPanic(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
+	mockChannelStore.On("GetMember", "channelID", "userID").Return(&model.ChannelMember{
+		NotifyProps: model.StringMap{
+			model.PUSH_NOTIFY_PROP: model.CHANNEL_NOTIFY_DEFAULT,
+		}}, nil)
+	times := map[string]int64{
+		"userID": 1,
+	}
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id)
+	require.Nil(t, err)
 }
