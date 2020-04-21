@@ -132,12 +132,12 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
-		tmp := model.NewId()
 		if groupPatch.Name == nil {
-			tmp = strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
+			tmp := strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
+			groupPatch.Name = &tmp
 		}
-		groupPatch.Name = &tmp
 	}
+
 	group.Patch(groupPatch)
 
 	group, err = c.App.UpdateGroup(group)
