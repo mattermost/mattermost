@@ -43,6 +43,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/privacy", api.ApiSessionRequired(updateTeamPrivacy)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.ApiSessionRequired(regenerateTeamInviteId)).Methods("POST")
 
@@ -229,6 +230,58 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.Write([]byte(patchedTeam.ToJson()))
+}
+
+func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+	privacy, ok := props["privacy"].(string)
+	if !ok {
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	var openInvite bool
+	switch privacy {
+	case model.TEAM_OPEN:
+		openInvite = true
+	case model.TEAM_INVITE:
+		openInvite = false
+	default:
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateTeamPrivacy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("privacy", privacy)
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		auditRec.AddMeta("team_id", c.Params.TeamId)
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if err := c.App.UpdateTeamPrivacy(c.Params.TeamId, privacy, openInvite); err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return the updated team to be consistent with UpdateChannelPrivacy
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("team", team)
+	auditRec.Success()
+
+	w.Write([]byte(team.ToJson()))
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
