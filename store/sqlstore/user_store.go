@@ -1765,7 +1765,6 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, *model.AppError) 
 		Where(sq.NotEq{"ocm.UserId": userId}).
 		Where(sq.Eq{"cm.UserId": userId}).
 		ToSql()
-	fmt.Println(usersQuery, args)
 	_, err := us.GetSearchReplica().Select(&userIds, usersQuery, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.GetKnownUsers", "store.sql_user.get_known_users.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
