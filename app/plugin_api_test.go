@@ -95,6 +95,11 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	}
 
 	app.SetPluginsEnvironment(env)
+	app.UpdateConfig(func(cfg *model.Config) {
+		for _, pluginId := range pluginIds {
+			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{Enable: true}
+		}
+	})
 
 	return pluginDir
 }
