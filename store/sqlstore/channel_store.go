@@ -3557,12 +3557,12 @@ func (s SqlChannelStore) UpdateSidebarChannelByPreference(preference *model.Pref
 	}
 	// if new preference is false - remove the channel from the appropriate sidebar category
 	if preference.Value == "false" {
-		if _, err := s.GetReplica().Exec("DELETE SidebarChannel FROM SidebarChannel LEFT JOIN SidebarCategory ON SidebarCategory.Id = SidebarChannel.CategoryId WHERE SidebarCategory.Type=:CategoryType AND SidebarCategory.UserId=:UserId AND SidebarChannel.UserId=:UserId AND ChannelId=:ChannelId", params); err != nil {
+		if _, err := s.GetReplica().Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId", params); err != nil {
 			return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
 		// otherwise - insert new channel into the apropriate category. ignore duplicate error
-		if _, err := s.GetReplica().Exec("INSERT INTO SidebarChannel (ChannelId, UserId, CategoryId) SELECT Id as CategoryId, UserId=:UserId, ChannelId=:ChannelId FROM SidebarCategory WHERE SidebarCategory.Type=:CategoryType AND SidebarCategory.UserId=:UserId", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+		if _, err := s.GetReplica().Exec("INSERT INTO SidebarChannels (ChannelId, UserId, CategoryId) SELECT Id as CategoryId, :UserId as UserId, :ChannelId AS ChannelId FROM SidebarCategories WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
 			return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
