@@ -1647,7 +1647,7 @@ func TestFillInPostProps(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.App.FillInPostProps(post1, channel)
-		
+
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{})
 	})
@@ -1679,8 +1679,8 @@ func TestFillInPostProps(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.App.FillInPostProps(post1, channel)
-		
+
 		assert.Nil(t, err)
-		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight":true})
+		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
 	})
 }
