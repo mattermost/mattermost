@@ -155,7 +155,8 @@ func (c Client) RemoveObjectTaggingWithContext(ctx context.Context, bucketName, 
 	}
 
 	if resp != nil {
-		if resp.StatusCode != http.StatusOK {
+		// S3 returns "204 No content" after Object tag deletion.
+		if resp.StatusCode != http.StatusNoContent {
 			return httpRespToErrorResponse(resp, bucketName, objectName)
 		}
 	}
