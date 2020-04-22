@@ -27,6 +27,7 @@ type Progress struct {
 	LastTeamId    string       `json:"last_team_id"`
 	LastChannelId string       `json:"last_channel_id"`
 	LastUserId    string       `json:"last_user"`
+	LastSortOrder int64        `json:"last_sort_order"`
 }
 
 func (p *Progress) ToJson() string {
@@ -68,6 +69,7 @@ func newProgress(step ProgressStep) *Progress {
 	progress.LastChannelId = strings.Repeat("0", 26)
 	progress.LastTeamId = strings.Repeat("0", 26)
 	progress.LastUserId = strings.Repeat("0", 26)
+	progress.LastSortOrder = 0
 	return progress
 }
 
@@ -82,7 +84,7 @@ func (worker *Worker) runSidebarCategoriesPhase1Migration(lastDone string) (bool
 		}
 	}
 
-	var result map[string]string
+	var result map[string]interface{}
 	var err *model.AppError
 	var nextStep ProgressStep
 	switch progress.CurrentStep {
@@ -90,13 +92,13 @@ func (worker *Worker) runSidebarCategoriesPhase1Migration(lastDone string) (bool
 		result, err = worker.app.Srv().Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId, worker.app.GetT())
 		nextStep = STEP_FAVORITES
 	case STEP_CHANNELS:
-		result, err = worker.app.Srv().Store.Channel().MigrateChannelsToSidebarChannels(progress.LastChannelId, progress.LastUserId)
+		result, err = worker.app.Srv().Store.Channel().MigrateChannelsToSidebarChannels(progress.LastChannelId, progress.LastUserId, progress.LastSortOrder)
 		nextStep = STEP_FAVORITES
 	case STEP_DMS:
-		result, err = worker.app.Srv().Store.Channel().MigrateDirectGroupMessagesToSidebarChannels(progress.LastChannelId, progress.LastUserId)
+		result, err = worker.app.Srv().Store.Channel().MigrateDirectGroupMessagesToSidebarChannels(progress.LastChannelId, progress.LastUserId, progress.LastSortOrder)
 		nextStep = STEP_FAVORITES
 	case STEP_FAVORITES:
-		result, err = worker.app.Srv().Store.Channel().MigrateFavoritesToSidebarChannels(progress.LastUserId)
+		result, err = worker.app.Srv().Store.Channel().MigrateFavoritesToSidebarChannels(progress.LastUserId, progress.LastSortOrder)
 		nextStep = STEP_END
 	}
 
@@ -113,9 +115,9 @@ func (worker *Worker) runSidebarCategoriesPhase1Migration(lastDone string) (bool
 		return true, progress.ToJson(), nil
 	}
 
-	progress.LastTeamId = result["TeamId"]
-	progress.LastUserId = result["UserId"]
-	progress.LastChannelId = result["ChannelId"]
-
+	progress.LastTeamId = result["TeamId"].(string)
+	progress.LastUserId = result["UserId"].(string)
+	progress.LastChannelId = result["ChannelId"].(string)
+	progress.LastSortOrder = result["SortOrder"].(int64)
 	return false, progress.ToJson(), nil
 }

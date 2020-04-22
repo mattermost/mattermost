@@ -204,10 +204,10 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
-	MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId string) (map[string]string, *model.AppError)
-	MigrateSidebarCategories(fromTeamId, fromUserId string, T goi18n.TranslateFunc) (map[string]string, *model.AppError)
-	MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError)
-	MigrateChannelsToSidebarChannels(lastChannelId, lastUserId string) (map[string]string, *model.AppError)
+	MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError)
+	MigrateSidebarCategories(fromTeamId, fromUserId string, T goi18n.TranslateFunc) (map[string]interface{}, *model.AppError)
+	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError)
+	MigrateChannelsToSidebarChannels(lastChannelId, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(userId, teamId, categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)

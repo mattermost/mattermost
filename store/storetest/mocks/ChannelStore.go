@@ -1343,22 +1343,22 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 	return r0, r1
 }
 
-// MigrateChannelsToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId
-func (_m *ChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
-	ret := _m.Called(lastChannelId, lastUserId)
+// MigrateChannelsToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId, runningOrder
+func (_m *ChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId, runningOrder)
 
-	var r0 map[string]string
-	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
-		r0 = rf(lastChannelId, lastUserId)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]interface{}); ok {
+		r0 = rf(lastChannelId, lastUserId, runningOrder)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(lastChannelId, lastUserId)
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId, runningOrder)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1368,22 +1368,22 @@ func (_m *ChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, l
 	return r0, r1
 }
 
-// MigrateDirectGroupMessagesToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId
-func (_m *ChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
-	ret := _m.Called(lastChannelId, lastUserId)
+// MigrateDirectGroupMessagesToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId, runningOrder
+func (_m *ChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId, runningOrder)
 
-	var r0 map[string]string
-	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
-		r0 = rf(lastChannelId, lastUserId)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]interface{}); ok {
+		r0 = rf(lastChannelId, lastUserId, runningOrder)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(lastChannelId, lastUserId)
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId, runningOrder)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1393,22 +1393,22 @@ func (_m *ChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelI
 	return r0, r1
 }
 
-// MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId
-func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError) {
-	ret := _m.Called(lastUserId)
+// MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId, runningOrder
+func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastUserId, runningOrder)
 
-	var r0 map[string]string
-	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
-		r0 = rf(lastUserId)
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, int64) map[string]interface{}); ok {
+		r0 = rf(lastUserId, runningOrder)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(lastUserId)
+	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+		r1 = rf(lastUserId, runningOrder)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1433,15 +1433,15 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 }
 
 // MigrateSidebarCategories provides a mock function with given fields: fromTeamId, fromUserId, T
-func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string, T i18n.TranslateFunc) (map[string]string, *model.AppError) {
+func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string, T i18n.TranslateFunc) (map[string]interface{}, *model.AppError) {
 	ret := _m.Called(fromTeamId, fromUserId, T)
 
-	var r0 map[string]string
-	if rf, ok := ret.Get(0).(func(string, string, i18n.TranslateFunc) map[string]string); ok {
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string, i18n.TranslateFunc) map[string]interface{}); ok {
 		r0 = rf(fromTeamId, fromUserId, T)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]string)
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 

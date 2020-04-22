@@ -1442,10 +1442,10 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelId string, fro
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
+func (s *TimerLayerChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.MigrateChannelsToSidebarChannels(lastChannelId, lastUserId)
+	resultVar0, resultVar1 := s.ChannelStore.MigrateChannelsToSidebarChannels(lastChannelId, lastUserId, runningOrder)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1458,10 +1458,10 @@ func (s *TimerLayerChannelStore) MigrateChannelsToSidebarChannels(lastChannelId 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string) (map[string]string, *model.AppError) {
+func (s *TimerLayerChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId)
+	resultVar0, resultVar1 := s.ChannelStore.MigrateDirectGroupMessagesToSidebarChannels(lastChannelId, lastUserId, runningOrder)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1474,10 +1474,10 @@ func (s *TimerLayerChannelStore) MigrateDirectGroupMessagesToSidebarChannels(las
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string) (map[string]string, *model.AppError) {
+func (s *TimerLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId)
+	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId, runningOrder)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1506,7 +1506,7 @@ func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string, T goi18n.TranslateFunc) (map[string]string, *model.AppError) {
+func (s *TimerLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string, T goi18n.TranslateFunc) (map[string]interface{}, *model.AppError) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId, T)
