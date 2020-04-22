@@ -4,14 +4,11 @@
 package app
 
 import (
-	"fmt"
 	"hash/fnv"
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"strings"
 	"sync/atomic"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -19,8 +16,6 @@ import (
 
 const (
 	BROADCAST_QUEUE_SIZE = 4096
-	DEADLOCK_TICKER      = 15 * time.Second                  // check every 15 seconds
-	DEADLOCK_WARN        = (BROADCAST_QUEUE_SIZE * 99) / 100 // number of buffered messages before printing stack trace
 )
 
 type WebConnActivityMessage struct {
@@ -43,7 +38,6 @@ type Hub struct {
 	invalidateUser  chan string
 	activity        chan *WebConnActivityMessage
 	ExplicitStop    bool
-	goroutineId     int
 }
 
 func (a *App) NewWebHub() *Hub {
@@ -70,7 +64,6 @@ func (a *App) HubStart() {
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	a.Srv().SetHubs(make([]*Hub, numberOfHubs))
-	a.Srv().HubsStopCheckingForDeadlock = make(chan bool, 1)
 
 	for i := 0; i < len(a.Srv().GetHubs()); i++ {
 		newHub := a.NewWebHub()
@@ -82,53 +75,10 @@ func (a *App) HubStart() {
 		}
 		newHub.Start()
 	}
-
-	go func() {
-		ticker := time.NewTicker(DEADLOCK_TICKER)
-
-		defer func() {
-			ticker.Stop()
-		}()
-
-		for {
-			select {
-			case <-ticker.C:
-				for _, hub := range a.Srv().GetHubs() {
-					if len(hub.broadcast) >= DEADLOCK_WARN {
-						mlog.Error(
-							"Websocket hub queue is filled to 99% of its capacity",
-							mlog.Int("hub", hub.connectionIndex),
-							mlog.Int("goroutine", hub.goroutineId),
-							mlog.Int("events", len(hub.broadcast)),
-						)
-						buf := make([]byte, 1<<16)
-						runtime.Stack(buf, true)
-						output := fmt.Sprintf("%s", buf)
-						splits := strings.Split(output, "goroutine ")
-
-						for _, part := range splits {
-							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
-								mlog.Error("Trace for possible deadlock goroutine", mlog.String("trace", part))
-							}
-						}
-					}
-				}
-
-			case <-a.Srv().HubsStopCheckingForDeadlock:
-				return
-			}
-		}
-	}()
 }
 
 func (a *App) HubStop() {
 	mlog.Info("stopping websocket hub connections")
-
-	select {
-	case a.Srv().HubsStopCheckingForDeadlock <- true:
-	default:
-		mlog.Warn("We appear to have already sent the stop checking for deadlocks command")
-	}
 
 	for _, hub := range a.Srv().GetHubs() {
 		hub.Stop()
@@ -374,17 +324,6 @@ func (h *Hub) UpdateActivity(userId, sessionToken string, activityAt int64) {
 	}
 }
 
-func getGoroutineId() int {
-	var buf [64]byte
-	n := runtime.Stack(buf[:], false)
-	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
-	id, err := strconv.Atoi(idField)
-	if err != nil {
-		id = -1
-	}
-	return id
-}
-
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
@@ -396,8 +335,7 @@ func (h *Hub) Start() {
 	var doRecover func()
 
 	doStart = func() {
-		h.goroutineId = getGoroutineId()
-		mlog.Debug("Hub for index is starting with goroutine", mlog.Int("index", h.connectionIndex), mlog.Int("goroutine", h.goroutineId))
+		mlog.Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
 
 		connections := newHubConnectionIndex()
 

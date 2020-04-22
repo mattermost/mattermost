@@ -2974,22 +2974,6 @@ func (s *TimerLayerGroupStore) GetGroups(page int, perPage int, opts model.Group
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.GroupStore.GetGroupsByChannel(channelId, opts)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetGroupsByChannel", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
 	start := timemodule.Now()
 
@@ -3002,6 +2986,22 @@ func (s *TimerLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetGroupsAssociatedToChannelsByTeam", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetGroupsByChannel(channelId, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetGroupsByChannel", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }
@@ -3050,6 +3050,38 @@ func (s *TimerLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *m
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsers", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsersInTeam", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsersNotInChannel", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }
@@ -6659,6 +6691,22 @@ func (s *TimerLayerUserStore) GetAllAfter(limit int, afterId string) ([]*model.U
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetAllAfter", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.GetAllNotInAuthService(authServices)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetAllNotInAuthService", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

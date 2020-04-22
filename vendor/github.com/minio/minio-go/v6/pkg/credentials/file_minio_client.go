@@ -38,12 +38,12 @@ type FileMinioClient struct {
 	// env value is empty will default to current user's home directory.
 	// Linux/OSX: "$HOME/.mc/config.json"
 	// Windows:   "%USERALIAS%\mc\config.json"
-	Filename string
+	filename string
 
 	// MinIO Alias to extract credentials from the shared credentials file. If empty
 	// will default to environment variable "MINIO_ALIAS" or "default" if
 	// environment variable is also not set.
-	Alias string
+	alias string
 
 	// retrieved states if the credentials have been successfully retrieved.
 	retrieved bool
@@ -53,39 +53,39 @@ type FileMinioClient struct {
 // wrapping the Alias file provider.
 func NewFileMinioClient(filename string, alias string) *Credentials {
 	return New(&FileMinioClient{
-		Filename: filename,
-		Alias:    alias,
+		filename: filename,
+		alias:    alias,
 	})
 }
 
 // Retrieve reads and extracts the shared credentials from the current
 // users home directory.
 func (p *FileMinioClient) Retrieve() (Value, error) {
-	if p.Filename == "" {
+	if p.filename == "" {
 		if value, ok := os.LookupEnv("MINIO_SHARED_CREDENTIALS_FILE"); ok {
-			p.Filename = value
+			p.filename = value
 		} else {
 			homeDir, err := homedir.Dir()
 			if err != nil {
 				return Value{}, err
 			}
-			p.Filename = filepath.Join(homeDir, ".mc", "config.json")
+			p.filename = filepath.Join(homeDir, ".mc", "config.json")
 			if runtime.GOOS == "windows" {
-				p.Filename = filepath.Join(homeDir, "mc", "config.json")
+				p.filename = filepath.Join(homeDir, "mc", "config.json")
 			}
 		}
 	}
 
-	if p.Alias == "" {
-		p.Alias = os.Getenv("MINIO_ALIAS")
-		if p.Alias == "" {
-			p.Alias = "s3"
+	if p.alias == "" {
+		p.alias = os.Getenv("MINIO_ALIAS")
+		if p.alias == "" {
+			p.alias = "s3"
 		}
 	}
 
 	p.retrieved = false
 
-	hostCfg, err := loadAlias(p.Filename, p.Alias)
+	hostCfg, err := loadAlias(p.filename, p.alias)
 	if err != nil {
 		return Value{}, err
 	}

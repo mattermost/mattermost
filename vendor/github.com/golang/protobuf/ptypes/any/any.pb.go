@@ -102,8 +102,7 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 //
 type Any struct {
 	// A URL/resource name that uniquely identifies the type of the serialized
-	// protocol buffer message. This string must contain at least
-	// one "/" character. The last segment of the URL's path must represent
+	// protocol buffer message. The last segment of the URL's path must represent
 	// the fully qualified name of the type (as in
 	// `path/google.protobuf.Duration`). The name should be in a canonical form
 	// (e.g., leading "." is not accepted).
@@ -182,9 +181,7 @@ func init() {
 	proto.RegisterType((*Any)(nil), "google.protobuf.Any")
 }
 
-func init() {
-	proto.RegisterFile("google/protobuf/any.proto", fileDescriptor_b53526c13ae22eb4)
-}
+func init() { proto.RegisterFile("google/protobuf/any.proto", fileDescriptor_b53526c13ae22eb4) }
 
 var fileDescriptor_b53526c13ae22eb4 = []byte{
 	// 185 bytes of a gzipped FileDescriptorProto

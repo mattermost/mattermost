@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -81,12 +80,11 @@ func (suite *Suite) Run(name string, subtest func()) bool {
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
-	testsSync := &sync.WaitGroup{}
 	suite.SetT(t)
 	defer failOnPanic(t)
 
 	suiteSetupDone := false
-
+	
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
@@ -105,7 +103,6 @@ func Run(t *testing.T, suite TestingSuite) {
 			}
 			defer func() {
 				if tearDownAllSuite, ok := suite.(TearDownAllSuite); ok {
-					testsSync.Wait()
 					tearDownAllSuite.TearDownSuite()
 				}
 			}()
@@ -114,7 +111,6 @@ func Run(t *testing.T, suite TestingSuite) {
 		test := testing.InternalTest{
 			Name: method.Name,
 			F: func(t *testing.T) {
-				defer testsSync.Done()
 				parentT := suite.T()
 				suite.SetT(t)
 				defer failOnPanic(t)
@@ -138,7 +134,6 @@ func Run(t *testing.T, suite TestingSuite) {
 			},
 		}
 		tests = append(tests, test)
-		testsSync.Add(1)
 	}
 	runTests(t, tests)
 }
