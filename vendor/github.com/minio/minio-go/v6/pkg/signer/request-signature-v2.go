@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package s3signer
+package signer
 
 import (
 	"bytes"
