@@ -136,9 +136,9 @@ type retryPolicy struct {
 	maxAttempts int
 
 	// Exponential backoff parameters. The initial retry attempt will occur at
-	// random(0, initialBackoff). In general, the nth attempt will occur at
+	// random(0, initialBackoffMS). In general, the nth attempt will occur at
 	// random(0,
-	//   min(initialBackoff*backoffMultiplier**(n-1), maxBackoff)).
+	//   min(initialBackoffMS*backoffMultiplier**(n-1), maxBackoffMS)).
 	//
 	// These fields are required and must be greater than zero.
 	initialBackoff    time.Duration

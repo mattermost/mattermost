@@ -1,7 +1,6 @@
 export GOBIN ?= $(shell pwd)/bin
 
 GOLINT = $(GOBIN)/golint
-STATICCHECK = $(GOBIN)/staticcheck
 BENCH_FLAGS ?= -cpuprofile=cpu.pprof -memprofile=mem.pprof -benchmem
 
 # Directories containing independent Go modules.
@@ -18,7 +17,7 @@ GO_FILES := $(shell \
 all: lint test
 
 .PHONY: lint
-lint: $(GOLINT) $(STATICCHECK)
+lint: $(GOLINT)
 	@rm -rf lint.log
 	@echo "Checking formatting..."
 	@gofmt -d -s $(GO_FILES) 2>&1 | tee lint.log
@@ -26,8 +25,6 @@ lint: $(GOLINT) $(STATICCHECK)
 	@$(foreach dir,$(MODULE_DIRS),(cd $(dir) && go vet ./... 2>&1) &&) true | tee -a lint.log
 	@echo "Checking lint..."
 	@$(foreach dir,$(MODULE_DIRS),(cd $(dir) && $(GOLINT) ./... 2>&1) &&) true | tee -a lint.log
-	@echo "Checking staticcheck..."
-	@$(foreach dir,$(MODULE_DIRS),(cd $(dir) && $(STATICCHECK) ./... 2>&1) &&) true | tee -a lint.log
 	@echo "Checking for unresolved FIXMEs..."
 	@git grep -i fixme | grep -v -e Makefile | tee -a lint.log
 	@echo "Checking for license headers..."
@@ -36,9 +33,6 @@ lint: $(GOLINT) $(STATICCHECK)
 
 $(GOLINT):
 	go install golang.org/x/lint/golint
-
-$(STATICCHECK):
-	go install honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: test
 test:

@@ -25,8 +25,8 @@ import (
 	"sync"
 
 	"github.com/minio/minio-go/v6/pkg/credentials"
-	"github.com/minio/minio-go/v6/pkg/s3signer"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
+	"github.com/minio/minio-go/v6/pkg/signer"
 )
 
 // bucketLocationCache - Provides simple mechanism to hold bucket
@@ -236,7 +236,7 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 	if signerType.IsV2() {
 		// Get Bucket Location calls should be always path style
 		isVirtualHost := false
-		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
+		req = signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
 		return req, nil
 	}
 
@@ -247,6 +247,6 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 	}
 
 	req.Header.Set("X-Amz-Content-Sha256", contentSha256)
-	req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, "us-east-1")
+	req = signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, "us-east-1")
 	return req, nil
 }

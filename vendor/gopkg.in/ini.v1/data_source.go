@@ -66,8 +66,6 @@ func parseDataSource(source interface{}) (dataSource, error) {
 		return sourceFile{s}, nil
 	case []byte:
 		return &sourceData{s}, nil
-	case io.Reader:
-		return &sourceReadCloser{ioutil.NopCloser(s)}, nil
 	case io.ReadCloser:
 		return &sourceReadCloser{s}, nil
 	default:
