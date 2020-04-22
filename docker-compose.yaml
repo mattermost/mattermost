@@ -46,6 +46,14 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: elasticsearch
+  dejavu:
+    container_name: mattermost-dejavu
+    ports:
+      - "1358:1358"
+    extends:
+        file: build/docker-compose.optional.yml
+        service: dejavu
+
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     networks:
