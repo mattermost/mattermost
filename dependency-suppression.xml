@@ -63,4 +63,11 @@
     <packageUrl regex="true">^pkg:golang/github\.com/buger/jsonparser@.*$</packageUrl>
     <cve>CVE-2020-10675</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Golang module misidentified as unrelated CLI toolset
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/tools@.*$</packageUrl>
+    <cpe>cpe:/a:data_tools_project:data_tools</cpe>
+  </suppress>
 </suppressions>

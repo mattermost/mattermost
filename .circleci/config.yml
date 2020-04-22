@@ -109,6 +109,36 @@ jobs:
             make app-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
 
+  check-store-layers:
+    docker:
+      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make store-layers
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
+  build-api-spec:
+    docker:
+      - image: circleci/node:lts
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            git clone https://github.com/mattermost/mattermost-api-reference.git
+            cd mattermost-api-reference
+            make build
+      - persist_to_workspace:
+          root: ~/mattermost
+          paths:
+            - mattermost-api-reference
+
   build:
     docker:
       - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
@@ -127,7 +157,7 @@ jobs:
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
       - store_artifacts:
@@ -369,19 +399,6 @@ jobs:
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             docker push mattermost/mattermost-team-edition:${TAG}
 
-  trigger-ee-tests:
-    machine: true
-    steps:
-      - run:
-          name: Trigger enterprise
-          command: |
-            curl \
-              --request POST \
-              --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
-              --user ${CIRCLECI_TOKEN} \
-              --data parameters[external_branch]=$CIRCLE_BRANCH \
-              --data parameters[external_sha]=$CIRCLE_SHA1
-
 workflows:
   version: 2
   untagged-build:
@@ -402,9 +419,17 @@ workflows:
       - check-app-layers:
           requires:
             - setup
+      - check-store-layers:
+          requires:
+            - setup
+      - build-api-spec:
+          requires:
+            - setup
       - build:
           requires:
             - check-app-layers
+            - check-store-layers
+            - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -423,24 +448,15 @@ workflows:
           dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
           requires:
             - check-app-layers
+            - check-store-layers
       - test:
           name: test-postgres
           dbdriver: postgres
           dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
           requires:
             - check-app-layers
+            - check-store-layers
       - test-schema:
           requires:
             - check-app-layers
-      - trigger-ee-tests:
-          context: matterbuild-circleci-token
-          requires:
-            - test-mysql
-            - test-postgres
-            - test-schema
-            - upload-s3
-            - upload-s3-sha
-            - build-docker
-          filters:
-            branches:
-              only: /^pull\/.*$/
+            - check-store-layers
