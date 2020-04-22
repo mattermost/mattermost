@@ -1629,3 +1629,58 @@ func TestCountMentionsFromPost(t *testing.T) {
 		assert.Equal(t, numPosts, count)
 	})
 }
+
+func TestFillInPostProps(t *testing.T) {
+	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam)
+
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test123123 @group1 @group2 blah blah blah",
+		}, channel, false)
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(post1, channel)
+		
+		assert.Nil(t, err)
+		assert.Equal(t, post1.Props, model.StringInterface{})
+	})
+
+	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		guest, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(guest, channel)
+
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    guest.Id,
+			ChannelId: channel.Id,
+			Message:   "test123123 @group1 @group2 blah blah blah",
+		}, channel, false)
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(post1, channel)
+		
+		assert.Nil(t, err)
+		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight":true})
+	})
+}

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"regexp"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -393,13 +394,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		post.DelProp("channel_mentions")
 	}
 
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
-		post.AddProp(model.POST_PROPS_MENTION_HIGHLIGHT_DISABLED, true)
-	}
-
-	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
+	matched, err := regexp.MatchString(`\B@`, post.Message)
+	if err == nil && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
 		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
-	}
+	}	
+	
 
 	return nil
 }
