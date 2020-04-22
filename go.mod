@@ -58,7 +58,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/miekg/dns v1.1.27 // indirect
-	github.com/minio/minio-go/v6 v6.0.45
+	github.com/minio/minio-go/v6 v6.0.53
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
@@ -71,11 +71,12 @@ require (
 	github.com/prometheus/client_golang v1.4.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/rs/cors v1.7.0
-	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
+	github.com/rudderlabs/analytics-go v3.1.0+incompatible
+	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/analytics-go v3.1.0+incompatible
 	github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c // indirect
-	github.com/sirupsen/logrus v1.4.2
+	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
