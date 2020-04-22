@@ -36,7 +36,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search when markdown underscores are applied",
 		Fn:   testSearchMarkdownUnderscores,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should be able to search for non-latin words",
@@ -351,7 +351,7 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "_start middle end_ _both_", "", model.POST_DEFAULT, 0, false)
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "_start middle end_ _another_", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
@@ -383,7 +383,7 @@ func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 	})
 
 	t.Run("Should search inside markdown underscore", func(t *testing.T) {
-		params := &model.SearchParams{Terms: "both"}
+		params := &model.SearchParams{Terms: "another"}
 		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
 		require.Nil(t, apperr)
 
