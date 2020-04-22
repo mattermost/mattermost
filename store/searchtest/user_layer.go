@@ -122,13 +122,6 @@ var searchUserStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
-		Name:        "Should support searching for users containing the term not only starting with it",
-		Fn:          testSupportSearchUsersByContainingTerms,
-		Tags:        []string{ENGINE_ALL},
-		Skip:        true,
-		SkipMessage: "Not working",
-	},
-	{
 		Name: "Should support search with a hyphen at the end of the term",
 		Fn:   testSearchWithHyphenAtTheEndOfTheTerm,
 		Tags: []string{ENGINE_ALL},
@@ -695,16 +688,6 @@ func testShouldSupportKoreanCharacters(t *testing.T, th *SearchTestHelper) {
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
-}
-
-func testSupportSearchUsersByContainingTerms(t *testing.T, th *SearchTestHelper) {
-	options := &model.UserSearchOptions{
-		Limit: model.USER_SEARCH_DEFAULT_LIMIT,
-	}
-	users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "nick", options)
-	require.Nil(t, apperr)
-	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
-	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 }
 
 func testSearchWithHyphenAtTheEndOfTheTerm(t *testing.T, th *SearchTestHelper) {
