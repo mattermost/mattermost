@@ -1350,7 +1350,7 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 // Run it with | grep -v '{"level"' to prevent spamming the console.
-func BenchmarkPushNotification(b *testing.B) {
+func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
 	defer th.TearDown()
 
