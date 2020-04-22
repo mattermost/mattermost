@@ -133,6 +133,8 @@ jobs:
           command: |
             git clone https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
+            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+            git checkout ${CIRCLE_BRANCH} || true
             make build
       - persist_to_workspace:
           root: ~/mattermost
