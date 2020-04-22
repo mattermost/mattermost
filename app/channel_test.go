@@ -1676,3 +1676,30 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id)
 	require.Nil(t, err)
 }
+
+func TestSidebarCategory(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(basicChannel2)
+	user := th.CreateUser()
+	cat, err := th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, "TEST", []string{th.BasicChannel.Id, basicChannel2.Id, basicChannel2.Id})
+	require.NotNil(t, err, "Should return error due to duplicate IDs")
+	cat, err = th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, "TEST", []string{th.BasicChannel.Id, basicChannel2.Id})
+	require.Nil(t, err, "Expected no error")
+	require.NotNil(t, cat, "Expected category object, got nil")
+
+	updatedCat, err := th.App.UpdateSidebarCategory(user.Id, th.BasicTeam.Id, cat.Id, "new name", []string{th.BasicChannel.Id})
+	require.Nil(t, err, "Expected no error")
+	require.NotNil(t, updatedCat, "Expected category object, got nil")
+	require.Len(t, updatedCat.Channels, 1)
+	require.Equal(t, updatedCat.Channels[0], th.BasicChannel.Id)
+
+	err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{th.BasicChannel.Id, basicChannel2.Id})
+	require.NotNil(t, err, "Should return error due to invalid order")
+
+	catOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
+	require.Nil(t, err, "Expected no error")
+	require.Len(t, catOrder, 1)
+}
