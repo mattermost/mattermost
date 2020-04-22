@@ -177,6 +177,16 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewId(),
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
+
+	//must user valid characters
+	g7 := &model.Group{
+		Name:        "%^#@$$",
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	require.Equal(t, g7.IsValidForCreate().Id, "model.group.source.app_error")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
@@ -490,7 +500,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	require.Equal(t, err.Id, "store.update_error")
+	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()
