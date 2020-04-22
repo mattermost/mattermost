@@ -186,7 +186,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	require.Equal(t, g7.IsValidForCreate().Id, "model.group.source.app_error")
+	require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.app_error")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
