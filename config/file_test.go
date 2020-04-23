@@ -660,7 +660,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
-		assert.Equal(t, []string{}, actualConfig.SqlSettings.DataSourceReplicas)
+		assert.Equal(t, []string(nil), actualConfig.SqlSettings.DataSourceReplicas)
 	})
 
 	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {

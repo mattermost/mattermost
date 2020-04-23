@@ -1230,7 +1230,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords)
+	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
 	if _, ok := mentions.MentionedUserIds[user.Id]; ok {
 		return true
 	}
@@ -1249,3 +1249,4 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 	return false
 }
+

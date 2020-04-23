@@ -59,7 +59,7 @@ func (a *App) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
 }
 
 func (a *App) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	a.invalidateCacheForUserTeamsSkipClusterSend(msg.Data)
+	a.InvalidateWebConnSessionCacheForUser(msg.Data)
 }
 
 func (a *App) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {

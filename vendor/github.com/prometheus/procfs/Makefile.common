@@ -69,21 +69,12 @@ else
 	GO_BUILD_PLATFORM ?= $(GOHOSTOS)-$(GOHOSTARCH)
 endif
 
-GOTEST := $(GO) test
-GOTEST_DIR :=
-ifneq ($(CIRCLE_JOB),)
-ifneq ($(shell which gotestsum),)
-	GOTEST_DIR := test-results
-	GOTEST := gotestsum --junitfile $(GOTEST_DIR)/unit-tests.xml --
-endif
-endif
-
-PROMU_VERSION ?= 0.5.0
+PROMU_VERSION ?= 0.4.0
 PROMU_URL     := https://github.com/prometheus/promu/releases/download/v$(PROMU_VERSION)/promu-$(PROMU_VERSION).$(GO_BUILD_PLATFORM).tar.gz
 
 GOLANGCI_LINT :=
 GOLANGCI_LINT_OPTS ?=
-GOLANGCI_LINT_VERSION ?= v1.18.0
+GOLANGCI_LINT_VERSION ?= v1.16.0
 # golangci-lint only supports linux, darwin and windows platforms on i386/amd64.
 # windows isn't included here because of the path separator being different.
 ifeq ($(GOHOSTOS),$(filter $(GOHOSTOS),linux darwin))
@@ -95,8 +86,7 @@ endif
 PREFIX                  ?= $(shell pwd)
 BIN_DIR                 ?= $(shell pwd)
 DOCKER_IMAGE_TAG        ?= $(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
-DOCKERFILE_PATH         ?= ./Dockerfile
-DOCKERBUILD_CONTEXT     ?= ./
+DOCKERFILE_PATH         ?= ./
 DOCKER_REPO             ?= prom
 
 DOCKER_ARCHS            ?= amd64
@@ -151,17 +141,14 @@ else
 endif
 
 .PHONY: common-test-short
-common-test-short: $(GOTEST_DIR)
+common-test-short:
 	@echo ">> running short tests"
-	GO111MODULE=$(GO111MODULE) $(GOTEST) -short $(GOOPTS) $(pkgs)
+	GO111MODULE=$(GO111MODULE) $(GO) test -short $(GOOPTS) $(pkgs)
 
 .PHONY: common-test
-common-test: $(GOTEST_DIR)
+common-test:
 	@echo ">> running all tests"
-	GO111MODULE=$(GO111MODULE) $(GOTEST) $(test-flags) $(GOOPTS) $(pkgs)
-
-$(GOTEST_DIR):
-	@mkdir -p $@
+	GO111MODULE=$(GO111MODULE) $(GO) test $(test-flags) $(GOOPTS) $(pkgs)
 
 .PHONY: common-format
 common-format:
@@ -213,7 +200,7 @@ endif
 .PHONY: common-build
 common-build: promu
 	@echo ">> building binaries"
-	GO111MODULE=$(GO111MODULE) $(PROMU) build --prefix $(PREFIX) $(PROMU_BINARIES)
+	GO111MODULE=$(GO111MODULE) $(PROMU) build --prefix $(PREFIX)
 
 .PHONY: common-tarball
 common-tarball: promu
@@ -224,10 +211,9 @@ common-tarball: promu
 common-docker: $(BUILD_DOCKER_ARCHS)
 $(BUILD_DOCKER_ARCHS): common-docker-%:
 	docker build -t "$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME)-linux-$*:$(DOCKER_IMAGE_TAG)" \
-		-f $(DOCKERFILE_PATH) \
 		--build-arg ARCH="$*" \
 		--build-arg OS="linux" \
-		$(DOCKERBUILD_CONTEXT)
+		$(DOCKERFILE_PATH)
 
 .PHONY: common-docker-publish $(PUBLISH_DOCKER_ARCHS)
 common-docker-publish: $(PUBLISH_DOCKER_ARCHS)

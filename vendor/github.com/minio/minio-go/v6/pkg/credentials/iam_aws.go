@@ -82,7 +82,7 @@ func (m *IAM) Retrieve() (Value, error) {
 	case len(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")) > 0:
 		if len(endpoint) == 0 {
 			if len(os.Getenv("AWS_REGION")) > 0 {
-				endpoint = "sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
+				endpoint = "https://sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
 			} else {
 				endpoint = defaultSTSRoleEndpoint
 			}
