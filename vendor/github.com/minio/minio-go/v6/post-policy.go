@@ -258,7 +258,7 @@ func (p *PostPolicy) addNewPolicy(policyCond policyCondition) error {
 	return nil
 }
 
-// Stringer interface for printing policy in json formatted string.
+// String function for printing policy in json formatted string.
 func (p PostPolicy) String() string {
 	return string(p.marshalJSON())
 }

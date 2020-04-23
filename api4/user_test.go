@@ -1756,13 +1756,13 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
-			if resp.EventType() == model.WEBSOCKET_EVENT_USER_UPDATED {
+			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
+			require.Failf(t, "failed to receive expected event %s", event)
 		}
 	}
 }
