@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -163,6 +165,22 @@ func (_m *Store) Compliance() store.ComplianceStore {
 	return r0
 }
 
+// Context provides a mock function with given fields:
+func (_m *Store) Context() context.Context {
+	ret := _m.Called()
+
+	var r0 context.Context
+	if rf, ok := ret.Get(0).(func() context.Context); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(context.Context)
+		}
+	}
+
+	return r0
+}
+
 // DropAllTables provides a mock function with given fields:
 func (_m *Store) DropAllTables() {
 	_m.Called()
@@ -212,6 +230,27 @@ func (_m *Store) GetCurrentSchemaVersion() string {
 	}
 
 	return r0
+}
+
+// GetDbVersion provides a mock function with given fields:
+func (_m *Store) GetDbVersion() (string, error) {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Group provides a mock function with given fields:
@@ -414,6 +453,11 @@ func (_m *Store) Session() store.SessionStore {
 	}
 
 	return r0
+}
+
+// SetContext provides a mock function with given fields: _a0
+func (_m *Store) SetContext(_a0 context.Context) {
+	_m.Called(_a0)
 }
 
 // Status provides a mock function with given fields:

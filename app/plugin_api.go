@@ -521,7 +521,7 @@ func (api *PluginAPI) GetPostsBefore(channelId, postId string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: perPage, PerPage: page})
+	return api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelId, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
@@ -565,6 +565,10 @@ func (api *PluginAPI) CopyFileInfos(userId string, fileIds []string) ([]string, 
 
 func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfo(fileId)
+}
+
+func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfos(page, perPage, opt)
 }
 
 func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
@@ -654,7 +658,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.SendNotificationMail(to, subject, htmlBody)
+	return api.app.sendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section

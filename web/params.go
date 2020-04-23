@@ -74,6 +74,8 @@ type Params struct {
 	LimitBefore            int
 	GroupIDs               string
 	IncludeTotalCount      bool
+	IncludeDeleted         bool
+	FilterAllowReference   bool
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -276,6 +278,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 
+	if val, err := strconv.ParseBool(query.Get("filter_allow_reference")); err == nil {
+		params.FilterAllowReference = val
+	}
+
 	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
 		params.Paginate = &val
 	}
@@ -294,6 +300,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
 		params.IncludeTotalCount = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
+		params.IncludeDeleted = val
 	}
 
 	return params

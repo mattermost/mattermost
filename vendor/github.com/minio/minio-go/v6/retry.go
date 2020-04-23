@@ -18,6 +18,7 @@
 package minio
 
 import (
+	"context"
 	"net/http"
 	"time"
 )
@@ -41,7 +42,7 @@ const DefaultRetryCap = time.Second * 30
 
 // newRetryTimer creates a timer with exponentially increasing
 // delays until the maximum retry attempts are reached.
-func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duration, jitter float64, doneCh chan struct{}) <-chan int {
+func (c Client) newRetryTimer(ctx context.Context, maxRetry int, unit time.Duration, cap time.Duration, jitter float64) <-chan int {
 	attemptCh := make(chan int)
 
 	// computes the exponential backoff duration according to
@@ -70,13 +71,16 @@ func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duratio
 		defer close(attemptCh)
 		for i := 0; i < maxRetry; i++ {
 			select {
-			// Attempts start from 1.
 			case attemptCh <- i + 1:
-			case <-doneCh:
-				// Stop the routine.
+			case <-ctx.Done():
 				return
 			}
-			time.Sleep(exponentialBackoffWait(i))
+
+			select {
+			case <-time.After(exponentialBackoffWait(i)):
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 	return attemptCh

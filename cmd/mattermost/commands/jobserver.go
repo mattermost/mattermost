@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
@@ -53,6 +54,11 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	if !noSchedule {
 		a.Srv().Jobs.StartSchedulers()
 		defer a.Srv().Jobs.StopSchedulers()
+	}
+
+	if !noJobs || !noSchedule {
+		auditRec := a.MakeAuditRecord("jobServer", audit.Success)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)

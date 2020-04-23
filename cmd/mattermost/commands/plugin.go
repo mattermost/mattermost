@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -122,10 +123,12 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginAdd", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 		fileReader.Close()
 	}
-
 	return nil
 }
 
@@ -145,9 +148,11 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginDelete", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -167,9 +172,11 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Enabled plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginEnable", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -189,9 +196,11 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Disabled plugin: " + plugin)
+			auditRec := a.MakeAuditRecord("pluginDisable", audit.Success)
+			auditRec.AddMeta("plugin", plugin)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -277,9 +286,11 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to add public key: " + pkFile + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Added public key: " + pkFile)
+			auditRec := a.MakeAuditRecord("pluginAddPublicKey", audit.Success)
+			auditRec.AddMeta("file", pkFile)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -299,8 +310,10 @@ func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to delete public key: " + pkFile + ". Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted public key: " + pkFile)
+			auditRec := a.MakeAuditRecord("pluginDeletePublicKey", audit.Success)
+			auditRec.AddMeta("file", pkFile)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }

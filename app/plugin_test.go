@@ -20,8 +20,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -624,6 +626,48 @@ func TestPluginSync(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestPluginPanicLogs(t *testing.T) {
+	t.Run("should panic", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			panic("some text from panic")
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message_",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		assert.Nil(t, err)
+
+		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")
+	})
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {

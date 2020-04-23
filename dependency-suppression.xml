@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <suppress>
+    <notes><![CDATA[
+      Vulnerable cipher (Salsa20) not used
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
+    <vulnerabilityName>CVE-2019-11840</vulnerabilityName>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      MySQL driver misidentified as MySQL server
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/go\-sql\-driver/mysql@.*$</packageUrl>
+    <cpe>cpe:/a:mysql:mysql</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Various dependencies from GitHub misidentified as GitHub Enterprise
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/.*$</packageUrl>
+    <cpe>cpe:/a:github:github</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Prometheus client misidentified as server
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/prometheus/client_model@.*$</packageUrl>
+    <cpe>cpe:/a:prometheus:prometheus</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Vulnerability affects only RBAC and client-cert-auth
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/coreos/etcd@.*$</packageUrl>
+    <cve>CVE-2018-16886</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Golang module misidentified as unrelated CLI toolset
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/tools@.*$</packageUrl>
+    <cpe>cpe:/a:data-tools_project:data_tools</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Misidentified version (commit hash vs. date)
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
+    <vulnerabilityName>CVE-2017-3204</vulnerabilityName>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Golang crypto package misidentified as SSH
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/crypto@.*$</packageUrl>
+    <cpe>cpe:/a:ssh:ssh</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      DoS affecting `Delete`; no references to the operation in codebase or dependencies
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/github\.com/buger/jsonparser@.*$</packageUrl>
+    <cve>CVE-2020-10675</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Golang module misidentified as unrelated CLI toolset
+    ]]></notes>
+    <packageUrl regex="true">^pkg:golang/golang\.org/x/tools@.*$</packageUrl>
+    <cpe>cpe:/a:data_tools_project:data_tools</cpe>
+  </suppress>
+</suppressions>

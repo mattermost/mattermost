@@ -84,6 +84,31 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+type ChannelModeration struct {
+	Name  string                 `json:"name"`
+	Roles *ChannelModeratedRoles `json:"roles"`
+}
+
+type ChannelModeratedRoles struct {
+	Guests  *ChannelModeratedRole `json:"guests"`
+	Members *ChannelModeratedRole `json:"members"`
+}
+
+type ChannelModeratedRole struct {
+	Value   bool `json:"value"`
+	Enabled bool `json:"enabled"`
+}
+
+type ChannelModerationPatch struct {
+	Name  *string                     `json:"name"`
+	Roles *ChannelModeratedRolesPatch `json:"roles"`
+}
+
+type ChannelModeratedRolesPatch struct {
+	Guests  *bool `json:"guests"`
+	Members *bool `json:"members"`
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
@@ -144,6 +169,18 @@ func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
 	return o
 }
 
+func ChannelModerationsFromJson(data io.Reader) []*ChannelModeration {
+	var o []*ChannelModeration
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func ChannelModerationsPatchFromJson(data io.Reader) []*ChannelModerationPatch {
+	var o []*ChannelModerationPatch
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
 func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
@@ -193,6 +230,9 @@ func (o *Channel) PreSave() {
 		o.Id = NewId()
 	}
 
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
@@ -200,10 +240,16 @@ func (o *Channel) PreSave() {
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
 }
 
 func (o *Channel) IsGroupOrDirect() bool {
 	return o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP
+}
+
+func (o *Channel) IsOpen() bool {
+	return o.Type == CHANNEL_OPEN
 }
 
 func (o *Channel) Patch(patch *ChannelPatch) {

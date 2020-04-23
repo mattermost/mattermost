@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -26,6 +27,10 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("scheme", scheme)
+
 	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
@@ -41,6 +46,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("scheme", scheme) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(scheme.ToJson()))
@@ -161,6 +169,9 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.PatchScheme", "api.scheme.patch_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
@@ -171,6 +182,7 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("scheme", scheme)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -182,8 +194,11 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("patch", scheme)
 
+	auditRec.Success()
 	c.LogAudit("")
+
 	w.Write([]byte(scheme.ToJson()))
 }
 
@@ -192,6 +207,9 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("deleteScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.DeleteScheme", "api.scheme.delete_scheme.license.error", nil, "", http.StatusNotImplemented)
@@ -203,10 +221,14 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.DeleteScheme(c.Params.SchemeId); err != nil {
+	scheme, err := c.App.DeleteScheme(c.Params.SchemeId)
+	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("scheme", scheme)
 
 	ReturnStatusOK(w)
 }

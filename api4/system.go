@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
@@ -182,17 +183,23 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(audits.ToJson()))
 }
@@ -203,6 +210,9 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("databaseRecycle", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("databaseRecycle", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
@@ -210,6 +220,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.RecycleDatabaseConnection()
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -218,6 +229,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("invalidateCaches", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		c.Err = model.NewAppError("invalidateCaches", "api.restricted_system_admin", nil, "", http.StatusForbidden)
@@ -230,11 +244,16 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -245,6 +264,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
@@ -481,8 +503,14 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("seconds", i)
+
 	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -491,8 +519,14 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("clearServerBusy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	c.App.Srv().Busy.Clear()
 	mlog.Info("server busy state cleared - non-critical services enabled")
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
