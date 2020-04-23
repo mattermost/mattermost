@@ -1008,7 +1008,7 @@ func TestAllowChannelMentions(t *testing.T) {
 	})
 }
 
-func TestGetMentionKeywords(t *testing.T) {
+func TestGetMentionKeywordsInChannel(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1584,7 +1584,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 	assert.EqualValues(t, expectedFields, mentionEnabledFields)
 }
 
-func TestPostNotificationGetChannelName(t *testing.T) {
+func TestGetChannelName(t *testing.T) {
 	sender := &model.User{Id: model.NewId(), Username: "sender", FirstName: "Sender", LastName: "Sender", Nickname: "Sender"}
 	recipient := &model.User{Id: model.NewId(), Username: "recipient", FirstName: "Recipient", LastName: "Recipient", Nickname: "Recipient"}
 	otherUser := &model.User{Id: model.NewId(), Username: "other", FirstName: "Other", LastName: "Other", Nickname: "Other"}
@@ -1666,7 +1666,7 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 	}
 }
 
-func TestPostNotificationGetSenderName(t *testing.T) {
+func TestGetSenderName(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1854,7 +1854,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 	}
 }
 
-func TestAddMention(t *testing.T) {
+func TestAddMentionUser(t *testing.T) {
 	t.Run("should initialize MentionedUserIds and store new mentions", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
@@ -1907,7 +1907,7 @@ func TestAddMention(t *testing.T) {
 	})
 }
 
-func TestCheckForMentionUsers(t *testing.T) {
+func TestCheckForMention(t *testing.T) {
 	id1 := model.NewId()
 	id2 := model.NewId()
 
@@ -2195,7 +2195,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 	})
 }
 
-func TestUserAllowsEmail(t *testing.T) {
+func TestShouldSendEmailNotificationToUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
