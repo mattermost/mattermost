@@ -1,8 +1,12 @@
 package pluginapi
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
 )
 
 // ChannelService exposes methods to manipulate channels.
@@ -97,7 +101,7 @@ func (c *ChannelService) Create(channel *model.Channel) error {
 
 	*channel = *createdChannel
 
-	return nil
+	return c.waitForChannelCreation(channel.Id)
 }
 
 // Update updates a channel.
@@ -211,6 +215,27 @@ func (c *ChannelService) UpdateChannelMemberNotifications(channelID, userID stri
 	channelMember, appErr := c.api.UpdateChannelMemberNotifications(channelID, userID, notifications)
 
 	return channelMember, normalizeAppErr(appErr)
+}
+
+func (c *ChannelService) waitForChannelCreation(channelID string) error {
+	if len(c.api.GetConfig().SqlSettings.DataSourceReplicas) == 0 {
+		return nil
+	}
+
+	now := time.Now()
+
+	for time.Since(now) < 1500*time.Millisecond {
+		time.Sleep(100 * time.Millisecond)
+
+		if _, err := c.api.GetChannel(channelID); err == nil {
+			// Channel found
+			return nil
+		} else if err.StatusCode != http.StatusNotFound {
+			return err
+		}
+	}
+
+	return errors.Errorf("giving up waiting for channel creation, channelID=%s", channelID)
 }
 
 func channelMembersToChannelMemberSlice(cm *model.ChannelMembers) []*model.ChannelMember {

@@ -106,3 +106,135 @@ func TestGetPublicTeamChannels(t *testing.T) {
 		require.Len(t, channels, 0)
 	})
 }
+
+func TestCreateChannel(t *testing.T) {
+	t.Run("create channel with no replicas", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		config := &model.Config{
+			SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{},
+			},
+		}
+		api.On("GetConfig").Return(config).Once()
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+		}
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		err := client.Channel.Create(c)
+		require.NoError(t, err)
+	})
+
+	t.Run("create channel and wait once", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		config := &model.Config{
+			SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"replica1"},
+			},
+		}
+		api.On("GetConfig").Return(config).Once()
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+		}
+		api.On("CreateChannel", c).Return(c, nil).Once()
+		api.On("GetChannel", c.Id).Return(c, nil).Once()
+
+		err := client.Channel.Create(c)
+		require.NoError(t, err)
+	})
+
+	t.Run("create channel and wait multiple times", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		config := &model.Config{
+			SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"replica1"},
+			},
+		}
+		api.On("GetConfig").Return(config).Once()
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+		}
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		notFoundErr := model.NewAppError("", "", nil, "", http.StatusNotFound)
+		api.On("GetChannel", c.Id).Return(c, notFoundErr).Times(3)
+		api.On("GetChannel", c.Id).Return(c, nil).Times(1)
+
+		err := client.Channel.Create(c)
+		require.NoError(t, err)
+	})
+
+	t.Run("create channel, wait multiple times and return error", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		config := &model.Config{
+			SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"replica1"},
+			},
+		}
+		api.On("GetConfig").Return(config).Once()
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+		}
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		notFoundErr := model.NewAppError("", "", nil, "", http.StatusNotFound)
+		api.On("GetChannel", c.Id).Return(c, notFoundErr).Times(3)
+
+		otherErr := model.NewAppError("", "", nil, "", http.StatusInternalServerError)
+		api.On("GetChannel", c.Id).Return(c, otherErr).Times(1)
+
+		err := client.Channel.Create(c)
+		require.Error(t, err)
+	})
+
+	t.Run("create channel, give up waiting", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api)
+
+		config := &model.Config{
+			SqlSettings: model.SqlSettings{
+				DataSourceReplicas: []string{"replica1"},
+			},
+		}
+		api.On("GetConfig").Return(config).Once()
+
+		c := &model.Channel{
+			Id:          model.NewId(),
+			Name:        "name",
+			DisplayName: "displayname",
+		}
+		api.On("CreateChannel", c).Return(c, nil).Once()
+
+		notFoundErr := model.NewAppError("", "", nil, "", http.StatusNotFound)
+		api.On("GetChannel", c.Id).Return(c, notFoundErr)
+
+		err := client.Channel.Create(c)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "giving up waiting")
+	})
+}
