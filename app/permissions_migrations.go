@@ -23,6 +23,7 @@ const (
 	PERMISSION_CREATE_EMOJIS                               = "create_emojis"
 	PERMISSION_DELETE_EMOJIS                               = "delete_emojis"
 	PERMISSION_DELETE_OTHERS_EMOJIS                        = "delete_others_emojis"
+	PERMISSION_MANAGE_JOBS                                 = "manage_jobs"
 	PERMISSION_MANAGE_WEBHOOKS                             = "manage_webhooks"
 	PERMISSION_MANAGE_OTHERS_WEBHOOKS                      = "manage_others_webhooks"
 	PERMISSION_MANAGE_INCOMING_WEBHOOKS                    = "manage_incoming_webhooks"
@@ -56,6 +57,8 @@ const (
 	PERMISSION_REMOVE_REACTION                             = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS               = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS              = "manage_private_channel_members"
+	PERMISSION_READ_SETTINGS                               = "read_settings"
+	PERMISSION_WRITE_SETTINGS                              = "write_settings"
 	PERMISSION_READ_SYSCONSOLE_ABOUT                       = "read_sysconsole_about"
 	PERMISSION_WRITE_SYSCONSOLE_ABOUT                      = "write_sysconsole_about"
 	PERMISSION_READ_SYSCONSOLE_REPORTING                   = "read_sysconsole_reporting"
@@ -460,7 +463,9 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 
 	transformations = append(transformations, permissionTransformation{
 		On: isRole(model.SYSTEM_ADMIN_ROLE_ID),
-		Add: []string{PERMISSION_READ_SYSCONSOLE_ABOUT,
+		Add: []string{PERMISSION_READ_SETTINGS,
+			PERMISSION_WRITE_SETTINGS,
+			PERMISSION_READ_SYSCONSOLE_ABOUT,
 			PERMISSION_WRITE_SYSCONSOLE_ABOUT,
 			PERMISSION_READ_SYSCONSOLE_REPORTING,
 			PERMISSION_WRITE_SYSCONSOLE_REPORTING,
@@ -494,7 +499,7 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 
 	transformations = append(transformations, permissionTransformation{
 		On: isRole(model.SYSTEM_USER_MANAGER_ROLE_ID),
-		Add: []string{PERMISSION_MANAGE_SYSTEM,
+		Add: []string{PERMISSION_WRITE_SETTINGS,
 			PERMISSION_LIST_PRIVATE_TEAMS,
 			PERMISSION_JOIN_PRIVATE_TEAMS,
 			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
@@ -507,7 +512,7 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 
 	transformations = append(transformations, permissionTransformation{
 		On: isRole(model.SYSTEM_CONSOLE_VIEWER_ROLE_ID),
-		Add: []string{PERMISSION_MANAGE_SYSTEM,
+		Add: []string{PERMISSION_READ_SETTINGS,
 			PERMISSION_LIST_PRIVATE_TEAMS,
 			PERMISSION_JOIN_PRIVATE_TEAMS,
 			PERMISSION_READ_SYSCONSOLE_REPORTING,
@@ -523,9 +528,10 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 
 	transformations = append(transformations, permissionTransformation{
 		On: isRole(model.SYSTEM_JUNIOR_ADMIN_ROLE_ID),
-		Add: []string{PERMISSION_MANAGE_SYSTEM,
+		Add: []string{PERMISSION_WRITE_SETTINGS,
 			PERMISSION_LIST_PRIVATE_TEAMS,
 			PERMISSION_JOIN_PRIVATE_TEAMS,
+			PERMISSION_MANAGE_JOBS,
 			PERMISSION_WRITE_SYSCONSOLE_REPORTING,
 			PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 			PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT,

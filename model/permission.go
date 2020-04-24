@@ -93,6 +93,9 @@ var PERMISSION_DEMOTE_TO_GUEST *Permission
 var PERMISSION_USE_CHANNEL_MENTIONS *Permission
 var PERMISSION_USE_GROUP_MENTIONS *Permission
 
+var PERMISSION_READ_SETTINGS *Permission
+var PERMISSION_WRITE_SETTINGS *Permission
+
 var PERMISSION_READ_SYSCONSOLE_ABOUT *Permission
 var PERMISSION_WRITE_SYSCONSOLE_ABOUT *Permission
 
@@ -619,7 +622,18 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
-
+	PERMISSION_READ_SETTINGS = &Permission{
+		"read_settings",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_WRITE_SETTINGS = &Permission{
+		"write_settings",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_READ_SYSCONSOLE_ABOUT = &Permission{
 		"read_sysconsole_about",
 		"authentication.permissions.use_group_mentions.name",
@@ -890,6 +904,8 @@ func initializePermissions() {
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_USE_CHANNEL_MENTIONS,
 		PERMISSION_USE_GROUP_MENTIONS,
+		PERMISSION_READ_SETTINGS,
+		PERMISSION_WRITE_SETTINGS,
 		PERMISSION_READ_SYSCONSOLE_ABOUT,
 		PERMISSION_WRITE_SYSCONSOLE_ABOUT,
 		PERMISSION_READ_SYSCONSOLE_REPORTING,

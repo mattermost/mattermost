@@ -572,7 +572,8 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
 		Permissions: []string{
-			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_READ_SETTINGS.Id,
+			PERMISSION_WRITE_SETTINGS.Id,
 			PERMISSION_LIST_PRIVATE_TEAMS.Id,
 			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 			PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT.Id,
@@ -592,7 +593,7 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
 		Permissions: []string{
-			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_READ_SETTINGS.Id,
 			PERMISSION_LIST_PRIVATE_TEAMS.Id,
 			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 			PERMISSION_READ_SYSCONSOLE_REPORTING.Id,
@@ -614,7 +615,9 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
 		Permissions: []string{
-			PERMISSION_MANAGE_SYSTEM.Id,
+			PERMISSION_READ_SETTINGS.Id,
+			PERMISSION_WRITE_SETTINGS.Id,
+			PERMISSION_MANAGE_JOBS.Id,
 			PERMISSION_LIST_PRIVATE_TEAMS.Id,
 			PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 			PERMISSION_WRITE_SYSCONSOLE_REPORTING.Id,
