@@ -5087,6 +5087,10 @@
     "translation": "invalid id property for group."
   },
   {
+    "id": "model.group.invalid_chars_in_name.app_error",
+    "translation": "invalid characters in the name property for group"
+  },
+  {
     "id": "model.group.name.app_error",
     "translation": "invalid name property for group."
   },
