@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -29,6 +30,8 @@ type writeMessage struct {
 	msgType msgType
 	data    interface{}
 }
+
+const avgReadMsgSizeBytes = 1024
 
 // WebSocketClient stores the necessary information required to
 // communicate with a WebSocket endpoint.
@@ -167,19 +170,34 @@ func (wsc *WebSocketClient) Listen() {
 			close(wsc.ResponseChannel)
 			close(wsc.quitPingWatchdog)
 		}()
+		var buf bytes.Buffer
+		buf.Grow(avgReadMsgSizeBytes)
 
 		for {
 			var rawMsg json.RawMessage
 			var err error
-			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
+			var r io.Reader
+			_, r, err = wsc.Conn.NextReader()
+			if err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
-
+				return
+			}
+			// Use pre-allocated buffer.
+			_, err = buf.ReadFrom(r)
+			if err != nil {
+				// This should use a different error ID, but en.json is not imported anyways.
+				// It's a different bug altogether but we let it be for now.
+				// See MM-24520.
+				wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
+			rawMsg = buf.Bytes()
 			event := WebSocketEventFromJson(bytes.NewReader(rawMsg))
+			// Reset buffer.
+			buf.Reset()
 			if event == nil {
 				continue
 			}
