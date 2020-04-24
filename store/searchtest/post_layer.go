@@ -224,9 +224,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ELASTICSEARCH},
 	},
 	{
-		Name: "Should support wildcard in quotes",
-		Fn:   testSupportWildcardInQuotes,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Name: "Should support wildcard outside quotes",
+		Fn:   testSupportWildcardOutsideQuotes,
+		Tags: []string{ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Hashtags should have 2 or more characters",
@@ -1614,19 +1614,32 @@ func testSupportStemmingAndWildcards(t *testing.T, th *SearchTestHelper) {
 	})
 }
 
-func testSupportWildcardInQuotes(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one two three", "", model.POST_DEFAULT, 0, false)
+func testSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "hello world", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelPrivate.Id, "three two one", "", model.POST_DEFAULT, 0, false)
+	p2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "hell or heaven", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	params := &model.SearchParams{Terms: "\"one two*\""}
-	results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
-	require.Nil(t, apperr)
+	t.Run("Should return results without quotes", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "hell*"}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
+		require.Nil(t, apperr)
 
-	require.Len(t, results.Posts, 1)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Should return just one result with quotes", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "\"hell\"*"}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
+		require.Nil(t, apperr)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
 }
 
 func testHashtagShouldSupportAnyNumberOfChars(t *testing.T, th *SearchTestHelper) {
