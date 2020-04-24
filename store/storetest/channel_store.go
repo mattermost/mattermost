@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -48,6 +49,12 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
 	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
 	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
+	t.Run("SaveMember", func(t *testing.T) { testChannelSaveMember(t, ss) })
+	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, ss) })
+	t.Run("UpdateMember", func(t *testing.T) { testChannelUpdateMember(t, ss) })
+	t.Run("UpdateMultipleMembers", func(t *testing.T) { testChannelUpdateMultipleMembers(t, ss) })
+	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, ss) })
+	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
@@ -64,12 +71,12 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, ss) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
+	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
-	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss, s) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
 	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, ss) })
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
@@ -83,7 +90,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("MaterializedPublicChannels", func(t *testing.T) { testMaterializedPublicChannels(t, ss, s) })
 	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
 	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
-	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
+	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss, s) })
 	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss, s) })
 	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
@@ -447,6 +454,18 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	o2.Name = "bb" + model.NewId() + "b"
 	o2.Type = model.CHANNEL_DIRECT
 
+	o3 := model.Channel{}
+	o3.TeamId = model.NewId()
+	o3.DisplayName = "Deleted channel"
+	o3.Name = "cc" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	_, err = ss.Channel().Save(&o3, -1)
+	require.Nil(t, err)
+	err = ss.Channel().Delete(o3.Id, 123)
+	require.Nil(t, err)
+	o3.DeleteAt = 123
+	o3.UpdateAt = 123
+
 	m1 := model.ChannelMember{}
 	m1.ChannelId = o2.Id
 	m1.UserId = u1.Id
@@ -460,17 +479,30 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id})
-	require.Nil(t, err, err)
-	require.Len(t, r1, 2, "invalid returned channels, exepected 2 and got "+strconv.Itoa(len(r1)))
-	require.Equal(t, o1.ToJson(), r1[0].ToJson())
-	require.Equal(t, o2.ToJson(), r1[1].ToJson())
+	t.Run("Get 2 existing channels", func(t *testing.T) {
+		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
+		require.Nil(t, err, err)
+		require.Len(t, r1, 2, "invalid returned channels, exepected 2 and got "+strconv.Itoa(len(r1)))
+		require.Equal(t, o1.ToJson(), r1[0].ToJson())
+		require.Equal(t, o2.ToJson(), r1[1].ToJson())
+	})
 
-	nonexistentId := "abcd1234"
-	r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId})
-	require.Nil(t, err, err)
-	require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
-	require.Equal(t, o1.ToJson(), r2[0].ToJson(), "invalid returned channel")
+	t.Run("Get 1 existing and 1 not existing channel", func(t *testing.T) {
+		nonexistentId := "abcd1234"
+		r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}, false)
+		require.Nil(t, err, err)
+		require.Len(t, r2, 1, "invalid returned channels, expected 1 and got "+strconv.Itoa(len(r2)))
+		require.Equal(t, o1.ToJson(), r2[0].ToJson(), "invalid returned channel")
+	})
+
+	t.Run("Get 2 existing and 1 deleted channel", func(t *testing.T) {
+		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id, o3.Id}, true)
+		require.Nil(t, err, err)
+		require.Len(t, r1, 3, "invalid returned channels, exepected 3 and got "+strconv.Itoa(len(r1)))
+		require.Equal(t, o1.ToJson(), r1[0].ToJson())
+		require.Equal(t, o2.ToJson(), r1[1].ToJson())
+		require.Equal(t, o3.ToJson(), r1[2].ToJson())
+	})
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
@@ -850,6 +882,2155 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 
 	c1t4, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
+}
+
+func testChannelSaveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("not valid channel member", func(t *testing.T) {
+		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMember(member)
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		channelID1 := model.NewId()
+		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMember(m1)
+		require.Nil(t, err)
+		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMember(m2)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				member, err = ss.Channel().SaveMember(member)
+				require.Nil(t, err)
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in channel without scheme and team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				member, err = ss.Channel().SaveMember(member)
+				require.Nil(t, err)
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in channel with channel scheme)", func(t *testing.T) {
+		cs := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		}
+		cs, err = ss.Scheme().Save(cs)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+			SchemeId:    &cs.Id,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				member, err = ss.Channel().SaveMember(member)
+				require.Nil(t, err)
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("any not valid channel member", func(t *testing.T) {
+		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		channelID1 := model.NewId()
+		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				otherMember := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u2.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				var members []*model.ChannelMember
+				members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in channel without scheme and team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				otherMember := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u2.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				var members []*model.ChannelMember
+				members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in channel with channel scheme)", func(t *testing.T) {
+		cs := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		}
+		cs, err = ss.Scheme().Save(cs)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+			SchemeId:    &cs.Id,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u1.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				otherMember := &model.ChannelMember{
+					ChannelId:     channel.Id,
+					UserId:        u2.Id,
+					SchemeGuest:   tc.SchemeGuest,
+					SchemeUser:    tc.SchemeUser,
+					SchemeAdmin:   tc.SchemeAdmin,
+					ExplicitRoles: tc.ExplicitRoles,
+					NotifyProps:   defaultNotifyProps,
+				}
+				members, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+				defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testChannelUpdateMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("not valid channel member", func(t *testing.T) {
+		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().UpdateMember(member)
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      u1.Id,
+			NotifyProps: defaultNotifyProps,
+		}
+		member, err = ss.Channel().SaveMember(member)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				member, err = ss.Channel().UpdateMember(member)
+				require.Nil(t, err)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in channel without scheme and team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      u1.Id,
+			NotifyProps: defaultNotifyProps,
+		}
+		member, err = ss.Channel().SaveMember(member)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				member, err = ss.Channel().UpdateMember(member)
+				require.Nil(t, err)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert member correctly (in channel with channel scheme)", func(t *testing.T) {
+		cs := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		}
+		cs, err = ss.Scheme().Save(cs)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+			SchemeId:    &cs.Id,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      u1.Id,
+			NotifyProps: defaultNotifyProps,
+		}
+		member, err = ss.Channel().SaveMember(member)
+		require.Nil(t, err)
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				member, err = ss.Channel().UpdateMember(member)
+				require.Nil(t, err)
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+
+	t.Run("any not valid channel member", func(t *testing.T) {
+		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("duplicated entries should fail", func(t *testing.T) {
+		channelID1 := model.NewId()
+		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+	})
+
+	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		var members []*model.ChannelMember
+		members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		require.Nil(t, err)
+		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+		require.Len(t, members, 2)
+		member = members[0]
+		otherMember = members[1]
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      "channel_user",
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       "channel_guest",
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       "channel_user channel_admin",
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test channel_user",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test channel_guest",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test channel_user channel_admin",
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				var members []*model.ChannelMember
+				members, err = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in channel without scheme and team with scheme)", func(t *testing.T) {
+		ts := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_TEAM,
+		}
+		ts, err = ss.Scheme().Save(ts)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+			SchemeId:    &ts.Id,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel := &model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}
+		channel, err = ss.Channel().Save(channel, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		var members []*model.ChannelMember
+		members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		require.Nil(t, err)
+		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+		require.Len(t, members, 2)
+		member = members[0]
+		otherMember = members[1]
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      ts.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       ts.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + ts.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + ts.DefaultChannelUserRole + " " + ts.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				var members []*model.ChannelMember
+				members, err = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+
+	t.Run("insert members correctly (in channel with channel scheme)", func(t *testing.T) {
+		cs := &model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Scope:       model.SCHEME_SCOPE_CHANNEL,
+		}
+		cs, err = ss.Scheme().Save(cs)
+		require.Nil(t, err)
+
+		team := &model.Team{
+			DisplayName: "Name",
+			Name:        "zz" + model.NewId(),
+			Email:       MakeEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+
+		team, err = ss.Team().Save(team)
+		require.Nil(t, err)
+
+		channel, err := ss.Channel().Save(&model.Channel{
+			DisplayName: "DisplayName",
+			Name:        "z-z-z" + model.NewId() + "b",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+			SchemeId:    &cs.Id,
+		}, -1)
+		require.Nil(t, err)
+		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
+
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+		members, err := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		require.Nil(t, err)
+		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
+		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
+		require.Len(t, members, 2)
+		member = members[0]
+		otherMember = members[1]
+
+		testCases := []struct {
+			Name                  string
+			SchemeGuest           bool
+			SchemeUser            bool
+			SchemeAdmin           bool
+			ExplicitRoles         string
+			ExpectedRoles         string
+			ExpectedExplicitRoles string
+			ExpectedSchemeGuest   bool
+			ExpectedSchemeUser    bool
+			ExpectedSchemeAdmin   bool
+		}{
+			{
+				Name:               "channel user implicit",
+				SchemeUser:         true,
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:               "channel user explicit",
+				ExplicitRoles:      "channel_user",
+				ExpectedRoles:      cs.DefaultChannelUserRole,
+				ExpectedSchemeUser: true,
+			},
+			{
+				Name:                "channel guest implicit",
+				SchemeGuest:         true,
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel guest explicit",
+				ExplicitRoles:       "channel_guest",
+				ExpectedRoles:       cs.DefaultChannelGuestRole,
+				ExpectedSchemeGuest: true,
+			},
+			{
+				Name:                "channel admin implicit",
+				SchemeUser:          true,
+				SchemeAdmin:         true,
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                "channel admin explicit",
+				ExplicitRoles:       "channel_user channel_admin",
+				ExpectedRoles:       cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedSchemeUser:  true,
+				ExpectedSchemeAdmin: true,
+			},
+			{
+				Name:                  "channel user implicit and explicit custom role",
+				SchemeUser:            true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel user explicit and explicit custom role",
+				ExplicitRoles:         "channel_user test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+			},
+			{
+				Name:                  "channel guest implicit and explicit custom role",
+				SchemeGuest:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel guest explicit and explicit custom role",
+				ExplicitRoles:         "channel_guest test",
+				ExpectedRoles:         "test " + cs.DefaultChannelGuestRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeGuest:   true,
+			},
+			{
+				Name:                  "channel admin implicit and explicit custom role",
+				SchemeUser:            true,
+				SchemeAdmin:           true,
+				ExplicitRoles:         "test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel admin explicit and explicit custom role",
+				ExplicitRoles:         "channel_user channel_admin test",
+				ExpectedRoles:         "test " + cs.DefaultChannelUserRole + " " + cs.DefaultChannelAdminRole,
+				ExpectedExplicitRoles: "test",
+				ExpectedSchemeUser:    true,
+				ExpectedSchemeAdmin:   true,
+			},
+			{
+				Name:                  "channel member with only explicit custom roles",
+				ExplicitRoles:         "test test2",
+				ExpectedRoles:         "test test2",
+				ExpectedExplicitRoles: "test test2",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				member.SchemeGuest = tc.SchemeGuest
+				member.SchemeUser = tc.SchemeUser
+				member.SchemeAdmin = tc.SchemeAdmin
+				member.ExplicitRoles = tc.ExplicitRoles
+				members, err := ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, err)
+				require.Len(t, members, 2)
+				member = members[0]
+
+				assert.Equal(t, tc.ExpectedRoles, member.Roles)
+				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
+				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
+				assert.Equal(t, tc.ExpectedSchemeUser, member.SchemeUser)
+				assert.Equal(t, tc.ExpectedSchemeAdmin, member.SchemeAdmin)
+			})
+		}
+	})
+}
+
+func testChannelRemoveMember(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	channelID := model.NewId()
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+	m1 := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
+	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
+	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, err)
+
+	t.Run("remove member from not existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
+		require.Nil(t, err)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), membersCount)
+	})
+
+	t.Run("remove not existing member from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember(channelID, model.NewId())
+		require.Nil(t, err)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), membersCount)
+	})
+
+	t.Run("remove existing member from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMember(channelID, u1.Id)
+		require.Nil(t, err)
+		defer ss.Channel().SaveMember(m1)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(3), membersCount)
+	})
+}
+
+func testChannelRemoveMembers(t *testing.T, ss store.Store) {
+	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	require.Nil(t, err)
+	channelID := model.NewId()
+	defaultNotifyProps := model.GetDefaultChannelNotifyProps()
+	m1 := &model.ChannelMember{ChannelId: channelID, UserId: u1.Id, NotifyProps: defaultNotifyProps}
+	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
+	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
+	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
+	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, err)
+
+	t.Run("remove members from not existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.Nil(t, err)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), membersCount)
+	})
+
+	t.Run("remove not existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(4), membersCount)
+	})
+
+	t.Run("remove not existing and not existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		require.Nil(t, err)
+		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		var membersCount int64
+		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(2), membersCount)
+	})
+	t.Run("remove existing members from an existing channel", func(t *testing.T) {
+		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, u3.Id})
+		require.Nil(t, err)
+		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3})
+		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, err)
+		require.Equal(t, int64(1), membersCount)
+	})
 }
 
 func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
@@ -2088,6 +4269,207 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 }
 
+func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
+	var memberCounts []*model.ChannelMemberCountByGroup
+	teamId := model.NewId()
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	c1 := model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Channel1",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, err = ss.Channel().Save(&c1, -1)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Timezone: timezones.DefaultUserTimezone(),
+		Email:    MakeEmail(),
+		DeleteAt: 0,
+	}
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+
+	m1 := model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(&m1)
+	require.Nil(t, err)
+
+	t.Run("empty slice for channel with no groups", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+
+	t.Run("returns memberCountsByGroup without timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("returns memberCountsByGroup with timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+		}
+		require.Nil(t, err)
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	g2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	// create 5 different users with 2 different timezones for group 2
+	for i := 1; i <= 5; i++ {
+		timeZone := timezones.DefaultUserTimezone()
+		if i == 1 {
+			timeZone["manualTimezone"] = "EDT"
+		}
+
+		u := &model.User{
+			Timezone: timeZone,
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+		}
+		_, err = ss.User().Save(u)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		require.Nil(t, err)
+
+		m := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		_, err = ss.Channel().SaveMember(&m)
+		require.Nil(t, err)
+
+		_, err = ss.Group().UpsertMember(g2.Id, u.Id)
+		require.Nil(t, err)
+	}
+
+	g3 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+
+	_, err = ss.Group().Create(g3)
+	require.Nil(t, err)
+
+	// create 10 different users with 3 different timezones for group 3
+	for i := 1; i <= 10; i++ {
+		timeZone := timezones.DefaultUserTimezone()
+		if i == 1 {
+			timeZone["manualTimezone"] = "EDT"
+		} else if i == 2 {
+			timeZone["manualTimezone"] = "PST"
+		}
+
+		u := &model.User{
+			Timezone: timeZone,
+			Email:    MakeEmail(),
+			DeleteAt: 0,
+		}
+		_, err = ss.User().Save(u)
+		require.Nil(t, err)
+		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		require.Nil(t, err)
+
+		m := model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+		_, err = ss.Channel().SaveMember(&m)
+		require.Nil(t, err)
+
+		_, err = ss.Group().UpsertMember(g3.Id, u.Id)
+		require.Nil(t, err)
+	}
+
+	t.Run("returns memberCountsByGroup for multiple groups with lots of users without timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 0,
+			},
+			{
+				GroupId:                     g2.Id,
+				ChannelMemberCount:          5,
+				ChannelMemberTimezonesCount: 0,
+			},
+			{
+				GroupId:                     g3.Id,
+				ChannelMemberCount:          10,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Nil(t, err)
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("returns memberCountsByGroup for multiple groups with lots of users with timezones", func(t *testing.T) {
+		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     g1.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+			{
+				GroupId:                     g2.Id,
+				ChannelMemberCount:          5,
+				ChannelMemberTimezonesCount: 2,
+			},
+			{
+				GroupId:                     g3.Id,
+				ChannelMemberCount:          10,
+				ChannelMemberTimezonesCount: 3,
+			},
+		}
+		require.Nil(t, err)
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
+}
+
 func testGetGuestCount(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 
@@ -2894,139 +5276,6 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 }
 
-func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s SqlSupplier) {
-	u1 := &model.User{}
-	u1.Email = MakeEmail()
-	u1.Username = "user1" + model.NewId()
-	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
-	require.Nil(t, err)
-
-	u2 := &model.User{}
-	u2.Email = MakeEmail()
-	u2.Username = "user2" + model.NewId()
-	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
-	require.Nil(t, err)
-
-	u3 := &model.User{}
-	u3.Email = MakeEmail()
-	u3.Username = "user3" + model.NewId()
-	u3.Nickname = model.NewId()
-	_, err = ss.User().Save(u3)
-	require.Nil(t, err)
-
-	u4 := &model.User{}
-	u4.Email = MakeEmail()
-	u4.Username = "user4" + model.NewId()
-	u4.Nickname = model.NewId()
-	_, err = ss.User().Save(u4)
-	require.Nil(t, err)
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "ChannelA"
-	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o1, -1)
-	require.Nil(t, err)
-
-	m1 := model.ChannelMember{}
-	m1.ChannelId = o1.Id
-	m1.UserId = u1.Id
-	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m1)
-	require.Nil(t, err)
-
-	o2 := model.Channel{}
-	o2.TeamId = model.NewId()
-	o2.DisplayName = "Channel2"
-	o2.Name = "zz" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o2, -1)
-	require.Nil(t, err)
-
-	m2 := model.ChannelMember{}
-	m2.ChannelId = o2.Id
-	m2.UserId = m1.UserId
-	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m2)
-	require.Nil(t, err)
-
-	o3 := model.Channel{}
-	o3.TeamId = o1.TeamId
-	o3.DisplayName = "ChannelA"
-	o3.Name = "zz" + model.NewId() + "b"
-	o3.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&o3, -1)
-	require.Nil(t, err)
-
-	m3 := model.ChannelMember{}
-	m3.ChannelId = o3.Id
-	m3.UserId = m1.UserId
-	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m3)
-	require.Nil(t, err)
-
-	err = ss.Channel().SetDeleteAt(o3.Id, 100, 100)
-	require.Nil(t, err, "channel should have been deleted")
-
-	o4 := model.Channel{}
-	o4.TeamId = o1.TeamId
-	o4.DisplayName = "ChannelA"
-	o4.Name = "zz" + model.NewId() + "b"
-	o4.Type = model.CHANNEL_PRIVATE
-	_, err = ss.Channel().Save(&o4, -1)
-	require.Nil(t, err)
-
-	m4 := model.ChannelMember{}
-	m4.ChannelId = o4.Id
-	m4.UserId = m1.UserId
-	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&m4)
-	require.Nil(t, err)
-
-	o5 := model.Channel{}
-	o5.TeamId = o1.TeamId
-	o5.DisplayName = "ChannelC"
-	o5.Name = "zz" + model.NewId() + "b"
-	o5.Type = model.CHANNEL_PRIVATE
-	_, err = ss.Channel().Save(&o5, -1)
-	require.Nil(t, err)
-
-	_, err = ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err)
-	_, err = ss.Channel().CreateDirectChannel(u2, u3)
-	require.Nil(t, err)
-
-	tt := []struct {
-		name            string
-		term            string
-		includeDeleted  bool
-		expectedMatches int
-	}{
-		{"Empty search (list all)", "", false, 4},
-		{"Narrow search", "ChannelA", false, 2},
-		{"Wide search", "Cha", false, 3},
-		{"Direct messages", "user", false, 1},
-		{"Wide search with archived channels", "Cha", true, 4},
-		{"Narrow with archived channels", "ChannelA", true, 3},
-		{"Direct messages with archived channels", "user", true, 1},
-		{"Search without results", "blarg", true, 0},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			channels, err := ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
-			require.Nil(t, err)
-			require.Len(t, *channels, 2)
-		})
-	}
-
-	// Manually truncate Channels table until testlib can handle cleanups
-	s.GetMaster().Exec("TRUNCATE Channels")
-}
-
 func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	o1 := model.Channel{}
 	o1.TeamId = model.NewId()
@@ -3608,7 +5857,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 		ChannelId:     c.Id,
 		UserId:        model.NewId(),
 		NotifyProps:   model.GetDefaultChannelNotifyProps(),
-		ExplicitRoles: "channel_user channel_admin system_user_access_token",
+		ExplicitRoles: "system_user_access_token channel_user channel_admin",
 	}
 	m2 := &model.ChannelMember{
 		ChannelId:     c.Id,
@@ -3904,7 +6153,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, u1.Id, cmfe1.UserId)
 }
 
-func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
+func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s SqlSupplier) {
 	// Set up all the objects needed in the store.
 	t1 := model.Team{}
 	t1.DisplayName = "Name"
@@ -3982,6 +6231,9 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	assert.Nil(t, err)
 	assert.Len(t, *d2, 1)
 	assert.Equal(t, u3.Id, (*d2)[0].UserId)
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s SqlSupplier) {

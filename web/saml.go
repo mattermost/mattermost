@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -84,13 +85,16 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
+	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	action := relayProps["action"]
+	auditRec.AddMeta("action", action)
+
 	user, err := samlInterface.DoLogin(encodedXML, relayProps)
 	if err != nil {
 		c.LogAudit("fail")
-
 		if action == model.OAUTH_ACTION_MOBILE {
 			err.Translate(c.App.T)
 			w.Write([]byte(err.ToJson()))
@@ -124,6 +128,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+		auditRec.AddMeta("revoked_user_id", user.Id)
+		auditRec.AddMeta("revoked", "Revoked all sessions for user")
+
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
 			if err = c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
@@ -132,6 +139,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
 	err = c.App.DoLogin(w, r, user, "")
@@ -140,6 +148,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)

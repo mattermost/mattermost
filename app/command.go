@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
+	"unicode"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -38,6 +40,7 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
+// @openTracingParams teamId, skipSlackParsing
 func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
@@ -68,6 +71,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	return post, nil
 }
 
+// @openTracingParams teamId
 // previous ListCommands now ListAutocompleteCommands
 func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
@@ -154,11 +158,22 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	return commands, nil
 }
 
+// @openTracingParams args
 func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	parts := strings.Split(args.Command, " ")
-	trigger := parts[0][1:]
+	trigger := ""
+	message := ""
+	index := strings.IndexFunc(args.Command, unicode.IsSpace)
+	if index != -1 {
+		trigger = args.Command[:index]
+		message = args.Command[index+1:]
+	} else {
+		trigger = args.Command
+	}
 	trigger = strings.ToLower(trigger)
-	message := strings.Join(parts[1:], " ")
+	if !strings.HasPrefix(trigger, "/") {
+		return nil, model.NewAppError("command", "api.command.execute_command.format.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusBadRequest)
+	}
+	trigger = strings.TrimPrefix(trigger, "/")
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
@@ -189,6 +204,117 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	}
 
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
+}
+
+// mentionsToTeamMembers returns all the @ mentions found in message that
+// belong to users in the specified team, linking them to their users
+func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap {
+	type mentionMapItem struct {
+		Name string
+		Id   string
+	}
+
+	possibleMentions := model.PossibleAtMentions(message)
+	mentionChan := make(chan *mentionMapItem, len(possibleMentions))
+
+	var wg sync.WaitGroup
+	for _, mention := range possibleMentions {
+		wg.Add(1)
+		go func(mention string) {
+			defer wg.Done()
+			user, err := a.Srv().Store.User().GetByUsername(mention)
+
+			if err != nil && err.StatusCode != http.StatusNotFound {
+				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(err))
+				return
+			}
+
+			// If it's a http.StatusNotFound error, check for usernames in substrings
+			// without trailing punctuation
+			if err != nil {
+				trimmed, ok := model.TrimUsernameSpecialChar(mention)
+				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
+					userFromTrimmed, userErr := a.Srv().Store.User().GetByUsername(trimmed)
+					if userErr != nil && err.StatusCode != http.StatusNotFound {
+						return
+					}
+
+					if userErr != nil {
+						continue
+					}
+
+					_, err = a.GetTeamMember(teamId, userFromTrimmed.Id)
+					if err != nil {
+						// The user is not in the team, so we should ignore it
+						return
+					}
+
+					mentionChan <- &mentionMapItem{trimmed, userFromTrimmed.Id}
+					return
+				}
+
+				return
+			}
+
+			_, err = a.GetTeamMember(teamId, user.Id)
+			if err != nil {
+				// The user is not in the team, so we should ignore it
+				return
+			}
+
+			mentionChan <- &mentionMapItem{mention, user.Id}
+		}(mention)
+	}
+
+	wg.Wait()
+	close(mentionChan)
+
+	atMentionMap := make(model.UserMentionMap)
+	for mention := range mentionChan {
+		atMentionMap[mention.Name] = mention.Id
+	}
+
+	return atMentionMap
+}
+
+// mentionsToPublicChannels returns all the mentions to public channels,
+// linking them to their channels
+func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
+	type mentionMapItem struct {
+		Name string
+		Id   string
+	}
+
+	channelMentions := model.ChannelMentions(message)
+	mentionChan := make(chan *mentionMapItem, len(channelMentions))
+
+	var wg sync.WaitGroup
+	for _, channelName := range channelMentions {
+		wg.Add(1)
+		go func(channelName string) {
+			defer wg.Done()
+			channel, err := a.GetChannelByName(channelName, teamId, false)
+			if err != nil {
+				return
+			}
+
+			if !channel.IsOpen() {
+				return
+			}
+
+			mentionChan <- &mentionMapItem{channelName, channel.Id}
+		}(channelName)
+	}
+
+	wg.Wait()
+	close(mentionChan)
+
+	channelMentionMap := make(model.ChannelMentionMap)
+	for mention := range mentionChan {
+		channelMentionMap[mention.Name] = mention.Id
+	}
+
+	return channelMentionMap
 }
 
 // tryExecuteBuiltInCommand attempts to run a built in command based on the given arguments. If no such command can be
@@ -289,6 +415,16 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	p.Set("text", message)
 
 	p.Set("trigger_id", args.TriggerId)
+
+	userMentionMap := a.mentionsToTeamMembers(message, team.Id)
+	for key, values := range userMentionMap.ToURLValues() {
+		p[key] = values
+	}
+
+	channelMentionMap := a.mentionsToPublicChannels(message, team.Id)
+	for key, values := range channelMentionMap.ToURLValues() {
+		p[key] = values
+	}
 
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
@@ -395,7 +531,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.ParentId = args.ParentId
 	post.UserId = args.UserId
 	post.Type = response.Type
-	post.Props = response.Props
+	post.SetProps(response.Props)
 
 	if len(response.ChannelId) != 0 {
 		_, err := a.GetChannelMember(response.ChannelId, args.UserId)

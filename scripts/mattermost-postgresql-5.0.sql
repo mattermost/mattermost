@@ -1080,7 +1080,7 @@ ALTER TABLE ONLY public.preferences
 --
 
 ALTER TABLE ONLY public.reactions
-    ADD CONSTRAINT reactions_pkey PRIMARY KEY (userid, postid, emojiname);
+    ADD CONSTRAINT reactions_pkey PRIMARY KEY (postid, userid, emojiname);
 
 
 --

@@ -77,7 +77,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
-	hub := th.App.Srv().Hubs[0]
+	hub := th.App.Srv().GetHubs()[0]
 	th.App.HubStop()
 	time.Sleep(5 * time.Second)
 
@@ -90,7 +90,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
-		for i := 0; i <= BROADCAST_QUEUE_SIZE; i++ {
+		for i := 0; i <= broadcastQueueSize; i++ {
 			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
 		}
 

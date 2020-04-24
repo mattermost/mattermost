@@ -5,10 +5,10 @@ package api4
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -357,8 +357,8 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                       "Happy image thumbnail/preview 9",
 			names:                       []string{"test.tiff"},
-			expectedImageThumbnailNames: []string{"test_expected_thumb.tiff"},
-			expectedImagePreviewNames:   []string{"test_expected_preview.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_tiff_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"test_expected_tiff_preview.jpeg"},
 			expectImage:                 true,
 			expectedImageWidths:         []int{701},
 			expectedImageHeights:        []int{701},
@@ -609,10 +609,11 @@ func TestUploadFiles(t *testing.T) {
 							require.Nil(t, err)
 							if !bytes.Equal(data, expected) {
 								tf, err := ioutil.TempFile("", fmt.Sprintf("test_%v_*_%s", i, name))
+								defer tf.Close()
 								require.Nil(t, err)
-								_, _ = io.Copy(tf, bytes.NewReader(data))
-								tf.Close()
-								t.Errorf("Actual data mismatched %s, written to %q", name, tf.Name())
+								_, err = io.Copy(tf, bytes.NewReader(data))
+								require.Nil(t, err)
+								t.Errorf("Actual data mismatched %s, written to %q - expected %d bytes, got %d.", name, tf.Name(), len(expected), len(data))
 							}
 						}
 						if len(tc.expectedPayloadNames) == 0 {
@@ -749,9 +750,6 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	fileId := fileResp.FileInfos[0].Id
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
 	require.NotEqual(t, 0, len(data), "should not be empty")
@@ -808,9 +806,6 @@ func TestGetFileLink(t *testing.T) {
 	_, resp = Client.GetFileLink(fileId)
 	CheckNotImplementedStatus(t, resp)
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
@@ -857,9 +852,6 @@ func TestGetFilePreview(t *testing.T) {
 	CheckNoError(t, resp)
 	fileId := fileResp.FileInfos[0].Id
 
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
-
 	data, resp := Client.GetFilePreview(fileId)
 	CheckNoError(t, resp)
 	require.NotEqual(t, 0, len(data), "should not be empty")
@@ -901,9 +893,6 @@ func TestGetFileInfo(t *testing.T) {
 	fileResp, resp := Client.UploadFile(sent, channel.Id, "test.png")
 	CheckNoError(t, resp)
 	fileId := fileResp.FileInfos[0].Id
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
 
 	info, resp := Client.GetFileInfo(fileId)
 	CheckNoError(t, resp)
@@ -961,9 +950,6 @@ func TestGetPublicFile(t *testing.T) {
 	info, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
 	link := th.App.GeneratePublicLink(Client.Url, info)
-
-	// Wait a bit for files to ready
-	time.Sleep(2 * time.Second)
 
 	resp, err := http.Get(link)
 	require.NoError(t, err)

@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -52,7 +52,7 @@ else
 endif
 
 # Go Flags
-GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
@@ -80,9 +80,6 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 
 # Tests
 TESTS=.
-
-TESTFLAGS ?= -short
-TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell $(GO) list ./...)
@@ -203,8 +200,9 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-	env GO111MODULE=off $(GO) get -u github.com/reflog/struct2interface
-	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
+	$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
@@ -234,6 +232,10 @@ plugin-mocks: ## Creates mock files for plugins.
 einterfaces-mocks: ## Creates mock files for einterfaces.
 	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
+
+searchengine-mocks: ## Creates mock files for searchengines.
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -293,6 +295,17 @@ test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/mysql-migration-test.sh
 	./scripts/psql-migration-test.sh
 
+gomodtidy:
+	@cp go.mod go.mod.orig
+	@cp go.sum go.sum.orig
+	$(GO) mod tidy
+	@if [ "$$(diff go.mod go.mod.orig)" != "" -o "$$(diff go.sum go.sum.orig)" != "" ]; then \
+		echo "go.mod/go.sum was modified. \ndiff- $$(diff go.mod go.mod.orig) \n$$(diff go.sum go.sum.orig) \nRun \"go mod tidy\"."; \
+		rm go.*.orig; \
+		exit 1; \
+	fi;
+	@rm go.*.orig;
+
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
@@ -300,6 +313,15 @@ else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: ## Runs only quick tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
+else
+	@echo Running only TE tests
+	$(GO) test $(GOFLAGS) -short $(TE_PACKAGES)
+endif
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -494,9 +516,14 @@ vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
+	fi;
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
+		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
+	else \
+		echo "MM_VET_OPENSPEC_PATH not set or spec yaml path in it is incorrect. Skipping API check"; \
 	fi; \
-
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
