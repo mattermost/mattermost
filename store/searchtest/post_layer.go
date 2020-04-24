@@ -121,7 +121,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
+		Tags: []string{ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should support terms with dash",
@@ -1016,21 +1016,20 @@ func testNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) {
-	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "search post", "", model.POST_DEFAULT, 0, false)
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "qwerty", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "searching post", "", model.POST_DEFAULT, 0, false)
-	require.Nil(t, err)
-	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "another post", "", model.POST_DEFAULT, 0, false)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "qwertyjkl", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
 	params := &model.SearchParams{
-		Terms: "search *",
+		Terms: "qwerty *",
 	}
 	results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
 	require.Nil(t, apperr)
 
-	require.Len(t, results.Posts, 0)
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSupportTermsWithDash(t *testing.T, th *SearchTestHelper) {
