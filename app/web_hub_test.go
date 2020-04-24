@@ -90,7 +90,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
-		for i := 0; i <= BROADCAST_QUEUE_SIZE; i++ {
+		for i := 0; i <= broadcastQueueSize; i++ {
 			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
 		}
 
