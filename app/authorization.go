@@ -15,6 +15,15 @@ func (a *App) MakePermissionError(permission *model.Permission) *model.AppError 
 	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
+func (a *App) MakePermissionsError(permissions []*model.Permission) *model.AppError {
+	permissionsStr := "permission="
+	for _, permission := range permissions {
+		permissionsStr += permission.Id
+		permissionsStr += ","
+	}
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+permissionsStr, http.StatusForbidden)
+}
+
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	if session.IsUnrestricted() {
 		return true

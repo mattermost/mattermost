@@ -738,6 +738,7 @@ type AppIface interface {
 	Log() *mlog.Logger
 	LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	MakePermissionError(permission *model.Permission) *model.AppError
+	MakePermissionsError(permissions []*model.Permission) *model.AppError
 	MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError)
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
