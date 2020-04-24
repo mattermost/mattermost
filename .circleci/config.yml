@@ -76,6 +76,7 @@ jobs:
                 command: |
                   ~/.owasp/dependency-check/bin/dependency-check.sh \
                     --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
                     --suppression ../security-automation-config/dependency-check/suppression.xml \
                     --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
                     --scan './**/*' || true
