@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/internal/envconfig"
 	"google.golang.org/grpc/internal/grpcrand"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
@@ -205,12 +204,8 @@ func (d *dnsResolver) watcher() {
 		case <-d.rn:
 		}
 
-		state, err := d.lookup()
-		if err != nil {
-			d.cc.ReportError(err)
-		} else {
-			d.cc.UpdateState(*state)
-		}
+		state := d.lookup()
+		d.cc.UpdateState(*state)
 
 		// Sleep to prevent excessive re-resolutions. Incoming resolution requests
 		// will be queued in d.rn.
@@ -224,37 +219,33 @@ func (d *dnsResolver) watcher() {
 	}
 }
 
-func (d *dnsResolver) lookupSRV() ([]resolver.Address, error) {
+func (d *dnsResolver) lookupSRV() []resolver.Address {
 	if !EnableSRVLookups {
-		return nil, nil
+		return nil
 	}
 	var newAddrs []resolver.Address
 	_, srvs, err := d.resolver.LookupSRV(d.ctx, "grpclb", "tcp", d.host)
 	if err != nil {
-		err = handleDNSError(err, "SRV") // may become nil
-		return nil, err
+		grpclog.Infof("grpc: failed dns SRV record lookup due to %v.\n", err)
+		return nil
 	}
 	for _, s := range srvs {
 		lbAddrs, err := d.resolver.LookupHost(d.ctx, s.Target)
 		if err != nil {
-			err = handleDNSError(err, "A") // may become nil
-			if err == nil {
-				// If there are other SRV records, look them up and ignore this
-				// one that does not exist.
-				continue
-			}
-			return nil, err
+			grpclog.Infof("grpc: failed load balancer address dns lookup due to %v.\n", err)
+			continue
 		}
 		for _, a := range lbAddrs {
-			ip, ok := formatIP(a)
+			a, ok := formatIP(a)
 			if !ok {
-				return nil, fmt.Errorf("dns: error parsing A record IP address %v", a)
+				grpclog.Errorf("grpc: failed IP parsing due to %v.\n", err)
+				continue
 			}
-			addr := ip + ":" + strconv.Itoa(int(s.Port))
+			addr := a + ":" + strconv.Itoa(int(s.Port))
 			newAddrs = append(newAddrs, resolver.Address{Addr: addr, Type: resolver.GRPCLB, ServerName: s.Target})
 		}
 	}
-	return newAddrs, nil
+	return newAddrs
 }
 
 var filterError = func(err error) error {
@@ -267,22 +258,13 @@ var filterError = func(err error) error {
 	return err
 }
 
-func handleDNSError(err error, lookupType string) error {
-	err = filterError(err)
-	if err != nil {
-		err = fmt.Errorf("dns: %v record lookup error: %v", lookupType, err)
-		grpclog.Infoln(err)
-	}
-	return err
-}
-
 func (d *dnsResolver) lookupTXT() *serviceconfig.ParseResult {
 	ss, err := d.resolver.LookupTXT(d.ctx, txtPrefix+d.host)
 	if err != nil {
-		if envconfig.TXTErrIgnore {
-			return nil
-		}
-		if err = handleDNSError(err, "TXT"); err != nil {
+		err = filterError(err)
+		if err != nil {
+			err = fmt.Errorf("error from DNS TXT record lookup: %v", err)
+			grpclog.Infoln("grpc:", err)
 			return &serviceconfig.ParseResult{Err: err}
 		}
 		return nil
@@ -294,7 +276,7 @@ func (d *dnsResolver) lookupTXT() *serviceconfig.ParseResult {
 
 	// TXT record must have "grpc_config=" attribute in order to be used as service config.
 	if !strings.HasPrefix(res, txtAttribute) {
-		grpclog.Warningf("dns: TXT record %v missing %v attribute", res, txtAttribute)
+		grpclog.Warningf("grpc: DNS TXT record %v missing %v attribute", res, txtAttribute)
 		// This is not an error; it is the equivalent of not having a service config.
 		return nil
 	}
@@ -302,37 +284,34 @@ func (d *dnsResolver) lookupTXT() *serviceconfig.ParseResult {
 	return d.cc.ParseServiceConfig(sc)
 }
 
-func (d *dnsResolver) lookupHost() ([]resolver.Address, error) {
+func (d *dnsResolver) lookupHost() []resolver.Address {
 	var newAddrs []resolver.Address
 	addrs, err := d.resolver.LookupHost(d.ctx, d.host)
 	if err != nil {
-		err = handleDNSError(err, "A")
-		return nil, err
+		grpclog.Warningf("grpc: failed dns A record lookup due to %v.\n", err)
+		return nil
 	}
 	for _, a := range addrs {
-		ip, ok := formatIP(a)
+		a, ok := formatIP(a)
 		if !ok {
-			return nil, fmt.Errorf("dns: error parsing A record IP address %v", a)
+			grpclog.Errorf("grpc: failed IP parsing due to %v.\n", err)
+			continue
 		}
-		addr := ip + ":" + d.port
+		addr := a + ":" + d.port
 		newAddrs = append(newAddrs, resolver.Address{Addr: addr})
 	}
-	return newAddrs, nil
+	return newAddrs
 }
 
-func (d *dnsResolver) lookup() (*resolver.State, error) {
-	srv, srvErr := d.lookupSRV()
-	addrs, hostErr := d.lookupHost()
-	if hostErr != nil && (srvErr != nil || len(srv) == 0) {
-		return nil, hostErr
-	}
+func (d *dnsResolver) lookup() *resolver.State {
+	srv := d.lookupSRV()
 	state := &resolver.State{
-		Addresses: append(addrs, srv...),
+		Addresses: append(d.lookupHost(), srv...),
 	}
 	if !d.disableServiceConfig {
 		state.ServiceConfig = d.lookupTXT()
 	}
-	return state, nil
+	return state
 }
 
 // formatIP returns ok = false if addr is not a valid textual representation of an IP address.
@@ -418,12 +397,12 @@ func canaryingSC(js string) string {
 	var rcs []rawChoice
 	err := json.Unmarshal([]byte(js), &rcs)
 	if err != nil {
-		grpclog.Warningf("dns: error parsing service config json: %v", err)
+		grpclog.Warningf("grpc: failed to parse service config json string due to %v.\n", err)
 		return ""
 	}
 	cliHostname, err := os.Hostname()
 	if err != nil {
-		grpclog.Warningf("dns: error getting client hostname: %v", err)
+		grpclog.Warningf("grpc: failed to get client hostname due to %v.\n", err)
 		return ""
 	}
 	var sc string

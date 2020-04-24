@@ -3054,6 +3054,38 @@ func (s *TimerLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *m
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsersInTeam", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetMemberUsersNotInChannel", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 
@@ -6659,6 +6691,22 @@ func (s *TimerLayerUserStore) GetAllAfter(limit int, afterId string) ([]*model.U
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetAllAfter", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.GetAllNotInAuthService(authServices)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetAllNotInAuthService", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

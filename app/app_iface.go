@@ -154,6 +154,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetHubForUserId returns the hub for a given user id.
+	GetHubForUserId(userId string) *Hub
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -183,6 +185,14 @@ type AppIface interface {
 	GetTeamSchemeChannelRoles(teamId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// HubRegister registers a connection to a hub.
+	HubRegister(webConn *WebConn)
+	// HubStart starts all the hubs.
+	HubStart()
+	// HubStop stops all the hubs.
+	HubStop()
+	// HubUnregister unregisters a connection from a hub.
+	HubUnregister(webConn *WebConn)
 	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 	// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 	InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError)
@@ -204,6 +214,10 @@ type AppIface interface {
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// NewWebConn returns a new WebConn instance.
+	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
+	// NewWebHub creates a new Hub.
+	NewWebHub() *Hub
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -281,6 +295,8 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
+	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	// UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 	// UploadFileX uploads a single file as specified in t. It applies the upload
@@ -523,7 +539,6 @@ type AppIface interface {
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
-	GetHubForUserId(userId string) *Hub
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
@@ -674,10 +689,6 @@ type AppIface interface {
 	HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool
 	HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userId string) bool
-	HubRegister(webConn *WebConn)
-	HubStart()
-	HubStop()
-	HubUnregister(webConn *WebConn)
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
@@ -724,8 +735,6 @@ type AppIface interface {
 	MoveFile(oldPath, newPath string) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
 	NewPluginAPI(manifest *model.Manifest) plugin.API
-	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
-	NewWebHub() *Hub
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
@@ -949,7 +958,6 @@ type AppIface interface {
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
