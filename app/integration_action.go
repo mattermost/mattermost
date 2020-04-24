@@ -352,6 +352,7 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	params := make(map[string]string)
 	params["plugin_id"] = pluginId
 	r = mux.SetURLVars(r, params)
+	r.URL.RawQuery = inURL.Query().Encode()
 
 	a.ServePluginRequest(w, r)
 
