@@ -167,7 +167,7 @@ func (group *Group) IsValidName() *AppError {
 	}
 
 	if !validGroupnameChars.MatchString(group.Name) {
-		return NewAppError("Group.IsValidName", "model.group.invalid_chars_in_name.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
