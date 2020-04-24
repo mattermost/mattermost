@@ -278,6 +278,8 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication                   *bool
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
+	SentryEnabled                                     *bool
+	SentryDSN                                         *string
 	AllowCorsFrom                                     *string `restricted:"true"`
 	CorsExposedHeaders                                *string `restricted:"true"`
 	CorsAllowCredentials                              *bool   `restricted:"true"`
@@ -473,6 +475,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.Forward80To443 == nil {
 		s.Forward80To443 = NewBool(false)
+	}
+
+	if s.SentryEnabled == nil {
+		s.SentryEnabled = NewBool(true)
 	}
 
 	if isUpdate {
