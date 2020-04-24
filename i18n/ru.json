@@ -2572,7 +2572,7 @@
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной enterprise-лицензии."
+    "translation": "Попытка использования экспериментальной возможности ClientSideCertEnable без действительной корпоративной лицензии."
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -3788,7 +3788,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Функция требует обновления до Enterprise Edition и включения лицензионного ключа. Пожалуйста, обратитесь к системному администратору."
+    "translation": "Функция требует обновления до Корпоративной редакции и установки лицензионного ключа. Пожалуйста, обратитесь к системному администратору."
   },
   {
     "id": "cli.outgoing_webhook.inconsistent_state.app_error",
@@ -4068,7 +4068,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Функции AD/LDAP отключены в виду лицензионных ограничений. Пожалуйста, обратитесь к системному администратору для обновления лицензии."
+    "translation": "Функции AD/LDAP отключены в виду лицензионных ограничений. Пожалуйста, обратитесь к системному администратору по поводу улучшения вашей корпоративной лицензии."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
