@@ -9,7 +9,7 @@ import (
 )
 
 // ErrKeyNotFound is the error when the given key is not found
-var ErrKeyNotFound = errors.New("Key Not Found")
+var ErrKeyNotFound = errors.New("key not found")
 
 // Cache (under package cache2) is a representation of a cache store that aims to replace cache.Cache
 type Cache interface {

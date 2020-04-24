@@ -5,6 +5,7 @@ package cache2
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
@@ -14,40 +15,44 @@ import (
 )
 
 func TestLRU(t *testing.T) {
-	l := NewLRU(&LRUOptions{128, 0, ""})
+	l := NewLRU(&LRUOptions{
+		Size:                   128,
+		DefaultExpiry:          0,
+		InvalidateClusterEvent: "",
+	})
 
 	for i := 0; i < 256; i++ {
 		err := l.Set(fmt.Sprintf("%d", i), i)
 		require.Nil(t, err)
 	}
-	len, err := l.Len()
+	size, err := l.Len()
 	require.Nil(t, err)
-	require.Equalf(t, len, 128, "bad len: %v", len)
+	require.Equalf(t, size, 128, "bad len: %v", size)
 
 	keys, err := l.Keys()
 	require.Nil(t, err)
 	for i, k := range keys {
 		var v int
-		errGet := l.Get(k, &v)
-		require.Nil(t, errGet, "bad key: %v", k)
+		err = l.Get(k, &v)
+		require.Nil(t, err, "bad key: %v", k)
 		require.Equalf(t, fmt.Sprintf("%d", v), k, "bad key: %v", k)
 		require.Equalf(t, i+128, v, "bad value: %v", k)
 	}
 	for i := 0; i < 128; i++ {
 		var v int
-		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Equal(t, ErrKeyNotFound, errGet, "should be evicted %v: %v", i, errGet)
+		err = l.Get(fmt.Sprintf("%d", i), &v)
+		require.Equal(t, ErrKeyNotFound, err, "should be evicted %v: %v", i, err)
 	}
 	for i := 128; i < 256; i++ {
 		var v int
-		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Nil(t, errGet, "should not be evicted %v: %v", i, errGet)
+		err = l.Get(fmt.Sprintf("%d", i), &v)
+		require.Nil(t, err, "should not be evicted %v: %v", i, err)
 	}
 	for i := 128; i < 192; i++ {
 		l.Remove(fmt.Sprintf("%d", i))
 		var v int
-		errGet := l.Get(fmt.Sprintf("%d", i), &v)
-		require.Equal(t, ErrKeyNotFound, errGet, "should be deleted %v: %v", i, errGet)
+		err = l.Get(fmt.Sprintf("%d", i), &v)
+		require.Equal(t, ErrKeyNotFound, err, "should be deleted %v: %v", i, err)
 	}
 
 	var v int
@@ -63,9 +68,9 @@ func TestLRU(t *testing.T) {
 	}
 
 	l.Purge()
-	len, err = l.Len()
+	size, err = l.Len()
 	require.Nil(t, err)
-	require.Equalf(t, len, 0, "bad len: %v", len)
+	require.Equalf(t, size, 0, "bad len: %v", size)
 	err = l.Get("200", &v)
 	require.Equal(t, err, ErrKeyNotFound, "should contain nothing")
 
@@ -78,13 +83,16 @@ func TestLRU(t *testing.T) {
 }
 
 func TestLRUExpire(t *testing.T) {
-	l := NewLRU(&LRUOptions{128, 1, ""})
+	l := NewLRU(&LRUOptions{
+		Size:                   128,
+		DefaultExpiry:          1 * time.Second,
+		InvalidateClusterEvent: "",
+	})
 
 	l.SetWithDefaultExpiry("1", 1)
-	l.SetWithExpiry("2", 2, 1*time.Second)
 	l.SetWithExpiry("3", 3, 0*time.Second)
 
-	time.Sleep(time.Millisecond * 2100)
+	time.Sleep(time.Second * 2)
 
 	var r1 int
 	err := l.Get("1", &r1)
@@ -97,7 +105,11 @@ func TestLRUExpire(t *testing.T) {
 }
 
 func TestLRUMarshalUnMarshal(t *testing.T) {
-	l := NewLRU(&LRUOptions{1, 0, ""})
+	l := NewLRU(&LRUOptions{
+		Size:                   1,
+		DefaultExpiry:          0,
+		InvalidateClusterEvent: "",
+	})
 
 	value1 := map[string]interface{}{
 		"key1": 1,
@@ -118,6 +130,82 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	v2, ok := value2["key2"].(string)
 	require.True(t, ok, "unable to cast value")
 	require.Equal(t, "value2", v2)
+
+	post := model.Post{
+		Id:            "id",
+		CreateAt:      11111,
+		UpdateAt:      11111,
+		DeleteAt:      11111,
+		EditAt:        111111,
+		IsPinned:      true,
+		UserId:        "UserId",
+		ChannelId:     "ChannelId",
+		RootId:        "RootId",
+		ParentId:      "ParentId",
+		OriginalId:    "OriginalId",
+		Message:       "OriginalId",
+		MessageSource: "MessageSource",
+		Type:          "Type",
+		Props: map[string]interface{}{
+			"key": "val",
+		},
+		Hashtags:      "Hashtags",
+		Filenames:     []string{"item1", "item2"},
+		FileIds:       []string{"item1", "item2"},
+		PendingPostId: "PendingPostId",
+		HasReactions:  true,
+		ReplyCount:    11111,
+		Metadata: &model.PostMetadata{
+			Embeds: []*model.PostEmbed{
+				{
+					Type: "Type",
+					URL:  "URL",
+					Data: "some data",
+				},
+				{
+					Type: "Type 2",
+					URL:  "URL 2",
+					Data: "some data 2",
+				},
+			},
+			Emojis: []*model.Emoji{
+				{
+					Id:   "id",
+					Name: "name",
+				},
+			},
+			Files: nil,
+			Images: map[string]*model.PostImage{
+				"key": {
+					Width:      1,
+					Height:     1,
+					Format:     "format",
+					FrameCount: 1,
+				},
+				"key2": {
+					Width:      999,
+					Height:     888,
+					Format:     "format 2",
+					FrameCount: 1000,
+				},
+			},
+			Reactions: []*model.Reaction{
+				{
+					UserId:    "user_id",
+					PostId:    "post_id",
+					EmojiName: "emoji_name",
+					CreateAt:  111,
+				},
+			},
+		},
+	}
+	err = l.Set("post", post)
+	require.Nil(t, err)
+
+	var p model.Post
+	err = l.Get("post", &p)
+	require.Nil(t, err)
+	require.True(t, reflect.DeepEqual(post, p))
 }
 
 func BenchmarkLRU(b *testing.B) {
@@ -134,7 +222,11 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("simple=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
 			err := l2.Set("test", value1)
 			require.Nil(b, err)
 
@@ -187,7 +279,11 @@ func BenchmarkLRU(b *testing.B) {
 	})
 	b.Run("complex=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
 			err := l2.Set("test", value2)
 			require.Nil(b, err)
 
@@ -274,7 +370,11 @@ func BenchmarkLRU(b *testing.B) {
 	})
 	b.Run("User=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
 			err := l2.Set("test", user)
 			require.Nil(b, err)
 
@@ -358,7 +458,11 @@ func BenchmarkLRU(b *testing.B) {
 	})
 	b.Run("Post=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
 			err := l2.Set("test", post)
 			require.Nil(b, err)
 
@@ -385,7 +489,11 @@ func BenchmarkLRU(b *testing.B) {
 	})
 	b.Run("Status=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{1, 0, ""})
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
 			err := l2.Set("test", status)
 			require.Nil(b, err)
 

@@ -25,9 +25,9 @@ type LRU struct {
 
 // LRUOptions contains options for initializing LRU cache
 type LRUOptions struct {
-	size                   int
-	defaultExpiry          time.Duration
-	invalidateClusterEvent string
+	Size                   int
+	DefaultExpiry          time.Duration
+	InvalidateClusterEvent string
 }
 
 // entry is used to hold a value in the evictList.
@@ -41,11 +41,11 @@ type entry struct {
 // NewLRU creates an LRU of the given size.
 func NewLRU(opts *LRUOptions) Cache {
 	return &LRU{
-		size:                   opts.size,
+		size:                   opts.Size,
 		evictList:              list.New(),
-		items:                  make(map[string]*list.Element, opts.size),
-		defaultExpiry:          opts.defaultExpiry,
-		invalidateClusterEvent: opts.invalidateClusterEvent,
+		items:                  make(map[string]*list.Element, opts.Size),
+		defaultExpiry:          opts.DefaultExpiry,
+		invalidateClusterEvent: opts.InvalidateClusterEvent,
 	}
 }
 
