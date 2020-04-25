@@ -121,6 +121,10 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
+	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
+	// A new ExpiresAt is only written if enough time has elapsed since last update.
+	// Returns true only if the session was extended.
+	ExtendSessionExpiryIfNeeded(session *model.Session) bool
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -441,7 +445,6 @@ type AppIface interface {
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
 	ExportPermissions(w io.Writer) error
-	ExtendSessionExpiryIfNeeded(session *model.Session)
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)

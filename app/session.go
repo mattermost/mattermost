@@ -287,9 +287,12 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	a.AddSessionToCache(&session)
 }
 
-func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
+// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
+// A new ExpiresAt is only written if enough time has elapsed since last update.
+// Returns true only if the session was extended.
+func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	if session == nil || session.IsExpired() {
-		return
+		return false
 	}
 
 	sessionLength := a.GetSessionLengthInMillis(session)
@@ -307,7 +310,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
 	now := model.GetMillis()
 	elapsed := now - (session.ExpiresAt - sessionLength)
 	if elapsed < threshold {
-		return
+		return false
 	}
 
 	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
@@ -318,7 +321,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
 	if err := a.Srv().Store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
 		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 		auditRec.AddMeta("err", err.Error())
-		return
+		return false
 	}
 
 	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
@@ -329,6 +332,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) {
 
 	auditRec.Success()
 	auditRec.AddMeta("extended_session", session)
+	return true
 }
 
 // GetSessionLengthInMillis returns the session length, in milliseconds,

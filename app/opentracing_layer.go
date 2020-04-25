@@ -3337,7 +3337,7 @@ func (a *OpenTracingAppLayer) ExportPermissions(w io.Writer) error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ExtendSessionExpiryIfNeeded(session *model.Session) {
+func (a *OpenTracingAppLayer) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ExtendSessionExpiryIfNeeded")
 
@@ -3349,7 +3349,9 @@ func (a *OpenTracingAppLayer) ExtendSessionExpiryIfNeeded(session *model.Session
 	}()
 
 	defer span.Finish()
-	a.app.ExtendSessionExpiryIfNeeded(session)
+	resultVar0 := a.app.ExtendSessionExpiryIfNeeded(session)
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError) {
