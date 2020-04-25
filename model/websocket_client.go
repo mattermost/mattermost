@@ -175,7 +175,6 @@ func (wsc *WebSocketClient) Listen() {
 		for {
 			// Reset buffer.
 			buf.Reset()
-			var rawMsg json.RawMessage
 			_, r, err := wsc.Conn.NextReader()
 			if err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
@@ -193,7 +192,6 @@ func (wsc *WebSocketClient) Listen() {
 				return
 			}
 
-			rawMsg = buf.Bytes()
 			event := WebSocketEventFromJson(&buf)
 			if event == nil {
 				continue
@@ -204,7 +202,7 @@ func (wsc *WebSocketClient) Listen() {
 			}
 
 			var response WebSocketResponse
-			if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
+			if err := json.Unmarshal(buf.Bytes(), &response); err == nil && response.IsValid() {
 				wsc.ResponseChannel <- &response
 				continue
 			}
