@@ -522,16 +522,28 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableTutorial = NewBool(true)
 	}
 
-	if isUpdate {
-		// Must be manually enabled for existing installations.
-		s.ExtendSessionLengthWithActivity = NewBool(false)
-		s.SessionLengthWebInDays = NewInt(180)
-		s.SessionLengthMobileInDays = NewInt(180)
-		s.SessionLengthSSOInDays = NewInt(30)
-	} else {
-		s.ExtendSessionLengthWithActivity = NewBool(true)
-		s.SessionLengthWebInDays = NewInt(30)
-		s.SessionLengthMobileInDays = NewInt(30)
+	// Must be manually enabled for existing installations.
+	if s.ExtendSessionLengthWithActivity == nil {
+		s.ExtendSessionLengthWithActivity = NewBool(!isUpdate)
+	}
+
+	if s.SessionLengthWebInDays == nil {
+		if isUpdate {
+			s.SessionLengthWebInDays = NewInt(180)
+		} else {
+			s.SessionLengthWebInDays = NewInt(30)
+		}
+	}
+
+	if s.SessionLengthMobileInDays == nil {
+		if isUpdate {
+			s.SessionLengthMobileInDays = NewInt(180)
+		} else {
+			s.SessionLengthMobileInDays = NewInt(30)
+		}
+	}
+
+	if s.SessionLengthSSOInDays == nil {
 		s.SessionLengthSSOInDays = NewInt(30)
 	}
 

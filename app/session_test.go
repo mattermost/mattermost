@@ -244,8 +244,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
-		th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(session)
 
+		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
 		require.True(t, session.IsExpired())
 	})
@@ -260,8 +261,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
 		session.ExpiresAt = expires
 
-		th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(session)
 
+		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
 		require.False(t, session.IsExpired())
 	})
@@ -282,8 +284,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
 			session.ExpiresAt = expires
 
-			th.App.ExtendSessionExpiryIfNeeded(session)
+			ok := th.App.ExtendSessionExpiryIfNeeded(session)
 
+			require.True(t, ok)
 			require.Greater(t, session.ExpiresAt, expires)
 			require.False(t, session.IsExpired())
 
@@ -293,7 +296,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			cachedSession := ts.(*model.Session)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
-			// check datbase was updated.
+			// check database was updated.
 			storedSession, err := th.App.Srv().Store.Session().Get(session.Token)
 			require.Nil(t, err)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
