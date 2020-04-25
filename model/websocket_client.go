@@ -173,6 +173,8 @@ func (wsc *WebSocketClient) Listen() {
 		buf.Grow(avgReadMsgSizeBytes)
 
 		for {
+			// Reset buffer.
+			buf.Reset()
 			var rawMsg json.RawMessage
 			_, r, err := wsc.Conn.NextReader()
 			if err != nil {
@@ -193,8 +195,6 @@ func (wsc *WebSocketClient) Listen() {
 
 			rawMsg = buf.Bytes()
 			event := WebSocketEventFromJson(&buf)
-			// Reset buffer.
-			buf.Reset()
 			if event == nil {
 				continue
 			}
