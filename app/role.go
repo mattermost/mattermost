@@ -36,6 +36,7 @@ func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 	roles, err := a.Srv().Store.Role().GetByNames(names)
+
 	if err != nil {
 		return nil, err
 	}
