@@ -35,7 +35,8 @@ func (o *Status) ToJson() string {
 }
 
 func (o *Status) ToClusterJson() string {
-	b, _ := json.Marshal(o)
+	oCopy := *o
+	b, _ := json.Marshal(oCopy)
 	return string(b)
 }
 
