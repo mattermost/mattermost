@@ -6,7 +6,6 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -175,9 +174,7 @@ func (wsc *WebSocketClient) Listen() {
 
 		for {
 			var rawMsg json.RawMessage
-			var err error
-			var r io.Reader
-			_, r, err = wsc.Conn.NextReader()
+			_, r, err := wsc.Conn.NextReader()
 			if err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -195,7 +192,7 @@ func (wsc *WebSocketClient) Listen() {
 			}
 
 			rawMsg = buf.Bytes()
-			event := WebSocketEventFromJson(bytes.NewReader(rawMsg))
+			event := WebSocketEventFromJson(&buf)
 			// Reset buffer.
 			buf.Reset()
 			if event == nil {
