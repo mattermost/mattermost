@@ -146,7 +146,8 @@ type Server struct {
 
 	CacheProvider cache.Provider
 
-	tracer *tracing.Tracer
+	tracer                      *tracing.Tracer
+	timestampLastDiagnosticSent time.Time
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -190,6 +191,13 @@ func NewServer(options ...Option) (*Server, error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
+	// Save the timestamp of the first server run. Used for diagnostics reporting.
+	if s.Config().ServiceSettings.ServerFirstRun == nil {
+		s.UpdateConfig(func(cfg *model.Config) {
+			now := time.Now().Unix()
+			cfg.ServiceSettings.ServerFirstRun = &now
+		})
+	}
 	if *s.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err := tracing.New()
 		if err != nil {
@@ -727,11 +735,27 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
+func doDiagnosticsIfNeeded(s *Server) {
+	hoursSinceFirstServerRun := time.Since(time.Unix(*s.Config().ServiceSettings.ServerFirstRun, 0)).Hours()
+	// Send once every 10 minutes for the first hour
+	// Send once every hour thereafter for the first 12 hours
+	// Send at the 24 hour mark and every 24 hours after
+	if hoursSinceFirstServerRun < 1 {
+		doDiagnostics(s)
+	} else if hoursSinceFirstServerRun <= 12 && time.Since(s.timestampLastDiagnosticSent) >= time.Hour {
+		doDiagnostics(s)
+	} else if hoursSinceFirstServerRun > 12 && time.Since(s.timestampLastDiagnosticSent) >= 24*time.Hour {
+		doDiagnostics(s)
+	}
+}
+
 func runDiagnosticsJob(s *Server) {
+	// Send on boot
 	doDiagnostics(s)
+
 	model.CreateRecurringTask("Diagnostics", func() {
 		doDiagnostics(s)
-	}, time.Hour*24)
+	}, time.Minute*10)
 }
 
 func runTokenCleanupJob(s *Server) {
@@ -761,6 +785,7 @@ func doSecurity(s *Server) {
 
 func doDiagnostics(s *Server) {
 	if *s.Config().LogSettings.EnableDiagnostics {
+		s.timestampLastDiagnosticSent = time.Now()
 		s.FakeApp().SendDailyDiagnostics()
 	}
 }
