@@ -15,15 +15,23 @@ import (
 )
 
 const (
-	BROADCAST_QUEUE_SIZE = 4096
+	broadcastQueueSize = 4096
 )
 
-type WebConnActivityMessage struct {
-	UserId       string
-	SessionToken string
-	ActivityAt   int64
+type webConnActivityMessage struct {
+	userId       string
+	sessionToken string
+	activityAt   int64
 }
 
+type webConnDirectMessage struct {
+	conn *WebConn
+	msg  model.WebSocketMessage
+}
+
+// Hub is the central place to manage all websocket connections in the server.
+// It handles different websocket events and sending messages to individual
+// user connections.
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
@@ -36,21 +44,23 @@ type Hub struct {
 	stop            chan struct{}
 	didStop         chan struct{}
 	invalidateUser  chan string
-	activity        chan *WebConnActivityMessage
-	ExplicitStop    bool
+	activity        chan *webConnActivityMessage
+	directMsg       chan *webConnDirectMessage
+	explicitStop    bool
 }
 
+// NewWebHub creates a new Hub.
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
 		app:            a,
 		register:       make(chan *WebConn, 1),
 		unregister:     make(chan *WebConn, 1),
-		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
+		broadcast:      make(chan *model.WebSocketEvent, broadcastQueueSize),
 		stop:           make(chan struct{}),
 		didStop:        make(chan struct{}),
 		invalidateUser: make(chan string),
-		activity:       make(chan *WebConnActivityMessage),
-		ExplicitStop:   false,
+		activity:       make(chan *webConnActivityMessage),
+		directMsg:      make(chan *webConnDirectMessage),
 	}
 }
 
@@ -58,6 +68,7 @@ func (a *App) TotalWebsocketConnections() int {
 	return a.Srv().TotalWebsocketConnections()
 }
 
+// HubStart starts all the hubs.
 func (a *App) HubStart() {
 	// Total number of hubs is twice the number of CPUs.
 	numberOfHubs := runtime.NumCPU() * 2
@@ -77,6 +88,36 @@ func (a *App) HubStart() {
 	}
 }
 
+func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
+	if message.GetBroadcast().UserId != "" {
+		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
+		if hub != nil {
+			hub.Broadcast(message)
+		}
+		return
+	}
+	for _, hub := range a.Srv().GetHubs() {
+		hub.Broadcast(message)
+	}
+}
+
+func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
+	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userId)
+	a.InvalidateWebConnSessionCacheForUser(userId)
+}
+
+func (a *App) invalidateCacheForWebhook(webhookId string) {
+	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookId)
+}
+
+func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
+	}
+}
+
+// HubStop stops all the hubs.
 func (a *App) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
@@ -87,6 +128,7 @@ func (a *App) HubStop() {
 	a.Srv().SetHubs([]*Hub{})
 }
 
+// GetHubForUserId returns the hub for a given user id.
 func (a *App) GetHubForUserId(userId string) *Hub {
 	if len(a.Srv().GetHubs()) == 0 {
 		return nil
@@ -103,6 +145,7 @@ func (a *App) GetHubForUserId(userId string) *Hub {
 	return hub
 }
 
+// HubRegister registers a connection to a hub.
 func (a *App) HubRegister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
 	if hub != nil {
@@ -113,6 +156,7 @@ func (a *App) HubRegister(webConn *WebConn) {
 	}
 }
 
+// HubUnregister unregisters a connection from a hub.
 func (a *App) HubUnregister(webConn *WebConn) {
 	hub := a.GetHubForUserId(webConn.UserId)
 	if hub != nil {
@@ -146,19 +190,6 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 		}
 
 		a.Cluster().SendClusterMessage(cm)
-	}
-}
-
-func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.GetBroadcast().UserId != "" {
-		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
-		if hub != nil {
-			hub.Broadcast(message)
-		}
-	} else {
-		for _, hub := range a.Srv().GetHubs() {
-			hub.Broadcast(message)
-		}
 	}
 }
 
@@ -237,7 +268,7 @@ func (a *App) InvalidateCacheForUser(userId string) {
 }
 
 func (a *App) invalidateCacheForUserTeams(userId string) {
-	a.invalidateCacheForUserTeamsSkipClusterSend(userId)
+	a.InvalidateWebConnSessionCacheForUser(userId)
 	a.Srv().Store.Team().InvalidateAllTeamIdsForUser(userId)
 
 	if a.Cluster() != nil {
@@ -250,33 +281,7 @@ func (a *App) invalidateCacheForUserTeams(userId string) {
 	}
 }
 
-func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
-	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userId)
-
-	hub := a.GetHubForUserId(userId)
-	if hub != nil {
-		hub.InvalidateUser(userId)
-	}
-}
-
-func (a *App) invalidateCacheForUserTeamsSkipClusterSend(userId string) {
-	hub := a.GetHubForUserId(userId)
-	if hub != nil {
-		hub.InvalidateUser(userId)
-	}
-}
-
-func (a *App) invalidateCacheForWebhook(webhookId string) {
-	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookId)
-}
-
-func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
-	hub := a.GetHubForUserId(userId)
-	if hub != nil {
-		hub.InvalidateUser(userId)
-	}
-}
-
+// UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
 func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64) {
 	hub := a.GetHubForUserId(session.UserId)
 	if hub != nil {
@@ -284,13 +289,15 @@ func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	}
 }
 
+// Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) {
 	select {
 	case h.register <- webConn:
-	case <-h.didStop:
+	case <-h.stop:
 	}
 }
 
+// Unregister unregisters a connection from the hub.
 func (h *Hub) Unregister(webConn *WebConn) {
 	select {
 	case h.unregister <- webConn:
@@ -298,37 +305,64 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	}
 }
 
+// Broadcast broadcasts the message to all connections in the hub.
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	if h != nil && h.broadcast != nil && message != nil {
+	// XXX: The hub nil check is because of the way we setup our tests. We call `app.NewServer()`
+	// which returns a server, but only after that, we call `wsapi.Init()` through our FakeApp adapter
+	// to initialize the hub. But in the `NewServer` call itself, we call `RunOldAppInitialization`
+	// which directly proceeds to broadcast some messages happily.
+	// This needs to be fixed once the FakeApp adapter goes away. And possibly, we can look into
+	// doing hub initialization inside NewServer itself.
+	if h != nil && message != nil {
 		if metrics := h.app.Metrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 		}
 		select {
 		case h.broadcast <- message:
-		case <-h.didStop:
+		case <-h.stop:
 		}
 	}
 }
 
+// InvalidateUser invalidates the cache for the given user.
 func (h *Hub) InvalidateUser(userId string) {
 	select {
 	case h.invalidateUser <- userId:
-	case <-h.didStop:
+	case <-h.stop:
 	}
 }
 
+// UpdateActivity sets the LastUserActivityAt field for the connection
+// of the user.
 func (h *Hub) UpdateActivity(userId, sessionToken string, activityAt int64) {
 	select {
-	case h.activity <- &WebConnActivityMessage{UserId: userId, SessionToken: sessionToken, ActivityAt: activityAt}:
-	case <-h.didStop:
+	case h.activity <- &webConnActivityMessage{
+		userId:       userId,
+		sessionToken: sessionToken,
+		activityAt:   activityAt,
+	}:
+	case <-h.stop:
 	}
 }
 
+// SendMessage sends the given message to the given connection.
+func (h *Hub) SendMessage(conn *WebConn, msg model.WebSocketMessage) {
+	select {
+	case h.directMsg <- &webConnDirectMessage{
+		conn: conn,
+		msg:  msg,
+	}:
+	case <-h.stop:
+	}
+}
+
+// Stop stops the hub.
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
 }
 
+// Start starts the hub.
 func (h *Hub) Start() {
 	var doStart func()
 	var doRecoverableStart func()
@@ -337,85 +371,94 @@ func (h *Hub) Start() {
 	doStart = func() {
 		mlog.Debug("Hub is starting", mlog.Int("index", h.connectionIndex))
 
-		connections := newHubConnectionIndex()
+		connIndex := newHubConnectionIndex()
 
 		for {
 			select {
-			case webCon := <-h.register:
-				connections.Add(webCon)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
-				if webCon.IsAuthenticated() {
-					webCon.Send <- webCon.createHelloMessage()
+			case webConn := <-h.register:
+				connIndex.Add(webConn)
+				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
+				if webConn.IsAuthenticated() {
+					webConn.send <- webConn.createHelloMessage()
 				}
-			case webCon := <-h.unregister:
-				connections.Remove(webCon)
-				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
+			case webConn := <-h.unregister:
+				connIndex.Remove(webConn)
+				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
 
-				if len(webCon.UserId) == 0 {
+				if len(webConn.UserId) == 0 {
 					continue
 				}
 
-				conns := connections.ForUser(webCon.UserId)
+				conns := connIndex.ForUser(webConn.UserId)
 				if len(conns) == 0 {
 					h.app.Srv().Go(func() {
-						h.app.SetStatusOffline(webCon.UserId, false)
+						h.app.SetStatusOffline(webConn.UserId, false)
 					})
-				} else {
-					var latestActivity int64 = 0
-					for _, conn := range conns {
-						if conn.LastUserActivityAt > latestActivity {
-							latestActivity = conn.LastUserActivityAt
-						}
+					continue
+				}
+				var latestActivity int64 = 0
+				for _, conn := range conns {
+					if conn.lastUserActivityAt > latestActivity {
+						latestActivity = conn.lastUserActivityAt
 					}
-					if h.app.IsUserAway(latestActivity) {
-						h.app.Srv().Go(func() {
-							h.app.SetStatusLastActivityAt(webCon.UserId, latestActivity)
-						})
-					}
+				}
+
+				if h.app.IsUserAway(latestActivity) {
+					h.app.Srv().Go(func() {
+						h.app.SetStatusLastActivityAt(webConn.UserId, latestActivity)
+					})
 				}
 			case userId := <-h.invalidateUser:
-				for _, webCon := range connections.ForUser(userId) {
-					webCon.InvalidateCache()
+				for _, webConn := range connIndex.ForUser(userId) {
+					webConn.InvalidateCache()
 				}
 			case activity := <-h.activity:
-				for _, webCon := range connections.ForUser(activity.UserId) {
-					if webCon.GetSessionToken() == activity.SessionToken {
-						webCon.LastUserActivityAt = activity.ActivityAt
+				for _, webConn := range connIndex.ForUser(activity.userId) {
+					if webConn.GetSessionToken() == activity.sessionToken {
+						webConn.lastUserActivityAt = activity.activityAt
 					}
+				}
+			case directMsg := <-h.directMsg:
+				if !connIndex.Has(directMsg.conn) {
+					continue
+				}
+				select {
+				case directMsg.conn.send <- directMsg.msg:
+				default:
+					mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", directMsg.conn.UserId))
+					close(directMsg.conn.send)
+					connIndex.Remove(directMsg.conn)
 				}
 			case msg := <-h.broadcast:
 				if metrics := h.app.Metrics(); metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
-				candidates := connections.All()
+				candidates := connIndex.All()
 				if msg.GetBroadcast().UserId != "" {
-					candidates = connections.ForUser(msg.GetBroadcast().UserId)
+					candidates = connIndex.ForUser(msg.GetBroadcast().UserId)
 				}
 				msg = msg.PrecomputeJSON()
-				for _, webCon := range candidates {
-					if webCon.ShouldSendEvent(msg) {
+				for _, webConn := range candidates {
+					if !connIndex.Has(webConn) {
+						continue
+					}
+					if webConn.shouldSendEvent(msg) {
 						select {
-						case webCon.Send <- msg:
+						case webConn.send <- msg:
 						default:
-							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webCon.UserId))
-							close(webCon.Send)
-							connections.Remove(webCon)
+							mlog.Error("webhub.broadcast: cannot send, closing websocket for user", mlog.String("user_id", webConn.UserId))
+							close(webConn.send)
+							connIndex.Remove(webConn)
 						}
 					}
 				}
 			case <-h.stop:
-				userIds := make(map[string]bool)
-
-				for _, webCon := range connections.All() {
-					userIds[webCon.UserId] = true
-					webCon.Close()
+				for _, webConn := range connIndex.All() {
+					webConn.Close()
+					h.app.SetStatusOffline(webConn.UserId, false)
 				}
 
-				for userId := range userIds {
-					h.app.SetStatusOffline(userId, false)
-				}
-
-				h.ExplicitStop = true
+				h.explicitStop = true
 				close(h.didStop)
 
 				return
@@ -429,7 +472,7 @@ func (h *Hub) Start() {
 	}
 
 	doRecover = func() {
-		if !h.ExplicitStop {
+		if !h.explicitStop {
 			if r := recover(); r != nil {
 				mlog.Error("Recovering from Hub panic.", mlog.Any("panic", r))
 			} else {
@@ -492,6 +535,11 @@ func (i *hubConnectionIndex) Remove(wc *WebConn) {
 	i.connectionIndexes[last].connectionsByUserId = indexes.connectionsByUserId
 
 	delete(i.connectionIndexes, wc)
+}
+
+func (i *hubConnectionIndex) Has(wc *WebConn) bool {
+	_, ok := i.connectionIndexes[wc]
+	return ok
 }
 
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
