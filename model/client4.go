@@ -5015,7 +5015,7 @@ func (c *Client4) GetKnownUsers() ([]string, *Response) {
 	json.NewDecoder(r.Body).Decode(&userIds)
 	return userIds, BuildResponse(r)
 }
-  
+
 func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
 	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
 	if err != nil {
