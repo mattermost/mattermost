@@ -229,9 +229,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ELASTICSEARCH},
 	},
 	{
-		Name: "Hashtags should have 2 or more characters",
-		Fn:   testHashtagShouldSupportAnyNumberOfChars,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Name: "Should support hashtags with 3 or more characters",
+		Fn:   testHashtagSearchShouldSupportThreeOrMoreCharacters,
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should not support slash as character separator",
@@ -1642,22 +1642,20 @@ func testSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper) {
 
 }
 
-func testHashtagShouldSupportAnyNumberOfChars(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one char hashtag #1", "#1", model.POST_DEFAULT, 0, false)
+func testHashtagSearchShouldSupportThreeOrMoreCharacters(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "one char hashtag #1", "#1", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
-	p2, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "two chars hashtag #12", "#12", model.POST_DEFAULT, 0, false)
+	_, err = th.createPost(th.User.Id, th.ChannelPrivate.Id, "two chars hashtag #12", "#12", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	p3, err := th.createPost(th.User.Id, th.ChannelPrivate.Id, "three chars hashtag #123", "#123", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	params := &model.SearchParams{Terms: "#1*", IsHashtag: true}
+	params := &model.SearchParams{Terms: "#123", IsHashtag: true}
 	results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
 	require.Nil(t, apperr)
 
-	require.Len(t, results.Posts, 3)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
-	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	require.Len(t, results.Posts, 1)
 	th.checkPostInSearchResults(t, p3.Id, results.Posts)
 }
 
