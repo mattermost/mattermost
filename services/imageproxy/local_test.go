@@ -164,6 +164,33 @@ func TestLocalBackend_GetImage(t *testing.T) {
 
 		wait <- true
 	})
+
+	t.Run("SVG attachment", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "max-age=2592000, private")
+			w.Header().Set("Content-Type", "image/png")
+			w.Header().Set("Content-Length", "10")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("1111111111"))
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		proxy.GetImage(recorder, request, mock.URL+"/test.svg")
+		resp := recorder.Result()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
+
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		assert.Equal(t, []byte("1111111111"), respBody)
+	})
 }
 
 func TestLocalBackend_GetImageDirect(t *testing.T) {
