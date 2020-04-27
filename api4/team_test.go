@@ -427,6 +427,75 @@ func TestPatchTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestRestoreTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	createTeam := func(t *testing.T, deleted bool, teamType string) *model.Team {
+		t.Helper()
+		team := &model.Team{
+			DisplayName:     "Some Team",
+			Description:     "Some description",
+			CompanyName:     "Some company name",
+			AllowOpenInvite: (teamType == model.TEAM_OPEN),
+			InviteId:        model.NewId(),
+			Name:            "aa-" + model.NewRandomTeamName() + "zz",
+			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+			Type:            teamType,
+		}
+		team, _ = Client.CreateTeam(team)
+		require.NotNil(t, team)
+		if deleted {
+			_, resp := th.SystemAdminClient.SoftDeleteTeam(team.Id)
+			CheckOKStatus(t, resp)
+		}
+		return team
+	}
+	teamPublic := createTeam(t, true, model.TEAM_OPEN)
+
+	t.Run("invalid team", func(t *testing.T) {
+		_, resp := Client.RestoreTeam(model.NewId())
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("restore archived public team", func(t *testing.T) {
+		team := createTeam(t, true, model.TEAM_OPEN)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_OPEN, team.Type)
+	})
+
+	t.Run("restore archived private team", func(t *testing.T) {
+		team := createTeam(t, true, model.TEAM_INVITE)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_INVITE, team.Type)
+	})
+
+	t.Run("restore active public team", func(t *testing.T) {
+		team := createTeam(t, false, model.TEAM_OPEN)
+		team, resp := Client.RestoreTeam(team.Id)
+		CheckOKStatus(t, resp)
+		require.Zero(t, team.DeleteAt)
+		require.Equal(t, model.TEAM_OPEN, team.Type)
+	})
+
+	t.Run("not logged in", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.RestoreTeam(teamPublic.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("no permission to manage team", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.RestoreTeam(teamPublic.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestPatchTeamSanitization(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -456,6 +525,76 @@ func TestPatchTeamSanitization(t *testing.T) {
 
 		require.NotEmpty(t, rteam.Email, "should not have sanitized email for admin")
 		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+	})
+}
+
+func TestUpdateTeamPrivacy(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	createTeam := func(teamType string, allowOpenInvite bool) *model.Team {
+		team := &model.Team{
+			DisplayName:     teamType + " Team",
+			Description:     "Some description",
+			CompanyName:     "Some company name",
+			AllowOpenInvite: allowOpenInvite,
+			InviteId:        model.NewId(),
+			Name:            "aa-" + model.NewRandomTeamName() + "zz",
+			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+			Type:            teamType,
+		}
+		team, _ = Client.CreateTeam(team)
+		return team
+	}
+
+	teamPublic := createTeam(model.TEAM_OPEN, true)
+	teamPrivate := createTeam(model.TEAM_INVITE, false)
+
+	teamPublic2 := createTeam(model.TEAM_OPEN, true)
+	teamPrivate2 := createTeam(model.TEAM_INVITE, false)
+
+	tests := []struct {
+		name           string
+		team           *model.Team
+		privacy        string
+		errChecker     func(t *testing.T, resp *model.Response)
+		wantType       string
+		wantOpenInvite bool
+	}{
+		{name: "bad privacy", team: teamPublic, privacy: "blap", errChecker: CheckBadRequestStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "bad team", team: &model.Team{Id: model.NewId()}, privacy: model.TEAM_OPEN, errChecker: CheckForbiddenStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
+		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			team, resp := Client.UpdateTeamPrivacy(test.team.Id, test.privacy)
+			if test.errChecker != nil {
+				test.errChecker(t, resp)
+				return
+			} else {
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
+			}
+			require.Equal(t, test.wantType, team.Type)
+			require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
+		})
+	}
+
+	t.Run("not logged in", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.UpdateTeamPrivacy(teamPublic.Id, model.TEAM_INVITE)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("no permission to manage team", func(t *testing.T) {
+		th.LoginBasic2()
+		_, resp := Client.UpdateTeamPrivacy(teamPublic.Id, model.TEAM_INVITE)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

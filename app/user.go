@@ -625,6 +625,9 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 		return nil, err
 	}
 
+	// Make sure the old secret is not cached on any cluster nodes.
+	a.InvalidateCacheForUser(user.Id)
+
 	mfaSecret := &model.MfaSecret{Secret: secret, QRCode: b64.StdEncoding.EncodeToString(img)}
 	return mfaSecret, nil
 }
@@ -644,6 +647,9 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		return err
 	}
 
+	// Make sure old MFA status is not cached locally or in cluster nodes.
+	a.InvalidateCacheForUser(userId)
+
 	return nil
 }
 
@@ -652,6 +658,9 @@ func (a *App) DeactivateMfa(userId string) *model.AppError {
 	if err := mfaService.Deactivate(userId); err != nil {
 		return err
 	}
+
+	// Make sure old MFA status is not cached locally or in cluster nodes.
+	a.InvalidateCacheForUser(userId)
 
 	return nil
 }

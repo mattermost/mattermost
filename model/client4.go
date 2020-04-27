@@ -1797,6 +1797,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
+// RestoreTeam restores a previously deleted team.
+func (c *Client4) RestoreTeam(teamId string) (*Team, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/restore", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
 // RegenerateTeamInviteId requests a new invite ID to be generated.
 func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response) {
 	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/regenerate_invite_id", "")
@@ -1826,6 +1836,18 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// UpdateTeamPrivacy modifies the team type (model.TEAM_OPEN <--> model.TEAM_INVITE) and sets
+// the corresponding AllowOpenInvite appropriately.
+func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Response) {
+	requestBody := map[string]string{"privacy": privacy}
+	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
@@ -5012,4 +5034,13 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	}
 	defer closeBody(r)
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
 }
