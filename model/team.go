@@ -203,6 +203,11 @@ func (o *Team) PreSave() {
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Description = SanitizeUnicode(o.Description)
+	o.CompanyName = SanitizeUnicode(o.CompanyName)
+
 	if len(o.InviteId) == 0 {
 		o.InviteId = NewId()
 	}
@@ -210,6 +215,10 @@ func (o *Team) PreSave() {
 
 func (o *Team) PreUpdate() {
 	o.UpdateAt = GetMillis()
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+	o.Description = SanitizeUnicode(o.Description)
+	o.CompanyName = SanitizeUnicode(o.CompanyName)
 }
 
 func IsReservedTeamName(s string) bool {

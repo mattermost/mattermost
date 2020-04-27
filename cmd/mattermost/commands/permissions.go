@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -86,6 +87,9 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Changes will take effect gradually as the server caches expire.")
 	CommandPrettyPrintln("For the changes to take effect immediately, go to the Mattermost System Console > General > Configuration and click \"Purge All Caches\".")
 
+	auditRec := a.MakeAuditRecord("resetPermissions", audit.Success)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -103,6 +107,9 @@ func exportPermissionsCmdF(command *cobra.Command, args []string) error {
 	if err = a.ExportPermissions(os.Stdout); err != nil {
 		return errors.New(err.Error())
 	}
+
+	auditRec := a.MakeAuditRecord("exportPermissions", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -123,6 +130,10 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer file.Close()
+
+	auditRec := a.MakeAuditRecord("importPermissions", audit.Success)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return a.ImportPermissions(file)
 }
