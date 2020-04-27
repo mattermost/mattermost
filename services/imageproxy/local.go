@@ -7,9 +7,12 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -76,6 +79,19 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte{})
 		return
+	}
+
+	u, err := url.Parse(imageURL)
+	if err != nil {
+		mlog.Error("Failed to parse URL for proxied image", mlog.String("url", imageURL), mlog.Err(err))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte{})
+		return
+	}
+
+	extension := strings.ToLower(filepath.Ext(u.Path))
+	if mime.TypeByExtension(extension) == "image/svg+xml" {
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filepath.Base(u.Path)+"\"")
 	}
 
 	w.Header().Set("X-Frame-Options", "deny")
