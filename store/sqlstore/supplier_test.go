@@ -174,8 +174,9 @@ func TestRecycleDBConns(t *testing.T) {
 				wg.Add(1)
 				go func(table string) {
 					defer wg.Done()
-					res := supplier.DoesTableExist(table)
-					assert.True(t, res)
+					query := `SELECT count(*) FROM ` + table
+					_, err := supplier.GetMaster().SelectInt(query)
+					assert.Nil(t, err)
 				}(table)
 			}
 			wg.Wait()
