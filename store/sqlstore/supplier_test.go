@@ -5,7 +5,9 @@ package sqlstore_test
 
 import (
 	"regexp"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
@@ -147,6 +149,49 @@ func TestGetDbVersion(t *testing.T) {
 			version, err := supplier.GetDbVersion()
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
+		})
+	}
+}
+
+func TestRecycleDBConns(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping recycle DBConns test")
+	}
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+		model.DATABASE_DRIVER_SQLITE,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
+			settings := makeSqlSettings(driver)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+			var wg sync.WaitGroup
+			tables := []string{"Posts", "Channels", "Users"}
+			for _, table := range tables {
+				wg.Add(1)
+				go func(table string) {
+					defer wg.Done()
+					res := supplier.DoesTableExist(table)
+					assert.True(t, res)
+				}(table)
+			}
+			wg.Wait()
+
+			stats := supplier.GetMaster().Db.Stats()
+			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
+
+			supplier.RecycleDBConnections(2 * time.Second)
+			stats = supplier.GetMaster().Db.Stats()
+			switch driver {
+			case model.DATABASE_DRIVER_POSTGRES, model.DATABASE_DRIVER_MYSQL:
+				assert.Equal(t, 3, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
+			case model.DATABASE_DRIVER_SQLITE:
+				// Sqlite throttles connection pooling to just 1.
+				assert.Equal(t, 1, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
+			}
 		})
 	}
 }
