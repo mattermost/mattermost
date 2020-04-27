@@ -1249,4 +1249,3 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 	return false
 }
-

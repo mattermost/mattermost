@@ -804,7 +804,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			Message: "@nothing",
 			Groups:  map[string]*model.Group{},
 			Expected: &ExplicitMentions{
-				MentionedUserIds:               nil,
+				MentionedUserIds:       nil,
 				OtherPotentialMentions: []string{"nothing"},
 			},
 		},
@@ -812,7 +812,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			Message: "@nothing",
 			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
 			Expected: &ExplicitMentions{
-				MentionedUserIds:               nil,
+				MentionedUserIds:       nil,
 				GroupMentions:          nil,
 				OtherPotentialMentions: []string{"nothing"},
 			},
@@ -821,7 +821,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			Message: "engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
 			Expected: &ExplicitMentions{
-				MentionedUserIds:               nil,
+				MentionedUserIds:       nil,
 				GroupMentions:          nil,
 				OtherPotentialMentions: nil,
 			},
@@ -2486,4 +2486,3 @@ func TestAddMentionedUsers(t *testing.T) {
 		})
 	}
 }
-

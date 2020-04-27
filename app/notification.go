@@ -357,7 +357,6 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	return isGroupOrDirect || len(groupMembers) > 0, nil
 }
 
-
 func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map[string]*model.User, channelMemberNotifyPropsMap map[string]model.StringMap, post *model.Post, notification *PostNotification, team *model.Team) {
 	for _, id := range mentionedUsersList {
 		if profileMap[id] == nil {
@@ -377,7 +376,7 @@ func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map
 }
 
 // Notify the user that a system mentions wont be sent to the channe
-func (a* App) sendChannelWideMentionsDisabledPost(sender *model.User, post *model.Post, mentions *ExplicitMentions) {
+func (a *App) sendChannelWideMentionsDisabledPost(sender *model.User, post *model.Post, mentions *ExplicitMentions) {
 	T := utils.GetUserTranslations(sender.Locale)
 
 	if mentions.HereMentioned {
@@ -415,7 +414,7 @@ func (a* App) sendChannelWideMentionsDisabledPost(sender *model.User, post *mode
 }
 
 // Send Push Notifications based on mentioned or active user
-func (a* App) sendPushNotifications(mentionedUsersList []string, profileMap map[string]*model.User, post *model.Post, notification *PostNotification, mentions *ExplicitMentions, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) {
+func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[string]*model.User, post *model.Post, notification *PostNotification, mentions *ExplicitMentions, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) {
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
@@ -1035,4 +1034,3 @@ func (a *App) GetNotificationNameFormat(user *model.User) string {
 
 	return data.Value
 }
-
