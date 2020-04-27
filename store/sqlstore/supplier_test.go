@@ -184,14 +184,10 @@ func TestRecycleDBConns(t *testing.T) {
 			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
 
 			supplier.RecycleDBConnections(2 * time.Second)
+			// We cannot reliably control exactly how many open connections are there. So we
+			// just do a basic check and confirm that atleast one has been closed.
 			stats = supplier.GetMaster().Db.Stats()
-			switch driver {
-			case model.DATABASE_DRIVER_POSTGRES, model.DATABASE_DRIVER_MYSQL:
-				assert.Equal(t, 3, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
-			case model.DATABASE_DRIVER_SQLITE:
-				// Sqlite throttles connection pooling to just 1.
-				assert.Equal(t, 1, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
-			}
+			assert.Greater(t, int(stats.MaxLifetimeClosed), 0, "unexpected number of connections closed due to maxlifetime")
 		})
 	}
 }
