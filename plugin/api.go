@@ -156,7 +156,7 @@ type API interface {
 	//
 	// @tag User
 	// @tag Preference
-	// Minimum server version: 5.22
+	// Minimum server version: 5.24
 	GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError)
 
 	// UpdatePreferencesForUser updates a user's preferences.
