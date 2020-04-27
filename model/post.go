@@ -62,7 +62,7 @@ const (
 	POST_PROPS_OVERRIDE_ICON_URL   = "override_icon_url"
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
 
-	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "disable_channel_highlight"
+	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
 )
 
