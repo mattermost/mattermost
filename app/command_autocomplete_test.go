@@ -170,7 +170,7 @@ func TestParseNamedArguments(t *testing.T) {
 	assert.Equal(t, "", toBeParsed)
 	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
 
-	found, parsed, toBeParsed, suggestion = parseNamedArgument(argument, "", "--name bla")
+	found, parsed, toBeParsed, _ = parseNamedArgument(argument, "", "--name bla")
 	assert.False(t, found)
 	assert.Equal(t, "--name ", parsed)
 	assert.Equal(t, "bla", toBeParsed)
