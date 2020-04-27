@@ -106,8 +106,12 @@ func easyjson9de0fcbfEncodeGithubComOlivereElastic(out *jwriter.Writer, in bulkI
 	_ = first
 	if in.Index != "" {
 		const prefix string = ",\"_index\":"
-		first = false
-		out.RawString(prefix[1:])
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.String(string(in.Index))
 	}
 	if in.Id != "" {
@@ -242,7 +246,11 @@ func easyjson9de0fcbfDecodeGithubComOlivereElastic1(in *jlexer.Lexer, out *bulkI
 		in.Skip()
 	} else {
 		in.Delim('{')
-		*out = make(bulkIndexRequestCommand)
+		if !in.IsDelim('}') {
+			*out = make(bulkIndexRequestCommand)
+		} else {
+			*out = nil
+		}
 		for !in.IsDelim('}') {
 			key := string(in.String())
 			in.WantColon()
