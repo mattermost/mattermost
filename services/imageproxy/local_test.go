@@ -181,15 +181,16 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		proxy := makeTestLocalProxy()
 
 		recorder := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, "", nil)
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
 		proxy.GetImage(recorder, request, mock.URL+"/test.svg")
 		resp := recorder.Result()
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		require.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
 
-		respBody, _ := ioutil.ReadAll(resp.Body)
-		assert.Equal(t, []byte("1111111111"), respBody)
+		_, err = ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
 	})
 }
 
