@@ -256,10 +256,6 @@
     "translation": "Doğrudan ileti kanalı eklemek için createDirectChannel API hizmeti kullanılmalıdır."
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Doğrudan olmayan kanal adında '__' geçersiz karakteri var."
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Geçerli takıma en fazla {{.MaxChannelsPerTeam}} kanal eklenebilir."
   },
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Kanal arşivlenmiş ya da silinmiş."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Kanal adı geçersiz. Doğrudan olmayan ileti kanallarında, kanal adı içinde kullanıcı kodları kullanılamaz."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Kod geçersiz."
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

@@ -129,7 +129,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "Mail voor Mattermost lijkt goed geconfigureerd te zijn!"
+    "translation": "E-mail voor Mattermost lijkt correct geconfigureerd te zijn!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -254,10 +254,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Je moet de createDirectChannel API service gebruiken om een direct kanaal aan te maken."
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Ongeldig karakter '__' in naam van niet-direct kanaal."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Het kanaal is gearchiveerd of verwijderd."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam bij niet directe -berichtenkanalen. "
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -1458,7 +1450,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "De licentie ondersteund {{.Users}} gebruikers, wanneer het systeem {{.Count}} unieke gebruikers heeft. Unieke gebruikers worden geteld op basis het e-mailadres. Het totaal aantal gebruikers is te zien bij 'Server Overzichten' -> 'Bekijk statistieken'."
+    "translation": "De licentie ondersteunt {{.Users}} gebruikers, wanneer het systeem {{.Count}} unieke gebruikers heeft. Unieke gebruikers worden geteld op basis het e-mailadres. Het totaal aantal gebruikers is te zien bij 'Server Overzichten' -> 'Bekijk statistieken'."
   },
   {
     "id": "api.license.client.old_format.app_error",
@@ -1888,11 +1880,11 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slackgebruiker werd samengevoegd met een bestaand Mattermost gebruiker met email {{.Email}} en gebruikersnaam {{.Username}} maar kon niet toegevoegd worden aan hun team.\r\n"
+    "translation": "Slackgebruiker werd samengevoegd met een bestaand Mattermost gebruiker met e-mail {{.Email}} en gebruikersnaam {{.Username}} maar kon niet toegevoegd worden aan hun team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Gebruiker  {{.Username}} heeft geen emailadres in de Slack export. We gebruikten {{.Email}} als tijdelijk emailadres. De gebruiker moet na het inloggen het emailadres aanpassen.\r\n"
+    "translation": "Gebruiker  {{.Username}} heeft geen e-mailadres in de Slack export. We gebruikten {{.Email}} als tijdelijk e-mailadres. De gebruiker moet na het inloggen het e-mailadres aanpassen.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2016,7 +2008,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Fout bij afkeuren emailuitnodigingen."
+    "translation": "Fout bij afkeuren e-mailuitnodigingen."
   },
   {
     "id": "api.team.invate_guests_to_channels.disabled.error",
@@ -2032,11 +2024,11 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Emailuitnodigingen zijn uitgeschakeld."
+    "translation": "E-mailuitnodigingen zijn uitgeschakeld."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "Volgende emailadressen maken geen deel uit van een aanvaard domein: {{.Addresses}}. Contacteer je systeembeheerder voor verdere details."
+    "translation": "Volgende e-mailadressen maken geen deel uit van een aanvaard domein: {{.Addresses}}. Contacteer je systeembeheerder voor verdere details."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2048,7 +2040,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeembeheerder voor meer details."
+    "translation": "E-mail moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeembeheerder voor meer details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2056,7 +2048,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeembeheerder voor meer details."
+    "translation": "E-mail moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeembeheerder voor meer details."
   },
   {
     "id": "api.team.leave.left",
@@ -2180,7 +2172,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Je emailadres voor {{.TeamDisplayName}} is gewijzigd naar {{.NewEmail}}."
+    "translation": "Je e-mailadres voor {{.TeamDisplayName}} is gewijzigd naar {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -2188,7 +2180,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Je email adres is gewijzigd"
+    "translation": "[{{ .SiteName }}] Je e-mail adres is gewijzigd"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -2204,7 +2196,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Verifieer je nieuw emailadres"
+    "translation": "[{{ .SiteName }}] Verifieer je nieuw e-mailadres"
   },
   {
     "id": "api.templates.email_footer",
@@ -2304,7 +2296,7 @@
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "Als je je wachtwoord niet wenste te wijzigen, negeer dan deze email en je wachtwoord blijft ongewijzigd. De wachtwoord reset link vervalt na 24 uren."
+    "translation": "Als je je wachtwoord niet wenste te wijzigen, negeer dan deze e-mail en je wachtwoord blijft ongewijzigd. De wachtwoord reset link vervalt na 24 uren."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2356,7 +2348,7 @@
   },
   {
     "id": "api.templates.verify_body.button",
-    "translation": "Verifieer Email"
+    "translation": "Verifieer E-mail"
   },
   {
     "id": "api.templates.verify_body.info",
@@ -2368,7 +2360,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{ .SiteName }}] Email Verificatie"
+    "translation": "[{{ .SiteName }}] E-mail Verificatie"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -2464,11 +2456,11 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Fout bij het aanmaken van een data token voor emailverificatie"
+    "translation": "Fout bij het aanmaken van een data token voor e-mailverificatie"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Er is al een account verbonden aan dit email adres met een andere inlog methode als {{.Service}}. Log in bij {{.Auth}}."
+    "translation": "Er is al een account verbonden aan dit e-mailadres met een andere inlog methode als {{.Service}}. Log in bij {{.Auth}}."
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -2496,7 +2488,7 @@
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "Het email adress dat is opgegeven behoord niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
+    "translation": "Het e-mail adress dat is opgegeven behoord niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
@@ -2548,7 +2540,7 @@
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Kan gebruiker niet ophalen via email."
+    "translation": "Kan gebruiker niet ophalen via e-mail."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2684,7 +2676,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Kon geen emailmelding versturen voor wijziging MFA."
+    "translation": "Kon geen e-mailmelding versturen voor wijziging MFA."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -2704,7 +2696,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Fout bij het verzenden van email \"Persoonlijke toegangstoken toegevoegd\" "
+    "translation": "Fout bij het verzenden van e-mail \"Persoonlijke toegangstoken toegevoegd\" "
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2756,11 +2748,11 @@
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "Het emailadres dat je opgaf, behoordt niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
+    "translation": "Het e-mailadres dat je opgaf, behoort niet tot een van de geldige domeinen. Neem contact op met de beheerder, of log in met een ander e-mail adres."
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Het emailadress dat je opgaf, behoort niet tot een geldige domein voor gastgebruikers. Neem contact op met de beheerder, of log in met een ander e-mail adres."
+    "translation": "Het e-mailadres dat je opgaf, behoort niet tot een geldige domein voor gastgebruikers. Neem contact op met de beheerder, of log in met een ander e-mailadres."
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2808,7 +2800,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Slecht verificatie emailtoken type."
+    "translation": "Slecht verificatie e-mailtoken type."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
@@ -2816,7 +2808,7 @@
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Fout bij het aanmaken van een data token voor emailverificatie"
+    "translation": "Fout bij het aanmaken van een data token voor e-mailverificatie"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3372,7 +3364,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Ongeldige instelling voor email batchinterval voor Gebruiker"
+    "translation": "Ongeldige instelling voor e-mail batchinterval voor Gebruiker"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
@@ -3400,7 +3392,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Ontbrekend vereist gebruikerskenmerk: email."
+    "translation": "Ontbrekend vereist gebruikerskenmerk: e-mail."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -3432,7 +3424,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Ongeldige waarde voor emailmelding voor gebruiker."
+    "translation": "Ongeldige waarde voor e-mailmelding voor gebruiker."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
@@ -4487,6 +4479,10 @@
     "translation": "Ongeldig Id."
   },
   {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "model.channel.is_valid.purpose.app_error",
     "translation": "Ongeldig doel."
   },
@@ -4720,11 +4716,11 @@
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
-    "translation": "Ongeldige email batch buffergrootte voor e-mailinstellingen. Moet nul of een positief getal zijn."
+    "translation": "Ongeldige e-mail batch buffergrootte voor e-mailinstellingen. Moet nul of een positief getal zijn."
   },
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
-    "translation": "Ongeldige email batch interval voor e-mailinstellingen. Moet 30 seconden of meer zijn."
+    "translation": "Ongeldige e-mail batch interval voor e-mailinstellingen. Moet 30 seconden of meer zijn."
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
@@ -4896,7 +4892,7 @@
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Ongeldig Email attribuut. Dit moet ingesteld worden."
+    "translation": "Ongeldig E-mail attribuut. Dit moet ingesteld worden."
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -4936,7 +4932,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Niet mogelijk om bulk email aan te zetten als de SiteURL niet is ingevuld."
+    "translation": "Niet mogelijk om bulk e-mail aan te zetten als de SiteURL niet is ingevuld."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5112,7 +5108,7 @@
   },
   {
     "id": "model.guest.is_valid.email.app_error",
-    "translation": "Ongeldige email."
+    "translation": "Ongeldige e-mail."
   },
   {
     "id": "model.guest.is_valid.emails.app_error",
@@ -5448,7 +5444,7 @@
   },
   {
     "id": "model.team.is_valid.email.app_error",
-    "translation": "Ongeldige email."
+    "translation": "Ongeldige e-mail."
   },
   {
     "id": "model.team.is_valid.id.app_error",
@@ -7360,7 +7356,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het emailadres {{.Email}}."
+    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het e-mailadres {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

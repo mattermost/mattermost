@@ -256,10 +256,6 @@
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "在非直接訊息的頻道不可使用字元'__'作為頻道名稱"
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "無法為當前團隊建立超過 {{.MaxChannelsPerTeam}} 個頻道"
   },
@@ -301,7 +297,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "現有授權不支援資料保留。"
+    "translation": "現有授權不支援頻道管理。"
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
@@ -333,7 +329,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "現有授權不支援資料保留。"
+    "translation": "現有授權不支援頻道管理。"
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "頻道已被封存或刪除"
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "無效的頻道名稱。非直接傳訊頻道不允許用使用者 ID 作為名稱。"
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -1972,7 +1964,7 @@
   },
   {
     "id": "api.team.get_all_teams.insufficient_permissions",
-    "translation": "權限不足以編輯頻道標題。"
+    "translation": "權限不足以列出所有團隊。"
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -2896,7 +2888,7 @@
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
-    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} 已被停用。下列由他們管理的機器人帳號已被停用。{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號已被停用，包括：{{.BotNames}}{{end}}可以在 **外部整合 > 機器人帳號** 對個別啟用以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號還在運作，包括：{{.BotNames}}{{end}}在此強烈建議前往 **外部整合 > 機器人帳號** 重新啟用各個機器人以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).如果想要在停用使用者帳號同時自動停用機器人帳號，請前往 **系統主控台 > 外部整合 > 機器人帳號** 啟用 \"停用使用者時停用機器人帳號\"。{{end}}"
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} 已被停用。下列由他們管理的機器人帳號已被停用。{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號已被停用，包括：{{.BotNames}}{{end}}可以在 **外部整合 > 機器人帳號** 對個別啟用以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。{{else}}{{if .printAllBots}}{{.UserName}} 已被停用。下列由他們管理的機器人帳號還在運作：{{.BotNames}}{{else}}{{.UserName}} 已被停用。他們管理的 {{.NumBots}} 個機器人帳號還在運作，包括：{{.BotNames}}{{end}}在此強烈建議前往 **外部整合 > 機器人帳號** 重新啟用各個機器人以獲得所有權，並為其建立新的 Token。詳情請參閱 [文件](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled)。如果想要在停用使用者帳號同時自動停用機器人帳號，請前往 **系統主控台 > 外部整合 > 機器人帳號** 啟用 \"停用使用者時停用機器人帳號\"。{{end}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "無效的 ID"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -6276,7 +6272,7 @@
   },
   {
     "id": "store.sql_file_info.get_with_options.app_error",
-    "translation": "無法根據路徑取得檔案訊息"
+    "translation": "無法根據設定取得檔案訊息"
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
@@ -6980,7 +6976,7 @@
   },
   {
     "id": "store.sql_team.get_by_names.app_error",
-    "translation": "無法取得團隊成員"
+    "translation": "無法根據名稱取得團隊"
   },
   {
     "id": "store.sql_team.get_by_names.missing.app_error",
