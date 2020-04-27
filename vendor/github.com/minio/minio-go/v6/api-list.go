@@ -317,14 +317,14 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 	}
 
 	for i, obj := range listBucketResult.Contents {
-		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
+		listBucketResult.Contents[i].Key, err = decodeS3Name(obj.Key, listBucketResult.EncodingType)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
 	for i, obj := range listBucketResult.CommonPrefixes {
-		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
+		listBucketResult.CommonPrefixes[i].Prefix, err = decodeS3Name(obj.Prefix, listBucketResult.EncodingType)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -500,21 +500,21 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 	}
 
 	for i, obj := range listBucketResult.Contents {
-		listBucketResult.Contents[i].Key, err = url.QueryUnescape(obj.Key)
+		listBucketResult.Contents[i].Key, err = decodeS3Name(obj.Key, listBucketResult.EncodingType)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
 	for i, obj := range listBucketResult.CommonPrefixes {
-		listBucketResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
+		listBucketResult.CommonPrefixes[i].Prefix, err = decodeS3Name(obj.Prefix, listBucketResult.EncodingType)
 		if err != nil {
 			return listBucketResult, err
 		}
 	}
 
 	if listBucketResult.NextMarker != "" {
-		listBucketResult.NextMarker, err = url.QueryUnescape(listBucketResult.NextMarker)
+		listBucketResult.NextMarker, err = decodeS3Name(listBucketResult.NextMarker, listBucketResult.EncodingType)
 		if err != nil {
 			return listBucketResult, err
 		}
@@ -697,25 +697,25 @@ func (c Client) listMultipartUploadsQuery(bucketName, keyMarker, uploadIDMarker,
 		return listMultipartUploadsResult, err
 	}
 
-	listMultipartUploadsResult.NextKeyMarker, err = url.QueryUnescape(listMultipartUploadsResult.NextKeyMarker)
+	listMultipartUploadsResult.NextKeyMarker, err = decodeS3Name(listMultipartUploadsResult.NextKeyMarker, listMultipartUploadsResult.EncodingType)
 	if err != nil {
 		return listMultipartUploadsResult, err
 	}
 
-	listMultipartUploadsResult.NextUploadIDMarker, err = url.QueryUnescape(listMultipartUploadsResult.NextUploadIDMarker)
+	listMultipartUploadsResult.NextUploadIDMarker, err = decodeS3Name(listMultipartUploadsResult.NextUploadIDMarker, listMultipartUploadsResult.EncodingType)
 	if err != nil {
 		return listMultipartUploadsResult, err
 	}
 
 	for i, obj := range listMultipartUploadsResult.Uploads {
-		listMultipartUploadsResult.Uploads[i].Key, err = url.QueryUnescape(obj.Key)
+		listMultipartUploadsResult.Uploads[i].Key, err = decodeS3Name(obj.Key, listMultipartUploadsResult.EncodingType)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
 	}
 
 	for i, obj := range listMultipartUploadsResult.CommonPrefixes {
-		listMultipartUploadsResult.CommonPrefixes[i].Prefix, err = url.QueryUnescape(obj.Prefix)
+		listMultipartUploadsResult.CommonPrefixes[i].Prefix, err = decodeS3Name(obj.Prefix, listMultipartUploadsResult.EncodingType)
 		if err != nil {
 			return listMultipartUploadsResult, err
 		}
@@ -836,4 +836,14 @@ func (c Client) listObjectPartsQuery(bucketName, objectName, uploadID string, pa
 		return listObjectPartsResult, err
 	}
 	return listObjectPartsResult, nil
+}
+
+// Decode an S3 object name according to the encoding type
+func decodeS3Name(name, encodingType string) (string, error) {
+	switch encodingType {
+	case "url":
+		return url.QueryUnescape(name)
+	default:
+		return name, nil
+	}
 }

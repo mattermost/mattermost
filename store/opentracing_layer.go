@@ -1111,6 +1111,24 @@ func (s *OpenTracingLayerChannelStore) GetMemberCountFromCache(channelId string)
 	return resultVar0
 }
 
+func (s *OpenTracingLayerChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberCountsByGroup")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberForPost")
@@ -7396,6 +7414,24 @@ func (s *OpenTracingLayerUserStore) GetAllAfter(limit int, afterId string) ([]*m
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.UserStore.GetAllAfter(limit, afterId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetAllNotInAuthService")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.UserStore.GetAllNotInAuthService(authServices)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)

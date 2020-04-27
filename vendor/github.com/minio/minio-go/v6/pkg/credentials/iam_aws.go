@@ -82,7 +82,7 @@ func (m *IAM) Retrieve() (Value, error) {
 	case len(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")) > 0:
 		if len(endpoint) == 0 {
 			if len(os.Getenv("AWS_REGION")) > 0 {
-				endpoint = "sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
+				endpoint = "https://sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
 			} else {
 				endpoint = defaultSTSRoleEndpoint
 			}
@@ -168,6 +168,10 @@ type ec2RoleCredRespBody struct {
 // be sent to fetch the rolling access credentials.
 // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 func getIAMRoleURL(endpoint string) (*url.URL, error) {
+	if endpoint == "" {
+		endpoint = defaultIAMRoleEndpoint
+	}
+
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
