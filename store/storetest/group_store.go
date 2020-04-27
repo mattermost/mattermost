@@ -178,7 +178,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
 
-	//must user valid characters
+	//must use valid characters
 	g7 := &model.Group{
 		Name:        "%^#@$$",
 		DisplayName: model.NewId(),
