@@ -5,8 +5,10 @@ package imageproxy
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -73,13 +75,19 @@ type contentTypeRecorder struct {
 }
 
 func (rec *contentTypeRecorder) WriteHeader(code int) {
-	hdr := rec.ResponseWriter.Header()
-	if hdr.Get("Content-Type") == "image/svg+xml" {
-		hdr.Set("Content-Disposition", "attachment;filename=\""+rec.filename+"\"")
-	}
-	rec.ResponseWriter.WriteHeader(code)
-}
+	defer rec.ResponseWriter.WriteHeader(code)
 
+	hdr := rec.ResponseWriter.Header()
+	contentType := hdr.Get("Content-Type")
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		mlog.Error("error in decoding media type", mlog.Err(err))
+		return
+	}
+	if mediaType == "image/svg+xml" {
+		hdr.Set("Content-Disposition", fmt.Sprintf("attachment;filename=%q", rec.filename))
+	}
+}
 
 func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
 	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
