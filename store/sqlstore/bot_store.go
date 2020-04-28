@@ -6,7 +6,8 @@ package sqlstore
 import (
 	"database/sql"
 	"net/http"
-	"strings"
+
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -79,33 +80,23 @@ func traceBot(bot *model.Bot, extra map[string]interface{}) map[string]interface
 
 // Get fetches the given bot in the database.
 func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	var excludeDeletedSql = "AND b.DeleteAt = 0"
-	if includeDeleted {
-		excludeDeletedSql = ""
+	query := us.getQueryBuilder().
+		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
+		From("Bots b").
+		Join("Users u ON (u.Id = b.UserId)").
+		Where(sq.Eq{"b.UserId": botUserId})
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"b.DeleteAt": 0})
 	}
 
-	query := `
-		SELECT
-			b.UserId,
-			u.Username,
-			u.FirstName AS DisplayName,
-			b.Description,
-			b.OwnerId,
-			COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
-			b.CreateAt,
-			b.UpdateAt,
-			b.DeleteAt
-		FROM
-			Bots b
-		JOIN
-			Users u ON (u.Id = b.UserId)
-		WHERE
-			b.UserId = :user_id
-			` + excludeDeletedSql + `
-	`
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlBotStore.Get", "store.sql_bot.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var bot *model.Bot
-	if err := us.GetReplica().SelectOne(&bot, query, map[string]interface{}{"user_id": botUserId}); err == sql.ErrNoRows {
+	if err := us.GetReplica().SelectOne(&bot, queryString, args...); err == sql.ErrNoRows {
 		return nil, model.MakeBotNotFoundError(botUserId)
 	} else if err != nil {
 		return nil, model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusInternalServerError)
@@ -116,59 +107,35 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 
 // GetAll fetches from all bots in the database.
 func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
-	params := map[string]interface{}{
-		"offset": options.Page * options.PerPage,
-		"limit":  options.PerPage,
-	}
-
-	var conditions []string
-	var conditionsSql string
-	var additionalJoin string
+	query := us.getQueryBuilder().
+		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
+		From("Bots b").
+		Join("Users u ON (u.Id = b.UserId)").
+		OrderBy("b.CreateAt ASC", "u.Username ASC").
+		Limit(uint64(options.PerPage)).
+		Offset(uint64(options.Page * options.PerPage))
 
 	if !options.IncludeDeleted {
-		conditions = append(conditions, "b.DeleteAt = 0")
+		query = query.Where(sq.Eq{"b.DeleteAt": 0})
 	}
+
 	if options.OwnerId != "" {
-		conditions = append(conditions, "b.OwnerId = :creator_id")
-		params["creator_id"] = options.OwnerId
+		query = query.Where(sq.Eq{"b.OwnerId": options.OwnerId})
 	}
+
 	if options.OnlyOrphaned {
-		additionalJoin = "JOIN Users o ON (o.Id = b.OwnerId)"
-		conditions = append(conditions, "o.DeleteAt != 0")
+		query = query.
+			Join("Users o ON (o.Id = b.OwnerId)").
+			Where(sq.NotEq{"o.DeleteAt": 0})
 	}
 
-	if len(conditions) > 0 {
-		conditionsSql = "WHERE " + strings.Join(conditions, " AND ")
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlBotStore.GetAll", "store.sql_bot.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	sql := `
-			SELECT
-			    b.UserId,
-			    u.Username,
-			    u.FirstName AS DisplayName,
-			    b.Description,
-			    b.OwnerId,
-			    COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
-			    b.CreateAt,
-			    b.UpdateAt,
-			    b.DeleteAt
-			FROM
-			    Bots b
-			JOIN
-			    Users u ON (u.Id = b.UserId)
-			` + additionalJoin + `
-			` + conditionsSql + `
-			ORDER BY
-			    b.CreateAt ASC,
-			    u.Username ASC
-			LIMIT
-			    :limit
-			OFFSET
-			    :offset
-		`
 
 	var bots []*model.Bot
-	if _, err := us.GetReplica().Select(&bots, sql, params); err != nil {
+	if _, err := us.GetReplica().Select(&bots, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlBotStore.GetAll", "store.sql_bot.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
