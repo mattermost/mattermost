@@ -156,6 +156,10 @@ type AppIface interface {
 	GetEnvironmentConfig() map[string]interface{}
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
+	// GetKnownUsers returns the list of user ids of users with any direct
+	// relationship with a user. That means any user sharing any channel, including
+	// direct and group channels.
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
