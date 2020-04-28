@@ -3328,6 +3328,8 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
+	o.SqlSettings.DataSourceReplicas = []string{FAKE_SETTING}
+	o.SqlSettings.DataSourceSearchReplicas = []string{FAKE_SETTING}
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	*o.ElasticsearchSettings.Password = FAKE_SETTING

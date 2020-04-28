@@ -6,7 +6,6 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -34,6 +35,62 @@ func TestStartServerSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
+}
+
+func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
+	t.Run("Read Replicas with no License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			server.configStore = configStore
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
+			return nil
+		})
+		require.NoError(t, err)
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 0)
+	})
+
+	t.Run("Read Replicas With License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			server.configStore = configStore
+			server.licenseValue.Store(model.NewTestLicense())
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
+			return nil
+		})
+		require.NoError(t, err)
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
+	})
+
+	t.Run("Search Replicas with no License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			server.configStore = configStore
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
+			return nil
+		})
+		require.NoError(t, err)
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 0)
+	})
+
+	t.Run("Search Read Replicas With License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			server.configStore = configStore
+			server.licenseValue.Store(model.NewTestLicense())
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
+			return nil
+		})
+		require.NoError(t, err)
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
+	})
 }
 
 func TestStartServerRateLimiterCriticalError(t *testing.T) {
