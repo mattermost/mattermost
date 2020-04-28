@@ -192,7 +192,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	// Save the timestamp of the first server run. Used for diagnostics reporting.
-	if s.Config().ServiceSettings.ServerFirstRun == nil {
+	if s.Config().ServiceSettings.ServerFirstRun == nil || *s.Config().ServiceSettings.ServerFirstRun == 0 {
 		s.UpdateConfig(func(cfg *model.Config) {
 			now := time.Now().Unix()
 			cfg.ServiceSettings.ServerFirstRun = &now
