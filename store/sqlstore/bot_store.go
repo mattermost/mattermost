@@ -43,6 +43,9 @@ func botFromModel(b *model.Bot) *bot {
 type SqlBotStore struct {
 	SqlStore
 	metrics einterfaces.MetricsInterface
+
+	// botsQuery is a starting point for all queries that return one or more Bots.
+	botsQuery sq.SelectBuilder
 }
 
 // newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
@@ -51,6 +54,11 @@ func newSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) sto
 		SqlStore: sqlStore,
 		metrics:  metrics,
 	}
+
+	us.botsQuery = us.getQueryBuilder().
+		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
+		From("Bots b").
+		Join("Users u ON (u.Id = b.UserId)")
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
@@ -80,11 +88,7 @@ func traceBot(bot *model.Bot, extra map[string]interface{}) map[string]interface
 
 // Get fetches the given bot in the database.
 func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	query := us.getQueryBuilder().
-		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
-		From("Bots b").
-		Join("Users u ON (u.Id = b.UserId)").
-		Where(sq.Eq{"b.UserId": botUserId})
+	query := us.botsQuery.Where(sq.Eq{"b.UserId": botUserId})
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"b.DeleteAt": 0})
@@ -107,10 +111,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 
 // GetAll fetches from all bots in the database.
 func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
-	query := us.getQueryBuilder().
-		Select("b.UserId", "u.Username", "u.FirstName AS DisplayName", "b.Description", "b.OwnerId", "COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate", "b.CreateAt", "b.UpdateAt", "b.DeleteAt").
-		From("Bots b").
-		Join("Users u ON (u.Id = b.UserId)").
+	query := us.botsQuery.
 		OrderBy("b.CreateAt ASC", "u.Username ASC").
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(options.Page * options.PerPage))
