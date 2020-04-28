@@ -3650,10 +3650,27 @@ func TestMoveChannel(t *testing.T) {
 		require.Equal(t, team2.Id, ch.TeamId)
 	})
 
+	t.Run("Should fail when trying to move a private channel", func(t *testing.T) {
+		channel := th.CreatePrivateChannel()
+		_, resp := Client.MoveChannel(channel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
 	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
 		user := th.CreateUser()
 		dmChannel := th.CreateDmChannel(user)
 		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
+		user := th.CreateUser()
+
+		gmChannel, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		require.Nil(t, err)
+		_, resp := Client.MoveChannel(gmChannel.Id, team1.Id, false)
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
 	})
