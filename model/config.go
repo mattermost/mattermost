@@ -300,7 +300,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
-	ServerFirstRun                                    *int64 `json:"ServerFirstRun"`
+	ServerFirstRun                                    *int64 `restricted:"true"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
 	EnablePostSearch                                  *bool  `restricted:"true"`
 	MinimumHashtagLength                              *int   `restricted:"true"`
