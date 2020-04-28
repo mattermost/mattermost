@@ -5739,6 +5739,10 @@
     "translation": "We encountered an error saving the audit."
   },
   {
+    "id": "store.sql_bot.app_error",
+    "translation": "Failed to build query."
+  },
+  {
     "id": "store.sql_bot.delete.app_error",
     "translation": "Unable to delete the bot."
   },
