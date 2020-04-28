@@ -19,7 +19,6 @@ package credentials
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -29,6 +28,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // DefaultExpiryWindow - Default expiry window.
@@ -227,7 +228,7 @@ func getEcsTaskCredentials(client *http.Client, endpoint string) (ec2RoleCredRes
 	}
 
 	respCreds := ec2RoleCredRespBody{}
-	if err := json.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
+	if err := jsoniter.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
 		return ec2RoleCredRespBody{}, err
 	}
 
@@ -283,7 +284,7 @@ func getCredentials(client *http.Client, endpoint string) (ec2RoleCredRespBody, 
 	}
 
 	respCreds := ec2RoleCredRespBody{}
-	if err := json.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
+	if err := jsoniter.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
 		return ec2RoleCredRespBody{}, err
 	}
 

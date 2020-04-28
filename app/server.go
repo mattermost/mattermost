@@ -885,7 +885,7 @@ func (s *Server) initRudder(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, config)
+		client, err := rudder.NewWithConfig(RUDDER_KEY,RUDDER_DATAPLANE_URL, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return
