@@ -2208,8 +2208,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
-// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
-// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
+// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
+// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	if removeDeactivatedMembers {
 		if err := a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
