@@ -75,18 +75,16 @@ type contentTypeRecorder struct {
 }
 
 func (rec *contentTypeRecorder) WriteHeader(code int) {
-	defer rec.ResponseWriter.WriteHeader(code)
-
 	hdr := rec.ResponseWriter.Header()
 	contentType := hdr.Get("Content-Type")
 	mediaType, _, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		mlog.Error("error in decoding media type", mlog.Err(err))
-		return
-	}
-	if mediaType == "image/svg+xml" {
+	// The error is caused by a malformed input and there's not much use logging it.
+	// Therefore, even in the error case we set it to attachment mode to be safe.
+	if err != nil || mediaType == "image/svg+xml" {
 		hdr.Set("Content-Disposition", fmt.Sprintf("attachment;filename=%q", rec.filename))
 	}
+
+	rec.ResponseWriter.WriteHeader(code)
 }
 
 func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
