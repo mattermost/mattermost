@@ -168,7 +168,7 @@ func TestLocalBackend_GetImage(t *testing.T) {
 	t.Run("SVG attachment", func(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "max-age=2592000, private")
-			w.Header().Set("Content-Type", "image/png")
+			w.Header().Set("Content-Type", "image/svg+xml")
 			w.Header().Set("Content-Length", "10")
 
 			w.WriteHeader(http.StatusOK)

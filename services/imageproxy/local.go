@@ -7,12 +7,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -69,6 +67,20 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	}
 }
 
+type contentTypeRecorder struct {
+	http.ResponseWriter
+	filename string
+}
+
+func (rec *contentTypeRecorder) WriteHeader(code int) {
+	hdr := rec.ResponseWriter.Header()
+	if hdr.Get("Content-Type") == "image/svg+xml" {
+		hdr.Set("Content-Disposition", "attachment;filename=\""+rec.filename+"\"")
+	}
+	rec.ResponseWriter.WriteHeader(code)
+}
+
+
 func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
 	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
 	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
@@ -89,17 +101,13 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 		return
 	}
 
-	extension := strings.ToLower(filepath.Ext(u.Path))
-	if mime.TypeByExtension(extension) == "image/svg+xml" {
-		w.Header().Set("Content-Disposition", "attachment;filename=\""+filepath.Base(u.Path)+"\"")
-	}
-
 	w.Header().Set("X-Frame-Options", "deny")
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src data:; style-src 'unsafe-inline'")
 
-	backend.impl.ServeHTTP(w, req)
+	rec := contentTypeRecorder{w, filepath.Base(u.Path)}
+	backend.impl.ServeHTTP(&rec, req)
 }
 
 func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
