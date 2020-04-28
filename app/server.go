@@ -754,7 +754,7 @@ func runDiagnosticsJob(s *Server) {
 	doDiagnostics(s)
 
 	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnostics(s)
+		doDiagnosticsIfNeeded(s)
 	}, time.Minute*10)
 }
 
