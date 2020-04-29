@@ -2075,6 +2075,7 @@ type SamlSettings struct {
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
 	IdpMetadataUrl              *string
+	ServiceProviderIdentifier   *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -2150,6 +2151,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.ServiceProviderIdentifier == nil {
+		s.ServiceProviderIdentifier = NewString("")
 	}
 
 	if s.IdpMetadataUrl == nil {
