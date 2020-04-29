@@ -745,8 +745,12 @@ func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
 func runDiagnosticsJob(s *Server) {
 	// Send on boot
 	doDiagnostics(s)
-	// we ignore the error, since it's been ensured on server start
-	firstRun, _ := s.FakeApp().getFirstServerRunTimestamp()
+	firstRun, err := s.FakeApp().getFirstServerRunTimestamp()
+	if err != nil {
+		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+		s.FakeApp().ensureFirstServerRunTimestamp()
+		firstRun = utils.MillisFromTime(time.Now())
+	}
 	model.CreateRecurringTask("Diagnostics", func() {
 		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
 	}, time.Minute*10)
