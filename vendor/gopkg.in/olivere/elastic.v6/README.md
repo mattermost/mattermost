@@ -5,10 +5,9 @@
 Elastic is an [Elasticsearch](http://www.elasticsearch.org/) client for the
 [Go](http://www.golang.org/) programming language.
 
-[![Build Status](https://travis-ci.org/olivere/elastic.svg?branch=release-branch.v6)](https://travis-ci.org/olivere/elastic)
-[![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](http://godoc.org/github.com/olivere/elastic)
+[![Build Status](https://github.com/olivere/elastic/workflows/Test/badge.svg)]
+[![Godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://pkg.go.dev/github.com/olivere/elastic?tab=doc)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/olivere/elastic/master/LICENSE)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Folivere%2Felastic.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Folivere%2Felastic?ref=badge_shield)
 
 See the [wiki](https://github.com/olivere/elastic/wiki) for additional information about Elastic.
 
@@ -102,11 +101,9 @@ to rewrite your application big time. More often than not it's renaming APIs
 and adding/removing features so that Elastic is in sync with Elasticsearch.
 
 Elastic has been used in production starting with Elasticsearch 0.90 up to recent 6.x
-versions. Furthermore, we use [Travis CI](https://travis-ci.org/)
-to test Elastic with the most recent versions of Elasticsearch and Go.
-See the [.travis.yml](https://github.com/olivere/elastic/blob/master/.travis.yml)
-file for the exact matrix and [Travis](https://travis-ci.org/olivere/elastic)
-for the results.
+versions.
+We recently switched to [GitHub Actions for testing](https://github.com/olivere/elastic/actions).
+Before that, we used [Travis CI](https://travis-ci.org/olivere/elastic) successfully for years).
 
 Elasticsearch has quite a few features. Most of them are implemented
 by Elastic. I add features and APIs as required. It's straightforward
@@ -253,7 +250,7 @@ Here are a few tips on how to get used to Elastic:
 - [x] Indices Segments
 - [ ] Indices Recovery
 - [ ] Indices Shard Stores
-- [ ] Clear Cache
+- [x] Clear Cache
 - [x] Flush
   - [x] Synced Flush
 - [x] Refresh
@@ -421,6 +418,3 @@ by Joshua Tacoma,
 
 MIT-LICENSE. See [LICENSE](http://olivere.mit-license.org/)
 or the LICENSE file provided in the repository for details.
-
-
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Folivere%2Felastic.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Folivere%2Felastic?ref=badge_large)
