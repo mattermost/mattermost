@@ -191,13 +191,6 @@ func NewServer(options ...Option) (*Server, error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
-	// Save the timestamp of the first server run. Used for diagnostics reporting.
-	if s.Config().ServiceSettings.ServerFirstRun == nil || *s.Config().ServiceSettings.ServerFirstRun == 0 {
-		s.UpdateConfig(func(cfg *model.Config) {
-			now := time.Now().Unix()
-			cfg.ServiceSettings.ServerFirstRun = &now
-		})
-	}
 	if *s.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err := tracing.New()
 		if err != nil {
@@ -735,8 +728,8 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
-func doDiagnosticsIfNeeded(s *Server) {
-	hoursSinceFirstServerRun := time.Since(time.Unix(*s.Config().ServiceSettings.ServerFirstRun, 0)).Hours()
+func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
+	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
 	// Send once every 10 minutes for the first hour
 	// Send once every hour thereafter for the first 12 hours
 	// Send at the 24 hour mark and every 24 hours after
@@ -752,9 +745,10 @@ func doDiagnosticsIfNeeded(s *Server) {
 func runDiagnosticsJob(s *Server) {
 	// Send on boot
 	doDiagnostics(s)
-
+	// we ignore the error, since it's been ensured on server start
+	firstRun, _ := s.FakeApp().getFirstServerRunTimestamp()
 	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnosticsIfNeeded(s)
+		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
 	}, time.Minute*10)
 }
 
