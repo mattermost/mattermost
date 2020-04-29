@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -630,6 +631,43 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.EmailInterval = ptrStr("")
 	checkError(t, validateUserImportData(&data))
+}
+
+func TestImportValidateUserAuth(t *testing.T) {
+	tests := []struct {
+		authService *string
+		authData    *string
+		isValid     bool
+	}{
+		{nil, nil, true},
+		{ptrStr(""), ptrStr(""), true},
+		{ptrStr("foo"), ptrStr("foo"), true},
+		{nil, ptrStr(""), true},
+		{ptrStr(""), nil, true},
+
+		{ptrStr("foo"), nil, false},
+		{ptrStr("foo"), ptrStr(""), false},
+		{nil, ptrStr("foo"), false},
+		{ptrStr(""), ptrStr("foo"), false},
+	}
+
+	for _, test := range tests {
+		data := UserImportData{
+			Username:    ptrStr("bob"),
+			Email:       ptrStr("bob@example.com"),
+			AuthService: test.authService,
+			AuthData:    test.authData,
+		}
+		err := validateUserImportData(&data)
+
+		if test.isValid {
+			require.Nil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
+		} else {
+			require.NotNil(t, err, fmt.Sprintf("authService: %v, authData: %v", test.authService, test.authData))
+			require.Equal(t, "app.import.validate_user_import_data.auth_data_and_service_dependency.error", err.Id)
+		}
+	}
+
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {

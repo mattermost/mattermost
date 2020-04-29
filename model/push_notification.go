@@ -74,6 +74,11 @@ func (me *PushNotification) ToJson() string {
 	return string(b)
 }
 
+func (me *PushNotification) DeepCopy() *PushNotification {
+	copy := *me
+	return &copy
+}
+
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 
 	index := strings.Index(deviceId, ":")

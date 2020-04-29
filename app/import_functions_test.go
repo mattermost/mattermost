@@ -847,6 +847,7 @@ func TestImportImportUser(t *testing.T) {
 	require.NotNil(t, err, "Should have failed to import invalid user.")
 
 	data.AuthData = nil
+	data.AuthService = nil
 	err = th.App.importUser(&data, false)
 	require.Nil(t, err, "Should have succeeded to update valid user %v", err)
 

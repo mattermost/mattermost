@@ -2181,7 +2181,7 @@ func TestParseImages(t *testing.T) {
 			},
 		},
 		"tiff": {
-			FileName: "test_compressed_tiff.tiff",
+			FileName: "test.tiff",
 			Expected: (*model.PostImage)(nil),
 		},
 		"not an image": {
