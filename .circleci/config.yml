@@ -152,7 +152,6 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sL https://sentry.io/get-cli/ | bash
             curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
@@ -163,8 +162,7 @@ jobs:
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            export SENTRY_AUTH_TOKEN=...
-            export SENTRY_ORG=my-org
+            curl -sL https://sentry.io/get-cli/ | bash
             export VERSION=$(sentry-cli releases propose-version)
             sentry-cli releases new  --finalize -p mattermost-server $VERSION
             sentry-cli releases set-commits --auto $VERSION
@@ -434,6 +432,7 @@ workflows:
           requires:
             - setup
       - build:
+          context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
