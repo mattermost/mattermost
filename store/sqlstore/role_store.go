@@ -203,11 +203,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppErro
 		Select("Id, Name, DisplayName, Description, CreateAt, UpdateAt, DeleteAt, Permissions, SchemeManaged, BuiltIn").
 		From("Roles").
 		Where(sq.Eq{"Name": names})
-	if s.DriverName() == "postgres" {
-		sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-	}
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return failure(err)
 	}
@@ -221,10 +217,11 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppErro
 	defer rows.Close()
 	for rows.Next() {
 		var role Role
-		if err = rows.Scan(
+		err = rows.Scan(
 			&role.Id, &role.Name, &role.DisplayName, &role.Description,
 			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
-			&role.SchemeManaged, &role.BuiltIn); err != nil {
+			&role.SchemeManaged, &role.BuiltIn)
+		if err != nil {
 			return failure(err)
 		}
 		roles = append(roles, role.ToModel())
