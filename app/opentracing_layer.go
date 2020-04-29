@@ -12358,6 +12358,28 @@ func (a *OpenTracingAppLayer) SendPasswordResetEmail(email string, token *model.
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SendRemoveExpiredLicenseEmail(email string, locale string, siteURL string, licenseId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendRemoveExpiredLicenseEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendRemoveExpiredLicenseEmail(email, locale, siteURL, licenseId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendSignInChangeEmail")
