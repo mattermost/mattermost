@@ -95,7 +95,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
-	github.com/uber/jaeger-client-go v2.23.0+incompatible
+	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/wiggin77/logr v1.0.4
 	github.com/wiggin77/merror v1.0.2
