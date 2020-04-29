@@ -87,7 +87,7 @@ func TestWebSocketClose(t *testing.T) {
 				require.Fail(t, "should have panicked due to sending to a closed channel")
 			}
 		}()
-		writeChan <- writeMessage{}
+		close(writeChan)
 	}
 
 	waitForResponses := func(doneChan chan struct{}, cli *WebSocketClient) {
@@ -103,7 +103,7 @@ func TestWebSocketClose(t *testing.T) {
 		}()
 	}
 
-	t.Run("ExplicitClose", func(t *testing.T) {
+	t.Run("SuddenClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
 		require.Nil(t, err)
 
@@ -125,7 +125,7 @@ func TestWebSocketClose(t *testing.T) {
 		assert.Equal(t, "model.websocket_client.connect_fail.app_error", cli.ListenError.Id, "unexpected error id")
 	})
 
-	t.Run("SuddenClose", func(t *testing.T) {
+	t.Run("ExplicitClose", func(t *testing.T) {
 		cli, err := NewWebSocketClient4(url, "authToken")
 		require.Nil(t, err)
 
