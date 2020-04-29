@@ -54,6 +54,10 @@ github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.7
 ## explicit
 github.com/fsnotify/fsnotify
+# github.com/getsentry/sentry-go v0.6.0
+## explicit
+github.com/getsentry/sentry-go
+github.com/getsentry/sentry-go/http
 # github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
 github.com/go-asn1-ber/asn1-ber
 # github.com/go-gorp/gorp v2.0.0+incompatible
@@ -313,8 +317,6 @@ github.com/segmentio/backo-go
 ## explicit
 github.com/sirupsen/logrus
 # github.com/smartystreets/assertions v1.0.0
-## explicit
-# github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945
 ## explicit
 # github.com/spf13/afero v1.2.2
 ## explicit
