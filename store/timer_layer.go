@@ -6935,6 +6935,22 @@ func (s *TimerLayerUserStore) GetForLogin(loginId string, allowSignInWithUsernam
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerUserStore) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.GetKnownUsers(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetKnownUsers", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerUserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 

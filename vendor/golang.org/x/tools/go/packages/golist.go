@@ -20,10 +20,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 	"unicode"
 
 	"golang.org/x/tools/go/internal/packagesdriver"
+	"golang.org/x/tools/internal/gocommand"
+	"golang.org/x/tools/internal/packagesinternal"
+	"golang.org/x/xerrors"
 )
 
 // debug controls verbose logging.
@@ -141,7 +143,7 @@ func goListDriver(cfg *Config, patterns ...string) (*driverResponse, error) {
 		sizeswg.Add(1)
 		go func() {
 			var sizes types.Sizes
-			sizes, sizeserr = packagesdriver.GetSizesGolist(ctx, cfg.BuildFlags, cfg.Env, cfg.Dir, usesExportData(cfg))
+			sizes, sizeserr = packagesdriver.GetSizesGolist(ctx, cfg.BuildFlags, cfg.Env, cfg.gocmdRunner, cfg.Dir)
 			// types.SizesFor always returns nil or a *types.StdSizes.
 			response.dr.Sizes, _ = sizes.(*types.StdSizes)
 			sizeswg.Done()
@@ -380,6 +382,7 @@ type jsonPackage struct {
 	Imports         []string
 	ImportMap       map[string]string
 	Deps            []string
+	Module          *packagesinternal.Module
 	TestGoFiles     []string
 	TestImports     []string
 	XTestGoFiles    []string
@@ -500,10 +503,19 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 					errkind = "use of internal package not allowed"
 				}
 				if errkind != "" {
-					if len(old.Error.ImportStack) < 2 {
-						return nil, fmt.Errorf(`internal error: go list gave a %q error with an import stack with fewer than two elements`, errkind)
+					if len(old.Error.ImportStack) < 1 {
+						return nil, fmt.Errorf(`internal error: go list gave a %q error with empty import stack`, errkind)
 					}
-					importingPkg := old.Error.ImportStack[len(old.Error.ImportStack)-2]
+					importingPkg := old.Error.ImportStack[len(old.Error.ImportStack)-1]
+					if importingPkg == old.ImportPath {
+						// Using an older version of Go which put this package itself on top of import
+						// stack, instead of the importer. Look for importer in second from top
+						// position.
+						if len(old.Error.ImportStack) < 2 {
+							return nil, fmt.Errorf(`internal error: go list gave a %q error with an import stack without importing package`, errkind)
+						}
+						importingPkg = old.Error.ImportStack[len(old.Error.ImportStack)-2]
+					}
 					additionalErrors[importingPkg] = append(additionalErrors[importingPkg], Error{
 						Pos:  old.Error.Pos,
 						Msg:  old.Error.Err,
@@ -529,6 +541,7 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 			CompiledGoFiles: absJoin(p.Dir, p.CompiledGoFiles),
 			OtherFiles:      absJoin(p.Dir, otherFiles(p)...),
 			forTest:         p.ForTest,
+			module:          p.Module,
 		}
 
 		// Work around https://golang.org/issue/28749:
@@ -704,29 +717,20 @@ func golistargs(cfg *Config, words []string) []string {
 func (state *golistState) invokeGo(verb string, args ...string) (*bytes.Buffer, error) {
 	cfg := state.cfg
 
-	stdout := new(bytes.Buffer)
-	stderr := new(bytes.Buffer)
-	goArgs := []string{verb}
-	if verb != "env" {
-		goArgs = append(goArgs, cfg.BuildFlags...)
+	inv := gocommand.Invocation{
+		Verb:       verb,
+		Args:       args,
+		BuildFlags: cfg.BuildFlags,
+		Env:        cfg.Env,
+		Logf:       cfg.Logf,
+		WorkingDir: cfg.Dir,
 	}
-	goArgs = append(goArgs, args...)
-	cmd := exec.CommandContext(state.ctx, "go", goArgs...)
-	// On darwin the cwd gets resolved to the real path, which breaks anything that
-	// expects the working directory to keep the original path, including the
-	// go command when dealing with modules.
-	// The Go stdlib has a special feature where if the cwd and the PWD are the
-	// same node then it trusts the PWD, so by setting it in the env for the child
-	// process we fix up all the paths returned by the go command.
-	cmd.Env = append(append([]string{}, cfg.Env...), "PWD="+cfg.Dir)
-	cmd.Dir = cfg.Dir
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
-	defer func(start time.Time) {
-		cfg.Logf("%s for %v, stderr: <<%s>> stdout: <<%s>>\n", time.Since(start), cmdDebugStr(cmd, goArgs...), stderr, stdout)
-	}(time.Now())
-
-	if err := cmd.Run(); err != nil {
+	gocmdRunner := cfg.gocmdRunner
+	if gocmdRunner == nil {
+		gocmdRunner = &gocommand.Runner{}
+	}
+	stdout, stderr, _, err := gocmdRunner.RunRaw(cfg.Context, inv)
+	if err != nil {
 		// Check for 'go' executable not being found.
 		if ee, ok := err.(*exec.Error); ok && ee.Err == exec.ErrNotFound {
 			return nil, fmt.Errorf("'go list' driver requires 'go', but %s", exec.ErrNotFound)
@@ -736,7 +740,7 @@ func (state *golistState) invokeGo(verb string, args ...string) (*bytes.Buffer, 
 		if !ok {
 			// Catastrophic error:
 			// - context cancellation
-			return nil, fmt.Errorf("couldn't exec 'go %v': %s %T", args, err, err)
+			return nil, xerrors.Errorf("couldn't run 'go': %w", err)
 		}
 
 		// Old go version?
@@ -856,16 +860,6 @@ func (state *golistState) invokeGo(verb string, args ...string) (*bytes.Buffer, 
 		if !usesExportData(cfg) && !containsGoFile(args) {
 			return nil, fmt.Errorf("go %v: %s: %s", args, exitErr, stderr)
 		}
-	}
-
-	// As of writing, go list -export prints some non-fatal compilation
-	// errors to stderr, even with -e set. We would prefer that it put
-	// them in the Package.Error JSON (see https://golang.org/issue/26319).
-	// In the meantime, there's nowhere good to put them, but they can
-	// be useful for debugging. Print them if $GOPACKAGESPRINTGOLISTERRORS
-	// is set.
-	if len(stderr.Bytes()) != 0 && os.Getenv("GOPACKAGESPRINTGOLISTERRORS") != "" {
-		fmt.Fprintf(os.Stderr, "%s stderr: <<%s>>\n", cmdDebugStr(cmd, args...), stderr)
 	}
 	return stdout, nil
 }
