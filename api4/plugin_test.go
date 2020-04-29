@@ -33,7 +33,8 @@ func TestPlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+	require.Nil(t, err)
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -66,6 +67,11 @@ func TestPlugin(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
+	// Stored in File Store: Install Plugin from URL case
+	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+	assert.Nil(t, err)
+	assert.True(t, pluginStored)
+
 	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
 	CheckNoError(t, resp)
 	require.True(t, ok)
@@ -87,11 +93,6 @@ func TestPlugin(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.Equal(t, "testplugin", manifest.Id)
 	})
-
-	// Stored in File Store: Install Plugin from URL case
-	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-	assert.Nil(t, err)
-	assert.True(t, pluginStored)
 
 	th.App.RemovePlugin(manifest.Id)
 
@@ -558,7 +559,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "https://example.com/icon.svg",
-				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.4/com.mattermost.nps-1.0.4.tar.gz",
 				Labels: []model.MarketplaceLabel{
 					{
 						Name:        "someName",
@@ -569,7 +570,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
 					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
-					Version:          "1.0.3",
+					Version:          "1.0.4",
 					MinServerVersion: "5.14.0",
 				},
 			},
@@ -702,12 +703,12 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
-				DownloadURL: "example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				DownloadURL: "example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.4/com.mattermost.nps-1.0.4.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
 					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
-					Version:          "1.0.3",
+					Version:          "1.0.4",
 					MinServerVersion: "5.14.0",
 				},
 			},

@@ -733,7 +733,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
 	post1e, err = ss.Post().Update(post1e, post1)
@@ -845,7 +845,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	postEditTime := post1.UpdateAt + 1
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
 	post1e, err = ss.Post().Update(post1e, post1)

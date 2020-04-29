@@ -70,6 +70,7 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, *model.AppEr
 	if err != nil {
 		return nil, err
 	}
+	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 
 	if oldTeam != nil && oldTeam.DeleteAt == 0 {
 		s.rootStore.doClearCacheCluster(s.rootStore.teamAllTeamIdsForUserCache)

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/web"
 )
@@ -47,6 +48,9 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createEmoji", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
 	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
 
@@ -83,12 +87,15 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("emoji", emoji)
+
 	newEmoji, err := c.App.CreateEmoji(c.App.Session().UserId, emoji, m)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	w.Write([]byte(newEmoji.ToJson()))
 }
 
@@ -119,11 +126,16 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("deleteEmoji", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
 	if err != nil {
+		auditRec.AddMeta("emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("emoji", emoji)
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
 	memberships, err := c.App.GetTeamMembersForUser(c.App.Session().UserId)
@@ -169,6 +181,8 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

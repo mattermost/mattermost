@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
@@ -20,11 +21,62 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 }
 
 func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return a.Srv().Store.Role().GetByName(name)
+	role, err := a.Srv().Store.Role().GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.mergeChannelHigherScopedPermissions([]*model.Role{role})
+	if err != nil {
+		return nil, err
+	}
+
+	return role, nil
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
-	return a.Srv().Store.Role().GetByNames(names)
+	roles, err := a.Srv().Store.Role().GetByNames(names)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.mergeChannelHigherScopedPermissions(roles)
+	if err != nil {
+		return nil, err
+	}
+
+	return roles, nil
+}
+
+// mergeChannelHigherScopedPermissions updates the permissions based on the role type, whether the permission is
+// moderated, and the value of the permission on the higher-scoped scheme.
+func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.AppError {
+	var higherScopeNamesToQuery []string
+
+	for _, role := range roles {
+		if role.SchemeManaged {
+			higherScopeNamesToQuery = append(higherScopeNamesToQuery, role.Name)
+		}
+	}
+
+	if len(higherScopeNamesToQuery) == 0 {
+		return nil
+	}
+
+	higherScopedPermissionsMap, err := a.Srv().Store.Role().ChannelHigherScopedPermissions(higherScopeNamesToQuery)
+	if err != nil {
+		return err
+	}
+
+	for _, role := range roles {
+		if role.SchemeManaged {
+			if higherScopedPermissions, ok := higherScopedPermissionsMap[role.Name]; ok {
+				role.MergeChannelHigherScopedPermissions(higherScopedPermissions)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
@@ -59,10 +111,47 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	a.sendUpdatedRoleEvent(savedRole)
+
+	builtInChannelRoles := []string{
+		model.CHANNEL_GUEST_ROLE_ID,
+		model.CHANNEL_USER_ROLE_ID,
+		model.CHANNEL_ADMIN_ROLE_ID,
+	}
+
+	builtInRolesMinusChannelRoles := utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...)
+
+	if utils.StringInSlice(savedRole.Name, builtInRolesMinusChannelRoles) {
+		return savedRole, nil
+	}
+
+	var roleRetrievalFunc func() ([]*model.Role, *model.AppError)
+
+	if utils.StringInSlice(savedRole.Name, builtInChannelRoles) {
+		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
+			return a.Srv().Store.Role().AllChannelSchemeRoles()
+		}
+	} else {
+		roleRetrievalFunc = func() ([]*model.Role, *model.AppError) {
+			return a.Srv().Store.Role().ChannelRolesUnderTeamRole(savedRole.Name)
+		}
+	}
+
+	impactedRoles, err := roleRetrievalFunc()
+	if err != nil {
+		return nil, err
+	}
+	impactedRoles = append(impactedRoles, role)
+
+	err = a.mergeChannelHigherScopedPermissions(impactedRoles)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ir := range impactedRoles {
+		a.sendUpdatedRoleEvent(ir)
+	}
 
 	return savedRole, nil
-
 }
 
 func (a *App) CheckRolesExist(roleNames []string) *model.AppError {

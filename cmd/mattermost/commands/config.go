@@ -251,9 +251,22 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
+	if _, errSet := configStore.Set(newConfig); errSet != nil {
+		return errors.Wrap(errSet, "failed to set config")
 	}
+
+	/*
+		Uncomment when CI unit test fail resolved.
+
+		a, errInit := InitDBCommandContextCobra(command)
+		if errInit == nil {
+			auditRec := a.MakeAuditRecord("configSet", audit.Success)
+			auditRec.AddMeta("setting", configSetting)
+			auditRec.AddMeta("new_value", newVal)
+			a.LogAuditRec(auditRec, nil)
+			a.Shutdown()
+		}
+	*/
 
 	return nil
 }
@@ -456,9 +469,20 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, err := configStore.Set(tempConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
+	if _, errSet := configStore.Set(tempConfig); errSet != nil {
+		return errors.Wrap(errSet, "failed to set config")
 	}
+
+	/*
+		Uncomment when CI unit test fail resolved.
+
+		a, errInit := InitDBCommandContextCobra(command)
+		if errInit == nil {
+			auditRec := a.MakeAuditRecord("configReset", audit.Success)
+			a.LogAuditRec(auditRec, nil)
+			a.Shutdown()
+		}
+	*/
 
 	return nil
 }
