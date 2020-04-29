@@ -66,6 +66,8 @@ const (
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
 )
 
+var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
+
 type Post struct {
 	Id         string `json:"id"`
 	CreateAt   int64  `json:"create_at"`
