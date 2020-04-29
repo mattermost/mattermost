@@ -1465,6 +1465,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Failed to send the disable license email successfully."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -2297,6 +2301,18 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Renew License"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Mattermost Enterprise license has been disabled."
   },
   {
     "id": "api.templates.reset_body.button",
