@@ -513,7 +513,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrapf("begin_transaction: ", err)
+		return nil, errors.Wrapf(err, "begin_transaction: ")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -524,11 +524,11 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 	// Additionally propagate the write to the PublicChannels table.
 	if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-		return nil, errors.Wrapf("upsert_public_channel: ", err)
+		return nil, errors.Wrapf(err, "upsert_public_channel: ")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrapf("commit_transaction: ", err)
+		return nil, errors.Wrapf(err, "commit_transaction: ")
 	}
 
 	return newChannel, nil
@@ -645,7 +645,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 
 	if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP && maxChannelsPerTeam >= 0 {
 		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
-			return nil, errors.Wrapf("save_channel_count: teamId=%s", channel.TeamId, err)
+			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
 		} else if count >= maxChannelsPerTeam {
 			return nil, store.NewErrLimitExceeded("channels_per_team", int(count), "teamId="+channel.TeamId)
 		}
@@ -657,7 +657,7 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
 		}
-		return nil, errors.Wrapf("save_channel: id=%s", channel.Id, err)
+		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
 	}
 	return channel, nil
 }
@@ -1805,6 +1805,38 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 	}
 
 	return count, nil
+}
+
+// GetMemberCountsByGroup returns a slice of ChannelMemberCountByGroup for a given channel
+// which contains the number of channel members for each group and optionally the number of unique timezones present for each group in the channel
+func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
+
+	if includeTimezones {
+		selectStr = "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT( DISTINCT Users.Timezone ) AS ChannelMemberTimezonesCount"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("ChannelMembers").
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId")
+
+	if includeTimezones {
+		query = query.Join("Users ON Users.Id = GroupMembers.UserId")
+	}
+
+	query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).GroupBy("GroupMembers.GroupId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMemberCountsByGroup", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var data []*model.ChannelMemberCountByGroup
+	if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMemberCountsByGroup", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelID+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return data, nil
 }
 
 func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {

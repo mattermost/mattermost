@@ -1111,6 +1111,24 @@ func (s *OpenTracingLayerChannelStore) GetMemberCountFromCache(channelId string)
 	return resultVar0
 }
 
+func (s *OpenTracingLayerChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberCountsByGroup")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberForPost")
@@ -3324,6 +3342,42 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsers(groupID string) ([]*model.Us
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.GroupStore.GetMemberUsers(groupID)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersInTeam")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersNotInChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
@@ -7363,6 +7417,24 @@ func (s *OpenTracingLayerUserStore) GetAllAfter(limit int, afterId string) ([]*m
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetAllNotInAuthService")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.UserStore.GetAllNotInAuthService(authServices)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetAllProfiles")
@@ -7556,6 +7628,24 @@ func (s *OpenTracingLayerUserStore) GetForLogin(loginId string, allowSignInWithU
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerUserStore) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetKnownUsers")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.UserStore.GetKnownUsers(userID)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)

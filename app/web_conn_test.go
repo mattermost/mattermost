@@ -86,15 +86,15 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	event := model.NewWebSocketEvent("some_event", "", "", "", nil)
 	for _, c := range cases {
 		event = event.SetBroadcast(c.Broadcast)
-		assert.Equal(t, c.User1Expected, basicUserWc.ShouldSendEvent(event), c.Description)
-		assert.Equal(t, c.User2Expected, basicUser2Wc.ShouldSendEvent(event), c.Description)
-		assert.Equal(t, c.AdminExpected, adminUserWc.ShouldSendEvent(event), c.Description)
+		assert.Equal(t, c.User1Expected, basicUserWc.shouldSendEvent(event), c.Description)
+		assert.Equal(t, c.User2Expected, basicUser2Wc.shouldSendEvent(event), c.Description)
+		assert.Equal(t, c.AdminExpected, adminUserWc.shouldSendEvent(event), c.Description)
 	}
 
 	event2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, th.BasicTeam.Id, "", "", nil)
-	assert.True(t, basicUserWc.ShouldSendEvent(event2))
-	assert.True(t, basicUser2Wc.ShouldSendEvent(event2))
+	assert.True(t, basicUserWc.shouldSendEvent(event2))
+	assert.True(t, basicUser2Wc.shouldSendEvent(event2))
 
 	event3 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "wrongId", "", "", nil)
-	assert.False(t, basicUserWc.ShouldSendEvent(event3))
+	assert.False(t, basicUserWc.shouldSendEvent(event3))
 }
