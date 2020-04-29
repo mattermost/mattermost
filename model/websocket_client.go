@@ -125,6 +125,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
+		wsc.quitPingWatchdog = make(chan struct{})
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -143,8 +144,12 @@ func (wsc *WebSocketClient) Close() {
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
 	wsc.Conn.Close()
+	close(wsc.EventChannel)
+	close(wsc.ResponseChannel)
+	close(wsc.quitPingWatchdog)
 }
 
+// TODO: un-export the Conn so that Write methods go through the writer
 func (wsc *WebSocketClient) writer() {
 	for {
 		select {
@@ -163,12 +168,8 @@ func (wsc *WebSocketClient) writer() {
 
 func (wsc *WebSocketClient) Listen() {
 	go func() {
-		defer func() {
-			wsc.Conn.Close()
-			close(wsc.EventChannel)
-			close(wsc.ResponseChannel)
-			close(wsc.quitPingWatchdog)
-		}()
+		defer wsc.Close()
+
 		var buf bytes.Buffer
 		buf.Grow(avgReadMsgSizeBytes)
 
