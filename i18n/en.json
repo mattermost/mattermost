@@ -6043,6 +6043,10 @@
     "translation": "Unable to open transaction."
   },
   {
+    "id": "store.sql_channel.save_direct_channel.internal_error",
+    "translation": "Unable to save direct channel."
+  },
+  {
     "id": "store.sql_channel.save_member.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
