@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -99,6 +100,38 @@ func TestSaveSchemaVersion(t *testing.T) {
 
 			require.Equal(t, CURRENT_SCHEMA_VERSION, props["Version"])
 			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+		})
+	})
+}
+
+func TestMaxExecutionTime(t *testing.T) {
+	StoreTest(t, func(t *testing.T, ss store.Store) {
+		sqlStore := ss.(SqlStore)
+
+		// https:/stackoverflow.com/questions/10027453/mysql-wait-timeout-not-being-honored-for-long-query
+		// it seems there is no such setting in mysql to stop large running querys
+		t.Run("query with timeout", func(t *testing.T) {
+			timeout := int64(1)
+			query := "DO SLEEP(2)"
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				timeout = 1000
+				query = "SELECT PG_SLEEP(2)"
+			}
+			setMaxExecutionTime(sqlStore, timeout)
+			_, err := sqlStore.GetMaster().Exec(query)
+			require.Error(t, err)
+		})
+
+		t.Run("query without timeout", func(t *testing.T) {
+			timeout := int64(2)
+			query := "DO SLEEP(1)"
+			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				timeout = 20000
+				query = "SELECT PG_SLEEP(1)"
+			}
+			setMaxExecutionTime(sqlStore, timeout)
+			_, err := sqlStore.GetMaster().Exec(query)
+			require.NoError(t, err)
 		})
 	})
 }

@@ -78,7 +78,8 @@ const (
 )
 
 const (
-	UNLIMITED_TIMEOUT_EXECUTION_TIME = 0
+	MAX_TIMEOUT_EXECUTION_TIME_POSTGRES = int64(0)
+	MAX_TIMEOUT_EXECUTION_TIME_MYSQL    = int64(2147483)
 )
 
 // upgradeDatabase attempts to migrate the schema to the latest supported version.
@@ -131,8 +132,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 		mlog.Warn("The database schema version and model versions do not match", mlog.String("schema_version", currentSchemaVersion.String()), mlog.String("model_version", currentModelVersion.String()))
 	}
 
-	// Unlimited time to execute upgrade statements
-	currentExecutionTimeout := getAndSetMaxExecutionTime(sqlStore, UNLIMITED_TIMEOUT_EXECUTION_TIME)
+	// max execution time to execute upgrade statements
+	currentExecutionTimeout := getAndSetMaxExecutionTime(sqlStore, decideMaxExecutionTime(sqlStore))
 	defer setMaxExecutionTime(sqlStore, currentExecutionTimeout)
 
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
@@ -189,6 +190,14 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	return nil
 }
 
+func decideMaxExecutionTime(sqlStore SqlStore) int64 {
+	result := MAX_TIMEOUT_EXECUTION_TIME_MYSQL
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		result = MAX_TIMEOUT_EXECUTION_TIME_POSTGRES
+	}
+	return result
+}
+
 func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 	var err error
 	var currentExecutionTimeout int64
@@ -202,7 +211,7 @@ func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 		}
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		var paramName string
-		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'MAX_EXECUTION_TIME'").Scan(&paramName, &currentExecutionTimeout)
+		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'WAIT_TIMEOUT'").Scan(&paramName, &currentExecutionTimeout)
 		if err != nil {
 			mlog.Critical("Failed to read max_execution_time parameter from mysql", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -226,7 +235,7 @@ func setMaxExecutionTime(sqlStore SqlStore, value int64) {
 		}
 
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err = sqlStore.GetMaster().Exec("SET SESSION MAX_EXECUTION_TIME = ?", value)
+		_, err = sqlStore.GetMaster().Exec("SET SESSION WAIT_TIMEOUT = ?", value)
 		if err != nil {
 			mlog.Critical("Failed to set max_execution_time parameter for current session in mysql", mlog.Err(err))
 			time.Sleep(time.Second)
