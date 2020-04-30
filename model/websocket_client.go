@@ -183,10 +183,10 @@ func (wsc *WebSocketClient) Listen() {
 	// But if (1) happens, we set the closed bit, and close the rest of the stuff.
 	go func() {
 		defer func() {
-			// We CAS to 1 and proceed.
 			close(wsc.EventChannel)
 			close(wsc.ResponseChannel)
 			close(wsc.quitPingWatchdog)
+			// We CAS to 1 and proceed.
 			if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
 				return
 			}

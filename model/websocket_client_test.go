@@ -84,7 +84,7 @@ func TestWebSocketClose(t *testing.T) {
 	checkWriteChan := func(writeChan chan writeMessage) {
 		defer func() {
 			if x := recover(); x == nil {
-				require.Fail(t, "should have panicked due to sending to a closed channel")
+				require.Fail(t, "should have panicked due to closing a closed channel")
 			}
 		}()
 		close(writeChan)
