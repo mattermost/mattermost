@@ -278,8 +278,6 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication                   *bool
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
-	SentryEnabled                                     *bool
-	SentryDSN                                         *string
 	AllowCorsFrom                                     *string `restricted:"true"`
 	CorsExposedHeaders                                *string `restricted:"true"`
 	CorsAllowCredentials                              *bool   `restricted:"true"`
@@ -475,14 +473,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.Forward80To443 == nil {
 		s.Forward80To443 = NewBool(false)
-	}
-
-	if s.SentryEnabled == nil {
-		s.SentryEnabled = NewBool(true)
-	}
-
-	if s.SentryDSN == nil {
-		s.SentryDSN = NewString(SERVICE_SETTINGS_DEFAULT_SENTRY_DSN)
 	}
 
 	if isUpdate {
@@ -1026,6 +1016,8 @@ type LogSettings struct {
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
+	EnableSentry           *bool   `restricted:"true"`
+	SentryDSN              *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1055,6 +1047,14 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.EnableSentry == nil {
+		s.EnableSentry = NewBool(*s.EnableDiagnostics)
+	}
+
+	if s.SentryDSN == nil {
+		s.SentryDSN = NewString(SERVICE_SETTINGS_DEFAULT_SENTRY_DSN)
 	}
 
 	if s.ConsoleJson == nil {

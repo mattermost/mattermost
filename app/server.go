@@ -193,12 +193,12 @@ func NewServer(options ...Option) (*Server, error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
-	if *s.Config().ServiceSettings.SentryEnabled {
-		if s.Config().ServiceSettings.SentryDSN == nil || *s.Config().ServiceSettings.SentryDSN == "" {
+	if *s.Config().LogSettings.EnableSentry {
+		if s.Config().LogSettings.SentryDSN == nil || *s.Config().LogSettings.SentryDSN == "" {
 			mlog.Warn("Sentry reporting is enabled, but SentryDSN is not set in the config. Disabling reporting.")
 		} else {
 			sentry.Init(sentry.ClientOptions{
-				Dsn:              *s.Config().ServiceSettings.SentryDSN,
+				Dsn:              *s.Config().LogSettings.SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 			})
@@ -528,7 +528,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().ServiceSettings.SentryEnabled {
+	if *s.Config().LogSettings.EnableSentry {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
