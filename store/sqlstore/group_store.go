@@ -1198,6 +1198,12 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		`, opts.NotAssociatedToChannel)
 	}
 
+	if opts.Since > 0 {
+		groupsQuery = groupsQuery.Where(sq.Gt(map[string]interface{}{
+			"g.UpdateAt": opts.Since,
+		}))
+	}
+
 	queryString, args, err := groupsQuery.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)

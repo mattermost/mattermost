@@ -860,6 +860,7 @@ func TestGetGroups(t *testing.T) {
 		RemoteId:    model.NewId(),
 	})
 	assert.Nil(t, err)
+	start := group.UpdateAt - 1
 
 	opts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
@@ -911,4 +912,14 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	opts.Since = start
+	_, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Len(t, groups, 1)
+
+	opts.Since = model.GetMillis()
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
 }
