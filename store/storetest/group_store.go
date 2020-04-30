@@ -229,12 +229,16 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
+	g1Opts := model.GroupSearchOpts{
+		FilterAllowReference: false,
+	}
+
 	d1, err := ss.Group().Create(g1)
 	require.Nil(t, err)
 	require.Len(t, d1.Id, 26)
 
 	// Get the group
-	d2, err := ss.Group().GetByName(d1.Name)
+	d2, err := ss.Group().GetByName(d1.Name, g1Opts)
 	require.Nil(t, err)
 	require.Equal(t, d1.Id, d2.Id)
 	require.Equal(t, d1.Name, d2.Name)
@@ -246,7 +250,7 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.DeleteAt, d2.DeleteAt)
 
 	// Get an invalid group
-	_, err = ss.Group().GetByName(model.NewId())
+	_, err = ss.Group().GetByName(model.NewId(), g1Opts)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 }

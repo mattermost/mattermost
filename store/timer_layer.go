@@ -2894,10 +2894,10 @@ func (s *TimerLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *TimerLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

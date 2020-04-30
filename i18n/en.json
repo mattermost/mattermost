@@ -1425,6 +1425,18 @@
     "translation": "ldap group not found"
   },
   {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "group name already exists"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "group name already exists as a user name"
+  },
+  {
     "id": "api.ldap_groups.license_error",
     "translation": "your license does not support ldap groups"
   },

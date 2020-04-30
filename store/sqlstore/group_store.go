@@ -11,6 +11,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -125,9 +126,21 @@ func (s *SqlGroupStore) Get(groupId string) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Name": name})
+	if opts.FilterAllowReference {
+		query = query.Where("AllowReference = true")
+	}
+
+	queryString, args, err := query.ToSql()
+
+	mlog.Info("CITOMAI::queryString", mlog.String("queryString", queryString))
+
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByName", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if err := s.GetReplica().SelectOne(&group, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		}
