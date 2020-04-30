@@ -77,6 +77,10 @@ const (
 	EXIT_TEAM_INVITEID_MIGRATION_FAILED = 1006
 )
 
+const (
+	UNLIMITED_TIMEOUT_EXECUTION_TIME = 0
+)
+
 // upgradeDatabase attempts to migrate the schema to the latest supported version.
 // The value of model.CurrentVersion is accepted as a parameter for unit testing, but it is not
 // used to stop migrations at that version.
@@ -128,8 +132,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	}
 
 	// Unlimited time to execute upgrade statements
-	currentExecutionTimeout := getExecutionTimeoutAndSetUnlimited(sqlStore)
-	defer restoreExecutionTimeout(sqlStore, currentExecutionTimeout)
+	currentExecutionTimeout := getAndSetMaxExecutionTime(sqlStore, UNLIMITED_TIMEOUT_EXECUTION_TIME)
+	defer setMaxExecutionTime(sqlStore, currentExecutionTimeout)
 
 	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
 	// os.Exit instead of returning an error.
@@ -185,9 +189,10 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	return nil
 }
 
-func getExecutionTimeoutAndSetUnlimited(sqlStore SqlStore) int64 {
+func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 	var err error
 	var currentExecutionTimeout int64
+
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		err = sqlStore.GetMaster().QueryRow("SHOW STATEMENT_TIMEOUT").Scan(&currentExecutionTimeout)
 		if err != nil {
@@ -195,14 +200,6 @@ func getExecutionTimeoutAndSetUnlimited(sqlStore SqlStore) int64 {
 			time.Sleep(time.Second)
 			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_POSTGRES)
 		}
-
-		_, err = sqlStore.GetMaster().Exec("SET STATEMENT_TIMEOUT = 0")
-		if err != nil {
-			mlog.Critical("Failed to increase statement_timeout parameter for current session in postgres", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_POSTGRES)
-		}
-
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		var paramName string
 		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'MAX_EXECUTION_TIME'").Scan(&paramName, &currentExecutionTimeout)
@@ -211,24 +208,19 @@ func getExecutionTimeoutAndSetUnlimited(sqlStore SqlStore) int64 {
 			time.Sleep(time.Second)
 			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_MYSQL)
 		}
-
-		_, err = sqlStore.GetMaster().Exec("SET SESSION MAX_EXECUTION_TIME = 0")
-		if err != nil {
-			mlog.Critical("Failed to increase max_execution_time parameter for current session in mysql", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_MYSQL)
-		}
 	}
+
+	setMaxExecutionTime(sqlStore, value)
 
 	return currentExecutionTimeout
 }
 
-func restoreExecutionTimeout(sqlStore SqlStore, value int64) {
+func setMaxExecutionTime(sqlStore SqlStore, value int64) {
 	var err error
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = sqlStore.GetMaster().Exec(fmt.Sprintf("SET STATEMENT_TIMEOUT = %d", value))
 		if err != nil {
-			mlog.Critical("Failed to restore statement_timeout parameter for current session in postgres", mlog.Err(err))
+			mlog.Critical("Failed to set statement_timeout parameter for current session in postgres", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_RESTORING_EXECUTION_TIMEOUT_POSTGRES)
 		}
@@ -236,7 +228,7 @@ func restoreExecutionTimeout(sqlStore SqlStore, value int64) {
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err = sqlStore.GetMaster().Exec("SET SESSION MAX_EXECUTION_TIME = ?", value)
 		if err != nil {
-			mlog.Critical("Failed to restore max_execution_time parameter for current session in mysql", mlog.Err(err))
+			mlog.Critical("Failed to set max_execution_time parameter for current session in mysql", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_RESTORING_EXECUTION_TIMEOUT_MYSQL)
 		}
