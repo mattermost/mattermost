@@ -18,13 +18,16 @@
 package set
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // StringSet - uses map as set of strings.
 type StringSet map[string]struct{}
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // ToSlice - returns StringSet as string slice.
 func (set StringSet) ToSlice() []string {
