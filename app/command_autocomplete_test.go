@@ -250,12 +250,12 @@ func TestSuggestions(t *testing.T) {
 
 	suggestions = th.App.getSuggestions([]*model.AutocompleteData{jira}, "", "jira settings notifications o", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 2)
-	assert.Equal(t, "jira settings notifications on", suggestions[0].Complete)
-	assert.Equal(t, "on", suggestions[0].Suggestion)
+	assert.Equal(t, "jira settings notifications On", suggestions[0].Complete)
+	assert.Equal(t, "On", suggestions[0].Suggestion)
 	assert.Equal(t, "Turn notifications on", suggestions[0].Hint)
 	assert.Equal(t, "", suggestions[0].Description)
-	assert.Equal(t, "jira settings notifications off", suggestions[1].Complete)
-	assert.Equal(t, "off", suggestions[1].Suggestion)
+	assert.Equal(t, "jira settings notifications Off", suggestions[1].Complete)
+	assert.Equal(t, "Off", suggestions[1].Suggestion)
 	assert.Equal(t, "Turn notifications off", suggestions[1].Hint)
 	assert.Equal(t, "", suggestions[1].Description)
 
@@ -303,6 +303,23 @@ func TestSuggestions(t *testing.T) {
 	suggestions = th.App.getSuggestions([]*model.AutocompleteData{jira}, "", "jira timezone bla", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 0)
 
+	commandA := &model.Command{
+		Trigger:          "alice",
+		AutocompleteData: model.NewAutocompleteData("alice", "", ""),
+	}
+	commandB := &model.Command{
+		Trigger:          "bob",
+		AutocompleteData: model.NewAutocompleteData("bob", "", ""),
+	}
+	commandC := &model.Command{
+		Trigger:          "charles",
+		AutocompleteData: model.NewAutocompleteData("charles", "", ""),
+	}
+	suggestions = th.App.GetSuggestions([]*model.Command{commandB, commandC, commandA}, "", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 3)
+	assert.Equal(t, "alice", suggestions[0].Complete)
+	assert.Equal(t, "bob", suggestions[1].Complete)
+	assert.Equal(t, "charles", suggestions[2].Complete)
 }
 
 // createJiraAutocompleteData will create autocomplete data for jira plugin. For testing purposes only.
@@ -342,11 +359,11 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 	items := []model.AutocompleteListItem{
 		{
 			Hint: "Turn notifications on",
-			Item: "on",
+			Item: "On",
 		},
 		{
 			Hint: "Turn notifications off",
-			Item: "off",
+			Item: "Off",
 		},
 	}
 	notifications.AddStaticListArgument("Turn notifications on or off", items)

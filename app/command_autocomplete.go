@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/url"
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -13,27 +14,19 @@ import (
 
 // GetSuggestions returns suggestions for user input.
 func (a *App) GetSuggestions(commands []*model.Command, userInput, roleID string) []model.AutocompleteSuggestion {
-	suggestions := []model.AutocompleteSuggestion{}
+	sort.Slice(commands, func(i, j int) bool {
+		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
+	})
 
 	autocompleteData := []*model.AutocompleteData{}
 	for _, command := range commands {
 		if command.AutocompleteData == nil {
-			if strings.HasPrefix(command.Trigger, userInput) {
-				s := model.AutocompleteSuggestion{
-					Complete:    command.Trigger,
-					Suggestion:  command.Trigger,
-					Description: command.AutoCompleteDesc,
-					Hint:        command.AutoCompleteHint,
-				}
-				suggestions = append(suggestions, s)
-			}
-			continue
+			command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
 		}
 		autocompleteData = append(autocompleteData, command.AutocompleteData)
 	}
-	sug := a.getSuggestions(autocompleteData, "", userInput, roleID)
-	suggestions = append(suggestions, sug...)
-	return suggestions
+
+	return a.getSuggestions(autocompleteData, "", userInput, roleID)
 }
 
 func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
@@ -41,7 +34,7 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 	index := strings.Index(inputToBeParsed, " ")
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, inputToBeParsed) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
 				s := model.AutocompleteSuggestion{
 					Complete:    inputParsed + command.Trigger,
 					Suggestion:  command.Trigger,
@@ -54,7 +47,7 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 		return suggestions
 	}
 	for _, command := range commands {
-		if command.Trigger != inputToBeParsed[:index] {
+		if command.Trigger != strings.ToLower(inputToBeParsed[:index]) {
 			continue
 		}
 		if roleID != "" && roleID != model.SYSTEM_ADMIN_ROLE_ID && roleID != command.RoleID {
@@ -118,14 +111,14 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	if in == "" { //The user has not started typing the argument.
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: a.Hint, Description: arg.HelpText}
 	}
-	if strings.HasPrefix(namedArg, in) {
+	if strings.HasPrefix(strings.ToLower(namedArg), strings.ToLower(in)) {
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: a.Hint, Description: arg.HelpText}
 	}
 
-	if !strings.HasPrefix(in, namedArg+" ") {
+	if !strings.HasPrefix(strings.ToLower(in), strings.ToLower(namedArg)+" ") {
 		return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{}
 	}
-	if in == namedArg+" " {
+	if strings.ToLower(in) == strings.ToLower(namedArg)+" " {
 		return false, parsed + namedArg, " ", model.AutocompleteSuggestion{}
 	}
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
@@ -182,7 +175,7 @@ func parseListItems(items []model.AutocompleteListItem, parsed, toBeParsed strin
 	suggestions := []model.AutocompleteSuggestion{}
 	maxPrefix := ""
 	for _, arg := range items {
-		if strings.HasPrefix(in, arg.Item+" ") && len(maxPrefix) < len(arg.Item)+1 {
+		if strings.HasPrefix(strings.ToLower(in), strings.ToLower(arg.Item)+" ") && len(maxPrefix) < len(arg.Item)+1 {
 			maxPrefix = arg.Item + " "
 		}
 	}
@@ -191,7 +184,7 @@ func parseListItems(items []model.AutocompleteListItem, parsed, toBeParsed strin
 	}
 	// user has not finished typing static argument
 	for _, arg := range items {
-		if strings.HasPrefix(arg.Item, in) {
+		if strings.HasPrefix(strings.ToLower(arg.Item), strings.ToLower(in)) {
 			suggestions = append(suggestions, model.AutocompleteSuggestion{Complete: parsed + arg.Item, Suggestion: arg.Item, Hint: arg.Hint, Description: arg.HelpText})
 		}
 	}

@@ -54,6 +54,15 @@ func TestAutocompleteData(t *testing.T) {
 	command.AddStaticListArgument("help", items)
 	ad.AddCommand(command)
 	assert.NotNil(t, ad.IsValid())
+
+	ad = getAutocompleteData()
+	ad.AddCommand(nil)
+	assert.NotNil(t, ad.IsValid())
+
+	ad = getAutocompleteData()
+	command = NewAutocompleteData("Disconnect", "", "")
+	ad.AddCommand(command)
+	assert.NotNil(t, ad.IsValid())
 }
 
 func TestAutocompleteDataJSON(t *testing.T) {

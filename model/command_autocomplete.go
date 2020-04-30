@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path"
 	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -219,6 +220,9 @@ func (ad *AutocompleteData) IsValid() error {
 	}
 	if ad.Trigger == "" {
 		return errors.New("An empty command name in the autocomplete data")
+	}
+	if strings.ToLower(ad.Trigger) != ad.Trigger {
+		return errors.New("Command should be lowercase")
 	}
 	roles := []string{SYSTEM_ADMIN_ROLE_ID, SYSTEM_USER_ROLE_ID, ""}
 	if stringNotInSlice(ad.RoleID, roles) {

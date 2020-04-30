@@ -201,7 +201,5 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.URL.RawQuery = newQuery.Encode()
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", params["plugin_id"]))
 
-	println(fmt.Sprintf("r.URL3 = %v", r.URL))
-
 	handler(context, w, r)
 }
