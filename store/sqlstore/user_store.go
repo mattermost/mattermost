@@ -1770,3 +1770,23 @@ func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string
 	autocomplete.OutOfChannel = users
 	return autocomplete, nil
 }
+
+// GetKnownUsers returns the list of user ids of users with any direct
+// relationship with a user. That means any user sharing any channel, including
+// direct and group channels.
+func (us SqlUserStore) GetKnownUsers(userId string) ([]string, *model.AppError) {
+	var userIds []string
+	usersQuery, args, _ := us.getQueryBuilder().
+		Select("DISTINCT ocm.UserId").
+		From("ChannelMembers AS cm").
+		Join("ChannelMembers AS ocm ON ocm.ChannelId = cm.ChannelId").
+		Where(sq.NotEq{"ocm.UserId": userId}).
+		Where(sq.Eq{"cm.UserId": userId}).
+		ToSql()
+	_, err := us.GetSearchReplica().Select(&userIds, usersQuery, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetKnownUsers", "store.sql_user.get_known_users.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return userIds, nil
+}
