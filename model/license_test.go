@@ -118,10 +118,10 @@ func TestLicenseIsExpired(t *testing.T) {
 
 func TestLicenseIsPastGracePeriod(t *testing.T) {
 	l1 := License{}
-	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1
+	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1000
 	assert.True(t, l1.IsPastGracePeriod())
 
-	l1.ExpiresAt = GetMillis() + 1
+	l1.ExpiresAt = GetMillis() + 1000
 	assert.False(t, l1.IsPastGracePeriod())
 }
 

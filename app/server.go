@@ -819,12 +819,12 @@ func doLicenseExpirationCheck(s *Server) {
 	license := s.License()
 
 	if license == nil {
-		mlog.Info("License cannot be found.")
+		mlog.Debug("License cannot be found.")
 		return
 	}
 
 	if !license.IsPastGracePeriod() {
-		mlog.Info("License is not past the grace period.")
+		mlog.Debug("License is not past the grace period.")
 		return
 	}
 
@@ -842,7 +842,7 @@ func doLicenseExpirationCheck(s *Server) {
 			continue
 		}
 
-		mlog.Info("Sending license expired email.", mlog.String("user_email", user.Email))
+		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		s.Go(func() {
 			if err := s.FakeApp().SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
