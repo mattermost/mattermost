@@ -928,7 +928,9 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.Nil(t, err)
 
 	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
 	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	assert.Nil(t, err)
 
 	id = model.NewId()
 	group2, err := th.App.CreateGroup(&model.Group{
@@ -941,6 +943,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.Nil(t, err)
 
 	_, err = th.App.UpsertGroupMember(group2.Id, user1.Id)
+	assert.Nil(t, err)
 
 	th.App.SetLicense(nil)
 	_, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
