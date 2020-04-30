@@ -2083,3 +2083,10 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 	message.Add("user", user)
 	a.Publish(message)
 }
+
+// GetKnownUsers returns the list of user ids of users with any direct
+// relationship with a user. That means any user sharing any channel, including
+// direct and group channels.
+func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	return a.Srv().Store.User().GetKnownUsers(userID)
+}
