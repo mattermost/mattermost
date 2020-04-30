@@ -3,7 +3,7 @@ module github.com/mattermost/mattermost-server/v5
 go 1.14
 
 require (
-	github.com/Masterminds/squirrel v1.2.0
+	github.com/Masterminds/squirrel v1.3.0
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
 	github.com/armon/go-metrics v0.3.3 // indirect
