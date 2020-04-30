@@ -51,6 +51,7 @@ type WebSocketClient struct {
 	quitPingWatchdog chan struct{}
 
 	quitWriterChan chan struct{}
+	resetTimerChan chan struct{}
 	closed         int32
 }
 
@@ -81,6 +82,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 		writeChan:          make(chan writeMessage),
 		quitPingWatchdog:   make(chan struct{}),
 		quitWriterChan:     make(chan struct{}),
+		resetTimerChan:     make(chan struct{}),
 	}
 
 	client.configurePingHandling()
@@ -125,6 +127,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
+		wsc.resetTimerChan = make(chan struct{})
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -168,6 +171,7 @@ func (wsc *WebSocketClient) Listen() {
 			close(wsc.EventChannel)
 			close(wsc.ResponseChannel)
 			close(wsc.quitPingWatchdog)
+			close(wsc.resetTimerChan)
 		}()
 		var buf bytes.Buffer
 		buf.Grow(avgReadMsgSizeBytes)
@@ -259,11 +263,7 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 	if atomic.LoadInt32(&wsc.closed) == 1 {
 		return nil
 	}
-	if !wsc.pingTimeoutTimer.Stop() {
-		<-wsc.pingTimeoutTimer.C
-	}
-
-	wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	wsc.resetTimerChan <- struct{}{}
 	wsc.writeChan <- writeMessage{
 		msgType: msgTypePong,
 	}
@@ -272,6 +272,12 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 
 func (wsc *WebSocketClient) pingWatchdog() {
 	select {
+	case <-wsc.resetTimerChan:
+		if !wsc.pingTimeoutTimer.Stop() {
+			<-wsc.pingTimeoutTimer.C
+		}
+
+		wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
 	case <-wsc.pingTimeoutTimer.C:
 		wsc.PingTimeoutChannel <- true
 	case <-wsc.quitPingWatchdog:
