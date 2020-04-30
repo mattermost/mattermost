@@ -199,7 +199,7 @@ func NewServer(options ...Option) (*Server, error) {
 		} else {
 			sentry.Init(sentry.ClientOptions{
 				Dsn:              *s.Config().ServiceSettings.SentryDSN,
-				Release:          fmt.Sprintf("mattermost-server#%s", model.BuildHash),
+				Release:          model.BuildHash,
 				AttachStacktrace: true,
 			})
 		}
