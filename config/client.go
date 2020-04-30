@@ -99,6 +99,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
+	props["LdapPhotoAttributeSet"] = "false"
 	props["LdapPositionAttributeSet"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
@@ -144,6 +145,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
+			props["LdapPhotoAttributeSet"] = strconv.FormatBool(*c.LdapSettings.PhotoAttribute != "")
 			props["LdapPositionAttributeSet"] = strconv.FormatBool(*c.LdapSettings.PositionAttribute != "")
 		}
 

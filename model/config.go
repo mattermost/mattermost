@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_PHOTO_ATTRIBUTE              = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
@@ -1884,6 +1885,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 	LoginIdAttribute   *string
+	PhotoAttribute     *string
 
 	// Synchronization
 	SyncIntervalMinutes *int
@@ -1991,6 +1993,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.PositionAttribute == nil {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
+	}
+
+	if s.PhotoAttribute == nil {
+		s.PhotoAttribute = NewString(LDAP_SETTINGS_DEFAULT_PHOTO_ATTRIBUTE)
 	}
 
 	// For those upgrading to the version when LoginIdAttribute was added
