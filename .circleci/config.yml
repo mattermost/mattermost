@@ -164,8 +164,8 @@ jobs:
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
             export VERSION=$(sentry-cli releases propose-version)
-            sentry-cli releases new  --finalize -p mattermost-server $VERSION
-            sentry-cli releases set-commits --auto $VERSION
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
+            sentry-cli --log-level=debug releases set-commits --auto $VERSION
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
