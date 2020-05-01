@@ -1,5 +1,6 @@
-sudo: false
 language: go
+os: linux
+dist: xenial
 go:
   - 1.6.x
   - 1.7.x
@@ -9,7 +10,7 @@ go:
   - 1.11.x
   - 1.12.x
   - 1.13.x
-
+  - 1.14.x
 install: skip
 script:
   - go get golang.org/x/tools/cmd/cover
