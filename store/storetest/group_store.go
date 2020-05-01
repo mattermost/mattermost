@@ -3336,10 +3336,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
-				if len(groups) == 0 {
-					return true
-				}
-				return false
+				return len(groups) == 0
 			},
 		},
 	}
