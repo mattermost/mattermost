@@ -34,6 +34,8 @@ const avgReadMsgSizeBytes = 1024
 
 // WebSocketClient stores the necessary information required to
 // communicate with a WebSocket endpoint.
+// A client must read from PingTimeoutChannel, EventChannel and ResponseChannel to prevent
+// deadlocks from occuring in the program.
 type WebSocketClient struct {
 	Url                string                  // The location of the server like "ws://localhost:8065"
 	ApiUrl             string                  // The API location of the server like "ws://localhost:8065/api/v3"
@@ -270,6 +272,11 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 	return nil
 }
 
+// pingWatchdog is used to send values to the PingTimeoutChannel whenever a timeout occurs.
+// We use the resetTimerChan from the pingHandler to pass the signal, and then reset the timer
+// after draining it. And if the timer naturally expires, we also extend it to prevent it from
+// being deadlocked when the resetTimerChan case runs. Because timer.Stop would return false,
+// and the code would be forever stuck trying to read from C.
 func (wsc *WebSocketClient) pingWatchdog() {
 	for {
 		select {
