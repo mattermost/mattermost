@@ -287,13 +287,14 @@ func (o FailFastCallOption) before(c *callInfo) error {
 }
 func (o FailFastCallOption) after(c *callInfo) {}
 
-// MaxCallRecvMsgSize returns a CallOption which sets the maximum message size the client can receive.
-func MaxCallRecvMsgSize(s int) CallOption {
-	return MaxRecvMsgSizeCallOption{MaxRecvMsgSize: s}
+// MaxCallRecvMsgSize returns a CallOption which sets the maximum message size
+// in bytes the client can receive.
+func MaxCallRecvMsgSize(bytes int) CallOption {
+	return MaxRecvMsgSizeCallOption{MaxRecvMsgSize: bytes}
 }
 
 // MaxRecvMsgSizeCallOption is a CallOption that indicates the maximum message
-// size the client can receive.
+// size in bytes the client can receive.
 // This is an EXPERIMENTAL API.
 type MaxRecvMsgSizeCallOption struct {
 	MaxRecvMsgSize int
@@ -305,13 +306,14 @@ func (o MaxRecvMsgSizeCallOption) before(c *callInfo) error {
 }
 func (o MaxRecvMsgSizeCallOption) after(c *callInfo) {}
 
-// MaxCallSendMsgSize returns a CallOption which sets the maximum message size the client can send.
-func MaxCallSendMsgSize(s int) CallOption {
-	return MaxSendMsgSizeCallOption{MaxSendMsgSize: s}
+// MaxCallSendMsgSize returns a CallOption which sets the maximum message size
+// in bytes the client can send.
+func MaxCallSendMsgSize(bytes int) CallOption {
+	return MaxSendMsgSizeCallOption{MaxSendMsgSize: bytes}
 }
 
 // MaxSendMsgSizeCallOption is a CallOption that indicates the maximum message
-// size the client can send.
+// size in bytes the client can send.
 // This is an EXPERIMENTAL API.
 type MaxSendMsgSizeCallOption struct {
 	MaxSendMsgSize int
@@ -871,7 +873,7 @@ type channelzData struct {
 
 // The SupportPackageIsVersion variables are referenced from generated protocol
 // buffer files to ensure compatibility with the gRPC version used.  The latest
-// support package version is 5.
+// support package version is 6.
 //
 // Older versions are kept for compatibility. They may be removed if
 // compatibility cannot be maintained.
@@ -881,6 +883,7 @@ const (
 	SupportPackageIsVersion3 = true
 	SupportPackageIsVersion4 = true
 	SupportPackageIsVersion5 = true
+	SupportPackageIsVersion6 = true
 )
 
 const grpcUA = "grpc-go/" + Version
