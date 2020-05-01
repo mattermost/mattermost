@@ -154,6 +154,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetGroupsByUserIds returns a slice of `GroupsByUser` which contain a user id and a slice of groups
+	GetGroupsByUserIds(userIDs []string) ([]*model.GroupsByUser, *model.AppError)
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
 	// GetKnownUsers returns the list of user ids of users with any direct

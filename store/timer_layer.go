@@ -2958,6 +2958,22 @@ func (s *TimerLayerGroupStore) GetByUser(userId string) ([]*model.Group, *model.
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerGroupStore) GetByUsers(userIDs []string) ([]*model.GroupsByUser, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GetByUsers(userIDs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GetByUsers", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	start := timemodule.Now()
 

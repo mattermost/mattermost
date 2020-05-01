@@ -529,6 +529,31 @@ func (_m *GroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError)
 	return r0, r1
 }
 
+// GetByUsers provides a mock function with given fields: userIDs
+func (_m *GroupStore) GetByUsers(userIDs []string) ([]*model.GroupsByUser, *model.AppError) {
+	ret := _m.Called(userIDs)
+
+	var r0 []*model.GroupsByUser
+	if rf, ok := ret.Get(0).(func([]string) []*model.GroupsByUser); ok {
+		r0 = rf(userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.GroupsByUser)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
 func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupID, syncableID, syncableType)

@@ -55,6 +55,10 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
 		api.ApiSessionRequired(getGroupMembers)).Methods("GET")
 
+	// POST /api/v4/groups/users
+	api.BaseRoutes.Groups.Handle("/users/ids",
+		api.ApiSessionRequired(getGroupsByUserIds)).Methods("POST")
+
 	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
 		api.ApiSessionRequired(getGroupsByChannel)).Methods("GET")
@@ -704,6 +708,39 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	b, marshalErr := json.Marshal(groups)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsByUserIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupMembersByIds", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	userIds := model.ArrayFromJson(r.Body)
+
+	if len(userIds) == 0 {
+		c.SetInvalidParam("user_ids")
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupsByUsers, err := c.App.GetGroupsByUserIds(userIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groupsByUsers)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByUserIds", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

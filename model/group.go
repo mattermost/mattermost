@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -57,6 +58,23 @@ type GroupsAssociatedToChannelWithSchemeAdmin struct {
 type GroupsAssociatedToChannel struct {
 	ChannelId string                  `json:"channel_id"`
 	Groups    []*GroupWithSchemeAdmin `json:"groups"`
+}
+
+type GroupsByUser struct {
+	UserId   string   `json:"user_id"`
+	GroupIDs *string  `json:"-"`
+	Groups   []*Group `json:"groups"`
+}
+
+func (g *GroupsByUser) GetGroupIDs() []string {
+	if g.GroupIDs == nil {
+		return nil
+	}
+	trimmed := strings.TrimSpace(*g.GroupIDs)
+	if len(trimmed) == 0 {
+		return nil
+	}
+	return strings.Split(trimmed, ",")
 }
 
 type GroupPatch struct {

@@ -5024,3 +5024,14 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 	defer closeBody(r)
 	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) GetGroupsByUserIds(userIds []string) ([]*GroupsByUser, *Response) {
+	r, err := c.DoApiPost(c.GetGroupsRoute()+"/users/ids", ArrayToJson(userIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var groupsByUsers []*GroupsByUser
+	json.NewDecoder(r.Body).Decode(&groupsByUsers)
+	return groupsByUsers, BuildResponse(r)
+}

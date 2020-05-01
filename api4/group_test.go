@@ -912,3 +912,45 @@ func TestGetGroups(t *testing.T) {
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
 }
+
+func TestGetGroupsByUserIds(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetLicense(nil)
+
+	userIds := []string{}
+	user1 := th.BasicUser
+	group1 := th.CreateGroup()
+
+	// Not implemented when called without ldap license
+	_, response := th.SystemAdminClient.GetGroupsByUserIds(userIds)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	// Errors with an empty list of users
+	_, response = th.SystemAdminClient.GetGroupsByUserIds(userIds)
+	require.NotNil(t, response.Error)
+
+	userIds = []string{user1.Id}
+
+	// Errors when not called by sysadmin
+	_, response = th.Client.GetGroupsByUserIds(userIds)
+	require.NotNil(t, response.Error)
+
+	// Returns empty groups by users when none exist
+	groupsByUsers, response := th.SystemAdminClient.GetGroupsByUserIds(userIds)
+	require.Nil(t, response.Error)
+	require.Equal(t, groupsByUsers, []*model.GroupsByUser{})
+
+	th.App.UpsertGroupMember(group1.Id, user1.Id)
+
+	// Returns groups by users when one exists
+	groupsByUsers, response = th.SystemAdminClient.GetGroupsByUserIds(userIds)
+	require.Nil(t, response.Error)
+	require.Len(t, groupsByUsers, 1)
+	require.Equal(t, groupsByUsers[0].UserId, user1.Id)
+	require.Len(t, groupsByUsers[0].Groups, 1)
+	require.Equal(t, groupsByUsers[0].Groups[0], group1)
+}

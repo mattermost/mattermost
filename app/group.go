@@ -27,6 +27,53 @@ func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
 	return a.Srv().Store.Group().GetByUser(userId)
 }
 
+// GetGroupsByUserIds returns a slice of `GroupsByUser` which contain a user id and a slice of groups
+func (a *App) GetGroupsByUserIds(userIDs []string) ([]*model.GroupsByUser, *model.AppError) {
+	groupsByUsers, err := a.Srv().Store.Group().GetByUsers(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// parse all group ids of all users
+	allUsersGroupIDMap := map[string]bool{}
+	for _, user := range groupsByUsers {
+		for _, groupID := range user.GetGroupIDs() {
+			allUsersGroupIDMap[groupID] = true
+		}
+	}
+
+	// create a slice of distinct group ids
+	var allUsersGroupIDSlice []string
+	for key := range allUsersGroupIDMap {
+		allUsersGroupIDSlice = append(allUsersGroupIDSlice, key)
+	}
+
+	// retrieve groups from DB
+	groups, err := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	if err != nil {
+		return nil, err
+	}
+
+	// map groups by id
+	groupMap := map[string]*model.Group{}
+	for _, group := range groups {
+		groupMap[group.Id] = group
+	}
+
+	// populate each instance's groups field
+	for _, user := range groupsByUsers {
+		user.Groups = []*model.Group{}
+		for _, groupID := range user.GetGroupIDs() {
+			group, ok := groupMap[groupID]
+			if ok {
+				user.Groups = append(user.Groups, group)
+			}
+		}
+	}
+
+	return groupsByUsers, nil
+}
+
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	return a.Srv().Store.Group().Create(group)
 }

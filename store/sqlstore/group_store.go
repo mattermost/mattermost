@@ -192,6 +192,40 @@ func (s *SqlGroupStore) GetByUser(userId string) ([]*model.Group, *model.AppErro
 	return groups, nil
 }
 
+func (s *SqlGroupStore) GetByUsers(userIDs []string) ([]*model.GroupsByUser, *model.AppError) {
+	var groupsByUsers []*model.GroupsByUser
+
+	var selectStr string
+	tmpl := "Users.Id AS UserId, %s AS GroupIDs"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		selectStr = fmt.Sprintf(tmpl, "group_concat(GroupMembers.GroupId)")
+	} else {
+		selectStr = fmt.Sprintf(tmpl, "string_agg(GroupMembers.GroupId, ',')")
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("Users").
+		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where(fmt.Sprintf("Users.Id IN ('%s')", strings.Join(userIDs, "', '"))).
+		Where("GroupMembers.DeleteAt = 0 AND UserGroups.DeleteAt = 0").
+		GroupBy("Users.Id")
+
+	sql, params, err := query.ToSql()
+	fmt.Println(sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByUsers", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err = s.GetReplica().Select(&groupsByUsers, sql, params...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByUsers", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groupsByUsers, nil
+}
+
 func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppError) {
 	var retrievedGroup *model.Group
 	if err := s.GetReplica().SelectOne(&retrievedGroup, "SELECT * FROM UserGroups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {

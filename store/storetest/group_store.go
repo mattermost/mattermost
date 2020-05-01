@@ -27,6 +27,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
 	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, ss) })
+	t.Run("GetByUsers", func(t *testing.T) { testGroupStoreGetByUsers(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
@@ -408,6 +409,134 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 	groups, err = ss.Group().GetByUser(model.NewId())
 	require.Nil(t, err)
 	assert.Equal(t, 0, len(groups))
+}
+
+func testGroupStoreGetByUsers(t *testing.T, ss store.Store) {
+	var groupsByUsers []*model.GroupsByUser
+
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g1, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	g2, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u1, err = ss.User().Save(u1)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u2, err = ss.User().Save(u2)
+	require.Nil(t, err)
+
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	u3, err = ss.User().Save(u3)
+	require.Nil(t, err)
+
+	t.Run("Errors an empty slice of user ids", func(t *testing.T) {
+		userIDs := []string{}
+		_, err = ss.Group().GetByUsers(userIDs)
+		require.Error(t, err)
+	})
+
+	t.Run("Returns an empty slice of GroupsByUser when no group members exist", func(t *testing.T) {
+		userIDs := []string{u1.Id, u2.Id, u3.Id}
+		groupsByUsers, err = ss.Group().GetByUsers(userIDs)
+		require.Nil(t, err)
+		require.Empty(t, groupsByUsers)
+	})
+
+	// Add u1 to groups g1 and g2
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().UpsertMember(g2.Id, u1.Id)
+	require.Nil(t, err)
+
+	t.Run("Returns only users that have groups when group members exist for only one user", func(t *testing.T) {
+		userIDs := []string{u1.Id, u2.Id, u3.Id}
+		groupsByUsers, err = ss.Group().GetByUsers(userIDs)
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 1)
+		require.Equal(t, groupsByUsers[0].UserId, u1.Id)
+		expectedGroupIDs := []string{g1.Id, g2.Id}
+		actualGroupIDs := groupsByUsers[0].GetGroupIDs()
+		require.ElementsMatch(t, expectedGroupIDs, actualGroupIDs)
+	})
+
+	// add u2 to g1
+	_, err = ss.Group().UpsertMember(g1.Id, u2.Id)
+	require.Nil(t, err)
+	// add u3 to g2
+	_, err = ss.Group().UpsertMember(g2.Id, u3.Id)
+	require.Nil(t, err)
+
+	t.Run("Returns all users with groups users that have groups when group members exist for only one user", func(t *testing.T) {
+		userIDs := []string{u1.Id, u2.Id, u3.Id}
+		groupsByUsers, err = ss.Group().GetByUsers(userIDs)
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 3)
+		for _, groupsByUser := range groupsByUsers {
+			if groupsByUser.UserId == u1.Id {
+				expectedGroupIDs := []string{g1.Id, g2.Id}
+				actualGroupIDs := groupsByUser.GetGroupIDs()
+				require.ElementsMatch(t, expectedGroupIDs, actualGroupIDs)
+			} else if groupsByUser.UserId == u2.Id {
+				expectedGroupIDs := []string{g1.Id}
+				actualGroupIDs := groupsByUser.GetGroupIDs()
+				require.ElementsMatch(t, expectedGroupIDs, actualGroupIDs)
+			} else if groupsByUser.UserId == u3.Id {
+				expectedGroupIDs := []string{g2.Id}
+				actualGroupIDs := groupsByUser.GetGroupIDs()
+				require.ElementsMatch(t, expectedGroupIDs, actualGroupIDs)
+			}
+		}
+	})
+
+	ss.Group().DeleteMember(g1.Id, u1.Id)
+	ss.Group().DeleteMember(g1.Id, u2.Id)
+
+	t.Run("Excludes groups members that are deleted for users that have members", func(t *testing.T) {
+		userIDs := []string{u1.Id, u2.Id, u3.Id}
+		groupsByUsers, err = ss.Group().GetByUsers(userIDs)
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 2)
+		for _, groupsByUser := range groupsByUsers {
+			expectedGroupIDs := []string{g2.Id}
+			actualGroupIDs := groupsByUser.GetGroupIDs()
+			require.ElementsMatch(t, expectedGroupIDs, actualGroupIDs)
+		}
+	})
+
+	ss.Group().Delete(g2.Id)
+
+	t.Run("Excludes groups that are deleted", func(t *testing.T) {
+		userIDs := []string{u1.Id, u2.Id, u3.Id}
+		groupsByUsers, err = ss.Group().GetByUsers(userIDs)
+		require.Nil(t, err)
+		require.Empty(t, groupsByUsers)
+	})
 }
 
 func testGroupStoreUpdate(t *testing.T, ss store.Store) {

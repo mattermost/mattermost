@@ -371,3 +371,82 @@ func TestUserIsInAdminRoleGroup(t *testing.T) {
 	require.Nil(t, err)
 	require.False(t, actual)
 }
+
+func TestGetGroupsByUserIds(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+	group3 := th.CreateGroup()
+
+	user1 := th.BasicUser
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+	userIds := []string{user1.Id, user2.Id, user3.Id}
+	var groupsByUsers []*model.GroupsByUser
+
+	t.Run("Returns an empty list of groups when users match no groups", func(t *testing.T) {
+		groupsByUsers, err := th.App.GetGroupsByUserIds(userIds)
+		require.Nil(t, err)
+		require.Equal(t, groupsByUsers, []*model.GroupsByUser{})
+	})
+
+	g, err := th.App.UpsertGroupMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group2.Id, user1.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	t.Run("Returns groups by users for a single user in multiple groups", func(t *testing.T) {
+		expectedGroups := []*model.Group{group1, group2}
+		groupsByUsers, err = th.App.GetGroupsByUserIds(userIds)
+
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 1)
+		require.Equal(t, groupsByUsers[0].UserId, user1.Id)
+		require.ElementsMatch(t, groupsByUsers[0].Groups, expectedGroups)
+	})
+
+	g, err = th.App.UpsertGroupMember(group1.Id, user2.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group2.Id, user2.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	g, err = th.App.UpsertGroupMember(group3.Id, user3.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+
+	t.Run("Returns groups by users for multiple users in multiple groups", func(t *testing.T) {
+		groupsByUsers, err = th.App.GetGroupsByUserIds(userIds)
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 3)
+
+		for _, groupsByUser := range groupsByUsers {
+			if groupsByUser.UserId == user1.Id {
+				expectedGroups := []*model.Group{group1, group2}
+				require.ElementsMatch(t, groupsByUser.Groups, expectedGroups)
+			} else if groupsByUser.UserId == user2.Id {
+				expectedGroups := []*model.Group{group1, group2}
+				require.ElementsMatch(t, groupsByUser.Groups, expectedGroups)
+			} else if groupsByUser.UserId == user3.Id {
+				expectedGroups := []*model.Group{group3}
+				require.ElementsMatch(t, groupsByUser.Groups, expectedGroups)
+			}
+		}
+	})
+
+	th.App.DeleteGroup(group3.Id)
+	t.Run("Does not return deleted groups", func(t *testing.T) {
+		groupsByUsers, err = th.App.GetGroupsByUserIds(userIds)
+		require.Nil(t, err)
+		require.Len(t, groupsByUsers, 2)
+		expectedGroups := []*model.Group{group1, group2}
+		require.ElementsMatch(t, groupsByUsers[0].Groups, expectedGroups)
+		require.ElementsMatch(t, groupsByUsers[1].Groups, expectedGroups)
+	})
+}

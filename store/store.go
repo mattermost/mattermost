@@ -626,6 +626,7 @@ type GroupStore interface {
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
 	GetByUser(userId string) ([]*model.Group, *model.AppError)
+	GetByUsers(userIDs []string) ([]*model.GroupsByUser, *model.AppError)
 	Update(group *model.Group) (*model.Group, *model.AppError)
 	Delete(groupID string) (*model.Group, *model.AppError)
 
