@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	syslog "github.com/RackSec/srslog"
 	"github.com/wiggin77/logr"
 	"github.com/wiggin77/merror"
+	syslog "github.com/wiggin77/srslog"
 )
 
 // Syslog outputs log records to local or remote syslog.
