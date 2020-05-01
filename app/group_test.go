@@ -384,9 +384,10 @@ func TestGetGroupsByUserIds(t *testing.T) {
 	user3 := th.CreateUser()
 	userIds := []string{user1.Id, user2.Id, user3.Id}
 	var groupsByUsers []*model.GroupsByUser
+	var err *model.AppError
 
 	t.Run("Returns an empty list of groups when users match no groups", func(t *testing.T) {
-		groupsByUsers, err := th.App.GetGroupsByUserIds(userIds)
+		groupsByUsers, err = th.App.GetGroupsByUserIds(userIds)
 		require.Nil(t, err)
 		require.Equal(t, groupsByUsers, []*model.GroupsByUser{})
 	})
