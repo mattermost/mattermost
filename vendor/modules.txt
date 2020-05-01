@@ -156,7 +156,6 @@ github.com/jaytaylor/html2text
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
 # github.com/jonboulle/clockwork v0.1.0
-## explicit
 github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
