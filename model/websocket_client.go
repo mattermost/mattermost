@@ -271,15 +271,18 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 }
 
 func (wsc *WebSocketClient) pingWatchdog() {
-	select {
-	case <-wsc.resetTimerChan:
-		if !wsc.pingTimeoutTimer.Stop() {
-			<-wsc.pingTimeoutTimer.C
-		}
+	for {
+		select {
+		case <-wsc.resetTimerChan:
+			if !wsc.pingTimeoutTimer.Stop() {
+				<-wsc.pingTimeoutTimer.C
+			}
 
-		wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
-	case <-wsc.pingTimeoutTimer.C:
-		wsc.PingTimeoutChannel <- true
-	case <-wsc.quitPingWatchdog:
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+		case <-wsc.pingTimeoutTimer.C:
+			wsc.PingTimeoutChannel <- true
+		case <-wsc.quitPingWatchdog:
+			return
+		}
 	}
 }
