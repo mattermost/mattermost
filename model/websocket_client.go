@@ -277,10 +277,11 @@ func (wsc *WebSocketClient) pingWatchdog() {
 			if !wsc.pingTimeoutTimer.Stop() {
 				<-wsc.pingTimeoutTimer.C
 			}
-
 			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+
 		case <-wsc.pingTimeoutTimer.C:
 			wsc.PingTimeoutChannel <- true
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
 		case <-wsc.quitPingWatchdog:
 			return
 		}
