@@ -11,7 +11,6 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -134,8 +133,6 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	}
 
 	queryString, args, err := query.ToSql()
-
-	mlog.Info("CITOMAI::queryString", mlog.String("queryString", queryString))
 
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetByName", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
