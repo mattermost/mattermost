@@ -72,8 +72,11 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		return nil, err
 	}
 
-	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
-	if _, ok := post.GetProps()["from_webhook"]; !ok {
+	// Update the LastViewAt only if the post does not have from_webhook prop set (e.g. Zapier app),
+	// or if it does not have from_bot set (e.g. from discovering the user is a bot within CreatePost).
+	_, fromWebhook := post.GetProps()["from_webhook"]
+	_, fromBot := post.GetProps()["from_bot"]
+	if !fromWebhook && !fromBot {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(
 				"Encountered error updating last viewed",
@@ -416,12 +419,14 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	a.Srv().Go(func() {
-		_, err := a.SendAutoResponseIfNecessary(channel, user)
-		if err != nil {
-			mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
-		}
-	})
+	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
+		a.Srv().Go(func() {
+			_, err := a.SendAutoResponseIfNecessary(channel, user)
+			if err != nil {
+				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+			}
+		})
+	}
 
 	if triggerWebhooks {
 		a.Srv().Go(func() {
