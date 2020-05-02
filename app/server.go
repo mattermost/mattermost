@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
@@ -33,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -72,9 +74,8 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	hubsLock                    sync.RWMutex
-	hubs                        []*Hub
-	HubsStopCheckingForDeadlock chan bool
+	hubsLock sync.RWMutex
+	hubs     []*Hub
 
 	PushNotificationsHub PushNotificationsHub
 
@@ -114,10 +115,12 @@ type Server struct {
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
+	rudderClient     rudder.Client
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService httpservice.HTTPService
+	HTTPService            httpservice.HTTPService
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -143,7 +146,8 @@ type Server struct {
 
 	CacheProvider cache.Provider
 
-	tracer *tracing.Tracer
+	tracer                      *tracing.Tracer
+	timestampLastDiagnosticSent time.Time
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -202,7 +206,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
-	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+	s.HTTPService = httpservice.MakeHTTPService(s)
+	s.pushNotificationClient = s.HTTPService.MakeClient(true)
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
@@ -723,11 +728,32 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
-func runDiagnosticsJob(s *Server) {
-	doDiagnostics(s)
-	model.CreateRecurringTask("Diagnostics", func() {
+func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
+	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
+	// Send once every 10 minutes for the first hour
+	// Send once every hour thereafter for the first 12 hours
+	// Send at the 24 hour mark and every 24 hours after
+	if hoursSinceFirstServerRun < 1 {
 		doDiagnostics(s)
-	}, time.Hour*24)
+	} else if hoursSinceFirstServerRun <= 12 && time.Since(s.timestampLastDiagnosticSent) >= time.Hour {
+		doDiagnostics(s)
+	} else if hoursSinceFirstServerRun > 12 && time.Since(s.timestampLastDiagnosticSent) >= 24*time.Hour {
+		doDiagnostics(s)
+	}
+}
+
+func runDiagnosticsJob(s *Server) {
+	// Send on boot
+	doDiagnostics(s)
+	firstRun, err := s.FakeApp().getFirstServerRunTimestamp()
+	if err != nil {
+		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+		s.FakeApp().ensureFirstServerRunTimestamp()
+		firstRun = utils.MillisFromTime(time.Now())
+	}
+	model.CreateRecurringTask("Diagnostics", func() {
+		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
+	}, time.Minute*10)
 }
 
 func runTokenCleanupJob(s *Server) {
@@ -757,6 +783,7 @@ func doSecurity(s *Server) {
 
 func doDiagnostics(s *Server) {
 	if *s.Config().LogSettings.EnableDiagnostics {
+		s.timestampLastDiagnosticSent = time.Now()
 		s.FakeApp().SendDailyDiagnostics()
 	}
 }
@@ -871,13 +898,47 @@ func (s *Server) initDiagnostics(endpoint string) {
 	}
 }
 
+func (s *Server) initRudder(endpoint string) {
+	if s.rudderClient == nil {
+		config := rudder.Config{}
+		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
+		config.Endpoint = endpoint
+		// For testing
+		if endpoint != RUDDER_DATAPLANE_URL {
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		if err != nil {
+			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
+			return
+		}
+		client.Enqueue(rudder.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.rudderClient = client
+	}
+}
+
 // shutdownDiagnostics closes the diagnostic client.
 func (s *Server) shutdownDiagnostics() error {
+	var segmentErr, rudderErr error
 	if s.diagnosticClient != nil {
-		return s.diagnosticClient.Close()
+		segmentErr = s.diagnosticClient.Close()
 	}
 
-	return nil
+	if s.rudderClient != nil {
+		rudderErr = s.rudderClient.Close()
+	}
+
+	if segmentErr != nil && rudderErr != nil {
+		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
+	} else if segmentErr != nil {
+		return segmentErr
+	}
+
+	return rudderErr
 }
 
 // GetHubs returns the list of hubs. This method is safe
@@ -917,4 +978,37 @@ func (s *Server) SetHub(index int, hub *Hub) error {
 	}
 	s.hubs[index] = hub
 	return nil
+}
+
+func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
+	license := s.License()
+	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+}
+
+func (s *Server) TotalWebsocketConnections() int {
+	count := int64(0)
+	for _, hub := range s.GetHubs() {
+		count = count + atomic.LoadInt64(&hub.connectionCount)
+	}
+
+	return int(count)
+}
+
+func (s *Server) ensureDiagnosticId() {
+	if s.diagnosticId != "" {
+		return
+	}
+	props, err := s.Store.System().Get()
+	if err != nil {
+		return
+	}
+
+	id := props[model.SYSTEM_DIAGNOSTIC_ID]
+	if len(id) == 0 {
+		id = model.NewId()
+		systemID := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+		s.Store.System().Save(systemID)
+	}
+
+	s.diagnosticId = id
 }

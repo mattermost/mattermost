@@ -39,6 +39,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -563,6 +564,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
 		model.PERMISSION_VIEW_MEMBERS.Id,
 		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expectedSystemAdmin)
 
@@ -596,6 +598,13 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		model.PERMISSION_CREATE_EMOJIS.Id,
 		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_ADD_REACTION.Id,
+		model.PERMISSION_CREATE_POST.Id,
+		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_REMOVE_REACTION.Id,
+		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expected2)
 	sort.Strings(role2.Permissions)

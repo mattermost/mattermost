@@ -31,6 +31,9 @@ func (a *App) registerAllClusterMessageHandlers() {
 
 func (a *App) clusterPublishHandler(msg *model.ClusterMessage) {
 	event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
+	if event == nil {
+		return
+	}
 	a.PublishSkipClusterSend(event)
 }
 
@@ -56,7 +59,7 @@ func (a *App) clusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
 }
 
 func (a *App) clusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
-	a.invalidateCacheForUserTeamsSkipClusterSend(msg.Data)
+	a.InvalidateWebConnSessionCacheForUser(msg.Data)
 }
 
 func (a *App) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {

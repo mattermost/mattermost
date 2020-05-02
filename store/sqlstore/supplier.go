@@ -205,10 +205,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
-	supplier.stores.reaction.(*SqlReactionStore).createIndexesIfNotExists()
-	supplier.stores.role.(*SqlRoleStore).createIndexesIfNotExists()
-	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
+	supplier.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
 	supplier.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return supplier
@@ -301,6 +299,27 @@ func (ss *SqlSupplier) DriverName() string {
 func (ss *SqlSupplier) GetCurrentSchemaVersion() string {
 	version, _ := ss.GetMaster().SelectStr("SELECT Value FROM Systems WHERE Name='Version'")
 	return version
+}
+
+func (ss *SqlSupplier) GetDbVersion() (string, error) {
+	var sqlVersion string
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sqlVersion = `SHOW server_version`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		sqlVersion = `SELECT version()`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		sqlVersion = `SELECT sqlite_version()`
+	} else {
+		return "", errors.New("Not supported driver")
+	}
+
+	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	if err != nil {
+		return "", err
+	}
+
+	return version, nil
+
 }
 
 func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
