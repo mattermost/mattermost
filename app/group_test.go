@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -239,6 +240,45 @@ func TestGetGroupsByChannel(t *testing.T) {
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	// Create a group channel
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	}
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, err := th.App.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	require.Nil(t, err)
+
+	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
+		th.BasicChannel.Id: {
+			{Group: *group, SchemeAdmin: model.NewBool(false)},
+		},
+	}, groups)
+	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
+
+	groups, err = th.App.GetGroupsAssociatedToChannelsByTeam(model.NewId(), opts)
 	require.Nil(t, err)
 	require.Empty(t, groups)
 }
