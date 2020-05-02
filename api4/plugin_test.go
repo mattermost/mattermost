@@ -559,7 +559,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "https://example.com/icon.svg",
-				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				DownloadURL: "https://example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.4/com.mattermost.nps-1.0.4.tar.gz",
 				Labels: []model.MarketplaceLabel{
 					{
 						Name:        "someName",
@@ -570,7 +570,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
 					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
-					Version:          "1.0.3",
+					Version:          "1.0.4",
 					MinServerVersion: "5.14.0",
 				},
 			},
@@ -703,12 +703,12 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
 				HomepageURL: "example.com/mattermost/mattermost-plugin-nps",
 				IconData:    "Cjxzdmcgdmlld0JveD0nMCAwIDEwNSA5MycgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz4KPHBhdGggZD0nTTY2LDBoMzl2OTN6TTM4LDBoLTM4djkzek01MiwzNWwyNSw1OGgtMTZsLTgtMThoLTE4eicgZmlsbD0nI0VEMUMyNCcvPgo8L3N2Zz4K",
-				DownloadURL: "example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.3/com.mattermost.nps-1.0.3.tar.gz",
+				DownloadURL: "example.com/mattermost/mattermost-plugin-nps/releases/download/v1.0.4/com.mattermost.nps-1.0.4.tar.gz",
 				Manifest: &model.Manifest{
 					Id:               "com.mattermost.nps",
 					Name:             "User Satisfaction Surveys",
 					Description:      "This plugin sends quarterly user satisfaction surveys to gather feedback and help improve Mattermost.",
-					Version:          "1.0.3",
+					Version:          "1.0.4",
 					MinServerVersion: "5.14.0",
 				},
 			},

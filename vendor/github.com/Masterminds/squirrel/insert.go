@@ -15,12 +15,13 @@ import (
 type insertData struct {
 	PlaceholderFormat PlaceholderFormat
 	RunWith           BaseRunner
-	Prefixes          exprs
+	Prefixes          []Sqlizer
+	StatementKeyword  string
 	Options           []string
 	Into              string
 	Columns           []string
 	Values            [][]interface{}
-	Suffixes          exprs
+	Suffixes          []Sqlizer
 	Select            *SelectBuilder
 }
 
@@ -62,11 +63,20 @@ func (d *insertData) ToSql() (sqlStr string, args []interface{}, err error) {
 	sql := &bytes.Buffer{}
 
 	if len(d.Prefixes) > 0 {
-		args, _ = d.Prefixes.AppendToSql(sql, " ", args)
+		args, err = appendToSql(d.Prefixes, sql, " ", args)
+		if err != nil {
+			return
+		}
+
 		sql.WriteString(" ")
 	}
 
-	sql.WriteString("INSERT ")
+	if d.StatementKeyword == "" {
+		sql.WriteString("INSERT ")
+	} else {
+		sql.WriteString(d.StatementKeyword)
+		sql.WriteString(" ")
+	}
 
 	if len(d.Options) > 0 {
 		sql.WriteString(strings.Join(d.Options, " "))
@@ -94,7 +104,10 @@ func (d *insertData) ToSql() (sqlStr string, args []interface{}, err error) {
 
 	if len(d.Suffixes) > 0 {
 		sql.WriteString(" ")
-		args, _ = d.Suffixes.AppendToSql(sql, " ", args)
+		args, err = appendToSql(d.Suffixes, sql, " ", args)
+		if err != nil {
+			return
+		}
 	}
 
 	sqlStr, err = d.PlaceholderFormat.ReplacePlaceholders(sql.String())
@@ -112,10 +125,13 @@ func (d *insertData) appendValuesToSQL(w io.Writer, args []interface{}) ([]inter
 	for r, row := range d.Values {
 		valueStrings := make([]string, len(row))
 		for v, val := range row {
-			e, isExpr := val.(expr)
-			if isExpr {
-				valueStrings[v] = e.sql
-				args = append(args, e.args...)
+			if vs, ok := val.(Sqlizer); ok {
+				vsql, vargs, err := vs.ToSql()
+				if err != nil {
+					return nil, err
+				}
+				valueStrings[v] = vsql
+				args = append(args, vargs...)
 			} else {
 				valueStrings[v] = "?"
 				args = append(args, val)
@@ -202,7 +218,12 @@ func (b InsertBuilder) ToSql() (string, []interface{}, error) {
 
 // Prefix adds an expression to the beginning of the query
 func (b InsertBuilder) Prefix(sql string, args ...interface{}) InsertBuilder {
-	return builder.Append(b, "Prefixes", Expr(sql, args...)).(InsertBuilder)
+	return b.PrefixExpr(Expr(sql, args...))
+}
+
+// PrefixExpr adds an expression to the very beginning of the query
+func (b InsertBuilder) PrefixExpr(expr Sqlizer) InsertBuilder {
+	return builder.Append(b, "Prefixes", expr).(InsertBuilder)
 }
 
 // Options adds keyword options before the INTO clause of the query.
@@ -227,7 +248,12 @@ func (b InsertBuilder) Values(values ...interface{}) InsertBuilder {
 
 // Suffix adds an expression to the end of the query
 func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
-	return builder.Append(b, "Suffixes", Expr(sql, args...)).(InsertBuilder)
+	return b.SuffixExpr(Expr(sql, args...))
+}
+
+// SuffixExpr adds an expression to the end of the query
+func (b InsertBuilder) SuffixExpr(expr Sqlizer) InsertBuilder {
+	return builder.Append(b, "Suffixes", expr).(InsertBuilder)
 }
 
 // SetMap set columns and values for insert builder from a map of column name and value
@@ -255,4 +281,8 @@ func (b InsertBuilder) SetMap(clauses map[string]interface{}) InsertBuilder {
 // If Values and Select are used, then Select has higher priority
 func (b InsertBuilder) Select(sb SelectBuilder) InsertBuilder {
 	return builder.Set(b, "Select", &sb).(InsertBuilder)
+}
+
+func (b InsertBuilder) statementKeyword(keyword string) InsertBuilder {
+	return builder.Set(b, "StatementKeyword", keyword).(InsertBuilder)
 }
