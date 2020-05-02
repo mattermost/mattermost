@@ -191,28 +191,44 @@ func (s *SqlRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
 }
 
 func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
-	var dbRoles []*Role
-
 	if len(names) == 0 {
 		return []*model.Role{}, nil
 	}
 
-	var searchPlaceholders []string
-	var parameters = map[string]interface{}{}
-	for i, value := range names {
-		searchPlaceholders = append(searchPlaceholders, fmt.Sprintf(":Name%d", i))
-		parameters[fmt.Sprintf("Name%d", i)] = value
+	failure := func(e error) ([]*model.Role, *model.AppError) {
+		return nil, model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, e.Error(), http.StatusInternalServerError)
 	}
 
-	searchTerm := "Name IN (" + strings.Join(searchPlaceholders, ", ") + ")"
+	query := s.getQueryBuilder().
+		Select("Id, Name, DisplayName, Description, CreateAt, UpdateAt, DeleteAt, Permissions, SchemeManaged, BuiltIn").
+		From("Roles").
+		Where(sq.Eq{"Name": names})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return failure(err)
+	}
 
-	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles WHERE "+searchTerm, parameters); err != nil {
-		return nil, model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return failure(err)
 	}
 
 	var roles []*model.Role
-	for _, dbRole := range dbRoles {
-		roles = append(roles, dbRole.ToModel())
+	defer rows.Close()
+	for rows.Next() {
+		var role Role
+		err = rows.Scan(
+			&role.Id, &role.Name, &role.DisplayName, &role.Description,
+			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
+			&role.SchemeManaged, &role.BuiltIn)
+		if err != nil {
+			return failure(err)
+		}
+		roles = append(roles, role.ToModel())
+	}
+	err = rows.Err()
+	if err != nil {
+		return failure(err)
 	}
 
 	return roles, nil

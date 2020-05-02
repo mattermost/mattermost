@@ -64,9 +64,9 @@ type client struct {
 // Instantiate a new client that uses the write key passed as first argument to
 // send messages to the backend.
 // The client is created with the default configuration.
-func New(writeKey string) Client {
+func New(writeKey string, dataPlaneUrl string) Client {
 	// Here we can ignore the error because the default config is always valid.
-	c, _ := NewWithConfig(writeKey, Config{})
+	c, _ := NewWithConfig(writeKey, dataPlaneUrl, Config{})
 	return c
 }
 
@@ -75,10 +75,12 @@ func New(writeKey string) Client {
 // The function will return an error if the configuration contained impossible
 // values (like a negative flush interval for example).
 // When the function returns an error the returned client will always be nil.
-func NewWithConfig(writeKey string, config Config) (cli Client, err error) {
+func NewWithConfig(writeKey string, dataPlaneUrl string, config Config) (cli Client, err error) {
 	if err = config.validate(); err != nil {
 		return
 	}
+
+	config.Endpoint = dataPlaneUrl
 
 	c := &client{
 		Config:   makeConfig(config),
@@ -105,37 +107,61 @@ func makeHttpClient(transport http.RoundTripper) http.Client {
 	return httpClient
 }
 
+func makeContext() *Context {
+	context := Context{}
+	context.Library = LibraryInfo{
+		Name:    "analytics-go",
+		Version: "1.0.0",
+	}
+
+	return &context
+}
+
+func makeAnonymousId(userId string) string {
+
+	if userId != "" {
+		return userId
+	}
+	return uid()
+}
+
 func dereferenceMessage(msg Message) Message {
 	switch m := msg.(type) {
 	case *Alias:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Group:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Identify:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Page:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Screen:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	case *Track:
 		if m == nil {
 			return nil
 		}
+
 		return *m
 	}
 
@@ -143,6 +169,7 @@ func dereferenceMessage(msg Message) Message {
 }
 
 func (c *client) Enqueue(msg Message) (err error) {
+
 	msg = dereferenceMessage(msg)
 	if err = msg.Validate(); err != nil {
 		return
@@ -156,36 +183,69 @@ func (c *client) Enqueue(msg Message) (err error) {
 		m.Type = "alias"
 		m.MessageId = makeMessageId(m.MessageId, id)
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	case Group:
 		m.Type = "group"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	case Identify:
 		m.Type = "identify"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	case Page:
 		m.Type = "page"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	case Screen:
 		m.Type = "screen"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	case Track:
 		m.Type = "track"
 		m.MessageId = makeMessageId(m.MessageId, id)
+		if m.AnonymousId == "" {
+			m.AnonymousId = makeAnonymousId(m.UserId)
+		}
 		m.Timestamp = makeTimestamp(m.Timestamp, ts)
+		if m.Context == nil {
+			m.Context = makeContext()
+		}
 		msg = m
 
 	default:
