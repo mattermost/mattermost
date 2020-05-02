@@ -5036,6 +5036,17 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) GetKnownUsers() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetUsersRoute()+"/known", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var userIds []string
+	json.NewDecoder(r.Body).Decode(&userIds)
+	return userIds, BuildResponse(r)
+}
+
 func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
 	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
 	if err != nil {

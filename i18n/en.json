@@ -5723,6 +5723,10 @@
     "translation": "FromDb: Unable to convert StringMap to *string"
   },
   {
+    "id": "store.sql_audit.app_error",
+    "translation": "Failed to build query."
+  },
+  {
     "id": "store.sql_audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
@@ -7241,6 +7245,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
