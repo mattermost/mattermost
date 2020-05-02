@@ -1147,8 +1147,6 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 		return err
 	}
 
-	var lastPostWithData *postAndData
-	repliesBulk := []ReplyImportData{}
 	for _, postWithData := range postsWithData {
 		postWithData := postWithData
 		if postWithData.postData.FlaggedBy != nil {
@@ -1181,27 +1179,14 @@ func (a *App) importMultiplePosts(data []*PostImportData, dryRun bool) *model.Ap
 			}
 		}
 
-		if postWithData.postData.Replies != nil {
-			repliesBulk = append(repliesBulk, *postWithData.postData.Replies...)
-			if len(repliesBulk) >= importMultiplePostsThreshold {
-				err := a.importReplies(repliesBulk, postWithData.post, postWithData.team.Id, dryRun)
-				if err != nil {
-					return err
-				}
-				repliesBulk = []ReplyImportData{}
+		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
+			err := a.importReplies(*postWithData.postData.Replies, postWithData.post, postWithData.team.Id, dryRun)
+			if err != nil {
+				return err
 			}
 		}
 		a.updateFileInfoWithPostId(postWithData.post)
-		lastPostWithData = &postWithData
 	}
-
-	if len(repliesBulk) >= 0 && lastPostWithData != nil {
-		err := a.importReplies(repliesBulk, lastPostWithData.post, lastPostWithData.team.Id, dryRun)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
