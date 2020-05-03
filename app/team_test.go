@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"testing"
@@ -825,15 +826,16 @@ func TestGetTeamMembers(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	var userIDs sort.StringSlice
-	userIDs = append(userIDs, th.BasicUser.Id)
-	userIDs = append(userIDs, th.BasicUser2.Id)
+	var users []model.User
+	users = append(users, *th.BasicUser)
+	users = append(users, *th.BasicUser2)
 
 	for i := 0; i < 8; i++ {
 		user := model.User{
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
 			Password: "passwd1",
+			DeleteAt: int64(rand.Intn(2)),
 		}
 		ruser, err := th.App.CreateUser(&user)
 		require.Nil(t, err)
@@ -843,25 +845,90 @@ func TestGetTeamMembers(t *testing.T) {
 		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
 		require.Nil(t, err)
 
-		// Store the user ids for comparison later
-		userIDs = append(userIDs, ruser.Id)
+		// Store the users for comparison later
+		users = append(users, *ruser)
 	}
-	// Sort them because the result of GetTeamMembers() is also sorted
-	sort.Sort(userIDs)
 
-	// Fetch team members multipile times
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
-	require.Nil(t, err)
+	t.Run("Ensure Sorted By Username when TeamMemberGet options is passed", func(t *testing.T) {
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME})
+		require.Nil(t, err)
 
-	// This should return 5 members
-	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6, nil)
-	require.Nil(t, err)
-	members = append(members, members2...)
+		// Sort the users array by username
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].Username < users[j].Username
+		})
 
-	require.Equal(t, len(userIDs), len(members))
-	for i, member := range members {
-		assert.Equal(t, userIDs[i], member.UserId)
-	}
+		// We should have the same number of users in both users and members array as we have not excluded any deleted members
+		require.Equal(t, len(users), len(members))
+		for i, member := range members {
+			assert.Equal(t, users[i].Id, member.UserId)
+		}
+	})
+
+	t.Run("Ensure ExcludedDeletedUsers when TeamMemberGetOptions is passed", func(t *testing.T) {
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+
+		// Choose all users who aren't deleted from our users array
+		var usersNotDeletedIDs []string
+		var membersIDs []string
+		for _, u := range users {
+			if u.DeleteAt == 0 {
+				usersNotDeletedIDs = append(usersNotDeletedIDs, u.Id)
+			}
+		}
+
+		for _, m := range members {
+			membersIDs = append(membersIDs, m.UserId)
+		}
+
+		require.Equal(t, len(usersNotDeletedIDs), len(membersIDs))
+		require.ElementsMatch(t, usersNotDeletedIDs, membersIDs)
+	})
+
+	t.Run("Ensure Sorted By Username and ExcludedDeletedUsers when TeamMemberGetOptions is passed", func(t *testing.T) {
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME, ExcludeDeletedUsers: true})
+		require.Nil(t, err)
+
+		var usersNotDeleted []model.User
+		for _, u := range users {
+			if u.DeleteAt == 0 {
+				usersNotDeleted = append(usersNotDeleted, u)
+			}
+		}
+
+		// Sort our non deleted members by username
+		sort.Slice(usersNotDeleted, func(i, j int) bool {
+			return usersNotDeleted[i].Username < usersNotDeleted[j].Username
+		})
+
+		require.Equal(t, len(usersNotDeleted), len(members))
+		for i, member := range members {
+			assert.Equal(t, usersNotDeleted[i].Id, member.UserId)
+		}
+	})
+
+	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
+
+		// Sort them by UserID because the result of GetTeamMembers() is also sorted
+		sort.Slice(users, func(i, j int) bool {
+			return users[i].Id < users[j].Id
+		})
+
+		// Fetch team members multipile times
+		members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
+		require.Nil(t, err)
+
+		// This should return 5 members
+		members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6, nil)
+		require.Nil(t, err)
+		members = append(members, members2...)
+
+		require.Equal(t, len(users), len(members))
+		for i, member := range members {
+			assert.Equal(t, users[i].Id, member.UserId)
+		}
+	})
 }
 
 func TestGetTeamStats(t *testing.T) {

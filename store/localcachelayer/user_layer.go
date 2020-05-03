@@ -4,8 +4,6 @@
 package localcachelayer
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -75,7 +73,8 @@ func (s LocalCacheUserStore) InvalidateProfilesInChannelCache(channelId string) 
 func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
 	if allowFromCache {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId); cacheItem != nil {
-			return cacheItem.(map[string]*model.User), nil
+			cachedMap := cacheItem.(map[string]*model.User)
+			return deepCopyUserMap(cachedMap), nil
 		}
 	}
 
@@ -85,7 +84,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	}
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, userMap)
+		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, deepCopyUserMap(userMap))
 	}
 
 	return userMap, nil
@@ -106,7 +105,6 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	for _, userId := range userIds {
 		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId); cacheItem != nil {
 			u := cacheItem.(*model.User)
-
 			if options.Since == 0 || u.UpdateAt > options.Since {
 				users = append(users, u.DeepCopy())
 			}
@@ -123,15 +121,48 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 	if len(remainingUserIds) > 0 {
 		remainingUsers, err := s.UserStore.GetProfileByIds(remainingUserIds, options, false)
 		if err != nil {
-			return nil, model.NewAppError("SqlUserStore.GetProfileByIds", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
-
 		for _, user := range remainingUsers {
-			users = append(users, user.DeepCopy())
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			users = append(users, user.DeepCopy())
 		}
-
 	}
 
 	return users, nil
+}
+
+// Get is a cache wrapper around the SqlStore method to get a user profile by id.
+// It checks if the user entry is present in the cache, returning the entry from cache
+// if it is present. Otherwise, it fetches the entry from the store and stores it in the
+// cache.
+func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
+	cacheItem := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id)
+	if cacheItem != nil {
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+		}
+		u := cacheItem.(*model.User)
+		return u.DeepCopy(), nil
+	}
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+	}
+	user, err := s.UserStore.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	u := user.DeepCopy()
+	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, u)
+	return user.DeepCopy(), nil
+}
+
+func deepCopyUserMap(users map[string]*model.User) map[string]*model.User {
+	copyOfUsers := make(map[string]*model.User)
+
+	for id, user := range users {
+		copyOfUsers[id] = user.DeepCopy()
+	}
+
+	return copyOfUsers
 }

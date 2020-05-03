@@ -230,7 +230,7 @@ func getMockStore() *mocks.Store {
 	mockTermsOfServiceStore.On("Get", "123", false).Return(&fakeTermsOfService, nil)
 	mockStore.On("TermsOfService").Return(&mockTermsOfServiceStore)
 
-	fakeUser := []*model.User{{Id: "123"}}
+	fakeUser := []*model.User{{Id: "123", AuthData: model.NewString("")}}
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
 	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
@@ -241,6 +241,7 @@ func getMockStore() *mocks.Store {
 	mockUserStore.On("GetAllProfilesInChannel", "123", true).Return(fakeProfilesInChannelMap, nil)
 	mockUserStore.On("GetAllProfilesInChannel", "123", false).Return(fakeProfilesInChannelMap, nil)
 
+	mockUserStore.On("Get", "123").Return(fakeUser[0], nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}
