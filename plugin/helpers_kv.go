@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // KVSetJSON implements Helpers.KVSetJSON.
@@ -232,13 +234,13 @@ func (p *HelpersImpl) KVModify(key string, f func(value []byte) ([]byte, error))
 		return appErr
 	}
 
-	modifiedValue, modifiedError := f(v)
-	if modifiedError != nil {
+	modifiedValue, err := f(v)
+	if err != nil {
 		return err
 	}
-	kvErr := p.API.KVSet(key, modifiedValue)
-	if kvErr != nil {
-		return kvErr
+	_, appErr = p.API.KVSetWithOptions(key, modifiedValue, model.PluginKVSetOptions{})
+	if appErr != nil {
+		return appErr
 	}
 	return nil
 }
