@@ -29,11 +29,14 @@ func TestJoinChannel(t *testing.T) {
 }
 
 func TestRemoveChannel(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
+
+	t.Run("should fail because channel does not exist", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
+	})
 
 	t.Run("should remove user from channel", func(t *testing.T) {
 		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
@@ -46,9 +49,9 @@ func TestRemoveChannel(t *testing.T) {
 	})
 
 	t.Run("should not fail removing non member user from channel", func(t *testing.T) {
-		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 		isMember, _ := th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
 		assert.False(t, isMember)
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 	})
 
 	t.Run("should throw error if both --all-users flag and user email are passed", func(t *testing.T) {
