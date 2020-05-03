@@ -97,6 +97,10 @@ func (s *Server) RunOldAppInitialization() error {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
 
+	if err := s.FakeApp().ensureFirstServerRunTimestamp(); err != nil {
+		return errors.Wrapf(err, "unable to ensure first run timestamp")
+	}
+
 	s.FakeApp().EnsureDiagnosticId()
 	s.FakeApp().regenerateClientConfig()
 

@@ -390,6 +390,20 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 	return true, nil
 }
 
+func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+	result := []*model.User{}
+	for _, user := range otherUsers {
+		canSee, err := a.UserCanSeeOtherUser(viewer.Id, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if canSee {
+			result = append(result, user)
+		}
+	}
+	return result, nil
+}
+
 func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
 	if post.IsSystemMessage() {
 		return nil, nil, nil
@@ -411,6 +425,10 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
+	allUsers, err = a.FilterUsersByVisible(sender, allUsers)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if len(allUsers) == 0 {
 		return nil, nil, nil
@@ -428,7 +446,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		outOfChannelUsers = allUsers.FilterWithoutID(nonMemberIDs)
 		outOfGroupsUsers = allUsers.FilterByID(nonMemberIDs)
 	} else {
-		outOfChannelUsers = users
+		outOfChannelUsers = allUsers
 	}
 
 	return outOfChannelUsers, outOfGroupsUsers, nil
