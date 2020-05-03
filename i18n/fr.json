@@ -256,10 +256,6 @@
     "translation": "Vous devez utiliser le service d'API createDirectChannel pour la création d'un canal de messages personnels."
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Caractère '__' invalide dans le nom du canal pour un canal de messages non personnels (groupe de messages privés ou groupe public)."
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Impossible de créer plus de {{.MaxChannelsPerTeam}} canaux pour l'équipe actuelle."
   },
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Le canal a été archivé ou effacé."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Nom de canal invalide. Les identifiants d'utilisateur ne sont pas autorisés dans les noms de canal des canaux qui ne concernent pas des messages personnels. "
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Id invalide"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

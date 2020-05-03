@@ -256,10 +256,6 @@
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください。"
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "ダイレクトチャンネル以外では文字列'__'をチャンネル名称に使うことはできません。"
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "現在のチームには {{.MaxChannelsPerTeam}} チャンネル以上作成できません。"
   },
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "チャンネルはアーカイブされているか削除されています。"
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "不正なチャンネル名です。ユーザーIDはダイレクトメッセージチャンネル以外でチャンネル名に使用することはできません。"
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "不正なIDです。"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

@@ -256,10 +256,6 @@
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Неприпустимий символ '__' в імені каналу не для особистих повідомлень"
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Не можна створити більше {{.MaxChannelsPerTeam}} каналів для цієї команди"
   },
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Даний канал був переміщений в архів, або видалений"
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Неприпустимий ідентифікатор"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

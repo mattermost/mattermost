@@ -256,10 +256,6 @@
     "translation": "Trebuie să utilizați serviciul API createDirectChannel pentru crearea canalului de mesaje directe."
   },
   {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Caracterul invalid '__' în numele canalului pentru canalul care nu este direct."
-  },
-  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Nu se poate crea mai mult de {{.MaxChannelsPerTeam}} canale pentru echipa curenta."
   },
@@ -422,10 +418,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Canalul a fost arhivat sau șters."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Numele canalului invalid. ID-urile de utilizator nu sunt permise în numele canalului pentru canalele de mesaje non-directe."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -4485,6 +4477,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Id incorect."
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

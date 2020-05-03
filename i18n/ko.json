@@ -197,7 +197,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.parse.app_error",
-    "translation": "잘못된 multipart form을 파싱할 수 없습니다"
+    "translation": "잘못된 multipart form을 파싱할 수 없습니다."
   },
   {
     "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -254,10 +254,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "개인 메시지 채널을 만들기 위해서는 반드시 createDirectChannel API 서비스를 이용해야 함"
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "채널 이름 중 '__' 와 같은 글자는 개인 메시지가 아닌 채널에 적합하지 않습니다"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -424,10 +420,6 @@
     "translation": "채널이 보존 처리 혹은 삭제되었습니다"
   },
   {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "잘못된 채널 이름입니다. DM 채널이 아닐경우 사용자 ID가 채널 이름에 허용되지 않습니다."
-  },
-  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "기본 채널 {{.Channel}}에 적절하지 않은 갱신을 시도했습니다"
   },
@@ -441,7 +433,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "잘못된 채널 멤버 수정 : 사용자는 손님 혹은 사용자여야 하며 둘다 될수는 없습니다."
+    "translation": "잘못된 채널 멤버 수정: 사용자는 게스트 혹은 사용자여야하지만 동시에 될 수는 없습니다."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -501,7 +493,7 @@
   },
   {
     "id": "api.command.execute_command.format.app_error",
-    "translation": "Command trigger word is missing the leading slash character"
+    "translation": "명령어 트리거 앞에 슬래시가 누락되었습니다"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -609,7 +601,7 @@
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
-    "translation": "/purpose 명령어를 사용해서 메세지를 작성하세요."
+    "translation": "메시지는 /purpose 명령어와 함께 제공되어야 합니다."
   },
   {
     "id": "api.command_channel_purpose.name",
@@ -1936,7 +1928,7 @@
   },
   {
     "id": "api.status.user_not_found.app_error",
-    "translation": "사용자를 찾을 수 업습니다."
+    "translation": "사용자를 찾을 수 없습니다."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -2968,11 +2960,11 @@
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": "Some teams not found"
+    "translation": "몇몇의 팀들을 찾을 수 없습니다"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Some users not found"
+    "translation": "몇몇의 사용자들을 찾을 수 없습니다"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -4487,6 +4479,10 @@
     "translation": "잘못된 ID"
   },
   {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "model.channel.is_valid.purpose.app_error",
     "translation": "잘못된 목적"
   },
@@ -4976,11 +4972,11 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file."
+    "translation": "유효하지 않은 TLS 인증서 파일 값 - LetsEncrypt를 사용하거나 존재하는 인증서 파일의 경로를 설정하시기 바랍니다."
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
+    "translation": "유효하지 않은 TLS 키 파일 값 - LetsEncrypt를 사용하거나 존재하는 키 파일의 경로를 설정하시기 바랍니다."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
