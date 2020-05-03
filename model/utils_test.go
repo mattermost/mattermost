@@ -4,6 +4,8 @@
 package model
 
 import (
+	"bytes"
+	"encoding/base32"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -24,8 +26,16 @@ func TestNewId(t *testing.T) {
 
 func TestRandomString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		r := NewRandomString(32)
-		require.Len(t, r, 32)
+		str := NewRandomString(i)
+		require.Len(t, str, i)
+		require.NotContains(t, str, "=")
+	}
+}
+
+func TestRandomBase32String(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		str := NewRandomBase32String(i)
+		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
 	}
 }
 
@@ -734,5 +744,35 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 
 	default:
 		return true
+	}
+}
+
+func TestSanitizeUnicode(t *testing.T) {
+	buf := bytes.Buffer{}
+	buf.WriteString("Hello")
+	buf.WriteRune(0x1d173)
+	buf.WriteRune(0x1d17a)
+	buf.WriteString(" there.")
+
+	musicArg := buf.String()
+	musicWant := "Hello there."
+
+	tests := []struct {
+		name string
+		arg  string
+		want string
+	}{
+		{name: "empty string", arg: "", want: ""},
+		{name: "ascii only", arg: "Hello There", want: "Hello There"},
+		{name: "allowed unicode", arg: "Ādam likes Iñtërnâtiônàližætiøn", want: "Ādam likes Iñtërnâtiônàližætiøn"},
+		{name: "allowed unicode escaped", arg: "\u00eaI like hats\u00e2", want: "êI like hatsâ"},
+		{name: "blacklist char, don't reverse string", arg: "\u202E2resu", want: "2resu"},
+		{name: "blacklist chars, scoping musical notation", arg: musicArg, want: musicWant},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SanitizeUnicode(tt.arg)
+			assert.Equal(t, tt.want, got)
+		})
 	}
 }

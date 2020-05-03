@@ -72,8 +72,11 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		return nil, err
 	}
 
-	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
-	if _, ok := post.GetProps()["from_webhook"]; !ok {
+	// Update the LastViewAt only if the post does not have from_webhook prop set (e.g. Zapier app),
+	// or if it does not have from_bot set (e.g. from discovering the user is a bot within CreatePost).
+	_, fromWebhook := post.GetProps()["from_webhook"]
+	_, fromBot := post.GetProps()["from_bot"]
+	if !fromWebhook && !fromBot {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(
 				"Encountered error updating last viewed",
@@ -375,8 +378,13 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 
 		for _, mentioned := range mentionedChannels {
 			if mentioned.Type == model.CHANNEL_OPEN {
+				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
+				if err != nil {
+					mlog.Error("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+				}
 				channelMentionsProp[mentioned.Name] = map[string]interface{}{
 					"display_name": mentioned.DisplayName,
+					"team_name":    team.Name,
 				}
 			}
 		}
@@ -1225,7 +1233,7 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	// Check for keyword mentions
-	mentions := getExplicitMentions(post, keywords)
+	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		return true
 	}

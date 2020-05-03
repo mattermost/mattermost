@@ -1405,6 +1405,10 @@
     "translation": "Encountered an error writing to local server storage."
   },
   {
+    "id": "api.image.get.app_error",
+    "translation": "Requested image url cannot be parsed."
+  },
+  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
@@ -1595,6 +1599,10 @@
   {
     "id": "api.plugin.verify_plugin.app_error",
     "translation": "Unable to verify plugin signature."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupDisplayName}} has no members on this team"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -3395,6 +3403,10 @@
     "translation": "User AuthData and Password are mutually exclusive."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
@@ -3969,6 +3981,10 @@
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Failed to delete Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Failed to refresh Elasticsearch indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -5683,6 +5699,10 @@
     "translation": "insert error"
   },
   {
+    "id": "store.search_user_store.empty_team_id",
+    "translation": "Failed to get list of allowed channels for team: empty teamId"
+  },
+  {
     "id": "store.select_error",
     "translation": "select error"
   },
@@ -6609,6 +6629,10 @@
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
     "translation": "Unable to select the posts to delete for the user (too many), please re-run."
+  },
+  {
+    "id": "store.sql_post.populate_reply_count.app_error",
+    "translation": "Unable to get the post replies count"
   },
   {
     "id": "store.sql_post.save.app_error",

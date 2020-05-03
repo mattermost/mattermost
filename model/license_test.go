@@ -136,11 +136,10 @@ func TestLicenseToFromJson(t *testing.T) {
 		StartsAt:  GetMillis(),
 		ExpiresAt: GetMillis(),
 		Customer: &Customer{
-			Id:          NewId(),
-			Name:        NewId(),
-			Email:       NewId(),
-			Company:     NewId(),
-			PhoneNumber: NewId(),
+			Id:      NewId(),
+			Name:    NewId(),
+			Email:   NewId(),
+			Company: NewId(),
 		},
 		Features: &f,
 	}
@@ -159,7 +158,6 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
 	CheckString(t, l1.Customer.Email, l.Customer.Email)
 	CheckString(t, l1.Customer.Company, l.Customer.Company)
-	CheckString(t, l1.Customer.PhoneNumber, l.Customer.PhoneNumber)
 
 	f1 := l1.Features
 
