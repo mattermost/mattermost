@@ -50,7 +50,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 		Where(sq.Eq{"Id": license.Id})
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql_licence.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	var storedLicense model.LicenseRecord
 	if err := ls.GetReplica().SelectOne(&storedLicense, queryString, args...); err != nil {
