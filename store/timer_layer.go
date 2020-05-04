@@ -5690,6 +5690,22 @@ func (s *TimerLayerTeamStore) GetAllForExportAfter(limit int, afterId string) ([
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerTeamStore) GetAllIncludeDeleted() ([]*model.Team, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.TeamStore.GetAllIncludeDeleted()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetAllIncludeDeleted", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	start := timemodule.Now()
 
@@ -6229,6 +6245,22 @@ func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SearchAll", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerTeamStore) SearchAllIncludeDeleted(term string) ([]*model.Team, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.TeamStore.SearchAllIncludeDeleted(term)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.SearchAllIncludeDeleted", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

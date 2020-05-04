@@ -297,7 +297,7 @@ func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 	}
-	if obj == nil {
+	if obj == nil || obj.(*model.Team).DeleteAt != 0 {
 		return nil, model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id, http.StatusNotFound)
 	}
 
@@ -307,7 +307,7 @@ func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team := model.Team{}
 
-	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId})
+	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE InviteId = :InviteId AND DeleteAt = 0", map[string]interface{}{"InviteId": inviteId})
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error(), http.StatusNotFound)
 	}
@@ -322,7 +322,7 @@ func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
 	team := model.Team{}
 
-	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name})
+	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name AND DeleteAt = 0", map[string]interface{}{"Name": name})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.missing.app_error", nil, "name="+name+","+err.Error(), http.StatusNotFound)
@@ -338,7 +338,8 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Teams").
-		Where(sq.Eq{"Name": uniqueNames})
+		Where(sq.Eq{"Name": uniqueNames}).
+		Where(sq.Eq{"DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -359,12 +360,24 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
-func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+func (s SqlTeamStore) SearchAllIncludeDeleted(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
 
 	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchAllIncludeDeleted", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, nil
+}
+
+func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+	var teams []*model.Team
+
+	term = sanitizeSearchTerm(term, "\\")
+
+	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE DeleteAt = 0 AND Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -421,10 +434,20 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
-func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
+func (s SqlTeamStore) GetAllIncludeDeleted() ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams ORDER BY DisplayName")
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllIncludeDeleted", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return teams, nil
+}
+
+func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
+	var teams []*model.Team
+
+	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE DeleteAt = 0 ORDER BY DisplayName")
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -439,6 +462,8 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 			*
 		FROM
 			Teams
+		WHERE
+			DeleteAt = 0
 		ORDER BY
 			DisplayName
 		LIMIT
@@ -462,10 +487,10 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.App
 }
 
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
-	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName"
+	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 AND DeleteAt = 0 ORDER BY DisplayName"
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName"
+		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false AND DeleteAt = 0 ORDER BY DisplayName"
 	}
 
 	var data []*model.Team
@@ -477,10 +502,10 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError
 }
 
 func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
-	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 AND DeleteAt = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true AND DeleteAt = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 	}
 
 	var data []*model.Team
@@ -492,10 +517,10 @@ func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mod
 }
 
 func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
-	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 AND DeleteAt = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false AND DeleteAt = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 	}
 
 	var data []*model.Team

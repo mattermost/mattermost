@@ -6285,6 +6285,24 @@ func (s *OpenTracingLayerTeamStore) GetAllForExportAfter(limit int, afterId stri
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerTeamStore) GetAllIncludeDeleted() ([]*model.Team, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllIncludeDeleted")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.TeamStore.GetAllIncludeDeleted()
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPage")
@@ -6884,6 +6902,24 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string) ([]*model.Team, *mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.TeamStore.SearchAll(term)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerTeamStore) SearchAllIncludeDeleted(term string) ([]*model.Team, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAllIncludeDeleted")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.TeamStore.SearchAllIncludeDeleted(term)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)

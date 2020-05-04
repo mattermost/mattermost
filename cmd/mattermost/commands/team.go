@@ -306,7 +306,7 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	teams, err2 := a.GetAllTeams()
+	teams, err2 := a.GetAllTeamsIncludeDeleted()
 	if err2 != nil {
 		return err2
 	}
@@ -332,7 +332,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, _, err := a.SearchAllTeams(&model.TeamSearch{Term: searchTerm})
+		foundTeams, _, err := a.SearchAllTeamsIncludeDeleted(searchTerm)
 		if err != nil {
 			return err
 		}

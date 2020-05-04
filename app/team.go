@@ -670,6 +670,10 @@ func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) 
 	return a.Srv().Store.Team().GetByInviteId(inviteId)
 }
 
+func (a *App) GetAllTeamsIncludeDeleted() ([]*model.Team, *model.AppError) {
+	return a.Srv().Store.Team().GetAllIncludeDeleted()
+}
+
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 	return a.Srv().Store.Team().GetAll()
 }
@@ -679,7 +683,7 @@ func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppE
 }
 
 func (a *App) GetAllTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError) {
-	totalCount, err := a.Srv().Store.Team().AnalyticsTeamCount(true)
+	totalCount, err := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		return nil, err
 	}
@@ -728,6 +732,12 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 		return nil, err
 	}
 	return &model.TeamsWithCount{Teams: teams, TotalCount: totalCount}, nil
+}
+
+// SearchAllTeams returns a team list and the total count of the results
+func (a *App) SearchAllTeamsIncludeDeleted(term string) ([]*model.Team, int64, *model.AppError) {
+	results, err := a.Srv().Store.Team().SearchAllIncludeDeleted(term)
+	return results, int64(len(results)), err
 }
 
 // SearchAllTeams returns a team list and the total count of the results
