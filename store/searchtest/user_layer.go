@@ -99,7 +99,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search filtering by role",
 		Fn:   testShouldBeAbleToSearchFilteringByRole,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should ignore leading @ when searching users",
@@ -586,18 +586,27 @@ func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
 func testShouldBeAbleToSearchFilteringByRole(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("basicusernamealternate", "alternatenickname", "firstname", "altlastname")
 	require.Nil(t, err)
-	userAlternate.Roles = "system_admin"
+	userAlternate.Roles = "system_admin system_user"
 	_, apperr := th.Store.User().Update(userAlternate, true)
 	require.Nil(t, apperr)
 	defer th.deleteUser(userAlternate)
+	userAlternate2, err := th.createUser("basicusernamealternate2", "alternatenickname2", "firstname2", "altlastname2")
+	require.Nil(t, err)
+	userAlternate2.Roles = "system_user"
+	_, apperr = th.Store.User().Update(userAlternate2, true)
+	require.Nil(t, apperr)
+	defer th.deleteUser(userAlternate2)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
+	require.Nil(t, err)
+	err = th.addUserToTeams(userAlternate2, []string{th.Team.Id})
 	require.Nil(t, err)
 	_, err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})
 	require.Nil(t, err)
+	_, err = th.addUserToChannels(userAlternate2, []string{th.ChannelBasic.Id})
+	require.Nil(t, err)
 	options := &model.UserSearchOptions{
-		AllowInactive: true,
-		Role:          "system_admin",
-		Limit:         model.USER_SEARCH_DEFAULT_LIMIT,
+		Role:  "system_admin",
+		Limit: model.USER_SEARCH_DEFAULT_LIMIT,
 	}
 	t.Run("Should autocomplete users filtering by roles", func(t *testing.T) {
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
