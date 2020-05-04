@@ -368,7 +368,7 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Teams").
-		Where("Name like ? OR DisplayName like ?", term+"%", term+"%")
+		Where(sq.Or{sq.Expr("Name like ?", term+"%"), sq.Expr("DisplayName like ?", term+"%")})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -393,14 +393,14 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Teams").
-		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+		Where(sq.Or{sq.Expr("Name like ?", term+"%"), sq.Expr("DisplayName like ?", term+"%")}).
 		OrderBy("DisplayName", "Name").
-		Limit(perPage).
-		Offset(offset)
+		Limit(uint64(perPage)).
+		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
@@ -409,12 +409,12 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	query = s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("Teams").
-		Where("Name like ? OR DisplayName like ?", term+"%", term+"%")
+		Where(sq.Or{sq.Expr("Name like ?", term+"%"), sq.Expr("DisplayName like ?", term+"%")})
 	queryString, args, err = query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	totalCount, err := s.GetReplica().SelectInt(queryString, args...)
+	totalCount, err = s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
@@ -430,9 +430,9 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Teams").
-		Where(Eq{"Type"}, "O").
+		Where(sq.Eq{"Type": "O"}).
 		Where("AllowOpenInvite = true").
-		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+		Where(sq.Or{sq.Expr("Name like ?", term+"%"), sq.Expr("DisplayName like ?", term+"%")})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -453,8 +453,8 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Teams").
-		Where("Type != 'O' OR AllowOpenInvite = false").
-		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+		Where(sq.Or{sq.Expr("Type != 'O'"), sq.Expr("AllowOpenInvite = false")}).
+		Where(sq.Or{sq.Expr("Name like ?", term+"%"), sq.Expr("DisplayName like ?", term+"%")})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -480,7 +480,7 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, err := s.GetReplica().Select(&teams, queryString, args...)
+	_, err = s.GetReplica().Select(&teams, queryString, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -494,8 +494,8 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 		Select("*").
 		From("Teams").
 		OrderBy("DisplayName").
-		Limit(limit).
-		Offset(offset)
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
