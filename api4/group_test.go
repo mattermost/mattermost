@@ -929,6 +929,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 
 	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
 	assert.Nil(t, err)
+	user1.Password = "test-password-1"
 	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	assert.Nil(t, err)
 
@@ -957,7 +958,19 @@ func TestGetGroupsByUserId(t *testing.T) {
 	CheckBadRequestStatus(t, response)
 
 	groups, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
-
 	require.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
+	// test permissions
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, response = th.Client.GetGroupsByUserId(user1.Id)
+	CheckForbiddenStatus(t, response)
+
+	th.Client.Logout()
+	th.Client.Login(user1.Email, user1.Password)
+	groups, response = th.Client.GetGroupsByUserId(user1.Id)
+	require.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
 }
