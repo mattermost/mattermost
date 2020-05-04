@@ -22,33 +22,35 @@ func TestGetConfig(t *testing.T) {
 	_, resp := Client.GetConfig()
 	CheckForbiddenStatus(t, resp)
 
-	cfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		cfg, resp := client.GetConfig()
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
+		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
-	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
+		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
-	require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
+		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+	})
 }
 
 func TestReloadConfig(t *testing.T) {
