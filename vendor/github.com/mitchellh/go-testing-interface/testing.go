@@ -22,6 +22,7 @@ type T interface {
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 	Name() string
+	Parallel()
 	Skip(args ...interface{})
 	SkipNow()
 	Skipf(format string, args ...interface{})
@@ -35,6 +36,8 @@ type T interface {
 //
 // Cleanup does NOT work, so if you're using a helper that uses Cleanup,
 // there may be dangling resources.
+//
+// Parallel does not do anything.
 type RuntimeT struct {
 	skipped bool
 	failed  bool
@@ -83,6 +86,8 @@ func (t *RuntimeT) Logf(format string, args ...interface{}) {
 func (t *RuntimeT) Name() string {
 	return ""
 }
+
+func (t *RuntimeT) Parallel() {}
 
 func (t *RuntimeT) Skip(args ...interface{}) {
 	log.Print(args...)

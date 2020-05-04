@@ -378,6 +378,7 @@ func (d *Decoder) decode(name string, input interface{}, outVal reflect.Value) e
 
 	var err error
 	outputKind := getKind(outVal)
+	addMetaKey := true
 	switch outputKind {
 	case reflect.Bool:
 		err = d.decodeBool(name, input, outVal)
@@ -396,7 +397,7 @@ func (d *Decoder) decode(name string, input interface{}, outVal reflect.Value) e
 	case reflect.Map:
 		err = d.decodeMap(name, input, outVal)
 	case reflect.Ptr:
-		err = d.decodePtr(name, input, outVal)
+		addMetaKey, err = d.decodePtr(name, input, outVal)
 	case reflect.Slice:
 		err = d.decodeSlice(name, input, outVal)
 	case reflect.Array:
@@ -410,7 +411,7 @@ func (d *Decoder) decode(name string, input interface{}, outVal reflect.Value) e
 
 	// If we reached here, then we successfully decoded SOMETHING, so
 	// mark the key as used if we're tracking metainput.
-	if d.config.Metadata != nil && name != "" {
+	if addMetaKey && d.config.Metadata != nil && name != "" {
 		d.config.Metadata.Keys = append(d.config.Metadata.Keys, name)
 	}
 
@@ -861,7 +862,7 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 	return nil
 }
 
-func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) error {
+func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) (bool, error) {
 	// If the input data is nil, then we want to just set the output
 	// pointer to be nil as well.
 	isNil := data == nil
@@ -882,7 +883,7 @@ func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) er
 			val.Set(nilValue)
 		}
 
-		return nil
+		return true, nil
 	}
 
 	// Create an element of the concrete (non pointer) type and decode
@@ -896,16 +897,16 @@ func (d *Decoder) decodePtr(name string, data interface{}, val reflect.Value) er
 		}
 
 		if err := d.decode(name, data, reflect.Indirect(realVal)); err != nil {
-			return err
+			return false, err
 		}
 
 		val.Set(realVal)
 	} else {
 		if err := d.decode(name, data, reflect.Indirect(val)); err != nil {
-			return err
+			return false, err
 		}
 	}
-	return nil
+	return false, nil
 }
 
 func (d *Decoder) decodeFunc(name string, data interface{}, val reflect.Value) error {
