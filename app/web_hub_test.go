@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -105,4 +106,115 @@ func TestHubStopRaceCondition(t *testing.T) {
 	case <-time.After(15 * time.Second):
 		require.FailNow(t, "hub call did not return within 15 seconds after stop")
 	}
+}
+
+func TestHubConnIndex(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex()
+
+	// User1
+	wc1 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+
+	// User2
+	wc2 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	wc3 := &WebConn{
+		App:    th.App,
+		UserId: wc2.UserId,
+	}
+	wc4 := &WebConn{
+		App:    th.App,
+		UserId: wc2.UserId,
+	}
+
+	connIndex.Add(wc1)
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+	connIndex.Add(wc4)
+
+	assert.True(t, connIndex.Has(wc1))
+	assert.True(t, connIndex.Has(wc2))
+
+	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
+	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+	assert.True(t, connIndex.Has(wc2))
+	assert.True(t, connIndex.Has(wc1))
+	assert.Len(t, connIndex.All(), 4)
+
+	connIndex.Remove(wc3) // Remove from middle from user2
+
+	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+	assert.True(t, connIndex.Has(wc2))
+	assert.False(t, connIndex.Has(wc3))
+	assert.True(t, connIndex.Has(wc4))
+	assert.Len(t, connIndex.All(), 3)
+
+	connIndex.Remove(wc1) // Remove sole connection from user1
+
+	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+	assert.Len(t, connIndex.All(), 2)
+	assert.False(t, connIndex.Has(wc1))
+	assert.True(t, connIndex.Has(wc2))
+
+	connIndex.Remove(wc4) // Remove from end from user2
+
+	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
+	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+	assert.True(t, connIndex.Has(wc2))
+	assert.False(t, connIndex.Has(wc3))
+	assert.False(t, connIndex.Has(wc4))
+	assert.Len(t, connIndex.All(), 1)
+}
+
+// Always run this with -benchtime=0.1s
+// See: https://github.com/golang/go/issues/27217.
+func BenchmarkHubConnIndex(b *testing.B) {
+	th := Setup(b).InitBasic()
+	defer th.TearDown()
+	connIndex := newHubConnectionIndex()
+
+	// User1
+	wc1 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+
+	// User2
+	wc2 := &WebConn{
+		App:    th.App,
+		UserId: model.NewId(),
+	}
+	b.ResetTimer()
+	b.Run("Add", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			connIndex.Add(wc1)
+			connIndex.Add(wc2)
+
+			b.StopTimer()
+			connIndex.Remove(wc1)
+			connIndex.Remove(wc2)
+			b.StartTimer()
+		}
+	})
+
+	b.Run("Remove", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			b.StopTimer()
+			connIndex.Add(wc1)
+			connIndex.Add(wc2)
+			b.StartTimer()
+
+			connIndex.Remove(wc1)
+			connIndex.Remove(wc2)
+		}
+	})
 }
