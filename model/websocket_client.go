@@ -125,6 +125,7 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
+		wsc.quitPingWatchdog = make(chan struct{})
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -135,6 +136,8 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	return nil
 }
 
+// Close closes the websocket client. It is recommended that a closed client should not be
+// reused again. Rather a new client should be created anew.
 func (wsc *WebSocketClient) Close() {
 	// CAS to 1 and proceed. Return if already 1.
 	if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
@@ -142,9 +145,12 @@ func (wsc *WebSocketClient) Close() {
 	}
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
+	// We close the connection, which breaks the reader loop.
+	// Then we let the defer block in the reader do further cleanup.
 	wsc.Conn.Close()
 }
 
+// TODO: un-export the Conn so that Write methods go through the writer
 func (wsc *WebSocketClient) writer() {
 	for {
 		select {
@@ -161,14 +167,34 @@ func (wsc *WebSocketClient) writer() {
 	}
 }
 
+// Listen starts the read loop of the websocket client.
 func (wsc *WebSocketClient) Listen() {
+	// This loop can exit in 2 conditions:
+	// 1. Either the connection breaks naturally.
+	// 2. Close was explicitly called, which closes the connection manually.
+	//
+	// Due to the way the API is written, there is a requirement that a client may NOT
+	// call Listen at all and can still call Close and Connect.
+	// Therefore, we let the cleanup of the reader stuff rely on closing the connection
+	// and then we do the cleanup in the defer block.
+	//
+	// First, we close some channels and then CAS to 1 and proceed to close the writer chan also.
+	// This is needed because then the defer clause does not double-close the writer when (2) happens.
+	// But if (1) happens, we set the closed bit, and close the rest of the stuff.
 	go func() {
 		defer func() {
-			wsc.Conn.Close()
 			close(wsc.EventChannel)
 			close(wsc.ResponseChannel)
 			close(wsc.quitPingWatchdog)
+			// We CAS to 1 and proceed.
+			if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
+				return
+			}
+			wsc.quitWriterChan <- struct{}{}
+			close(wsc.writeChan)
+			wsc.Conn.Close() // This can most likely be removed. Needs to be checked.
 		}()
+
 		var buf bytes.Buffer
 		buf.Grow(avgReadMsgSizeBytes)
 
@@ -206,7 +232,6 @@ func (wsc *WebSocketClient) Listen() {
 				wsc.ResponseChannel <- &response
 				continue
 			}
-
 		}
 	}()
 }
