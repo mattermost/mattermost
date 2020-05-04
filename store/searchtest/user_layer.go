@@ -559,14 +559,14 @@ func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
 		options.AllowInactive = true
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 	})
 	t.Run("Should search inactive users if we allow it", func(t *testing.T) {
 		options.AllowInactive = true
 		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2, userAlternate}, users)
 	})
 	t.Run("Shouldn't autocomplete inactive users if we don't allow it", func(t *testing.T) {
 		options.AllowInactive = false
