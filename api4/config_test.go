@@ -90,66 +90,68 @@ func TestUpdateConfig(t *testing.T) {
 	_, resp = Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)
 
-	SiteName := th.App.Config().TeamSettings.SiteName
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		SiteName := th.App.Config().TeamSettings.SiteName
 
-	*cfg.TeamSettings.SiteName = "MyFancyName"
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
+		*cfg.TeamSettings.SiteName = "MyFancyName"
+		cfg, resp = client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
+		require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
-	//Revert the change
-	cfg.TeamSettings.SiteName = SiteName
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-
-	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
-
-	t.Run("Should set defaults for missing fields", func(t *testing.T) {
-		_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
-		require.Nil(t, appErr)
-	})
-
-	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 		//Revert the change
-		badcfg := cfg.Clone()
-		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-		_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
-	})
-
-	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
-		oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
-		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
-
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg.TeamSettings.SiteName = SiteName
+		cfg, resp = client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
-		cfg.PluginSettings.EnableUploads = nil
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
-	})
+		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
-	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
-		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
-		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+		t.Run("Should set defaults for missing fields", func(t *testing.T) {
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+			require.Nil(t, appErr)
+		})
 
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
-		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
+			//Revert the change
+			badcfg := cfg.Clone()
+			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+			_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
+			CheckBadRequestStatus(t, resp)
+			CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
+		})
 
-		cfg.PluginSettings.SignaturePublicKeyFiles = nil
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
-		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
+			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+
+			cfg.PluginSettings.EnableUploads = nil
+			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+		})
+
+		t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+
+			cfg.PluginSettings.SignaturePublicKeyFiles = nil
+			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		})
 	})
 }
 

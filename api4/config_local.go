@@ -5,4 +5,5 @@ package api4
 
 func (api *API) InitConfigLocal() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(getConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(updateConfig)).Methods("PUT")
 }
