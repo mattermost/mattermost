@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -364,7 +365,17 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 
 	term = sanitizeSearchTerm(term, "\\")
 
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where("Name like ? OR DisplayName like ?", term+"%", term+"%")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -379,11 +390,31 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 
 	term = sanitizeSearchTerm(term, "\\")
 
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term ORDER BY DisplayName, Name LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Term": term + "%", "Limit": perPage, "Offset": offset}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+		OrderBy("DisplayName", "Name").
+		Limit(perPage).
+		Offset(offset)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	totalCount, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"})
+	query = s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("Teams").
+		Where("Name like ? OR DisplayName like ?", term+"%", term+"%")
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	totalCount, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
@@ -396,7 +427,18 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 
 	term = sanitizeSearchTerm(term, "\\")
 
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where(Eq{"Type"}, "O").
+		Where("AllowOpenInvite = true").
+		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -408,14 +450,18 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 
 	term = sanitizeSearchTerm(term, "\\")
 
-	query :=
-		`SELECT *
-		FROM
-			Teams
-		WHERE
-			(Type != 'O' OR AllowOpenInvite = false) AND
-			(Name LIKE :Term OR DisplayName LIKE :Term)`
-	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term + "%"}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		Where("Type != 'O' OR AllowOpenInvite = false").
+		Where("Name like ? OR DisplayName like ?", term+"%", term+"%").
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
@@ -424,7 +470,17 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
-	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams ORDER BY DisplayName")
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		OrderBy("DisplayName")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	_, err := s.GetReplica().Select(&teams, queryString, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -434,17 +490,18 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
-	if _, err := s.GetReplica().Select(&teams,
-		`SELECT
-			*
-		FROM
-			Teams
-		ORDER BY
-			DisplayName
-		LIMIT
-			:Limit
-		OFFSET
-			:Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Teams").
+		OrderBy("DisplayName").
+		Limit(limit).
+		Offset(offset)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if _, err := s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams",
 			"store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
