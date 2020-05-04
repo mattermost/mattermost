@@ -78,7 +78,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 0)
 	})
 
-	t.Run("Search Read Replicas With License", func(t *testing.T) {
+	t.Run("Search Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
 			server.configStore = configStore
