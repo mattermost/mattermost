@@ -59,7 +59,6 @@ func monitor(conn net.Conn, done chan interface{}) {
 		case <-done:
 			return
 		case <-time.After(1 * time.Second):
-		default:
 		}
 
 		err := conn.SetReadDeadline(time.Now().Add(time.Second * 30))
