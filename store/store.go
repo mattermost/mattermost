@@ -170,6 +170,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
@@ -331,6 +332,7 @@ type UserStore interface {
 	DemoteUserToGuest(userID string) *model.AppError
 	DeactivateGuests() ([]string, *model.AppError)
 	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 }
 
 type BotStore interface {

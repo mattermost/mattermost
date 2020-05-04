@@ -146,7 +146,8 @@ type Server struct {
 
 	CacheProvider cache.Provider
 
-	tracer *tracing.Tracer
+	tracer                      *tracing.Tracer
+	timestampLastDiagnosticSent time.Time
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -727,11 +728,32 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
-func runDiagnosticsJob(s *Server) {
-	doDiagnostics(s)
-	model.CreateRecurringTask("Diagnostics", func() {
+func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
+	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
+	// Send once every 10 minutes for the first hour
+	// Send once every hour thereafter for the first 12 hours
+	// Send at the 24 hour mark and every 24 hours after
+	if hoursSinceFirstServerRun < 1 {
 		doDiagnostics(s)
-	}, time.Hour*24)
+	} else if hoursSinceFirstServerRun <= 12 && time.Since(s.timestampLastDiagnosticSent) >= time.Hour {
+		doDiagnostics(s)
+	} else if hoursSinceFirstServerRun > 12 && time.Since(s.timestampLastDiagnosticSent) >= 24*time.Hour {
+		doDiagnostics(s)
+	}
+}
+
+func runDiagnosticsJob(s *Server) {
+	// Send on boot
+	doDiagnostics(s)
+	firstRun, err := s.FakeApp().getFirstServerRunTimestamp()
+	if err != nil {
+		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+		s.FakeApp().ensureFirstServerRunTimestamp()
+		firstRun = utils.MillisFromTime(time.Now())
+	}
+	model.CreateRecurringTask("Diagnostics", func() {
+		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
+	}, time.Minute*10)
 }
 
 func runTokenCleanupJob(s *Server) {
@@ -761,6 +783,7 @@ func doSecurity(s *Server) {
 
 func doDiagnostics(s *Server) {
 	if *s.Config().LogSettings.EnableDiagnostics {
+		s.timestampLastDiagnosticSent = time.Now()
 		s.FakeApp().SendDailyDiagnostics()
 	}
 }
@@ -885,7 +908,7 @@ func (s *Server) initRudder(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, config)
+		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return
