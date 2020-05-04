@@ -493,7 +493,7 @@
   },
   {
     "id": "api.command.execute_command.format.app_error",
-    "translation": "Command trigger word is missing the leading slash character"
+    "translation": "命令觸發關鍵字缺少起始的斜線字元"
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -2960,11 +2960,11 @@
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-    "translation": "Some teams not found"
+    "translation": "找不到部份團隊"
   },
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
-    "translation": "Some users not found"
+    "translation": "找不到部份使用者"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "無效的頻道名稱。非直接傳訊頻道不允許用使用者 ID 作為名稱。"
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -5324,7 +5324,7 @@
   },
   {
     "id": "model.post.channel_notifications_disabled_in_channel.message",
-    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+    "translation": "{{.ChannelName}} 的頻道通知已被停用。{{.Mention}} 沒有觸發任何通知。"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -6980,7 +6980,7 @@
   },
   {
     "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
+    "translation": "無法尋找部份要求的團隊"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -7193,6 +7193,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "找到數個相符於您的認證之帳號，所以無法讓您登入，請聯繫系統管理員。"
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "無法從資料庫取得已知使用者。"
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

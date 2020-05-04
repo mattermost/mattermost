@@ -7195,6 +7195,10 @@
     "translation": "Znaleźliśmy wielu użytkowników pasujących do twoich poświadczeń i nie mogliśmy się zalogować. Skontaktuj się z administratorem."
   },
   {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
+  },
+  {
     "id": "store.sql_user.get_new_users.app_error",
     "translation": "Podczas wyszukiwania nowych użytkowników napotkaliśmy błąd"
   },

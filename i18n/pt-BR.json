@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Nome do canal inválido. Os Ids de usuários não são permitidos no nome do canal para canais de mensagem não diretos."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -7193,6 +7193,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "Encontramos vários usuários correspondentes as suas credenciais e não conseguimos fazer seu login. Por favor, entre em contato com um administrador."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Não foi possível conhecer os usuários do banco de dados."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

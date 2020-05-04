@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "无效的频道名。用户 id 不能作为私信以外的频道名。"
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -7193,6 +7193,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "我们发现多个用户的登陆凭据与你匹配，因此禁用了你的登陆权限。请与管理员联系。"
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "无法从数据库获取已知用户。"
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

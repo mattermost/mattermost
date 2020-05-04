@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Bezeichnungen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt. "
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -7193,6 +7193,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "Es wurden mehrere Benutzer entsprechend ihrer Zugangsdaten gefunden und Sie konnten nicht angemeldet werden. Bitte kontaktieren Sie einen Administrator."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

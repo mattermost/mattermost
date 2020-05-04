@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+    "translation": "잘못된 채널 이름입니다. DM 채널이 아닐경우 사용자 ID가 채널 이름에 허용되지 않습니다."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -7193,6 +7193,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "귀하의 자격 증명과 일치하는 여러 사용자가 발견되어 로그인 할 수 없습니다. 관리자에게 문의해주세요."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
