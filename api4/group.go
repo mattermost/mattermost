@@ -141,7 +141,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			//check if a user already has this group name
-			user, _ := a.GetUserByUsername(*groupPatch.Name)
+			user, _ := c.App.GetUserByUsername(*groupPatch.Name)
 			if user != nil {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusNotImplemented)
 				return
