@@ -363,14 +363,21 @@ func (c Client) putObject(ctx context.Context, bucketName, objectName string, re
 	if size < 0 && !s3utils.IsGoogleEndpoint(*c.endpointURL) {
 		return 0, ErrEntityTooSmall(size, bucketName, objectName)
 	}
+
+	if opts.SendContentMd5 && s3utils.IsGoogleEndpoint(*c.endpointURL) && size < 0 {
+		return 0, ErrInvalidArgument("MD5Sum cannot be calculated with size '-1'")
+	}
+
 	if size > 0 {
 		if isReadAt(reader) && !isObject(reader) {
-			seeker, _ := reader.(io.Seeker)
-			offset, err := seeker.Seek(0, io.SeekCurrent)
-			if err != nil {
-				return 0, ErrInvalidArgument(err.Error())
+			seeker, ok := reader.(io.Seeker)
+			if ok {
+				offset, err := seeker.Seek(0, io.SeekCurrent)
+				if err != nil {
+					return 0, ErrInvalidArgument(err.Error())
+				}
+				reader = io.NewSectionReader(reader.(io.ReaderAt), offset, size)
 			}
-			reader = io.NewSectionReader(reader.(io.ReaderAt), offset, size)
 		}
 	}
 
@@ -389,6 +396,7 @@ func (c Client) putObject(ctx context.Context, bucketName, objectName string, re
 		hash := md5.New()
 		hash.Write(buf[:length])
 		md5Base64 = base64.StdEncoding.EncodeToString(hash.Sum(nil))
+		reader = bytes.NewReader(buf[:length])
 	}
 
 	// Update progress reader appropriately to the latest offset as we

@@ -5,7 +5,7 @@
 # Get artifacts from CircleCI
 report_artifacts=$(curl -s https://circleci.com/api/v1.1/project/gh/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BUILD_NUM/artifacts)
 json_url=$(echo $report_artifacts | jq -r 'map(select(.path == "Reports/OWASP/dependency-check-report.json").url)[0]')
-json_report=$(curl -s $json_url)
+json_report=$(curl -sL $json_url)
 
 # Anything new?
 vulnerability_count=$(echo $json_report | jq '[.dependencies[]?.vulnerabilities[]?.name]|length')

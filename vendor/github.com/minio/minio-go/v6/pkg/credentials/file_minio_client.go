@@ -18,12 +18,12 @@
 package credentials
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 
+	jsoniter "github.com/json-iterator/go"
 	homedir "github.com/mitchellh/go-homedir"
 )
 
@@ -122,6 +122,8 @@ type config struct {
 // returned if it fails to read from the file.
 func loadAlias(filename, alias string) (hostConfig, error) {
 	cfg := &config{}
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 	configBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return hostConfig{}, err
