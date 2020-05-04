@@ -115,7 +115,7 @@ require (
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
-	gopkg.in/olivere/elastic.v6 v6.2.30
+	gopkg.in/olivere/elastic.v6 v6.2.31
 	gopkg.in/yaml.v2 v2.2.8
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	willnorris.com/go/imageproxy v0.10.0
