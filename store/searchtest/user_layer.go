@@ -94,7 +94,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search inactive users",
 		Fn:   testShouldBeAbleToSearchInactiveUsers,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should be able to search filtering by role",
