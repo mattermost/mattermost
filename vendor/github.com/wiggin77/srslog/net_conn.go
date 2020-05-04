@@ -15,7 +15,7 @@ type netConn struct {
 
 // newNetConn creates a netConn instance that is monitored for unexpected socket closure.
 func newNetConn(conn net.Conn) *netConn {
-	nc := &netConn{conn: conn, done: make(chan interface{}, 1)}
+	nc := &netConn{conn: conn, done: make(chan interface{})}
 	go monitor(nc.conn, nc.done)
 	return nc
 }
@@ -58,10 +58,9 @@ func monitor(conn net.Conn, done chan interface{}) {
 		select {
 		case <-done:
 			return
+		case <-time.After(1 * time.Second):
 		default:
 		}
-
-		time.Sleep(time.Second * 1)
 
 		err := conn.SetReadDeadline(time.Now().Add(time.Second * 30))
 		if err != nil {
