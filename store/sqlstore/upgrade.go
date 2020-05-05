@@ -227,7 +227,7 @@ func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 func setMaxExecutionTime(sqlStore SqlStore, value int64) {
 	var err error
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		_, err = sqlStore.GetMaster().Exec(fmt.Sprintf("SET STATEMENT_TIMEOUT = %d", value))
+		_, err = sqlStore.GetMaster().Exec("SET STATEMENT_TIMEOUT = $1", value)
 		if err != nil {
 			mlog.Critical("Failed to set statement_timeout parameter for current session in postgres", mlog.Err(err))
 			time.Sleep(time.Second)
