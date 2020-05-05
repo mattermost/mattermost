@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_22_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_23_0
+	VERSION_5_23_0           = "5.23.0"
 	VERSION_5_22_0           = "5.22.0"
 	VERSION_5_21_0           = "5.21.0"
 	VERSION_5_20_0           = "5.20.0"
@@ -175,6 +176,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion520(sqlStore)
 	upgradeDatabaseToVersion521(sqlStore)
 	upgradeDatabaseToVersion522(sqlStore)
+	upgradeDatabaseToVersion523(sqlStore)
 
 	return nil
 }
@@ -782,5 +784,11 @@ func upgradeDatabaseToVersion522(sqlStore SqlStore) {
 		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 
 		saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	}
+}
+
+func upgradeDatabaseToVersion523(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_22_0, VERSION_5_23_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_23_0)
 	}
 }
