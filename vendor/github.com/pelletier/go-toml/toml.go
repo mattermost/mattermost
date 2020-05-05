@@ -222,8 +222,12 @@ func (t *Tree) SetPathWithOptions(keys []string, opts SetOptions, value interfac
 	switch v := value.(type) {
 	case *Tree:
 		v.comment = opts.Comment
+		v.commented = opts.Commented
 		toInsert = value
 	case []*Tree:
+		for i := range v {
+			v[i].commented = opts.Commented
+		}
 		toInsert = value
 	case *tomlValue:
 		v.comment = opts.Comment

@@ -372,16 +372,20 @@ func IsValidEmail(email string) bool {
 }
 
 var reservedName = []string{
-	"signup",
-	"login",
 	"admin",
-	"channel",
-	"post",
 	"api",
-	"oauth",
+	"channel",
+	"claim",
 	"error",
 	"help",
+	"landing",
+	"login",
+	"mfa",
+	"oauth",
+	"plug",
 	"plugins",
+	"post",
+	"signup",
 }
 
 func IsValidChannelIdentifier(s string) bool {
