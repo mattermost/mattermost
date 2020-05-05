@@ -84,7 +84,7 @@ jobs:
                 persist_to_workspace: false
       - run:
           name: Post results to Mattermost
-          command: ../security-automation-config/dependency-check/post-results.sh
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
