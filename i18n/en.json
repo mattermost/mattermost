@@ -244,6 +244,10 @@
     "translation": "This channel has been converted to a Private Channel."
   },
   {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Your license does not support groups"
+  },
+  {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
     "translation": "This default channel cannot be converted into a private channel."
   },
@@ -254,10 +258,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Invalid character '__' in channel name for non-direct channel."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -422,10 +422,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -1599,6 +1595,10 @@
   {
     "id": "api.plugin.verify_plugin.app_error",
     "translation": "Unable to verify plugin signature."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupDisplayName}} has no members on this team"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -3399,6 +3399,10 @@
     "translation": "User AuthData and Password are mutually exclusive."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
@@ -4501,6 +4505,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Invalid Id."
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -5717,6 +5725,10 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: Unable to convert StringMap to *string"
+  },
+  {
+    "id": "store.sql_audit.app_error",
+    "translation": "Failed to build query."
   },
   {
     "id": "store.sql_audit.get.finding.app_error",
@@ -7237,6 +7249,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

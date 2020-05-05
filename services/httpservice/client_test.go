@@ -6,7 +6,6 @@ package httpservice
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,41 +14,86 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHTTPClient(t *testing.T) {
-	for _, allowInternal := range []bool{true, false} {
-		c := NewHTTPClient(NewTransport(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) }))
-		for _, tc := range []struct {
-			URL        string
-			IsInternal bool
+	mockHTTP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockHTTP.Close()
+
+	mockSelfSignedHTTPS := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer mockSelfSignedHTTPS.Close()
+
+	t.Run("insecure connections", func(t *testing.T) {
+		disableInsecureConnections := false
+		enableInsecureConnections := true
+
+		testCases := []struct {
+			description               string
+			enableInsecureConnections bool
+			url                       string
+			expectedAllowed           bool
 		}{
-			{
-				URL:        "https://google.com",
-				IsInternal: false,
-			},
-			{
-				URL:        "https://127.0.0.1",
-				IsInternal: true,
-			},
-		} {
-			_, err := c.Get(tc.URL)
-			if !tc.IsInternal {
-				require.Nil(t, err, "google is down?")
-			} else {
-				allowed := !tc.IsInternal || allowInternal
-				success := err == nil
-				switch e := err.(type) {
-				case *net.OpError:
-					success = e.Err != AddressForbidden
-				case *url.Error:
-					success = e.Err != AddressForbidden
-				}
-				require.Equalf(t, success, allowed, "failed for %v. allowed: %v, success %v", tc.URL, allowed, success)
-			}
+			{"allow HTTP even when insecure disabled", disableInsecureConnections, mockHTTP.URL, true},
+			{"allow HTTP when insecure enabled", enableInsecureConnections, mockHTTP.URL, true},
+			{"reject self-signed HTTPS even when insecure disabled", disableInsecureConnections, mockSelfSignedHTTPS.URL, false},
+			{"allow self-signed HTTPS when insecure enabled", enableInsecureConnections, mockSelfSignedHTTPS.URL, true},
 		}
-	}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.description, func(t *testing.T) {
+				c := NewHTTPClient(NewTransport(testCase.enableInsecureConnections, nil, nil))
+				if _, err := c.Get(testCase.url); testCase.expectedAllowed {
+					require.NoError(t, err)
+				} else {
+					require.Error(t, err)
+				}
+
+			})
+		}
+	})
+
+	t.Run("checks", func(t *testing.T) {
+		allowHost := func(_ string) bool { return true }
+		rejectHost := func(_ string) bool { return false }
+		allowIP := func(_ net.IP) bool { return true }
+		rejectIP := func(_ net.IP) bool { return false }
+
+		testCases := []struct {
+			description     string
+			allowHost       func(string) bool
+			allowIp         func(net.IP) bool
+			expectedAllowed bool
+		}{
+			{"allow with no checks", nil, nil, true},
+			{"reject without host check when ip rejected", nil, rejectIP, false},
+			{"allow without host check when ip allowed", nil, allowIP, true},
+
+			{"reject when host rejected since no ip check", rejectHost, nil, false},
+			{"reject when host and ip rejected", rejectHost, rejectIP, false},
+			{"allow when host rejected since ip allowed", rejectHost, allowIP, true},
+
+			{"allow when host allowed even without ip check", allowHost, nil, true},
+			{"allow when host allowed even if ip rejected", allowHost, rejectIP, true},
+			{"allow when host and ip allowed", allowHost, allowIP, true},
+		}
+		for _, testCase := range testCases {
+			t.Run(testCase.description, func(t *testing.T) {
+				c := NewHTTPClient(NewTransport(false, testCase.allowHost, testCase.allowIp))
+				if _, err := c.Get(mockHTTP.URL); testCase.expectedAllowed {
+					require.NoError(t, err)
+				} else {
+					require.IsType(t, &url.Error{}, err)
+					require.Equal(t, AddressForbidden, err.(*url.Error).Err)
+				}
+			})
+		}
+	})
 }
 
 func TestHTTPClientWithProxy(t *testing.T) {
