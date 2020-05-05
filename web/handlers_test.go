@@ -71,6 +71,8 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -296,7 +298,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/"})
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
@@ -310,6 +312,8 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)
@@ -333,7 +337,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/"})
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
@@ -348,7 +352,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/"})
 		// TODO: See above.
 		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
@@ -474,6 +478,8 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Post").Return(&mockPostStore)
 		mockStore.On("System").Return(&mockSystemStore)

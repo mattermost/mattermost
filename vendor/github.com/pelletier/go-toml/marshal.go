@@ -302,7 +302,7 @@ func (e *Encoder) marshal(v interface{}) ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	_, err = t.writeToOrdered(&buf, "", "", 0, e.arraysOneElementPerLine, e.order)
+	_, err = t.writeToOrdered(&buf, "", "", 0, e.arraysOneElementPerLine, e.order, false)
 
 	return buf.Bytes(), err
 }
@@ -320,20 +320,25 @@ func (e *Encoder) valueToTree(mtype reflect.Type, mval reflect.Value) (*Tree, er
 	tval := e.nextTree()
 	switch mtype.Kind() {
 	case reflect.Struct:
-		for i := 0; i < mtype.NumField(); i++ {
-			mtypef, mvalf := mtype.Field(i), mval.Field(i)
-			opts := tomlOptions(mtypef, e.annotation)
-			if opts.include && (!opts.omitempty || !isZero(mvalf)) {
-				val, err := e.valueToToml(mtypef.Type, mvalf)
-				if err != nil {
-					return nil, err
-				}
+		switch mval.Interface().(type) {
+		case Tree:
+			reflect.ValueOf(tval).Elem().Set(mval)
+		default:
+			for i := 0; i < mtype.NumField(); i++ {
+				mtypef, mvalf := mtype.Field(i), mval.Field(i)
+				opts := tomlOptions(mtypef, e.annotation)
+				if opts.include && ((mtypef.Type.Kind() != reflect.Interface && !opts.omitempty) || !isZero(mvalf)) {
+					val, err := e.valueToToml(mtypef.Type, mvalf)
+					if err != nil {
+						return nil, err
+					}
 
-				tval.SetWithOptions(opts.name, SetOptions{
-					Comment:   opts.comment,
-					Commented: opts.commented,
-					Multiline: opts.multiline,
-				}, val)
+					tval.SetWithOptions(opts.name, SetOptions{
+						Comment:   opts.comment,
+						Commented: opts.commented,
+						Multiline: opts.multiline,
+					}, val)
+				}
 			}
 		}
 	case reflect.Map:
@@ -358,12 +363,15 @@ func (e *Encoder) valueToTree(mtype reflect.Type, mval reflect.Value) (*Tree, er
 		}
 		for _, key := range keys {
 			mvalf := mval.MapIndex(key)
+			if (mtype.Elem().Kind() == reflect.Ptr || mtype.Elem().Kind() == reflect.Interface) && mvalf.IsNil() {
+				continue
+			}
 			val, err := e.valueToToml(mtype.Elem(), mvalf)
 			if err != nil {
 				return nil, err
 			}
 			if e.quoteMapKeys {
-				keyStr, err := tomlValueStringRepresentation(key.String(), "", e.arraysOneElementPerLine)
+				keyStr, err := tomlValueStringRepresentation(key.String(), "", "", e.arraysOneElementPerLine)
 				if err != nil {
 					return nil, err
 				}
@@ -391,6 +399,9 @@ func (e *Encoder) valueToTreeSlice(mtype reflect.Type, mval reflect.Value) ([]*T
 
 // Convert given marshal slice to slice of toml values
 func (e *Encoder) valueToOtherSlice(mtype reflect.Type, mval reflect.Value) (interface{}, error) {
+	if mtype.Elem().Kind() == reflect.Interface {
+		return nil, fmt.Errorf("marshal can't handle []interface{}")
+	}
 	tval := make([]interface{}, mval.Len(), mval.Len())
 	for i := 0; i < mval.Len(); i++ {
 		val, err := e.valueToToml(mtype.Elem(), mval.Index(i))
@@ -407,6 +418,9 @@ func (e *Encoder) valueToToml(mtype reflect.Type, mval reflect.Value) (interface
 	e.line++
 	if mtype.Kind() == reflect.Ptr {
 		return e.valueToToml(mtype.Elem(), mval.Elem())
+	}
+	if mtype.Kind() == reflect.Interface {
+		return e.valueToToml(mval.Elem().Type(), mval.Elem())
 	}
 	switch {
 	case isCustomMarshaler(mtype):
@@ -561,11 +575,17 @@ func (d *Decoder) valueFromTree(mtype reflect.Type, tval *Tree, mval1 *reflect.V
 			mval = reflect.New(mtype).Elem()
 		}
 
-		for i := 0; i < mtype.NumField(); i++ {
-			mtypef := mtype.Field(i)
-			an := annotation{tag: d.tagName}
-			opts := tomlOptions(mtypef, an)
-			if opts.include {
+		switch mval.Interface().(type) {
+		case Tree:
+			mval.Set(reflect.ValueOf(tval).Elem())
+		default:
+			for i := 0; i < mtype.NumField(); i++ {
+				mtypef := mtype.Field(i)
+				an := annotation{tag: d.tagName}
+				opts := tomlOptions(mtypef, an)
+				if !opts.include {
+					continue
+				}
 				baseKey := opts.name
 				keysToTry := []string{
 					baseKey,
@@ -575,20 +595,22 @@ func (d *Decoder) valueFromTree(mtype reflect.Type, tval *Tree, mval1 *reflect.V
 				}
 
 				found := false
-				for _, key := range keysToTry {
-					exists := tval.Has(key)
-					if !exists {
-						continue
+				if tval != nil {
+					for _, key := range keysToTry {
+						exists := tval.Has(key)
+						if !exists {
+							continue
+						}
+						val := tval.Get(key)
+						fval := mval.Field(i)
+						mvalf, err := d.valueFromToml(mtypef.Type, val, &fval)
+						if err != nil {
+							return mval, formatError(err, tval.GetPosition(key))
+						}
+						mval.Field(i).Set(mvalf)
+						found = true
+						break
 					}
-					val := tval.Get(key)
-					fval := mval.Field(i)
-					mvalf, err := d.valueFromToml(mtypef.Type, val, &fval)
-					if err != nil {
-						return mval, formatError(err, tval.GetPosition(key))
-					}
-					mval.Field(i).Set(mvalf)
-					found = true
-					break
 				}
 
 				if !found && opts.defaultValue != "" {
@@ -624,9 +646,13 @@ func (d *Decoder) valueFromTree(mtype reflect.Type, tval *Tree, mval1 *reflect.V
 					mval.Field(i).Set(reflect.ValueOf(val))
 				}
 
-				// save the old behavior above and try to check anonymous structs
-				if !found && opts.defaultValue == "" && mtypef.Anonymous && mtypef.Type.Kind() == reflect.Struct {
-					v, err := d.valueFromTree(mtypef.Type, tval, nil)
+				// save the old behavior above and try to check structs
+				if !found && opts.defaultValue == "" && mtypef.Type.Kind() == reflect.Struct {
+					tmpTval := tval
+					if !mtypef.Anonymous {
+						tmpTval = nil
+					}
+					v, err := d.valueFromTree(mtypef.Type, tmpTval, nil)
 					if err != nil {
 						return v, err
 					}
@@ -692,15 +718,40 @@ func (d *Decoder) valueFromToml(mtype reflect.Type, tval interface{}, mval1 *ref
 		if isTree(mtype) {
 			return d.valueFromTree(mtype, t, mval11)
 		}
+
+		if mtype.Kind() == reflect.Interface {
+			if mval1 == nil || mval1.IsNil() {
+				return d.valueFromTree(reflect.TypeOf(map[string]interface{}{}), t, nil)
+			} else {
+				return d.valueFromToml(mval1.Elem().Type(), t, nil)
+			}
+		}
+
 		return reflect.ValueOf(nil), fmt.Errorf("Can't convert %v(%T) to a tree", tval, tval)
 	case []*Tree:
 		if isTreeSequence(mtype) {
 			return d.valueFromTreeSlice(mtype, t)
 		}
+		if mtype.Kind() == reflect.Interface {
+			if mval1 == nil || mval1.IsNil() {
+				return d.valueFromTreeSlice(reflect.TypeOf([]map[string]interface{}{}), t)
+			} else {
+				ival := mval1.Elem()
+				return d.valueFromToml(mval1.Elem().Type(), t, &ival)
+			}
+		}
 		return reflect.ValueOf(nil), fmt.Errorf("Can't convert %v(%T) to trees", tval, tval)
 	case []interface{}:
 		if isOtherSequence(mtype) {
 			return d.valueFromOtherSlice(mtype, t)
+		}
+		if mtype.Kind() == reflect.Interface {
+			if mval1 == nil || mval1.IsNil() {
+				return d.valueFromOtherSlice(reflect.TypeOf([]interface{}{}), t)
+			} else {
+				ival := mval1.Elem()
+				return d.valueFromToml(mval1.Elem().Type(), t, &ival)
+			}
 		}
 		return reflect.ValueOf(nil), fmt.Errorf("Can't convert %v(%T) to a slice", tval, tval)
 	default:
@@ -786,6 +837,13 @@ func (d *Decoder) valueFromToml(mtype reflect.Type, tval interface{}, mval1 *ref
 			}
 
 			return val.Convert(mtype), nil
+		case reflect.Interface:
+			if mval1 == nil || mval1.IsNil() {
+				return reflect.ValueOf(tval), nil
+			} else {
+				ival := mval1.Elem()
+				return d.valueFromToml(mval1.Elem().Type(), t, &ival)
+			}
 		default:
 			return reflect.ValueOf(nil), fmt.Errorf("Can't convert %v(%T) to %v(%v)", tval, tval, mtype, mtype.Kind())
 		}
@@ -795,7 +853,7 @@ func (d *Decoder) valueFromToml(mtype reflect.Type, tval interface{}, mval1 *ref
 func (d *Decoder) unwrapPointer(mtype reflect.Type, tval interface{}, mval1 *reflect.Value) (reflect.Value, error) {
 	var melem *reflect.Value
 
-	if mval1 != nil && !mval1.IsNil() && mtype.Elem().Kind() == reflect.Struct {
+	if mval1 != nil && !mval1.IsNil() && (mtype.Elem().Kind() == reflect.Struct || mtype.Elem().Kind() == reflect.Interface) {
 		elem := mval1.Elem()
 		melem = &elem
 	}

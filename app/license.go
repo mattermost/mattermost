@@ -204,7 +204,6 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "Id")
 	delete(sanitizedLicense, "Name")
 	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "PhoneNumber")
 	delete(sanitizedLicense, "IssuedAt")
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")

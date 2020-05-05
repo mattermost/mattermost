@@ -52,13 +52,6 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 		st := st
 		searchTestEngine := &searchtest.SearchTestEngine{
 			Driver: *st.SqlSettings.DriverName,
-			AfterTest: func(t *testing.T, s store.Store) {
-				t.Helper()
-
-				st.SqlSupplier.GetMaster().Exec("TRUNCATE Teams")
-				st.SqlSupplier.GetMaster().Exec("TRUNCATE Channels")
-				st.SqlSupplier.GetMaster().Exec("TRUNCATE Users")
-			},
 		}
 
 		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, searchTestEngine) })
