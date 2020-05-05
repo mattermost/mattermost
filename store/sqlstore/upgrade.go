@@ -191,11 +191,10 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 }
 
 func decideMaxExecutionTime(sqlStore SqlStore) int64 {
-	result := MAX_TIMEOUT_EXECUTION_TIME_MYSQL
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		result = MAX_TIMEOUT_EXECUTION_TIME_POSTGRES
+		return MAX_TIMEOUT_EXECUTION_TIME_POSTGRES
 	}
-	return result
+	return MAX_TIMEOUT_EXECUTION_TIME_MYSQL
 }
 
 func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
