@@ -5,7 +5,6 @@ package cache2
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
@@ -199,13 +198,13 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 			},
 		},
 	}
-	err = l.Set("post", post)
+	err = l.Set("post", post.Clone())
 	require.Nil(t, err)
 
 	var p model.Post
 	err = l.Get("post", &p)
 	require.Nil(t, err)
-	require.True(t, reflect.DeepEqual(post, p))
+	require.Equal(t, post.Clone(), p.Clone())
 }
 
 func BenchmarkLRU(b *testing.B) {
