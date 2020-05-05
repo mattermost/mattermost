@@ -82,12 +82,17 @@ func TestWebSocketClose(t *testing.T) {
 	}
 
 	checkWriteChan := func(writeChan chan writeMessage) {
-		defer func() {
-			if x := recover(); x == nil {
-				require.Fail(t, "should have panicked due to closing a closed channel")
-			}
-		}()
-		close(writeChan)
+		// Writes to write chan should block because the writer has quit.
+		timeout := time.After(300 * time.Millisecond)
+		select {
+		case writeChan <- writeMessage{
+			msgType: msgTypeJSON,
+		}:
+			require.Fail(t, "writer should not be running")
+		case <-timeout:
+			return
+		}
+
 	}
 
 	waitForResponses := func(doneChan chan struct{}, cli *WebSocketClient) {
@@ -118,8 +123,15 @@ func TestWebSocketClose(t *testing.T) {
 		numClosed := waitClose(doneChan)
 		assert.Equal(t, 2, numClosed, "unexpected number of channels closed")
 
+		// We sleep for a while to let the write exit.
+		// This is because it's a sudden close and we have no guarantee when the
+		// writer quits.
+		time.Sleep(300 * time.Millisecond)
 		// Check whether the write channel was closed or not.
 		checkWriteChan(cli.writeChan)
+
+		// SendMessage should not block after writer is exited.
+		cli.UserTyping("channelId", "parentId2")
 
 		require.NotNil(t, cli.ListenError, "non-nil listen error")
 		assert.Equal(t, "model.websocket_client.connect_fail.app_error", cli.ListenError.Id, "unexpected error id")
@@ -142,5 +154,8 @@ func TestWebSocketClose(t *testing.T) {
 
 		// Check whether the write channel was closed or not.
 		checkWriteChan(cli.writeChan)
+
+		// SendMessage should not block after writer is exited.
+		cli.UserTyping("channelId", "parentId2")
 	})
 }

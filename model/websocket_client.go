@@ -149,7 +149,6 @@ func (wsc *WebSocketClient) Close() {
 		return
 	}
 	wsc.quitWriterChan <- struct{}{}
-	close(wsc.writeChan)
 	// We close the connection, which breaks the reader loop.
 	// Then we let the defer block in the reader do further cleanup.
 	wsc.Conn.Close()
@@ -197,7 +196,6 @@ func (wsc *WebSocketClient) Listen() {
 				return
 			}
 			wsc.quitWriterChan <- struct{}{}
-			close(wsc.writeChan)
 			wsc.Conn.Close() // This can most likely be removed. Needs to be checked.
 		}()
 
@@ -249,10 +247,15 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 	req.Data = data
 
 	wsc.Sequence++
-	wsc.writeChan <- writeMessage{
+	// we do a non-blocking send in case the writer has already exited.
+	select {
+	case wsc.writeChan <- writeMessage{
 		msgType: msgTypeJSON,
 		data:    req,
+	}:
+	default:
 	}
+
 }
 
 // UserTyping will push a user_typing event out to all connected users
