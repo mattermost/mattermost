@@ -33,241 +33,243 @@ func TestPlugin(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
-	require.Nil(t, err)
-	states := map[string]*model.PluginState{}
-	json.Unmarshal(statesJson, &states)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.EnableUploads = true
-		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
-	})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
+		require.Nil(t, err)
+		states := map[string]*model.PluginState{}
+		json.Unmarshal(statesJson, &states)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+			*cfg.PluginSettings.AllowInsecureDownloadUrl = true
+		})
 
-	path, _ := fileutils.FindDir("tests")
-	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
-	require.NoError(t, err)
+		path, _ := fileutils.FindDir("tests")
+		tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+		require.NoError(t, err)
 
-	// Install from URL
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.WriteHeader(http.StatusOK)
-		res.Write(tarData)
-	}))
-	defer func() { testServer.Close() }()
-
-	url := testServer.URL
-
-	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url, false)
-	CheckNoError(t, resp)
-	assert.Equal(t, "testplugin", manifest.Id)
-
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
-	CheckBadRequestStatus(t, resp)
-
-	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
-	CheckNoError(t, resp)
-	assert.Equal(t, "testplugin", manifest.Id)
-
-	// Stored in File Store: Install Plugin from URL case
-	pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-	assert.Nil(t, err)
-	assert.True(t, pluginStored)
-
-	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckNoError(t, resp)
-	require.True(t, ok)
-
-	t.Run("install plugin from URL with slow response time", func(t *testing.T) {
-		if testing.Short() {
-			t.Skip("skipping test to install plugin from a slow response server")
-		}
-
-		// Install from URL - slow server to simulate longer bundle download times
-		slowTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			time.Sleep(60 * time.Second) // Wait longer than the previous default 30 seconds timeout
+		// Install from URL
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusOK)
 			res.Write(tarData)
 		}))
-		defer func() { slowTestServer.Close() }()
+		defer func() { testServer.Close() }()
 
-		manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(slowTestServer.URL, true)
+		url := testServer.URL
+
+		manifest, resp := client.InstallPluginFromUrl(url, false)
 		CheckNoError(t, resp)
 		assert.Equal(t, "testplugin", manifest.Id)
+
+		_, resp = client.InstallPluginFromUrl(url, false)
+		CheckBadRequestStatus(t, resp)
+
+		manifest, resp = client.InstallPluginFromUrl(url, true)
+		CheckNoError(t, resp)
+		assert.Equal(t, "testplugin", manifest.Id)
+
+		// Stored in File Store: Install Plugin from URL case
+		pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, err)
+		assert.True(t, pluginStored)
+
+		ok, resp := client.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		require.True(t, ok)
+
+		t.Run("install plugin from URL with slow response time", func(t *testing.T) {
+			if testing.Short() {
+				t.Skip("skipping test to install plugin from a slow response server")
+			}
+
+			// Install from URL - slow server to simulate longer bundle download times
+			slowTestServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+				time.Sleep(60 * time.Second) // Wait longer than the previous default 30 seconds timeout
+				res.WriteHeader(http.StatusOK)
+				res.Write(tarData)
+			}))
+			defer func() { slowTestServer.Close() }()
+
+			manifest, resp = client.InstallPluginFromUrl(slowTestServer.URL, true)
+			CheckNoError(t, resp)
+			assert.Equal(t, "testplugin", manifest.Id)
+		})
+
+		th.App.RemovePlugin(manifest.Id)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+		_, resp = client.InstallPluginFromUrl(url, false)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+		_, resp = th.Client.InstallPluginFromUrl(url, false)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = client.InstallPluginFromUrl("http://nodata", false)
+		CheckBadRequestStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
+
+		_, resp = client.InstallPluginFromUrl(url, false)
+		CheckBadRequestStatus(t, resp)
+
+		// Successful upload
+		manifest, resp = client.UploadPlugin(bytes.NewReader(tarData))
+		CheckNoError(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
+
+		manifest, resp = client.UploadPluginForced(bytes.NewReader(tarData))
+		defer os.RemoveAll("plugins/testplugin")
+		CheckNoError(t, resp)
+
+		assert.Equal(t, "testplugin", manifest.Id)
+
+		// Stored in File Store: Upload Plugin case
+		pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, err)
+		assert.True(t, pluginStored)
+
+		// Upload error cases
+		_, resp = client.UploadPlugin(bytes.NewReader([]byte("badfile")))
+		CheckBadRequestStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+		_, resp = client.UploadPlugin(bytes.NewReader(tarData))
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = false
+		})
+		_, resp = client.UploadPlugin(bytes.NewReader(tarData))
+		CheckNotImplementedStatus(t, resp)
+
+		_, resp = client.InstallPluginFromUrl(url, false)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
+		_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
+		CheckForbiddenStatus(t, resp)
+
+		// Successful gets
+		pluginsResp, resp := client.GetPlugins()
+		CheckNoError(t, resp)
+
+		found := false
+		for _, m := range pluginsResp.Inactive {
+			if m.Id == manifest.Id {
+				found = true
+			}
+		}
+
+		assert.True(t, found)
+
+		found = false
+		for _, m := range pluginsResp.Active {
+			if m.Id == manifest.Id {
+				found = true
+			}
+		}
+
+		assert.False(t, found)
+
+		// Successful activate
+		ok, resp = client.EnablePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		pluginsResp, resp = client.GetPlugins()
+		CheckNoError(t, resp)
+
+		found = false
+		for _, m := range pluginsResp.Active {
+			if m.Id == manifest.Id {
+				found = true
+			}
+		}
+
+		assert.True(t, found)
+
+		// Activate error case
+		ok, resp = client.EnablePlugin("junk")
+		CheckNotFoundStatus(t, resp)
+		assert.False(t, ok)
+
+		ok, resp = client.EnablePlugin("JUNK")
+		CheckNotFoundStatus(t, resp)
+		assert.False(t, ok)
+
+		// Successful deactivate
+		ok, resp = client.DisablePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		pluginsResp, resp = client.GetPlugins()
+		CheckNoError(t, resp)
+
+		found = false
+		for _, m := range pluginsResp.Inactive {
+			if m.Id == manifest.Id {
+				found = true
+			}
+		}
+
+		assert.True(t, found)
+
+		// Deactivate error case
+		ok, resp = client.DisablePlugin("junk")
+		CheckNotFoundStatus(t, resp)
+		assert.False(t, ok)
+
+		// Get error cases
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+		_, resp = client.GetPlugins()
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+		_, resp = th.Client.GetPlugins()
+		CheckForbiddenStatus(t, resp)
+
+		// Successful webapp get
+		_, resp = client.EnablePlugin(manifest.Id)
+		CheckNoError(t, resp)
+
+		manifests, resp := th.Client.GetWebappPlugins()
+		CheckNoError(t, resp)
+
+		found = false
+		for _, m := range manifests {
+			if m.Id == manifest.Id {
+				found = true
+			}
+		}
+
+		assert.True(t, found)
+
+		// Successful remove
+		ok, resp = client.RemovePlugin(manifest.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		// Remove error cases
+		ok, resp = client.RemovePlugin(manifest.Id)
+		CheckNotFoundStatus(t, resp)
+		assert.False(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+		_, resp = client.RemovePlugin(manifest.Id)
+		CheckNotImplementedStatus(t, resp)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+		_, resp = th.Client.RemovePlugin(manifest.Id)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp = client.RemovePlugin("bad.id")
+		CheckNotFoundStatus(t, resp)
 	})
-
-	th.App.RemovePlugin(manifest.Id)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
-	CheckNotImplementedStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-
-	_, resp = th.Client.InstallPluginFromUrl(url, false)
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", false)
-	CheckBadRequestStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
-
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
-	CheckBadRequestStatus(t, resp)
-
-	// Successful upload
-	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-	CheckNoError(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-
-	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
-	defer os.RemoveAll("plugins/testplugin")
-	CheckNoError(t, resp)
-
-	assert.Equal(t, "testplugin", manifest.Id)
-
-	// Stored in File Store: Upload Plugin case
-	pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-	assert.Nil(t, err)
-	assert.True(t, pluginStored)
-
-	// Upload error cases
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
-	CheckBadRequestStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-	CheckNotImplementedStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.EnableUploads = false
-	})
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-	CheckNotImplementedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
-	CheckNotImplementedStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
-	CheckForbiddenStatus(t, resp)
-
-	// Successful gets
-	pluginsResp, resp := th.SystemAdminClient.GetPlugins()
-	CheckNoError(t, resp)
-
-	found := false
-	for _, m := range pluginsResp.Inactive {
-		if m.Id == manifest.Id {
-			found = true
-		}
-	}
-
-	assert.True(t, found)
-
-	found = false
-	for _, m := range pluginsResp.Active {
-		if m.Id == manifest.Id {
-			found = true
-		}
-	}
-
-	assert.False(t, found)
-
-	// Successful activate
-	ok, resp = th.SystemAdminClient.EnablePlugin(manifest.Id)
-	CheckNoError(t, resp)
-	assert.True(t, ok)
-
-	pluginsResp, resp = th.SystemAdminClient.GetPlugins()
-	CheckNoError(t, resp)
-
-	found = false
-	for _, m := range pluginsResp.Active {
-		if m.Id == manifest.Id {
-			found = true
-		}
-	}
-
-	assert.True(t, found)
-
-	// Activate error case
-	ok, resp = th.SystemAdminClient.EnablePlugin("junk")
-	CheckNotFoundStatus(t, resp)
-	assert.False(t, ok)
-
-	ok, resp = th.SystemAdminClient.EnablePlugin("JUNK")
-	CheckNotFoundStatus(t, resp)
-	assert.False(t, ok)
-
-	// Successful deactivate
-	ok, resp = th.SystemAdminClient.DisablePlugin(manifest.Id)
-	CheckNoError(t, resp)
-	assert.True(t, ok)
-
-	pluginsResp, resp = th.SystemAdminClient.GetPlugins()
-	CheckNoError(t, resp)
-
-	found = false
-	for _, m := range pluginsResp.Inactive {
-		if m.Id == manifest.Id {
-			found = true
-		}
-	}
-
-	assert.True(t, found)
-
-	// Deactivate error case
-	ok, resp = th.SystemAdminClient.DisablePlugin("junk")
-	CheckNotFoundStatus(t, resp)
-	assert.False(t, ok)
-
-	// Get error cases
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.GetPlugins()
-	CheckNotImplementedStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-	_, resp = th.Client.GetPlugins()
-	CheckForbiddenStatus(t, resp)
-
-	// Successful webapp get
-	_, resp = th.SystemAdminClient.EnablePlugin(manifest.Id)
-	CheckNoError(t, resp)
-
-	manifests, resp := th.Client.GetWebappPlugins()
-	CheckNoError(t, resp)
-
-	found = false
-	for _, m := range manifests {
-		if m.Id == manifest.Id {
-			found = true
-		}
-	}
-
-	assert.True(t, found)
-
-	// Successful remove
-	ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckNoError(t, resp)
-	assert.True(t, ok)
-
-	// Remove error cases
-	ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckNotFoundStatus(t, resp)
-	assert.False(t, ok)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-	CheckNotImplementedStatus(t, resp)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-	_, resp = th.Client.RemovePlugin(manifest.Id)
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
-	CheckNotFoundStatus(t, resp)
 }
 
 func TestNotifyClusterPluginEvent(t *testing.T) {
@@ -387,80 +389,82 @@ func TestDisableOnRemove(t *testing.T) {
 			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.PluginSettings.Enable = true
-				*cfg.PluginSettings.EnableUploads = true
-			})
+			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.PluginSettings.Enable = true
+					*cfg.PluginSettings.EnableUploads = true
+				})
 
-			// Upload
-			manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-			CheckNoError(t, resp)
-			require.Equal(t, "testplugin", manifest.Id)
-
-			// Check initial status
-			pluginsResp, resp := th.SystemAdminClient.GetPlugins()
-			CheckNoError(t, resp)
-			require.Empty(t, pluginsResp.Active)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
-				Manifest: *manifest,
-			}})
-
-			// Enable plugin
-			ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
-			CheckNoError(t, resp)
-			require.True(t, ok)
-
-			// Confirm enabled status
-			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
-			CheckNoError(t, resp)
-			require.Empty(t, pluginsResp.Inactive)
-			require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
-				Manifest: *manifest,
-			}})
-
-			if tc.Upgrade {
-				// Upgrade
-				manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
+				// Upload
+				manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 				CheckNoError(t, resp)
 				require.Equal(t, "testplugin", manifest.Id)
 
-				// Plugin should remain active
+				// Check initial status
+				pluginsResp, resp := th.SystemAdminClient.GetPlugins()
+				CheckNoError(t, resp)
+				require.Empty(t, pluginsResp.Active)
+				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
+					Manifest: *manifest,
+				}})
+
+				// Enable plugin
+				ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
+				CheckNoError(t, resp)
+				require.True(t, ok)
+
+				// Confirm enabled status
 				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
 				CheckNoError(t, resp)
 				require.Empty(t, pluginsResp.Inactive)
 				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
 					Manifest: *manifest,
 				}})
-			}
 
-			// Remove plugin
-			ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-			CheckNoError(t, resp)
-			require.True(t, ok)
+				if tc.Upgrade {
+					// Upgrade
+					manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
+					CheckNoError(t, resp)
+					require.Equal(t, "testplugin", manifest.Id)
 
-			// Plugin should have no status
-			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
-			CheckNoError(t, resp)
-			require.Empty(t, pluginsResp.Inactive)
-			require.Empty(t, pluginsResp.Active)
+					// Plugin should remain active
+					pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+					CheckNoError(t, resp)
+					require.Empty(t, pluginsResp.Inactive)
+					require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
+						Manifest: *manifest,
+					}})
+				}
 
-			// Upload same plugin
-			manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
-			CheckNoError(t, resp)
-			require.Equal(t, "testplugin", manifest.Id)
+				// Remove plugin
+				ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
+				CheckNoError(t, resp)
+				require.True(t, ok)
 
-			// Plugin should be inactive
-			pluginsResp, resp = th.SystemAdminClient.GetPlugins()
-			CheckNoError(t, resp)
-			require.Empty(t, pluginsResp.Active)
-			require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
-				Manifest: *manifest,
-			}})
+				// Plugin should have no status
+				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+				CheckNoError(t, resp)
+				require.Empty(t, pluginsResp.Inactive)
+				require.Empty(t, pluginsResp.Active)
 
-			// Clean up
-			ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
-			CheckNoError(t, resp)
-			require.True(t, ok)
+				// Upload same plugin
+				manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+				CheckNoError(t, resp)
+				require.Equal(t, "testplugin", manifest.Id)
+
+				// Plugin should be inactive
+				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+				CheckNoError(t, resp)
+				require.Empty(t, pluginsResp.Active)
+				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
+					Manifest: *manifest,
+				}})
+
+				// Clean up
+				ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
+				CheckNoError(t, resp)
+				require.True(t, ok)
+			})
 		})
 	}
 }
