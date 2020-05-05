@@ -58,8 +58,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 	query := s.getQueryBuilder().
 		Select("*").
 		From("LinkMetadata").
-		Where(sq.Eq{"URL": url}).
-		Where(sq.Eq{"Timestamp": timestamp})
+		Where(sq.Eq{"URL": url, "Timestamp": timestamp})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
