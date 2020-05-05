@@ -2249,6 +2249,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	if _, err := a.Srv().Store.Channel().Update(channel); err != nil {
 		return err
 	}
+	a.removeUsersFromChannelNotMemberOfTeam(user, channel, team)
 	a.postChannelMoveMessage(user, channel, previousTeam)
 
 	return nil
@@ -2268,6 +2269,40 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 
 	if _, err := a.CreatePost(post, channel, false); err != nil {
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) removeUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+	if err != nil {
+		return err
+	}
+
+	channelMemberIds := []string{}
+	channelMemberMap := make(map[string]struct{})
+	for _, channelMember := range *channelMembers {
+		channelMemberMap[channelMember.UserId] = struct{}{}
+		channelMemberIds = append(channelMemberIds, channelMember.UserId)
+	}
+
+	if len(channelMemberIds) > 0 {
+		teamMembers, err := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
+		if err != nil {
+			return err
+		}
+
+		if len(teamMembers) != len(*channelMembers) {
+			for _, teamMember := range teamMembers {
+				delete(channelMemberMap, teamMember.UserId)
+			}
+			for userId := range channelMemberMap {
+				if err := a.removeUserFromChannel(userId, remover.Id, channel); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil
