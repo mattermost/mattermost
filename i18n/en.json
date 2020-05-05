@@ -6671,6 +6671,10 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
+    "id": "store.sql_post.search.app_error",
+    "translation": "We encountered an error searching posts."
+  },
+  {
     "id": "store.sql_post.update.app_error",
     "translation": "Unable to update the Post."
   },

@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -1236,6 +1237,24 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if searchType == "Message" {
+			stopWords, err := findStopWordsMysql(s)
+			if err != nil {
+				return nil, model.NewAppError("SqlPostStore.search", "store.sql_post.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			for i := 0; i < len(stopWords); i++ {
+				stopWords[i] = fmt.Sprintf(`\b%s\b`, stopWords[i])
+			}
+			re, err := regexp.Compile(strings.Join(stopWords, "|"))
+			if err != nil {
+				return nil, model.NewAppError("SqlPostStore.search", "store.sql_post.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			terms = re.ReplaceAllString(terms, " ")
+			terms = strings.TrimSpace(terms)
+		}
+
 		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
@@ -1279,6 +1298,17 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 	list.MakeNonNil()
 	return list, nil
+}
+
+func findStopWordsMysql(s *SqlPostStore) ([]string, error) {
+	query := "SELECT * FROM INFORMATION_SCHEMA.INNODB_FT_DEFAULT_STOPWORD"
+	var stopWords []string
+	_, err := s.GetReplica().Select(&stopWords, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not find mysql stop words")
+	}
+
+	return stopWords, nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
