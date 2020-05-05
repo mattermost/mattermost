@@ -155,15 +155,20 @@ func NewRandomTeamName() string {
 	return teamName
 }
 
+// NewRandomString returns a random string of the given length.
+// The resulting entropy will be (5 * length) bits.
 func NewRandomString(length int) string {
-	var b bytes.Buffer
-	str := make([]byte, length+8)
-	rand.Read(str)
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(str)
-	encoder.Close()
-	b.Truncate(length) // removes the '==' padding
-	return b.String()
+	data := make([]byte, 1+(length*5/8))
+	rand.Read(data)
+	return encoding.EncodeToString(data)[:length]
+}
+
+// NewRandomBase32String returns a base32 encoded string of a random slice
+// of bytes of the given size. The resulting entropy will be (8 * size) bits.
+func NewRandomBase32String(size int) string {
+	data := make([]byte, size)
+	rand.Read(data)
+	return base32.StdEncoding.EncodeToString(data)
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.
@@ -367,16 +372,20 @@ func IsValidEmail(email string) bool {
 }
 
 var reservedName = []string{
-	"signup",
-	"login",
 	"admin",
-	"channel",
-	"post",
 	"api",
-	"oauth",
+	"channel",
+	"claim",
 	"error",
 	"help",
+	"landing",
+	"login",
+	"mfa",
+	"oauth",
+	"plug",
 	"plugins",
+	"post",
+	"signup",
 }
 
 func IsValidChannelIdentifier(s string) bool {

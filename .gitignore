@@ -56,6 +56,7 @@ _testmain.go
 # Log files
 *.log
 *.log.jsonl
+*.log.gz
 
 # Fuzz binaries and working dir
 *fuzz.zip

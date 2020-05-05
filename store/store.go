@@ -170,6 +170,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
@@ -295,6 +296,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
+	GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError)
 	GetByUsername(username string) (*model.User, *model.AppError)
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
@@ -330,6 +332,7 @@ type UserStore interface {
 	DemoteUserToGuest(userID string) *model.AppError
 	DeactivateGuests() ([]string, *model.AppError)
 	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 }
 
 type BotStore interface {
@@ -629,6 +632,10 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
+
+	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError)
+	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError)
+
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	PermanentDeleteMembersByUser(userId string) *model.AppError
