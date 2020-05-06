@@ -14,6 +14,7 @@ import (
 
 func (api *API) InitLicenseLocal() {
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiLocal(localAddLicense)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiLocal(localRemoveLicense)).Methods("DELETE")
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -75,4 +76,20 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	w.Write([]byte(license.ToJson()))
+}
+
+func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localRemoveLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if err := c.App.RemoveLicense(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("success")
+
+	ReturnStatusOK(w)
 }
