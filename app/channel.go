@@ -2249,8 +2249,14 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	if _, err := a.Srv().Store.Channel().Update(channel); err != nil {
 		return err
 	}
-	a.removeUsersFromChannelNotMemberOfTeam(user, channel, team)
-	a.postChannelMoveMessage(user, channel, previousTeam)
+
+	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
+		mlog.Warn("error while removing non-team member users", mlog.Err(err))
+	}
+
+	if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
+		mlog.Warn("error while posting move channel message", mlog.Err(err))
+	}
 
 	return nil
 }
