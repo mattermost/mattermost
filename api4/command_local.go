@@ -12,6 +12,7 @@ import (
 
 func (api *API) InitCommandLocal() {
 	api.BaseRoutes.Commands.Handle("", api.ApiLocal(localCreateCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.ApiLocal(listCommands)).Methods("GET")
 }
 
 func localCreateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
