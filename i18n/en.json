@@ -1481,6 +1481,14 @@
     "translation": "Failed to send the disable license email successfully."
   },
   {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "The number of users requested is not correct."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -5701,6 +5709,14 @@
   {
     "id": "model.websocket_client.connect_fail.app_error",
     "translation": "Unable to connect to the WebSocket server."
+  },
+  {
+    "id": "mysqlsearchengine.purge-indexes.app-error",
+    "translation": ""
+  },
+  {
+    "id": "mysqlsearchengine.search_channels.app_error",
+    "translation": ""
   },
   {
     "id": "oauth.gitlab.tos.error",

@@ -40,6 +40,20 @@ type Customer struct {
 	Company string `json:"company"`
 }
 
+type TrialLicenseRequest struct {
+	ServerID string `json:"server_id"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	SiteURL  string `json:"site_url"`
+	SiteName string `json:"site_name"`
+	Users    int    `json:"users"`
+}
+
+func (tlr *TrialLicenseRequest) ToJson() string {
+	b, _ := json.Marshal(tlr)
+	return string(b)
+}
+
 type Features struct {
 	Users                     *int  `json:"users"`
 	LDAP                      *bool `json:"ldap"`
