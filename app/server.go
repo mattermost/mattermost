@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -48,6 +49,7 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
 	Store           store.Store
+	sqlStore        *sqlstore.SqlSupplier
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -226,6 +228,22 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
+	license := s.License()
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
+		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = []string{}
+		})
+	}
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
+		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
+		})
+	}
+
 	err := s.RunOldAppInitialization()
 	if err != nil {
 		return nil, err
@@ -272,22 +290,6 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
 	s.checkPushNotificationServerUrl()
-
-	license := s.License()
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
-		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = []string{}
-		})
-	}
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
-		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
-		})
-	}
 
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {

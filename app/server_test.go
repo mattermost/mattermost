@@ -48,6 +48,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
+		require.Equal(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 0)
 	})
 
@@ -62,6 +63,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
+		require.NotEqual(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
@@ -75,6 +77,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
+		require.Equal(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 0)
 	})
 
@@ -89,6 +92,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err)
+		require.NotEqual(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 }

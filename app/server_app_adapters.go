@@ -61,10 +61,11 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
+			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			return store.NewTimerLayer(
 				searchlayer.NewSearchLayer(
 					localcachelayer.NewLocalCacheLayer(
-						sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics),
+						s.sqlStore,
 						s.Metrics,
 						s.Cluster,
 						s.CacheProvider,
