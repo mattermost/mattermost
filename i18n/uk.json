@@ -7195,6 +7195,10 @@
     "translation": "Виявлено ряд користувачів з відповідними обліковими даними, вхід неможливий. Будь ласка, зв'яжіться з адміністратором."
   },
   {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
+  },
+  {
     "id": "store.sql_user.get_new_users.app_error",
     "translation": "Помилка під час пошуку нових користувачів"
   },
