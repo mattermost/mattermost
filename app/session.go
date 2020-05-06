@@ -271,6 +271,14 @@ func (a *App) AttachDeviceId(sessionId string, deviceId string, expiresAt int64)
 }
 
 func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
+	// If we're dealing with a local mode session, we don't need to
+	// update last activity. This shortcircuit exists to make existing
+	// handlers compatible with local mode, but the method should
+	// never be called from local mode specific handlers
+	if session.Local {
+		return
+	}
+
 	now := model.GetMillis()
 
 	a.UpdateWebConnUserActivity(session, now)
