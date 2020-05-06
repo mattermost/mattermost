@@ -522,7 +522,7 @@ func (a *App) SendAdminAckEmail(email string) *model.AppError {
 	body := fmt.Sprintf("Contact Email: %s DiagnosticId: %s SiteURL: %s LicenseId: %s", email, a.DiagnosticId(), a.GetSiteURL(), a.License().Id)
 
 	if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, body, a.Config(), false, email); err != nil {
-		mlog.Error("Error while sending to", mlog.String("email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
+		mlog.Error("Error while sending email", mlog.String("email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
 		return model.NewAppError("SendAdminAckEmail", "api.email.send_admin_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 

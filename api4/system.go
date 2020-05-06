@@ -576,7 +576,11 @@ func sendAdminAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.SendAdminAckEmail(user.Email)
+	err = c.App.SendAdminAckEmail(user.Email)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	auditRec.Success()
 	ReturnStatusOK(w)
