@@ -96,6 +96,8 @@ type AutocompleteSuggestion struct {
 	Hint string
 	// Description of the command or a suggestion
 	Description string
+	// icon
+	IconData string
 }
 
 // NewAutocompleteData returns new Autocomplete data.
