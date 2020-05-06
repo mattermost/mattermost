@@ -45,7 +45,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				return []*model.User{}, nil
 			}
 
-			sanitizedTerm := s.sanitizeTerm(term)
+			sanitizedTerm := sanitizeSearchTerm(term)
 
 			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
 			if err != nil {
@@ -102,7 +102,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
-	sanitizedTerm := s.sanitizeTerm(term)
+	sanitizedTerm := sanitizeSearchTerm(term)
 	if options.ListOfAllowedChannels != nil && !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
 		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, sanitizedTerm, options)
 	} else {
@@ -143,10 +143,6 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	autocomplete.OutOfChannel = outUsers
 
 	return autocomplete, nil
-}
-
-func (s *SearchUserStore) sanitizeTerm(term string) string {
-	return strings.TrimLeft(term, "@")
 }
 
 func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
