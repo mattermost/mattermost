@@ -6911,6 +6911,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "store.sql_session.update_expires_at.app_error",
+    "translation": "Unable to update expires_at."
+  },
+  {
     "id": "store.sql_session.update_last_activity.app_error",
     "translation": "Unable to update the last_activity_at."
   },
