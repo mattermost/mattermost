@@ -4528,3 +4528,103 @@ func TestPromoteGuestToUser(t *testing.T) {
 		})
 	})
 }
+
+func TestGetKnownUsers(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t1, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	t2, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	t3, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	c1, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t1.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	c2, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t2.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	c3, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t3.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	u1 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u1)
+	u2 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u2)
+	u3 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u3)
+	u4 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u4)
+
+	th.LinkUserToTeam(u1, t1)
+	th.LinkUserToTeam(u1, t2)
+	th.LinkUserToTeam(u2, t1)
+	th.LinkUserToTeam(u3, t2)
+	th.LinkUserToTeam(u4, t3)
+
+	th.App.AddUserToChannel(u1, c1)
+	th.App.AddUserToChannel(u1, c2)
+	th.App.AddUserToChannel(u2, c1)
+	th.App.AddUserToChannel(u3, c2)
+	th.App.AddUserToChannel(u4, c3)
+
+	t.Run("get know users sharing no channels", func(t *testing.T) {
+		_, _ = th.Client.Login(u4.Email, u4.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Empty(t, userIds)
+	})
+
+	t.Run("get know users sharing one channel", func(t *testing.T) {
+		_, _ = th.Client.Login(u3.Email, u3.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Len(t, userIds, 1)
+		assert.Equal(t, userIds[0], u1.Id)
+	})
+
+	t.Run("get know users sharing multiple channels", func(t *testing.T) {
+		_, _ = th.Client.Login(u1.Email, u1.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Len(t, userIds, 2)
+		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
+	})
+}

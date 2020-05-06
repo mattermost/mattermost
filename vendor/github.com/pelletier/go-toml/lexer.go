@@ -256,7 +256,7 @@ func (l *tomlLexer) lexLeftCurlyBrace() tomlLexStateFn {
 func (l *tomlLexer) lexRightCurlyBrace() tomlLexStateFn {
 	l.next()
 	l.emit(tokenRightCurlyBrace)
-	return l.lexVoid
+	return l.lexRvalue
 }
 
 func (l *tomlLexer) lexDate() tomlLexStateFn {
