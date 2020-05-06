@@ -25,6 +25,8 @@ func TestMigrate(t *testing.T) {
 	}
 	filesData := make([]string, len(files))
 	for i := range files {
+		// Generate random data for each file, ensuring that stale data from a past test
+		// won't generate a false positive.
 		filesData[i] = model.NewId()
 	}
 
