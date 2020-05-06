@@ -61,12 +61,10 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 			suggestions = append(suggestions, subSuggestions...)
 			continue
 		}
-		found, changedParsed, changedToBeParsed, suggestion := a.parseArguments(command.Arguments, parsed, toBeParsed)
+		found, _, _, suggestion := a.parseArguments(command.Arguments, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 		}
-		parsed = changedParsed
-		toBeParsed = changedToBeParsed
 	}
 	return suggestions
 }
