@@ -5,7 +5,7 @@ import "time"
 var _ Message = (*Alias)(nil)
 
 // This type represents object sent in a alias call as described in
-// https://segment.com/docs/libraries/http/#alias
+
 type Alias struct {
 	// This field is exported for serialization purposes and shouldn't be set by
 	// the application, its value is always overwritten by the library.

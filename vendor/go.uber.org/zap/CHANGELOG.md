@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.15.0 (23 Apr 2020)
+
+Bugfixes:
+* [#804][]: Fix handling of `Time` values out of `UnixNano` range.
+* [#812][]: Fix `IncreaseLevel` being reset after a call to `With`.  
+
+Enhancements:
+* [#806][]: Add `WithCaller` option to supersede the `AddCaller` option. This
+  allows disabling annotation of log entries with caller information if
+  previously enabled with `AddCaller`.
+* [#813][]: Deprecate `NewSampler` constructor in favor of 
+  `NewSamplerWithOptions` which supports a `SamplerHook` option. This option
+   adds support for monitoring sampling decisions through a hook.
+
+Thanks to @danielbprice for their contributions to this release.
+
+## 1.14.1 (14 Mar 2020)
+
+Bugfixes:
+* [#791][]: Fix panic on attempting to build a logger with an invalid Config.
+* [#795][]: Vendoring Zap with `go mod vendor` no longer includes Zap's
+  development-time dependencies.
+* [#799][]: Fix issue introduced in 1.14.0 that caused invalid JSON output to
+  be generated for arrays of `time.Time` objects when using string-based time
+  formats.
+
+Thanks to @YashishDua for their contributions to this release.
+
+## 1.14.0 (20 Feb 2020)
+
+Enhancements:
+* [#771][]: Optimize calls for disabled log levels.
+* [#773][]: Add millisecond duration encoder.
+* [#775][]: Add option to increase the level of a logger.
+* [#786][]: Optimize time formatters using `Time.AppendFormat` where possible.
+
+Thanks to @caibirdme for their contributions to this release.
+
 ## 1.13.0 (13 Nov 2019)
 
 Enhancements:
@@ -350,3 +388,14 @@ upgrade to the upcoming stable release.
 [#736]: https://github.com/uber-go/zap/pull/736
 [#751]: https://github.com/uber-go/zap/pull/751
 [#758]: https://github.com/uber-go/zap/pull/758
+[#771]: https://github.com/uber-go/zap/pull/771
+[#773]: https://github.com/uber-go/zap/pull/773
+[#775]: https://github.com/uber-go/zap/pull/775
+[#786]: https://github.com/uber-go/zap/pull/786
+[#791]: https://github.com/uber-go/zap/pull/791
+[#795]: https://github.com/uber-go/zap/pull/795
+[#799]: https://github.com/uber-go/zap/pull/799
+[#804]: https://github.com/uber-go/zap/pull/804
+[#812]: https://github.com/uber-go/zap/pull/812
+[#806]: https://github.com/uber-go/zap/pull/806
+[#813]: https://github.com/uber-go/zap/pull/813

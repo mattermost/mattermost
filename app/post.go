@@ -396,6 +396,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		post.DelProp("channel_mentions")
 	}
 
+	matched := model.AT_MENTION_PATTEN.MatchString(post.Message)
+	if a.License() != nil && *a.License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
+		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
+	}
+
 	return nil
 }
 
@@ -419,12 +424,14 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	a.Srv().Go(func() {
-		_, err := a.SendAutoResponseIfNecessary(channel, user)
-		if err != nil {
-			mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
-		}
-	})
+	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
+		a.Srv().Go(func() {
+			_, err := a.SendAutoResponseIfNecessary(channel, user)
+			if err != nil {
+				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
+			}
+		})
+	}
 
 	if triggerWebhooks {
 		a.Srv().Go(func() {
