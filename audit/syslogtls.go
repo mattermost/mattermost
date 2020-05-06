@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -33,7 +34,13 @@ type SyslogParams struct {
 // NewSyslogTLSTarget creates a target capable of outputting log records to remote or local syslog via TLS.
 func NewSyslogTLSTarget(filter logr.Filter, formatter logr.Formatter, params *SyslogParams, maxQueue int) (*SyslogTLS, error) {
 	config := tls.Config{InsecureSkipVerify: params.Insecure}
-	config.RootCAs = getCertPool(params.Cert)
+	if params.Cert != "" {
+		pool, err := getCertPool(params.Cert)
+		if err != nil {
+			return nil, err
+		}
+		config.RootCAs = pool
+	}
 
 	writer, err := syslog.DialWithTLSConfig("tcp+tls", params.Raddr, syslog.LOG_INFO, params.Tag, &config)
 	if err != nil {
@@ -62,9 +69,9 @@ func (s *SyslogTLS) Shutdown(ctx context.Context) error {
 // getCertPool returns a x509.CertPool containing the cert(s)
 // from `cert`, which can be a path to a .pem or .crt file,
 // or a base64 encoded cert.
-func getCertPool(cert string) *x509.CertPool {
+func getCertPool(cert string) (*x509.CertPool, error) {
 	if cert == "" {
-		return nil
+		return nil, errors.New("no cert provided")
 	}
 
 	// first treat as a file and try to read.
@@ -73,15 +80,15 @@ func getCertPool(cert string) *x509.CertPool {
 		// maybe it's a base64 encoded cert
 		serverCert, err = base64.StdEncoding.DecodeString(cert)
 		if err != nil {
-			return nil
+			return nil, errors.New("cert cannot be read")
 		}
 	}
 
 	pool := x509.NewCertPool()
 	if ok := pool.AppendCertsFromPEM(serverCert); ok {
-		return pool
+		return pool, nil
 	}
-	return nil
+	return nil, errors.New("cannot parse cert")
 }
 
 // Write converts the log record to bytes, via the Formatter,
