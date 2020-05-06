@@ -832,14 +832,14 @@ func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
 	if props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC] != "" {
 		val, err := strconv.ParseInt(props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC], 10, 64)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Invalid entry value stored for %s", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+			mlog.Error("Number Of Active Users Metric", mlog.String("Invalid entry value stored", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
 		}
 		if val == -1 {
 			mlog.Info("Exceeding the number of active users metric limit has been already acknowledged")
 			return
 		}
 	} else {
-		mlog.Debug(fmt.Sprintf("Cannot find entry for %s", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+		mlog.Debug("Number Of Active Users Metric", mlog.String("Cannot find metric in store", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
 	}
 
 	//change MONTH_MILLISECONDS to a different value if we want to capture active users for a different period
