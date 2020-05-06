@@ -141,11 +141,11 @@ func TestParseNamedArguments(t *testing.T) {
 
 	found, _, _, suggestion := parseNamedArgument(argument, "", "")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "", Description: "some_help"}, suggestion)
 
 	found, _, _, suggestion = parseNamedArgument(argument, "", " ")
 	assert.True(t, found)
-	assert.Equal(t, model.AutocompleteSuggestion{Complete: " --name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: " --name ", Suggestion: "--name", Hint: "", Description: "some_help"}, suggestion)
 
 	found, parsed, toBeParsed, _ := parseNamedArgument(argument, "", "abc")
 	assert.False(t, found)
@@ -156,19 +156,19 @@ func TestParseNamedArguments(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, "-", parsed)
 	assert.Equal(t, "", toBeParsed)
-	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "", Description: "some_help"}, suggestion)
 
 	found, parsed, toBeParsed, suggestion = parseNamedArgument(argument, "", " -")
 	assert.True(t, found)
 	assert.Equal(t, " -", parsed)
 	assert.Equal(t, "", toBeParsed)
-	assert.Equal(t, model.AutocompleteSuggestion{Complete: " --name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: " --name ", Suggestion: "--name", Hint: "", Description: "some_help"}, suggestion)
 
 	found, parsed, toBeParsed, suggestion = parseNamedArgument(argument, "", "--name")
 	assert.True(t, found)
 	assert.Equal(t, "--name", parsed)
 	assert.Equal(t, "", toBeParsed)
-	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "hint", Description: "some_help"}, suggestion)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "--name ", Suggestion: "--name", Hint: "", Description: "some_help"}, suggestion)
 
 	found, parsed, toBeParsed, _ = parseNamedArgument(argument, "", "--name bla")
 	assert.False(t, found)
@@ -276,14 +276,14 @@ func TestSuggestions(t *testing.T) {
 	assert.Len(t, suggestions, 1)
 	assert.Equal(t, "jira timezone --zone ", suggestions[0].Complete)
 	assert.Equal(t, "--zone", suggestions[0].Suggestion)
-	assert.Equal(t, "[UTC+07:00]", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Hint)
 	assert.Equal(t, "Set timezone", suggestions[0].Description)
 
 	suggestions = th.App.getSuggestions([]*model.AutocompleteData{jira}, "", "jira timezone --", model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Len(t, suggestions, 1)
 	assert.Equal(t, "jira timezone --zone ", suggestions[0].Complete)
 	assert.Equal(t, "--zone", suggestions[0].Suggestion)
-	assert.Equal(t, "[UTC+07:00]", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Hint)
 	assert.Equal(t, "Set timezone", suggestions[0].Description)
 
 	suggestions = th.App.getSuggestions([]*model.AutocompleteData{jira}, "", "jira timezone --zone ", model.SYSTEM_ADMIN_ROLE_ID)
@@ -322,6 +322,257 @@ func TestSuggestions(t *testing.T) {
 	assert.Equal(t, "charles", suggestions[2].Complete)
 }
 
+func TestCommandWithOptionalArgs(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	command := createCommandWithOptionalArgs()
+
+	suggestions := th.App.getSuggestions([]*model.AutocompleteData{command}, "", "comm", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, command.Trigger, suggestions[0].Complete)
+	assert.Equal(t, command.Trigger, suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, command.HelpText, suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 4)
+	assert.Equal(t, "command subcommand1", suggestions[0].Complete)
+	assert.Equal(t, "subcommand1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Description)
+	assert.Equal(t, "command subcommand2", suggestions[1].Complete)
+	assert.Equal(t, "subcommand2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "", suggestions[1].Description)
+	assert.Equal(t, "command subcommand3", suggestions[2].Complete)
+	assert.Equal(t, "subcommand3", suggestions[2].Suggestion)
+	assert.Equal(t, "", suggestions[2].Hint)
+	assert.Equal(t, "", suggestions[2].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 2)
+	assert.Equal(t, "command subcommand1 item1", suggestions[0].Complete)
+	assert.Equal(t, "item1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Description)
+	assert.Equal(t, "command subcommand1 item2", suggestions[1].Complete)
+	assert.Equal(t, "item2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "", suggestions[1].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand1 item1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command subcommand1 item1 --name2 ", suggestions[0].Complete)
+	assert.Equal(t, "--name2", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg2", suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand1 item1 --name2 bla", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command subcommand1 item1 --name2 bla", suggestions[0].Complete)
+	assert.Equal(t, "", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg2", suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 2)
+	assert.Equal(t, "command subcommand2 --name1 ", suggestions[0].Complete)
+	assert.Equal(t, "--name1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg1", suggestions[0].Description)
+	assert.Equal(t, "command subcommand2 ", suggestions[1].Complete)
+	assert.Equal(t, "", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "arg2", suggestions[1].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 -", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 2)
+	assert.Equal(t, "command subcommand2 --name1 ", suggestions[0].Complete)
+	assert.Equal(t, "--name1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg1", suggestions[0].Description)
+	assert.Equal(t, "command subcommand2 -", suggestions[1].Complete)
+	assert.Equal(t, "", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "arg2", suggestions[1].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 --name1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 3)
+	assert.Equal(t, "command subcommand2 --name1 item1", suggestions[0].Complete)
+	assert.Equal(t, "item1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Description)
+	assert.Equal(t, "command subcommand2 --name1 item2", suggestions[1].Complete)
+	assert.Equal(t, "item2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "", suggestions[1].Description)
+	assert.Equal(t, "command subcommand2 --name1 ", suggestions[2].Complete)
+	assert.Equal(t, "", suggestions[2].Suggestion)
+	assert.Equal(t, "", suggestions[2].Hint)
+	assert.Equal(t, "arg3", suggestions[2].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 --name1 item", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 3)
+	assert.Equal(t, "command subcommand2 --name1 item1", suggestions[0].Complete)
+	assert.Equal(t, "item1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Description)
+	assert.Equal(t, "command subcommand2 --name1 item2", suggestions[1].Complete)
+	assert.Equal(t, "item2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "", suggestions[1].Description)
+	assert.Equal(t, "command subcommand2 --name1 item", suggestions[2].Complete)
+	assert.Equal(t, "", suggestions[2].Suggestion)
+	assert.Equal(t, "", suggestions[2].Hint)
+	assert.Equal(t, "arg3", suggestions[2].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 --name1 item1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command subcommand2 --name1 item1 ", suggestions[0].Complete)
+	assert.Equal(t, "", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg2", suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 --name1 item1 bla ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command subcommand2 --name1 item1 bla ", suggestions[0].Complete)
+	assert.Equal(t, "", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg3", suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand2 --name1 item1 bla bla ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 0)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand3 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 3)
+	assert.Equal(t, "command subcommand3 --name1 ", suggestions[0].Complete)
+	assert.Equal(t, "--name1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg1", suggestions[0].Description)
+	assert.Equal(t, "command subcommand3 --name2 ", suggestions[1].Complete)
+	assert.Equal(t, "--name2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "arg2", suggestions[1].Description)
+	assert.Equal(t, "command subcommand3 --name3 ", suggestions[2].Complete)
+	assert.Equal(t, "--name3", suggestions[2].Suggestion)
+	assert.Equal(t, "", suggestions[2].Hint)
+	assert.Equal(t, "arg3", suggestions[2].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand3 --name", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 3)
+	assert.Equal(t, "command subcommand3 --name1 ", suggestions[0].Complete)
+	assert.Equal(t, "--name1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg1", suggestions[0].Description)
+	assert.Equal(t, "command subcommand3 --name2 ", suggestions[1].Complete)
+	assert.Equal(t, "--name2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "arg2", suggestions[1].Description)
+	assert.Equal(t, "command subcommand3 --name3 ", suggestions[2].Complete)
+	assert.Equal(t, "--name3", suggestions[2].Suggestion)
+	assert.Equal(t, "", suggestions[2].Hint)
+	assert.Equal(t, "arg3", suggestions[2].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand3 --name1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 2)
+	assert.Equal(t, "command subcommand3 --name1 item1", suggestions[0].Complete)
+	assert.Equal(t, "item1", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "", suggestions[0].Description)
+	assert.Equal(t, "command subcommand3 --name1 item2", suggestions[1].Complete)
+	assert.Equal(t, "item2", suggestions[1].Suggestion)
+	assert.Equal(t, "", suggestions[1].Hint)
+	assert.Equal(t, "", suggestions[1].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand4 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 2)
+	assert.Equal(t, "command subcommand4 item1", suggestions[0].Complete)
+	assert.Equal(t, "item1", suggestions[0].Suggestion)
+	assert.Equal(t, "(optional)", suggestions[0].Hint)
+	assert.Equal(t, "help3", suggestions[0].Description)
+	assert.Equal(t, "command subcommand4 ", suggestions[1].Complete)
+	assert.Equal(t, "", suggestions[1].Suggestion)
+	assert.Equal(t, "message", suggestions[1].Hint)
+	assert.Equal(t, "help4", suggestions[1].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command subcommand4 item1 ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command subcommand4 item1 ", suggestions[0].Complete)
+	assert.Equal(t, "", suggestions[0].Suggestion)
+	assert.Equal(t, "message", suggestions[0].Hint)
+	assert.Equal(t, "help4", suggestions[0].Description)
+}
+
+func createCommandWithOptionalArgs() *model.AutocompleteData {
+	command := model.NewAutocompleteData("command", "", "")
+	subCommand1 := model.NewAutocompleteData("subcommand1", "", "")
+	subCommand1.AddStaticListArgument("arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, true)
+	subCommand1.AddNamedTextArgument("name2", "arg2", "", "", false)
+	command.AddCommand(subCommand1)
+	subCommand2 := model.NewAutocompleteData("subcommand2", "", "")
+	subCommand2.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, false)
+	subCommand2.AddTextArgument("arg2", "", "")
+	subCommand2.AddTextArgument("arg3", "", "")
+	command.AddCommand(subCommand2)
+	subCommand3 := model.NewAutocompleteData("subcommand3", "", "")
+	subCommand3.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, false)
+	subCommand3.AddNamedTextArgument("name2", "arg2", "", "", false)
+	subCommand3.AddNamedTextArgument("name3", "arg3", "", "", false)
+	command.AddCommand(subCommand3)
+	subcommand4 := model.NewAutocompleteData("subcommand4", "", "help1")
+	subcommand4.AddStaticListArgument("help2", []model.AutocompleteListItem{{
+		HelpText: "help3",
+		Hint:     "(optional)",
+		Item:     "item1",
+	}}, false)
+	subcommand4.AddTextArgument("help4", "message", "")
+	command.AddCommand(subcommand4)
+
+	return command
+}
+
+/*
+func TestSubcommandsAndArgumentsSuggestions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	command := createCommandWithSubsAndArguments()
+
+	suggestions := th.App.getSuggestions([]*model.AutocompleteData{command}, "", "comm", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, command.Trigger, suggestions[0].Complete)
+	assert.Equal(t, command.Trigger, suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, command.HelpText, suggestions[0].Description)
+
+	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command ", model.SYSTEM_ADMIN_ROLE_ID)
+	assert.Len(t, suggestions, 1)
+	assert.Equal(t, "command ", suggestions[0].Complete)
+	assert.Equal(t, "", suggestions[0].Suggestion)
+	assert.Equal(t, "", suggestions[0].Hint)
+	assert.Equal(t, "arg1", suggestions[0].Description)
+}
+
+func createCommandWithSubsAndArguments() *model.AutocompleteData {
+	command := model.NewAutocompleteData("command", "", "")
+	command.AddTextArgument("arg1", "", "")
+	command.AddStaticListArgument("arg2", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
+	command.AddNamedTextArgument("name3", "arg3", "", "")
+	subCommand1 := model.NewAutocompleteData("subcommand1", "", "")
+	subCommand1.AddStaticListArgument("arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
+	subCommand1.AddNamedTextArgument("name2", "arg2", "", "")
+	command.AddCommand(subCommand1)
+	subCommand2 := model.NewAutocompleteData("subcommand2", "", "")
+	subCommand2.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
+	subCommand2.AddTextArgument("arg2", "", "")
+	subCommand2.AddTextArgument("arg3", "", "")
+	command.AddCommand(subCommand2)
+
+	return command
+}
+*/
+
 // createJiraAutocompleteData will create autocomplete data for jira plugin. For testing purposes only.
 func createJiraAutocompleteData() *model.AutocompleteData {
 	jira := model.NewAutocompleteData("jira", "[command]", "Available commands: connect, assign, disconnect, create, transition, view, subscribe, settings, install cloud/server, uninstall cloud/server, help")
@@ -333,8 +584,8 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 	jira.AddCommand(disconnect)
 
 	assign := model.NewAutocompleteData("assign", "[issue]", "Change the assignee of a Jira issue")
-	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key")
-	assign.AddDynamicListArgument("List of assignees is downloading from your Jira account", "/url/assignee")
+	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key", true)
+	assign.AddDynamicListArgument("List of assignees is downloading from your Jira account", "/url/assignee", true)
 	jira.AddCommand(assign)
 
 	create := model.NewAutocompleteData("create", "[issue text]", "Create a new Issue")
@@ -342,15 +593,15 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 	jira.AddCommand(create)
 
 	transition := model.NewAutocompleteData("transition", "[issue]", "Change the state of a Jira issue")
-	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key")
-	assign.AddDynamicListArgument("List of states is downloading from your Jira account", "/url/states")
+	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key", true)
+	assign.AddDynamicListArgument("List of states is downloading from your Jira account", "/url/states", true)
 	jira.AddCommand(transition)
 
 	subscribe := model.NewAutocompleteData("subscribe", "", "Configure the Jira notifications sent to this channel")
 	jira.AddCommand(subscribe)
 
 	view := model.NewAutocompleteData("view", "[issue]", "View the details of a specific Jira issue")
-	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key")
+	assign.AddDynamicListArgument("List of issues is downloading from your Jira account", "/url/issue-key", true)
 	jira.AddCommand(view)
 
 	settings := model.NewAutocompleteData("settings", "", "Update your user settings")
@@ -366,12 +617,12 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 			Item: "Off",
 		},
 	}
-	notifications.AddStaticListArgument("Turn notifications on or off", items)
+	notifications.AddStaticListArgument("Turn notifications on or off", items, true)
 	settings.AddCommand(notifications)
 	jira.AddCommand(settings)
 
 	timezone := model.NewAutocompleteData("timezone", "", "Update your timezone")
-	timezone.AddNamedTextArgument("zone", "Set timezone", "[UTC+07:00]", "")
+	timezone.AddNamedTextArgument("zone", "Set timezone", "[UTC+07:00]", "", true)
 	jira.AddCommand(timezone)
 
 	install := model.NewAutocompleteData("install", "", "Connect Mattermost to a Jira instance")

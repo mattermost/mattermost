@@ -49,6 +49,8 @@ type AutocompleteArg struct {
 	HelpText string
 	// Type of the argument
 	Type string
+	// Required determins if argument is optional or not.
+	Required bool
 	// Actual data of the argument (depends on the Type)
 	Data interface{}
 }
@@ -115,47 +117,50 @@ func (ad *AutocompleteData) AddCommand(command *AutocompleteData) {
 
 // AddTextArgument adds positional AutocompleteArgTypeText argument to the command.
 func (ad *AutocompleteData) AddTextArgument(helpText, hint, pattern string) {
-	ad.AddNamedTextArgument("", helpText, hint, pattern)
+	ad.AddNamedTextArgument("", helpText, hint, pattern, true)
 }
 
 // AddNamedTextArgument adds named AutocompleteArgTypeText argument to the command.
-func (ad *AutocompleteData) AddNamedTextArgument(name, helpText, hint, pattern string) {
+func (ad *AutocompleteData) AddNamedTextArgument(name, helpText, hint, pattern string, required bool) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
 		Type:     AutocompleteArgTypeText,
+		Required: required,
 		Data:     &AutocompleteTextArg{Hint: hint, Pattern: pattern},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
 // AddStaticListArgument adds positional AutocompleteArgTypeStaticList argument to the command.
-func (ad *AutocompleteData) AddStaticListArgument(helpText string, items []AutocompleteListItem) {
-	ad.AddNamedStaticListArgument("", helpText, items)
+func (ad *AutocompleteData) AddStaticListArgument(helpText string, items []AutocompleteListItem, required bool) {
+	ad.AddNamedStaticListArgument("", helpText, items, required)
 }
 
 // AddNamedStaticListArgument adds named AutocompleteArgTypeStaticList argument to the command.
-func (ad *AutocompleteData) AddNamedStaticListArgument(name, helpText string, items []AutocompleteListItem) {
+func (ad *AutocompleteData) AddNamedStaticListArgument(name, helpText string, items []AutocompleteListItem, required bool) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
 		Type:     AutocompleteArgTypeStaticList,
+		Required: required,
 		Data:     &AutocompleteStaticListArg{PossibleArguments: items},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
 
 // AddDynamicListArgument adds positional AutocompleteArgTypeDynamicList argument to the command.
-func (ad *AutocompleteData) AddDynamicListArgument(helpText, url string) {
-	ad.AddNamedDynamicListArgument("", helpText, url)
+func (ad *AutocompleteData) AddDynamicListArgument(helpText, url string, required bool) {
+	ad.AddNamedDynamicListArgument("", helpText, url, required)
 }
 
 // AddNamedDynamicListArgument adds named AutocompleteArgTypeDynamicList argument to the command.
-func (ad *AutocompleteData) AddNamedDynamicListArgument(name, helpText, url string) {
+func (ad *AutocompleteData) AddNamedDynamicListArgument(name, helpText, url string, required bool) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
 		Type:     AutocompleteArgTypeDynamicList,
+		Required: required,
 		Data:     &AutocompleteDynamicListArg{FetchURL: url},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
@@ -228,6 +233,9 @@ func (ad *AutocompleteData) IsValid() error {
 	if stringNotInSlice(ad.RoleID, roles) {
 		return errors.New("Wrong role in the autocomplete data")
 	}
+	if len(ad.Arguments) > 0 && len(ad.SubCommands) > 0 {
+		return errors.New("Command can't have arguments and subcommands")
+	}
 	if len(ad.Arguments) > 0 {
 		namedArgumentIndex := -1
 		for i, arg := range ad.Arguments {
@@ -262,6 +270,9 @@ func (ad *AutocompleteData) IsValid() error {
 			} else if arg.Type == AutocompleteArgTypeText {
 				if _, ok := arg.Data.(*AutocompleteTextArg); !ok {
 					return errors.New("Not a proper TextInput type argument")
+				}
+				if arg.Name == "" && !arg.Required {
+					return errors.New("Positional argument can not be optional")
 				}
 			}
 		}
@@ -298,6 +309,7 @@ func (a *AutocompleteArg) Equals(arg *AutocompleteArg) bool {
 	if a.Name != arg.Name ||
 		a.HelpText != arg.HelpText ||
 		a.Type != arg.Type ||
+		a.Required != arg.Required ||
 		!reflect.DeepEqual(a.Data, arg.Data) {
 		return false
 	}
@@ -324,6 +336,11 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 	a.Type, ok = arg["Type"].(string)
 	if !ok {
 		return errors.Errorf("No field Type in the argument %s", string(b))
+	}
+
+	a.Required, ok = arg["Required"].(bool)
+	if !ok {
+		return errors.Errorf("No field Required in the argument %s", string(b))
 	}
 
 	data, ok := arg["Data"]

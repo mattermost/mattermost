@@ -61,65 +61,119 @@ func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, in
 			suggestions = append(suggestions, subSuggestions...)
 			continue
 		}
-		for _, arg := range command.Arguments {
-			if arg.Name != "" { //Parse the --name first
-				found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
-				if found {
-					suggestions = append(suggestions, suggestion)
-					break
-				}
-				if changedToBeParsed == "" {
-					break
-				}
-				parsed = changedParsed
-				toBeParsed = changedToBeParsed
-			}
-			if arg.Type == model.AutocompleteArgTypeText {
-				found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed)
-				if found {
-					suggestions = append(suggestions, suggestion)
-					break
-				}
-				parsed = changedParsed
-				toBeParsed = changedToBeParsed
-			} else if arg.Type == model.AutocompleteArgTypeStaticList {
-				found, changedParsed, changedToBeParsed, staticListsuggestions := parseStaticListArgument(arg, parsed, toBeParsed)
-				if found {
-					suggestions = append(suggestions, staticListsuggestions...)
-					break
-				}
-				parsed = changedParsed
-				toBeParsed = changedToBeParsed
-			} else if arg.Type == model.AutocompleteArgTypeDynamicList {
-				found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.parseDynamicListArgument(arg, parsed, toBeParsed)
-				if found {
-					suggestions = append(suggestions, dynamicListsuggestions...)
-					break
-				}
-				parsed = changedParsed
-				toBeParsed = changedToBeParsed
-			}
+		found, changedParsed, changedToBeParsed, suggestion := a.parseArguments(command.Arguments, parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, suggestion...)
 		}
+		parsed = changedParsed
+		toBeParsed = changedToBeParsed
 	}
 	return suggestions
 }
 
+func (a *App) parseArguments(args []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+	if len(args) == 0 {
+		return false, parsed, toBeParsed, suggestions
+	}
+	if args[0].Required {
+		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(args[0], parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, suggestion...)
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		return a.parseArguments(args[1:], changedParsed, changedToBeParsed)
+	}
+	// Handling optional arguments. Optional argument can be inputted or not,
+	// so we have to pase both cases recursively and output combined suggestions.
+	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(args[0], parsed, toBeParsed)
+	if foundWithOptional {
+		suggestions = append(suggestions, suggestionsWithOptional...)
+	} else {
+		foundWithOptionalRest, changedParsedWithOptionalRest, changedToBeParsedWithOptionalRest, suggestionsWithOptionalRest := a.parseArguments(args[1:], changedParsedWithOptional, changedToBeParsedWithOptional)
+		if foundWithOptionalRest {
+			suggestions = append(suggestions, suggestionsWithOptionalRest...)
+		}
+		foundWithOptional = foundWithOptionalRest
+		changedParsedWithOptional = changedParsedWithOptionalRest
+		changedToBeParsedWithOptional = changedToBeParsedWithOptionalRest
+	}
+
+	foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestionsWithoutOptional := a.parseArguments(args[1:], parsed, toBeParsed)
+	if foundWithoutOptional {
+		suggestions = append(suggestions, suggestionsWithoutOptional...)
+	}
+
+	// if suggestions were found we can return them
+	if foundWithOptional || foundWithoutOptional {
+		return true, parsed + toBeParsed, "", suggestions
+	}
+	// no suggestions found yet, check if optional argument was inputted
+	if changedParsedWithOptional != parsed && changedToBeParsedWithOptional != toBeParsed {
+		return false, changedParsedWithOptional, changedToBeParsedWithOptional, suggestions
+	}
+	// no suggestions and optional argument was not inputted
+	return foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestions
+}
+
+func (a *App) parseArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+	if arg.Name != "" { //Parse the --name first
+		found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, suggestion)
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		if changedToBeParsed == "" {
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		if changedToBeParsed == " " {
+			changedToBeParsed = ""
+		}
+		parsed = changedParsed
+		toBeParsed = changedToBeParsed
+	}
+	if arg.Type == model.AutocompleteArgTypeText {
+		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, suggestion)
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		parsed = changedParsed
+		toBeParsed = changedToBeParsed
+	} else if arg.Type == model.AutocompleteArgTypeStaticList {
+		found, changedParsed, changedToBeParsed, staticListsuggestions := parseStaticListArgument(arg, parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, staticListsuggestions...)
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		parsed = changedParsed
+		toBeParsed = changedToBeParsed
+	} else if arg.Type == model.AutocompleteArgTypeDynamicList {
+		found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.parseDynamicListArgument(arg, parsed, toBeParsed)
+		if found {
+			suggestions = append(suggestions, dynamicListsuggestions...)
+			return true, changedParsed, changedToBeParsed, suggestions
+		}
+		parsed = changedParsed
+		toBeParsed = changedToBeParsed
+	}
+	return false, parsed, toBeParsed, suggestions
+}
+
 func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(toBeParsed, " ")
-	a := arg.Data.(*model.AutocompleteTextArg)
 	namedArg := "--" + arg.Name
 	if in == "" { //The user has not started typing the argument.
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: a.Hint, Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 	if strings.HasPrefix(strings.ToLower(namedArg), strings.ToLower(in)) {
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: a.Hint, Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 
 	if !strings.HasPrefix(strings.ToLower(in), strings.ToLower(namedArg)+" ") {
 		return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{}
 	}
 	if strings.ToLower(in) == strings.ToLower(namedArg)+" " {
-		return false, parsed + namedArg, " ", model.AutocompleteSuggestion{}
+		return false, parsed + namedArg + " ", " ", model.AutocompleteSuggestion{}
 	}
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
 }
