@@ -848,6 +848,7 @@ type AppIface interface {
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
+	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
