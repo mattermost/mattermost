@@ -158,6 +158,8 @@ func (a *App) RemoveLicense() *model.AppError {
 		return nil
 	}
 
+	mlog.Info("Remove license.", mlog.String("id", model.SYSTEM_ACTIVE_LICENSE_ID))
+
 	sysVar := &model.System{}
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
@@ -204,7 +206,6 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "Id")
 	delete(sanitizedLicense, "Name")
 	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "PhoneNumber")
 	delete(sanitizedLicense, "IssuedAt")
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")
