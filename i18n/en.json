@@ -1167,6 +1167,14 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.email.send_admin_ack.failure.app_error",
+    "translation": "Failure to send admin acknowledgment email"
+  },
+  {
+    "id": "api.email.send_admin_ack.missing_server.app_error",
+    "translation": "SMTP Server is required"
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
   },
@@ -1833,6 +1841,10 @@
   {
     "id": "api.scheme.patch_scheme.license.error",
     "translation": "Your license does not support update permissions schemes"
+  },
+  {
+    "id": "api.send_admin_ack_email.no_sysadmin.app_error",
+    "translation": "Acknowldgement email should be sent only for admin users."
   },
   {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
@@ -3741,6 +3753,14 @@
   {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.system.number_active_users_metric.parse_int.app_error",
+    "translation": "Failed to parse number of active users metric value"
+  },
+  {
+    "id": "app.system.number_active_users_metric.store.app_error",
+    "translation": "Failed to store number of active users metric value"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",

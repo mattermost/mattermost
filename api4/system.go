@@ -50,6 +50,10 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
+
+	api.BaseRoutes.ApiRoot.Handle("/analytics/number_of_active_users", api.ApiSessionRequired(getNumberOfActiveUsersMetricStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/email/admin_ack/send", api.ApiHandler(sendAdminAckEmail)).Methods("POST")
+
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -544,4 +548,36 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
+}
+
+func getNumberOfActiveUsersMetricStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	status, err := c.App.GetNumberOfActiveUsersMetricStatus()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	resp := map[string]bool{"numberOfActiveUsersMetricStatus": status}
+	w.Write([]byte(model.MapBoolToJson(resp)))
+}
+
+func sendAdminAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("sendAdminAckEmail", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.IsSystemAdmin() {
+		c.Err = model.NewAppError("sendAdminAckEmail", "api.send_admin_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.SendAdminAckEmail(user.Email)
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

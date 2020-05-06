@@ -154,6 +154,35 @@ func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (a *App) GetNumberOfActiveUsersMetricStatus() (bool, *model.AppError) {
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC)
+	if appErr != nil {
+		return false, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return false, model.NewAppError("GetNumberOfActiveUsersMetricStatus", "app.system.number_active_users_metric.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if value > model.NUMBER_OF_ACTIVE_USERS_METRIC_LIMIT {
+		mlog.Debug("The Number of Active Users metric exceeded its limit", mlog.Int64("number of active users", value))
+		return true, nil
+	} else {
+		mlog.Debug("The Number of Active Users metric is under the limit", mlog.Int64("number of active users", value))
+	}
+	return false, nil
+}
+
+func (a *App) SetNumberOfActiveUsersMetricStatus() *model.AppError {
+	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC,
+		Value: strconv.FormatInt(-1, 10),
+	}); err != nil {
+		mlog.Error("Unable to write to database.", mlog.Err(err))
+		return model.NewAppError("SetNumberOfActiveUsersMetricStatus", "app.system.number_active_users_metric.store.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (a *App) Srv() *Server {
 	return a.srv
 }

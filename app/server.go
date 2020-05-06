@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -347,6 +348,9 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
+		})
+		s.Go(func() {
+			runStoreAndCheckNumberOfActiveUsersMetricStatusJob(s)
 		})
 
 		if complianceI := s.Compliance; complianceI != nil {
@@ -777,6 +781,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runStoreAndCheckNumberOfActiveUsersMetricStatusJob(s *Server) {
+	doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
+	model.CreateRecurringTask("Store and Check Number Of Active Users Metric Status", func() {
+		doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
+	}, time.Hour*24)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -802,6 +813,54 @@ const (
 
 func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+}
+
+func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
+	// uncomment this if we want to have this check only for TE
+	// license := s.License()
+	// if license != nil {
+	// 	mlog.Debug("License is present, skip this check")
+	// 	return
+	// }
+
+	props, err := s.Store.System().Get()
+	if err != nil {
+		mlog.Error("Error to get system settings.", mlog.Err(err))
+		return
+	}
+
+	if props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC] != "" {
+		val, err := strconv.ParseInt(props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC], 10, 64)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Invalid entry value stored for %s", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+		}
+		if val == -1 {
+			mlog.Info("Exceeding the number of active users metric limit has been already acknowledged")
+			return
+		}
+	} else {
+		mlog.Debug(fmt.Sprintf("Cannot find entry for %s", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+	}
+
+	//change MONTH_MILLISECONDS to a different value if we want to capture active users for a different period
+	noActiveUsers, err := s.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	if err != nil {
+		mlog.Error("Error to get active registered users.", mlog.Err(err))
+	}
+
+	mlog.Info("Number of active users", mlog.Int64("value", noActiveUsers))
+
+	if err := s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
+		mlog.Error("Unable to write to database.", mlog.Err(err))
+		return
+	}
+
+	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_METRIC_LIMIT {
+		mlog.Info("Number of active users is greater than limit")
+		message := model.NewWebSocketEvent(model.WEBSOCKET_NUMBER_OF_ACTIVE_USERS_METRIC_STATUS, "", "", "", nil)
+		message.Add("numberOfActiveUsersMetricStatus", "true")
+		s.FakeApp().Publish(message)
+	}
 }
 
 func (s *Server) StartSearchEngine() (string, string) {

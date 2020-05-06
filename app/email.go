@@ -513,6 +513,25 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 	return nil
 }
 
+func (a *App) SendAdminAckEmail(email string) *model.AppError {
+	if len(*a.Config().EmailSettings.SMTPServer) == 0 {
+		model.NewAppError("SendAdminAckEmail", "api.email.send_admin_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+	}
+	//send email to support with current admin info
+	subject := fmt.Sprintf("%s Received acknowledgement for number of active users metric over limit", *a.Config().TeamSettings.SiteName)
+	body := fmt.Sprintf("Contact Email: %s DiagnosticId: %s SiteURL: %s LicenseId: %s", email, a.DiagnosticId(), a.GetSiteURL(), a.License().Id)
+
+	if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, body, a.Config(), false, email); err != nil {
+		mlog.Error("Error while sending to", mlog.String("email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
+		return model.NewAppError("SendAdminAckEmail", "api.email.send_admin_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+	}
+
+	mlog.Info("Disable the monitoring of the number of active users metric")
+	a.SetNumberOfActiveUsersMetricStatus()
+
+	return nil
+}
+
 func (a *App) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
 	if !*a.Config().EmailSettings.SendEmailNotifications {
 		return nil
@@ -522,12 +541,12 @@ func (a *App) sendNotificationMail(to, subject, htmlBody string) *model.AppError
 
 func (a *App) sendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance, "")
 }
 
 func (a *App) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
 	license := a.License()
 	config := a.Config()
 
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
 }
