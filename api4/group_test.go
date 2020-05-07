@@ -912,3 +912,65 @@ func TestGetGroups(t *testing.T) {
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
 }
+
+func TestGetGroupsByUserId(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group1, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	user1.Password = "test-password-1"
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	assert.Nil(t, err)
+
+	id = model.NewId()
+	group2, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupMember(group2.Id, user1.Id)
+	assert.Nil(t, err)
+
+	th.App.SetLicense(nil)
+	_, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+	_, response = th.SystemAdminClient.GetGroupsByUserId("")
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
+	CheckBadRequestStatus(t, response)
+
+	groups, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
+	require.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
+	// test permissions
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, response = th.Client.GetGroupsByUserId(user1.Id)
+	CheckForbiddenStatus(t, response)
+
+	th.Client.Logout()
+	th.Client.Login(user1.Email, user1.Password)
+	groups, response = th.Client.GetGroupsByUserId(user1.Id)
+	require.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
+}
