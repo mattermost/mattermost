@@ -851,6 +851,8 @@ func TestGetGroups(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// make sure "createdDate" for next group is after one created in InitBasic()
+	time.Sleep(2 * time.Millisecond)
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
