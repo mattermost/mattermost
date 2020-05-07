@@ -111,11 +111,12 @@ func TestMaxExecutionTime(t *testing.T) {
 		// https:/stackoverflow.com/questions/10027453/mysql-wait-timeout-not-being-honored-for-long-query
 		// it seems there is no such setting in mysql to stop large running querys
 		t.Run("query with timeout", func(t *testing.T) {
-			timeout := int64(1)
-			query := "DO SLEEP(2)"
+			timeout := int64(2)
+			query := "DO SLEEP(4)"
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				timeout = 1000
-				query = "SELECT PG_SLEEP(2)"
+				// for postgres timeout is in millis.
+				timeout = 2000
+				query = "SELECT PG_SLEEP(4)"
 			}
 			setMaxExecutionTime(sqlStore, timeout)
 			_, err := sqlStore.GetMaster().Exec(query)
@@ -123,11 +124,11 @@ func TestMaxExecutionTime(t *testing.T) {
 		})
 
 		t.Run("query without timeout", func(t *testing.T) {
-			timeout := int64(2)
-			query := "DO SLEEP(1)"
+			timeout := int64(4)
+			query := "DO SLEEP(2)"
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				timeout = 20000
-				query = "SELECT PG_SLEEP(1)"
+				timeout = 4000
+				query = "SELECT PG_SLEEP(2)"
 			}
 			setMaxExecutionTime(sqlStore, timeout)
 			_, err := sqlStore.GetMaster().Exec(query)
