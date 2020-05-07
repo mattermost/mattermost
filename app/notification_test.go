@@ -2504,7 +2504,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
-	t.Run("should return all groups when team is not group constrained but channel that is group constrained exists on the team", func(t *testing.T) {
+	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
 		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.Nil(t, err)
 		require.Len(t, groupsMap, 3)
