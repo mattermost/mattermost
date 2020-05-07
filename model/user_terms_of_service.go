@@ -17,11 +17,11 @@ type UserTermsOfService struct {
 }
 
 func (ut *UserTermsOfService) IsValid() *AppError {
-	if len(ut.UserId) != 26 {
+	if !IsValidId(ut.UserId) {
 		return InvalidUserTermsOfServiceError("user_id", ut.UserId)
 	}
 
-	if len(ut.TermsOfServiceId) != 26 {
+	if !IsValidId(ut.TermsOfServiceId) {
 		return InvalidUserTermsOfServiceError("terms_of_service_id", ut.UserId)
 	}
 
