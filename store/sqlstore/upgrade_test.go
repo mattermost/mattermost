@@ -124,11 +124,11 @@ func TestMaxExecutionTime(t *testing.T) {
 		})
 
 		t.Run("query without timeout", func(t *testing.T) {
-			timeout := int64(2)
-			query := "DO SLEEP(1)"
+			timeout := int64(3)
+			query := "DO SLEEP(3)"
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				timeout = 2000
-				query = "SELECT PG_SLEEP(1)"
+				timeout = 3000
+				query = "SELECT PG_SLEEP(2)"
 			}
 			setMaxExecutionTime(sqlStore, timeout)
 			_, err := sqlStore.GetReplica().Exec(query)
