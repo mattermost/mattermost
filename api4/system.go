@@ -50,6 +50,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
+	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise", api.ApiSessionRequired(upgradeToEnterprise)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise/status", api.ApiSessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/restart", api.ApiSessionRequired(restart)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -544,4 +547,62 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
+}
+
+func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	percentage, _ := c.App.Srv().UpgradeToE0Status()
+	if percentage > 0 {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
+
+	c.App.Srv().Go(func() {
+		c.App.Srv().UpgradeToE0()
+	})
+
+	auditRec.Success()
+	w.WriteHeader(http.StatusAccepted)
+	ReturnStatusOK(w)
+}
+
+func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	percentage, err := c.App.Srv().UpgradeToE0Status()
+	var s map[string]interface{}
+	if err != nil {
+		s = map[string]interface{}{"percentage": 0, "error": err.Error()}
+	} else {
+		s = map[string]interface{}{"percentage": percentage, "error": nil}
+	}
+
+	w.Write([]byte(model.StringInterfaceToJson(s)))
+}
+
+func restart(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
+	auditRec.Success()
+	c.LogAuditRec(auditRec)
+	ReturnStatusOK(w)
+	time.Sleep(1 * time.Second)
+
+	go func() {
+		c.App.Srv().Restart()
+	}()
 }

@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -40,6 +42,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -470,6 +473,30 @@ func (s *Server) Shutdown() error {
 
 	mlog.Info("Server stopped")
 	return nil
+}
+
+func (s *Server) Restart() error {
+	s.Shutdown()
+
+	argv0, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(argv0); err != nil {
+		return err
+	}
+
+	mlog.Info("Restarting server")
+	return syscall.Exec(argv0, os.Args, os.Environ())
+}
+
+func (s *Server) UpgradeToE0() error {
+	return upgrader.UpgradeToE0()
+}
+
+func (s *Server) UpgradeToE0Status() (int64, error) {
+	return upgrader.UpgradeToE0Status()
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
