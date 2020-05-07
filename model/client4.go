@@ -1272,9 +1272,9 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
-// VerifyUser will verify a user by its Id. (Requires manage system role)
-func (c *Client4) VerifyUser(userId string) (*User, *Response) {
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/verify", "")
+// VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
+func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify/member", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
