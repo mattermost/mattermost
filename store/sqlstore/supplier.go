@@ -1161,6 +1161,11 @@ func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
 	return results
 }
 
+func (ss *SqlSupplier) Reset() {
+	ss.Close()
+	ss.initConnection()
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {

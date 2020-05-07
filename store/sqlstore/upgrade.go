@@ -208,32 +208,39 @@ func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 		}
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		var paramName string
-		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'WAIT_TIMEOUT'").Scan(&paramName, &currentExecutionTimeout)
+		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'MAX_EXECUTION_TIME'").Scan(&paramName, &currentExecutionTimeout)
 		if err != nil {
 			mlog.Warn("Failed to read max_execution_time parameter from mysql", mlog.Err(err))
 		}
 	}
 
 	setMaxExecutionTime(sqlStore, value)
-
 	return currentExecutionTimeout
 }
 
 func setMaxExecutionTime(sqlStore SqlStore, value int64) {
 	var err error
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// using fmt.Sprintf since placeholder ("SET STATEMENT_TIMEOUT = $1") is not working.
-		_, err = sqlStore.GetMaster().Exec(fmt.Sprintf("SET STATEMENT_TIMEOUT = %d", value))
+		var databaseName string
+		err = sqlStore.GetMaster().QueryRow("SELECT CURRENT_DATABASE()").Scan(&databaseName)
+		if err != nil {
+			mlog.Warn("Failed to get the current database name from postgres", mlog.Err(err))
+		}
+
+		// using fmt.Sprintf since placeholder ("ALTER SYSTEM SET STATEMENT_TIMEOUT = $1") is not working.
+		_, err = sqlStore.GetMaster().Exec(fmt.Sprintf("ALTER DATABASE %s SET STATEMENT_TIMEOUT = %d", databaseName, value))
 		if err != nil {
 			mlog.Warn("Failed to set statement_timeout parameter for current session in postgres", mlog.Err(err))
 		}
 
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		_, err = sqlStore.GetMaster().Exec("SET SESSION WAIT_TIMEOUT = ?", value)
+		_, err = sqlStore.GetMaster().Exec("SET GLOBAL MAX_EXECUTION_TIME = ?", value)
 		if err != nil {
 			mlog.Warn("Failed to set max_execution_time parameter for current session in mysql", mlog.Err(err))
 		}
 	}
+
+	sqlStore.Reset()
 }
 
 func saveSchemaVersion(sqlStore SqlStore, version string) {
