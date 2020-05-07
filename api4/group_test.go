@@ -851,6 +851,8 @@ func TestGetGroups(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// make sure "createdDate" for next group is after one created in InitBasic()
+	time.Sleep(2 * time.Millisecond)
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
@@ -860,6 +862,7 @@ func TestGetGroups(t *testing.T) {
 		RemoteId:    model.NewId(),
 	})
 	assert.Nil(t, err)
+	start := group.UpdateAt - 1
 
 	opts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
@@ -911,6 +914,36 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	// test "since", should only return group created in this test, not th.Group
+	opts.Since = start
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Len(t, groups, 1)
+	// test correct group returned
+	assert.Equal(t, groups[0].Id, group.Id)
+
+	// delete group, should still return
+	th.App.DeleteGroup(group.Id)
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Id, group.Id)
+
+	// test with current since value, return none
+	opts.Since = model.GetMillis()
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+
+	// make sure delete group is not returned without Since
+	opts.Since = 0
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	//'Normal getGroups should not return delete groups
+	assert.Len(t, groups, 1)
+	// make sure it returned th.Group,not group
+	assert.Equal(t, groups[0].Id, th.Group.Id)
 }
 
 func TestGetGroupsByUserId(t *testing.T) {
