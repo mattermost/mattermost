@@ -55,15 +55,15 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
 	var metadata *model.LinkMetadata
-	query := s.getQueryBuilder().
+	query, args, err := s.getQueryBuilder().
 		Select("*").
 		From("LinkMetadata").
-		Where(sq.Eq{"URL": url, "Timestamp": timestamp})
-	queryString, args, err := query.ToSql()
+		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
+		ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	err = s.GetReplica().SelectOne(&metadata, queryString, args...)
+	err = s.GetReplica().SelectOne(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
