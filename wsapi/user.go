@@ -22,7 +22,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 
 	var ok bool
 	var channelId string
-	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {
+	if channelId, ok = req.Data["channel_id"].(string); !ok || !model.IsValidId(channelId) {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 

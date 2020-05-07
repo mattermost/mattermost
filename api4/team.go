@@ -570,7 +570,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(member.UserId) != 26 {
+	if !model.IsValidId(member.UserId) {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -737,7 +737,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(member.UserId) != 26 {
+		if !model.IsValidId(member.UserId) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -1447,7 +1447,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || (len(*schemeID) != 26 && *schemeID != "") {
+	if schemeID == nil || (!model.IsValidId(*schemeID) && *schemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
@@ -1513,7 +1513,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 
 	groupIDs := []string{}
 	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
-		if len(gid) != 26 {
+		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
 		}
