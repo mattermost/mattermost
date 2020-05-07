@@ -519,7 +519,11 @@ func (a *App) SendAdminAckEmail(email string) *model.AppError {
 	}
 	//send email to support with current admin info
 	subject := fmt.Sprintf("%s Received acknowledgement for number of active users metric over limit", *a.Config().TeamSettings.SiteName)
-	body := fmt.Sprintf("Contact Email: %s DiagnosticId: %s SiteURL: %s LicenseId: %s", email, a.DiagnosticId(), a.GetSiteURL(), a.License().Id)
+	body := fmt.Sprintf("Contact Email: %s DiagnosticId: %s SiteURL: %s", email, a.DiagnosticId(), a.GetSiteURL())
+
+	if a.License() != nil {
+		body += fmt.Sprintf(" License Id: %s", a.License().Id)
+	}
 
 	if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, body, a.Config(), false, email); err != nil {
 		mlog.Error("Error while sending email", mlog.String("email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
