@@ -2708,7 +2708,7 @@ func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, page int, perPage int) (*PostList, *Response) {
-	if len(teamId) == 0 || len(teamId) != 26 {
+	if !IsValidId(teamId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
@@ -2723,7 +2723,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId string, page int, perPage int) (*PostList, *Response) {
-	if len(channelId) == 0 || len(channelId) != 26 {
+	if !IsValidId(channelId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
