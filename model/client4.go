@@ -3793,6 +3793,22 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
+// GetGroupsByUserId retrieves Mattermost Groups for a user
+func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
+	path := fmt.Sprintf(
+		"%s/%v/groups",
+		c.GetUsersRoute(),
+		userId,
+	)
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
 // Audits Section
 
 // GetAudits returns a list of audits for the whole system.
