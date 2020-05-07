@@ -3781,6 +3781,9 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 		opts.FilterAllowReference,
 		opts.Q,
 	)
+	if opts.Since > 0 {
+		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
+	}
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
