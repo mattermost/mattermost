@@ -41,13 +41,14 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 	}
 
 	command = &model.Command{
-		Trigger:          strings.ToLower(command.Trigger),
-		TeamId:           command.TeamId,
-		AutoComplete:     command.AutoComplete,
-		AutoCompleteDesc: command.AutoCompleteDesc,
-		AutoCompleteHint: command.AutoCompleteHint,
-		DisplayName:      command.DisplayName,
-		AutocompleteData: command.AutocompleteData,
+		Trigger:              strings.ToLower(command.Trigger),
+		TeamId:               command.TeamId,
+		AutoComplete:         command.AutoComplete,
+		AutoCompleteDesc:     command.AutoCompleteDesc,
+		AutoCompleteHint:     command.AutoCompleteHint,
+		DisplayName:          command.DisplayName,
+		AutocompleteData:     command.AutocompleteData,
+		AutocompleteIconData: command.AutocompleteIconData,
 	}
 
 	a.Srv().pluginCommandsLock.Lock()

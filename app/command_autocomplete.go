@@ -26,7 +26,16 @@ func (a *App) GetSuggestions(commands []*model.Command, userInput, roleID string
 		autocompleteData = append(autocompleteData, command.AutocompleteData)
 	}
 
-	return a.getSuggestions(autocompleteData, "", userInput, roleID)
+	suggestions := a.getSuggestions(autocompleteData, "", userInput, roleID)
+	for i, suggestion := range suggestions {
+		for _, command := range commands {
+			if strings.HasPrefix(suggestion.Complete, command.Trigger) {
+				suggestions[i].IconData = command.AutocompleteIconData
+				break
+			}
+		}
+	}
+	return suggestions
 }
 
 func (a *App) getSuggestions(commands []*model.AutocompleteData, inputParsed, inputToBeParsed, roleID string) []model.AutocompleteSuggestion {
