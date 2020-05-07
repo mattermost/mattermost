@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -48,6 +49,7 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
 	Store           store.Store
+	sqlStore        *sqlstore.SqlSupplier
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -276,11 +278,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	license := s.License()
 
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 1 {
-		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
+		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
 		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
+			cfg.SqlSettings.DataSourceReplicas = []string{}
 		})
+		s.Store.Close()
+		s.Store = s.newStore()
+	}
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
+		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
+		})
+		s.Store.Close()
+		s.Store = s.newStore()
 	}
 
 	if license == nil {
