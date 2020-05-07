@@ -112,7 +112,7 @@ func TestMaxExecutionTime(t *testing.T) {
 		// it seems there is no such setting in mysql to stop large running querys
 		t.Run("query with timeout", func(t *testing.T) {
 			timeout := int64(1)
-			query := "DO SLEEP(2)"
+			query := "SELECT SLEEP(2)"
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				// for postgres timeout is in millis.
 				timeout = 1000
@@ -125,7 +125,7 @@ func TestMaxExecutionTime(t *testing.T) {
 
 		t.Run("query without timeout", func(t *testing.T) {
 			timeout := int64(3)
-			query := "DO SLEEP(3)"
+			query := "SELECT SLEEP(3)"
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				timeout = 3000
 				query = "SELECT PG_SLEEP(2)"
