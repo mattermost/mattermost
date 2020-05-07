@@ -182,6 +182,14 @@ func (c *Context) MfaRequired() {
 	}
 }
 
+// ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
+// Session cookies will be resent to the client with updated max age.
+func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.App.Session()); ok {
+		c.App.AttachSessionCookies(w, r)
+	}
+}
+
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
