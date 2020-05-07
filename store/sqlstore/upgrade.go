@@ -203,17 +203,13 @@ func getAndSetMaxExecutionTime(sqlStore SqlStore, value int64) int64 {
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		err = sqlStore.GetMaster().QueryRow("SHOW STATEMENT_TIMEOUT").Scan(&currentExecutionTimeout)
 		if err != nil {
-			mlog.Critical("Failed to read statement_timeout parameter from postgres", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_POSTGRES)
+			mlog.Warn("Failed to read statement_timeout parameter from postgres", mlog.Err(err))
 		}
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		var paramName string
 		err = sqlStore.GetMaster().QueryRow("SHOW VARIABLES LIKE 'WAIT_TIMEOUT'").Scan(&paramName, &currentExecutionTimeout)
 		if err != nil {
-			mlog.Critical("Failed to read max_execution_time parameter from mysql", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_INCREASING_EXECUTION_TIMEOUT_MYSQL)
+			mlog.Warn("Failed to read max_execution_time parameter from mysql", mlog.Err(err))
 		}
 	}
 
@@ -227,17 +223,13 @@ func setMaxExecutionTime(sqlStore SqlStore, value int64) {
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = sqlStore.GetMaster().Exec("SET STATEMENT_TIMEOUT = $1", value)
 		if err != nil {
-			mlog.Critical("Failed to set statement_timeout parameter for current session in postgres", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_RESTORING_EXECUTION_TIMEOUT_POSTGRES)
+			mlog.Warn("Failed to set statement_timeout parameter for current session in postgres", mlog.Err(err))
 		}
 
 	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err = sqlStore.GetMaster().Exec("SET SESSION WAIT_TIMEOUT = ?", value)
 		if err != nil {
-			mlog.Critical("Failed to set max_execution_time parameter for current session in mysql", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_RESTORING_EXECUTION_TIMEOUT_MYSQL)
+			mlog.Warn("Failed to set max_execution_time parameter for current session in mysql", mlog.Err(err))
 		}
 	}
 }
