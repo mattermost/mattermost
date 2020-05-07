@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 	"time"
