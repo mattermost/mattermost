@@ -29,7 +29,7 @@ func (c *Context) LogAuditRec(rec *audit.Record) {
 	c.LogAuditRecWithLevel(rec, app.RestLevel)
 }
 
-// LogAuditRec logs an audit record using specificed Level.
+// LogAuditRec logs an audit record using specified Level.
 func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 	if rec == nil {
 		return
@@ -42,15 +42,12 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		}
 		rec.Fail()
 	}
-	if cid := c.App.GetClusterId(); cid != "" {
-		rec.AddMeta(audit.KeyClusterID, cid)
-	}
 	c.App.Srv().Audit.LogRecord(level, *rec)
 }
 
 // MakeAuditRecord creates a audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
-	return &audit.Record{
+	rec := &audit.Record{
 		APIPath:   c.App.Path(),
 		Event:     event,
 		Status:    initialStatus,
@@ -58,8 +55,11 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 		SessionID: c.App.Session().Id,
 		Client:    c.App.UserAgent(),
 		IPAddress: c.App.IpAddress(),
-		Meta:      audit.Meta{},
+		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
 	}
+	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
+
+	return rec
 }
 
 func (c *Context) LogAudit(extraInfo string) {
@@ -179,6 +179,14 @@ func (c *Context) MfaRequired() {
 			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
 			return
 		}
+	}
+}
+
+// ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
+// Session cookies will be resent to the client with updated max age.
+func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.App.Session()); ok {
+		c.App.AttachSessionCookies(w, r)
 	}
 }
 
