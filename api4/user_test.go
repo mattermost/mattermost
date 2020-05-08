@@ -4529,7 +4529,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 }
 
-func TestVerifyUser(t *testing.T) {
+func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
