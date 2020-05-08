@@ -636,7 +636,7 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 
 // GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 func (a *App) GetSchemeRolesForChannel(channelId string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
-	channel, err := a.GetChannel(channelId)
+	channel, err := a.Srv().Store.Channel().Get(channelId, false)
 	if err != nil {
 		return
 	}
