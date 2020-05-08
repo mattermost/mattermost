@@ -63,7 +63,10 @@ const (
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
+	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
 )
+
+var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
 
 type Post struct {
 	Id         string `json:"id"`
@@ -238,7 +241,7 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -250,19 +253,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
