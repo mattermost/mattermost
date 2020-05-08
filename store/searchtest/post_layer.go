@@ -263,6 +263,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testShouldBeAbleToFindPostsEvenIfStopWordsWhereGiven,
 		Tags: []string{ENGINE_MYSQL},
 	},
+	{
+		Name: "Should not go to database when searching with stopwords only",
+		Fn:   testShouldNotGoToDatabaseWhenSearchingWithStopWordsOnly,
+		Tags: []string{ENGINE_MYSQL},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -1755,4 +1760,14 @@ func testShouldBeAbleToFindPostsEvenIfStopWordsWhereGiven(t *testing.T, th *Sear
 	require.Nil(t, apperr)
 	require.Len(t, posts.Posts, 1)
 	require.Equal(t, p1.Message, posts.Posts[p1.Id].Message)
+}
+
+func testShouldNotGoToDatabaseWhenSearchingWithStopWordsOnly(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "where is the car?", "", model.POST_DEFAULT, 0, false)
+	require.Nil(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	posts, apperr := th.Store.Post().Search(th.Team.Id, th.User.Id, &model.SearchParams{Terms: "where is the"})
+	require.Nil(t, apperr)
+	require.Len(t, posts.Posts, 0)
 }

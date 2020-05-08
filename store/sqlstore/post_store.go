@@ -1253,6 +1253,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 			terms = re.ReplaceAllString(terms, " ")
 			terms = strings.TrimSpace(terms)
+
+			if terms == "" {
+				return list, nil
+			}
 		}
 
 		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
