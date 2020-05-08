@@ -762,8 +762,8 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	var guestRoleName, memberRoleName string
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		channelScheme, err := a.CreateChannelScheme(channel)
-		if err != nil {
+		channelScheme, schemeErr := a.CreateChannelScheme(channel)
+		if schemeErr != nil {
 			return nil, err
 		}
 
