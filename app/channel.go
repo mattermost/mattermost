@@ -494,8 +494,10 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
-		return nil, err
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+			return nil, err
+		}
 	}
 	channel.SchemeId = nil
 	return a.UpdateChannelScheme(channel)
