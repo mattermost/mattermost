@@ -79,6 +79,7 @@ type GroupSearchOpts struct {
 	IncludeMemberCount     bool
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
+	Since                  int64
 }
 
 type PageOpts struct {
