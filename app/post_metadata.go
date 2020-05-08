@@ -16,16 +16,18 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 const LINK_CACHE_SIZE = 10000
-const LINK_CACHE_DURATION = 3600
+const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = lru.New(LINK_CACHE_SIZE)
+var linkCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: LINK_CACHE_SIZE,
+})
 
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -435,19 +437,28 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	cached, ok := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16))
-	if !ok {
+	key := strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16)
+	var og opengraph.OpenGraph
+	err := linkCache.Get(key, &og)
+
+	if err == nil {
+		return &og, nil, true
+	}
+
+	if err == cache2.ErrKeyNotFound {
 		return nil, nil, false
 	}
 
-	switch v := cached.(type) {
-	case *opengraph.OpenGraph:
-		return v, nil, true
-	case *model.PostImage:
-		return nil, v, true
-	default:
-		return nil, nil, true
+	var pi model.PostImage
+	err = linkCache.Get(key, &pi)
+	if err == nil {
+		return nil, &pi, true
 	}
+
+	if err == cache2.ErrKeyNotFound {
+		return nil, nil, false
+	}
+	return nil, nil, true
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
@@ -498,7 +509,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		val = image
 	}
 
-	linkCache.AddWithExpiresInSecs(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), val, LINK_CACHE_DURATION)
+	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), val, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
@@ -18,18 +19,18 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
-	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
-	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC  = 900 // 15 mins
+	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE     = model.SESSION_CACHE_SIZE
+	ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_DURATION = 15 * time.Minute // 15 mins
 
-	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE = model.SESSION_CACHE_SIZE
-	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC  = 1800 // 30 mins
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE     = model.SESSION_CACHE_SIZE
+	ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_DURATION = 30 * time.Minute // 30 mins
 
-	CHANNEL_CACHE_SEC = 900 // 15 mins
+	CHANNEL_CACHE_DURATION = 15 * time.Minute // 15 mins
 )
 
 type SqlChannelStore struct {
@@ -334,9 +335,15 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = lru.New(ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE)
-var allChannelMembersNotifyPropsForChannelCache = lru.New(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
-var channelByNameCache = lru.New(model.CHANNEL_CACHE_SIZE)
+var allChannelMembersForUserCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE,
+})
+var allChannelMembersNotifyPropsForChannelCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE,
+})
+var channelByNameCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: model.CHANNEL_CACHE_SIZE,
+})
 
 func (s SqlChannelStore) ClearCaches() {
 	allChannelMembersForUserCache.Purge()
@@ -1161,8 +1168,9 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 				continue
 			}
 			visited[name] = struct{}{}
-			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				channels = append(channels, cacheItem.(*model.Channel))
+			var cacheItem *model.Channel
+			if err := channelByNameCache.Get(teamId+name, &cacheItem); err == nil {
+				channels = append(channels, cacheItem)
 			} else {
 				misses = append(misses, name)
 			}
@@ -1192,7 +1200,7 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
 		}
 		for _, channel := range dbChannels {
-			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
+			channelByNameCache.SetWithExpiry(teamId+channel.Name, channel, CHANNEL_CACHE_DURATION)
 			channels = append(channels, channel)
 		}
 		// Not all channels are in cache. Increment aggregate miss counter.
@@ -1223,11 +1231,12 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	channel := model.Channel{}
 
 	if allowFromCache {
-		if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
+		var cacheItem *model.Channel
+		if err := channelByNameCache.Get(teamId+name, &cacheItem); err == nil {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("Channel By Name")
 			}
-			return cacheItem.(*model.Channel), nil
+			return cacheItem, nil
 		}
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheMissCounter("Channel By Name")
@@ -1241,7 +1250,7 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
+	channelByNameCache.SetWithExpiry(teamId+name, &channel, CHANNEL_CACHE_DURATION)
 	return &channel, nil
 }
 
@@ -1585,11 +1594,11 @@ func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
 func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
+	var ids map[string]string
+	if err := allChannelMembersForUserCache.Get(userId, &ids); err == nil {
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 		}
-		ids := cacheItem.(map[string]string)
 		if _, ok := ids[channelId]; ok {
 			return true
 		}
@@ -1652,11 +1661,11 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		cache_key += "_deleted"
 	}
 	if allowFromCache {
-		if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
+		var ids map[string]string
+		if err := allChannelMembersForUserCache.Get(cache_key, &ids); err == nil {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 			}
-			ids := cacheItem.(map[string]string)
 			return ids, nil
 		}
 	}
@@ -1702,7 +1711,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 	ids := data.ToMapStringString()
 
 	if allowFromCache {
-		allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+		allChannelMembersForUserCache.SetWithExpiry(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_DURATION)
 	}
 	return ids, nil
 }
@@ -1721,11 +1730,12 @@ type allChannelMemberNotifyProps struct {
 
 func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError) {
 	if allowFromCache {
-		if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
+		var cacheItem map[string]model.StringMap
+		if err := allChannelMembersNotifyPropsForChannelCache.Get(channelId, &cacheItem); err == nil {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
 			}
-			return cacheItem.(map[string]model.StringMap), nil
+			return cacheItem, nil
 		}
 	}
 
@@ -1748,7 +1758,7 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 		props[data[i].UserId] = data[i].NotifyProps
 	}
 
-	allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
+	allChannelMembersNotifyPropsForChannelCache.SetWithExpiry(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_DURATION)
 
 	return props, nil
 }
