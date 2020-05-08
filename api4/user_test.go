@@ -1569,6 +1569,12 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckBadRequestStatus(t, resp)
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ruser.Email = th.GenerateTestEmail()
+		_, resp = client.UpdateUser(user)
+		CheckNoError(t, resp)
+	})
+
 	ruser.Password = user.Password
 	ruser, resp = th.Client.UpdateUser(ruser)
 	CheckNoError(t, resp)
@@ -1603,8 +1609,10 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.Client.UpdateUser(user)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUser(user)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.UpdateUser(user)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPatchUser(t *testing.T) {
