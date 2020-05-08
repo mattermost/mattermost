@@ -760,22 +760,26 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
+	var scheme *model.Scheme
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		if _, err = a.CreateChannelScheme(channel); err != nil {
+		scheme, err = a.CreateChannelScheme(channel)
+		if err != nil {
 			return nil, err
 		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+	} else {
+		scheme, err = a.GetScheme(*channel.SchemeId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
-	if err != nil {
-		return nil, err
-	}
-
+	guestRoleName := scheme.DefaultChannelGuestRole
+	memberRoleName := scheme.DefaultChannelUserRole
 	memberRole, err := a.GetRoleByName(memberRoleName)
 	if err != nil {
 		return nil, err
