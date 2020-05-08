@@ -759,21 +759,25 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
 		}
 	}
-
+	var guestRoleName, memberRoleName string
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		if _, err = a.CreateChannelScheme(channel); err != nil {
+		channelScheme, err := a.CreateChannelScheme(channel)
+		if err != nil {
 			return nil, err
 		}
+
+		guestRoleName = channelScheme.DefaultChannelGuestRole
+		memberRoleName = channelScheme.DefaultChannelUserRole
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
-	}
-
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
-	if err != nil {
-		return nil, err
+	} else {
+		guestRoleName, memberRoleName, _, err = a.GetSchemeRolesForChannel(channel.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	memberRole, err := a.GetRoleByName(memberRoleName)
