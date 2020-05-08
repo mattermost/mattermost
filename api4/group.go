@@ -141,7 +141,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			tmp := strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
 			groupPatch.Name = &tmp
 		} else {
-			if *groupPatch.Name == "all" || *groupPatch.Name == "channel" || *groupPatch.Name == "here" {
+			if *groupPatch.Name == model.USER_NOTIFY_ALL || *groupPatch.Name == model.CHANNEL_MENTIONS_NOTIFY_PROP || *groupPatch.Name == model.USER_NOTIFY_HERE {
 				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusNotImplemented)
 				return
 			}
