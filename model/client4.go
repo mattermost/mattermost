@@ -3781,6 +3781,9 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 		opts.FilterAllowReference,
 		opts.Q,
 	)
+	if opts.Since > 0 {
+		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
+	}
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
@@ -3790,6 +3793,22 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetGroupsByUserId retrieves Mattermost Groups for a user
+func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
+	path := fmt.Sprintf(
+		"%s/%v/groups",
+		c.GetUsersRoute(),
+		userId,
+	)
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
