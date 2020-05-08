@@ -25,6 +25,7 @@ const (
 	JOB_STATUS_ERROR            = "error"
 	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested"
 	JOB_STATUS_CANCELED         = "canceled"
+	JOB_STATUS_WARNING          = "warning"
 )
 
 type Job struct {
@@ -40,7 +41,7 @@ type Job struct {
 }
 
 func (j *Job) IsValid() *AppError {
-	if len(j.Id) != 26 {
+	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 

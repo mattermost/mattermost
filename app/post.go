@@ -396,6 +396,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 		post.DelProp("channel_mentions")
 	}
 
+	matched := model.AT_MENTION_PATTEN.MatchString(post.Message)
+	if a.License() != nil && *a.License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
+		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
+	}
+
 	return nil
 }
 
