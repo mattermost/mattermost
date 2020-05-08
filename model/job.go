@@ -25,7 +25,6 @@ const (
 	JOB_STATUS_ERROR            = "error"
 	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested"
 	JOB_STATUS_CANCELED         = "canceled"
-	JOB_STATUS_WARNING          = "warning"
 )
 
 type Job struct {

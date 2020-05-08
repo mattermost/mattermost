@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -162,15 +161,11 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
-		if appErr != nil {
-			return appErr
+		err2 := a.MessageExport().RunExport(format, startTime)
+		if err2 != nil {
+			return err2
 		}
-		if warningsCount == 0 {
-			CommandPrettyPrintln("SUCCESS: Your data was exported.")
-		} else {
-			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
-		}
+		CommandPrettyPrintln("SUCCESS: Your data was exported.")
 
 		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
 		auditRec.AddMeta("format", format)
