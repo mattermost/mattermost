@@ -4,6 +4,9 @@
 package localcachelayer
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
@@ -237,15 +240,23 @@ func (s LocalCacheStore) DropAllTables() {
 }
 
 func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string) {
-	cache.Remove(key)
-	if s.cluster != nil {
-		msg := &model.ClusterMessage{
-			Event:    cache.GetInvalidateClusterEvent(),
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     key,
+	go func() {
+
+		fmt.Printf("initiating invalidation of %q cache for %q key...\n", cache.Name(), key)
+		time.Sleep(2 * time.Second)
+
+		cache.Remove(key)
+		if s.cluster != nil {
+			msg := &model.ClusterMessage{
+				Event:    cache.GetInvalidateClusterEvent(),
+				SendType: model.CLUSTER_SEND_BEST_EFFORT,
+				Data:     key,
+			}
+			s.cluster.SendClusterMessage(msg)
 		}
-		s.cluster.SendClusterMessage(msg)
-	}
+
+		fmt.Printf("done invalidating %q cache for %q key.\n", cache.Name(), key)
+	}()
 }
 
 func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, value interface{}) {
