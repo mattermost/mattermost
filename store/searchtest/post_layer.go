@@ -258,6 +258,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testShouldNotReturnLinksEmbeddedInMarkdown,
 		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
 	},
+	{
+		Name: "Should be able to find post even if stop word where given",
+		Fn:   testShouldBeAbleToFindPostsEvenIfStopWordsWhereGiven,
+		Tags: []string{ENGINE_MYSQL},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -1739,4 +1744,15 @@ func testShouldNotReturnLinksEmbeddedInMarkdown(t *testing.T, th *SearchTestHelp
 	require.Nil(t, apperr)
 
 	require.Len(t, results.Posts, 0)
+}
+
+func testShouldBeAbleToFindPostsEvenIfStopWordsWhereGiven(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "where is the car?", "", model.POST_DEFAULT, 0, false)
+	require.Nil(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	posts, apperr := th.Store.Post().Search(th.Team.Id, th.User.Id, &model.SearchParams{Terms: "where is the car"})
+	require.Nil(t, apperr)
+	require.Len(t, posts.Posts, 1)
+	require.Equal(t, p1.Message, posts.Posts[p1.Id].Message)
 }
