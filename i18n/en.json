@@ -6579,6 +6579,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+    "translation": "Unable to get the oldest entitiy creation time."
+  },
+  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Unable to get the parent post for the channel."
   },
