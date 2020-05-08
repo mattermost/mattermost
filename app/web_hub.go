@@ -453,11 +453,11 @@ func (h *Hub) Start() {
 					for _, webConn := range candidates {
 						broadcast(webConn)
 					}
-				} else {
-					candidates := connIndex.All()
-					for webConn := range candidates {
-						broadcast(webConn)
-					}
+					continue
+				}
+				candidates := connIndex.All()
+				for webConn := range candidates {
+					broadcast(webConn)
 				}
 			case <-h.stop:
 				for webConn := range connIndex.All() {

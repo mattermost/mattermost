@@ -139,40 +139,48 @@ func TestHubConnIndex(t *testing.T) {
 	connIndex.Add(wc3)
 	connIndex.Add(wc4)
 
-	assert.True(t, connIndex.Has(wc1))
-	assert.True(t, connIndex.Has(wc2))
+	t.Run("Basic", func(t *testing.T) {
+		assert.True(t, connIndex.Has(wc1))
+		assert.True(t, connIndex.Has(wc2))
 
-	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
-	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
-	assert.True(t, connIndex.Has(wc2))
-	assert.True(t, connIndex.Has(wc1))
-	assert.Len(t, connIndex.All(), 4)
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc3, wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+		assert.True(t, connIndex.Has(wc2))
+		assert.True(t, connIndex.Has(wc1))
+		assert.Len(t, connIndex.All(), 4)
+	})
 
-	connIndex.Remove(wc3) // Remove from middle from user2
+	t.Run("RemoveMiddleUser2", func(t *testing.T) {
+		connIndex.Remove(wc3) // Remove from middle from user2
 
-	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
-	assert.True(t, connIndex.Has(wc2))
-	assert.False(t, connIndex.Has(wc3))
-	assert.True(t, connIndex.Has(wc4))
-	assert.Len(t, connIndex.All(), 3)
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{wc1})
+		assert.True(t, connIndex.Has(wc2))
+		assert.False(t, connIndex.Has(wc3))
+		assert.True(t, connIndex.Has(wc4))
+		assert.Len(t, connIndex.All(), 3)
+	})
 
-	connIndex.Remove(wc1) // Remove sole connection from user1
+	t.Run("RemoveUser1", func(t *testing.T) {
+		connIndex.Remove(wc1) // Remove sole connection from user1
 
-	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
-	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
-	assert.Len(t, connIndex.All(), 2)
-	assert.False(t, connIndex.Has(wc1))
-	assert.True(t, connIndex.Has(wc2))
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc2, wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+		assert.Len(t, connIndex.All(), 2)
+		assert.False(t, connIndex.Has(wc1))
+		assert.True(t, connIndex.Has(wc2))
+	})
 
-	connIndex.Remove(wc4) // Remove from end from user2
+	t.Run("RemoveEndUser2", func(t *testing.T) {
+		connIndex.Remove(wc4) // Remove from end from user2
 
-	assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
-	assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
-	assert.True(t, connIndex.Has(wc2))
-	assert.False(t, connIndex.Has(wc3))
-	assert.False(t, connIndex.Has(wc4))
-	assert.Len(t, connIndex.All(), 1)
+		assert.ElementsMatch(t, connIndex.ForUser(wc2.UserId), []*WebConn{wc4})
+		assert.ElementsMatch(t, connIndex.ForUser(wc1.UserId), []*WebConn{})
+		assert.True(t, connIndex.Has(wc2))
+		assert.False(t, connIndex.Has(wc3))
+		assert.False(t, connIndex.Has(wc4))
+		assert.Len(t, connIndex.All(), 1)
+	})
 }
 
 // Always run this with -benchtime=0.1s
