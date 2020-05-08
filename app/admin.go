@@ -161,18 +161,14 @@ func (a *App) InvalidateAllCachesSkipSend() {
 }
 
 func (a *App) RecycleDatabaseConnection() {
-	oldStore := a.Srv().Store
+	mlog.Info("Attempting to recycle database connections.")
 
-	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv().Store = a.Srv().newStore()
-	a.Srv().Jobs.Store = a.Srv().Store
+	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
+	// This allows in gradually closing connections as they expire. In future, we can think
+	// of exposing this as a param from the REST api.
+	a.Srv().Store.RecycleDBConnections(10 * time.Second)
 
-	if a.Srv().Store != oldStore {
-		time.Sleep(20 * time.Second)
-		oldStore.Close()
-	}
-
-	mlog.Warn("Finished recycling the database connection.")
+	mlog.Info("Finished recycling database connections.")
 }
 
 func (a *App) TestSiteURL(siteURL string) *model.AppError {

@@ -213,6 +213,22 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int
 	return r0, r1
 }
 
+// UpdateExpiresAt provides a mock function with given fields: sessionId, time
+func (_m *SessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	ret := _m.Called(sessionId, time)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+		r0 = rf(sessionId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UpdateLastActivityAt provides a mock function with given fields: sessionId, time
 func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
 	ret := _m.Called(sessionId, time)
