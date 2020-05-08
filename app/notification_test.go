@@ -999,6 +999,13 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
+	t.Run("should return false without ldap groups license", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
+	})
+
+	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
 		assert.True(t, allowGroupMentions)
