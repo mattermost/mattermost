@@ -785,7 +785,7 @@ func runStoreAndCheckNumberOfActiveUsersMetricStatusJob(s *Server) {
 	doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
 	model.CreateRecurringTask("Store and Check Number Of Active Users Metric Status", func() {
 		doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
-	}, time.Hour*24)
+	}, time.Minute*1)
 }
 
 func doSecurity(s *Server) {
@@ -861,6 +861,9 @@ func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
 		message.Add("numberOfActiveUsersMetricStatus", "true")
 		s.FakeApp().Publish(message)
 	}
+
+	warningMessage := fmt.Sprintf(utils.T("api.server.warn_metric.notification"), )
+	s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage)
 }
 
 func (s *Server) StartSearchEngine() (string, string) {

@@ -1863,6 +1863,10 @@
     "translation": "Unable to initialize rate limiting."
   },
   {
+    "id": "api.server.warn_metric.notification",
+    "translation": "It appears your active user count is over %v. Your system may be experiencing a slowdown and Mattermost Inc. can help! If you would like to know more contact us: %v"
+  },
+  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
   },

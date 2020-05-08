@@ -183,6 +183,57 @@ func (a *App) SetNumberOfActiveUsersMetricStatus() *model.AppError {
 	return nil
 }
 
+func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
+	perPage := 25
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+
+	// get sysadmins
+	var sysAdmins []*model.User
+	for {
+		sysAdminsList, err := a.GetUsers(userOptions)
+		if err != nil {
+			mlog.Error("Cannot obtain list of system admins!")
+			return
+		}
+
+		sysAdmins = append(sysAdmins, sysAdminsList...)
+
+		if len(sysAdminsList) < perPage {
+			mlog.Debug("Number of system admins is less than limit", mlog.Int("admin count", len(sysAdminsList)))
+			break
+		}
+	}
+
+	for _, sysAdmin := range sysAdmins {
+		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		if appErr != nil {
+			mlog.Error("Cannot create channel for system notifications!", mlog.String("Admin Id", sysAdmin.Id))
+		}
+
+		post := &model.Post{
+			UserId:    sysAdmin.Id,
+			ChannelId: channel.Id,
+			Message:   warningMessage,
+		}
+
+		_, err := a.CreatePost(post, channel, false)
+		if err != nil {
+			mlog.Error("Failed to create post", mlog.Err(err))
+		}
+
+		//send ephemeral post
+		mlog.Debug("send ephemeral post", mlog.String("user id", post.UserId))
+		a.SendEphemeralPost(post.UserId, post)
+	}
+
+	return
+}
+
 func (a *App) Srv() *Server {
 	return a.srv
 }
