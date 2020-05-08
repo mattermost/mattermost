@@ -64,7 +64,7 @@ func (w *Writer) tlsDialer() (serverConn, string, error) {
 	var sc serverConn
 	hostname := w.hostname
 	if err == nil {
-		sc = &netConn{conn: c}
+		sc = newNetConn(c)
 		if hostname == "" {
 			hostname = c.LocalAddr().String()
 		}
@@ -79,7 +79,7 @@ func (w *Writer) basicDialer() (serverConn, string, error) {
 	var sc serverConn
 	hostname := w.hostname
 	if err == nil {
-		sc = &netConn{conn: c}
+		sc = newNetConn(c)
 		if hostname == "" {
 			hostname = c.LocalAddr().String()
 		}
@@ -95,7 +95,7 @@ func (w *Writer) customDialer() (serverConn, string, error) {
 	var sc serverConn
 	hostname := w.hostname
 	if err == nil {
-		sc = &netConn{conn: c}
+		sc = newNetConn(c)
 		if hostname == "" {
 			hostname = c.LocalAddr().String()
 		}

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -35,19 +34,51 @@ func TestRemoveChannel(t *testing.T) {
 
 	channel := th.CreatePublicChannel()
 
-	th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should fail because channel does not exist", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
+	})
 
-	// should fail because channel does not exist
-	require.Error(t, th.RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
+	t.Run("should remove user from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		isMember, _ := th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.True(t, isMember)
 
-	time.Sleep(time.Second)
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		isMember, _ = th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.False(t, isMember)
+	})
 
-	th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should not fail removing non member user from channel", func(t *testing.T) {
+		isMember, _ := th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.False(t, isMember)
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	})
 
-	time.Sleep(time.Second)
+	t.Run("should throw error if both --all-users flag and user email are passed", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "remove", "--all-users", th.BasicUser.Email))
+	})
 
-	// Leaving twice should succeed
-	th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should remove all users from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email)
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		count, _ := th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(2))
+
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, "--all-users")
+		count, _ = th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(0))
+	})
+
+	t.Run("should remove multiple users from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email)
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		count, _ := th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(2))
+
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email, th.BasicUser2.Email)
+		count, _ = th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(0))
+	})
 }
 
 func TestMoveChannel(t *testing.T) {
