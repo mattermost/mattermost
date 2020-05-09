@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/Masterminds/squirrel v1.2.0
-	github.com/NYTimes/gziphandler v1.1.1
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/beevik/etree v1.1.0 // indirect
@@ -63,6 +62,7 @@ require (
 	github.com/minio/minio-go/v6 v6.0.55
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.2.3 // indirect
+	github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
@@ -75,7 +75,7 @@ require (
 	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/rudderlabs/analytics-go v3.2.1+incompatible
-	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7 // indirect
+	github.com/russellhaering/goxmldsig v0.0.0-20180430223755-7acd5e4a6ef7
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/analytics-go v3.1.0+incompatible
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
