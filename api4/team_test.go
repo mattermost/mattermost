@@ -24,51 +24,53 @@ import (
 func TestCreateTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
+		rteam, resp := client.CreateTeam(team)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, rteam.Name, team.Name, "names did not match")
+
+		require.Equal(t, rteam.DisplayName, team.DisplayName, "display names did not match")
+
+		require.Equal(t, rteam.Type, team.Type, "types did not match")
+
+		_, resp = client.CreateTeam(rteam)
+		CheckBadRequestStatus(t, resp)
+
+		rteam.Id = ""
+		_, resp = client.CreateTeam(rteam)
+		CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
+		CheckBadRequestStatus(t, resp)
+
+		rteam.Name = ""
+		_, resp = client.CreateTeam(rteam)
+		CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
+		CheckBadRequestStatus(t, resp)
+
+		r, err := client.DoApiPost("/teams", "garbage")
+		require.NotNil(t, err, "should have errored")
+
+		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
+
+		// Test GroupConstrained flag
+		groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN, GroupConstrained: model.NewBool(true)}
+		rteam, resp = client.CreateTeam(groupConstrainedTeam)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		assert.Equal(t, *rteam.GroupConstrained, *groupConstrainedTeam.GroupConstrained, "GroupConstrained flags do not match")
+	})
+
+	th.Client.Logout()
 
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
-	rteam, resp := Client.CreateTeam(team)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-
-	require.Equal(t, rteam.Name, team.Name, "names did not match")
-
-	require.Equal(t, rteam.DisplayName, team.DisplayName, "display names did not match")
-
-	require.Equal(t, rteam.Type, team.Type, "types did not match")
-
-	_, resp = Client.CreateTeam(rteam)
-	CheckBadRequestStatus(t, resp)
-
-	rteam.Id = ""
-	_, resp = Client.CreateTeam(rteam)
-	CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
-	CheckBadRequestStatus(t, resp)
-
-	rteam.Name = ""
-	_, resp = Client.CreateTeam(rteam)
-	CheckErrorMessage(t, resp, "model.team.is_valid.characters.app_error")
-	CheckBadRequestStatus(t, resp)
-
-	r, err := Client.DoApiPost("/teams", "garbage")
-	require.NotNil(t, err, "should have errored")
-
-	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
-
-	Client.Logout()
-
-	_, resp = Client.CreateTeam(rteam)
+	_, resp := th.Client.CreateTeam(team)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic()
-
-	// Test GroupConstrained flag
-	groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN, GroupConstrained: model.NewBool(true)}
-	rteam, resp = Client.CreateTeam(groupConstrainedTeam)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-
-	assert.Equal(t, *rteam.GroupConstrained, *groupConstrainedTeam.GroupConstrained, "GroupConstrained flags do not match")
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -79,7 +81,7 @@ func TestCreateTeam(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_ADMIN_ROLE_ID)
 
-	_, resp = Client.CreateTeam(team)
+	_, resp = th.Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -105,18 +107,20 @@ func TestCreateTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("system admin", func(t *testing.T) {
-		team := &model.Team{
-			DisplayName:    t.Name() + "_2",
-			Name:           GenerateTestTeamName(),
-			Email:          th.GenerateTestEmail(),
-			Type:           model.TEAM_OPEN,
-			AllowedDomains: "simulator.amazonses.com,localhost",
-		}
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			team := &model.Team{
+				DisplayName:    t.Name() + "_2",
+				Name:           GenerateTestTeamName(),
+				Email:          th.GenerateTestEmail(),
+				Type:           model.TEAM_OPEN,
+				AllowedDomains: "simulator.amazonses.com,localhost",
+			}
 
-		rteam, resp := th.SystemAdminClient.CreateTeam(team)
-		CheckNoError(t, resp)
-		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
-		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+			rteam, resp := client.CreateTeam(team)
+			CheckNoError(t, resp)
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+		})
 	})
 }
 
@@ -126,19 +130,21 @@ func TestGetTeam(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	rteam, resp := Client.GetTeam(team.Id, "")
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rteam, resp := client.GetTeam(team.Id, "")
+		CheckNoError(t, resp)
 
-	require.Equal(t, rteam.Id, team.Id, "wrong team")
+		require.Equal(t, rteam.Id, team.Id, "wrong team")
 
-	_, resp = Client.GetTeam("junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetTeam("junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetTeam("", "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetTeam("", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetTeam(model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetTeam(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
+	})
 
 	th.LoginTeamAdmin()
 
@@ -150,7 +156,7 @@ func TestGetTeam(t *testing.T) {
 
 	th.LoginBasic()
 	// AllowInviteOpen is false and team is open, and user is not on team
-	_, resp = Client.GetTeam(rteam2.Id, "")
+	_, resp := Client.GetTeam(rteam2.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	// AllowInviteOpen is true and team is invite, and user is not on team
@@ -161,8 +167,10 @@ func TestGetTeam(t *testing.T) {
 	_, resp = Client.GetTeam(team.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeam(rteam2.Id, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetTeam(rteam2.Id, "")
+		CheckNoError(t, resp)
+	})
 }
 
 func TestGetTeamSanitization(t *testing.T) {
@@ -213,12 +221,14 @@ func TestGetTeamSanitization(t *testing.T) {
 		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
 	})
 
-	t.Run("system admin", func(t *testing.T) {
-		rteam, resp := th.SystemAdminClient.GetTeam(team.Id, "")
-		CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("system admin", func(t *testing.T) {
+			rteam, resp := client.GetTeam(team.Id, "")
+			CheckNoError(t, resp)
 
-		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
-		require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+			require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+		})
 	})
 }
 
@@ -914,6 +924,12 @@ func TestGetAllTeams(t *testing.T) {
 		})
 	}
 
+	t.Run("Local mode", func(t *testing.T) {
+		teams, resp := th.LocalClient.GetAllTeams("", 0, 10)
+		CheckNoError(t, resp)
+		require.Len(t, teams, 5)
+	})
+
 	t.Run("Unauthorized", func(t *testing.T) {
 		Client.Logout()
 		_, resp = Client.GetAllTeams("", 1, 10)
@@ -969,16 +985,18 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 	})
 
 	t.Run("system admin", func(t *testing.T) {
-		rteams, resp := th.SystemAdminClient.GetAllTeams("", 0, 1000)
-		CheckNoError(t, resp)
-		for _, rteam := range rteams {
-			if rteam.Id != team.Id && rteam.Id != team2.Id {
-				continue
-			}
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			rteams, resp := th.SystemAdminClient.GetAllTeams("", 0, 1000)
+			CheckNoError(t, resp)
+			for _, rteam := range rteams {
+				if rteam.Id != team.Id && rteam.Id != team2.Id {
+					continue
+				}
 
-			require.NotEmpty(t, rteam.Email, "should not have sanitized email")
-			require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
-		}
+				require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+				require.NotEmpty(t, rteam.InviteId, "should not have sanitized inviteid")
+			}
+		})
 	})
 }
 
@@ -988,22 +1006,26 @@ func TestGetTeamByName(t *testing.T) {
 	Client := th.Client
 	team := th.BasicTeam
 
-	rteam, resp := Client.GetTeamByName(team.Name, "")
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rteam, resp := client.GetTeamByName(team.Name, "")
+		CheckNoError(t, resp)
 
-	require.Equal(t, rteam.Name, team.Name, "wrong team")
+		require.Equal(t, rteam.Name, team.Name, "wrong team")
 
-	_, resp = Client.GetTeamByName("junk", "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetTeamByName("junk", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetTeamByName("", "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetTeamByName("", "")
+		CheckNotFoundStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.GetTeamByName(strings.ToUpper(team.Name), "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.GetTeamByName(strings.ToUpper(team.Name), "")
+		CheckNoError(t, resp)
+	})
 
 	Client.Logout()
-	_, resp = Client.GetTeamByName(team.Name, "")
+	_, resp := Client.GetTeamByName(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetTeamByName(team.Name, "")
