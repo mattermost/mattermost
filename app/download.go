@@ -40,8 +40,14 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 	var resp *http.Response
 	err = utils.ProgressiveRetry(func() error {
 		resp, err = client.Get(downloadURL)
+		respStatusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
+
 		if err != nil {
 			return errors.Wrapf(err, "failed to fetch from %s", downloadURL)
+		}
+
+		if !respStatusOK {
+			return errors.Errorf("failed to fetch from %s", downloadURL)
 		}
 
 		return nil
