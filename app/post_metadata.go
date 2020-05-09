@@ -21,6 +21,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
+type linkMetadataCache struct {
+	OpenGraph *opengraph.OpenGraph
+	PostImage *model.PostImage
+}
+
 const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
@@ -437,28 +442,13 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	key := strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16)
-	var og opengraph.OpenGraph
-	err := linkCache.Get(key, &og)
-
-	if err == nil {
-		return &og, nil, true
-	}
-
-	if err == cache2.ErrKeyNotFound {
+	var cached linkMetadataCache
+	err := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
+	if err != nil {
 		return nil, nil, false
 	}
 
-	var pi model.PostImage
-	err = linkCache.Get(key, &pi)
-	if err == nil {
-		return nil, &pi, true
-	}
-
-	if err == cache2.ErrKeyNotFound {
-		return nil, nil, false
-	}
-	return nil, nil, true
+	return cached.OpenGraph, cached.PostImage, true
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
@@ -502,14 +492,12 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 }
 
 func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
-	var val interface{}
-	if og != nil {
-		val = og
-	} else if image != nil {
-		val = image
+	metadata := linkMetadataCache{
+		OpenGraph: og,
+		PostImage: image,
 	}
 
-	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), val, LINK_CACHE_DURATION)
+	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
