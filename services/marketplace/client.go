@@ -80,7 +80,7 @@ func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion 
 // closeBody ensures the Body of an http.Response is properly closed.
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = io.Copy(ioutil.Discard, body)
+		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
