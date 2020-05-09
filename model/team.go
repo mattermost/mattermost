@@ -136,7 +136,7 @@ func (o *Team) Etag() string {
 
 func (o *Team) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

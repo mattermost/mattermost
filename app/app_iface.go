@@ -121,6 +121,10 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
+	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
+	// A new ExpiresAt is only written if enough time has elapsed since last update.
+	// Returns true only if the session was extended.
+	ExtendSessionExpiryIfNeeded(session *model.Session) bool
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -156,6 +160,10 @@ type AppIface interface {
 	GetEnvironmentConfig() map[string]interface{}
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
+	// GetKnownUsers returns the list of user ids of users with any direct
+	// relationship with a user. That means any user sharing any channel, including
+	// direct and group channels.
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -179,6 +187,9 @@ type AppIface interface {
 	GetSanitizedConfig() *model.Config
 	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 	GetSchemeRolesForChannel(channelId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
+	// GetSessionLengthInMillis returns the session length, in milliseconds,
+	// based on the type of session (Mobile, SSO, Web/LDAP).
+	GetSessionLengthInMillis(session *model.Session) int64
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
@@ -459,6 +470,7 @@ type AppIface interface {
 	FileExists(path string) (bool, *model.AppError)
 	FillInChannelProps(channel *model.Channel) *model.AppError
 	FillInChannelsProps(channelList *model.ChannelList) *model.AppError
+	FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError)
 	FindTeamByName(name string) bool
 	GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
@@ -843,6 +855,7 @@ type AppIface interface {
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
+	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)

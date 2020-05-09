@@ -82,6 +82,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, ss) })
 	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, ss) })
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
+	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -4623,4 +4624,135 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	assert.True(t, user2.UpdateAt > user.UpdateAt)
 	assert.Zero(t, user2.LastPictureUpdate)
+}
+
+func testGetKnownUsers(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	u1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+
+	u2, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+
+	u3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	})
+	require.Nil(t, err)
+	u3.IsBot = true
+
+	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
+
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, err)
+
+	ch1 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in channel",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	c1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
+
+	ch2 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in private",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	c2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
+
+	ch3 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in private",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	c3, err := ss.Channel().Save(ch3, -1)
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c3.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	t.Run("get know users sharing no channels", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u4.Id)
+		require.Nil(t, err)
+		assert.Empty(t, userIds)
+	})
+
+	t.Run("get know users sharing one channel", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u3.Id)
+		require.Nil(t, err)
+		assert.Len(t, userIds, 1)
+		assert.Equal(t, userIds[0], u1.Id)
+	})
+
+	t.Run("get know users sharing multiple channels", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u1.Id)
+		require.Nil(t, err)
+		assert.Len(t, userIds, 2)
+		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
+	})
 }

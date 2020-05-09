@@ -1032,6 +1032,22 @@ func (s *TimerLayerChannelStore) GetMemberCountFromCache(channelId string) int64
 	return resultVar0
 }
 
+func (s *TimerLayerChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberCountsByGroup", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
 	start := timemodule.Now()
 
@@ -5275,6 +5291,22 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.SessionStore.UpdateExpiresAt(sessionId, time)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateExpiresAt", success, elapsed)
+	}
+	return resultVar0
+}
+
 func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
 	start := timemodule.Now()
 
@@ -6899,6 +6931,22 @@ func (s *TimerLayerUserStore) GetForLogin(loginId string, allowSignInWithUsernam
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetForLogin", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerUserStore) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.GetKnownUsers(userID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetKnownUsers", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }
