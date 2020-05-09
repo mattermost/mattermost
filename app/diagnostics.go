@@ -306,6 +306,7 @@ func (a *App) trackConfig() {
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
+		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
 		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
