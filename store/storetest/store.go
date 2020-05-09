@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -88,6 +89,7 @@ func (s *Store) LockToMaster()                         { /* do nothing */ }
 func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
 func (s *Store) DropAllTables()                        { /* do nothing */ }
 func (s *Store) GetDbVersion() (string, error)         { return "", nil }
+func (s *Store) RecycleDBConnections(time.Duration)    {}
 func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
