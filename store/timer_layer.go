@@ -584,6 +584,22 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(user, teamId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CreateInitialSidebarCategories", success, elapsed)
+	}
+	return resultVar0
+}
+
 func (s *TimerLayerChannelStore) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	start := timemodule.Now()
 
