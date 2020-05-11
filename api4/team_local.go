@@ -5,4 +5,6 @@ package api4
 
 func (api *API) InitTeamLocal() {
 	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
+
+	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
 }
