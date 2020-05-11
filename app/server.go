@@ -197,11 +197,15 @@ func NewServer(options ...Option) (*Server, error) {
 		if s.Config().LogSettings.SentryDSN == nil || *s.Config().LogSettings.SentryDSN == "" {
 			mlog.Warn("Sentry reporting is enabled, but SentryDSN is not set in the config. Disabling reporting.")
 		} else {
-			sentry.Init(sentry.ClientOptions{
-				Dsn:              *s.Config().LogSettings.SentryDSN,
-				Release:          model.BuildHash,
-				AttachStacktrace: true,
-			})
+			if model.BuildHash == "dev" {
+				mlog.Warn("Sentry reporting is enabled, but we are running in 'dev' mode. Disabling reporting.")
+			} else {
+				sentry.Init(sentry.ClientOptions{
+					Dsn:              *s.Config().LogSettings.SentryDSN,
+					Release:          model.BuildHash,
+					AttachStacktrace: true,
+				})
+			}
 		}
 	}
 
