@@ -79,6 +79,7 @@ type GroupSearchOpts struct {
 	IncludeMemberCount     bool
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
+	Since                  int64
 }
 
 type PageOpts struct {
@@ -142,7 +143,7 @@ func (group *Group) requiresRemoteId() bool {
 }
 
 func (group *Group) IsValidForUpdate() *AppError {
-	if len(group.Id) != 26 {
+	if !IsValidId(group.Id) {
 		return NewAppError("Group.IsValidForUpdate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.CreateAt == 0 {

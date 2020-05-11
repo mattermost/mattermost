@@ -61,7 +61,7 @@ func CommandListFromJson(data io.Reader) []*Command {
 
 func (o *Command) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -77,11 +77,11 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.CreatorId) != 26 {
+	if !IsValidId(o.CreatorId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
