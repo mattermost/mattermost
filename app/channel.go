@@ -494,8 +494,10 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
-		return nil, err
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+			return nil, err
+		}
 	}
 	channel.SchemeId = nil
 	return a.UpdateChannelScheme(channel)
@@ -760,22 +762,26 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
+	var scheme *model.Scheme
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		if _, err = a.CreateChannelScheme(channel); err != nil {
+		scheme, err = a.CreateChannelScheme(channel)
+		if err != nil {
 			return nil, err
 		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+	} else {
+		scheme, err = a.GetScheme(*channel.SchemeId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
-	if err != nil {
-		return nil, err
-	}
-
+	guestRoleName := scheme.DefaultChannelGuestRole
+	memberRoleName := scheme.DefaultChannelUserRole
 	memberRole, err := a.GetRoleByName(memberRoleName)
 	if err != nil {
 		return nil, err
