@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -53,6 +54,7 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	RecycleDBConnections(d time.Duration)
 	GetCurrentSchemaVersion() string
 	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int

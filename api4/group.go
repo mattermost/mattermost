@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -221,9 +222,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -382,9 +383,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
 	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
@@ -436,9 +437,9 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	auditRec.Success()
 
@@ -728,6 +729,16 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.NotAssociatedToChannel = channelID
+	}
+
+	sinceString := r.URL.Query().Get("since")
+	if len(sinceString) > 0 {
+		since, parseError := strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+		opts.Since = since
 	}
 
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
