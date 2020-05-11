@@ -16,6 +16,8 @@ func TestDownloadFromURL(t *testing.T) {
 	app := th.App
 	app.Config().PluginSettings.AllowInsecureDownloadUrl = model.NewBool(true)
 
+	// To keep track of how many times an endpoint is retried. This needs to be reset
+	// for each test run.
 	retries := 0
 
 	mux := http.NewServeMux()
@@ -35,40 +37,32 @@ func TestDownloadFromURL(t *testing.T) {
 
 	testServer := httptest.NewServer(mux)
 
-	type args struct {
-		downloadURL string
-	}
-
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name        string
+		downloadURL string
+		wantErr     bool
 	}{
 		{
-			name: "Should succeed after two retries",
-			args: args{
-				downloadURL: fmt.Sprintf("%s/succeeds-after-retry", testServer.URL),
-			},
-			wantErr: false,
+			name:        "Should succeed after two retries",
+			downloadURL: fmt.Sprintf("%s/succeeds-after-retry", testServer.URL),
+			wantErr:     false,
 		},
 		{
-			name: "Should not retry forever",
-			args: args{
-				downloadURL: fmt.Sprintf("%s/fails-forever", testServer.URL),
-			},
-			wantErr: true,
+			name:        "Should not retry forever",
+			downloadURL: fmt.Sprintf("%s/fails-forever", testServer.URL),
+			wantErr:     true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			retries = 0
-			_, err := th.App.DownloadFromURL(tt.args.downloadURL)
+			retries = 0 // reset the retires
+			_, err := th.App.DownloadFromURL(tt.downloadURL)
 
 			if tt.wantErr {
-				require.NotNil(t, err)
+				require.Error(t, err)
 			} else {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}

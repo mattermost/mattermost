@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,13 +41,14 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 	var resp *http.Response
 	err = utils.ProgressiveRetry(func() error {
 		resp, err = client.Get(downloadURL)
-		respStatusOK := resp.StatusCode >= 200 && resp.StatusCode < 300
 
 		if err != nil {
 			return errors.Wrapf(err, "failed to fetch from %s", downloadURL)
 		}
 
-		if !respStatusOK {
+		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_ = resp.Body.Close()
 			return errors.Errorf("failed to fetch from %s", downloadURL)
 		}
 
