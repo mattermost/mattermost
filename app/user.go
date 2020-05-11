@@ -891,6 +891,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 	if err := a.Srv().Store.User().UpdateLastPictureUpdate(userId); err != nil {
 		mlog.Error("Error with updating last picture update", mlog.Err(err))
 	}
+	mlog.Debug("invalidate cache")
 	a.invalidateUserCacheAndPublish(userId)
 
 	return nil
@@ -2088,6 +2089,7 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
+	mlog.Debug("Publish")
 	a.Publish(message)
 }
 

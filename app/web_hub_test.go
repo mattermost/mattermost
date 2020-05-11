@@ -15,13 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		mlog.Debug("dummyWebsocketHandler")
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -30,11 +28,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 		for err == nil {
 			_, _, err = conn.ReadMessage()
 		}
-		mlog.Debug(err.Error())
 		if _, ok := err.(*websocket.CloseError); !ok {
 			require.NoError(t, err)
 		}
-		mlog.Debug("Made IT")
 	}
 }
 
