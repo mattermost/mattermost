@@ -1634,6 +1634,11 @@ func (a *OpenTracingAppLayer) CreateDefaultMemberships(since int64) error {
 	defer span.Finish()
 	resultVar0 := a.app.CreateDefaultMemberships(since)
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -2578,6 +2583,11 @@ func (a *OpenTracingAppLayer) DeleteGroupConstrainedMemberships() error {
 	defer span.Finish()
 	resultVar0 := a.app.DeleteGroupConstrainedMemberships()
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -3105,6 +3115,11 @@ func (a *OpenTracingAppLayer) DoPermissionsMigrations() error {
 	defer span.Finish()
 	resultVar0 := a.app.DoPermissionsMigrations()
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -3232,6 +3247,11 @@ func (a *OpenTracingAppLayer) DownloadFromURL(downloadURL string) ([]byte, error
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.DownloadFromURL(downloadURL)
 
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -3333,6 +3353,11 @@ func (a *OpenTracingAppLayer) ExportPermissions(w io.Writer) error {
 
 	defer span.Finish()
 	resultVar0 := a.app.ExportPermissions(w)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }
@@ -3522,6 +3547,11 @@ func (a *OpenTracingAppLayer) FilterNonGroupChannelMembers(userIds []string, cha
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.FilterNonGroupChannelMembers(userIds, channel)
 
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -3538,6 +3568,11 @@ func (a *OpenTracingAppLayer) FilterNonGroupTeamMembers(userIds []string, team *
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.FilterNonGroupTeamMembers(userIds, team)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0, resultVar1
 }
@@ -4784,6 +4819,11 @@ func (a *OpenTracingAppLayer) GetConfigFile(name string) ([]byte, error) {
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetConfigFile(name)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0, resultVar1
 }
@@ -9079,6 +9119,11 @@ func (a *OpenTracingAppLayer) ImportPermissions(jsonl io.Reader) error {
 	defer span.Finish()
 	resultVar0 := a.app.ImportPermissions(jsonl)
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -10928,6 +10973,11 @@ func (a *OpenTracingAppLayer) RegisterPluginCommand(pluginId string, command *mo
 	defer span.Finish()
 	resultVar0 := a.app.RegisterPluginCommand(pluginId, command)
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -10944,6 +10994,11 @@ func (a *OpenTracingAppLayer) ReloadConfig() error {
 
 	defer span.Finish()
 	resultVar0 := a.app.ReloadConfig()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }
@@ -12222,6 +12277,11 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	defer span.Finish()
 	resultVar0 := a.app.SendAckToPushProxy(ack)
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -12388,6 +12448,11 @@ func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Te
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.SendNotifications(post, team, channel, sender, parentPostList)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0, resultVar1
 }
@@ -12860,6 +12925,11 @@ func (a *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete boo
 	defer span.Finish()
 	resultVar0 := a.app.SetPhase2PermissionsMigrationStatus(isComplete)
 
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -13216,6 +13286,11 @@ func (a *OpenTracingAppLayer) SetupInviteEmailRateLimiting() error {
 
 	defer span.Finish()
 	resultVar0 := a.app.SetupInviteEmailRateLimiting()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }
