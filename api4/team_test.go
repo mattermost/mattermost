@@ -1617,6 +1617,15 @@ func TestAddTeamMember(t *testing.T) {
 	require.NotNil(t, resp.Error, "Error is nil")
 	Client.Logout()
 
+	// SystemAdmin and mode can add member to a team
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		tm, resp := client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
+		require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
+	})
+
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
 	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
@@ -1780,8 +1789,10 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
 
 	// User is not in associated groups so shouldn't be allowed
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	})
 
 	// Associate group to team
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -1795,8 +1806,10 @@ func TestAddTeamMember(t *testing.T) {
 	_, err = th.App.UpsertGroupMember(th.Group.Id, otherUser.Id)
 	require.Nil(t, err)
 
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
