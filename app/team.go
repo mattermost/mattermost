@@ -199,6 +199,11 @@ func (a *App) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite 
 		return err
 	}
 
+	// Force a regeneration of the invite token if changing a team to restricted.
+	if (allowOpenInvite != oldTeam.AllowOpenInvite || teamType != oldTeam.Type) && (!allowOpenInvite || teamType == model.TEAM_INVITE) {
+		oldTeam.InviteId = model.NewId()
+	}
+
 	oldTeam.Type = teamType
 	oldTeam.AllowOpenInvite = allowOpenInvite
 
