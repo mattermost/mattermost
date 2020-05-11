@@ -142,6 +142,18 @@ func (a *App) getSystemInstallDate() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	if appErr != nil {
+		return 0, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
+}
+
 func (a *App) Srv() *Server {
 	return a.srv
 }
