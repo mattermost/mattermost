@@ -700,28 +700,38 @@ func (me *TestHelper) CreateGroup() *model.Group {
 // SystemAdmin and Local clients. Several endpoints work in the same
 // way when used by a fully privileged user and through the local
 // mode, so this helper facilitates checking both
-func (me *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T, *model.Client4)) {
-	t.Run("SystemAdminClient", func(t *testing.T) {
+func (me *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
 		f(t, me.SystemAdminClient)
 	})
 
-	t.Run("LocalClient", func(t *testing.T) {
+	t.Run(testName+"LocalClient", func(t *testing.T) {
 		f(t, me.LocalClient)
 	})
 }
 
 // TestForAllClients runs a test function for all the clients
 // registered in the TestHelper
-func (me *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.Client4)) {
-	t.Run("Client", func(t *testing.T) {
+func (me *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"Client", func(t *testing.T) {
 		f(t, me.Client)
 	})
 
-	t.Run("SystemAdminClient", func(t *testing.T) {
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
 		f(t, me.SystemAdminClient)
 	})
 
-	t.Run("LocalClient", func(t *testing.T) {
+	t.Run(testName+"LocalClient", func(t *testing.T) {
 		f(t, me.LocalClient)
 	})
 }
