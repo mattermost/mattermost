@@ -26,6 +26,7 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, ss) })
 	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, ss) })
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
+	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
 }
@@ -210,6 +211,21 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 
 	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)
 	require.Nil(t, err)
+}
+
+func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
+	s1 := &model.Session{}
+	s1.UserId = model.NewId()
+
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	err = ss.Session().UpdateExpiresAt(s1.Id, 1234567890)
+	require.Nil(t, err)
+
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.EqualValues(t, session.ExpiresAt, 1234567890, "ExpiresAt not updated correctly")
 }
 
 func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
