@@ -1461,32 +1461,29 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+	type testTable []struct {
+		name            string
+		channel         *model.Channel
+		expectedPrivacy string
+	}
 
-		type testTable []struct {
-			name            string
-			channel         *model.Channel
-			expectedPrivacy string
-		}
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
+	privateChannel := th.CreatePrivateChannel()
+	publicChannel := th.CreatePublicChannel()
 
-		defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
-		privateChannel := th.CreatePrivateChannel()
-		publicChannel := th.CreatePublicChannel()
+	tt := testTable{
+		{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
+		{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
+		{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
+	}
 
-		if client != th.LocalClient {
-			tt := testTable{
-				{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
-				{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
-				{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
-			}
-
-			for _, tc := range tt {
-				t.Run(tc.name, func(t *testing.T) {
-					_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
-					CheckForbiddenStatus(t, resp)
-				})
-			}
-		}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			CheckForbiddenStatus(t, resp)
+		})
+	}
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.LoginTeamAdmin()
 
 		tt := testTable{
