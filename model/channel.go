@@ -198,7 +198,7 @@ func (o *Channel) Etag() string {
 }
 
 func (o *Channel) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
