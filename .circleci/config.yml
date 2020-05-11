@@ -55,6 +55,9 @@ jobs:
       - attach_workspace:
           at: ~/mattermost/
       - run:
+          name: Checkout config
+          command: cd .. && git clone https://github.com/mattermost/security-automation-config
+      - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
       - owasp/with_commandline:
@@ -71,14 +74,17 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
-                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
-                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                  ~/.owasp/dependency-check/bin/dependency-check.sh \
+                    --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
+                    --suppression ../security-automation-config/dependency-check/suppression.xml \
+                    --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
       - run:
           name: Post results to Mattermost
-          command: ./scripts/depcheck-alert.sh
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
