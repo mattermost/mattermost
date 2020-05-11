@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -798,6 +799,15 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_24_0) {
 
 	sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		for _, table := range []string{"ChannelMembers", "TeamMembers"} {
+			for _, column := range []string{"SchemeGuest", "SchemeUser", "SchemeAdmin"} {
+				sql := fmt.Sprintf("ALTER TABLE %s ALTER %s TYPE bool USING CASE WHEN %s=0 THEN FALSE ELSE TRUE END", table, column, column)
+				sqlStore.GetMaster().Exec(sql)
+			}
+		}
+	}
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_24_0)
 	// }
