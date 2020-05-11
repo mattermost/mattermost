@@ -7196,7 +7196,7 @@
   },
   {
     "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
+    "translation": "データベースからユーザーを取得できませんでした。"
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
