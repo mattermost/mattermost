@@ -515,7 +515,7 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 
 func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.AppError {
 	if len(*a.Config().EmailSettings.SMTPServer) == 0 {
-		model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 	}
 
 	var subject string
@@ -534,7 +534,7 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 		if err != nil {
 			mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
 		} else {
-			body += fmt.Sprintf(" Registered Users: %s", registeredUsersCount)
+			body += fmt.Sprintf(" Registered Users: %v", registeredUsersCount)
 		}
 	default:
 		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
@@ -546,7 +546,10 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 	}
 
 	mlog.Info("Disable the monitoring of warn metric", mlog.String("metric", warnMetricId))
-	a.SetWarnMetricStatus(warnMetricId)
+	err := a.SetWarnMetricStatus(warnMetricId)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

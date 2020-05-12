@@ -873,7 +873,7 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 
 	mlog.Info("Number of active users", mlog.Int64("value", noActiveUsers))
 
-	if err := s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
+	if err = s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
 		return
 	}
@@ -881,13 +881,12 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
 		mlog.Info("Number of active users is greater than limit")
 		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRICS_STATUS, "", "", "", nil)
-		message.Add("numberOfActiveUsersMetricStatus", "true")
+		message.Add(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, "true")
 		s.FakeApp().Publish(message)
 	}
 
 	warningMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
-	err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage)
-	if err != nil {
+	if err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage); err != nil {
 		mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 	}
 }
