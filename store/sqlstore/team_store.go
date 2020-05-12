@@ -380,7 +380,7 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -404,7 +404,7 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -435,7 +435,7 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -455,7 +455,7 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
@@ -488,7 +488,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams",
 			"store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -522,7 +522,7 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError
 		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.get_all_private_team_listing.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	var data []*model.Team
-	if _, err := s.GetReplica().Select(&data, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return data, nil
@@ -538,7 +538,7 @@ func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mod
 	}
 
 	var data []*model.Team
-	if _, err := s.GetReplica().Select(&data, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllPublicTeamPageListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -556,7 +556,7 @@ func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mo
 	}
 
 	var data []*model.Team
-	if _, err := s.GetReplica().Select(&data, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamPageListing", "store.sql_team.get_all_private_team_page_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -572,7 +572,7 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	}
 
 	var data []*model.Team
-	if _, err := s.GetReplica().Select(&data, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -590,7 +590,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	}
 
 	var teams []*model.Team
-	if _, err := s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeamPageListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -783,7 +783,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 			return nil, model.NewAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, err.Error(), http.StatusBadRequest)
 		}
@@ -1020,7 +1020,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
-	if _, err := s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
+	if _, err = s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 	}
 	return dbMembers.ToModel(), nil
