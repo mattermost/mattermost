@@ -559,8 +559,16 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	percentage, _ := c.App.Srv().UpgradeToE0Status()
+	if model.BuildEnterpriseReady == "true" {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.already-enterprise.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
 	if percentage > 0 {
 		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
+	if percentage == 100 {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.already-done.app_error", nil, "", http.StatusTooManyRequests)
 		return
 	}
 
@@ -582,7 +590,8 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	percentage, err := c.App.Srv().UpgradeToE0Status()
 	var s map[string]interface{}
 	if err != nil {
-		s = map[string]interface{}{"percentage": 0, "error": err.Error()}
+		appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusTooManyRequests)
+		s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
 	} else {
 		s = map[string]interface{}{"percentage": percentage, "error": nil}
 	}

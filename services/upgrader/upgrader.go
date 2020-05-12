@@ -52,7 +52,10 @@ func getCurrentVersionTgzUrl() string {
 
 func canIUpgrade() error {
 	if runtime.GOARCH != "amd64" {
-		return errors.New("Upgrades only supported for amd64 architectures")
+		return errors.New("Upgrades only supported for amd64 architectures.")
+	}
+	if runtime.GOOS != "linux" {
+		return errors.New("Upgrades only supported for linux operating systems.")
 	}
 	return nil
 }
