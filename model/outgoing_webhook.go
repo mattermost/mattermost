@@ -117,7 +117,7 @@ func OutgoingWebhookResponseFromJson(data io.Reader) (*OutgoingWebhookResponse, 
 
 func (o *OutgoingWebhook) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -133,15 +133,15 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.CreatorId) != 26 {
+	if !IsValidId(o.CreatorId) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 0 && len(o.ChannelId) != 26 {
+	if len(o.ChannelId) != 0 && !IsValidId(o.ChannelId) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -32,6 +32,10 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
+
+	t.Run("GetMemberUsersInTeam", func(t *testing.T) { testGroupGetMemberUsersInTeam(t, ss) })
+	t.Run("GetMemberUsersNotInChannel", func(t *testing.T) { testGroupGetMemberUsersNotInChannel(t, ss) })
+
 	t.Run("UpsertMember", func(t *testing.T) { testUpsertMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 	t.Run("PermanentDeleteMembersByUser", func(t *testing.T) { testGroupPermanentDeleteMembersByUser(t, ss) })
@@ -173,6 +177,16 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewId(),
 	}
 	require.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
+
+	//must use valid characters
+	g7 := &model.Group{
+		Name:        "%^#@$$",
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	require.Equal(t, g7.IsValidForCreate().Id, "model.group.name.invalid_chars.app_error")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
@@ -215,12 +229,16 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
+	g1Opts := model.GroupSearchOpts{
+		FilterAllowReference: false,
+	}
+
 	d1, err := ss.Group().Create(g1)
 	require.Nil(t, err)
 	require.Len(t, d1.Id, 26)
 
 	// Get the group
-	d2, err := ss.Group().GetByName(d1.Name)
+	d2, err := ss.Group().GetByName(d1.Name, g1Opts)
 	require.Nil(t, err)
 	require.Equal(t, d1.Id, d2.Id)
 	require.Equal(t, d1.Name, d2.Name)
@@ -232,7 +250,7 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 	require.Equal(t, d1.DeleteAt, d2.DeleteAt)
 
 	// Get an invalid group
-	_, err = ss.Group().GetByName(model.NewId())
+	_, err = ss.Group().GetByName(model.NewId(), g1Opts)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "store.sql_group.no_rows")
 }
@@ -486,7 +504,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	require.Equal(t, err.Id, "store.update_error")
+	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()
@@ -680,6 +698,231 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	groupMembers, err = ss.Group().GetMemberUsersPage(group.Id, 0, 100)
 	require.Nil(t, err)
 	require.Equal(t, 2, len(groupMembers))
+}
+
+func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
+	// Save a team
+	team := &model.Team{
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	group, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
+	require.Nil(t, err)
+
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
+	require.Nil(t, err)
+
+	// returns no members when team does not exist
+	groupMembers, err := ss.Group().GetMemberUsersInTeam(group.Id, "non-existant-channel-id")
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
+
+	// returns no members when group has no members in the team
+	groupMembers, err = ss.Group().GetMemberUsersInTeam(group.Id, team.Id)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
+
+	m1 := &model.TeamMember{TeamId: team.Id, UserId: user1.Id}
+	_, err = ss.Team().SaveMember(m1, -1)
+	require.Nil(t, err)
+
+	// returns single member in team
+	groupMembers, err = ss.Group().GetMemberUsersInTeam(group.Id, team.Id)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(groupMembers))
+
+	m2 := &model.TeamMember{TeamId: team.Id, UserId: user2.Id}
+	m3 := &model.TeamMember{TeamId: team.Id, UserId: user3.Id}
+	_, err = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, err)
+
+	// returns all members when all members are in team
+	groupMembers, err = ss.Group().GetMemberUsersInTeam(group.Id, team.Id)
+	require.Nil(t, err)
+	require.Equal(t, 3, len(groupMembers))
+}
+
+func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
+	// Save a team
+	team := &model.Team{
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
+
+	// Save a group
+	g1 := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	group, err := ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
+	require.Nil(t, err)
+
+	u2 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
+	require.Nil(t, err)
+
+	u3 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	user3, err := ss.User().Save(u3)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
+	require.Nil(t, err)
+
+	// Create Channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Channel",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
+	}
+	channel, nErr := ss.Channel().Save(channel, 9999)
+	require.Nil(t, nErr)
+
+	// returns no members when channel does not exist
+	groupMembers, err := ss.Group().GetMemberUsersNotInChannel(group.Id, "non-existant-channel-id")
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
+
+	// returns no members when group has no members in the team that the channel belongs to
+	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
+
+	m1 := &model.TeamMember{TeamId: team.Id, UserId: user1.Id}
+	_, err = ss.Team().SaveMember(m1, -1)
+	require.Nil(t, err)
+
+	// returns single member in team and not in channel
+	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 1, len(groupMembers))
+
+	m2 := &model.TeamMember{TeamId: team.Id, UserId: user2.Id}
+	m3 := &model.TeamMember{TeamId: team.Id, UserId: user3.Id}
+	_, err = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, err)
+
+	// returns all members when all members are in team and not in channel
+	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 3, len(groupMembers))
+
+	cm1 := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user1.Id,
+		SchemeGuest: false,
+		SchemeUser:  true,
+		SchemeAdmin: false,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	_, err = ss.Channel().SaveMember(cm1)
+	require.Nil(t, err)
+
+	// returns both members not yet added to channel
+	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 2, len(groupMembers))
+
+	cm2 := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user2.Id,
+		SchemeGuest: false,
+		SchemeUser:  true,
+		SchemeAdmin: false,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+	cm3 := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user3.Id,
+		SchemeGuest: false,
+		SchemeUser:  true,
+		SchemeAdmin: false,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+
+	_, err = ss.Channel().SaveMember(cm2)
+	require.Nil(t, err)
+	_, err = ss.Channel().SaveMember(cm3)
+	require.Nil(t, err)
+
+	// returns none when all members have been added to team and channel
+	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 0, len(groupMembers))
 }
 
 func testUpsertMember(t *testing.T, ss store.Store) {
@@ -2781,6 +3024,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
 
+	startCreateTime := team1.UpdateAt - 1
+
 	// Create Channel1
 	channel1 := &model.Channel{
 		TeamId:      model.NewId(),
@@ -2919,9 +3164,11 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	user2.DeleteAt = 1
-	ss.User().Update(user2, true)
+	u2Update, _ := ss.User().Update(user2, true)
 
 	group2NameSubstring := "group-2"
+
+	endCreateTime := u2Update.New.UpdateAt + 1
 
 	testCases := []struct {
 		Name    string
@@ -3078,6 +3325,32 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					}
 				}
 				return true
+			},
+		},
+		{
+			Name:    "Use Since return all",
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true, Since: startCreateTime},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
+				for _, g := range groups {
+					if g.DeleteAt != 0 {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Name:    "Use Since return none",
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true, Since: endCreateTime},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 0
 			},
 		},
 	}

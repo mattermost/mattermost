@@ -68,42 +68,6 @@ func (e *ErrConflict) Unwrap() error {
 	return e.err
 }
 
-// ErrInternal indicates an internal error.
-type ErrInternal struct {
-	Location string // The location of the error origin.
-	err      error  // Internal error.
-	meta     string // Any additional metadata.
-}
-
-func NewErrInternal(location string, err error, meta string) *ErrInternal {
-	return &ErrInternal{
-		Location: location,
-		err:      err,
-		meta:     meta,
-	}
-}
-
-func (e *ErrInternal) Error() string {
-	return "location: " + e.Location + " " + e.meta + " " + e.err.Error()
-}
-
-func (e *ErrInternal) Unwrap() error {
-	return e.err
-}
-
-// ErrNotFound indicates that a resource was not found
-type ErrNotFound struct {
-	resource string
-	Id       string
-}
-
-func NewErrNotFound(resource, id string) *ErrNotFound {
-	return &ErrNotFound{
-		resource: resource,
-		Id:       id,
-	}
-}
-
-func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.Id
-}
+// TODO:
+// type ErrNotFound struct {
+// }

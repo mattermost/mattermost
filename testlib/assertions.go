@@ -31,3 +31,24 @@ func AssertLog(t *testing.T, logs *bytes.Buffer, level, message string) {
 
 	t.Fatalf("failed to find %s log message: %s", level, message)
 }
+
+// AssertNoLog asserts that a JSON-encoded buffer of logs does not contains one with the given level and message.
+func AssertNoLog(t *testing.T, logs *bytes.Buffer, level, message string) {
+	dec := json.NewDecoder(logs)
+	for {
+		var log struct {
+			Level string
+			Msg   string
+		}
+		if err := dec.Decode(&log); err == io.EOF {
+			break
+		} else if err != nil {
+			continue
+		}
+
+		if log.Level == level && log.Msg == message {
+			t.Fatalf("found %s log message: %s", level, message)
+			return
+		}
+	}
+}

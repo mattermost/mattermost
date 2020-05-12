@@ -626,6 +626,9 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 		return nil, err
 	}
 
+	// Make sure the old secret is not cached on any cluster nodes.
+	a.InvalidateCacheForUser(user.Id)
+
 	mfaSecret := &model.MfaSecret{Secret: secret, QRCode: b64.StdEncoding.EncodeToString(img)}
 	return mfaSecret, nil
 }
@@ -645,6 +648,9 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		return err
 	}
 
+	// Make sure old MFA status is not cached locally or in cluster nodes.
+	a.InvalidateCacheForUser(userId)
+
 	return nil
 }
 
@@ -653,6 +659,9 @@ func (a *App) DeactivateMfa(userId string) *model.AppError {
 	if err := mfaService.Deactivate(userId); err != nil {
 		return err
 	}
+
+	// Make sure old MFA status is not cached locally or in cluster nodes.
+	a.InvalidateCacheForUser(userId)
 
 	return nil
 }
@@ -834,7 +843,10 @@ func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.Fil
 	if err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if config.Width*config.Height > model.MaxImageSize {
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2077,4 +2089,11 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
 	a.Publish(message)
+}
+
+// GetKnownUsers returns the list of user ids of users with any direct
+// relationship with a user. That means any user sharing any channel, including
+// direct and group channels.
+func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	return a.Srv().Store.User().GetKnownUsers(userID)
 }
