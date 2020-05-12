@@ -733,22 +733,6 @@ func (me *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.
 	})
 }
 
-// TestForAllClients runs a test function for all the clients
-// registered in the TestHelper
-func (me *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.Client4)) {
-	t.Run("Client", func(t *testing.T) {
-		f(t, me.Client)
-	})
-
-	t.Run("SystemAdminClient", func(t *testing.T) {
-		f(t, me.SystemAdminClient)
-	})
-
-	t.Run("LocalClient", func(t *testing.T) {
-		f(t, me.LocalClient)
-	})
-}
-
 func GenerateTestUsername() string {
 	return "fakeuser" + model.NewRandomString(10)
 }
