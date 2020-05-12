@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 const (
@@ -79,6 +80,7 @@ type GroupSearchOpts struct {
 	IncludeMemberCount     bool
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
+	Since                  int64
 }
 
 type PageOpts struct {
@@ -102,8 +104,9 @@ func (group *Group) Patch(patch *GroupPatch) {
 }
 
 func (group *Group) IsValidForCreate() *AppError {
-	if l := len(group.Name); l == 0 || l > GroupNameMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+	err := group.IsValidName()
+	if err != nil {
+		return err
 	}
 
 	if l := len(group.DisplayName); l == 0 || l > GroupDisplayNameMaxLength {
@@ -142,7 +145,7 @@ func (group *Group) requiresRemoteId() bool {
 }
 
 func (group *Group) IsValidForUpdate() *AppError {
-	if len(group.Id) != 26 {
+	if !IsValidId(group.Id) {
 		return NewAppError("Group.IsValidForUpdate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.CreateAt == 0 {
@@ -154,6 +157,20 @@ func (group *Group) IsValidForUpdate() *AppError {
 	if err := group.IsValidForCreate(); err != nil {
 		return err
 	}
+	return nil
+}
+
+var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+
+func (group *Group) IsValidName() *AppError {
+	if l := len(group.Name); l == 0 || l > GroupNameMaxLength {
+		return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+	}
+
+	if !validGroupnameChars.MatchString(group.Name) {
+		return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
