@@ -4480,7 +4480,7 @@
   },
   {
     "id": "model.channel.is_valid.name.app_error",
-    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam bij niet directe -berichtenkanalen. "
+    "translation": "Ongeldige kanaalnaam. Gebruikersindentifiers zijn niet toegestaan in een kanaalnaam voor niet directe -berichtenkanalen."
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
@@ -7196,7 +7196,7 @@
   },
   {
     "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
+    "translation": "De gekende gebruikers kunnen niet worden opgehaald uit de database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
