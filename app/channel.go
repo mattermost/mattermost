@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -205,10 +206,31 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
-
-	sc, err := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if err != nil {
-		return nil, err
+	sc, nErr := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		var cErr *store.ErrConflict
+		var ltErr *store.ErrLimitExceeded
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &invErr):
+			switch {
+			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Type":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Id":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &cErr):
+			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &ltErr):
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if addMember {
@@ -407,12 +429,31 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	channel, err := a.Srv().Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if err != nil {
-		if err.Id == store.CHANNEL_EXISTS_ERROR {
-			return channel, err
+	channel, nErr := a.Srv().Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		var cErr *store.ErrConflict
+		var ltErr *store.ErrLimitExceeded
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &invErr):
+			switch {
+			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Type":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Id":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &cErr):
+			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &ltErr):
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
-		return nil, err
 	}
 
 	for _, user := range users {
@@ -494,8 +535,10 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
-		return nil, err
+	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
+			return nil, err
+		}
 	}
 	channel.SchemeId = nil
 	return a.UpdateChannelScheme(channel)
@@ -760,22 +803,26 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		}
 	}
 
+	var scheme *model.Scheme
 	// Channel has no scheme so create one
 	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
-		if _, err = a.CreateChannelScheme(channel); err != nil {
+		scheme, err = a.CreateChannelScheme(channel)
+		if err != nil {
 			return nil, err
 		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
+	} else {
+		scheme, err = a.GetScheme(*channel.SchemeId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	guestRoleName, memberRoleName, _, err := a.GetSchemeRolesForChannel(channel.Id)
-	if err != nil {
-		return nil, err
-	}
-
+	guestRoleName := scheme.DefaultChannelGuestRole
+	memberRoleName := scheme.DefaultChannelUserRole
 	memberRole, err := a.GetRoleByName(memberRoleName)
 	if err != nil {
 		return nil, err
