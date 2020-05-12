@@ -1878,20 +1878,22 @@ func TestUpdateUserRoles(t *testing.T) {
 	_, resp := th.Client.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
-	CheckNoError(t, resp)
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, "junk")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles("junk", model.SYSTEM_USER_ROLE_ID)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles("junk", model.SYSTEM_USER_ROLE_ID)
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(model.NewId(), model.SYSTEM_USER_ROLE_ID)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles(model.NewId(), model.SYSTEM_USER_ROLE_ID)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
