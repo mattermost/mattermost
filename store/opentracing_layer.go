@@ -1665,7 +1665,7 @@ func (s *OpenTracingLayerChannelStore) Restore(channelId string, time int64) *mo
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Save")
 	s.Root.Store.SetContext(newCtx)
