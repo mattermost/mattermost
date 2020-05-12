@@ -854,7 +854,7 @@ func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.Fil
 	return a.SetProfileImageFromFile(userId, file)
 }
 
-func (a *App) AdjustImage(file io.Reader) ([]byte, *model.AppError) {
+func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
@@ -873,7 +873,7 @@ func (a *App) AdjustImage(file io.Reader) ([]byte, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return buf.Bytes(), nil
+	return buf, nil
 }
 
 func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
@@ -884,7 +884,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 	}
 	path := "users/" + userId + "/profile.png"
 
-	if _, err := a.WriteFile(bytes.NewReader(buf), path); err != nil {
+	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 

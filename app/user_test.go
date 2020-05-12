@@ -135,7 +135,7 @@ func TestAdjustProfileImage(t *testing.T) {
 	require.Nil(t, error)
 	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
 	require.Nil(t, err)
-	assert.True(t, len(adjusted) > 0)
+	assert.True(t, adjusted.Len() > 0)
 	assert.NotEqual(t, testjpg, adjusted)
 
 	// default image should require adjustement
@@ -144,7 +144,7 @@ func TestAdjustProfileImage(t *testing.T) {
 	require.Nil(t, err)
 	image2, err := th.App.AdjustImage(bytes.NewReader(image))
 	require.Nil(t, err)
-	assert.Equal(t, image, image2)
+	assert.Equal(t, image, image2.Bytes())
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
