@@ -396,7 +396,7 @@ func TestSentry(t *testing.T) {
 	s2, err := NewServer()
 	require.NoError(t, err)
 	// Route for just panicing
-	s2.RootRouter.HandleFunc("/panic2", func(writer http.ResponseWriter, request *http.Request) {
+	s2.Router.HandleFunc("/panic2", func(writer http.ResponseWriter, request *http.Request) {
 		panic("log this panic")
 	})
 
