@@ -65,7 +65,7 @@ type Server struct {
 	RateLimiter *RateLimiter
 	Busy        *Busy
 
-	LocalModeServer *http.Server
+	localModeServer *http.Server
 
 	didFinishListen chan struct{}
 
@@ -423,6 +423,8 @@ func (s *Server) Shutdown() error {
 	}
 
 	s.StopHTTPServer()
+	s.stopLocalModeServer()
+
 	s.WaitForGoroutines()
 
 	if s.htmlTemplateWatcher != nil {
@@ -702,12 +704,18 @@ func (s *Server) Start() error {
 		close(s.didFinishListen)
 	}()
 
+	if *s.Config().ServiceSettings.EnableLocalMode {
+		if err := s.startLocalModeServer(); err != nil {
+			mlog.Critical(err.Error())
+		}
+	}
+
 	return nil
 }
 
-func (s *Server) StartLocalModeServer() error {
-	s.LocalModeServer = &http.Server{
-		Handler: s.LocalRouter,
+func (s *Server) startLocalModeServer() error {
+	s.localModeServer = &http.Server{
+		Handler: s.RootRouter,
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
@@ -717,7 +725,7 @@ func (s *Server) StartLocalModeServer() error {
 	}
 
 	go func() {
-		err = s.LocalModeServer.Serve(unixListener)
+		err = s.localModeServer.Serve(unixListener)
 		if err != nil && err != http.ErrServerClosed {
 			mlog.Critical("Error starting unix socket server", mlog.Err(err))
 		}
@@ -725,8 +733,10 @@ func (s *Server) StartLocalModeServer() error {
 	return nil
 }
 
-func (s *Server) StopLocalModeServer() {
-	s.LocalModeServer.Close()
+func (s *Server) stopLocalModeServer() {
+	if s.localModeServer != nil {
+		s.localModeServer.Close()
+	}
 }
 
 func (a *App) OriginChecker() func(*http.Request) bool {

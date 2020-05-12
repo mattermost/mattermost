@@ -212,6 +212,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+
+	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -715,7 +717,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.LocalModeSocketLocation == nil {
-		s.LocalModeSocketLocation = NewString("/var/tmp/mattermost_local.socket")
+		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
 	}
 }
 
