@@ -11,6 +11,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
@@ -95,7 +97,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 	if err := us.GetReplica().SelectOne(&bot, query, map[string]interface{}{"user_id": botUserId}); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
-		return nil, store.NewErrInternal("selectone", err, "user_id="+botUserId)
+		return nil, errors.Wrapf(err, "selectone: user_id=", botUserId)
 	}
 
 	return bot, nil
@@ -156,7 +158,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 
 	var bots []*model.Bot
 	if _, err := us.GetReplica().Select(&bots, sql, params); err != nil {
-		return nil, store.NewErrInternal("select", err, "")
+		return nil, errors.Wrap(err, "select")
 	}
 
 	return bots, nil
@@ -173,7 +175,7 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	}
 
 	if err := us.GetMaster().Insert(botFromModel(bot)); err != nil {
-		return nil, store.NewErrInternal("insert", err, "user_id="+bot.UserId)
+		return nil, errors.Wrapf(err, "insert: user_id=", bot.UserId)
 	}
 
 	return bot, nil
@@ -202,9 +204,9 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	bot = oldBot
 
 	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {
-		return nil, store.NewErrInternal("update", err, "user_id="+bot.UserId)
+		return nil, errors.Wrapf(err, "update: user_id=", bot.UserId)
 	} else if count != 1 {
-		return nil, store.NewErrInternal("update", fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId), "")
+		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
 	}
 
 	return bot, nil

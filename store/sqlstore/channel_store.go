@@ -1316,6 +1316,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	newMembers, err := s.saveMultipleMembersT(transaction, members)
 	if err != nil { // TODO: this will go away once SaveMultipleMembers is migrated too.
 		var cErr *store.ErrConflict
+		var appErr *model.AppError
 		switch {
 		case errors.As(err, &cErr):
 			switch cErr.Resource {

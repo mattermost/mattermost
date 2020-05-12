@@ -393,6 +393,11 @@ func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*mod
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -406,6 +411,11 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.GetAll(options)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -419,6 +429,11 @@ func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) error {
 
 	defer span.Finish()
 	resultVar0 := s.BotStore.PermanentDelete(userId)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -432,6 +447,11 @@ func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Save(bot)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -445,6 +465,11 @@ func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.BotStore.Update(bot)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -579,6 +604,11 @@ func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, o
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -1645,6 +1675,11 @@ func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsP
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.ChannelStore.Save(channel, maxChannelsPerTeam)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
@@ -1658,6 +1693,11 @@ func (s *OpenTracingLayerChannelStore) SaveDirectChannel(channel *model.Channel,
 
 	defer span.Finish()
 	resultVar0, resultVar1 := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0, resultVar1
 }
 
