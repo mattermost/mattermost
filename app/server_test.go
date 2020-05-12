@@ -9,11 +9,13 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 
@@ -345,5 +347,69 @@ func TestPanicLog(t *testing.T) {
 
 	if !panicLogged {
 		t.Error("Panic was supposed to be logged")
+	}
+}
+
+func TestSentry(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
+
+	// Calling panic route
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+
+	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Fail(t, "Sentry received a message, even though it's disabled!")
+	}))
+	defer server1.Close()
+
+	data := make(chan bool, 1)
+	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data <- true
+	}))
+	defer server2.Close()
+
+	// make sure we don't report anything when sentry is disabled
+	SENTRY_DSN = server1.URL
+	s, err := NewServer()
+	require.NoError(t, err)
+	// Route for just panicing
+	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+		panic("log this panic")
+	})
+
+	s.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.LogSettings.EnableSentry = false
+	})
+	serverErr := s.Start()
+	require.NoError(t, serverErr)
+	defer s.Shutdown()
+	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+
+	// check successful report
+	SENTRY_DSN = server2.URL
+	s2, err := NewServer()
+	require.NoError(t, err)
+	// Route for just panicing
+	s2.RootRouter.HandleFunc("/panic2", func(writer http.ResponseWriter, request *http.Request) {
+		panic("log this panic")
+	})
+
+	s2.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.LogSettings.EnableSentry = true
+	})
+	require.NoError(t, s2.Start())
+	defer s2.Shutdown()
+	client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic2")
+	select {
+	case <-data:
+	case <-time.After(time.Second * 1):
+		require.Fail(t, "Should send sentry report")
 	}
 }
