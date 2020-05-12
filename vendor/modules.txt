@@ -4,10 +4,7 @@ github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
 ## explicit
 github.com/NYTimes/gziphandler
-# github.com/RackSec/srslog v0.0.0-20180709174129-a4725f04ec91
-## explicit
-github.com/RackSec/srslog
-# github.com/armon/go-metrics v0.3.3
+# github.com/armon/go-metrics v0.3.0
 ## explicit
 github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -159,7 +156,6 @@ github.com/jaytaylor/html2text
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
 # github.com/jonboulle/clockwork v0.1.0
-## explicit
 github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.9
 github.com/json-iterator/go
@@ -286,7 +282,6 @@ github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.9.1
 github.com/prometheus/common/expfmt
@@ -398,6 +393,9 @@ github.com/wiggin77/logr/target
 # github.com/wiggin77/merror v1.0.2
 ## explicit
 github.com/wiggin77/merror
+# github.com/wiggin77/srslog v1.0.1
+## explicit
+github.com/wiggin77/srslog
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid

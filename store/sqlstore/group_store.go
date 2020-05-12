@@ -1144,8 +1144,15 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 
 	groupsQuery = groupsQuery.
 		From("UserGroups g").
-		Where("g.DeleteAt = 0").
 		OrderBy("g.DisplayName")
+
+	if opts.Since > 0 {
+		groupsQuery = groupsQuery.Where(sq.Gt{
+			"g.UpdateAt": opts.Since,
+		})
+	} else {
+		groupsQuery = groupsQuery.Where("g.DeleteAt = 0")
+	}
 
 	if perPage != 0 {
 		groupsQuery = groupsQuery.
