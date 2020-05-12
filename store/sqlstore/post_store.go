@@ -6,7 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"github.com/pkg/errors"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -1238,21 +1238,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		if searchType == "Message" {
-			stopWords, err := findStopWordsMysql(s)
+			var err error
+			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
 				return nil, model.NewAppError("SqlPostStore.search", "store.sql_post.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
-
-			for i := 0; i < len(stopWords); i++ {
-				stopWords[i] = fmt.Sprintf(`\b%s\b`, stopWords[i])
-			}
-			re, err := regexp.Compile(strings.Join(stopWords, "|"))
-			if err != nil {
-				return nil, model.NewAppError("SqlPostStore.search", "store.sql_post.search.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-
-			terms = re.ReplaceAllString(terms, " ")
-			terms = strings.TrimSpace(terms)
 
 			if terms == "" {
 				return list, nil
@@ -1304,15 +1294,20 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	return list, nil
 }
 
-func findStopWordsMysql(s *SqlPostStore) ([]string, error) {
-	query := "SELECT * FROM INFORMATION_SCHEMA.INNODB_FT_DEFAULT_STOPWORD"
-	var stopWords []string
-	_, err := s.GetReplica().Select(&stopWords, query)
+func removeMysqlStopWordsFromTerms(terms string) (string, error) {
+	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
+	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
+	for i := 0; i < len(stopWords); i++ {
+		stopWords[i] = fmt.Sprintf(`\b%s\b`, stopWords[i])
+	}
+	re, err := regexp.Compile(strings.Join(stopWords, "|"))
 	if err != nil {
-		return nil, errors.Wrap(err, "could not find mysql stop words")
+		return "", err
 	}
 
-	return stopWords, nil
+	terms = re.ReplaceAllString(terms, " ")
+	terms = strings.TrimSpace(terms)
+	return terms, nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {

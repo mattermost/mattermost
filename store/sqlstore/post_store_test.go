@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/store/searchtest"
@@ -16,4 +17,24 @@ func TestPostStore(t *testing.T) {
 
 func TestSearchPostStore(t *testing.T) {
 	StoreTestWithSearchTestEngine(t, searchtest.TestSearchPostStore)
+}
+
+func TestMysqlStopWords(t *testing.T) {
+	t.Run("Should not remove part of a word containg stop words", func(t *testing.T) {
+		cases := []string{"whereabouts", "wherein", "tothis", "thisorthat", "waswhen", "whowas", "inthe", "whowill", "thewww"}
+		for _, term := range cases {
+			got, err := removeMysqlStopWordsFromTerms(term)
+			require.NoError(t, err)
+			require.Equal(t, term, got)
+		}
+	})
+
+	t.Run("Should remove all words from terms", func(t *testing.T) {
+		cases := []string{"where about", "where in", "to this", "this or that", "was when", "who was", "in the", "who will", "the www"}
+		for _, term := range cases {
+			got, err := removeMysqlStopWordsFromTerms(term)
+			require.NoError(t, err)
+			require.Empty(t, got)
+		}
+	})
 }
