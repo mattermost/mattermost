@@ -24,6 +24,10 @@ type webSocketHandler struct {
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	mlog.Debug("Websocket request", mlog.String("action", r.Action))
 
+	hub := wh.app.GetHubForUserId(conn.UserId)
+	if hub == nil {
+		return
+	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
 		mlog.Error(
@@ -36,8 +40,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		)
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
-
-		conn.Send <- errResp
+		hub.SendMessage(conn, errResp)
 		return
 	}
 
@@ -59,14 +62,12 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		)
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
-
-		conn.Send <- errResp
+		hub.SendMessage(conn, errResp)
 		return
 	}
 
 	resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data)
-
-	conn.Send <- resp
+	hub.SendMessage(conn, resp)
 }
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {

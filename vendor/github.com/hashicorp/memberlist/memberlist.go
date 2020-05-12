@@ -568,7 +568,7 @@ func (m *Memberlist) SendBestEffort(to *Node, msg []byte) error {
 	buf = append(buf, msg...)
 
 	// Send the message
-	a := Address{Addr: to.String(), Name: to.Name}
+	a := Address{Addr: to.Address(), Name: to.Name}
 	return m.rawSendMsgPacket(a, to, buf)
 }
 
@@ -736,7 +736,7 @@ func (m *Memberlist) hasLeft() bool {
 	return atomic.LoadInt32(&m.leave) == 1
 }
 
-func (m *Memberlist) getNodeState(addr string) nodeStateType {
+func (m *Memberlist) getNodeState(addr string) NodeStateType {
 	m.nodeLock.RLock()
 	defer m.nodeLock.RUnlock()
 
