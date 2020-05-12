@@ -550,6 +550,11 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	status, err := c.App.GetWarnMetricStatus(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC)
 	if err != nil {
 		c.Err = err

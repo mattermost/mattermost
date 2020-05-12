@@ -839,12 +839,12 @@ func doSessionCleanup(s *Server) {
 }
 
 func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
-	// uncomment this if we want to have this check only for TE
-	// license := s.License()
-	// if license != nil {
-	// 	mlog.Debug("License is present, skip this check")
-	// 	return
-	// }
+	//check this for TE only
+	license := s.License()
+	if license != nil {
+		mlog.Debug("License is present, skip this check")
+		return
+	}
 
 	props, err := s.Store.System().Get()
 	if err != nil {
@@ -862,16 +862,15 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 			return
 		}
 	} else {
-		mlog.Debug("Number Of Active Users Metric", mlog.String("Cannot find metric in store", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
+		mlog.Debug("Cannot find metric in store", mlog.String("metric", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
 	}
 
-	//change MONTH_MILLISECONDS to a different value if we want to capture active users for a different period
-	noActiveUsers, err := s.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	noActiveUsers, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		mlog.Error("Error to get active registered users.", mlog.Err(err))
 	}
 
-	mlog.Info("Number of active users", mlog.Int64("value", noActiveUsers))
+	mlog.Info("Number of active users", mlog.Int64("count", noActiveUsers))
 
 	if err = s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
