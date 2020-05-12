@@ -212,7 +212,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
-	if c.Err == nil && h.IsLocal && *c.App.Config().ServiceSettings.EnableLocalMode {
+	if c.Err == nil && h.IsLocal && *c.App.Config().ServiceSettings.EnableLocalMode && r.RemoteAddr == "@" {
 		c.App.SetSession(&model.Session{Local: true})
 	}
 
