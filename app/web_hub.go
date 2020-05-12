@@ -53,8 +53,8 @@ type Hub struct {
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
 		app:            a,
-		register:       make(chan *WebConn, 1),
-		unregister:     make(chan *WebConn, 1),
+		register:       make(chan *WebConn),
+		unregister:     make(chan *WebConn),
 		broadcast:      make(chan *model.WebSocketEvent, broadcastQueueSize),
 		stop:           make(chan struct{}),
 		didStop:        make(chan struct{}),

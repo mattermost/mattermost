@@ -18,7 +18,15 @@ import (
 	"text/template"
 )
 
-const OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+const (
+	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+	APP_ERROR_TYPE             = "*model.AppError"
+	ERROR_TYPE                 = "error"
+)
+
+func isError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
+}
 
 func main() {
 	if err := buildTimerLayer(); err != nil {
@@ -212,7 +220,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorToBoolean": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
@@ -220,7 +228,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return true
 				}
 			}
@@ -228,7 +236,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorVar": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d", i)
 				}
 			}
