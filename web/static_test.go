@@ -44,11 +44,10 @@ func TestBrotliFilesHandler(t *testing.T) {
 			resp := w.Result()
 
 			require.Equal(t, tt.expectBrotli, resp.Header.Get("Content-Encoding") == "br")
-			actualURL := fmt.Sprintf("%s", req.URL)
 			if tt.expectBrotli {
-				require.Equal(t, tt.requestURL+".br", actualURL)
+				require.Equal(t, tt.requestURL+".br", req.URL.String())
 			} else {
-				require.Equal(t, tt.requestURL, actualURL)
+				require.Equal(t, tt.requestURL, req.URL.String())
 			}
 			require.Equal(t, tt.requestContentType, resp.Header.Get("Content-Type"))
 		})
