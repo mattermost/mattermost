@@ -925,8 +925,8 @@ func TestGetAllTeams(t *testing.T) {
 	}
 
 	t.Run("Local mode", func(t *testing.T) {
-		teams, resp := th.LocalClient.GetAllTeams("", 0, 10)
-		CheckNoError(t, resp)
+		teams, res := th.LocalClient.GetAllTeams("", 0, 10)
+		CheckNoError(t, res)
 		require.Len(t, teams, 5)
 	})
 
