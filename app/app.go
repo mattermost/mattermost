@@ -187,7 +187,7 @@ func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
 	return nil
 }
 
-func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
+func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -202,7 +202,7 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
 		sysAdminsList, err := a.GetUsers(userOptions)
 		if err != nil {
 			mlog.Error("Cannot obtain list of system admins!")
-			return
+			return err
 		}
 
 		sysAdmins = append(sysAdmins, sysAdminsList...)
@@ -217,25 +217,28 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
 		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
 		if appErr != nil {
 			mlog.Error("Cannot create channel for system notifications!", mlog.String("Admin Id", sysAdmin.Id))
+			return appErr
 		}
 
 		post := &model.Post{
-			Type:      model.POST_EPHEMERAL_WARN_METRIC_STATUS,
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   warningMessage,
 			Props: model.StringInterface{
 				"warnMetricId": model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC,
 			},
+			Type: model.POST_SYSTEM_WARN_METRIC_STATUS,
 		}
 
-		//send ephemeral post
-		mlog.Debug("Send ephemeral post warning for metric threshold", mlog.String("user id", post.UserId))
-
-		a.SendEphemeralPostWithType(post.UserId, post)
+		//create post
+		mlog.Debug("Send post warning for metric threshold", mlog.String("user id", post.UserId))
+		_, appErr = a.CreatePost(post, channel, false)
+		if appErr != nil {
+			return appErr
+		}
 	}
 
-	return
+	return nil
 }
 
 func (a *App) Srv() *Server {

@@ -886,7 +886,10 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 	}
 
 	warningMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
-	s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage)
+	err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage)
+	if err != nil {
+		mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+	}
 }
 
 func doLicenseExpirationCheck(s *Server) {

@@ -446,10 +446,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 
 func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
-	return a.SendEphemeralPostWithType(userId, post)
-}
 
-func (a *App) SendEphemeralPostWithType(userId string, post *model.Post) *model.Post {
 	// fill in fields which haven't been specified which have sensible defaults
 	if post.Id == "" {
 		post.Id = model.NewId()

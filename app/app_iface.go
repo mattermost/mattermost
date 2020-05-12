@@ -750,7 +750,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	NotifyAdminsOfWarnMetricStatus(warningMessage string)
+	NotifyAdminsOfWarnMetricStatus(warningMessage string) *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
@@ -853,7 +853,6 @@ type AppIface interface {
 	SendDiagnostic(event string, properties map[string]interface{})
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
-	SendEphemeralPostWithType(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)

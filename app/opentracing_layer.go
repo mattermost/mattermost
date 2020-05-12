@@ -10117,7 +10117,7 @@ func (a *OpenTracingAppLayer) NewWebHub() *Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
+func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warningMessage string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAdminsOfWarnMetricStatus")
 
@@ -10129,7 +10129,14 @@ func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warningMessage stri
 	}()
 
 	defer span.Finish()
-	a.app.NotifyAdminsOfWarnMetricStatus(warningMessage)
+	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warningMessage)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
@@ -12393,23 +12400,6 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post)
 
 	defer span.Finish()
 	resultVar0 := a.app.SendEphemeralPost(userId, post)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendEphemeralPostWithType(userId string, post *model.Post) *model.Post {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEphemeralPostWithType")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendEphemeralPostWithType(userId, post)
 
 	return resultVar0
 }
