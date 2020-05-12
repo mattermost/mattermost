@@ -654,14 +654,16 @@ func TestGetChannel(t *testing.T) {
 	_, resp = Client.GetChannel(th.BasicChannel.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicChannel.Id, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetChannel(th.BasicChannel.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicPrivateChannel.Id, "")
-	CheckNoError(t, resp)
+		_, resp = client.GetChannel(th.BasicPrivateChannel.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicUser.Id, "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetChannel(th.BasicUser.Id, "")
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
@@ -1592,8 +1594,10 @@ func TestGetChannelByName(t *testing.T) {
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+	})
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {

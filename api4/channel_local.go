@@ -11,6 +11,8 @@ import (
 )
 
 func (api *API) InitChannelLocal() {
+	api.BaseRoutes.Channel.Handle("", api.ApiLocal(getChannel)).Methods("GET")
+	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
 }
