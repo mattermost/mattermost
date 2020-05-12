@@ -733,7 +733,7 @@ func (s *Server) Start() error {
 
 func (s *Server) startLocalModeServer() error {
 	s.localModeServer = &http.Server{
-		Handler: s.RootRouter,
+		Handler: s.LocalRouter,
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
