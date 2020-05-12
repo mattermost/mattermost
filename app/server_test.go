@@ -362,17 +362,13 @@ func TestSentry(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
+	data1 := make(chan bool, 1)
 
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Fail(t, "Sentry received a message, even though it's disabled!")
+		t.Log("Received sentry request for some reason")
+		data1 <- true
 	}))
 	defer server1.Close()
-
-	data := make(chan bool, 1)
-	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data <- true
-	}))
-	defer server2.Close()
 
 	// make sure we don't report anything when sentry is disabled
 	SENTRY_DSN = server1.URL
@@ -392,12 +388,26 @@ func TestSentry(t *testing.T) {
 	defer s.Shutdown()
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 	sentry.Flush(1)
+	select {
+	case <-data1:
+		require.Fail(t, "Sentry received a message, even though it's disabled!")
+	case <-time.After(time.Second * 1):
+		t.Log("Sentry request didn't arrive. Good!")
+	}
+
 	// check successful report
+	data2 := make(chan bool, 1)
+	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Log("Received sentry request!")
+		data2 <- true
+	}))
+	defer server2.Close()
+
 	SENTRY_DSN = server2.URL
 	s2, err := NewServer()
 	require.NoError(t, err)
 	// Route for just panicing
-	s2.Router.HandleFunc("/panic2", func(writer http.ResponseWriter, request *http.Request) {
+	s2.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 		panic("log this panic")
 	})
 
@@ -407,11 +417,12 @@ func TestSentry(t *testing.T) {
 	})
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
-	client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic2")
+	client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
 	sentry.Flush(1)
 	select {
-	case <-data:
+	case <-data2:
+		t.Log("Sentry request arrived. Good!")
 	case <-time.After(time.Second * 1):
-		require.Fail(t, "Should send sentry report")
+		require.Fail(t, "Sentry report didn't arrive")
 	}
 }
