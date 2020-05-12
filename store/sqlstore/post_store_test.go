@@ -37,4 +37,13 @@ func TestMysqlStopWords(t *testing.T) {
 			require.Empty(t, got)
 		}
 	})
+
+	t.Run("Should not remove part of a word containg stop words separated by hyphens", func(t *testing.T) {
+		cases := []string{"where-about", "where-in", "to-this", "this-or-that", "was-when", "who-was", "in-the", "who-will", "the-www"}
+		for _, term := range cases {
+			got, err := removeMysqlStopWordsFromTerms(term)
+			require.NoError(t, err)
+			require.Equal(t, term, got)
+		}
+	})
 }

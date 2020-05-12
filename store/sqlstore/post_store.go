@@ -1297,10 +1297,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
 	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
-	for i := 0; i < len(stopWords); i++ {
-		stopWords[i] = fmt.Sprintf(`\b%s\b`, stopWords[i])
-	}
-	re, err := regexp.Compile(strings.Join(stopWords, "|"))
+	re, err := regexp.Compile(fmt.Sprintf(`(%s)?(\s|$)`, strings.Join(stopWords, "|")))
 	if err != nil {
 		return "", err
 	}
