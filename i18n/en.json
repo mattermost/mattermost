@@ -1155,6 +1155,10 @@
     "translation": "Invalid or expired session, please login again."
   },
   {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "This endpoint requires a local request origin."
+  },
+  {
     "id": "api.context.token_provided.app_error",
     "translation": "Session is not OAuth but token was provided in the query string."
   },
