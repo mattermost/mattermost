@@ -30,17 +30,18 @@ var groupSourcesRequiringRemoteID = []GroupSource{
 }
 
 type Group struct {
-	Id           string      `json:"id"`
-	Name         string      `json:"name"`
-	DisplayName  string      `json:"display_name"`
-	Description  string      `json:"description"`
-	Source       GroupSource `json:"source"`
-	RemoteId     string      `json:"remote_id"`
-	CreateAt     int64       `json:"create_at"`
-	UpdateAt     int64       `json:"update_at"`
-	DeleteAt     int64       `json:"delete_at"`
-	HasSyncables bool        `db:"-" json:"has_syncables"`
-	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
+	Id             string      `json:"id"`
+	Name           string      `json:"name"`
+	DisplayName    string      `json:"display_name"`
+	Description    string      `json:"description"`
+	Source         GroupSource `json:"source"`
+	RemoteId       string      `json:"remote_id"`
+	CreateAt       int64       `json:"create_at"`
+	UpdateAt       int64       `json:"update_at"`
+	DeleteAt       int64       `json:"delete_at"`
+	HasSyncables   bool        `db:"-" json:"has_syncables"`
+	MemberCount    *int        `db:"-" json:"member_count,omitempty"`
+	AllowReference bool        `json:"allow_reference"`
 }
 
 type GroupWithSchemeAdmin struct {
@@ -48,10 +49,21 @@ type GroupWithSchemeAdmin struct {
 	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
 }
 
+type GroupsAssociatedToChannelWithSchemeAdmin struct {
+	ChannelId string `json:"channel_id"`
+	Group
+	SchemeAdmin *bool `db:"SyncableSchemeAdmin" json:"scheme_admin,omitempty"`
+}
+type GroupsAssociatedToChannel struct {
+	ChannelId string                  `json:"channel_id"`
+	Groups    []*GroupWithSchemeAdmin `json:"groups"`
+}
+
 type GroupPatch struct {
-	Name        *string `json:"name"`
-	DisplayName *string `json:"display_name"`
-	Description *string `json:"description"`
+	Name           *string `json:"name"`
+	DisplayName    *string `json:"display_name"`
+	Description    *string `json:"description"`
+	AllowReference *bool   `json:"allow_reference"`
 }
 
 type LdapGroupSearchOpts struct {
@@ -65,7 +77,9 @@ type GroupSearchOpts struct {
 	NotAssociatedToTeam    string
 	NotAssociatedToChannel string
 	IncludeMemberCount     bool
+	FilterAllowReference   bool
 	PageOpts               *PageOpts
+	Since                  int64
 }
 
 type PageOpts struct {
@@ -82,6 +96,9 @@ func (group *Group) Patch(patch *GroupPatch) {
 	}
 	if patch.Description != nil {
 		group.Description = *patch.Description
+	}
+	if patch.AllowReference != nil {
+		group.AllowReference = *patch.AllowReference
 	}
 }
 
@@ -126,7 +143,7 @@ func (group *Group) requiresRemoteId() bool {
 }
 
 func (group *Group) IsValidForUpdate() *AppError {
-	if len(group.Id) != 26 {
+	if !IsValidId(group.Id) {
 		return NewAppError("Group.IsValidForUpdate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.CreateAt == 0 {

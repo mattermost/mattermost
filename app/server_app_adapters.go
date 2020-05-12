@@ -61,9 +61,10 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
+			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics),
+					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider,
@@ -102,6 +103,10 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if err := s.FakeApp().ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
+	}
+
+	if err := s.FakeApp().ensureFirstServerRunTimestamp(); err != nil {
+		return errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
 	s.ensureDiagnosticId()

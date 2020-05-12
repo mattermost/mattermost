@@ -55,13 +55,22 @@ const (
 	iso8601DateFormat = "20060102T150405Z"
 )
 
-// Storage class header constant.
-const amzStorageClass = "X-Amz-Storage-Class"
+const (
+	// Storage class header.
+	amzStorageClass = "X-Amz-Storage-Class"
 
-// Website redirect location header constant
-const amzWebsiteRedirectLocation = "X-Amz-Website-Redirect-Location"
+	// Website redirect location header
+	amzWebsiteRedirectLocation = "X-Amz-Website-Redirect-Location"
 
-// Tagging header constants
-const amzTaggingHeader = "X-Amz-Tagging"
-const amzTaggingHeaderDirective = "X-Amz-Tagging-Directive"
-const amzTaggingHeaderCount = "X-Amz-Tagging-Count"
+	// Object Tagging headers
+	amzTaggingHeader          = "X-Amz-Tagging"
+	amzTaggingHeaderDirective = "X-Amz-Tagging-Directive"
+
+	// Object legal hold header
+	amzLegalHoldHeader = "X-Amz-Object-Lock-Legal-Hold"
+
+	// Object retention header
+	amzLockMode         = "X-Amz-Object-Lock-Mode"
+	amzLockRetainUntil  = "X-Amz-Object-Lock-Retain-Until-Date"
+	amzBypassGovernance = "X-Amz-Bypass-Governance-Retention"
+)

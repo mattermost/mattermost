@@ -57,12 +57,16 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("getComplianceReports", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	crs, err := c.App.GetComplianceReports(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	w.Write([]byte(crs.ToJson()))
 }
 
@@ -71,6 +75,9 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("getComplianceReport", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -82,6 +89,10 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("compliance_id", job.Id)
+	auditRec.AddMeta("compliance_desc", job.Desc)
 
 	w.Write([]byte(job.ToJson()))
 }
@@ -106,14 +117,16 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("compliance_id", job.Id)
+	auditRec.AddMeta("compliance_desc", job.Desc)
 
 	reportBytes, err := c.App.GetComplianceFile(job)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("length", len(reportBytes))
 
-	auditRec.AddMeta("compliance_desc", job.Desc)
 	c.LogAudit("downloaded " + job.Desc)
 
 	w.Header().Set("Cache-Control", "max-age=2592000, public")

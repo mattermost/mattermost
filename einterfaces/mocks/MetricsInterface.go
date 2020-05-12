@@ -171,9 +171,9 @@ func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
 	_m.Called(eventType)
 }
 
-// ObserveApiEndpointDuration provides a mock function with given fields: endpoint, method, elapsed
-func (_m *MetricsInterface) ObserveApiEndpointDuration(endpoint string, method string, elapsed float64) {
-	_m.Called(endpoint, method, elapsed)
+// ObserveApiEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
+func (_m *MetricsInterface) ObserveApiEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
+	_m.Called(endpoint, method, statusCode, elapsed)
 }
 
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
