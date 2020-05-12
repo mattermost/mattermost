@@ -3180,7 +3180,7 @@ func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -3189,7 +3189,7 @@ func (s *OpenTracingLayerGroupStore) GetByName(name string) (*model.Group, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name, opts)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
