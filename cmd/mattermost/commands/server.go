@@ -75,20 +75,12 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	api := api4.Init(server, server.AppOptions, server.Router)
 	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
+	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
-	}
-
-	if *configStore.Get().ServiceSettings.EnableLocalMode {
-		if err := server.StartLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
-			return err
-		}
-		api4.InitLocal(server, server.AppOptions, server.LocalRouter)
-		defer server.StopLocalModeServer()
 	}
 
 	// If we allow testing then listen for manual testing URL hits
