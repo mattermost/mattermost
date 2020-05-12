@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -390,7 +391,7 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-
+	sentry.Flush(1)
 	// check successful report
 	SENTRY_DSN = server2.URL
 	s2, err := NewServer()
@@ -407,6 +408,7 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
 	client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic2")
+	sentry.Flush(1)
 	select {
 	case <-data:
 	case <-time.After(time.Second * 1):
