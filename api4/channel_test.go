@@ -106,13 +106,15 @@ func TestCreateChannel(t *testing.T) {
 	_, resp = Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
-	channel.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(channel)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channel.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(channel)
+		CheckNoError(t, resp)
 
-	private.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(private)
-	CheckNoError(t, resp)
+		private.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(private)
+		CheckNoError(t, resp)
+	})
 
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
