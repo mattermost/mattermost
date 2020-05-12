@@ -11,6 +11,7 @@ import (
 )
 
 func (api *API) InitChannelLocal() {
+	api.BaseRoutes.Channel.Handle("/patch", api.ApiLocal(localPatchChannel)).Methods("PUT")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
 }
@@ -38,4 +39,47 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(sc.ToJson()))
+}
+
+func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.ChannelPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("channel")
+		return
+	}
+
+	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	channel := originalOldChannel.DeepCopy()
+
+	auditRec := c.MakeAuditRecord("localPatchChannel", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channel", channel)
+
+	channel.Patch(patch)
+	rchannel, err := c.App.UpdateChannel(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.FillInChannelProps(rchannel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("")
+	auditRec.AddMeta("patch", rchannel)
+
+	w.Write([]byte(rchannel.ToJson()))
 }

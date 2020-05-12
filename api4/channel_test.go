@@ -282,11 +282,13 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.PatchChannel(th.BasicChannel.Id, patch)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
-	CheckNoError(t, resp)
+		_, resp = client.PatchChannel(th.BasicPrivateChannel.Id, patch)
+		CheckNoError(t, resp)
+	})
 
 	// Test updating the header of someone else's GM channel.
 	user1 := th.CreateUser()
