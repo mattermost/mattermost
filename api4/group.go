@@ -242,9 +242,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -403,9 +403,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
 	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
@@ -457,9 +457,9 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	auditRec.Success()
 
