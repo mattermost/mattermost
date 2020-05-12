@@ -1128,7 +1128,7 @@ func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError
 
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("TeamMembers").
+		Delete("").From("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql_team.remove_member.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
@@ -1143,7 +1143,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("TeamMembers").
+		Delete("").From("TeamMembers").
 		Where(sq.Eq{"UserId": userId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql_team.remove_member.app_error", nil, "team_id="+userId+", "+err.Error(), http.StatusInternalServerError)
@@ -1156,7 +1156,15 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 }
 
 func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
-	if _, err := s.GetMaster().Exec("UPDATE Teams SET LastTeamIconUpdate = :Time, UpdateAt = :Time WHERE Id = :teamId", map[string]interface{}{"Time": curTime, "teamId": teamId}); err != nil {
+	sql, args, err := s.getQueryBuilder().
+		Update("").Table("Teams").
+		SetMap(sq.Eq{"LastTeamIconUpdate": curTime, "UpdateAt": curTime}).
+		Where(sq.Eq{"Id": teamId}).ToSql()
+	if err != nil {
+		return model.NewAppError("SqlTeamStore.RemovUpdateLastTeamIconUpdateeMembers", "store.sql_team.update_last_team_icon_update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		return model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
 	}
 	return nil
@@ -1410,21 +1418,13 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 }
 
 func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
-	sql := fmt.Sprintf(`
-		UPDATE
-			TeamMembers
-		SET
-			SchemeAdmin = CASE WHEN UserId IN ('%s') THEN
-				TRUE
-			ELSE
-				FALSE
-			END
-		WHERE
-			TeamId = :TeamId
-			AND (SchemeGuest = false OR SchemeGuest IS NULL)
-			AND DeleteAt = 0`, strings.Join(userIDs, "', '"))
+	sql, args, err := s.getQueryBuilder().
+		Update("").Table("TeamMembers").
+		Set("SchemeAdmin", sq.Case().When(fmt.Sprintf("UserId IN ('%s')", strings.Join(userIDs, "', '")), "true").Else("false")).
+		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
+		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
 
-	if _, err := s.GetMaster().Exec(sql, map[string]interface{}{"TeamId": teamID}); err != nil {
+	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
 		return model.NewAppError("SqlTeamStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
