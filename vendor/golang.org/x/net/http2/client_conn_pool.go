@@ -200,12 +200,6 @@ func (c *addConnCall) run(t *Transport, key string, tc *tls.Conn) {
 	close(c.done)
 }
 
-func (p *clientConnPool) addConn(key string, cc *ClientConn) {
-	p.mu.Lock()
-	p.addConnLocked(key, cc)
-	p.mu.Unlock()
-}
-
 // p.mu must be held
 func (p *clientConnPool) addConnLocked(key string, cc *ClientConn) {
 	for _, v := range p.conns[key] {

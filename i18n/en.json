@@ -1465,6 +1465,10 @@
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Failed to send the disable license email successfully."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -2297,6 +2301,18 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Renew License"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Mattermost Enterprise license has been disabled."
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3857,6 +3873,10 @@
   {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Unable to create the warning file."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -5727,6 +5747,10 @@
     "translation": "FromDb: Unable to convert StringMap to *string"
   },
   {
+    "id": "store.sql_audit.app_error",
+    "translation": "Failed to build query."
+  },
+  {
     "id": "store.sql_audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
@@ -6877,6 +6901,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expires_at.app_error",
+    "translation": "Unable to update expires_at."
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",

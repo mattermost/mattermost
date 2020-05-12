@@ -3010,6 +3010,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
 
+	startCreateTime := team1.UpdateAt - 1
+
 	// Create Channel1
 	channel1 := &model.Channel{
 		TeamId:      model.NewId(),
@@ -3148,9 +3150,11 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	user2.DeleteAt = 1
-	ss.User().Update(user2, true)
+	u2Update, _ := ss.User().Update(user2, true)
 
 	group2NameSubstring := "group-2"
+
+	endCreateTime := u2Update.New.UpdateAt + 1
 
 	testCases := []struct {
 		Name    string
@@ -3307,6 +3311,32 @@ func testGetGroups(t *testing.T, ss store.Store) {
 					}
 				}
 				return true
+			},
+		},
+		{
+			Name:    "Use Since return all",
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true, Since: startCreateTime},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
+				for _, g := range groups {
+					if g.DeleteAt != 0 {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			Name:    "Use Since return none",
+			Opts:    model.GroupSearchOpts{FilterAllowReference: true, Since: endCreateTime},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 0
 			},
 		},
 	}

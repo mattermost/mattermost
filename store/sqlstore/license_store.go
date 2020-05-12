@@ -6,6 +6,8 @@ package sqlstore
 import (
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -42,9 +44,16 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 	if err := license.IsValid(); err != nil {
 		return nil, err
 	}
-
+	query := ls.getQueryBuilder().
+		Select("*").
+		From("Licenses").
+		Where(sq.Eq{"Id": license.Id})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	var storedLicense model.LicenseRecord
-	if err := ls.GetReplica().SelectOne(&storedLicense, "SELECT * FROM Licenses WHERE Id = :Id", map[string]interface{}{"Id": license.Id}); err != nil {
+	if err := ls.GetReplica().SelectOne(&storedLicense, queryString, args...); err != nil {
 		// Only insert if not exists
 		if err := ls.GetMaster().Insert(license); err != nil {
 			return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql_license.save.app_error", nil, "license_id="+license.Id+", "+err.Error(), http.StatusInternalServerError)
