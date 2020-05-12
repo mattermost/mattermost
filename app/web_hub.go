@@ -188,7 +188,6 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			message.EventType() == model.WEBSOCKET_EVENT_ADDED_TO_TEAM {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
-
 		a.Cluster().SendClusterMessage(cm)
 	}
 }

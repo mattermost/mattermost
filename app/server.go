@@ -363,11 +363,10 @@ func NewServer(options ...Option) (*Server, error) {
 			runCommandWebhookCleanupJob(s)
 		})
 		s.Go(func() {
-<<<<<<< HEAD
-			runStoreAndCheckNumberOfActiveUsersMetricStatusJob(s)
-=======
 			runLicenseExpirationCheckJob(s)
->>>>>>> master
+		})
+		s.Go(func() {
+			runStoreAndCheckNumberOfActiveUsersWarnMetricStatusJob(s)
 		})
 
 		if complianceI := s.Compliance; complianceI != nil {
@@ -798,19 +797,18 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-<<<<<<< HEAD
-func runStoreAndCheckNumberOfActiveUsersMetricStatusJob(s *Server) {
-	doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
-	model.CreateRecurringTask("Store and Check Number Of Active Users Metric Status", func() {
-		doStoreAndCheckNumberOfActiveUsersMetricStatus(s)
-	}, time.Minute*1)
-=======
 func runLicenseExpirationCheckJob(s *Server) {
 	doLicenseExpirationCheck(s)
 	model.CreateRecurringTask("License Expiration Check", func() {
 		doLicenseExpirationCheck(s)
 	}, time.Hour*24)
->>>>>>> master
+}
+
+func runStoreAndCheckNumberOfActiveUsersWarnMetricStatusJob(s *Server) {
+	doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s)
+	model.CreateRecurringTask("Store and Check Number Of Active Users Warn Metric Status", func() {
+		doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s)
+	}, time.Minute*1)
 }
 
 func doSecurity(s *Server) {
@@ -840,7 +838,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
+func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 	// uncomment this if we want to have this check only for TE
 	// license := s.License()
 	// if license != nil {
@@ -854,17 +852,17 @@ func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
 		return
 	}
 
-	if props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC] != "" {
-		val, err := strconv.ParseInt(props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC], 10, 64)
+	if props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC] != "" {
+		val, err := strconv.ParseInt(props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC], 10, 64)
 		if err != nil {
-			mlog.Error("Number Of Active Users Metric", mlog.String("Invalid entry value stored", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+			mlog.Error("Number Of Active Users Warn Metric", mlog.String("Invalid entry value stored", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
 		}
 		if val == -1 {
 			mlog.Info("Exceeding the number of active users metric limit has been already acknowledged")
 			return
 		}
 	} else {
-		mlog.Debug("Number Of Active Users Metric", mlog.String("Cannot find metric in store", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC))
+		mlog.Debug("Number Of Active Users Metric", mlog.String("Cannot find metric in store", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
 	}
 
 	//change MONTH_MILLISECONDS to a different value if we want to capture active users for a different period
@@ -875,20 +873,22 @@ func doStoreAndCheckNumberOfActiveUsersMetricStatus(s *Server) {
 
 	mlog.Info("Number of active users", mlog.Int64("value", noActiveUsers))
 
-	if err := s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
+	if err := s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
 		return
 	}
 
-	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_METRIC_LIMIT {
+	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
 		mlog.Info("Number of active users is greater than limit")
-		message := model.NewWebSocketEvent(model.WEBSOCKET_NUMBER_OF_ACTIVE_USERS_METRIC_STATUS, "", "", "", nil)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRICS_STATUS, "", "", "", nil)
 		message.Add("numberOfActiveUsersMetricStatus", "true")
 		s.FakeApp().Publish(message)
 	}
 
-	warningMessage := fmt.Sprintf(utils.T("api.server.warn_metric.notification"), )
+	warningMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
 	s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage)
+}
+
 func doLicenseExpirationCheck(s *Server) {
 	s.FakeApp().LoadLicense()
 	license := s.License()

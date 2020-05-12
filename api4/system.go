@@ -51,9 +51,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 
-	api.BaseRoutes.ApiRoot.Handle("/analytics/number_of_active_users", api.ApiSessionRequired(getNumberOfActiveUsersMetricStatus)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/email/admin_ack/send", api.ApiHandler(sendAdminAckEmail)).Methods("POST")
-
+	api.BaseRoutes.ApiRoot.Handle("/analytics/warn_metrics_status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/email/warn_metric_ack/send", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -550,23 +549,25 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
 }
 
-func getNumberOfActiveUsersMetricStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	status, err := c.App.GetNumberOfActiveUsersMetricStatus()
+func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	status, err := c.App.GetWarnMetricStatus(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	resp := map[string]bool{"numberOfActiveUsersMetricStatus": status}
+	resp := map[string]bool{}
+	resp[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC] = status
+
 	w.Write([]byte(model.MapBoolToJson(resp)))
 }
 
-func sendAdminAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("sendAdminAckEmail", audit.Fail)
+func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("sendAdminAckEmail", "api.send_admin_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.send_warn_metric_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -576,7 +577,14 @@ func sendAdminAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SendAdminAckEmail(user.Email)
+	props := model.MapFromJson(r.Body)
+	if props == nil {
+		c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.send_warn_metric_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	warnMetricId := props["warnMetricId"]
+
+	err = c.App.SendWarnMetricAckEmail(warnMetricId, user.Email)
 	if err != nil {
 		c.Err = err
 		return

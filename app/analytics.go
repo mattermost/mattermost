@@ -28,7 +28,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	}
 
 	if name == "standard" {
-		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 11)
+		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 12)
 		rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
 		rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
 		rows[2] = &model.AnalyticsRow{Name: "post_count", Value: 0}
@@ -40,6 +40,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[8] = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
 		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
+		rows[11] = &model.AnalyticsRow{Name: "registered_users", Value: 0}
 
 		openChan := make(chan store.StoreResult, 1)
 		privateChan := make(chan store.StoreResult, 1)
@@ -103,6 +104,13 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(monthlyActiveChan)
 		}()
 
+		userRegisteredChan := make(chan store.StoreResult, 1)
+		go func() {
+			userRegisteredCount, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+			userRegisteredChan <- store.StoreResult{Data: userRegisteredCount, Err: err}
+			close(userRegisteredChan)
+		}()
+
 		r := <-openChan
 		if r.Err != nil {
 			return nil, r.Err
@@ -143,6 +151,16 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 				return nil, r.Err
 			}
 			rows[10].Value = float64(r.Data.(int64))
+		}
+
+		if userRegisteredChan == nil {
+			rows[11].Value = -1
+		} else {
+			r = <-userRegisteredChan
+			if r.Err != nil {
+				return nil, r.Err
+			}
+			rows[11].Value = float64(r.Data.(int64))
 		}
 
 		r = <-teamCountChan

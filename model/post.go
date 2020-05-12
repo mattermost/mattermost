@@ -64,6 +64,7 @@ const (
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
+	POST_EPHEMERAL_WARN_METRIC_STATUS     = "system_ephemeral_warn_metric_status"
 )
 
 var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)

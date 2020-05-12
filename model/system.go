@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID                  = "DiagnosticId"
-	SYSTEM_RAN_UNIT_TESTS                 = "RanUnitTests"
-	SYSTEM_LAST_SECURITY_TIME             = "LastSecurityTime"
-	SYSTEM_ACTIVE_LICENSE_ID              = "ActiveLicenseId"
-	SYSTEM_LAST_COMPLIANCE_TIME           = "LastComplianceTime"
-	SYSTEM_ASYMMETRIC_SIGNING_KEY         = "AsymmetricSigningKey"
-	SYSTEM_POST_ACTION_COOKIE_SECRET      = "PostActionCookieSecret"
-	SYSTEM_INSTALLATION_DATE_KEY          = "InstallationDate"
-	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY = "FirstServerRunTimestamp"
-	SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC  = "NumberOfActiveUsersMetric"
+	SYSTEM_DIAGNOSTIC_ID                      = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS                     = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME                 = "LastSecurityTime"
+	SYSTEM_ACTIVE_LICENSE_ID                  = "ActiveLicenseId"
+	SYSTEM_LAST_COMPLIANCE_TIME               = "LastComplianceTime"
+	SYSTEM_ASYMMETRIC_SIGNING_KEY             = "AsymmetricSigningKey"
+	SYSTEM_POST_ACTION_COOKIE_SECRET          = "PostActionCookieSecret"
+	SYSTEM_INSTALLATION_DATE_KEY              = "InstallationDate"
+	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY     = "FirstServerRunTimestamp"
+	SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC = "NumberOfActiveUsersWarnMetric"
 )
 
-const NUMBER_OF_ACTIVE_USERS_METRIC_LIMIT = 1
+const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT = 1
 
 type System struct {
 	Name  string `json:"name"`

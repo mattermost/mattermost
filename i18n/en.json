@@ -1167,11 +1167,15 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
-    "id": "api.email.send_admin_ack.failure.app_error",
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
   {
-    "id": "api.email.send_admin_ack.missing_server.app_error",
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "Could not find warn metric."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
     "translation": "SMTP Server is required"
   },
   {
@@ -1847,7 +1851,7 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
-    "id": "api.send_admin_ack_email.no_sysadmin.app_error",
+    "id": "api.send_warn_metric_ack_email.no_sysadmin.app_error",
     "translation": "Acknowldgement email should be sent only for admin users."
   },
   {
@@ -1867,12 +1871,16 @@
     "translation": "Unable to initialize rate limiting."
   },
   {
-    "id": "api.server.warn_metric.notification",
-    "translation": "It appears your active user count is over %v. Your system may be experiencing a slowdown and Mattermost Inc. can help! If you would like to know more contact us: %v"
-  },
-  {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.server.warn_metric.notification",
+    "translation": "It appears your active user count is over limit. Your system may be experiencing a slowdown and Mattermost Inc. can help! If you would like to know more {{.ContactLink}}"
+  },
+  {
+    "id": "api.server.warn_metric.notification.link",
+    "translation": "<contact us>"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -3775,11 +3783,11 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
-    "id": "app.system.number_active_users_metric.parse_int.app_error",
+    "id": "app.system.number_active_users_warn_metric.parse_int.app_error",
     "translation": "Failed to parse number of active users metric value"
   },
   {
-    "id": "app.system.number_active_users_metric.store.app_error",
+    "id": "app.system.number_active_users_warn_metric.store.app_error",
     "translation": "Failed to store number of active users metric value"
   },
   {

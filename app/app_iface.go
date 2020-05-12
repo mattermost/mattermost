@@ -569,7 +569,6 @@ type AppIface interface {
 	GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetNextPostIdFromPostList(postList *model.PostList) string
 	GetNotificationNameFormat(user *model.User) string
-	GetNumberOfActiveUsersMetricStatus() (bool, *model.AppError)
 	GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError)
 	GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken string) (*model.AccessResponse, *model.AppError)
 	GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError)
@@ -688,6 +687,7 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
+	GetWarnMetricStatus(warnMetricId string) (bool, *model.AppError)
 	HTMLTemplates() *template.Template
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
@@ -750,6 +750,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
+	NotifyAdminsOfWarnMetricStatus(warningMessage string)
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
@@ -845,7 +846,6 @@ type AppIface interface {
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
-	SendAdminAckEmail(email string) *model.AppError
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
 	SendDailyDiagnostics()
@@ -853,12 +853,14 @@ type AppIface interface {
 	SendDiagnostic(event string, properties map[string]interface{})
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
+	SendEphemeralPostWithType(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
 	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
+	SendWarnMetricAckEmail(warnMetricId string, email string) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
 	Session() *model.Session
@@ -879,7 +881,6 @@ type AppIface interface {
 	SetIpAddress(s string)
 	SetLicense(license *model.License) bool
 	SetLog(l *mlog.Logger)
-	SetNumberOfActiveUsersMetricStatus() *model.AppError
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
 	SetPluginKey(pluginId string, key string, value []byte) *model.AppError
@@ -904,6 +905,7 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
+	SetWarnMetricStatus(warnMetricId string) *model.AppError
 	SetupInviteEmailRateLimiting() error
 	ShutDownPlugins()
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User

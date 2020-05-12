@@ -154,31 +154,35 @@ func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
-func (a *App) GetNumberOfActiveUsersMetricStatus() (bool, *model.AppError) {
-	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC)
+func (a *App) GetWarnMetricStatus(warnMetricId string) (bool, *model.AppError) {
+	systemData, appErr := a.Srv().Store.System().GetByName(warnMetricId)
 	if appErr != nil {
 		return false, appErr
 	}
-	value, err := strconv.ParseInt(systemData.Value, 10, 64)
-	if err != nil {
-		return false, model.NewAppError("GetNumberOfActiveUsersMetricStatus", "app.system.number_active_users_metric.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+
+	if warnMetricId == model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC {
+		value, err := strconv.ParseInt(systemData.Value, 10, 64)
+		if err != nil {
+			return false, model.NewAppError("GetWarnMetricStatus", "app.system.number_active_users_warn_metric.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if value > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
+			mlog.Debug("The Number of Active Users metric exceeded its limit", mlog.Int64("number of active users", value))
+			return true, nil
+		} else {
+			mlog.Debug("The Number of Active Users metric is under the limit", mlog.Int64("number of active users", value))
+		}
 	}
-	if value > model.NUMBER_OF_ACTIVE_USERS_METRIC_LIMIT {
-		mlog.Debug("The Number of Active Users metric exceeded its limit", mlog.Int64("number of active users", value))
-		return true, nil
-	} else {
-		mlog.Debug("The Number of Active Users metric is under the limit", mlog.Int64("number of active users", value))
-	}
+
 	return false, nil
 }
 
-func (a *App) SetNumberOfActiveUsersMetricStatus() *model.AppError {
+func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
 	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
-		Name:  model.SYSTEM_NUMBER_OF_ACTIVE_USERS_METRIC,
+		Name:  warnMetricId,
 		Value: strconv.FormatInt(-1, 10),
 	}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
-		return model.NewAppError("SetNumberOfActiveUsersMetricStatus", "app.system.number_active_users_metric.store.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetWarnMetricStatus", "app.system.number_active_users_warn_metric.store.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -216,19 +220,19 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warningMessage string) {
 		}
 
 		post := &model.Post{
+			Type:      model.POST_EPHEMERAL_WARN_METRIC_STATUS,
 			UserId:    sysAdmin.Id,
 			ChannelId: channel.Id,
 			Message:   warningMessage,
-		}
-
-		_, err := a.CreatePost(post, channel, false)
-		if err != nil {
-			mlog.Error("Failed to create post", mlog.Err(err))
+			Props: model.StringInterface{
+				"warnMetricId": model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC,
+			},
 		}
 
 		//send ephemeral post
-		mlog.Debug("send ephemeral post", mlog.String("user id", post.UserId))
-		a.SendEphemeralPost(post.UserId, post)
+		mlog.Debug("Send ephemeral post warning for metric threshold", mlog.String("user id", post.UserId))
+
+		a.SendEphemeralPostWithType(post.UserId, post)
 	}
 
 	return
