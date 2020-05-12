@@ -20,6 +20,7 @@ const (
 	SEGMENT_KEY          = "placeholder_segment_key"
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
+	SENTRY_DSN           = "placeholder_sentry_dsn"
 
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"

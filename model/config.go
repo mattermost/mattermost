@@ -1031,7 +1031,6 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
-	SentryDSN              *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1065,10 +1064,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableSentry == nil {
 		s.EnableSentry = NewBool(*s.EnableDiagnostics)
-	}
-
-	if s.SentryDSN == nil {
-		s.SentryDSN = NewString(SERVICE_SETTINGS_DEFAULT_SENTRY_DSN)
 	}
 
 	if s.ConsoleJson == nil {

@@ -197,14 +197,14 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	if *s.Config().LogSettings.EnableSentry {
-		if s.Config().LogSettings.SentryDSN == nil || *s.Config().LogSettings.SentryDSN == "" {
-			mlog.Warn("Sentry reporting is enabled, but SentryDSN is not set in the config. Disabling reporting.")
+		if strings.Contains(SENTRY_DSN, "placeholder") {
+			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if model.BuildHash == "dev" {
 				mlog.Warn("Sentry reporting is enabled, but we are running in 'dev' mode. Disabling reporting.")
 			} else {
 				sentry.Init(sentry.ClientOptions{
-					Dsn:              *s.Config().LogSettings.SentryDSN,
+					Dsn:              SENTRY_DSN,
 					Release:          model.BuildHash,
 					AttachStacktrace: true,
 				})
