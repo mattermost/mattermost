@@ -851,6 +851,8 @@ func TestGetGroups(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	// make sure "createdDate" for next group is after one created in InitBasic()
+	time.Sleep(2 * time.Millisecond)
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
@@ -860,6 +862,7 @@ func TestGetGroups(t *testing.T) {
 		RemoteId:    model.NewId(),
 	})
 	assert.Nil(t, err)
+	start := group.UpdateAt - 1
 
 	opts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
@@ -911,4 +914,96 @@ func TestGetGroups(t *testing.T) {
 
 	_, response = th.Client.GetGroups(opts)
 	assert.Nil(t, response.Error)
+
+	// test "since", should only return group created in this test, not th.Group
+	opts.Since = start
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Len(t, groups, 1)
+	// test correct group returned
+	assert.Equal(t, groups[0].Id, group.Id)
+
+	// delete group, should still return
+	th.App.DeleteGroup(group.Id)
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Id, group.Id)
+
+	// test with current since value, return none
+	opts.Since = model.GetMillis()
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+
+	// make sure delete group is not returned without Since
+	opts.Since = 0
+	groups, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	//'Normal getGroups should not return delete groups
+	assert.Len(t, groups, 1)
+	// make sure it returned th.Group,not group
+	assert.Equal(t, groups[0].Id, th.Group.Id)
+}
+
+func TestGetGroupsByUserId(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group1, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	user1.Password = "test-password-1"
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
+	assert.Nil(t, err)
+
+	id = model.NewId()
+	group2, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.UpsertGroupMember(group2.Id, user1.Id)
+	assert.Nil(t, err)
+
+	th.App.SetLicense(nil)
+	_, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+	_, response = th.SystemAdminClient.GetGroupsByUserId("")
+	CheckBadRequestStatus(t, response)
+
+	_, response = th.SystemAdminClient.GetGroupsByUserId("notvaliduserid")
+	CheckBadRequestStatus(t, response)
+
+	groups, response := th.SystemAdminClient.GetGroupsByUserId(user1.Id)
+	require.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
+	// test permissions
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	_, response = th.Client.GetGroupsByUserId(user1.Id)
+	CheckForbiddenStatus(t, response)
+
+	th.Client.Logout()
+	th.Client.Login(user1.Email, user1.Password)
+	groups, response = th.Client.GetGroupsByUserId(user1.Id)
+	require.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
+
 }

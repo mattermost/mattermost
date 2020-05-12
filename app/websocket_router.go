@@ -27,13 +27,13 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
-		ReturnWebSocketError(conn, r, err)
+		returnWebSocketError(wr.app, conn, r, err)
 		return
 	}
 
 	if r.Seq <= 0 {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "", http.StatusBadRequest)
-		ReturnWebSocketError(conn, r, err)
+		returnWebSocketError(wr.app, conn, r, err)
 		return
 	}
 
@@ -54,40 +54,44 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		wr.app.Srv().Go(func() {
-			wr.app.SetStatusOnline(session.UserId, false)
-			wr.app.UpdateLastActivityAtIfNeeded(*session)
-		})
-
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
 		wr.app.HubRegister(conn)
 
+		wr.app.Srv().Go(func() {
+			wr.app.SetStatusOnline(session.UserId, false)
+			wr.app.UpdateLastActivityAtIfNeeded(*session)
+		})
+
 		resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
-		conn.Send <- resp
+		hub := wr.app.GetHubForUserId(conn.UserId)
+		if hub == nil {
+			return
+		}
+		hub.SendMessage(conn, resp)
 
 		return
 	}
 
 	if !conn.IsAuthenticated() {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
-		ReturnWebSocketError(conn, r, err)
+		returnWebSocketError(wr.app, conn, r, err)
 		return
 	}
 
 	handler, ok := wr.handlers[r.Action]
 	if !ok {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusInternalServerError)
-		ReturnWebSocketError(conn, r, err)
+		returnWebSocketError(wr.app, conn, r, err)
 		return
 	}
 
 	handler.ServeWebSocket(conn, r)
 }
 
-func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+func returnWebSocketError(app *App, conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
 	mlog.Error(
 		"websocket routing error.",
 		mlog.Int64("seq", r.Seq),
@@ -96,8 +100,12 @@ func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.A
 		mlog.Err(err),
 	)
 
+	hub := app.GetHubForUserId(conn.UserId)
+	if hub == nil {
+		return
+	}
+
 	err.DetailedError = ""
 	errorResp := model.NewWebSocketError(r.Seq, err)
-
-	conn.Send <- errorResp
+	hub.SendMessage(conn, errorResp)
 }
