@@ -55,6 +55,9 @@ jobs:
       - attach_workspace:
           at: ~/mattermost/
       - run:
+          name: Checkout config
+          command: cd .. && git clone https://github.com/mattermost/security-automation-config
+      - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
       - owasp/with_commandline:
@@ -71,14 +74,17 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
-                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
-                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                  ~/.owasp/dependency-check/bin/dependency-check.sh \
+                    --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
+                    --suppression ../security-automation-config/dependency-check/suppression.xml \
+                    --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
       - run:
           name: Post results to Mattermost
-          command: ./scripts/depcheck-alert.sh
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
@@ -133,6 +139,8 @@ jobs:
           command: |
             git clone https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
+            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+            git checkout ${CIRCLE_BRANCH} || true
             make build
       - persist_to_workspace:
           root: ~/mattermost
@@ -150,7 +158,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
