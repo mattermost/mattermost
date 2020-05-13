@@ -251,7 +251,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms within links",
 		Fn:   testSupportSearchTermsWithinLinks,
-		Tags: []string{ENGINE_MYSQL},
+		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should not return links that are embedded in markdown",
