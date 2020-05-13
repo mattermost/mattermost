@@ -55,6 +55,10 @@ type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
 
+	// LocalRouter is the starting point for all the local UNIX socket
+	// requests to the server
+	LocalRouter *mux.Router
+
 	// Router is the starting point for all web, api4 and ws requests to the server. It differs
 	// from RootRouter only if the SiteURL contains a /subpath.
 	Router *mux.Router
@@ -156,10 +160,12 @@ type Server struct {
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
+	localRouter := mux.NewRouter()
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
+		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		clientConfig:        make(map[string]string),
 	}
@@ -727,12 +733,15 @@ func (s *Server) Start() error {
 
 func (s *Server) startLocalModeServer() error {
 	s.localModeServer = &http.Server{
-		Handler: s.RootRouter,
+		Handler: s.LocalRouter,
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+	if err = os.Chmod(socket, 0600); err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 	}
 

@@ -255,6 +255,28 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	return api
 }
 
+func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
+	api := &API{
+		ConfigService:       configservice,
+		GetGlobalAppOptions: globalOptionsFunc,
+		BaseRoutes:          &Routes{},
+	}
+
+	api.BaseRoutes.Root = root
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+
+	api.BaseRoutes.Teams = api.BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
+
+	api.BaseRoutes.Channels = api.BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
+
+	api.InitChannelLocal()
+	api.InitTeamLocal()
+
+	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
+
+	return api
+}
+
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
 	web.Handle404(api.ConfigService, w, r)
 }
