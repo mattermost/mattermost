@@ -1139,6 +1139,10 @@
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
   {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "This endpoint requires a local request origin."
+  },
+  {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
   },
@@ -1153,10 +1157,6 @@
   {
     "id": "api.context.session_expired.app_error",
     "translation": "Invalid or expired session, please login again."
-  },
-  {
-    "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
   },
   {
     "id": "api.context.token_provided.app_error",
