@@ -361,7 +361,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableLinkPreviews == nil {
-		s.EnableLinkPreviews = NewBool(false)
+		s.EnableLinkPreviews = NewBool(true)
 	}
 
 	if s.EnableTesting == nil {
