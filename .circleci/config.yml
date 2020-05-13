@@ -11,14 +11,13 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "large"
+    resource_class: "xlarge"
 
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    resource_class: xlarge
     steps:
       - checkout
       - run: |
