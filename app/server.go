@@ -200,11 +200,13 @@ func NewServer(options ...Option) (*Server, error) {
 		if strings.Contains(SENTRY_DSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
-			sentry.Init(sentry.ClientOptions{
+			if err := sentry.Init(sentry.ClientOptions{
 				Dsn:              SENTRY_DSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
-			})
+			}); err != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
+			}
 		}
 	}
 

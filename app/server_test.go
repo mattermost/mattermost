@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -356,12 +357,7 @@ func TestSentry(t *testing.T) {
 		t.SkipNow()
 	}
 
-	// Calling panic route
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr}
+	client := &http.Client{}
 	data1 := make(chan bool, 1)
 
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -372,21 +368,28 @@ func TestSentry(t *testing.T) {
 
 	// make sure we don't report anything when sentry is disabled
 	SENTRY_DSN = server1.URL
-	s, err := NewServer()
+
+	s, err := NewServer(func(server *Server) error {
+		configStore, _ := config.NewFileStore("config.json", true)
+		server.configStore = configStore
+		server.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.LogSettings.EnableSentry = false
+
+		})
+		return nil
+	})
+
 	require.NoError(t, err)
 	// Route for just panicing
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
 		panic("log this panic")
 	})
 
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.LogSettings.EnableSentry = false
-	})
 	serverErr := s.Start()
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
-	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 	sentry.Flush(1)
 	select {
 	case <-data1:
@@ -402,9 +405,19 @@ func TestSentry(t *testing.T) {
 		data2 <- true
 	}))
 	defer server2.Close()
+	ss := server2.Listener.Addr().String()
+	_, port, _ := net.SplitHostPort(ss)
+	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
+	s2, err := NewServer(func(server *Server) error {
+		configStore, _ := config.NewFileStore("config.json", true)
+		server.configStore = configStore
+		server.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.LogSettings.EnableSentry = true
 
-	SENTRY_DSN = server2.URL
-	s2, err := NewServer()
+		})
+		return nil
+	})
 	require.NoError(t, err)
 	// Route for just panicing
 	s2.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
@@ -417,12 +430,12 @@ func TestSentry(t *testing.T) {
 	})
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
-	client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
+	client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
 	sentry.Flush(1)
 	select {
 	case <-data2:
 		t.Log("Sentry request arrived. Good!")
-	case <-time.After(time.Second * 1):
+	case <-time.After(time.Second * 2):
 		require.Fail(t, "Sentry report didn't arrive")
 	}
 }
