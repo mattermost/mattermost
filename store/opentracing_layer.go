@@ -1495,6 +1495,11 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 
 	defer span.Finish()
 	resultVar0 := s.ChannelStore.MigratePublicChannels()
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
 	return resultVar0
 }
 
@@ -1660,7 +1665,7 @@ func (s *OpenTracingLayerChannelStore) Restore(channelId string, time int64) *mo
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -3175,7 +3180,7 @@ func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -3184,7 +3189,7 @@ func (s *OpenTracingLayerGroupStore) GetByName(name string) (*model.Group, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name, opts)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
@@ -5838,6 +5843,24 @@ func (s *OpenTracingLayerSessionStore) UpdateDeviceId(id string, deviceId string
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.UpdateExpiresAt")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.SessionStore.UpdateExpiresAt(sessionId, time)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (s *OpenTracingLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {

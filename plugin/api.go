@@ -490,8 +490,8 @@ type API interface {
 	// GetGroupByName gets a group by name.
 	//
 	// @tag Group
-	// Minimum server version: 5.18
-	GetGroupByName(name string) (*model.Group, *model.AppError)
+	// Minimum server version: 5.24
+	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 
 	// GetGroupsForUser gets the groups a user is in.
 	//

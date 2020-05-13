@@ -532,9 +532,9 @@ func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppErro
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetGroupByName(name string) (*model.Group, *model.AppError) {
+func (api *apiTimerLayer) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetGroupByName(name)
+	_returnsA, _returnsB := api.apiImpl.GetGroupByName(name, opts)
 	api.recordTime(startTime, "GetGroupByName", true)
 	return _returnsA, _returnsB
 }
