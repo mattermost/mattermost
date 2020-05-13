@@ -11,14 +11,13 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "large"
+    resource_class: "xlarge"
 
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -158,7 +157,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
