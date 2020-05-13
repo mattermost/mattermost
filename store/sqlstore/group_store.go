@@ -125,9 +125,19 @@ func (s *SqlGroupStore) Get(groupId string) (*model.Group, *model.AppError) {
 	return group, nil
 }
 
-func (s *SqlGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Name": name})
+	if opts.FilterAllowReference {
+		query = query.Where("AllowReference = true")
+	}
+
+	queryString, args, err := query.ToSql()
+
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByName", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if err := s.GetReplica().SelectOne(&group, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlGroupStore.GroupGetByName", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		}
@@ -216,6 +226,9 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 
 	rowsChanged, err := s.GetMaster().Update(group)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
+			return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.unique_constraint", nil, err.Error(), http.StatusInternalServerError)
+		}
 		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if rowsChanged != 1 {
@@ -993,8 +1006,8 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 	query := s.getQueryBuilder().
 		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
 		From("UserGroups ug").
-		LeftJoin(fmt.Sprintf(`(
-			SELECT
+		LeftJoin(`
+			(SELECT
 				GroupChannels.GroupId, GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.SchemeAdmin
 			FROM
 				GroupChannels
@@ -1003,8 +1016,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 			WHERE
 				GroupChannels.DeleteAt = 0
 				AND Channels.DeleteAt = 0
-				AND Channels.TeamId = ?) AS gc
-			ON gc.GroupId = ug.Id`), teamID).
+				AND Channels.TeamId = ?) AS gc ON gc.GroupId = ug.Id`, teamID).
 		Where("ug.DeleteAt = 0 AND gc.DeleteAt = 0").
 		OrderBy("ug.DisplayName")
 
@@ -1012,8 +1024,8 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 		query = s.getQueryBuilder().
 			Select("gc.ChannelId, ug.*, coalesce(Members.MemberCount, 0) AS MemberCount, gc.SchemeAdmin AS SyncableSchemeAdmin").
 			From("UserGroups ug").
-			LeftJoin(fmt.Sprintf(`(
-				SELECT
+			LeftJoin(`
+				(SELECT
 					GroupChannels.ChannelId, GroupChannels.DeleteAt, GroupChannels.GroupId, GroupChannels.SchemeAdmin
 				FROM
 					GroupChannels
@@ -1022,8 +1034,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 				WHERE
 					GroupChannels.DeleteAt = 0
 					AND Channels.DeleteAt = 0
-					AND Channels.TeamId = ?) AS gc
-			ON gc.GroupId = ug.Id`), teamID).
+					AND Channels.TeamId = ?) AS gc ON gc.GroupId = ug.Id`, teamID).
 			LeftJoin(`(
 				SELECT
 					GroupMembers.GroupId, COUNT(*) AS MemberCount
