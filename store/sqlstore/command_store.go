@@ -102,7 +102,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 	if s.DriverName() == "mysql" {
 		triggerStr = "`Trigger`"
 	} else {
-		triggerStr = "trigger"
+		triggerStr = "\"trigger\""
 	}
 
 	query, args, err := s.getQueryBuilder().
