@@ -11,8 +11,8 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv().Store.Group().Get(id)
 }
 
-func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().GetByName(name)
+func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	return a.Srv().Store.Group().GetByName(name, opts)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {

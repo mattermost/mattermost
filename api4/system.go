@@ -79,7 +79,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Database Write/Read Check
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
-		healthCheckKey := "health_check"
+		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
 
 		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
 			Name:  healthCheckKey,
@@ -99,7 +99,15 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else {
+			}
+			_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+			if writeErr != nil {
+				mlog.Debug("Unable to remove ping health check value from database", mlog.Err(writeErr))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			}
+
+			if s[dbStatusKey] == model.STATUS_OK {
 				mlog.Debug("Able to write/read files to database")
 			}
 		}

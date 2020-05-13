@@ -283,6 +283,7 @@ type ServiceSettings struct {
 	CorsAllowCredentials                              *bool   `restricted:"true"`
 	CorsDebug                                         *bool   `restricted:"true"`
 	AllowCookiesForSubdomains                         *bool   `restricted:"true"`
+	ExtendSessionLengthWithActivity                   *bool   `restricted:"true"`
 	SessionLengthWebInDays                            *int    `restricted:"true"`
 	SessionLengthMobileInDays                         *int    `restricted:"true"`
 	SessionLengthSSOInDays                            *int    `restricted:"true"`
@@ -521,12 +522,25 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableTutorial = NewBool(true)
 	}
 
+	// Must be manually enabled for existing installations.
+	if s.ExtendSessionLengthWithActivity == nil {
+		s.ExtendSessionLengthWithActivity = NewBool(!isUpdate)
+	}
+
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(180)
+		if isUpdate {
+			s.SessionLengthWebInDays = NewInt(180)
+		} else {
+			s.SessionLengthWebInDays = NewInt(30)
+		}
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(180)
+		if isUpdate {
+			s.SessionLengthMobileInDays = NewInt(180)
+		} else {
+			s.SessionLengthMobileInDays = NewInt(30)
+		}
 	}
 
 	if s.SessionLengthSSOInDays == nil {
@@ -956,6 +970,7 @@ type SqlSettings struct {
 	Trace                       *bool    `restricted:"true"`
 	AtRestEncryptKey            *string  `restricted:"true"`
 	QueryTimeout                *int     `restricted:"true"`
+	DisableDatabaseSearch       *bool    `restricted:"true"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1003,6 +1018,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
+	}
+
+	if s.DisableDatabaseSearch == nil {
+		s.DisableDatabaseSearch = NewBool(false)
 	}
 }
 
@@ -3328,6 +3347,8 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
+	o.SqlSettings.DataSourceReplicas = []string{FAKE_SETTING}
+	o.SqlSettings.DataSourceSearchReplicas = []string{FAKE_SETTING}
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	*o.ElasticsearchSettings.Password = FAKE_SETTING
