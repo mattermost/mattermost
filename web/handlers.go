@@ -213,9 +213,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.IsLocal {
-		if *c.App.Config().ServiceSettings.EnableLocalMode && r.RemoteAddr == "@" {
+		// if the connection is local, RemoteAddr shouldn't have the
+		// shape IP:PORT (it will be "@" in Linux, for example)
+		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
+		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
 			c.App.SetSession(&model.Session{Local: true})
-		} else if r.RemoteAddr != "@" {
+		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
 	}
