@@ -1443,7 +1443,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PushNotificationContents == nil {
-		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
+		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
 	}
 
 	if s.EnableEmailBatching == nil {
