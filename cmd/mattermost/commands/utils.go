@@ -47,7 +47,7 @@ func structToMap(t interface{}) map[string]interface{} {
 
 			if indirectType.Kind() == reflect.Struct {
 				value = structToMap(indirectType.Interface())
-			} else {
+			} else if indirectType.Kind() != reflect.Invalid {
 				value = indirectType.Interface()
 			}
 		default:

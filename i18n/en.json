@@ -4567,6 +4567,10 @@
     "translation": "Type must be set."
   },
   {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "Invalid AutocompleteData"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },

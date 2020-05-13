@@ -1483,6 +1483,28 @@ func (a *OpenTracingAppLayer) CreateChannel(channel *model.Channel, addMember bo
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelScheme")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateChannelScheme(channel)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateChannelWithUser")
@@ -2421,6 +2443,28 @@ func (a *OpenTracingAppLayer) DeleteChannel(channel *model.Channel, userId strin
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteChannelScheme")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.DeleteChannelScheme(channel)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) DeleteCommand(commandId string) *model.AppError {
@@ -7418,6 +7462,23 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]int
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInput string, roleID string) []model.AutocompleteSuggestion {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSuggestions")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetSuggestions(commands, userInput, roleID)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeam")
@@ -7658,6 +7719,28 @@ func (a *OpenTracingAppLayer) GetTeamMembersForUserWithPagination(userId string,
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetTeamSchemeChannelRoles(teamId string) (string, string, string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeamSchemeChannelRoles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.GetTeamSchemeChannelRoles(teamId)
+
+	if resultVar3 != nil {
+		span.LogFields(spanlog.Error(resultVar3))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2, resultVar3
 }
 
 func (a *OpenTracingAppLayer) GetTeamStats(teamId string, restrictions *model.ViewUsersRestrictions) (*model.TeamStats, *model.AppError) {
@@ -9083,6 +9166,21 @@ func (a *OpenTracingAppLayer) InvalidateAllEmailInvites() *model.AppError {
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) InvalidateCacheForUser(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InvalidateCacheForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.InvalidateCacheForUser(userId)
 }
 
 func (a *OpenTracingAppLayer) InvalidateWebConnSessionCacheForUser(userId string) {
