@@ -2572,15 +2572,17 @@ func TestResetPassword(t *testing.T) {
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
 	mailservice.DeleteMailBox(user.Email)
-	success, resp := th.Client.SendPasswordResetEmail(user.Email)
-	CheckNoError(t, resp)
-	require.True(t, success, "should succeed")
-	_, resp = th.Client.SendPasswordResetEmail("")
-	CheckBadRequestStatus(t, resp)
-	// Should not leak whether the email is attached to an account or not
-	success, resp = th.Client.SendPasswordResetEmail("notreal@example.com")
-	CheckNoError(t, resp)
-	require.True(t, success, "should succeed")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		success, resp := client.SendPasswordResetEmail(user.Email)
+		CheckNoError(t, resp)
+		require.True(t, success, "should succeed")
+		_, resp = client.SendPasswordResetEmail("")
+		CheckBadRequestStatus(t, resp)
+		// Should not leak whether the email is attached to an account or not
+		success, resp = client.SendPasswordResetEmail("notreal@example.com")
+		CheckNoError(t, resp)
+		require.True(t, success, "should succeed")
+	})
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox mailservice.JSONMessageHeaderInbucket
 	err := mailservice.RetryInbucket(5, func() error {
@@ -2605,7 +2607,7 @@ func TestResetPassword(t *testing.T) {
 	recoveryToken, err := th.App.Srv().Store.Token().GetByToken(recoveryTokenString)
 	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
-	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
+	_, resp := th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newp")
 	CheckBadRequestStatus(t, resp)
@@ -2619,7 +2621,7 @@ func TestResetPassword(t *testing.T) {
 	}
 	_, resp = th.Client.ResetPassword(code, "newpwd")
 	CheckBadRequestStatus(t, resp)
-	success, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
+	success, resp := th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckNoError(t, resp)
 	require.True(t, success)
 	th.Client.Login(user.Email, "newpwd")
@@ -2629,8 +2631,10 @@ func TestResetPassword(t *testing.T) {
 	authData := model.NewId()
 	_, err = th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 	require.Nil(t, err)
-	_, resp = th.Client.SendPasswordResetEmail(user.Email)
-	CheckBadRequestStatus(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.SendPasswordResetEmail(user.Email)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetSessions(t *testing.T) {
