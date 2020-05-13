@@ -424,10 +424,6 @@ func TestSentry(t *testing.T) {
 		panic("log this panic")
 	})
 
-	s2.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ListenAddress = ":0"
-		*cfg.LogSettings.EnableSentry = true
-	})
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
 	client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
