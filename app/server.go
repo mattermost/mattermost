@@ -741,7 +741,7 @@ func (s *Server) startLocalModeServer() error {
 	if err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 	}
-	if err := os.Chmod(socket, 0600); err != nil {
+	if err = os.Chmod(socket, 0600); err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 	}
 
