@@ -367,7 +367,8 @@ func TestSentry(t *testing.T) {
 	defer server1.Close()
 
 	// make sure we don't report anything when sentry is disabled
-	SENTRY_DSN = server1.URL
+	_, port, _ := net.SplitHostPort(server1.Listener.Addr().String())
+	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 
 	s, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
@@ -405,8 +406,7 @@ func TestSentry(t *testing.T) {
 		data2 <- true
 	}))
 	defer server2.Close()
-	ss := server2.Listener.Addr().String()
-	_, port, _ := net.SplitHostPort(ss)
+	_, port, _ = net.SplitHostPort(server2.Listener.Addr().String())
 	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 	s2, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
