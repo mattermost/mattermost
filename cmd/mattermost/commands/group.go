@@ -6,6 +6,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/pkg/errors"
@@ -146,6 +147,10 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("channelGroupEnable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -165,6 +170,10 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if _, appErr := a.UpdateChannel(channel); appErr != nil {
 		return appErr
 	}
+
+	auditRec := a.MakeAuditRecord("channelGroupDisable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -240,6 +249,10 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("teamGroupEnable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -259,6 +272,10 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if _, appErr := a.UpdateTeam(team); appErr != nil {
 		return appErr
 	}
+
+	auditRec := a.MakeAuditRecord("teamGroupDisable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

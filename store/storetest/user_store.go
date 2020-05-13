@@ -38,6 +38,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
+	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
@@ -81,6 +82,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, ss) })
 	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, ss) })
 	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
+	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -698,8 +700,8 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := &model.Channel{
 		TeamId:      teamId,
@@ -707,8 +709,8 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	c2, err := ss.Channel().Save(ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -803,8 +805,8 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := &model.Channel{
 		TeamId:      teamId,
@@ -812,8 +814,8 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	c2, err := ss.Channel().Save(ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -979,8 +981,8 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := &model.Channel{
 		TeamId:      teamId,
@@ -988,8 +990,8 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	c2, err := ss.Channel().Save(ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -1107,8 +1109,8 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := &model.Channel{
 		TeamId:      teamId,
@@ -1116,8 +1118,8 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	c2, err := ss.Channel().Save(ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
 		var profiles []*model.User
@@ -1341,12 +1343,12 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
 
-	gc1, err := ss.Channel().Save(&model.Channel{
+	gc1, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_GROUP,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	for _, uId := range []string{u1.Id, u2.Id, u3.Id} {
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1357,12 +1359,12 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 		require.Nil(t, err)
 	}
 
-	gc2, err := ss.Channel().Save(&model.Channel{
+	gc2, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_GROUP,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	for _, uId := range []string{u1.Id, u3.Id, u4.Id} {
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1950,8 +1952,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.Nil(t, err)
 
-	_, err = ss.Channel().Save(&c1, -1)
-	require.Nil(t, err, "couldn't save item")
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.Nil(t, nErr, "couldn't save item")
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -2287,8 +2289,8 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(&ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(&ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := model.Channel{
 		TeamId:      tid,
@@ -2296,8 +2298,8 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c2, err := ss.Channel().Save(&ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(&ch2, -1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
@@ -2513,8 +2515,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1, err := ss.Channel().Save(&ch1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(&ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := model.Channel{
 		TeamId:      tid,
@@ -2522,8 +2524,8 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c2, err := ss.Channel().Save(&ch2, -1)
-	require.Nil(t, err)
+	c2, nErr := ss.Channel().Save(&ch2, -1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -3162,6 +3164,42 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 
 }
 
+func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
+	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Username = model.NewId()
+	u2.Roles = "system_user"
+
+	u3 := model.User{}
+	u3.Email = MakeEmail()
+	u3.Username = model.NewId()
+	u3.Roles = "system_guest"
+
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	_, err = ss.User().Save(&u3)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	result, err := ss.User().AnalyticsGetSystemAdminCount()
+	require.Nil(t, err)
+	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
+}
+
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
@@ -3486,23 +3524,23 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
 	}
-	cPub1, err := ss.Channel().Save(ch1, -1)
-	require.Nil(t, err)
+	cPub1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
 
 	ch2 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
 	}
-	cPub2, err := ss.Channel().Save(ch2, -1)
-	require.Nil(t, err)
+	cPub2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
 
 	ch3 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_PRIVATE,
 	}
 
-	cPriv, err := ss.Channel().Save(ch3, -1)
-	require.Nil(t, err)
+	cPriv, nErr := ss.Channel().Save(ch3, -1)
+	require.Nil(t, nErr)
 
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3732,12 +3770,12 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	// create channel
 	id := model.NewId()
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, nErr := ss.Channel().Save(&model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
 		Type:        model.CHANNEL_PRIVATE,
 	}, 999)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	require.NotNil(t, channel)
 
 	// create users
@@ -3760,7 +3798,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
 
 	// add non-group-member to the channel (to prove that the query isn't just returning all members)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err := ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      userNoGroup.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3870,13 +3908,13 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -3916,13 +3954,13 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4012,13 +4050,13 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4057,13 +4095,13 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4102,13 +4140,13 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
@@ -4185,13 +4223,13 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4231,13 +4269,13 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4327,13 +4365,13 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4372,13 +4410,13 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
 
@@ -4417,13 +4455,13 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.Nil(t, err)
 
-		channel, err := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(&model.Channel{
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 		}, -1)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		_, err = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.Nil(t, err)
@@ -4586,4 +4624,135 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	assert.True(t, user2.UpdateAt > user.UpdateAt)
 	assert.Zero(t, user2.LastPictureUpdate)
+}
+
+func testGetKnownUsers(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	u1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+
+	u2, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+
+	u3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	})
+	require.Nil(t, err)
+	u3.IsBot = true
+
+	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
+
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, err)
+
+	ch1 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in channel",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	c1, nErr := ss.Channel().Save(ch1, -1)
+	require.Nil(t, nErr)
+
+	ch2 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in private",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	c2, nErr := ss.Channel().Save(ch2, -1)
+	require.Nil(t, nErr)
+
+	ch3 := &model.Channel{
+		TeamId:      teamId,
+		DisplayName: "Profiles in private",
+		Name:        "profiles-" + model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	c3, nErr := ss.Channel().Save(ch3, -1)
+	require.Nil(t, nErr)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u2.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u3.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c2.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c3.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	t.Run("get know users sharing no channels", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u4.Id)
+		require.Nil(t, err)
+		assert.Empty(t, userIds)
+	})
+
+	t.Run("get know users sharing one channel", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u3.Id)
+		require.Nil(t, err)
+		assert.Len(t, userIds, 1)
+		assert.Equal(t, userIds[0], u1.Id)
+	})
+
+	t.Run("get know users sharing multiple channels", func(t *testing.T) {
+		userIds, err := ss.User().GetKnownUsers(u1.Id)
+		require.Nil(t, err)
+		assert.Len(t, userIds, 2)
+		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
+	})
 }

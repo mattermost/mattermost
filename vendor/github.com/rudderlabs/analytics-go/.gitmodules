@@ -1,0 +1,6 @@
+[submodule "vendor/github.com/segmentio/backo-go"]
+	path = vendor/github.com/segmentio/backo-go
+	url = https://github.com/segmentio/backo-go
+[submodule "vendor/github.com/xtgo/uuid"]
+	path = vendor/github.com/xtgo/uuid
+	url = https://github.com/xtgo/uuid

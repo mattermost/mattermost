@@ -244,6 +244,10 @@
     "translation": "This channel has been converted to a Private Channel."
   },
   {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Your license does not support groups"
+  },
+  {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
     "translation": "This default channel cannot be converted into a private channel."
   },
@@ -254,10 +258,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Invalid character '__' in channel name for non-direct channel."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -422,10 +422,6 @@
   {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted."
-  },
-  {
-    "id": "api.channel.update_channel.invalid_character.app_error",
-    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
@@ -1425,6 +1421,18 @@
     "translation": "ldap group not found"
   },
   {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "group name already exists"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "group name already exists as a user name"
+  },
+  {
     "id": "api.ldap_groups.license_error",
     "translation": "your license does not support ldap groups"
   },
@@ -1467,6 +1475,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Failed to send the disable license email successfully."
   },
   {
     "id": "api.marshal_error",
@@ -1599,6 +1611,10 @@
   {
     "id": "api.plugin.verify_plugin.app_error",
     "translation": "Unable to verify plugin signature."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupDisplayName}} has no members on this team"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -2299,6 +2315,18 @@
     "translation": "Go To Post"
   },
   {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Renew License"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Mattermost Enterprise license has been disabled."
+  },
+  {
     "id": "api.templates.reset_body.button",
     "translation": "Reset Password"
   },
@@ -2903,6 +2931,10 @@
     "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
   },
   {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Unable to save channel."
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel."
   },
@@ -3399,6 +3431,10 @@
     "translation": "User AuthData and Password are mutually exclusive."
   },
   {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
     "translation": "User AuthData is too long."
   },
@@ -3849,6 +3885,10 @@
   {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Unable to create the warning file."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4499,6 +4539,10 @@
     "translation": "Invalid Id."
   },
   {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
     "id": "model.channel.is_valid.purpose.app_error",
     "translation": "Invalid purpose."
   },
@@ -5085,6 +5129,10 @@
   {
     "id": "model.group.name.app_error",
     "translation": "invalid name property for group."
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "invalid characters in the name property for group"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -5719,6 +5767,10 @@
     "translation": "FromDb: Unable to convert StringMap to *string"
   },
   {
+    "id": "store.sql_audit.app_error",
+    "translation": "Failed to build query."
+  },
+  {
     "id": "store.sql_audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
@@ -5999,24 +6051,8 @@
     "translation": "You can not modify an archived channel."
   },
   {
-    "id": "store.sql_channel.save.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
     "id": "store.sql_channel.save.direct_channel.app_error",
     "translation": "Use SaveDirectChannel to create a direct channel."
-  },
-  {
-    "id": "store.sql_channel.save.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel."
-  },
-  {
-    "id": "store.sql_channel.save_channel.current_count.app_error",
-    "translation": "Failed to get current channel count."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
@@ -6031,16 +6067,16 @@
     "translation": "You've reached the limit of the number of allowed channels."
   },
   {
-    "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Unable to save the channel."
-  },
-  {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
     "translation": "Unable to add direct channel members."
   },
   {
     "id": "store.sql_channel.save_direct_channel.commit.app_error",
     "translation": "Unable to commit transaction."
+  },
+  {
+    "id": "store.sql_channel.save_direct_channel.internal_error",
+    "translation": "Unable to save direct channel."
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
@@ -6887,6 +6923,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "store.sql_session.update_expires_at.app_error",
+    "translation": "Unable to update expires_at."
+  },
+  {
     "id": "store.sql_session.update_last_activity.app_error",
     "translation": "Unable to update the last_activity_at."
   },
@@ -7237,6 +7277,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",

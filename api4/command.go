@@ -52,8 +52,8 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("command_id", rcmd.Id)
 	c.LogAudit("success")
+	auditRec.AddMeta("command", rcmd)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rcmd.ToJson()))
@@ -72,15 +72,16 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
-	auditRec.AddMeta("command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
+		auditRec.AddMeta("command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
+	auditRec.AddMeta("command", oldCmd)
 
 	if cmd.TeamId != oldCmd.TeamId {
 		c.Err = model.NewAppError("updateCommand", "api.command.team_mismatch.app_error", nil, "user_id="+c.App.Session().UserId, http.StatusBadRequest)
@@ -126,8 +127,6 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
-	auditRec.AddMeta("command_id", c.Params.CommandId)
-	auditRec.AddMeta("to_team_id", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -136,6 +135,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+	auditRec.AddMeta("team", newTeam)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), newTeam.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -148,7 +148,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
-	auditRec.AddMeta("from_team_id", cmd.TeamId)
+	auditRec.AddMeta("command", cmd)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -176,7 +176,6 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
-	auditRec.AddMeta("command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -185,6 +184,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
+	auditRec.AddMeta("command", cmd)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
@@ -297,10 +297,14 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(commandArgs.Command) <= 1 || strings.Index(commandArgs.Command, "/") != 0 || len(commandArgs.ChannelId) != 26 {
+	if len(commandArgs.Command) <= 1 || strings.Index(commandArgs.Command, "/") != 0 || !model.IsValidId(commandArgs.ChannelId) {
 		c.Err = model.NewAppError("executeCommand", "api.command.execute_command.start.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("commandargs", commandArgs)
 
 	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
 	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
@@ -334,12 +338,15 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.Session = *c.App.Session()
 	commandArgs.SiteURL = c.GetSiteURLHeader()
 
+	auditRec.AddMeta("commandargs", commandArgs) // overwrite in case teamid changed
+
 	response, err := c.App.ExecuteCommand(commandArgs)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	auditRec.Success()
 	w.Write([]byte(response.ToJson()))
 }
 
@@ -403,15 +410,16 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
-	auditRec.AddMeta("command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
+		auditRec.AddMeta("command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
+	auditRec.AddMeta("command", cmd)
 
 	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), cmd.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 		c.LogAudit("fail - inappropriate permissions")
