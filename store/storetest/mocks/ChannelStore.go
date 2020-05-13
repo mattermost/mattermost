@@ -180,6 +180,31 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 	return r0, r1
 }
 
+// CreateSidebarCategory provides a mock function with given fields: userId, teamId, newCategory
+func (_m *ChannelStore) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	ret := _m.Called(userId, teamId, newCategory)
+
+	var r0 *model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(0).(func(string, string, *model.SidebarCategoryWithChannels) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userId, teamId, newCategory)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.SidebarCategoryWithChannels) *model.AppError); ok {
+		r1 = rf(userId, teamId, newCategory)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: channelId, time
 func (_m *ChannelStore) Delete(channelId string, time int64) *model.AppError {
 	ret := _m.Called(channelId, time)
@@ -1127,6 +1152,81 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limi
 	return r0, r1
 }
 
+// GetSidebarCategories provides a mock function with given fields: userId, teamId
+func (_m *ChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	ret := _m.Called(userId, teamId)
+
+	var r0 *model.OrderedSidebarCategories
+	if rf, ok := ret.Get(0).(func(string, string) *model.OrderedSidebarCategories); ok {
+		r0 = rf(userId, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSidebarCategory provides a mock function with given fields: categoryId
+func (_m *ChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	ret := _m.Called(categoryId)
+
+	var r0 *model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(0).(func(string) *model.SidebarCategoryWithChannels); ok {
+		r0 = rf(categoryId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(categoryId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSidebarCategoryOrder provides a mock function with given fields: userId, teamId
+func (_m *ChannelStore) GetSidebarCategoryOrder(userId string, teamId string) ([]string, *model.AppError) {
+	ret := _m.Called(userId, teamId)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(userId, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeamChannels provides a mock function with given fields: teamId
 func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(teamId)
@@ -1265,6 +1365,81 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 	return r0, r1
 }
 
+// MigrateChannelsToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId, runningOrder
+func (_m *ChannelStore) MigrateChannelsToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId, runningOrder)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]interface{}); ok {
+		r0 = rf(lastChannelId, lastUserId, runningOrder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId, runningOrder)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// MigrateDirectGroupMessagesToSidebarChannels provides a mock function with given fields: lastChannelId, lastUserId, runningOrder
+func (_m *ChannelStore) MigrateDirectGroupMessagesToSidebarChannels(lastChannelId string, lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastChannelId, lastUserId, runningOrder)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string, int64) map[string]interface{}); ok {
+		r0 = rf(lastChannelId, lastUserId, runningOrder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(lastChannelId, lastUserId, runningOrder)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId, runningOrder
+func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(lastUserId, runningOrder)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, int64) map[string]interface{}); ok {
+		r0 = rf(lastUserId, runningOrder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+		r1 = rf(lastUserId, runningOrder)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // MigratePublicChannels provides a mock function with given fields:
 func (_m *ChannelStore) MigratePublicChannels() error {
 	ret := _m.Called()
@@ -1277,6 +1452,31 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 	}
 
 	return r0
+}
+
+// MigrateSidebarCategories provides a mock function with given fields: fromTeamId, fromUserId
+func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, *model.AppError) {
+	ret := _m.Called(fromTeamId, fromUserId)
+
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(string, string) map[string]interface{}); ok {
+		r0 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(fromTeamId, fromUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: channelId
@@ -1835,6 +2035,79 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 	}
 
 	return r0, r1
+}
+
+// UpdateSidebarCategories provides a mock function with given fields: userId, teamId, categories
+func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	ret := _m.Called(userId, teamId, categories)
+
+	var r0 []*model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(0).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
+		r0 = rf(userId, teamId, categories)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SidebarCategoryWithChannels)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) *model.AppError); ok {
+		r1 = rf(userId, teamId, categories)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// UpdateSidebarCategoryOrder provides a mock function with given fields: userId, teamId, categoryOrder
+func (_m *ChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) *model.AppError {
+	ret := _m.Called(userId, teamId, categoryOrder)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, []string) *model.AppError); ok {
+		r0 = rf(userId, teamId, categoryOrder)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateSidebarChannelCategoryOnMove provides a mock function with given fields: channel, newTeamId
+func (_m *ChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+	ret := _m.Called(channel, newTeamId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Channel, string) *model.AppError); ok {
+		r0 = rf(channel, newTeamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateSidebarChannelsByPreferences provides a mock function with given fields: preferences
+func (_m *ChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+	ret := _m.Called(preferences)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Preferences) *model.AppError); ok {
+		r0 = rf(preferences)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds

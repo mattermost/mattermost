@@ -96,6 +96,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
+	t.Run("SidebarChannelsMigration", func(t *testing.T) { testSidebarChannelsMigration(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -6507,4 +6508,84 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	countAfter, err := ss.Channel().GroupSyncedChannelCount()
 	require.Nil(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
+}
+
+func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+	channel1, err := ss.Channel().Save(&model.Channel{
+		DisplayName:      model.NewId(),
+		Name:             model.NewId(),
+		TeamId:           teamId,
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+	}, 10)
+	require.Nil(t, err)
+	defer func() {
+		ss.Channel().PermanentDeleteMembersByChannel(channel1.Id)
+		ss.Channel().PermanentDeleteByTeam(teamId)
+		ss.Channel().PermanentDelete(channel1.Id)
+	}()
+
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err = ss.User().Save(u1)
+	require.Nil(t, err)
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      u1.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	err = ss.Preference().Save(&model.Preferences{
+		{
+			Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+			Name:     channel1.Id,
+			UserId:   u1.Id,
+			Value:    "true",
+		},
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().CreateDirectChannel(u1, u2)
+	require.Nil(t, err)
+
+	t.Run("MigrateSidebarCategories", func(t *testing.T) {
+		_, err2 := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
+		require.Nil(t, err2)
+		res, err2 := ss.Channel().GetSidebarCategories(u1.Id, teamId)
+		require.Nil(t, err2)
+		require.Len(t, res.Categories, 3)
+	})
+
+	t.Run("MigrateChannelsToSidebarChannels", func(t *testing.T) {
+		_, err = ss.Channel().MigrateChannelsToSidebarChannels(strings.Repeat("0", 26), strings.Repeat("0", 26), 0)
+		require.Nil(t, err)
+	})
+	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
+		_, err = ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
+		require.Nil(t, err)
+	})
+	t.Run("MigrateDirectGroupMessagesToSidebarChannels", func(t *testing.T) {
+		_, err = ss.Channel().MigrateDirectGroupMessagesToSidebarChannels(strings.Repeat("0", 26), strings.Repeat("0", 26), 0)
+		require.Nil(t, err)
+	})
+	t.Run("GetSidebarCategories", func(t *testing.T) {
+		res, err := ss.Channel().GetSidebarCategories(u1.Id, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories[0].Channels, 1)
+		require.Len(t, res.Categories[1].Channels, 1)
+		require.Len(t, res.Categories[2].Channels, 1)
+	})
 }
