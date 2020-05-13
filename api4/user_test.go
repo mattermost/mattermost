@@ -2349,6 +2349,11 @@ func TestUpdateUserMfa(t *testing.T) {
 
 	_, resp := th.Client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
 	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
+		CheckNoError(t, resp)
+	})
 }
 
 // CheckUserMfa is deprecated and should not be used anymore, it will be disabled by default in version 6.0
