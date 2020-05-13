@@ -1960,18 +1960,20 @@ func TestUpdateUserActive(t *testing.T) {
 		_, resp = th.Client.UpdateUserActive(user.Id, true)
 		CheckUnauthorizedStatus(t, resp)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.UpdateUserActive(user.Id, true)
+			CheckNoError(t, resp)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, resp)
+			_, resp = client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, resp)
 
-		authData := model.NewId()
-		_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-		require.Nil(t, err)
+			authData := model.NewId()
+			_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+			require.Nil(t, err)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, resp)
+			_, resp = client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, resp)
+		})
 	})
 
 	t.Run("websocket events", func(t *testing.T) {
@@ -2002,21 +2004,27 @@ func TestUpdateUserActive(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		// Verify that both admins and regular users see the email when privacy settings allow same.
+		// Verify that both admins and regular users see the email when privacy settings allow same,
+		// and confirm event is fired for SystemAdmin and Local mode
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
-		_, respErr := th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, respErr)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, respErr := client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, respErr)
 
-		assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, user.Email)
-		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+		})
 
-		// Verify that only admins see the email when privacy settings hide emails.
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
-		_, respErr = th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, respErr)
+		// Verify that only admins see the email when privacy settings hide emails,
+		// and confirm event is fired for SystemAdmin and Local mode
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+			_, respErr := client.UpdateUserActive(user.Id, true)
+			CheckNoError(t, respErr)
 
-		assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, "")
-		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, "")
+			assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+		})
 	})
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
@@ -2037,8 +2045,11 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckUnauthorizedStatus(t, resp)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.UpdateUserActive(user.Id, true)
+			CheckUnauthorizedStatus(t, resp)
+		})
 	})
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
@@ -2058,8 +2069,10 @@ func TestUpdateUserActive(t *testing.T) {
 		th.App.UpdateActive(user, false)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
+			CheckNoError(t, resp)
+		})
 	})
 }
 
