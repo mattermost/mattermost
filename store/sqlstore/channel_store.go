@@ -3842,24 +3842,3 @@ func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) *model.AppErro
 
 	return nil
 }
-
-func (s SqlChannelStore) getSidebarCategoryIdByType(transaction *gorp.Transaction, userId, teamId string, categoryType model.SidebarCategoryType) (string, error) {
-	params := map[string]interface{}{
-		"UserId":       userId,
-		"TeamId":       teamId,
-		"CategoryType": categoryType,
-	}
-
-	var categoryId string
-	err := transaction.SelectOne(&categoryId, `
-		SELECT
-			Id
-		FROM
-			SidebarCategories
-		WHERE
-			Type = :CategoryType
-			AND UserId = :UserId
-			AND TeamId = :TeamId`, params)
-
-	return categoryId, err
-}
