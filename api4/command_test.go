@@ -284,8 +284,8 @@ func TestListCommands(t *testing.T) {
 	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNoError(t, resp)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		listCommands, resp := c.ListCommands(th.BasicTeam.Id, false)
+	t.Run("ListSystemAndCustomCommands", func(t *testing.T) {
+		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, false)
 		CheckNoError(t, resp)
 
 		foundEcho := false
@@ -300,15 +300,15 @@ func TestListCommands(t *testing.T) {
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.True(t, foundCustom, "Should list the custom command")
-	}, "ListSystemAndCustomCommands")
+	})
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		listCommands, resp := c.ListCommands(th.BasicTeam.Id, true)
+	t.Run("ListCustomOnlyCommands", func(t *testing.T) {
+		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, true)
 		CheckNoError(t, resp)
 
 		require.Len(t, listCommands, 1, "Should list just one custom command")
 		require.Equal(t, listCommands[0].Trigger, "custom_command", "Wrong custom command trigger")
-	}, "ListCustomOnlyCommands")
+	})
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
 		_, resp := Client.ListCommands(th.BasicTeam.Id, true)
