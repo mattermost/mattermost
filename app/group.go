@@ -115,6 +115,15 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		}
 	}
 
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
+
 	return gs, nil
 }
 
@@ -164,6 +173,16 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 			}
 		}
 	}
+
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
 
 	return gs, nil
 }
