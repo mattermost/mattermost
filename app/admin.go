@@ -179,8 +179,8 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
-		res.Body.Close()
+		_, _ = io.Copy(ioutil.Discard, res.Body)
+		_ = res.Body.Close()
 	}()
 
 	return nil
