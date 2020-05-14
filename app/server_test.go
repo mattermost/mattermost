@@ -357,7 +357,7 @@ func TestSentry(t *testing.T) {
 		t.SkipNow()
 	}
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Second}
 	data1 := make(chan bool, 1)
 
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -390,7 +390,9 @@ func TestSentry(t *testing.T) {
 	serverErr := s.Start()
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
-	client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	_, err = client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	require.Error(t, err)
+
 	sentry.Flush(time.Second * 1)
 	select {
 	case <-data1:
@@ -426,7 +428,9 @@ func TestSentry(t *testing.T) {
 
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
-	client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
+	resp, err := client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
+	require.Error(t, err)
+	require.Nil(t, resp)
 	sentry.Flush(time.Second * 1)
 	select {
 	case <-data2:
