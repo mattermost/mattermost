@@ -396,12 +396,12 @@ func TestDisableOnRemove(t *testing.T) {
 				})
 
 				// Upload
-				manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+				manifest, resp := client.UploadPlugin(bytes.NewReader(tarData))
 				CheckNoError(t, resp)
 				require.Equal(t, "testplugin", manifest.Id)
 
 				// Check initial status
-				pluginsResp, resp := th.SystemAdminClient.GetPlugins()
+				pluginsResp, resp := client.GetPlugins()
 				CheckNoError(t, resp)
 				require.Empty(t, pluginsResp.Active)
 				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
@@ -409,12 +409,12 @@ func TestDisableOnRemove(t *testing.T) {
 				}})
 
 				// Enable plugin
-				ok, resp := th.SystemAdminClient.EnablePlugin(manifest.Id)
+				ok, resp := client.EnablePlugin(manifest.Id)
 				CheckNoError(t, resp)
 				require.True(t, ok)
 
 				// Confirm enabled status
-				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+				pluginsResp, resp = client.GetPlugins()
 				CheckNoError(t, resp)
 				require.Empty(t, pluginsResp.Inactive)
 				require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
@@ -423,12 +423,12 @@ func TestDisableOnRemove(t *testing.T) {
 
 				if tc.Upgrade {
 					// Upgrade
-					manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
+					manifest, resp = client.UploadPluginForced(bytes.NewReader(tarData))
 					CheckNoError(t, resp)
 					require.Equal(t, "testplugin", manifest.Id)
 
 					// Plugin should remain active
-					pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+					pluginsResp, resp = client.GetPlugins()
 					CheckNoError(t, resp)
 					require.Empty(t, pluginsResp.Inactive)
 					require.Equal(t, pluginsResp.Active, []*model.PluginInfo{{
@@ -437,23 +437,23 @@ func TestDisableOnRemove(t *testing.T) {
 				}
 
 				// Remove plugin
-				ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
+				ok, resp = client.RemovePlugin(manifest.Id)
 				CheckNoError(t, resp)
 				require.True(t, ok)
 
 				// Plugin should have no status
-				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+				pluginsResp, resp = client.GetPlugins()
 				CheckNoError(t, resp)
 				require.Empty(t, pluginsResp.Inactive)
 				require.Empty(t, pluginsResp.Active)
 
 				// Upload same plugin
-				manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+				manifest, resp = client.UploadPlugin(bytes.NewReader(tarData))
 				CheckNoError(t, resp)
 				require.Equal(t, "testplugin", manifest.Id)
 
 				// Plugin should be inactive
-				pluginsResp, resp = th.SystemAdminClient.GetPlugins()
+				pluginsResp, resp = client.GetPlugins()
 				CheckNoError(t, resp)
 				require.Empty(t, pluginsResp.Active)
 				require.Equal(t, pluginsResp.Inactive, []*model.PluginInfo{{
@@ -461,7 +461,7 @@ func TestDisableOnRemove(t *testing.T) {
 				}})
 
 				// Clean up
-				ok, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
+				ok, resp = client.RemovePlugin(manifest.Id)
 				CheckNoError(t, resp)
 				require.True(t, ok)
 			})
