@@ -26,14 +26,12 @@ var brotliEncodedContent = map[string]string{
 
 var brotliContentTypes []string
 
-func init() {
-	for _, ct := range brotliEncodedContent {
-		brotliContentTypes = append(brotliContentTypes, ct)
-	}
-}
-
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
+		for _, ct := range brotliEncodedContent {
+			brotliContentTypes = append(brotliContentTypes, ct)
+		}
+
 		if err := utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config()); err != nil {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
