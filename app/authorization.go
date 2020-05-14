@@ -26,7 +26,9 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 	if teamId == "" {
 		return false
 	}
-
+	if session.IsUnrestricted() {
+		return true
+	}
 	teamMember := session.GetTeamByTeamId(teamId)
 	if teamMember != nil {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
