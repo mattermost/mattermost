@@ -6712,8 +6712,8 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store) {
 		require.Len(t, res.Categories, 4)
 
 		// This will have to change after category creation order is fixed
-		require.Equal(t, model.SidebarCategoryCustom, res.Categories[2].Type)
-		require.Equal(t, []string{channel1.Id, channel2.Id, dmChannel1.Id}, res.Categories[2].Channels)
+		require.Equal(t, model.SidebarCategoryCustom, res.Categories[3].Type)
+		require.Equal(t, []string{channel1.Id, channel2.Id, dmChannel1.Id}, res.Categories[3].Channels)
 
 		// Actually delete the channel
 		err = ss.Channel().DeleteSidebarCategory(newCategory.Id)
