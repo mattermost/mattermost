@@ -3511,9 +3511,9 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 			}
 			oc.Categories = append(oc.Categories, prevCategory)
 			oc.Order = append(oc.Order, category.Id)
-			if category.ChannelId != nil {
-				prevCategory.Channels = append(prevCategory.Channels, *category.ChannelId)
-			}
+		}
+		if category.ChannelId != nil {
+			prevCategory.Channels = append(prevCategory.Channels, *category.ChannelId)
 		}
 	}
 	for _, category := range oc.Categories {
