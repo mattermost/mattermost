@@ -391,7 +391,7 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
 	client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	sentry.Flush(1)
+	sentry.Flush(time.Second * 1)
 	select {
 	case <-data1:
 		require.Fail(t, "Sentry received a message, even though it's disabled!")
@@ -427,7 +427,7 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
 	client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
-	sentry.Flush(1)
+	sentry.Flush(time.Second * 1)
 	select {
 	case <-data2:
 		t.Log("Sentry request arrived. Good!")
