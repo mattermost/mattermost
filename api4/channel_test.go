@@ -1654,12 +1654,18 @@ func TestGetChannelMembers(t *testing.T) {
 
 		_, resp = client.GetChannelMembers("junk", 0, 60, "")
 		CheckBadRequestStatus(t, resp)
+
+		_, resp = client.GetChannelMembers("", 0, 60, "")
+		// NOTE: for some reason, while using the LocalClient, the route /channels//members is not handled
+		if client == th.LocalClient {
+			CheckNotFoundStatus(t, resp)
+		} else {
+			CheckBadRequestStatus(t, resp)
+		}
+
 	})
 
-	_, resp := th.Client.GetChannelMembers("", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.Client.GetChannelMembers(model.NewId(), 0, 60, "")
+	_, resp := th.Client.GetChannelMembers(model.NewId(), 0, 60, "")
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
