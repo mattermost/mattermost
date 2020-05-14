@@ -541,7 +541,7 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(userId string, tokenId string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustImage")
 

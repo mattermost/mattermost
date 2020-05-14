@@ -352,7 +352,7 @@ type AppIface interface {
 	AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError)
 	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError)
-	AdjustImage(file io.Reader) ([]byte, *model.AppError)
+	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError
