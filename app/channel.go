@@ -2511,7 +2511,7 @@ func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model
 	if err != nil {
 		return nil, err
 	}
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
 	a.Publish(message)
 	return result, nil
 }
@@ -2522,7 +2522,7 @@ func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.Ap
 		return err
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED, teamId, "", userId, nil)
 	message.Add("category_id", categoryId)
 	a.Publish(message)
 
