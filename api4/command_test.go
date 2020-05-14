@@ -20,7 +20,6 @@ func TestCreateCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
-	LocalClient := th.LocalClient
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
@@ -48,13 +47,6 @@ func TestCreateCommand(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.command.duplicate_trigger.app_error")
 
-	newCmd.Trigger = "Local"
-	localCreatedCmd, resp := LocalClient.CreateCommand(newCmd)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-	require.Equal(t, th.BasicUser.Id, localCreatedCmd.CreatorId, "local client: user ids didn't match")
-	require.Equal(t, th.BasicTeam.Id, localCreatedCmd.TeamId, "local client: team ids didn't match")
-
 	newCmd.Method = "Wrong"
 	newCmd.Trigger = "testcommand"
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
@@ -66,11 +58,6 @@ func TestCreateCommand(t *testing.T) {
 	newCmd.Trigger = "testcommand"
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNotImplementedStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
-
-	// Confirm that local clients can't override disable command setting
-	newCmd.Trigger = "LocalOverride"
-	_, resp = LocalClient.CreateCommand(newCmd)
 	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
 }
 

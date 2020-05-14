@@ -269,13 +269,10 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Channels = api.BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
 
-	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
-
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
 	api.InitChannelLocal()
 	api.InitTeamLocal()
-	api.InitCommandLocal()
 	api.InitLicenseLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
