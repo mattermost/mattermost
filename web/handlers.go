@@ -154,7 +154,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/%s",
 			h.cspShaDirective,
 		))
 	} else {
@@ -212,8 +212,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
-	if c.Err == nil && h.IsLocal && *c.App.Config().ServiceSettings.EnableLocalMode {
-		c.App.SetSession(&model.Session{Local: true})
+	if c.Err == nil && h.IsLocal {
+		// if the connection is local, RemoteAddr shouldn't have the
+		// shape IP:PORT (it will be "@" in Linux, for example)
+		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
+		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
+			c.App.SetSession(&model.Session{Local: true})
+		} else if !isLocalOrigin {
+			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
+		}
 	}
 
 	if c.Err == nil {

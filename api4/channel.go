@@ -44,6 +44,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("/pinned", api.ApiSessionRequired(getPinnedPosts)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/timezones", api.ApiSessionRequired(getChannelMembersTimezones)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("/members_minus_group_members", api.ApiSessionRequired(channelMembersMinusGroupMembers)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("/member_counts_by_group", api.ApiSessionRequired(channelMemberCountsByGroup)).Methods("GET")
 
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.ApiSessionRequired(getChannelUnread)).Methods("GET")
 
@@ -427,7 +428,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, id := range userIds {
-		if len(id) != 26 {
+		if !model.IsValidId(id) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -506,7 +507,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	found := false
 	for _, id := range userIds {
-		if len(id) != 26 {
+		if !model.IsValidId(id) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -773,7 +774,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	for _, cid := range channelIds {
-		if len(cid) != 26 {
+		if !model.IsValidId(cid) {
 			c.SetInvalidParam("channel_id")
 			return
 		}
@@ -865,11 +866,6 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
-		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
-		return
-	}
-
 	name := r.URL.Query().Get("name")
 
 	channels, err := c.App.AutocompleteChannelsForSearch(c.Params.TeamId, c.App.Session().UserId, name)
@@ -877,8 +873,6 @@ func autocompleteChannelsForTeamForSearch(c *Context, w http.ResponseWriter, r *
 		c.Err = err
 		return
 	}
-
-	// Don't fill in channels props, since unused by client and potentially expensive.
 
 	w.Write([]byte(channels.ToJson()))
 }
@@ -1247,6 +1241,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
+	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	// Returning {"status": "OK", ...} for backwards compatibility
 	resp := &model.ChannelViewResponse{
@@ -1364,7 +1359,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.StringInterfaceFromJson(r.Body)
 	userId, ok := props["user_id"].(string)
-	if !ok || len(userId) != 26 {
+	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -1375,7 +1370,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	postRootId, ok := props["post_root_id"].(string)
-	if ok && len(postRootId) != 0 && len(postRootId) != 26 {
+	if ok && len(postRootId) != 0 && !model.IsValidId(postRootId) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
@@ -1544,7 +1539,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || len(*schemeID) != 26 {
+	if schemeID == nil || !model.IsValidId(*schemeID) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
@@ -1611,7 +1606,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 
 	groupIDs := []string{}
 	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
-		if len(gid) != 26 {
+		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
 		}
@@ -1640,6 +1635,39 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 	})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.channelMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil {
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.channel.channel_member_counts_by_group.license.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
+
+	channelMemberCounts, err := c.App.Srv().Store.Channel().GetMemberCountsByGroup(c.Params.ChannelId, includeTimezones)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(channelMemberCounts)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

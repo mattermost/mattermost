@@ -79,7 +79,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	requestData := model.MapFromJson(r.Body)
 	clientId := requestData["client_id"]
 
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.SetInvalidParam("client_id")
 		return
 	}
@@ -200,7 +200,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientId := r.FormValue("client_id")
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_id.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
