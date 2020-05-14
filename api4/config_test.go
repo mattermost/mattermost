@@ -381,19 +381,18 @@ func TestGetOldClientConfig(t *testing.T) {
 func TestPatchConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	client := th.Client
 
 	t.Run("config is missing", func(t *testing.T) {
-		_, response := client.PatchConfig(nil)
+		_, response := th.Client.PatchConfig(nil)
 		CheckBadRequestStatus(t, response)
 	})
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response := client.PatchConfig(&model.Config{})
+		_, response := th.Client.PatchConfig(&model.Config{})
 		CheckForbiddenStatus(t, response)
 	})
 
-	t.Run("should not update the restricted fields when restrict toggle is on", func(t *testing.T) {
+	t.Run("should not update the restricted fields when restrict toggle is on for sysadmin", func(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
@@ -405,72 +404,94 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, "DEBUG", *updatedConfig.LogSettings.ConsoleLevel)
 	})
 
-	t.Run("check if config is valid", func(t *testing.T) {
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			MinimumLength: model.NewInt(4),
-		}}
+	t.Run("should not bypass the restrict toggle if local client", func(t *testing.T) {
+		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
-		_, response := th.SystemAdminClient.PatchConfig(&config)
-
-		assert.Equal(t, http.StatusBadRequest, response.StatusCode)
-		assert.NotNil(t, response.Error)
-		assert.Equal(t, "model.config.is_valid.password_length.app_error", response.Error.Id)
-	})
-
-	t.Run("should patch the config", func(t *testing.T) {
-		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
-
-		oldConfig, _ := th.SystemAdminClient.GetConfig()
-
-		assert.False(t, *oldConfig.PasswordSettings.Lowercase)
-		assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
-		assert.Equal(t, "DEBUG", *oldConfig.LogSettings.ConsoleLevel)
-		assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
-
-		states := make(map[string]*model.PluginState)
-		states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			Lowercase:     model.NewBool(true),
-			MinimumLength: model.NewInt(15),
-		}, LogSettings: model.LogSettings{
+		config := model.Config{LogSettings: model.LogSettings{
 			ConsoleLevel: model.NewString("INFO"),
-		},
-			TeamSettings: model.TeamSettings{
-				ExperimentalDefaultChannels: []string{"another-channel"},
-			},
-			PluginSettings: model.PluginSettings{
-				PluginStates: states,
-			},
-		}
+		}}
 
-		_, response := th.SystemAdminClient.PatchConfig(&config)
+		oldConfig, _ := th.LocalClient.GetConfig()
+		updatedConfig, _ := th.LocalClient.PatchConfig(&config)
 
-		updatedConfig, _ := th.SystemAdminClient.GetConfig()
-		assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
-		assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
-		assert.False(t, updatedConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
-		assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
+		// reset the config
+		_, resp := th.LocalClient.UpdateConfig(oldConfig)
+		CheckNoError(t, resp)
 	})
 
-	t.Run("should sanitize config", func(t *testing.T) {
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			Symbol: model.NewBool(true),
-		}}
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("check if config is valid", func(t *testing.T) {
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				MinimumLength: model.NewInt(4),
+			}}
 
-		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+			_, response := client.PatchConfig(&config)
 
-		assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
-	})
+			assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+			assert.NotNil(t, response.Error)
+			assert.Equal(t, "model.config.is_valid.password_length.app_error", response.Error.Id)
+		})
 
-	t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
-		config := model.Config{PluginSettings: model.PluginSettings{
-			EnableUploads: model.NewBool(true),
-		}}
+		t.Run("should patch the config", func(t *testing.T) {
+			*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
-		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+			oldConfig, _ := client.GetConfig()
 
-		assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+			assert.False(t, *oldConfig.PasswordSettings.Lowercase)
+			assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
+			assert.Equal(t, "DEBUG", *oldConfig.LogSettings.ConsoleLevel)
+			assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+
+			states := make(map[string]*model.PluginState)
+			states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				Lowercase:     model.NewBool(true),
+				MinimumLength: model.NewInt(15),
+			}, LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("INFO"),
+			},
+				TeamSettings: model.TeamSettings{
+					ExperimentalDefaultChannels: []string{"another-channel"},
+				},
+				PluginSettings: model.PluginSettings{
+					PluginStates: states,
+				},
+			}
+
+			_, response := client.PatchConfig(&config)
+
+			updatedConfig, _ := client.GetConfig()
+			assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
+			assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
+			assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
+			assert.False(t, updatedConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+			assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
+
+			// reset the config
+			_, resp := client.UpdateConfig(oldConfig)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("should sanitize config", func(t *testing.T) {
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				Symbol: model.NewBool(true),
+			}}
+
+			updatedConfig, _ := client.PatchConfig(&config)
+
+			assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+		})
+
+		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
+			config := model.Config{PluginSettings: model.PluginSettings{
+				EnableUploads: model.NewBool(true),
+			}}
+
+			updatedConfig, _ := client.PatchConfig(&config)
+
+			assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+		})
 	})
 }
