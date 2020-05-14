@@ -1619,9 +1619,9 @@ func TestAddTeamMember(t *testing.T) {
 
 	// SystemAdmin and mode can add member to a team
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		tm, resp := client.AddTeamMember(team.Id, otherUser.Id)
-		CheckNoError(t, resp)
-		CheckCreatedStatus(t, resp)
+		tm, r := client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, r)
+		CheckCreatedStatus(t, r)
 		require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
 		require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 	})
