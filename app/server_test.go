@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -18,11 +19,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -375,7 +378,6 @@ func TestSentry(t *testing.T) {
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = false
-
 		})
 		return nil
 	})
@@ -390,10 +392,18 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
 	resp, err := client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+	if resp != nil {
+		buf, err := ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		t.Log(buf)
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}
+	t.Log(err)
 
-	// sentry.Flush(time.Second * 1)
+	sentry.Flush(time.Second * 1)
 	select {
 	case <-data1:
 		require.Fail(t, "Sentry received a message, even though it's disabled!")
@@ -416,7 +426,6 @@ func TestSentry(t *testing.T) {
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = true
-
 		})
 		return nil
 	})
@@ -429,9 +438,16 @@ func TestSentry(t *testing.T) {
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
 	resp, err = client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
-	// sentry.Flush(time.Second * 1)
+	assert.Nil(t, resp)
+	assert.Error(t, err)
+	if resp != nil {
+		buf, err := ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		t.Log(buf)
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}
+	sentry.Flush(time.Second * 1)
 	select {
 	case <-data2:
 		t.Log("Sentry request arrived. Good!")
