@@ -25,8 +25,10 @@ const (
 	DefaultSidebarSortOrderChannels  = DefaultSidebarSortOrderFavorites + MinimalSidebarSortDistance
 	DefaultSidebarSortOrderDMs       = DefaultSidebarSortOrderChannels + MinimalSidebarSortDistance
 	// Sorting modes
-	// default for all categories except DMs
-	SidebarCategorySortManual SidebarCategorySorting = ""
+	// default for all categories except DMs (behaves like manual)
+	SidebarCategorySortDefault SidebarCategorySorting = ""
+	// sort manually
+	SidebarCategorySortManual SidebarCategorySorting = "manual"
 	// sort by recency (default for DMs)
 	SidebarCategorySortRecent SidebarCategorySorting = "recent"
 	// sort by display name alphabetically
