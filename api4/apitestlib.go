@@ -125,9 +125,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if err := th.Server.Start(); err != nil {
 		panic(err)
 	}
-	if err := th.Server.StartLocalModeServer(); err != nil {
-		panic(err)
-	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)

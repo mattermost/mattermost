@@ -83,15 +83,6 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		return serverErr
 	}
 
-	if *configStore.Get().ServiceSettings.EnableLocalMode {
-		if err := server.StartLocalModeServer(); err != nil {
-			mlog.Critical(err.Error())
-			return err
-		}
-		api4.InitLocal(server, server.AppOptions, server.LocalRouter)
-		defer server.StopLocalModeServer()
-	}
-
 	// If we allow testing then listen for manual testing URL hits
 	if *server.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api)
