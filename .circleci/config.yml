@@ -7,11 +7,11 @@ orbs:
 executors:
   ubuntu:
     working_directory: ~/mattermost/
+    resource_class: xlarge
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "xlarge"
 
 jobs:
   setup:
