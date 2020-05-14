@@ -155,7 +155,7 @@ func (a *App) parseArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 		parsed = changedParsed
 		toBeParsed = changedToBeParsed
 	} else if arg.Type == model.AutocompleteArgTypeDynamicList {
-		found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.parseDynamicListArgument(arg, parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.getDynamicListArgument(arg, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, dynamicListsuggestions...)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -217,7 +217,7 @@ func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed stri
 	return parseListItems(a.PossibleArguments, parsed, toBeParsed)
 }
 
-func (a *App) parseDynamicListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) getDynamicListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 	params := url.Values{}
 	params.Add("user_input", parsed+toBeParsed)

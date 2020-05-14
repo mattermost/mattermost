@@ -51,7 +51,7 @@ func TestAutocompleteData(t *testing.T) {
 			HelpText: "text",
 		},
 	}
-	command.AddStaticListArgument("help", items, true)
+	command.AddStaticListArgument("help", true, items)
 	ad.AddCommand(command)
 	assert.NotNil(t, ad.IsValid())
 
@@ -90,7 +90,7 @@ func getAutocompleteData() *AutocompleteData {
 			HelpText: "text2",
 		},
 	}
-	command.AddStaticListArgument("help", items, true)
+	command.AddStaticListArgument("help", true, items)
 	command.AddNamedTextArgument("some", "help", "[text]", "", true)
 	command.AddNamedDynamicListArgument("other", "help", "/other/url", true)
 	ad.AddCommand(command)

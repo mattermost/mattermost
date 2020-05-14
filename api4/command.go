@@ -386,7 +386,7 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 	}
 
 	userInput := r.URL.Query().Get("user_input")
-	if len(userInput) == 0 {
+	if userInput == "" {
 		c.SetInvalidParam("userInput")
 		return
 	}

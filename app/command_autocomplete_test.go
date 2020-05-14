@@ -507,71 +507,30 @@ func TestCommandWithOptionalArgs(t *testing.T) {
 func createCommandWithOptionalArgs() *model.AutocompleteData {
 	command := model.NewAutocompleteData("command", "", "")
 	subCommand1 := model.NewAutocompleteData("subcommand1", "", "")
-	subCommand1.AddStaticListArgument("arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, true)
+	subCommand1.AddStaticListArgument("arg1", true, []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
 	subCommand1.AddNamedTextArgument("name2", "arg2", "", "", false)
 	command.AddCommand(subCommand1)
 	subCommand2 := model.NewAutocompleteData("subcommand2", "", "")
-	subCommand2.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, false)
+	subCommand2.AddNamedStaticListArgument("name1", "arg1", false, []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
 	subCommand2.AddTextArgument("arg2", "", "")
 	subCommand2.AddTextArgument("arg3", "", "")
 	command.AddCommand(subCommand2)
 	subCommand3 := model.NewAutocompleteData("subcommand3", "", "")
-	subCommand3.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}}, false)
+	subCommand3.AddNamedStaticListArgument("name1", "arg1", false, []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
 	subCommand3.AddNamedTextArgument("name2", "arg2", "", "", false)
 	subCommand3.AddNamedTextArgument("name3", "arg3", "", "", false)
 	command.AddCommand(subCommand3)
 	subcommand4 := model.NewAutocompleteData("subcommand4", "", "help1")
-	subcommand4.AddStaticListArgument("help2", []model.AutocompleteListItem{{
+	subcommand4.AddStaticListArgument("help2", false, []model.AutocompleteListItem{{
 		HelpText: "help3",
 		Hint:     "(optional)",
 		Item:     "item1",
-	}}, false)
+	}})
 	subcommand4.AddTextArgument("help4", "message", "")
 	command.AddCommand(subcommand4)
 
 	return command
 }
-
-/*
-func TestSubcommandsAndArgumentsSuggestions(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	command := createCommandWithSubsAndArguments()
-
-	suggestions := th.App.getSuggestions([]*model.AutocompleteData{command}, "", "comm", model.SYSTEM_ADMIN_ROLE_ID)
-	assert.Len(t, suggestions, 1)
-	assert.Equal(t, command.Trigger, suggestions[0].Complete)
-	assert.Equal(t, command.Trigger, suggestions[0].Suggestion)
-	assert.Equal(t, "", suggestions[0].Hint)
-	assert.Equal(t, command.HelpText, suggestions[0].Description)
-
-	suggestions = th.App.getSuggestions([]*model.AutocompleteData{command}, "", "command ", model.SYSTEM_ADMIN_ROLE_ID)
-	assert.Len(t, suggestions, 1)
-	assert.Equal(t, "command ", suggestions[0].Complete)
-	assert.Equal(t, "", suggestions[0].Suggestion)
-	assert.Equal(t, "", suggestions[0].Hint)
-	assert.Equal(t, "arg1", suggestions[0].Description)
-}
-
-func createCommandWithSubsAndArguments() *model.AutocompleteData {
-	command := model.NewAutocompleteData("command", "", "")
-	command.AddTextArgument("arg1", "", "")
-	command.AddStaticListArgument("arg2", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
-	command.AddNamedTextArgument("name3", "arg3", "", "")
-	subCommand1 := model.NewAutocompleteData("subcommand1", "", "")
-	subCommand1.AddStaticListArgument("arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
-	subCommand1.AddNamedTextArgument("name2", "arg2", "", "")
-	command.AddCommand(subCommand1)
-	subCommand2 := model.NewAutocompleteData("subcommand2", "", "")
-	subCommand2.AddNamedStaticListArgument("name1", "arg1", []model.AutocompleteListItem{{Item: "item1"}, {Item: "item2"}})
-	subCommand2.AddTextArgument("arg2", "", "")
-	subCommand2.AddTextArgument("arg3", "", "")
-	command.AddCommand(subCommand2)
-
-	return command
-}
-*/
 
 // createJiraAutocompleteData will create autocomplete data for jira plugin. For testing purposes only.
 func createJiraAutocompleteData() *model.AutocompleteData {
@@ -617,7 +576,7 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 			Item: "Off",
 		},
 	}
-	notifications.AddStaticListArgument("Turn notifications on or off", items, true)
+	notifications.AddStaticListArgument("Turn notifications on or off", true, items)
 	settings.AddCommand(notifications)
 	jira.AddCommand(settings)
 

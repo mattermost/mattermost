@@ -14,11 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AutocompleteArgType describes autocomplete argument type
+type AutocompleteArgType string
+
 // Argument types
 const (
-	AutocompleteArgTypeText        = "TextInput"
-	AutocompleteArgTypeStaticList  = "StaticList"
-	AutocompleteArgTypeDynamicList = "DynamicList"
+	AutocompleteArgTypeText        AutocompleteArgType = "TextInput"
+	AutocompleteArgTypeStaticList                      = "StaticList"
+	AutocompleteArgTypeDynamicList                     = "DynamicList"
 )
 
 // AutocompleteData describes slash command autocomplete information.
@@ -48,7 +51,7 @@ type AutocompleteArg struct {
 	// Text displayed to the user to help with the autocomplete
 	HelpText string
 	// Type of the argument
-	Type string
+	Type AutocompleteArgType
 	// Required determins if argument is optional or not.
 	Required bool
 	// Actual data of the argument (depends on the Type)
@@ -81,7 +84,7 @@ type AutocompleteDynamicListArg struct {
 	FetchURL string
 }
 
-// AutocompleteSuggestion describes a single suggestion item sent to the frontend
+// AutocompleteSuggestion describes a single suggestion item sent to the front-end
 // Example: for user input `/jira cre` -
 // Complete might be `/jira create`
 // Suggestion might be `create`,
@@ -135,12 +138,12 @@ func (ad *AutocompleteData) AddNamedTextArgument(name, helpText, hint, pattern s
 }
 
 // AddStaticListArgument adds positional AutocompleteArgTypeStaticList argument to the command.
-func (ad *AutocompleteData) AddStaticListArgument(helpText string, items []AutocompleteListItem, required bool) {
-	ad.AddNamedStaticListArgument("", helpText, items, required)
+func (ad *AutocompleteData) AddStaticListArgument(helpText string, required bool, items []AutocompleteListItem) {
+	ad.AddNamedStaticListArgument("", helpText, required, items)
 }
 
 // AddNamedStaticListArgument adds named AutocompleteArgTypeStaticList argument to the command.
-func (ad *AutocompleteData) AddNamedStaticListArgument(name, helpText string, items []AutocompleteListItem, required bool) {
+func (ad *AutocompleteData) AddNamedStaticListArgument(name, helpText string, required bool, items []AutocompleteListItem) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
@@ -335,10 +338,11 @@ func (a *AutocompleteArg) UnmarshalJSON(b []byte) error {
 		return errors.Errorf("No field HelpText in the argument %s", string(b))
 	}
 
-	a.Type, ok = arg["Type"].(string)
+	t, ok := arg["Type"].(string)
 	if !ok {
 		return errors.Errorf("No field Type in the argument %s", string(b))
 	}
+	a.Type = AutocompleteArgType(t)
 
 	a.Required, ok = arg["Required"].(bool)
 	if !ok {
