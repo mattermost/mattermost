@@ -116,7 +116,7 @@ func TestUpdateConfig(t *testing.T) {
 			badcfg := cfg.Clone()
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
 			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-			_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
+			_, resp = client.UpdateConfig(badcfg)
 			CheckBadRequestStatus(t, resp)
 			CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
 		})
@@ -125,13 +125,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			cfg, resp = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
 			cfg.PluginSettings.EnableUploads = nil
-			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			cfg, resp = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
 			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
@@ -141,13 +141,13 @@ func TestUpdateConfig(t *testing.T) {
 			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
 
-			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			cfg, resp = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 
 			cfg.PluginSettings.SignaturePublicKeyFiles = nil
-			cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+			cfg, resp = client.UpdateConfig(cfg)
 			CheckNoError(t, resp)
 			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
@@ -228,23 +228,40 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-	originalCfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+	t.Run("Restrict flag should be honored for sysadmin", func(t *testing.T) {
+		originalCfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
 
-	cfg := originalCfg.Clone()
-	*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
-	*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+		cfg := originalCfg.Clone()
+		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
 
-	returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
+		returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
-	require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
+		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+		require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
 
-	actualCfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+		actualCfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
 
-	require.Equal(t, returnedCfg, actualCfg)
+		require.Equal(t, returnedCfg, actualCfg)
+	})
+
+	t.Run("Restrict flag should be ignored by local mode", func(t *testing.T) {
+		originalCfg, resp := th.LocalClient.GetConfig()
+		CheckNoError(t, resp)
+
+		cfg := originalCfg.Clone()
+		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+
+		returnedCfg, resp := th.LocalClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+		require.Equal(t, "http://example.com", *returnedCfg.ServiceSettings.SiteURL)
+	})
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
