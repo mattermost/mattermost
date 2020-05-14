@@ -2515,3 +2515,16 @@ func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model
 	a.Publish(message)
 	return result, nil
 }
+
+func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError {
+	err := a.Srv().Store.Channel().DeleteSidebarCategory(categoryId)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
+	message.Add("category_id", categoryId)
+	a.Publish(message)
+
+	return nil
+}

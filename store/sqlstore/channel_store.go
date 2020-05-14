@@ -3798,3 +3798,68 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.A
 	}
 	return nil
 }
+
+// DeleteSidebarCategory removes a custom category and moves any channels into it into the Channels and Direct Messages
+// categories respectively. Assumes that the provided user ID and team ID match the given category ID.
+func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	// Ensure that we're deleting a custom category
+	var category *model.SidebarCategory
+	if err = transaction.SelectOne(&category, "SELECT * FROM SidebarCategories WHERE Id = :Id", map[string]interface{}{"Id": categoryId}); err != nil {
+		return model.NewAppError("SqlPostStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if category.Type != model.SidebarCategoryCustom {
+		return model.NewAppError("SqlPostStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.delete_invalid.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Delete the channels in the category
+	sql, args, _ := s.getQueryBuilder().
+		Delete("SidebarChannels").
+		Where(sq.Eq{"CategoryId": categoryId}).ToSql()
+
+	if _, err := transaction.Exec(sql, args...); err != nil {
+		return model.NewAppError("SqlPostStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Delete the category itself
+	sql, args, _ = s.getQueryBuilder().
+		Delete("SidebarCategories").
+		Where(sq.Eq{"Id": categoryId}).ToSql()
+
+	if _, err := transaction.Exec(sql, args...); err != nil {
+		return model.NewAppError("SqlChannelStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.DeleteSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) getSidebarCategoryIdByType(transaction *gorp.Transaction, userId, teamId string, categoryType model.SidebarCategoryType) (string, error) {
+	params := map[string]interface{}{
+		"UserId":       userId,
+		"TeamId":       teamId,
+		"CategoryType": categoryType,
+	}
+
+	var categoryId string
+	err := transaction.SelectOne(&categoryId, `
+		SELECT
+			Id
+		FROM
+			SidebarCategories
+		WHERE
+			Type = :CategoryType
+			AND UserId = :UserId
+			AND TeamId = :TeamId`, params)
+
+	return categoryId, err
+}

@@ -251,6 +251,22 @@ func (_m *ChannelStore) Delete(channelId string, time int64) *model.AppError {
 	return r0
 }
 
+// DeleteSidebarCategory provides a mock function with given fields: categoryId
+func (_m *ChannelStore) DeleteSidebarCategory(categoryId string) *model.AppError {
+	ret := _m.Called(categoryId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(categoryId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id, allowFromCache
 func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	ret := _m.Called(id, allowFromCache)
