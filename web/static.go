@@ -28,10 +28,6 @@ var brotliContentTypes []string
 
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
-		for _, ct := range brotliEncodedContent {
-			brotliContentTypes = append(brotliContentTypes, ct)
-		}
-
 		if err := utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config()); err != nil {
 			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
 		}
@@ -45,6 +41,10 @@ func (w *Web) InitStatic() {
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
 
 		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+			for _, ct := range brotliEncodedContent {
+				brotliContentTypes = append(brotliContentTypes, ct)
+			}
+
 			everythingExceptBrotliGzipHandler, err := gziphandler.GzipHandlerWithOpts(gziphandler.ContentTypeExceptions(brotliContentTypes))
 			if err != nil {
 				mlog.Error("Failed to initialize gziphandler", mlog.Err(err))
