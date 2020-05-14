@@ -66,14 +66,14 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.Ap
 func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 	var command model.Command
 
-	query, args, err := s.getQueryBuilder().
+	sql, args, err := s.getQueryBuilder().
 		Select("*").
 		From("Commands").
 		Where(sq.Eq{"Id": id, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err = s.GetReplica().SelectOne(&command, query, args...); err != nil {
+	if err = s.GetReplica().SelectOne(&command, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -82,14 +82,14 @@ func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 
 func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
 	var commands []*model.Command
-	query, args, err := s.getQueryBuilder().
+	sql, args, err := s.getQueryBuilder().
 		Select("*").
 		From("Commands").
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql_command.save.get_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err := s.GetReplica().Select(&commands, query, args...); err != nil {
+	if _, err := s.GetReplica().Select(&commands, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql_command.save.get_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -105,7 +105,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		triggerStr = "\"trigger\""
 	}
 
-	query, args, err := s.getQueryBuilder().
+	sql, args, err := s.getQueryBuilder().
 		Select("*").
 		From("Commands").
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, triggerStr: trigger}).ToSql()
@@ -113,7 +113,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := s.GetReplica().SelectOne(&command, query, args...); err != nil {
+	if err := s.GetReplica().SelectOne(&command, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, "teamId="+teamId+", trigger="+trigger+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -122,8 +122,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 
 func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Update("").
-		Table("Commands").
+		Update("Commands").
 		SetMap(sq.Eq{"DeleteAt": time, "UpdateAt": time}).
 		Where(sq.Eq{"Id": commandId}).ToSql()
 	if err != nil {
@@ -140,8 +139,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
 
 func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("").
-		From("Commands").
+		Delete("Commands").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -155,8 +153,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 
 func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("").
-		From("Commands").
+		Delete("Commands").
 		Where(sq.Eq{"CreatorId": userId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlCommandStore.DeleteByUser", "store.sql_command.save.delete_perm.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -192,12 +189,13 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.App
 	if len(teamId) > 0 {
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
-	queryStr, args, err := query.ToSql()
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return 0, model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	c, err := s.GetReplica().SelectInt(queryStr, args...)
+	c, err := s.GetReplica().SelectInt(sql, args...)
 	if err != nil {
 		return 0, model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
