@@ -25,7 +25,7 @@ type Store interface {
 	RemoveEnvironmentOverrides(cfg *model.Config) *model.Config
 
 	// Set replaces the current configuration in its entirety and updates the backing store.
-	Set(*model.Config) (*model.Config, error)
+	Set(*model.Config, bool) (*model.Config, error)
 
 	// Load updates the current configuration from the backing store, possibly initializing.
 	Load() (err error)

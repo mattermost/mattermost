@@ -36,18 +36,14 @@ func desanitize(actual, target *model.Config) {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
 
-	if len(target.SqlSettings.DataSourceReplicas) == 1 && target.SqlSettings.DataSourceReplicas[0] == model.FAKE_SETTING {
-		target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
-		for i := range target.SqlSettings.DataSourceReplicas {
-			target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
-		}
+	target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
+	for i := range target.SqlSettings.DataSourceReplicas {
+		target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
 	}
 
-	if len(target.SqlSettings.DataSourceSearchReplicas) == 1 && target.SqlSettings.DataSourceSearchReplicas[0] == model.FAKE_SETTING {
-		target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
-		for i := range target.SqlSettings.DataSourceSearchReplicas {
-			target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
-		}
+	target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
+	for i := range target.SqlSettings.DataSourceSearchReplicas {
+		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
 
 	if *target.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {

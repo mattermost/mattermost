@@ -104,14 +104,14 @@ func (fs *FileStore) resolveFilePath(name string) string {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
+func (fs *FileStore) Set(newCfg *model.Config, shouldDesanitize bool) (*model.Config, error) {
 	return fs.commonStore.set(newCfg, true, func(cfg *model.Config) error {
 		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
 			return ErrReadOnlyConfiguration
 		}
 
 		return fs.commonStore.validate(cfg)
-	}, fs.persist)
+	}, fs.persist, shouldDesanitize)
 }
 
 // persist writes the configuration to the configured file.

@@ -251,7 +251,7 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, errSet := configStore.Set(newConfig); errSet != nil {
+	if _, errSet := configStore.Set(newConfig, true); errSet != nil {
 		return errors.Wrap(errSet, "failed to set config")
 	}
 
@@ -430,7 +430,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if confirmFlag {
-		if _, err = configStore.Set(defaultConfig); err != nil {
+		if _, err = configStore.Set(defaultConfig, true); err != nil {
 			return errors.Wrap(err, "failed to set config")
 		}
 	}
@@ -440,7 +440,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
 		fmt.Scanln(&confirmResetAll)
 		if confirmResetAll == "YES" {
-			if _, err = configStore.Set(defaultConfig); err != nil {
+			if _, err = configStore.Set(defaultConfig, true); err != nil {
 				return errors.Wrap(err, "failed to set config")
 			}
 		}
@@ -469,7 +469,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, errSet := configStore.Set(tempConfig); errSet != nil {
+	if _, errSet := configStore.Set(tempConfig, true); errSet != nil {
 		return errors.Wrap(errSet, "failed to set config")
 	}
 

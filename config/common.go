@@ -43,7 +43,7 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 // using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool, validate func(*model.Config) error, persist func(*model.Config) error, shouldDesanitize bool) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -69,7 +69,9 @@ func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool,
 
 	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
 	// data from the existing config as necessary.
-	desanitize(oldCfg, newCfg)
+	if shouldDesanitize {
+		desanitize(oldCfg, newCfg)
+	}
 
 	if validate != nil {
 		if err := validate(newCfg); err != nil {

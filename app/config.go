@@ -46,11 +46,20 @@ func (a *App) EnvironmentConfig() map[string]interface{} {
 	return a.Srv().EnvironmentConfig()
 }
 
+func (s *Server) UpdateConfigWithoutDesanitize(f func(*model.Config)) {
+	old := s.Config()
+	updated := old.Clone()
+	f(updated)
+	if _, err := s.configStore.Set(updated, false); err != nil {
+		mlog.Error("Failed to update config", mlog.Err(err))
+	}
+}
+
 func (s *Server) UpdateConfig(f func(*model.Config)) {
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)
-	if _, err := s.configStore.Set(updated); err != nil {
+	if _, err := s.configStore.Set(updated, true); err != nil {
 		mlog.Error("Failed to update config", mlog.Err(err))
 	}
 }
@@ -395,7 +404,7 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg, err := a.Srv().configStore.Set(newCfg)
+	oldCfg, err := a.Srv().configStore.Set(newCfg, true)
 	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {

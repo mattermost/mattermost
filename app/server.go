@@ -280,7 +280,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
 		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
+		s.UpdateConfigWithoutDesanitize(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = []string{}
 		})
 		s.Store.Close()
@@ -289,7 +289,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
 		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
+		s.UpdateConfigWithoutDesanitize(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
 		})
 		s.Store.Close()

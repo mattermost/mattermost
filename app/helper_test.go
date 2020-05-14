@@ -59,7 +59,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryStore.Set(config)
+	memoryStore.Set(config, true)
 
 	buffer := &bytes.Buffer{}
 

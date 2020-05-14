@@ -197,7 +197,7 @@ func TestFileStoreGet(t *testing.T) {
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
 	newCfg := &model.Config{}
-	oldCfg, err := fs.Set(newCfg)
+	oldCfg, err := fs.Set(newCfg, true)
 	require.NoError(t, err)
 
 	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
@@ -352,7 +352,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "old configuration modified instead of cloning")
 		}
@@ -370,7 +370,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := fs.Set(newCfg)
+		retCfg, err := fs.Set(newCfg, true)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -390,7 +390,7 @@ func TestFileStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
 
-		retCfg, err := fs.Set(newCfg)
+		retCfg, err := fs.Set(newCfg, true)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -408,7 +408,7 @@ func TestFileStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.ServiceSettings.SiteURL = sToP("invalid")
 
-		_, err = fs.Set(newCfg)
+		_, err = fs.Set(newCfg, true)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
@@ -426,7 +426,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		_, err = fs.Set(newCfg)
+		_, err = fs.Set(newCfg, true)
 		if assert.Error(t, err) {
 			assert.Equal(t, config.ErrReadOnlyConfiguration, errors.Cause(err))
 		}
@@ -447,7 +447,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		_, err = fs.Set(newCfg)
+		_, err = fs.Set(newCfg, true)
 		if assert.Error(t, err) {
 			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write file"))
 		}
@@ -473,7 +473,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := fs.Set(newCfg)
+		retCfg, err := fs.Set(newCfg, true)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -492,7 +492,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		_, err = fs.Set(&model.Config{})
+		_, err = fs.Set(&model.Config{}, true)
 		require.NoError(t, err)
 
 		// Let the initial call to invokeConfigListeners finish.
@@ -561,7 +561,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
@@ -584,7 +584,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *fs.Get().PluginSettings.EnableUploads)
@@ -607,7 +607,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *fs.Get().TeamSettings.MaxUsersPerTeam)
@@ -630,7 +630,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *fs.Get().ServiceSettings.TLSStrictTransportMaxAge)
@@ -653,7 +653,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -678,7 +678,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = fs.Set(fs.Get())
+		_, err = fs.Set(fs.Get(), true)
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, fs.Get().SqlSettings.DataSourceReplicas)
@@ -812,7 +812,7 @@ func TestFileStoreSave(t *testing.T) {
 	}
 
 	t.Run("set with automatic save", func(t *testing.T) {
-		_, err = fs.Set(newCfg)
+		_, err = fs.Set(newCfg, true)
 		require.NoError(t, err)
 
 		err = fs.Load()

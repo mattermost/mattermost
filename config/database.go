@@ -159,8 +159,8 @@ func parseDSN(dsn string) (string, string, error) {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist)
+func (ds *DatabaseStore) Set(newCfg *model.Config, shouldDesanitize bool) (*model.Config, error) {
+	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist, shouldDesanitize)
 }
 
 // maxLength identifies the maximum length of a configuration or configuration file

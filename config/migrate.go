@@ -18,7 +18,7 @@ func Migrate(from, to string) error {
 	}
 
 	sourceConfig := source.Get()
-	if _, err = destination.Set(sourceConfig); err != nil {
+	if _, err = destination.Set(sourceConfig, true); err != nil {
 		return errors.Wrapf(err, "failed to set config")
 	}
 
