@@ -1006,6 +1006,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
+		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
@@ -1025,7 +1026,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)
+	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, page, perPage)
 	if err != nil {
 		return nil, err
 	}

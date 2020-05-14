@@ -5040,7 +5040,7 @@ func (s *OpenTracingLayerPostStore) Search(teamId string, userId string, params 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s *OpenTracingLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SearchPostsInTeamForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -5049,7 +5049,7 @@ func (s *OpenTracingLayerPostStore) SearchPostsInTeamForUser(paramsList []*model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	resultVar0, resultVar1 := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)

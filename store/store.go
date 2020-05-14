@@ -266,7 +266,7 @@ type PostStore interface {
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
-	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError)
 }
 
 type UserStore interface {

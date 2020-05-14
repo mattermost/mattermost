@@ -1735,7 +1735,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	return posts, nil
 }
 
-func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
@@ -1750,9 +1750,6 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 		if params.Terms == "*" {
 			continue
 		}
-
-		params.IncludeDeletedChannels = includeDeletedChannels
-		params.OrTerms = isOrSearch
 
 		wg.Add(1)
 
