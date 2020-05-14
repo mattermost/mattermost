@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -394,7 +393,7 @@ func TestSentry(t *testing.T) {
 	require.Nil(t, resp)
 	require.Error(t, err)
 
-	sentry.Flush(time.Second * 1)
+	// sentry.Flush(time.Second * 1)
 	select {
 	case <-data1:
 		require.Fail(t, "Sentry received a message, even though it's disabled!")
@@ -432,7 +431,7 @@ func TestSentry(t *testing.T) {
 	resp, err = client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
 	require.Nil(t, resp)
 	require.Error(t, err)
-	sentry.Flush(time.Second * 1)
+	// sentry.Flush(time.Second * 1)
 	select {
 	case <-data2:
 		t.Log("Sentry request arrived. Good!")
