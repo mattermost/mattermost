@@ -523,19 +523,24 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 
 	switch warnMetricId {
 	case model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC:
-		subject = fmt.Sprintf("%s Received acknowledgement for number of active users metric over limit", *a.Config().TeamSettings.SiteName)
-		body = fmt.Sprintf("Contact Email: %s DiagnosticId: %s SiteURL: %s", email, a.DiagnosticId(), a.GetSiteURL())
+		subject = "Acknowledge of User Limit"
+		body = "This is a receipt of acknowledgement for the number of active users exceeding the limit for the following site.\r\n"
+
+		body += fmt.Sprintf("Contact Email: %s\r\n", email)
+		body += fmt.Sprintf("DiagnosticId: %s\r\n", a.DiagnosticId())
+		body += fmt.Sprintf("SiteURL: %s\r\n", a.GetSiteURL())
 
 		if a.License() != nil {
-			body += fmt.Sprintf(" License Id: %s", a.License().Id)
+			body += fmt.Sprintf(" License Id: %s\r\n", a.License().Id)
 		}
 
 		registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
 		} else {
-			body += fmt.Sprintf(" Registered Users: %v", registeredUsersCount)
+			body += fmt.Sprintf(" Registered Users: %v\r\n", registeredUsersCount)
 		}
+		body += "If you have any additional inquiries, please contact support@mattermost.com"
 	default:
 		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 	}
