@@ -531,14 +531,15 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 		body += fmt.Sprintf("SiteURL: %s\r\n", a.GetSiteURL())
 
 		if a.License() != nil {
-			body += fmt.Sprintf(" License Id: %s\r\n", a.License().Id)
+			body += fmt.Sprintf("License Id: %s\r\n", a.License().Id)
 		}
 
-		registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+		//same definition as the active users count metric displayed in the SystemConsole Analytics section
+		registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 		if err != nil {
 			mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
 		} else {
-			body += fmt.Sprintf(" Registered Users: %v\r\n", registeredUsersCount)
+			body += fmt.Sprintf("Registered Users: %v\r\n", registeredUsersCount)
 		}
 		body += "If you have any additional inquiries, please contact support@mattermost.com"
 	default:
