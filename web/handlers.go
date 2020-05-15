@@ -260,7 +260,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
-			c.App.Metrics().ObserveHttpRequestDuration(elapsed)
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
