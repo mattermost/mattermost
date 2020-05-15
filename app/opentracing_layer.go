@@ -5236,7 +5236,7 @@ func (a *OpenTracingAppLayer) GetGroup(id string) (*model.Group, *model.AppError
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetGroupByName(name string) (*model.Group, *model.AppError) {
+func (a *OpenTracingAppLayer) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetGroupByName")
 
@@ -5248,7 +5248,7 @@ func (a *OpenTracingAppLayer) GetGroupByName(name string) (*model.Group, *model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetGroupByName(name)
+	resultVar0, resultVar1 := a.app.GetGroupByName(name, opts)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

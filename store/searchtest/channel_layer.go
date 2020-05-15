@@ -113,6 +113,7 @@ func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *S
 func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
 	require.Nil(t, err)
+
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "Channel A", false)
 	require.Nil(t, apperr)
