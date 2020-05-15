@@ -103,7 +103,7 @@ pipeline {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
 							echo "Installing golangci-lint"
-							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with .circleci/config.yml
+							curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1 # Keep this in sync with .circleci/config.yml
 							echo "Installing mattermost-govet"
 							GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
 							export PATH=$PATH:$GOBIN

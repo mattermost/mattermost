@@ -798,6 +798,7 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_24_0) {
 
 	sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
+	sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_24_0)
 	// }
