@@ -464,8 +464,8 @@ func testBotStorePermanentDelete(t *testing.T, ss store.Store) {
 		err := ss.Bot().PermanentDelete(b1.UserId)
 		require.Nil(t, err)
 
-		_, nErr := ss.Bot().Get(b1.UserId, false)
-		require.NotNil(t, nErr)
+		_, err = ss.Bot().Get(b1.UserId, false)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
