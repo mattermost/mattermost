@@ -30,11 +30,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 		for err == nil {
 			_, _, err = conn.ReadMessage()
 		}
-		mlog.Debug(err.Error())
 		if _, ok := err.(*websocket.CloseError); !ok {
 			require.NoError(t, err)
 		}
-		mlog.Debug("Made IT")
 	}
 }
 
