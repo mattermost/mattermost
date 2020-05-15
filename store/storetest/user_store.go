@@ -1971,8 +1971,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
-	_, err = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
-	require.Nil(t, err, "couldn't save direct channel")
+	_, nErr = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
+	require.Nil(t, nErr, "couldn't save direct channel")
 
 	p1 := model.Post{}
 	p1.ChannelId = c1.Id
