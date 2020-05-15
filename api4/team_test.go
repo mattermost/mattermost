@@ -728,7 +728,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := th.SystemAdminClient.SoftDeleteTeam(th.BasicTeam.Id)
+		_, resp := client.SoftDeleteTeam(th.BasicTeam.Id)
 		CheckNoError(t, resp)
 	})
 }
@@ -770,6 +770,11 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.PermanentDeleteTeam(th.BasicTeam.Id)
+		CheckNoError(t, resp)
 	})
 }
 
