@@ -4660,7 +4660,7 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 		Username: u3.Username,
 		OwnerId:  u1.Id,
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	u3.IsBot = true
 
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()

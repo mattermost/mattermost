@@ -97,7 +97,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 	if err := us.GetReplica().SelectOne(&bot, query, map[string]interface{}{"user_id": botUserId}); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "selectone: user_id=", botUserId)
+		return nil, errors.Wrapf(err, "selectone: user_id=%s", botUserId)
 	}
 
 	return bot, nil
@@ -175,7 +175,7 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	}
 
 	if err := us.GetMaster().Insert(botFromModel(bot)); err != nil {
-		return nil, errors.Wrapf(err, "insert: user_id=", bot.UserId)
+		return nil, errors.Wrapf(err, "insert: user_id=%s", bot.UserId)
 	}
 
 	return bot, nil
@@ -204,7 +204,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	bot = oldBot
 
 	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {
-		return nil, errors.Wrapf(err, "update: user_id=", bot.UserId)
+		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)
 	} else if count != 1 {
 		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
 	}
