@@ -62,16 +62,23 @@ func (s *Server) RunOldAppInitialization() error {
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
-			return store.NewTimerLayer(
-				searchlayer.NewSearchLayer(
-					localcachelayer.NewLocalCacheLayer(
-						s.sqlStore,
-						s.Metrics,
-						s.Cluster,
-						s.CacheProvider,
-					),
-					s.SearchEngine,
+			searchStore := searchlayer.NewSearchLayer(
+				localcachelayer.NewLocalCacheLayer(
+					s.sqlStore,
+					s.Metrics,
+					s.Cluster,
+					s.CacheProvider,
 				),
+				s.SearchEngine,
+				s.Config(),
+			)
+
+			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+				searchStore.UpdateConfig(cfg)
+			})
+
+			return store.NewTimerLayer(
+				searchStore,
 				s.Metrics,
 			)
 		}

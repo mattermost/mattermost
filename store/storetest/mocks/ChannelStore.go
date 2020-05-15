@@ -156,7 +156,7 @@ func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userI
 }
 
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId
-func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
 	ret := _m.Called(userId, otherUserId)
 
 	var r0 *model.Channel
@@ -168,13 +168,11 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.User, *model.User) error); ok {
 		r1 = rf(userId, otherUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1624,7 +1622,7 @@ func (_m *ChannelStore) Restore(channelId string, time int64) *model.AppError {
 }
 
 // Save provides a mock function with given fields: channel, maxChannelsPerTeam
-func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	ret := _m.Called(channel, maxChannelsPerTeam)
 
 	var r0 *model.Channel
@@ -1636,20 +1634,18 @@ func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel, int64) error); ok {
 		r1 = rf(channel, maxChannelsPerTeam)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // SaveDirectChannel provides a mock function with given fields: channel, member1, member2
-func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	ret := _m.Called(channel, member1, member2)
 
 	var r0 *model.Channel
@@ -1661,13 +1657,11 @@ func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) error); ok {
 		r1 = rf(channel, member1, member2)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

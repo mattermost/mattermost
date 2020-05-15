@@ -568,7 +568,7 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
@@ -1681,7 +1681,7 @@ func (s *TimerLayerChannelStore) Restore(channelId string, time int64) *model.Ap
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.Save(channel, maxChannelsPerTeam)
@@ -1697,7 +1697,7 @@ func (s *TimerLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
@@ -3102,10 +3102,10 @@ func (s *TimerLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerGroupStore) GetByName(name string) (*model.Group, *model.AppError) {
+func (s *TimerLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.GroupStore.GetByName(name)
+	resultVar0, resultVar1 := s.GroupStore.GetByName(name, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

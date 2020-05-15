@@ -538,7 +538,7 @@ type AppIface interface {
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetGroup(id string) (*model.Group, *model.AppError)
-	GetGroupByName(name string) (*model.Group, *model.AppError)
+	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
 	GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError)
