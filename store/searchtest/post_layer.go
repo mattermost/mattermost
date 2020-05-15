@@ -91,7 +91,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testSearchUsingBooleanOperators,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should be able to search with combined filters",
@@ -190,11 +190,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
-		Name:        "Should be able to search in deleted/archived channels",
-		Fn:          testSearchInDeletedOrArchivedChannels,
-		Tags:        []string{ENGINE_ALL},
-		Skip:        true,
-		SkipMessage: "Not working",
+		Name: "Should be able to search in deleted/archived channels",
+		Fn:   testSearchInDeletedOrArchivedChannels,
+		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
@@ -206,12 +204,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with dots",
 		Fn:   testSearchTermsWithDots,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
