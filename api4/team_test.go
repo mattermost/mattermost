@@ -255,88 +255,99 @@ func TestGetTeamUnread(t *testing.T) {
 func TestUpdateTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
-	team, _ = Client.CreateTeam(team)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		var resp *model.Response
+		team, resp = th.Client.CreateTeam(team)
+		CheckNoError(t, resp)
 
-	team.Description = "updated description"
-	uteam, resp := Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.Description = "updated description"
+		uteam, resp := client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.Equal(t, uteam.Description, "updated description", "Update failed")
+		require.Equal(t, uteam.Description, "updated description", "Update failed")
 
-	team.DisplayName = "Updated Name"
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.DisplayName = "Updated Name"
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
+		require.Equal(t, uteam.DisplayName, "Updated Name", "Update failed")
 
-	// Test GroupConstrained flag
-	team.GroupConstrained = model.NewBool(true)
-	rteam, resp := Client.UpdateTeam(team)
-	CheckNoError(t, resp)
-	CheckOKStatus(t, resp)
+		// Test GroupConstrained flag
+		team.GroupConstrained = model.NewBool(true)
+		rteam, resp := client.UpdateTeam(team)
+		CheckNoError(t, resp)
+		CheckOKStatus(t, resp)
 
-	require.Equal(t, *rteam.GroupConstrained, *team.GroupConstrained, "GroupConstrained flags do not match")
+		require.Equal(t, *rteam.GroupConstrained, *team.GroupConstrained, "GroupConstrained flags do not match")
 
-	team.GroupConstrained = nil
+		team.GroupConstrained = nil
 
-	team.AllowOpenInvite = true
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.AllowOpenInvite = true
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.True(t, uteam.AllowOpenInvite, "Update failed")
+		require.True(t, uteam.AllowOpenInvite, "Update failed")
 
-	team.InviteId = "inviteid1"
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.InviteId = "inviteid1"
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
+		require.NotEqual(t, uteam.InviteId, "inviteid1", "InviteID should not be updated")
 
-	team.AllowedDomains = "domain"
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.AllowedDomains = "domain"
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
+		require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
-	team.Name = "Updated name"
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.Name = "Updated name"
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
+		require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
 
-	team.Email = "test@domain.com"
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.Email = "test@domain.com"
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, uteam.Email, "test@domain.com", "Should not update email")
+		require.NotEqual(t, uteam.Email, "test@domain.com", "Should not update email")
 
-	team.Type = model.TEAM_INVITE
-	uteam, resp = Client.UpdateTeam(team)
-	CheckNoError(t, resp)
+		team.Type = model.TEAM_INVITE
+		uteam, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, uteam.Type, model.TEAM_INVITE, "Should not update type")
+		require.NotEqual(t, uteam.Type, model.TEAM_INVITE, "Should not update type")
 
-	originalTeamId := team.Id
-	team.Id = model.NewId()
+		originalTeamId := team.Id
+		team.Id = model.NewId()
 
-	r, _ := Client.DoApiPut(Client.GetTeamRoute(originalTeamId), team.ToJson())
-	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
+		r, _ := client.DoApiPut(client.GetTeamRoute(originalTeamId), team.ToJson())
+		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 
-	require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
+		require.Equal(t, uteam.Id, originalTeamId, "wrong team id")
 
-	team.Id = "fake"
-	_, resp = Client.UpdateTeam(team)
-	CheckBadRequestStatus(t, resp)
+		team.Id = "fake"
+		_, resp = client.UpdateTeam(team)
+		CheckBadRequestStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.UpdateTeam(team)
-	CheckUnauthorizedStatus(t, resp)
+		th.Client.Logout() // for non-local clients
+		_, resp = th.Client.UpdateTeam(team)
+		CheckUnauthorizedStatus(t, resp)
+		th.LoginBasic()
+	})
 
-	team.Id = originalTeamId
-	_, resp = th.SystemAdminClient.UpdateTeam(team)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		team := &model.Team{DisplayName: "New", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		var resp *model.Response
+		team, resp = client.CreateTeam(team)
+		CheckNoError(t, resp)
+
+		team.Name = "new-name"
+		_, resp = client.UpdateTeam(team)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestUpdateTeamSanitization(t *testing.T) {
@@ -374,57 +385,59 @@ func TestUpdateTeamSanitization(t *testing.T) {
 func TestPatchTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
-	team, _ = Client.CreateTeam(team)
+	team, _ = th.Client.CreateTeam(team)
 
 	patch := &model.TeamPatch{}
-
 	patch.DisplayName = model.NewString("Other name")
 	patch.Description = model.NewString("Other description")
 	patch.CompanyName = model.NewString("Other company name")
 	patch.AllowOpenInvite = model.NewBool(true)
 
-	rteam, resp := Client.PatchTeam(team.Id, patch)
-	CheckNoError(t, resp)
-
-	require.Equal(t, rteam.DisplayName, "Other name", "DisplayName did not update properly")
-	require.Equal(t, rteam.Description, "Other description", "Description did not update properly")
-	require.Equal(t, rteam.CompanyName, "Other company name", "CompanyName did not update properly")
-	require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
-	require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
-
-	// Test GroupConstrained flag
-	patch.GroupConstrained = model.NewBool(true)
-	rteam, resp = Client.PatchTeam(team.Id, patch)
-	CheckNoError(t, resp)
-	CheckOKStatus(t, resp)
-
-	require.Equal(t, *rteam.GroupConstrained, *patch.GroupConstrained, "GroupConstrained flags do not match")
-	patch.GroupConstrained = nil
-
-	_, resp = Client.PatchTeam("junk", patch)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.PatchTeam(GenerateTestId(), patch)
+	_, resp := th.Client.PatchTeam(GenerateTestId(), patch)
 	CheckForbiddenStatus(t, resp)
 
-	r, err := Client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
-	require.NotNil(t, err, "should have errored")
-
-	require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
-
-	Client.Logout()
-	_, resp = Client.PatchTeam(team.Id, patch)
+	th.Client.Logout()
+	_, resp = th.Client.PatchTeam(team.Id, patch)
 	CheckUnauthorizedStatus(t, resp)
 
 	th.LoginBasic2()
-	_, resp = Client.PatchTeam(team.Id, patch)
+	_, resp = th.Client.PatchTeam(team.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchTeam(team.Id, patch)
-	CheckNoError(t, resp)
+	th.LoginBasic()
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rteam, resp := client.PatchTeam(team.Id, patch)
+		CheckNoError(t, resp)
+
+		require.Equal(t, rteam.DisplayName, "Other name", "DisplayName did not update properly")
+		require.Equal(t, rteam.Description, "Other description", "Description did not update properly")
+		require.Equal(t, rteam.CompanyName, "Other company name", "CompanyName did not update properly")
+		require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
+		require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
+
+		// Test GroupConstrained flag
+		patch.GroupConstrained = model.NewBool(true)
+		rteam, resp = client.PatchTeam(team.Id, patch)
+		CheckNoError(t, resp)
+		CheckOKStatus(t, resp)
+		require.Equal(t, *rteam.GroupConstrained, *patch.GroupConstrained, "GroupConstrained flags do not match")
+
+		patch.GroupConstrained = nil
+		_, resp = client.PatchTeam("junk", patch)
+		CheckBadRequestStatus(t, resp)
+
+		r, err := client.DoApiPut("/teams/"+team.Id+"/patch", "garbage")
+		require.NotNil(t, err, "should have errored")
+		require.Equalf(t, r.StatusCode, http.StatusBadRequest, "wrong status code, actual: %s, expected: %s", strconv.Itoa(r.StatusCode), strconv.Itoa(http.StatusBadRequest))
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.PatchTeam(th.BasicTeam.Id, patch)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestRestoreTeam(t *testing.T) {
@@ -686,74 +699,78 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 func TestSoftDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
-	team, _ = Client.CreateTeam(team)
-
-	ok, resp := Client.SoftDeleteTeam(team.Id)
-	CheckNoError(t, resp)
-
-	require.True(t, ok, "should have returned true")
-
-	rteam, err := th.App.GetTeam(team.Id)
-	require.Nil(t, err, "should have returned archived team")
-	require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
-
-	ok, resp = Client.SoftDeleteTeam("junk")
-	CheckBadRequestStatus(t, resp)
-
-	require.False(t, ok, "should have returned false")
-
-	otherTeam := th.BasicTeam
-	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	_, resp := th.Client.SoftDeleteTeam(th.BasicTeam.Id)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.SoftDeleteTeam(otherTeam.Id)
+	th.Client.Logout()
+	_, resp = th.Client.SoftDeleteTeam(th.BasicTeam.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.SoftDeleteTeam(otherTeam.Id)
-	CheckNoError(t, resp)
+	th.LoginBasic()
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team, _ = th.Client.CreateTeam(team)
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		ok, resp := client.SoftDeleteTeam(team.Id)
+		CheckNoError(t, resp)
+
+		require.True(t, ok, "should have returned true")
+
+		rteam, err := th.App.GetTeam(team.Id)
+		require.Nil(t, err, "should have returned archived team")
+		require.NotEqual(t, rteam.DeleteAt, 0, "should have not set to zero")
+
+		ok, resp = client.SoftDeleteTeam("junk")
+		CheckBadRequestStatus(t, resp)
+
+		require.False(t, ok, "should have returned false")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := th.SystemAdminClient.SoftDeleteTeam(th.BasicTeam.Id)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
-	team, _ = Client.CreateTeam(team)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+		team, _ = client.CreateTeam(team)
 
-	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
-	}()
+		enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+		defer func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
+		}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
 
-	// Does not error when deletion is disabled, just soft deletes
-	ok, resp := Client.PermanentDeleteTeam(team.Id)
-	CheckNoError(t, resp)
-	assert.True(t, ok)
+		// Does not error when deletion is disabled, just soft deletes
+		ok, resp := client.PermanentDeleteTeam(team.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
 
-	rteam, err := th.App.GetTeam(team.Id)
-	assert.Nil(t, err)
-	assert.True(t, rteam.DeleteAt > 0)
+		rteam, err := th.App.GetTeam(team.Id)
+		assert.Nil(t, err)
+		assert.True(t, rteam.DeleteAt > 0)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
 
-	ok, resp = Client.PermanentDeleteTeam(team.Id)
-	CheckNoError(t, resp)
-	assert.True(t, ok)
+		ok, resp = client.PermanentDeleteTeam(team.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
 
-	_, err = th.App.GetTeam(team.Id)
-	assert.NotNil(t, err)
+		_, err = th.App.GetTeam(team.Id)
+		assert.NotNil(t, err)
 
-	ok, resp = Client.PermanentDeleteTeam("junk")
-	CheckBadRequestStatus(t, resp)
+		ok, resp = client.PermanentDeleteTeam("junk")
+		CheckBadRequestStatus(t, resp)
 
-	require.False(t, ok, "should have returned false")
+		require.False(t, ok, "should have returned false")
+	})
 }
 
 func TestGetAllTeams(t *testing.T) {
@@ -1088,7 +1105,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 func TestSearchAllTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
 
@@ -1097,54 +1114,51 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
-	Client.CreateTeam(pTeam)
+	th.Client.CreateTeam(pTeam)
 
-	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+	rteams, resp := th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckNoError(t, resp)
-
-	require.Len(t, rteams, 1, "should have returned 1 team")
-
-	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
-
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
-	CheckNoError(t, resp)
-
-	require.Len(t, rteams, 1, "should have returned 1 team")
-
-	require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
-
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
-	CheckNoError(t, resp)
-
 	require.Empty(t, rteams, "should have not returned team")
 
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	rteams, resp = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckNoError(t, resp)
-
 	require.Empty(t, rteams, "should have not returned team")
 
-	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
-	CheckNoError(t, resp)
+	th.Client.Logout()
 
-	require.Len(t, rteams, 1, "should have returned 1 team")
-
-	rteams, resp = th.SystemAdminClient.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
-	CheckNoError(t, resp)
-
-	require.Len(t, rteams, 1, "should have returned 1 team")
-
-	rteams, resp = Client.SearchTeams(&model.TeamSearch{Term: "junk"})
-	CheckNoError(t, resp)
-
-	require.Empty(t, rteams, "should have not returned team")
-
-	Client.Logout()
-
-	_, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
+	_, resp = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.Name})
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+	_, resp = th.Client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
 	CheckUnauthorizedStatus(t, resp)
+
+	th.LoginBasic()
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		CheckNoError(t, resp)
+		require.Len(t, rteams, 1, "should have returned 1 team")
+		require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
+
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: oTeam.DisplayName})
+		CheckNoError(t, resp)
+		require.Len(t, rteams, 1, "should have returned 1 team")
+		require.Equal(t, oTeam.Id, rteams[0].Id, "invalid team")
+
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: "junk"})
+		CheckNoError(t, resp)
+		require.Empty(t, rteams, "should have not returned team")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		rteams, resp := client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
+		CheckNoError(t, resp)
+		require.Len(t, rteams, 1, "should have returned 1 team")
+
+		rteams, resp = client.SearchTeams(&model.TeamSearch{Term: pTeam.DisplayName})
+		CheckNoError(t, resp)
+		require.Len(t, rteams, 1, "should have returned 1 team")
+	})
 }
 
 func TestSearchAllTeamsPaged(t *testing.T) {
