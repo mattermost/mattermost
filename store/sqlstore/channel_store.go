@@ -458,7 +458,7 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 			Id:          model.NewId(),
 			UserId:      u.UserId,
 			TeamId:      u.TeamId,
-			Sorting:     model.SidebarCategorySortManual,
+			Sorting:     model.SidebarCategorySortDefault,
 			SortOrder:   model.DefaultSidebarSortOrderFavorites,
 			Type:        model.SidebarCategoryFavorites,
 		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
@@ -470,7 +470,7 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 			Id:          model.NewId(),
 			UserId:      u.UserId,
 			TeamId:      u.TeamId,
-			Sorting:     model.SidebarCategorySortManual,
+			Sorting:     model.SidebarCategorySortDefault,
 			SortOrder:   model.DefaultSidebarSortOrderChannels,
 			Type:        model.SidebarCategoryChannels,
 		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
@@ -3450,7 +3450,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Id:          categoryId,
 		UserId:      userId,
 		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortManual,
+		Sorting:     model.SidebarCategorySortDefault,
 		SortOrder:   maxOrder + model.MinimalSidebarSortDistance,
 		Type:        model.SidebarCategoryCustom,
 	}
