@@ -68,7 +68,7 @@ func PreferenceFromJson(data io.Reader) *Preference {
 }
 
 func (o *Preference) IsValid() *AppError {
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)
 	}
 

@@ -130,6 +130,10 @@ possible reasons, including:
  1. mis-configured transport credentials, connection failed on handshaking
  1. bytes disrupted, possibly by a proxy in between
  1. server shutdown
+ 1. Keepalive parameters caused connection shutdown, for example if you have configured
+    your server to terminate connections regularly to [trigger DNS lookups](https://github.com/grpc/grpc-go/issues/3170#issuecomment-552517779).
+    If this is the case, you may want to increase your [MaxConnectionAgeGrace](https://pkg.go.dev/google.golang.org/grpc/keepalive?tab=doc#ServerParameters),
+    to allow longer RPC calls to finish.
 
 It can be tricky to debug this because the error happens on the client side but
 the root cause of the connection being closed is on the server side. Turn on

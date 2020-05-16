@@ -393,6 +393,8 @@ const (
 	TCSETSF                          = 0x802c7416
 	TCSETSW                          = 0x802c7415
 	TCXONC                           = 0x2000741e
+	TFD_CLOEXEC                      = 0x80000
+	TFD_NONBLOCK                     = 0x800
 	TIOCCBRK                         = 0x5428
 	TIOCCONS                         = 0x541d
 	TIOCEXCL                         = 0x540c

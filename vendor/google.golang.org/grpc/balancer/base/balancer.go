@@ -113,10 +113,6 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 	if grpclog.V(2) {
 		grpclog.Infoln("base.baseBalancer: got new ClientConn state: ", s)
 	}
-	if len(s.ResolverState.Addresses) == 0 {
-		b.ResolverError(errors.New("produced zero addresses"))
-		return balancer.ErrBadResolverState
-	}
 	// Successful resolution; clear resolver error and ensure we return nil.
 	b.resolverErr = nil
 	// addrsSet is the set converted from addrs, it's used for quick lookup of an address.
@@ -143,6 +139,14 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 			// Keep the state of this sc in b.scStates until sc's state becomes Shutdown.
 			// The entry will be deleted in HandleSubConnStateChange.
 		}
+	}
+	// If resolver state contains no addresses, return an error so ClientConn
+	// will trigger re-resolve. Also records this as an resolver error, so when
+	// the overall state turns transient failure, the error message will have
+	// the zero address information.
+	if len(s.ResolverState.Addresses) == 0 {
+		b.ResolverError(errors.New("produced zero addresses"))
+		return balancer.ErrBadResolverState
 	}
 	return nil
 }

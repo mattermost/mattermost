@@ -13,27 +13,28 @@ import (
 	metrics "github.com/armon/go-metrics"
 )
 
-type nodeStateType int
+type NodeStateType int
 
 const (
-	stateAlive nodeStateType = iota
-	stateSuspect
-	stateDead
-	stateLeft
+	StateAlive NodeStateType = iota
+	StateSuspect
+	StateDead
+	StateLeft
 )
 
 // Node represents a node in the cluster.
 type Node struct {
-	Name string
-	Addr net.IP
-	Port uint16
-	Meta []byte // Metadata from the delegate for this node.
-	PMin uint8  // Minimum protocol version this understands
-	PMax uint8  // Maximum protocol version this understands
-	PCur uint8  // Current version node is speaking
-	DMin uint8  // Min protocol version for the delegate to understand
-	DMax uint8  // Max protocol version for the delegate to understand
-	DCur uint8  // Current version delegate is speaking
+	Name  string
+	Addr  net.IP
+	Port  uint16
+	Meta  []byte        // Metadata from the delegate for this node.
+	State NodeStateType // State of the node.
+	PMin  uint8         // Minimum protocol version this understands
+	PMax  uint8         // Maximum protocol version this understands
+	PCur  uint8         // Current version node is speaking
+	DMin  uint8         // Min protocol version for the delegate to understand
+	DMax  uint8         // Max protocol version for the delegate to understand
+	DCur  uint8         // Current version delegate is speaking
 }
 
 // Address returns the host:port form of a node's address, suitable for use
@@ -60,7 +61,7 @@ func (n *Node) String() string {
 type nodeState struct {
 	Node
 	Incarnation uint32        // Last known incarnation number
-	State       nodeStateType // Current state
+	State       NodeStateType // Current state
 	StateChange time.Time     // Time last state change happened
 }
 
@@ -77,7 +78,7 @@ func (n *nodeState) FullAddress() Address {
 }
 
 func (n *nodeState) DeadOrLeft() bool {
-	return n.State == stateDead || n.State == stateLeft
+	return n.State == StateDead || n.State == StateLeft
 }
 
 // ackHandler is used to register handlers for incoming acks and nacks.
@@ -321,7 +322,7 @@ func (m *Memberlist) probeNode(node *nodeState) {
 	defer func() {
 		m.awareness.ApplyDelta(awarenessDelta)
 	}()
-	if node.State == stateAlive {
+	if node.State == StateAlive {
 		if err := m.encodeAndSendMsg(node.FullAddress(), pingMsg, &ping); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to send ping: %s", err)
 			if failedRemote(err) {
@@ -396,7 +397,7 @@ HANDLE_REMOTE_FAILURE:
 	kNodes := kRandomNodes(m.config.IndirectChecks, m.nodes, func(n *nodeState) bool {
 		return n.Name == m.config.Name ||
 			n.Name == node.Name ||
-			n.State != stateAlive
+			n.State != StateAlive
 	})
 	m.nodeLock.RUnlock()
 
@@ -573,10 +574,10 @@ func (m *Memberlist) gossip() {
 		}
 
 		switch n.State {
-		case stateAlive, stateSuspect:
+		case StateAlive, StateSuspect:
 			return false
 
-		case stateDead:
+		case StateDead:
 			return time.Since(n.StateChange) > m.config.GossipToTheDeadTime
 
 		default:
@@ -623,7 +624,7 @@ func (m *Memberlist) pushPull() {
 	m.nodeLock.RLock()
 	nodes := kRandomNodes(1, m.nodes, func(n *nodeState) bool {
 		return n.Name == m.config.Name ||
-			n.State != stateAlive
+			n.State != StateAlive
 	})
 	m.nodeLock.RUnlock()
 
@@ -681,7 +682,7 @@ func (m *Memberlist) verifyProtocol(remote []pushNodeState) error {
 
 	for _, rn := range remote {
 		// If the node isn't alive, then skip it
-		if rn.State != stateAlive {
+		if rn.State != StateAlive {
 			continue
 		}
 
@@ -710,7 +711,7 @@ func (m *Memberlist) verifyProtocol(remote []pushNodeState) error {
 
 	for _, n := range m.nodes {
 		// Ignore non-alive nodes
-		if n.State != stateAlive {
+		if n.State != StateAlive {
 			continue
 		}
 
@@ -969,6 +970,11 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 	// store this node in our node map.
 	var updatesNode bool
 	if !ok {
+		errCon := m.config.IPAllowed(a.Addr)
+		if errCon != nil {
+			m.logger.Printf("[WARN] memberlist: Rejected node %s (%v): %s", a.Node, net.IP(a.Addr), errCon)
+			return
+		}
 		state = &nodeState{
 			Node: Node{
 				Name: a.Node,
@@ -976,7 +982,7 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 				Port: a.Port,
 				Meta: a.Meta,
 			},
-			State: stateDead,
+			State: StateDead,
 		}
 		if len(a.Vsn) > 5 {
 			state.PMin = a.Vsn[0]
@@ -1006,12 +1012,17 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 	} else {
 		// Check if this address is different than the existing node unless the old node is dead.
 		if !bytes.Equal([]byte(state.Addr), a.Addr) || state.Port != a.Port {
+			errCon := m.config.IPAllowed(a.Addr)
+			if errCon != nil {
+				m.logger.Printf("[WARN] memberlist: Rejected IP update from %v to %v for node %s: %s", a.Node, state.Addr, net.IP(a.Addr), errCon)
+				return
+			}
 			// If DeadNodeReclaimTime is configured, check if enough time has elapsed since the node died.
 			canReclaim := (m.config.DeadNodeReclaimTime > 0 &&
 				time.Since(state.StateChange) > m.config.DeadNodeReclaimTime)
 
 			// Allow the address to be updated if a dead node is being replaced.
-			if state.State == stateLeft || (state.State == stateDead && canReclaim) {
+			if state.State == StateLeft || (state.State == StateDead && canReclaim) {
 				m.logger.Printf("[INFO] memberlist: Updating address for left or failed node %s from %v:%d to %v:%d",
 					state.Name, state.Addr, state.Port, net.IP(a.Addr), a.Port)
 				updatesNode = true
@@ -1096,8 +1107,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 		state.Meta = a.Meta
 		state.Addr = a.Addr
 		state.Port = a.Port
-		if state.State != stateAlive {
-			state.State = stateAlive
+		if state.State != StateAlive {
+			state.State = StateAlive
 			state.StateChange = time.Now()
 		}
 	}
@@ -1107,7 +1118,7 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 
 	// Notify the delegate of any relevant updates
 	if m.config.Events != nil {
-		if oldState == stateDead || oldState == stateLeft {
+		if oldState == StateDead || oldState == StateLeft {
 			// if Dead/Left -> Alive, notify of join
 			m.config.Events.NotifyJoin(&state.Node)
 
@@ -1147,7 +1158,7 @@ func (m *Memberlist) suspectNode(s *suspect) {
 	}
 
 	// Ignore non-alive nodes
-	if state.State != stateAlive {
+	if state.State != StateAlive {
 		return
 	}
 
@@ -1165,7 +1176,7 @@ func (m *Memberlist) suspectNode(s *suspect) {
 
 	// Update the state
 	state.Incarnation = s.Incarnation
-	state.State = stateSuspect
+	state.State = StateSuspect
 	changeTime := time.Now()
 	state.StateChange = changeTime
 
@@ -1189,7 +1200,7 @@ func (m *Memberlist) suspectNode(s *suspect) {
 	fn := func(numConfirmations int) {
 		m.nodeLock.Lock()
 		state, ok := m.nodeMap[s.Node]
-		timeout := ok && state.State == stateSuspect && state.StateChange == changeTime
+		timeout := ok && state.State == StateSuspect && state.StateChange == changeTime
 		m.nodeLock.Unlock()
 
 		if timeout {
@@ -1255,9 +1266,9 @@ func (m *Memberlist) deadNode(d *dead) {
 	// If the dead message was send by the node itself, mark it is left
 	// instead of dead.
 	if d.Node == d.From {
-		state.State = stateLeft
+		state.State = StateLeft
 	} else {
-		state.State = stateDead
+		state.State = StateDead
 	}
 	state.StateChange = time.Now()
 
@@ -1272,7 +1283,7 @@ func (m *Memberlist) deadNode(d *dead) {
 func (m *Memberlist) mergeState(remote []pushNodeState) {
 	for _, r := range remote {
 		switch r.State {
-		case stateAlive:
+		case StateAlive:
 			a := alive{
 				Incarnation: r.Incarnation,
 				Node:        r.Name,
@@ -1283,14 +1294,14 @@ func (m *Memberlist) mergeState(remote []pushNodeState) {
 			}
 			m.aliveNode(&a, nil, false)
 
-		case stateLeft:
+		case StateLeft:
 			d := dead{Incarnation: r.Incarnation, Node: r.Name, From: r.Name}
 			m.deadNode(&d)
-		case stateDead:
+		case StateDead:
 			// If the remote node believes a node is dead, we prefer to
 			// suspect that node instead of declaring it dead instantly
 			fallthrough
-		case stateSuspect:
+		case StateSuspect:
 			s := suspect{Incarnation: r.Incarnation, Node: r.Name, From: m.config.Name}
 			m.suspectNode(&s)
 		}
