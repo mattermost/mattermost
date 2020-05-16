@@ -107,6 +107,7 @@ func (p *clientConnPool) getClientConn(req *http.Request, addr string, dialOnMis
 
 // dialCall is an in-flight Transport dial call to a host.
 type dialCall struct {
+	_    incomparable
 	p    *clientConnPool
 	done chan struct{} // closed when done
 	res  *ClientConn   // valid after done is closed
@@ -180,6 +181,7 @@ func (p *clientConnPool) addConnIfNeeded(key string, t *Transport, c *tls.Conn) 
 }
 
 type addConnCall struct {
+	_    incomparable
 	p    *clientConnPool
 	done chan struct{} // closed when done
 	err  error
