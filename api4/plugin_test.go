@@ -551,6 +551,86 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Empty(t, plugins)
 	})
+
+	t.Run("verify LicenseSkuShortName is passed through for TE", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseSkuShortName, ok := req.URL.Query()["license_sku_short_name"]
+			require.True(t, ok)
+			require.Len(t, licenseSkuShortName, 1)
+			require.Equal(t, "", licenseSkuShortName[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Empty(t, plugins)
+	})
+
+	t.Run("verify LicenseSkuShortName is passed through for E10", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseSkuShortName, ok := req.URL.Query()["license_sku_short_name"]
+			require.True(t, ok)
+			require.Len(t, licenseSkuShortName, 1)
+			require.Equal(t, "E10", licenseSkuShortName[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		license := model.NewTestLicense()
+		license.SkuShortName = "E10"
+		th.App.SetLicense(license)
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Empty(t, plugins)
+	})
+
+	t.Run("verify LicenseSkuShortName is passed through for E20", func(t *testing.T) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseSkuShortName, ok := req.URL.Query()["license_sku_short_name"]
+			require.True(t, ok)
+			require.Len(t, licenseSkuShortName, 1)
+			require.Equal(t, "E20", licenseSkuShortName[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		license := model.NewTestLicense()
+		license.SkuShortName = "E20"
+		th.App.SetLicense(license)
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Empty(t, plugins)
+	})
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {

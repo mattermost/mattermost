@@ -497,7 +497,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins(_ *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -514,10 +514,15 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 	}
 
 	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+	filter := &model.MarketplacePluginFilter{
 		PerPage:       -1,
 		ServerVersion: model.CurrentVersion,
-	})
+	}
+	if a.License() != nil {
+		filter.LicenseSkuShortName = a.License().SkuShortName
+	}
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
+
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
