@@ -310,7 +310,13 @@ func TestPanicLog(t *testing.T) {
 		panic("log this panic")
 	})
 
-	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	testDir, _ := fileutils.FindDir("tests")
+	s.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = ":0"
+		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+	})
 	serverErr := s.Start()
 	require.NoError(t, serverErr)
 
@@ -357,7 +363,9 @@ func TestSentry(t *testing.T) {
 		t.SkipNow()
 	}
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}}
 	data1 := make(chan bool, 1)
 
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -370,13 +378,16 @@ func TestSentry(t *testing.T) {
 	_, port, _ := net.SplitHostPort(server1.Listener.Addr().String())
 	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 
+	testDir, _ := fileutils.FindDir("tests")
 	s, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
 		server.configStore = configStore
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = false
-
+			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 		})
 		return nil
 	})
@@ -390,7 +401,7 @@ func TestSentry(t *testing.T) {
 	serverErr := s.Start()
 	require.NoError(t, serverErr)
 	defer s.Shutdown()
-	resp, err := client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 	require.Nil(t, resp)
 	require.Error(t, err)
 
@@ -416,6 +427,9 @@ func TestSentry(t *testing.T) {
 		server.configStore = configStore
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
+			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 			*cfg.LogSettings.EnableSentry = true
 
 		})
@@ -429,7 +443,7 @@ func TestSentry(t *testing.T) {
 
 	require.NoError(t, s2.Start())
 	defer s2.Shutdown()
-	resp, err = client.Get("http://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
+	resp, err = client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
 	require.Nil(t, resp)
 	require.Error(t, err)
 	sentry.Flush(time.Second * 1)
