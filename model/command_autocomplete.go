@@ -20,8 +20,8 @@ type AutocompleteArgType string
 // Argument types
 const (
 	AutocompleteArgTypeText        AutocompleteArgType = "TextInput"
-	AutocompleteArgTypeStaticList                      = "StaticList"
-	AutocompleteArgTypeDynamicList                     = "DynamicList"
+	AutocompleteArgTypeStaticList  AutocompleteArgType = "StaticList"
+	AutocompleteArgTypeDynamicList AutocompleteArgType = "DynamicList"
 )
 
 // AutocompleteData describes slash command autocomplete information.
