@@ -1614,7 +1614,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupDisplayName}} has no members on this team"
+    "translation": "@{{.GroupName}} has no members on this team"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -2939,6 +2939,10 @@
     "translation": "Must specify the team ID to create a channel."
   },
   {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Unable to save direct channel."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -3881,6 +3885,10 @@
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
     "translation": "Unable to convert metadata to json."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Unable to create the zip file"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -6067,24 +6075,8 @@
     "translation": "You've reached the limit of the number of allowed channels."
   },
   {
-    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Unable to add direct channel members."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.commit.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.internal_error",
-    "translation": "Unable to save direct channel."
-  },
-  {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.save_member.commit_transaction.app_error",
@@ -6097,26 +6089,6 @@
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
     "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Unable to save the channel member."
-  },
-  {
-    "id": "store.sql_channel.save_multimple_members.channel_roles.app_error",
-    "translation": "Unable to build query to get the channel roles."
-  },
-  {
-    "id": "store.sql_channel.save_multimple_members.channel_roles_query.app_error",
-    "translation": "Error fetching the channel roles."
-  },
-  {
-    "id": "store.sql_channel.save_multimple_members.team_roles.app_error",
-    "translation": "Unable to build query to get the team roles."
-  },
-  {
-    "id": "store.sql_channel.save_multimple_members.team_roles_query.app_error",
-    "translation": "Error fetching the team roles."
   },
   {
     "id": "store.sql_channel.search.app_error",
