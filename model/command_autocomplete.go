@@ -99,7 +99,7 @@ type AutocompleteSuggestion struct {
 	Hint string
 	// Description of the command or a suggestion
 	Description string
-	// icon
+	// IconData is base64 encoded svg image
 	IconData string
 }
 
