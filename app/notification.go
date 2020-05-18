@@ -411,7 +411,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 		RootId:    post.RootId,
 		ParentId:  post.ParentId,
 		ChannelId: channel.Id,
-		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupDisplayName": group.DisplayName}),
+		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
 	a.SendEphemeralPost(post.UserId, ephemeralPost)
 }
