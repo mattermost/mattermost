@@ -20,7 +20,7 @@ func TestBlevePurgeIndexes(t *testing.T) {
 
 	t.Run("as system admin", func(t *testing.T) {
 		_, resp := th.SystemAdminClient.PurgeBleveIndexes()
-		CheckNotImplementedStatus(t, resp)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as restricted system admin", func(t *testing.T) {
