@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"strings"
@@ -178,6 +180,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion522(sqlStore)
 	upgradeDatabaseToVersion523(sqlStore)
 	upgradeDatabaseToVersion524(sqlStore)
+	upgradeDatabaseToVersion526(sqlStore)
 	return nil
 }
 
@@ -801,5 +804,30 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 	sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_24_0)
+	// }
+}
+
+func upgradeDatabaseToVersion526(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_26_0) {
+
+	var users []*model.User
+	_, err := sqlStore.GetReplica().Select(&users, "SELECT * FROM Users WHERE DeleteAt = 0 and (AuthService = 'ldap' or AuthService = 'saml')")
+	if err != nil {
+		mlog.Error("Error fetching Users to update AuthData", mlog.Err(err))
+	} else {
+		for _, user := range users {
+			oldData := *user.AuthData
+			hexback := strings.ReplaceAll(oldData, "\\", "")
+			mlog.Debug(hexback)
+			originBytes, err := hex.DecodeString(hexback)
+			if err != nil {
+				continue
+			}
+			*user.AuthData = base64.StdEncoding.EncodeToString(originBytes)
+			sqlStore.User().Update(user, false)
+		}
+	}
+	// 	saveSchemaVersion(sqlStore, VERSION_5_26_0)
 	// }
 }
