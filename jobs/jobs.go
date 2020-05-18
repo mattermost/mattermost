@@ -55,6 +55,13 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	return nil
 }
 
+func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
+	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_WARNING); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS); err != nil {
 		return err

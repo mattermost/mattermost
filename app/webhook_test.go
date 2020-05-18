@@ -456,6 +456,86 @@ func TestSplitWebhookPost(t *testing.T) {
 	}
 }
 
+func makePost(message int, attachments []int) *model.Post {
+	var props model.StringInterface
+	if len(attachments) > 0 {
+		sa := make([]*model.SlackAttachment, 0, len(attachments))
+		for _, a := range attachments {
+			attach := &model.SlackAttachment{
+				Text: strings.Repeat("那", a),
+			}
+			sa = append(sa, attach)
+		}
+		props = map[string]interface{}{"attachments": sa}
+	}
+	post := &model.Post{
+		Message: strings.Repeat("那", message),
+		Props:   props,
+	}
+	return post
+}
+
+func TestSplitWebhookPostAttachments(t *testing.T) {
+	maxPostSize := 10000
+	testCases := []struct {
+		name     string
+		post     *model.Post
+		expected []*model.Post
+	}{
+		{
+			// makePost(messageLength, []int{attachmentLength, ...})
+			name:     "no split",
+			post:     makePost(10, []int{100, 150, 200}),
+			expected: []*model.Post{makePost(10, []int{100, 150, 200})},
+		},
+		{
+			name: "split into 2",
+			post: makePost(maxPostSize-1, []int{model.POST_PROPS_MAX_USER_RUNES * 3 / 4, model.POST_PROPS_MAX_USER_RUNES * 1 / 4}),
+			expected: []*model.Post{
+				makePost(maxPostSize-1, []int{model.POST_PROPS_MAX_USER_RUNES * 3 / 4}),
+				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES * 1 / 4}),
+			},
+		},
+		{
+			name: "split into 3",
+			post: makePost(maxPostSize*3/2, []int{1000, 2000, model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			expected: []*model.Post{
+				makePost(maxPostSize, nil),
+				makePost(maxPostSize/2, []int{1000, 2000}),
+				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			},
+		},
+		{
+			name: "MM-24644 split into 3",
+			post: makePost(maxPostSize*3/2, []int{5150, 2000, model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			expected: []*model.Post{
+				makePost(maxPostSize, nil),
+				makePost(maxPostSize/2, []int{5150}),
+				makePost(0, []int{2000}),
+				makePost(0, []int{model.POST_PROPS_MAX_USER_RUNES - 1000}),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			splits, err := SplitWebhookPost(tc.post, maxPostSize)
+			if tc.expected == nil {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+			assert.Equal(t, len(tc.expected), len(splits))
+			for i, split := range splits {
+				if i < len(tc.expected) {
+					assert.Equal(t, tc.expected[i].Message, split.Message, i)
+					assert.Equal(t, tc.expected[i].GetProp("attachments"), split.GetProp("attachments"), i)
+				}
+			}
+		})
+	}
+}
+
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
