@@ -178,10 +178,12 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	}
 
 	query := bleve.NewBooleanQuery()
-	query.AddMust(
-		channelDisjunctionQ,
-		allTermsQ,
-	)
+	query.AddMust(channelDisjunctionQ)
+
+	if len(termQueries) > 0 || len(notTermQueries) > 0 {
+		query.AddMust(allTermsQ)
+	}
+
 	if len(filters) > 0 {
 		query.AddMust(bleve.NewConjunctionQuery(filters...))
 	}
