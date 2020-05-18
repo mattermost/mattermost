@@ -203,7 +203,7 @@ func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
-		Select("*").
+		Select("Teams.*").
 		From("Teams")
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -498,9 +498,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 
 func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
-	query, args, err := s.getQueryBuilder().
-		Select("Teams.*").
-		From("Teams").
+	query, args, err := s.teamsQuery.
 		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
 		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
 
@@ -599,8 +597,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("").
-		From("Teams").
+		Delete("Teams").
 		Where(sq.Eq{"Id": teamId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlTeamStore.Delete", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1135,7 +1132,7 @@ func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError
 
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("").From("TeamMembers").
+		Delete("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql.build_query.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
@@ -1150,7 +1147,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Delete("").From("TeamMembers").
+		Delete("TeamMembers").
 		Where(sq.Eq{"UserId": userId}).ToSql()
 	if err != nil {
 		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql.build_query.app_error", nil, "team_id="+userId+", "+err.Error(), http.StatusInternalServerError)
@@ -1164,7 +1161,7 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 
 func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Update("").Table("Teams").
+		Update("Teams").
 		SetMap(sq.Eq{"LastTeamIconUpdate": curTime, "UpdateAt": curTime}).
 		Where(sq.Eq{"Id": teamId}).ToSql()
 	if err != nil {
@@ -1426,7 +1423,7 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 
 func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
-		Update("").Table("TeamMembers").
+		Update("TeamMembers").
 		Set("SchemeAdmin", sq.Case().When(fmt.Sprintf("UserId IN ('%s')", strings.Join(userIDs, "', '")), "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
