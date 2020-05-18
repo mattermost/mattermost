@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -846,23 +845,11 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 		return
 	}
 
-	props, err := s.Store.System().Get()
-	if err != nil {
-		mlog.Error("Error to get system settings.", mlog.Err(err))
+	warnMetricId := model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS
+	data, err := s.Store.System().GetByName(warnMetricId)
+	if err == nil && data != nil && (data.Value == "true" || data.Value == "ack") {
+		mlog.Debug("This metric limit crossing has been acknowledged or detected already")
 		return
-	}
-
-	if props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC] != "" {
-		val, err := strconv.ParseInt(props[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC], 10, 64)
-		if err != nil {
-			mlog.Error("Number Of Active Users Warn Metric", mlog.String("Invalid entry value stored", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
-		}
-		if val == -1 {
-			mlog.Info("Exceeding the number of active users metric limit has been already acknowledged")
-			return
-		}
-	} else {
-		mlog.Debug("Cannot find metric in store", mlog.String("metric", model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC))
 	}
 
 	noActiveUsers, err := s.Store.User().Count(model.UserCountOptions{})
@@ -870,22 +857,19 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 		mlog.Error("Error to get active registered users.", mlog.Err(err))
 	}
 
-	mlog.Info("Number of active users", mlog.Int64("count", noActiveUsers))
-
-	if err = s.Store.System().SaveOrUpdate(&model.System{Name: model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, Value: strconv.FormatInt(noActiveUsers, 10)}); err != nil {
-		mlog.Error("Unable to write to database.", mlog.Err(err))
-		return
-	}
-
 	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
+		if err = s.Store.System().SaveOrUpdate(&model.System{Name: warnMetricId, Value: "true"}); err != nil {
+			mlog.Error("Unable to write to database.", mlog.Err(err))
+			return
+		}
 		mlog.Info("Number of active users is greater than limit")
 		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRICS_STATUS, "", "", "", nil)
-		message.Add(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC, "true")
+		message.Add(warnMetricId, "true")
 		s.FakeApp().Publish(message)
 	}
 
-	warningMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
-	if err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warningMessage); err != nil {
+	warnMetricMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
+	if err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage); err != nil {
 		mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 	}
 }

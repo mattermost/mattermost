@@ -76,6 +76,7 @@ type Params struct {
 	IncludeTotalCount      bool
 	IncludeDeleted         bool
 	FilterAllowReference   bool
+	WarnMetricId           string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -304,6 +305,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
 		params.IncludeDeleted = val
+	}
+
+	if val, ok := props["warn_metric_id"]; ok {
+		params.WarnMetricId = val
 	}
 
 	return params

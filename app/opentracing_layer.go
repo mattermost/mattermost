@@ -8776,9 +8776,9 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(userId string) (*model.Vi
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWarnMetricStatus(warnMetricId string) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWarnMetricsStatus() (map[string]bool, *model.AppError) {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricStatus")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsStatus")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -8788,7 +8788,7 @@ func (a *OpenTracingAppLayer) GetWarnMetricStatus(warnMetricId string) (bool, *m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWarnMetricStatus(warnMetricId)
+	resultVar0, resultVar1 := a.app.GetWarnMetricsStatus()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10162,7 +10162,7 @@ func (a *OpenTracingAppLayer) NewWebHub() *Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warningMessage string) *model.AppError {
+func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string, warnMetricMessage string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAdminsOfWarnMetricStatus")
 
@@ -10174,7 +10174,7 @@ func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warningMessage stri
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warningMessage)
+	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

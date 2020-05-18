@@ -19,7 +19,7 @@ const (
 	SYSTEM_POST_ACTION_COOKIE_SECRET          = "PostActionCookieSecret"
 	SYSTEM_INSTALLATION_DATE_KEY              = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY     = "FirstServerRunTimestamp"
-	SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC = "NumberOfActiveUsersWarnMetric"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS = "warn_metric_number_of_active_users"
 )
 
 const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT = 1

@@ -522,7 +522,7 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 	var body string
 
 	switch warnMetricId {
-	case model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC:
+	case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS:
 		subject = "Acknowledge of User Limit"
 		body = "This is a receipt of acknowledgement for the number of active users exceeding the limit for the following site.\r\n"
 

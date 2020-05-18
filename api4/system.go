@@ -51,8 +51,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 
-	api.BaseRoutes.ApiRoot.Handle("/analytics/warn_metrics_status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/email/warn_metric_ack/send", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -555,16 +555,13 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := c.App.GetWarnMetricStatus(model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC)
+	status, err := c.App.GetWarnMetricsStatus()
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	resp := map[string]bool{}
-	resp[model.SYSTEM_NUMBER_OF_ACTIVE_USERS_WARN_METRIC] = status
-
-	w.Write([]byte(model.MapBoolToJson(resp)))
+	w.Write([]byte(model.MapBoolToJson(status)))
 }
 
 func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -582,14 +579,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
-	if props == nil {
-		c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.send_warn_metric_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-	warnMetricId := props["warnMetricId"]
-
-	err = c.App.SendWarnMetricAckEmail(warnMetricId, user.Email)
+	err = c.App.SendWarnMetricAckEmail(c.Params.WarnMetricId, user.Email)
 	if err != nil {
 		c.Err = err
 		return
