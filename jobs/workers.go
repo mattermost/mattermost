@@ -155,6 +155,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.LdapSync.Stop()
 		}
 	}
+
+	if workers.BleveIndexing != nil {
+		if !*oldConfig.BleveSettings.EnableIndexing && *newConfig.BleveSettings.EnableIndexing {
+			go workers.BleveIndexing.Run()
+		} else if *oldConfig.BleveSettings.EnableIndexing && !*newConfig.BleveSettings.EnableIndexing {
+			workers.BleveIndexing.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
@@ -190,7 +198,7 @@ func (workers *Workers) Stop() *Workers {
 		workers.Plugins.Stop()
 	}
 
-	if workers.BleveIndexing != nil {
+	if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing {
 		workers.BleveIndexing.Stop()
 	}
 
