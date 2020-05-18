@@ -85,7 +85,7 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Fout bij ophalen van  metadata van IdentiteitsProvider URL."
+    "translation": "Fout bij ophalen van metadata van IdentiteitsProvider URL."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
@@ -141,7 +141,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-mailinstellingen testen"
+    "translation": "Mattermost - E-mailinstellingen testen."
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -173,15 +173,15 @@
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
-    "translation": "Kan de pictogramafbeelding niet verwijderen."
+    "translation": "Kan de pictogram afbeelding niet verwijderen."
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Kan het pictogrambestand niet lezen."
+    "translation": "Kan het pictogram bestand niet lezen."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
-    "translation": "Kan de pictogramafbeelding niet uploaden"
+    "translation": "Kan de pictogram afbeelding niet uploaden"
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
@@ -205,7 +205,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Voeg me toe aan aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of the Mattermost desktop app."
+    "translation": "Voeg me toe aan aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
   },
   {
     "id": "api.channel.add_guest.added",
@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Fout bij het toevoegen van één of meerdere leden aan het kanaal"
+    "translation": "Fout bij het toevoegen van één of meerdere leden aan het kanaal."
   },
   {
     "id": "api.channel.add_members.user_denied",
@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal."
+    "translation": "Kan geen gebruikers toevoegen aan dit type kanaal."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -241,7 +241,7 @@
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This kanaal is omgezet naar een privékanaal."
+    "translation": "Dit kanaal is omgezet naar een privékanaal."
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -253,7 +253,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Je moet de createDirectChannel API service gebruiken om een direct kanaal aan te maken."
+    "translation": "Gebruik createDirectChannel API service om een direct kanaal aan te maken."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Groep bericht kanalen moeten tenminste 3 en niet meer dan 8 gebruikers bevatten."
+    "translation": "Groepsbericht kanalen moeten minimaal 3 maar niet meer dan 8 gebruikers bevatten."
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "U bent het laatste lid, probeer de privékanaalte verwijderen in plaats van die te verlaten."
+    "translation": "Je bent het laatste lid, probeer het privé kanaal te verwijderen in plaats van het te verlaten."
   },
   {
     "id": "api.channel.leave.left",
@@ -329,7 +329,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Jouw licentie ondersteunt geen kanaal moderatie"
+    "translation": "Je licentie ondersteunt geen kanaal moderatie."
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
@@ -341,7 +341,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
-    "translation": "Fout bij het weergeven van het bericht over de bijgewerkte weergavenaam"
+    "translation": "Fout bij het weergeven van bericht over de bijgewerkte weergavenaam."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
@@ -357,23 +357,23 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
-    "translation": "%s heeft de kanaalkoptekst verwijderd (was: %s)"
+    "translation": "%s heeft de kanaal koptekst verwijderd (was: %s)"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst"
+    "translation": "Fout bij ophalen gebruiker tijdens het bewaren van de nieuwe kanaal koptekst."
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
-    "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
+    "translation": "%s heeft de kanaal koptekst veranderd van \"%s\" naar \"%s\""
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
-    "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
+    "translation": "%s heeft de kanaal koptekst bijgewerkt naar: %s"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Mislukt post doe/bericht achterlaten"
+    "translation": "Fout bij publicatie toetreden/verlaten bericht."
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Fout bij het wijzigen van lidmaatschap: Je kan de gast niet manueel toevoegen of verwijderen."
+    "translation": "Fout bij het wijzigen van lidmaatschap: Je kan de gast niet handmatig toevoegen of verwijderen."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -441,7 +441,7 @@
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
-    "translation": "Het standaardkanaal kan niet privaat zijn."
+    "translation": "Het standaardkanaal kan niet privé zijn."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -453,7 +453,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Fout bij aanpassing van teamleden: Je kan niet manueel de gastrol toevoegen of verwijderen."
+    "translation": "Fout bij aanpassing van teamleden: Handmatig gastrol toevoegen of verwijderen is niet mogelijk."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -477,7 +477,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Opdracht '{{.Trigger}}' gaf geen antwoord. Gelieve je systeembeheerder te raadplegen."
+    "translation": "Opdracht '{{.Trigger}}' gaf geen antwoord. Neem contact op met de systeembeheerder."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Geef een of meer geldige e-mailadressen"
+    "translation": "Geef een of meer geldige e-mailadressen op"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -545,7 +545,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Stel uw status in naar afwezig"
+    "translation": "Stel jouw status in naar afwezig"
   },
   {
     "id": "api.command_away.name",
@@ -557,11 +557,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Fout bij het ophalen van het huidige kanaal"
+    "translation": "Fout bij het ophalen van het huidige kanaal."
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Kanaalhoofding bewerken"
+    "translation": "Koptekst kanaal bewerken"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -573,19 +573,19 @@
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "hoofding"
+    "translation": "koptekst"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Je hebt niet voldoende rechten om de kanaalhoofding te wijzigen."
+    "translation": "Je hebt niet voldoende rechten om de koptekst van het kanaal te wijzigen."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Fout opgetreden bij het bijwerken van het huidige kanaal"
+    "translation": "Fout opgetreden bij het bijwerken van het huidige kanaal."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Fout bij het ophalen van het huidge kanaal."
+    "translation": "Fout bij het ophalen van het huidige kanaal."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -593,7 +593,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Kan doel niet wijzigen voor direct berichtenkanalen. Gebruik in plaats daarvan /header om de hoofding te zetten."
+    "translation": "Kan doel niet wijzigen voor direct berichtenkanalen. Gebruik in plaats daarvan /header om de koptekst te plaatsen."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -609,7 +609,7 @@
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
-    "translation": "Je hebt niet de nodige machtigingen om het kanaaldoel te wijzigen."
+    "translation": "Je hebt niet de nodige rechten om het kanaaldoel te wijzigen."
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
@@ -697,11 +697,11 @@
   },
   {
     "id": "api.command_dnd.error",
-    "translation": "Fout bij het ophalen van de gebruikerstatus."
+    "translation": "Fout bij het ophalen van de gebruikersstatus."
   },
   {
     "id": "api.command_dnd.name",
-    "translation": "Niet storen"
+    "translation": "Niet Storen"
   },
   {
     "id": "api.command_dnd.success",

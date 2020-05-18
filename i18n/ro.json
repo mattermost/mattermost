@@ -1128,7 +1128,7 @@
   },
   {
     "id": "api.context.invalid_token.error",
-    "translation": "Jeton de sesiune invalid ={{.Token}}, err={{.Error}}"
+    "translation": "Jeton de sesiune invalid={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -1258,7 +1258,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Imposibil de a crea emoji. Imaginea trebuie să fie mai mică decât {{.MaxWidth}} {{.MaxHeight}}."
+    "translation": "Imposibil de a crea emoji. Imaginea trebuie să fie mai mică decât {{.MaxWidth}} cu {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
