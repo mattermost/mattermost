@@ -113,6 +113,7 @@ type SqlSupplier struct {
 	settings       *model.SqlSettings
 	lockedToMaster bool
 	context        context.Context
+	license        *model.License
 }
 
 type TraceOnAdapter struct{}
@@ -327,6 +328,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if ss.license == nil {
+		return ss.GetMaster()
+	}
+
 	if len(ss.settings.DataSourceSearchReplicas) == 0 {
 		return ss.GetReplica()
 	}
@@ -336,7 +341,7 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
 		return ss.GetMaster()
 	}
 
@@ -1176,6 +1181,10 @@ func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
 	results := make(chan store.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
+}
+
+func (ss *SqlSupplier) UpdateLicense(license *model.License) {
+	ss.license = license
 }
 
 type mattermConverter struct{}
