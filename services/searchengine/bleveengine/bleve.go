@@ -90,8 +90,19 @@ func getUserIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
-func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.IndexMappingImpl) (bleve.Index, error) {
-	indexPath := filepath.Join(*cfg.BleveSettings.IndexDir, indexName+".bleve")
+func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) *BleveEngine {
+	return &BleveEngine{
+		cfg:       cfg,
+		jobServer: jobServer,
+	}
+}
+
+func (b *BleveEngine) getIndexDir(indexName string) string {
+	return filepath.Join(*b.cfg.BleveSettings.IndexDir, indexName+".bleve")
+}
+
+func (b *BleveEngine) createOrOpenIndex(indexName string, mapping *mapping.IndexMappingImpl) (bleve.Index, error) {
+	indexPath := b.getIndexDir(indexName)
 	if index, err := bleve.Open(indexPath); err == nil {
 		return index, nil
 	}
@@ -103,30 +114,23 @@ func createOrOpenIndex(cfg *model.Config, indexName string, mapping *mapping.Ind
 	return index, nil
 }
 
-func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) *BleveEngine {
-	return &BleveEngine{
-		cfg:       cfg,
-		jobServer: jobServer,
-	}
-}
-
 func (b *BleveEngine) openIndexes() *model.AppError {
 	if atomic.LoadInt32(&b.ready) != 0 {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.already_started.error", nil, "", http.StatusInternalServerError)
 	}
 
 	var err error
-	b.PostIndex, err = createOrOpenIndex(b.cfg, "posts", getPostIndexMapping())
+	b.PostIndex, err = b.createOrOpenIndex("posts", getPostIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	b.UserIndex, err = createOrOpenIndex(b.cfg, "users", getUserIndexMapping())
+	b.UserIndex, err = b.createOrOpenIndex("users", getUserIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_user_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	b.ChannelIndex, err = createOrOpenIndex(b.cfg, "channels", getChannelIndexMapping())
+	b.ChannelIndex, err = b.createOrOpenIndex("channels", getChannelIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -201,13 +205,13 @@ func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
 }
 
 func (b *BleveEngine) deleteIndexes() *model.AppError {
-	if err := os.RemoveAll(filepath.Join(*b.cfg.BleveSettings.IndexDir, "posts.bleve")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir("posts")); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err := os.RemoveAll(filepath.Join(*b.cfg.BleveSettings.IndexDir, "users.bleve")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir("users")); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_user_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err := os.RemoveAll(filepath.Join(*b.cfg.BleveSettings.IndexDir, "channels.bleve")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir("channels")); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
