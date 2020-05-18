@@ -21,6 +21,8 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 )
 
+const ENGINE_NAME = "bleve"
+
 type BleveEngine struct {
 	PostIndex    bleve.Index
 	UserIndex    bleve.Index
@@ -197,7 +199,7 @@ func (b *BleveEngine) GetVersion() int {
 }
 
 func (b *BleveEngine) GetName() string {
-	return "bleve"
+	return ENGINE_NAME
 }
 
 func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
