@@ -709,7 +709,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	color := colors[int64(seed)%int64(len(colors))]
 	dstImg := image.NewRGBA(image.Rect(0, 0, IMAGE_PROFILE_PIXEL_DIMENSION, IMAGE_PROFILE_PIXEL_DIMENSION))
 	srcImg := image.White
-	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
+	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
 	size := float64(IMAGE_PROFILE_PIXEL_DIMENSION / 2)
 
 	c := freetype.NewContext()

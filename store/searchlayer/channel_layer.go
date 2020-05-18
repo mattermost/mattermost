@@ -97,7 +97,7 @@ func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *mod
 	return err
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
 	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
