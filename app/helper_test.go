@@ -394,7 +394,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -414,7 +414,7 @@ func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) 
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
