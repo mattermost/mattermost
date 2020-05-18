@@ -45,10 +45,11 @@ func (jss SqlJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 
 func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
 	sql, args, err := jss.getQueryBuilder().
-		Update("").
-		Table("Jobs").
-		SetMap(sq.Eq{"LastActivityAt": model.GetMillis(), "Status": job.Status, "Data": job.DataToJson(),
-			"Progress": job.Progress}).
+		Update("Jobs").
+		Set("LastActivityAt", model.GetMillis()).
+		Set("Status", job.Status).
+		Set("Data", job.DataToJson()).
+		Set("Progress", job.Progress).
 		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
 	if err != nil {
 		return false, model.NewAppError("SqlJobStore.UpdateOptimistically", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -89,9 +90,9 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, *mode
 
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
 	sql := jss.getQueryBuilder().
-		Update("").
-		Table("Jobs").
-		SetMap(sq.Eq{"LastActivityAt": model.GetMillis(), "Status": newStatus}).
+		Update("Jobs").
+		Set("LastActivityAt", model.GetMillis()).
+		Set("Status", newStatus).
 		Where(sq.Eq{"Id": id, "Status": currentStatus})
 
 	if newStatus == model.JOB_STATUS_IN_PROGRESS {
@@ -240,8 +241,7 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 
 func (jss SqlJobStore) Delete(id string) (string, *model.AppError) {
 	sql, args, err := jss.getQueryBuilder().
-		Delete("").
-		From("Jobs").
+		Delete("Jobs").
 		Where(sq.Eq{"Id": id}).ToSql()
 	if err != nil {
 		return "", model.NewAppError("SqlJobStore.DeleteByType", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
