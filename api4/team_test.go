@@ -395,6 +395,36 @@ func TestPatchTeam(t *testing.T) {
 	require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
 	require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
 
+	t.Run("Changing AllowOpenInvite to false regenerates InviteID", func(t *testing.T) {
+		team := &model.Team{DisplayName: "Name2", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: true, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team, _ = Client.CreateTeam(team)
+
+		patch := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(false),
+		}
+
+		rteam, resp := Client.PatchTeam(team.Id, patch)
+		CheckNoError(t, resp)
+		require.Equal(t, team.Id, rteam.Id)
+		require.False(t, rteam.AllowOpenInvite)
+		require.NotEqual(t, team.InviteId, rteam.InviteId)
+	})
+
+	t.Run("Changing AllowOpenInvite to true doesn't regenerate InviteID", func(t *testing.T) {
+		team := &model.Team{DisplayName: "Name3", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team, _ = Client.CreateTeam(team)
+
+		patch := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(true),
+		}
+
+		rteam, resp := Client.PatchTeam(team.Id, patch)
+		CheckNoError(t, resp)
+		require.Equal(t, team.Id, rteam.Id)
+		require.True(t, rteam.AllowOpenInvite)
+		require.Equal(t, team.InviteId, rteam.InviteId)
+	})
+
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
 	rteam, resp = Client.PatchTeam(team.Id, patch)
