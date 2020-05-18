@@ -33,14 +33,14 @@ func TestMigrateDatabaseToFile(t *testing.T) {
 	defer func() {
 		defaultCfg := &model.Config{}
 		defaultCfg.SetDefaults()
-		ds.Set(defaultCfg, true)
+		ds.Set(defaultCfg)
 	}()
 	require.NoError(t, err)
 	config := ds.Get()
 	config.SamlSettings.IdpCertificateFile = &files[0]
 	config.SamlSettings.PublicCertificateFile = &files[1]
 	config.SamlSettings.PrivateKeyFile = &files[2]
-	_, err = ds.Set(config, true)
+	_, err = ds.Set(config)
 	require.NoError(t, err)
 
 	for _, file := range files {

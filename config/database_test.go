@@ -189,7 +189,7 @@ func TestDatabaseStoreGet(t *testing.T) {
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
 	newCfg := &model.Config{}
-	oldCfg, err := ds.Set(newCfg, true)
+	oldCfg, err := ds.Set(newCfg)
 	require.NoError(t, err)
 
 	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
@@ -355,7 +355,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "old configuration modified instead of cloning")
 		}
@@ -373,7 +373,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := ds.Set(newCfg, true)
+		retCfg, err := ds.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -393,7 +393,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
 
-		retCfg, err := ds.Set(newCfg, true)
+		retCfg, err := ds.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -411,7 +411,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.ServiceSettings.SiteURL = sToP("invalid")
 
-		_, err = ds.Set(newCfg, true)
+		_, err = ds.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
@@ -427,11 +427,11 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		beforeID, _ := getActualDatabaseConfig(t)
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		afterID, _ := getActualDatabaseConfig(t)
@@ -452,7 +452,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 			},
 		}
 
-		_, err = ds.Set(newCfg, true)
+		_, err = ds.Set(newCfg)
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *ds.Get().ServiceSettings.SiteURL)
@@ -472,7 +472,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 			},
 		}
 
-		_, err = ds.Set(newCfg, true)
+		_, err = ds.Set(newCfg)
 		require.NoError(t, err)
 
 		err = ds.Load()
@@ -495,7 +495,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		_, err = ds.Set(newCfg, true)
+		_, err = ds.Set(newCfg)
 		require.Error(t, err)
 		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to query active configuration"), "unexpected error: "+err.Error())
 
@@ -517,7 +517,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		newCfg := emptyConfig.Clone()
 		newCfg.ServiceSettings.SiteURL = sToP(longSiteURL)
 
-		_, err = ds.Set(newCfg, true)
+		_, err = ds.Set(newCfg)
 		require.Error(t, err)
 		assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: marshalled configuration failed length check: value is too long"), "unexpected error: "+err.Error())
 	})
@@ -540,7 +540,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := ds.Set(newCfg, true)
+		retCfg, err := ds.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -602,7 +602,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *ds.Get().ServiceSettings.SiteURL)
@@ -625,7 +625,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, true, *ds.Get().PluginSettings.EnableUploads)
@@ -648,7 +648,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, 3000, *ds.Get().TeamSettings.MaxUsersPerTeam)
@@ -671,7 +671,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, int64(123456), *ds.Get().ServiceSettings.TLSStrictTransportMaxAge)
@@ -694,7 +694,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
@@ -719,7 +719,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)
 
-		_, err = ds.Set(ds.Get(), true)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{"user:pwd@db:5432/test-db"}, ds.Get().SqlSettings.DataSourceReplicas)

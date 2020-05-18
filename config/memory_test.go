@@ -76,7 +76,7 @@ func TestMemoryStoreGet(t *testing.T) {
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
 	newCfg := &model.Config{}
-	oldCfg, err := ms.Set(newCfg, true)
+	oldCfg, err := ms.Set(newCfg)
 	require.NoError(t, err)
 
 	assert.True(t, oldCfg == cfg, "returned config after set() changed original")
@@ -114,7 +114,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer ms.Close()
 
-		_, err = ms.Set(ms.Get(), true)
+		_, err = ms.Set(ms.Get())
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "old configuration modified instead of cloning")
 		}
@@ -131,7 +131,7 @@ func TestMemoryStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := ms.Set(newCfg, true)
+		retCfg, err := ms.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -150,7 +150,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.LdapSettings.BindPassword = sToP(model.FAKE_SETTING)
 
-		retCfg, err := ms.Set(newCfg, true)
+		retCfg, err := ms.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
@@ -167,7 +167,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		newCfg := &model.Config{}
 		newCfg.ServiceSettings.SiteURL = sToP("invalid")
 
-		_, err = ms.Set(newCfg, true)
+		_, err = ms.Set(newCfg)
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
@@ -188,7 +188,7 @@ func TestMemoryStoreSet(t *testing.T) {
 			},
 		}
 
-		_, err = ms.Set(newCfg, true)
+		_, err = ms.Set(newCfg)
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *ms.Get().ServiceSettings.SiteURL)
@@ -211,7 +211,7 @@ func TestMemoryStoreSet(t *testing.T) {
 
 		newCfg := &model.Config{}
 
-		retCfg, err := ms.Set(newCfg, true)
+		retCfg, err := ms.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 

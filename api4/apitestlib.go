@@ -81,7 +81,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if updateConfig != nil {
 		updateConfig(config)
 	}
-	memoryStore.Set(config, true)
+	memoryStore.Set(config)
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))

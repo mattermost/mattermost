@@ -67,13 +67,13 @@ func NewMemoryStoreWithOptions(options *MemoryStoreOptions) (*MemoryStore, error
 }
 
 // Set replaces the current configuration in its entirety.
-func (ms *MemoryStore) Set(newCfg *model.Config, shouldDesanitize bool) (*model.Config, error) {
+func (ms *MemoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 	validate := ms.commonStore.validate
 	if !ms.validate {
 		validate = nil
 	}
 
-	return ms.commonStore.set(newCfg, ms.allowEnvironmentOverrides, validate, ms.persist, shouldDesanitize)
+	return ms.commonStore.set(newCfg, ms.allowEnvironmentOverrides, validate, ms.persist)
 }
 
 // persist copies the active config to the saved config.

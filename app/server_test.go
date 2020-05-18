@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,55 +38,62 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
-	cfg := model.Config{}
-	cfg.SetDefaults()
-	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
-	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
-
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewFileStore("config.json", true)
 			server.configStore = configStore
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
 			return nil
 		})
 		require.NoError(t, err)
-		assert.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
-		assert.Len(t, s.Config().SqlSettings.DataSourceReplicas, 0)
+		require.Equal(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 0)
 	})
 
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewFileStore("config.json", true)
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
 			return nil
 		})
 		require.NoError(t, err)
-		assert.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
-		assert.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
+		require.NotEqual(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
 	})
 
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewFileStore("config.json", true)
 			server.configStore = configStore
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
 			return nil
 		})
 		require.NoError(t, err)
-		assert.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
-		assert.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 0)
+		require.Equal(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 0)
 	})
 
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewFileStore("config.json", true)
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
+			server.UpdateConfig(func(cfg *model.Config) {
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
+			})
 			return nil
 		})
 		require.NoError(t, err)
-		assert.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
-		assert.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
+		require.NotEqual(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
 }
 
@@ -101,7 +107,7 @@ func TestStartServerRateLimiterCriticalError(t *testing.T) {
 	config := ms.Get()
 	*config.RateLimitSettings.Enable = true
 	*config.RateLimitSettings.MaxBurst = -100
-	_, err = ms.Set(config, true)
+	_, err = ms.Set(config)
 	require.NoError(t, err)
 
 	s, err := NewServer(ConfigStore(ms))
