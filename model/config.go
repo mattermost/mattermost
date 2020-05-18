@@ -3266,6 +3266,13 @@ func (bs *BleveSettings) isValid() *AppError {
 		if len(*bs.IndexDir) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
+	} else {
+		if *bs.EnableSearching {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+		}
+		if *bs.EnableAutocomplete {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 	if *bs.BulkIndexingTimeWindowSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)

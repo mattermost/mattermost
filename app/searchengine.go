@@ -48,7 +48,7 @@ func (a *App) PurgeElasticsearchIndexes() *model.AppError {
 func (a *App) PurgeBleveIndexes() *model.AppError {
 	bI := a.SearchEngine().BleveEngine
 	if bI == nil {
-		err := model.NewAppError("PurgeBleveIndexes", "searchengine.bleve.disabler.error", nil, "", http.StatusNotImplemented)
+		err := model.NewAppError("PurgeBleveIndexes", "searchengine.bleve.disabled.error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 	if err := bI.PurgeIndexes(); err != nil {
