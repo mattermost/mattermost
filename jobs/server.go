@@ -20,11 +20,11 @@ type JobServer struct {
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
-	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
+	ElasticsearchIndexer    tjobs.IndexerJobInterface
 	LdapSync                ejobs.LdapSyncInterface
 	Migrations              tjobs.MigrationsJobInterface
 	Plugins                 tjobs.PluginsJobInterface
-	BleveIndexer            tjobs.BleveIndexerInterface
+	BleveIndexer            tjobs.IndexerJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

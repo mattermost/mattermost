@@ -26,7 +26,7 @@ const (
 )
 
 func init() {
-	app.RegisterJobsBleveIndexerInterface(func(s *app.Server) tjobs.BleveIndexerInterface {
+	app.RegisterJobsBleveIndexerInterface(func(s *app.Server) tjobs.IndexerJobInterface {
 		return &BleveIndexerInterfaceImpl{s}
 	})
 }

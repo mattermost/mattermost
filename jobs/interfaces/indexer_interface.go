@@ -7,6 +7,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type BleveIndexerInterface interface {
+type IndexerJobInterface interface {
 	MakeWorker() model.Worker
 }
