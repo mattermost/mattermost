@@ -7,7 +7,6 @@ orbs:
 executors:
   ubuntu:
     working_directory: ~/mattermost/
-    resource_class: xlarge
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
@@ -18,6 +17,7 @@ jobs:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
+    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -182,6 +182,7 @@ jobs:
   test:
     executor:
       name: ubuntu
+    resource_class: xlarge
     parameters:
       dbdriver:
         type: string
@@ -259,6 +260,7 @@ jobs:
   test-schema:
     executor:
       name: ubuntu
+    resource_class: xlarge
     steps:
       - attach_workspace:
           at: ~/mattermost
