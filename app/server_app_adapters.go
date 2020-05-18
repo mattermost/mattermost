@@ -61,10 +61,10 @@ func (s *Server) RunOldAppInitialization() error {
 
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
-			sqlStore := sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					sqlStore,
+					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider,
@@ -78,7 +78,7 @@ func (s *Server) RunOldAppInitialization() error {
 			})
 
 			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-				sqlStore.UpdateLicense(newLicense)
+				s.sqlStore.UpdateLicense(newLicense)
 			})
 
 			return store.NewTimerLayer(

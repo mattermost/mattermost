@@ -6,7 +6,6 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -34,6 +35,59 @@ func TestStartServerSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
+}
+
+func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
+	cfg := model.Config{}
+	cfg.SetDefaults()
+	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
+	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
+
+	t.Run("Read Replicas with no License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			server.configStore = configStore
+			return nil
+		})
+		require.NoError(t, err)
+		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
+	})
+
+	t.Run("Read Replicas With License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			server.configStore = configStore
+			server.licenseValue.Store(model.NewTestLicense())
+			return nil
+		})
+		require.NoError(t, err)
+		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceReplicas, 1)
+	})
+
+	t.Run("Search Replicas with no License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			server.configStore = configStore
+			return nil
+		})
+		require.NoError(t, err)
+		require.Same(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
+	})
+
+	t.Run("Search Replicas With License", func(t *testing.T) {
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			server.configStore = configStore
+			server.licenseValue.Store(model.NewTestLicense())
+			return nil
+		})
+		require.NoError(t, err)
+		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
+		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
+	})
 }
 
 func TestStartServerRateLimiterCriticalError(t *testing.T) {
