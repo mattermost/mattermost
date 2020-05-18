@@ -88,6 +88,11 @@ func (worker *BleveIndexerWorker) JobChannel() chan<- model.Job {
 func (worker *BleveIndexerWorker) Run() {
 	mlog.Debug("Worker Started", mlog.String("workername", worker.name))
 
+	defer func() {
+		mlog.Debug("Worker: Finished", mlog.String("workername", worker.name))
+		worker.stopped <- true
+	}()
+
 	for {
 		select {
 		case <-worker.stop:
