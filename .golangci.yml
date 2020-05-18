@@ -22,6 +22,7 @@ linters:
     - ineffassign
     - scopelint
     - structcheck
+    - staticcheck
     - unconvert
     - unused
     - varcheck
@@ -39,6 +40,10 @@ issues:
     - linters:
       - scopelint
       # ignore warnings from table tests. https://github.com/kyoh86/scopelint/issues/4
+      path: ".*_test.go|store/storetest"
+
+    - linters:
+      - staticcheck
       path: ".*_test.go|store/storetest"
 
     - linters:
