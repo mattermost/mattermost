@@ -21,7 +21,12 @@ import (
 	"github.com/blevesearch/bleve/mapping"
 )
 
-const ENGINE_NAME = "bleve"
+const (
+	ENGINE_NAME = "bleve"
+	POST_INDEX = "posts"
+	USER_INDEX = "users"
+	CHANNEL_INDEX = "channels"
+)
 
 type BleveEngine struct {
 	PostIndex    bleve.Index
@@ -122,17 +127,17 @@ func (b *BleveEngine) openIndexes() *model.AppError {
 	}
 
 	var err error
-	b.PostIndex, err = b.createOrOpenIndex("posts", getPostIndexMapping())
+	b.PostIndex, err = b.createOrOpenIndex(POST_INDEX, getPostIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	b.UserIndex, err = b.createOrOpenIndex("users", getUserIndexMapping())
+	b.UserIndex, err = b.createOrOpenIndex(USER_INDEX, getUserIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_user_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	b.ChannelIndex, err = b.createOrOpenIndex("channels", getChannelIndexMapping())
+	b.ChannelIndex, err = b.createOrOpenIndex(CHANNEL_INDEX, getChannelIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -207,13 +212,13 @@ func (b *BleveEngine) TestConfig(cfg *model.Config) *model.AppError {
 }
 
 func (b *BleveEngine) deleteIndexes() *model.AppError {
-	if err := os.RemoveAll(b.getIndexDir("posts")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir(POST_INDEX)); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err := os.RemoveAll(b.getIndexDir("users")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir(USER_INDEX)); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_user_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err := os.RemoveAll(b.getIndexDir("channels")); err != nil {
+	if err := os.RemoveAll(b.getIndexDir(CHANNEL_INDEX)); err != nil {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
