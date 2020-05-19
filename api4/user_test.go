@@ -298,7 +298,6 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	})
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
