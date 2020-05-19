@@ -218,10 +218,10 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 	}
 
 	botModel.UserId = user.Id
-	bot, apperr := th.Store.Bot().Save(botModel)
-	if apperr != nil {
+	bot, err := th.Store.Bot().Save(botModel)
+	if err != nil {
 		th.Store.User().PermanentDelete(bot.UserId)
-		return nil, errors.New(apperr.Error())
+		return nil, errors.New(err.Error())
 	}
 
 	return bot, nil
