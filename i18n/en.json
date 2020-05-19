@@ -1139,6 +1139,10 @@
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
   {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "This endpoint requires a local request origin."
+  },
+  {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
   },
