@@ -3891,10 +3891,6 @@
     "translation": "Unable to convert metadata to json."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Unable to create the zip file"
-  },
-  {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
   },
@@ -6185,6 +6181,10 @@
   {
     "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.invalid_update_fields",
+    "translation": "Invalid field values during category update."
   },
   {
     "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
