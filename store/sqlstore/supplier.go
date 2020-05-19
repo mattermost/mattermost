@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -114,6 +115,7 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
+	licenseMutex   sync.Mutex
 }
 
 type TraceOnAdapter struct{}
@@ -1184,6 +1186,8 @@ func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
 }
 
 func (ss *SqlSupplier) UpdateLicense(license *model.License) {
+	ss.licenseMutex.Lock()
+	defer ss.licenseMutex.Unlock()
 	ss.license = license
 }
 

@@ -77,6 +77,7 @@ func (s *Server) RunOldAppInitialization() error {
 				searchStore.UpdateConfig(cfg)
 			})
 
+			s.sqlStore.UpdateLicense(s.License())
 			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
