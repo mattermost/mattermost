@@ -185,15 +185,15 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	_, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	require.Nil(t, err, "couldn't save direct channel", err)
+	_, nErr := ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	require.Nil(t, nErr, "couldn't save direct channel", nErr)
 
 	members, err := ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.Nil(t, err)
 	require.Len(t, *members, 2, "should have saved 2 members")
 
-	_, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	require.NotNil(t, err, "shoudn't be a able to update from save")
+	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	require.NotNil(t, nErr, "shoudn't be a able to update from save")
 
 	// Attempt to save a direct channel that already exists
 	o1a := model.Channel{
@@ -203,25 +203,26 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		Type:        o1.Type,
 	}
 
-	returnedChannel, err := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
-	require.NotNil(t, err, "should've failed to save a duplicate direct channel")
-	require.Equal(t, store.CHANNEL_EXISTS_ERROR, err.Id, "should've returned CHANNEL_EXISTS_ERROR")
+	returnedChannel, nErr := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
+	require.NotNil(t, nErr, "should've failed to save a duplicate direct channel")
+	var cErr *store.ErrConflict
+	require.Truef(t, errors.As(nErr, &cErr), "should've returned CHANNEL_EXISTS_ERROR")
 	require.Equal(t, o1.Id, returnedChannel.Id, "should've failed to save a duplicate direct channel")
 
 	// Attempt to save a non-direct channel
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	require.NotNil(t, err, "Should not be able to save non-direct channel")
+	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	require.NotNil(t, nErr, "Should not be able to save non-direct channel")
 
 	// Save yourself Direct Message
 	o1.Id = ""
 	o1.DisplayName = "Myself"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
-	_, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
-	require.Nil(t, err, "couldn't save direct channel", err)
+	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
+	require.Nil(t, nErr, "couldn't save direct channel", nErr)
 
 	members, err = ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.Nil(t, err)
@@ -248,8 +249,8 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.Nil(t, err)
 
-	c1, err := ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err, "couldn't create direct channel", err)
+	c1, nErr := ss.Channel().CreateDirectChannel(u1, u2)
+	require.Nil(t, nErr, "couldn't create direct channel", nErr)
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
 		ss.Channel().PermanentDelete(c1.Id)
@@ -402,8 +403,8 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, nErr)
 
 	c2, err := ss.Channel().Get(o2.Id, false)
 	require.Nil(t, err, err)
@@ -478,8 +479,8 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, nErr)
 
 	t.Run("Get 2 existing channels", func(t *testing.T) {
 		r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}, false)
@@ -3235,8 +3236,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	u1 := model.User{Id: model.NewId()}
 	u2 := model.User{Id: model.NewId()}
-	_, err = ss.Channel().CreateDirectChannel(&u1, &u2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().CreateDirectChannel(&u1, &u2)
+	require.Nil(t, nErr)
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
 
@@ -3711,13 +3712,13 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 		u2 := model.User{Id: model.NewId()}
 		u3 := model.User{Id: model.NewId()}
 		u4 := model.User{Id: model.NewId()}
-		_, err = ss.Channel().CreateDirectChannel(&u1, &user)
-		require.Nil(t, err)
-		_, err = ss.Channel().CreateDirectChannel(&u2, &user)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().CreateDirectChannel(&u1, &user)
+		require.Nil(t, nErr)
+		_, nErr = ss.Channel().CreateDirectChannel(&u2, &user)
+		require.Nil(t, nErr)
 		// other user direct message
-		_, err = ss.Channel().CreateDirectChannel(&u3, &u4)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().CreateDirectChannel(&u3, &u4)
+		require.Nil(t, nErr)
 
 		var members *model.ChannelMembers
 		members, err = ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
@@ -5502,8 +5503,8 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	_, err = ss.User().Save(u2)
 	require.Nil(t, err)
 
-	d4, err := ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err)
+	d4, nErr := ss.Channel().CreateDirectChannel(u1, u2)
+	require.Nil(t, nErr)
 	defer func() {
 		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
 		ss.Channel().PermanentDelete(d4.Id)
