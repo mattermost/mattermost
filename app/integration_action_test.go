@@ -491,7 +491,7 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 
 		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 			errReply := "some error"
-			if r.URL.Query().Get("abc") == "xyz2" {
+ 			if r.URL.Query().Get("abc") == "xyz" {
 				errReply = "some other error"
 			}
 			response := &model.SubmitDialogResponse{
