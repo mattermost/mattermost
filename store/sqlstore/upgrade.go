@@ -824,8 +824,8 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 			if err != nil {
 				continue
 			}
-			*user.AuthData = base64.StdEncoding.EncodeToString(originBytes)
-			sqlStore.User().Update(user, false)
+			authData := base64.StdEncoding.EncodeToString(originBytes)
+			sqlStore.User().UpdateAuthData(user.Id, user.AuthService, &authData, user.Email, false)
 		}
 	}
 	// 	saveSchemaVersion(sqlStore, VERSION_5_26_0)
