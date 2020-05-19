@@ -379,6 +379,7 @@ type AppIface interface {
 	CheckUserMfa(user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckValidDomains(team *model.Team) *model.AppError
 	ClearChannelMembersCache(channelID string)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()

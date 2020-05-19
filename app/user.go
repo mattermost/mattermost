@@ -7,6 +7,7 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -1474,7 +1475,13 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Bot().PermanentDelete(user.Id); err != nil {
-		return err
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+		default: // last fallback in case it doesn't map to an existing app error.
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	infos, err := a.Srv().Store.FileInfo().GetForUser(user.Id)
