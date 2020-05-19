@@ -1545,8 +1545,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 		OwnerId:     model.NewId(),
 		UserId:      model.NewId(),
 	}
-	_, err = ss.Bot().Save(bot1)
-	require.Nil(t, err)
+	_, nErr = ss.Bot().Save(bot1)
+	require.Nil(t, nErr)
 
 	b1 := &model.Post{}
 	b1.Message = "bot message one"
