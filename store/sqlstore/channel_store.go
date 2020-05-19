@@ -3490,6 +3490,38 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	}, nil
 }
 
+func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
+		return category, nil
+	}
+
+	var sql string
+	var args []interface{}
+	// any public/private channels that aren't in any category should be returned as part of the Channels category
+	channelTypeFilter := sq.Eq{"Channels.Type": []string{model.CHANNEL_OPEN, model.CHANNEL_PRIVATE}}
+	if category.Type == model.SidebarCategoryDirectMessages {
+		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
+		channelTypeFilter = sq.Eq{"Channels.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}}
+	}
+	var channels []string
+	sql, args, _ = s.getQueryBuilder().
+		Select("Id").
+		From("ChannelMembers").
+		LeftJoin("Channels ON Channels.Id=ChannelMembers.ChannelId").
+		Where(sq.And{
+			sq.NotEq{"ChannelMembers.ChannelId": category.Channels},
+			sq.Eq{"ChannelMembers.UserId": category.UserId},
+			channelTypeFilter,
+			sq.Eq{"Channels.DeleteAt": 0},
+		}).
+		OrderBy("DisplayName DESC").ToSql()
+	if _, err := s.GetReplica().Select(&channels, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+	category.Channels = append(channels, category.Channels...)
+	return category, nil
+}
+
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	var categories []*sidebarCategoryForJoin
 	sql, args, _ := s.getQueryBuilder().
@@ -3510,8 +3542,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 			result.Channels = append(result.Channels, *category.ChannelId)
 		}
 	}
-	return result, nil
-
+	return s.completePopulatingCategoryChannels(result)
 }
 
 func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
@@ -3554,6 +3585,12 @@ func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.Ord
 			}
 		}
 	}
+	for _, category := range oc.Categories {
+		if _, err := s.completePopulatingCategoryChannels(category); err != nil {
+			return nil, err
+		}
+	}
+
 	return &oc, nil
 }
 
