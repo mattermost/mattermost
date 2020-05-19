@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/Masterminds/squirrel v1.2.0
-	github.com/NYTimes/gziphandler v1.1.1
 	github.com/RoaringBitmap/roaring v0.4.23 // indirect
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -55,7 +54,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/jonboulle/clockwork v0.1.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.4.0
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -73,6 +72,7 @@ require (
 	github.com/minio/minio-go/v6 v6.0.55
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.2.3 // indirect
+	github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
@@ -82,7 +82,7 @@ require (
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
-	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
 	github.com/rs/cors v1.7.0

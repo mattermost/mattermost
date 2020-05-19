@@ -497,6 +497,7 @@ func testAutocompleteUserByUsernameWithHyphen(t *testing.T, th *SearchTestHelper
 func testShouldEscapePercentageCharacter(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternateusername", "alternate%nickname", "firstname", "altlastname")
 	require.Nil(t, err)
+
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
@@ -641,6 +642,7 @@ func testSearchUsersShouldBeCaseInsensitive(t *testing.T, th *SearchTestHelper) 
 func testSearchOneTwoCharUsersnameAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("ho", "alternatenickname", "zi", "k")
 	require.Nil(t, err)
+
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
@@ -668,6 +670,7 @@ func testShouldSupportKoreanCharacters(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternate-username", "alternate-nickname", "서강준", "안신원")
 	require.Nil(t, err)
 	defer th.deleteUser(userAlternate)
+
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
 	_, err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})

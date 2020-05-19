@@ -541,6 +541,28 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(userId string, tokenId string
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.AdjustImage(file)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AllowOAuthAppAccessToUser")
@@ -1102,6 +1124,28 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 
 	defer span.Finish()
 	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CheckValidDomains(team *model.Team) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckValidDomains")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckValidDomains(team)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12764,6 +12808,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Sess
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionToUserOrBot(session, userId)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionIsRegistered(session model.Session) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionIsRegistered")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionIsRegistered(session)
 
 	return resultVar0
 }

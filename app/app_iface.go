@@ -267,6 +267,8 @@ type AppIface interface {
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
 	SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError
+	// SessionIsRegistered determines if a specific session has been registered
+	SessionIsRegistered(session model.Session) bool
 	// SetBotIconImage sets LHS icon for a bot.
 	SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError
 	// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
@@ -350,6 +352,7 @@ type AppIface interface {
 	AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError)
 	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError)
+	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError
@@ -376,6 +379,7 @@ type AppIface interface {
 	CheckUserMfa(user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckValidDomains(team *model.Team) *model.AppError
 	ClearChannelMembersCache(channelID string)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
