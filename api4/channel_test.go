@@ -106,13 +106,15 @@ func TestCreateChannel(t *testing.T) {
 	_, resp = Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
-	channel.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(channel)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channel.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(channel)
+		CheckNoError(t, resp)
 
-	private.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(private)
-	CheckNoError(t, resp)
+		private.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(private)
+		CheckNoError(t, resp)
+	})
 
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
@@ -901,28 +903,30 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channels, resp := client.GetAllChannels(0, 20, "")
+		CheckNoError(t, resp)
 
-	// At least, all the not-deleted channels created during the InitBasic
-	require.True(t, len(*channels) >= 3)
-	for _, c := range *channels {
-		require.NotEqual(t, c.TeamId, "")
-	}
+		// At least, all the not-deleted channels created during the InitBasic
+		require.True(t, len(*channels) >= 3)
+		for _, c := range *channels {
+			require.NotEqual(t, c.TeamId, "")
+		}
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
-	CheckNoError(t, resp)
-	require.True(t, len(*channels) >= 3)
+		channels, resp = client.GetAllChannels(0, 10, "")
+		CheckNoError(t, resp)
+		require.True(t, len(*channels) >= 3)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, *channels, 1)
+		channels, resp = client.GetAllChannels(1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, *channels, 1)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, *channels)
+		channels, resp = client.GetAllChannels(10000, 10000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, *channels)
+	})
 
-	_, resp = Client.GetAllChannels(0, 20, "")
+	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -3541,4 +3545,96 @@ func TestPatchChannelModerations(t *testing.T) {
 		}
 	})
 
+}
+
+func TestGetChannelMemberCountsByGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	t.Run("Errors without a license", func(t *testing.T) {
+		_, res := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		require.Equal(t, "api.channel.channel_member_counts_by_group.license.error", res.Error.Id)
+	})
+
+	th.App.SetLicense(model.NewTestLicense())
+
+	t.Run("Errors without read permission to the channel", func(t *testing.T) {
+		_, res := th.Client.GetChannelMemberCountsByGroup(model.NewId(), false, "")
+		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+	})
+
+	t.Run("Returns empty for a channel with no members or groups", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		require.Equal(t, []*model.ChannelMemberCountByGroup{}, memberCounts)
+	})
+
+	user := th.BasicUser
+	user.Timezone["useAutomaticTimezone"] = "false"
+	user.Timezone["manualTimezone"] = "XOXO/BLABLA"
+	_, err := th.App.UpsertGroupMember(th.Group.Id, user.Id)
+	require.Nil(t, err)
+	_, resp := th.SystemAdminClient.UpdateUser(user)
+	CheckNoError(t, resp)
+
+	user2 := th.BasicUser2
+	user2.Timezone["automaticTimezone"] = "NoWhere/Island"
+	_, err = th.App.UpsertGroupMember(th.Group.Id, user2.Id)
+	require.Nil(t, err)
+	_, resp = th.SystemAdminClient.UpdateUser(user2)
+	CheckNoError(t, resp)
+
+	t.Run("Returns users in group without timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, false, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 0,
+			},
+		}
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	t.Run("Returns users in group with timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, true, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 2,
+			},
+		}
+		require.Equal(t, expectedMemberCounts, memberCounts)
+	})
+
+	id := model.NewId()
+	group := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+
+	_, err = th.App.CreateGroup(group)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user.Id)
+	require.Nil(t, err)
+
+	t.Run("Returns multiple groups with users in group with timezones", func(t *testing.T) {
+		memberCounts, _ := th.SystemAdminClient.GetChannelMemberCountsByGroup(channel.Id, true, "")
+		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
+			{
+				GroupId:                     group.Id,
+				ChannelMemberCount:          1,
+				ChannelMemberTimezonesCount: 1,
+			},
+			{
+				GroupId:                     th.Group.Id,
+				ChannelMemberCount:          2,
+				ChannelMemberTimezonesCount: 2,
+			},
+		}
+		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
 }

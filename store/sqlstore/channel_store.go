@@ -502,41 +502,39 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 }
 
 // Save writes the (non-direct) channel channel to the database.
-func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
-
+func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "begin_transaction: ")
 	}
 	defer finalizeTransaction(transaction)
 
-	newChannel, appErr := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-	if appErr != nil {
-		return newChannel, appErr
+	newChannel, err := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if err != nil {
+		return newChannel, err
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
 	if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
-
+		return nil, errors.Wrapf(err, "upsert_public_channel: ")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "commit_transaction: ")
 	}
 
 	return newChannel, nil
 }
 
-func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
@@ -561,65 +559,63 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
 	if directchannel.DeleteAt != 0 {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directchannel.DeleteAt)
 	}
 
 	if directchannel.Type != model.CHANNEL_DIRECT {
-		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "Type", directchannel.Type)
 	}
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	directchannel.TeamId = ""
-	newChannel, appErr := s.saveChannelT(transaction, directchannel, 0)
-	if appErr != nil {
-		return newChannel, appErr
+	newChannel, err := s.saveChannelT(transaction, directchannel, 0)
+	if err != nil {
+		return newChannel, err
 	}
 
 	// Members need new channel ID
 	member1.ChannelId = newChannel.Id
 	member2.ChannelId = newChannel.Id
 
-	var memberSaveErr *model.AppError
 	if member1.UserId != member2.UserId {
-		_, memberSaveErr = s.saveMultipleMembersT(transaction, []*model.ChannelMember{member1, member2})
+		_, err = s.saveMultipleMembersT(transaction, []*model.ChannelMember{member1, member2})
 	} else {
-		_, memberSaveErr = s.saveMemberT(transaction, member2)
+		_, err = s.saveMemberT(transaction, member2)
 	}
-
-	if memberSaveErr != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.add_members.app_error", nil, memberSaveErr.Error(), http.StatusInternalServerError)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return newChannel, nil
 
 }
 
-func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
 	if len(channel.Id) > 0 {
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+channel.Id, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
 
 	channel.PreSave()
-	if err := channel.IsValid(); err != nil {
-		return nil, err
+	if err := channel.IsValid(); err != nil { // TODO: this needs to return plain error in v6.
+		return nil, err // we just pass through the error as-is for now.
 	}
 
 	if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP && maxChannelsPerTeam >= 0 {
 		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
-			return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.current_count.app_error", nil, "teamId="+channel.TeamId+", "+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
 		} else if count >= maxChannelsPerTeam {
-			return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.limit.app_error", nil, "teamId="+channel.TeamId, http.StatusBadRequest)
+			return nil, store.NewErrLimitExceeded("channels_per_team", int(count), "teamId="+channel.TeamId)
 		}
 	}
 
@@ -627,9 +623,9 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
 			dupChannel := model.Channel{}
 			s.GetMaster().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name = :Name", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
-			return &dupChannel, model.NewAppError("SqlChannelStore.Save", store.CHANNEL_EXISTS_ERROR, nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+			return &dupChannel, store.NewErrConflict("Channel", err, "id="+channel.Id)
 		}
-		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.save.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "save_channel: id=%s", channel.Id)
 	}
 	return channel, nil
 }
@@ -1317,9 +1313,21 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	}
 	defer finalizeTransaction(transaction)
 
-	newMembers, appErr := s.saveMultipleMembersT(transaction, members)
-	if appErr != nil {
-		return nil, appErr
+	newMembers, err := s.saveMultipleMembersT(transaction, members)
+	if err != nil { // TODO: this will go away once SaveMultipleMembers is migrated too.
+		var cErr *store.ErrConflict
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &cErr):
+			switch cErr.Resource {
+			case "ChannelMembers":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+			}
+		case errors.As(err, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel.create_direct_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if err := transaction.Commit(); err != nil {
@@ -1337,7 +1345,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	return newMembers[0], nil
 }
 
-func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError) {
+func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	newChannelMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -1349,7 +1357,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 		users[member.UserId] = true
 
 		member.PreSave()
-		if err := member.IsValid(); err != nil {
+		if err := member.IsValid(); err != nil { // TODO: this needs to return plain error in v6.
 			return nil, err
 		}
 	}
@@ -1379,7 +1387,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 
 	channelRolesSql, channelRolesArgs, err := channelRolesQuery.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveMultipleMembers", "store.sql_channel.save_multimple_members.channel_roles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "channel_roles_tosql")
 	}
 
 	var defaultChannelsRoles []struct {
@@ -1390,7 +1398,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	}
 	_, err = s.GetMaster().Select(&defaultChannelsRoles, channelRolesSql, channelRolesArgs...)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveMultipleMembers", "store.sql_channel.save_multimple_members.channel_roles_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "default_channel_roles_select")
 	}
 
 	for _, defaultRoles := range defaultChannelsRoles {
@@ -1418,7 +1426,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 
 	teamRolesSql, teamRolesArgs, err := teamRolesQuery.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveMultipleMembers", "store.sql_channel.save_multimple_members.team_roles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_roles_tosql")
 	}
 
 	var defaultTeamsRoles []struct {
@@ -1429,7 +1437,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	}
 	_, err = s.GetMaster().Select(&defaultTeamsRoles, teamRolesSql, teamRolesArgs...)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SaveMultipleMembers", "store.sql_channel.save_multimple_members.team_roles_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "default_team_roles_select")
 	}
 
 	for _, defaultRoles := range defaultTeamsRoles {
@@ -1443,14 +1451,14 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "channel_members_tosql")
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
-			return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.exists.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, store.NewErrConflict("ChannelMembers", err, "")
 		}
-		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_channel.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "channel_members_save")
 	}
 
 	newMembers := []*model.ChannelMember{}
@@ -1478,7 +1486,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, error) {
 	members, err := s.saveMultipleMembersT(transaction, []*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
@@ -1777,6 +1785,38 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 	}
 
 	return count, nil
+}
+
+// GetMemberCountsByGroup returns a slice of ChannelMemberCountByGroup for a given channel
+// which contains the number of channel members for each group and optionally the number of unique timezones present for each group in the channel
+func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
+
+	if includeTimezones {
+		selectStr = "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT( DISTINCT Users.Timezone ) AS ChannelMemberTimezonesCount"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("ChannelMembers").
+		Join("GroupMembers ON GroupMembers.UserId = ChannelMembers.UserId")
+
+	if includeTimezones {
+		query = query.Join("Users ON Users.Id = GroupMembers.UserId")
+	}
+
+	query = query.Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).GroupBy("GroupMembers.GroupId")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMemberCountsByGroup", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var data []*model.ChannelMemberCountByGroup
+	if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMemberCountsByGroup", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelID+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return data, nil
 }
 
 func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {

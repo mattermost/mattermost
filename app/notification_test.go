@@ -162,7 +162,16 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
+	guest := th.CreateGuest()
+	user4 := th.CreateUser()
+	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteUser(guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.App.AddUserToChannel(guest, channel)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -174,6 +183,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return only visible users not in the channel (for guests)", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+
+		require.Nil(t, err)
+		require.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
@@ -977,6 +998,13 @@ func TestAllowGroupMentions(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
+
+	t.Run("should return false without ldap groups license", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
+	})
+
+	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
@@ -2387,5 +2415,108 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, len(mentions.Mentions), 1)
 		_, found := mentions.Mentions[groupChannelMember.Id]
 		require.Equal(t, found, true)
+	})
+}
+
+func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var err *model.AppError
+	var groupsMap map[string]*model.Group
+
+	team := th.BasicTeam
+	channel := th.BasicChannel
+	group1 := th.CreateGroup()
+
+	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 0)
+	})
+
+	group1.AllowReference = true
+	group1, err = th.App.UpdateGroup(group1)
+	require.Nil(t, err)
+
+	group2 := th.CreateGroup()
+	t.Run("should only return groups with allow reference", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[group2.Name])
+		require.Equal(t, groupsMap[group1.Name], group1)
+	})
+
+	group2.AllowReference = true
+	group2, err = th.App.UpdateGroup(group2)
+	require.Nil(t, err)
+
+	// Sync first group to constrained channel
+	constrainedChannel := th.CreateChannel(th.BasicTeam)
+	constrainedChannel.GroupConstrained = model.NewBool(true)
+	constrainedChannel, err = th.App.UpdateChannel(constrainedChannel)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group1.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		SyncableId: constrainedChannel.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[group2.Name])
+		require.Equal(t, groupsMap[group1.Name], group1)
+	})
+
+	// Create a third group not synced with a team or channel
+	group3 := th.CreateGroup()
+	group3.AllowReference = true
+	group3, err = th.App.UpdateGroup(group3)
+	require.Nil(t, err)
+
+	// Sync group2 to the team
+	team.GroupConstrained = model.NewBool(true)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group2.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		SyncableId: team.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 2)
+		require.Nil(t, groupsMap[group3.Name])
+		require.Equal(t, groupsMap[group2.Name], group2)
+		require.Equal(t, groupsMap[group1.Name], group1)
+	})
+
+	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[group3.Name])
+		require.Nil(t, groupsMap[group2.Name])
+		require.Equal(t, groupsMap[group1.Name], group1)
+	})
+
+	team.GroupConstrained = model.NewBool(false)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 3)
+		require.Equal(t, groupsMap[group1.Name], group1)
+		require.Equal(t, groupsMap[group2.Name], group2)
+		require.Equal(t, groupsMap[group3.Name], group3)
 	})
 }

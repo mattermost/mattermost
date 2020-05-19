@@ -364,7 +364,6 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	require.Nil(t, err)
 
 	WebSocketClient.Listen()
-	time.Sleep(300 * time.Millisecond)
 	wsResp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, model.STATUS_OK, wsResp.Status, "should have responded OK to authentication challenge")
 
