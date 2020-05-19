@@ -69,8 +69,8 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
-		Name: "Should be able to filter messages written on a specific date",
-		Fn:   testFilterMessagesInSpecificDate,
+		Name: "Should be able to filter messages written after a specific date",
+		Fn:   testFilterMessagesAfterSpecificDate,
 		Tags: []string{ENGINE_ALL},
 	},
 	{
@@ -79,8 +79,8 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
-		Name: "Should be able to filter messages written after a specific date",
-		Fn:   testFilterMessagesAfterSpecificDate,
+		Name: "Should be able to filter messages written on a specific date",
+		Fn:   testFilterMessagesInSpecificDate,
 		Tags: []string{ENGINE_ALL},
 	},
 	{
