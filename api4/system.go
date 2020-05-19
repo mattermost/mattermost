@@ -430,14 +430,14 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour) // Expires after 1 hour
+		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
 
 	location = res.Header.Get("Location")
-	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour) // Expires after 1 hour
+	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))

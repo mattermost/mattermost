@@ -55,7 +55,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	og := c.App.GetOpenGraphMetadata(url)
 	ogJSON, err := og.ToJSON()
-	openGraphDataCache.SetWithExpiry(url, ogJSON, 1*time.Hour) // Cache would expire after 1 hour
+	openGraphDataCache.SetWithExpiry(url, ogJSON, 1*time.Hour)
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
 		return
