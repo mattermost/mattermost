@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
@@ -119,6 +120,31 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 	user = getUserFromDB(th.App, user.Id, t)
 	assert.Equal(t, int64(0), user.LastPictureUpdate)
+}
+
+func TestAdjustProfileImage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.App.AdjustImage(bytes.NewReader([]byte{}))
+	require.Error(t, err)
+
+	// test image isn't the correct dimensions
+	// it should be adjusted
+	testjpg, error := testutils.ReadTestFile("testjpg.jpg")
+	require.Nil(t, error)
+	adjusted, err := th.App.AdjustImage(bytes.NewReader(testjpg))
+	require.Nil(t, err)
+	assert.True(t, adjusted.Len() > 0)
+	assert.NotEqual(t, testjpg, adjusted)
+
+	// default image should require adjustement
+	user := th.BasicUser
+	image, err := th.App.GetDefaultProfileImage(user)
+	require.Nil(t, err)
+	image2, err := th.App.AdjustImage(bytes.NewReader(image))
+	require.Nil(t, err)
+	assert.Equal(t, image, image2.Bytes())
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {

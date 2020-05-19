@@ -383,7 +383,7 @@ func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -401,7 +401,7 @@ func (s *OpenTracingLayerBotStore) Get(userId string, includeDeleted bool) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -419,7 +419,7 @@ func (s *OpenTracingLayerBotStore) GetAll(options *model.BotGetOptions) ([]*mode
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) *model.AppError {
+func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -437,7 +437,7 @@ func (s *OpenTracingLayerBotStore) PermanentDelete(userId string) *model.AppErro
 	return resultVar0
 }
 
-func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -455,7 +455,7 @@ func (s *OpenTracingLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *OpenTracingLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "BotStore.Update")
 	s.Root.Store.SetContext(newCtx)
