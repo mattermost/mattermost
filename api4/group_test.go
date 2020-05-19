@@ -1007,3 +1007,74 @@ func TestGetGroupsByUserId(t *testing.T) {
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
 }
+
+func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	var groups []*model.Group
+	for i := 0; i < 3; i++ {
+		id := model.NewId()
+		group, err := th.App.CreateGroup(&model.Group{
+			DisplayName: "dn-foo_" + id,
+			Name:        "name" + id,
+			Source:      model.GroupSourceLdap,
+			Description: "description_" + id,
+			RemoteId:    model.NewId(),
+		})
+		require.Nil(t, err)
+		groups = append(groups, group)
+	}
+
+	team := th.CreateTeam()
+
+	id := model.NewId()
+	channel := &model.Channel{
+		DisplayName:      "dn_" + id,
+		Name:             "name" + id,
+		Type:             model.CHANNEL_PRIVATE,
+		TeamId:           team.Id,
+		GroupConstrained: model.NewBool(true),
+	}
+	channel, err := th.App.CreateChannel(channel, false)
+	require.Nil(t, err)
+
+	// normal result of groups are returned if the team is not group-constrained
+	apiGroups, response := th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.Contains(t, apiGroups, groups[0])
+	require.Contains(t, apiGroups, groups[1])
+	require.Contains(t, apiGroups, groups[2])
+
+	team.GroupConstrained = model.NewBool(true)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	// team is not group-constrained but has no associated groups
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 0)
+
+	for _, group := range []*model.Group{groups[0], groups[2]} {
+		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		require.Nil(t, err)
+	}
+
+	// set of the teams groups are returned
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.Contains(t, apiGroups, groups[0])
+	require.NotContains(t, apiGroups, groups[1])
+	require.Contains(t, apiGroups, groups[2])
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(groups[0].Id, channel.Id, false))
+	require.Nil(t, err)
+
+	// as usual it doesn't return groups already associated to the channel
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.NotContains(t, apiGroups, groups[0])
+	require.Contains(t, apiGroups, groups[2])
+}

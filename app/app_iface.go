@@ -136,6 +136,8 @@ type AppIface interface {
 	// FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 	// associated to the team excluding bots.
 	FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error)
+	// GetAllGroupsByTeam iterates all pages of groups associated to the given team and returns them all.
+	GetAllGroupsByTeam(teamID string) ([]*model.Group, *model.AppError)
 	// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 	// filter.
 	GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
@@ -158,6 +160,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
 	// GetKnownUsers returns the list of user ids of users with any direct
@@ -555,7 +559,6 @@ type AppIface interface {
 	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
