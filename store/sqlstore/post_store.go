@@ -1297,14 +1297,21 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
 	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
-	re, err := regexp.Compile(fmt.Sprintf(`(%s)?(\s|$)`, strings.Join(stopWords, "|")))
+	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
 	if err != nil {
 		return "", err
 	}
 
-	terms = re.ReplaceAllString(terms, " ")
-	terms = strings.TrimSpace(terms)
-	return terms, nil
+	newTerms := make([]string, 0)
+	separatedTerms := strings.Split(terms, " ")
+	for _, term := range separatedTerms {
+		term = strings.TrimSpace(term)
+		term = re.ReplaceAllString(term, "")
+		if term != "" {
+			newTerms = append(newTerms, term)
+		}
+	}
+	return strings.Join(newTerms, " "), nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
