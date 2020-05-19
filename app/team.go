@@ -1002,8 +1002,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
-	if err != nil {
+	if err = a.Srv().Store.Channel().UpdateSidebarChannelsCategoriesOnLeave(channel, team.Id); err != nil {
+		return err
+	}
+
+	if err = a.RemoveTeamMemberFromTeam(teamMember, requestorId); err != nil {
 		return err
 	}
 
