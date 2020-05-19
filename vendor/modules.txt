@@ -1,9 +1,6 @@
 # github.com/Masterminds/squirrel v1.2.0
 ## explicit
 github.com/Masterminds/squirrel
-# github.com/NYTimes/gziphandler v1.1.1
-## explicit
-github.com/NYTimes/gziphandler
 # github.com/armon/go-metrics v0.3.0
 ## explicit
 github.com/armon/go-metrics
@@ -137,7 +134,7 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/memberlist v0.1.5
+# github.com/hashicorp/memberlist v0.2.2
 ## explicit
 github.com/hashicorp/memberlist
 # github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d
@@ -239,6 +236,9 @@ github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.2.3
 ## explicit
 github.com/mitchellh/mapstructure
+# github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
+## explicit
+github.com/mkraft/gziphandler
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
@@ -413,7 +413,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200427165652-729f1e841bcc
+# golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
@@ -449,7 +449,7 @@ golang.org/x/image/webp
 # golang.org/x/mod v0.2.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0
+# golang.org/x/net v0.0.0-20200501053045-e0ff5e5a1de5
 ## explicit
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -467,9 +467,10 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20200427175716-29b57079015a
+# golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3
 ## explicit
 golang.org/x/sys/cpu
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2

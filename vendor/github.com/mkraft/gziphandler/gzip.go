@@ -1,4 +1,4 @@
-package gziphandler // import "github.com/NYTimes/gziphandler"
+package gziphandler // import "github.com/mkraft/gziphandler"
 
 import (
 	"bufio"
@@ -81,11 +81,13 @@ type GzipResponseWriter struct {
 
 	code int // Saves the WriteHeader value.
 
-	minSize int    // Specifed the minimum response size to gzip. If the response length is bigger than this value, it is compressed.
+	minSize int    // Specifies the minimum response size to gzip. If the response length is bigger than this value, it is compressed.
 	buf     []byte // Holds the first part of the write before reaching the minSize or the end of the write.
 	ignore  bool   // If true, then we immediately passthru writes to the underlying ResponseWriter.
 
 	contentTypes []parsedContentType // Only compress if the response is one of these content-types. All are accepted if empty.
+
+	contentTypeExceptions []parsedContentType // Only compress if the response is not one of these content-types. All are accepted if empty.
 }
 
 type GzipResponseWriterWithCloseNotify struct {
@@ -118,7 +120,7 @@ func (w *GzipResponseWriter) Write(b []byte) (int, error) {
 		ce    = w.Header().Get(contentEncoding)
 	)
 	// Only continue if they didn't already choose an encoding or a known unhandled content length or type.
-	if ce == "" && (cl == 0 || cl >= w.minSize) && (ct == "" || handleContentType(w.contentTypes, ct)) {
+	if ce == "" && (cl == 0 || cl >= w.minSize) && (ct == "" || handleContentType(w.contentTypes, w.contentTypeExceptions, ct)) {
 		// If the current buffer is less than minSize and a Content-Length isn't set, then wait until we have more data.
 		if len(w.buf) < w.minSize && cl == 0 {
 			return len(b), nil
@@ -131,7 +133,7 @@ func (w *GzipResponseWriter) Write(b []byte) (int, error) {
 				w.Header().Set(contentType, ct)
 			}
 			// If the Content-Type is acceptable to GZIP, initialize the GZIP writer.
-			if handleContentType(w.contentTypes, ct) {
+			if handleContentType(w.contentTypes, w.contentTypeExceptions, ct) {
 				if err := w.startGzip(); err != nil {
 					return 0, err
 				}
@@ -324,10 +326,11 @@ func GzipHandlerWithOpts(opts ...option) (func(http.Handler) http.Handler, error
 			w.Header().Add(vary, acceptEncoding)
 			if acceptsGzip(r) {
 				gw := &GzipResponseWriter{
-					ResponseWriter: w,
-					index:          index,
-					minSize:        c.minSize,
-					contentTypes:   c.contentTypes,
+					ResponseWriter:        w,
+					index:                 index,
+					minSize:               c.minSize,
+					contentTypes:          c.contentTypes,
+					contentTypeExceptions: c.contentTypeExceptions,
 				}
 				defer gw.Close()
 
@@ -376,14 +379,19 @@ func (pct parsedContentType) equals(mediaType string, params map[string]string) 
 
 // Used for functional configuration.
 type config struct {
-	minSize      int
-	level        int
-	contentTypes []parsedContentType
+	minSize               int
+	level                 int
+	contentTypes          []parsedContentType
+	contentTypeExceptions []parsedContentType
 }
 
 func (c *config) validate() error {
 	if c.level != gzip.DefaultCompression && (c.level < gzip.BestSpeed || c.level > gzip.BestCompression) {
 		return fmt.Errorf("invalid compression level requested: %d", c.level)
+	}
+
+	if len(c.contentTypes) > 0 && len(c.contentTypeExceptions) > 0 {
+		return fmt.Errorf("ContentTypes and ContentTypeExceptions are mutually exclusive")
 	}
 
 	if c.minSize < 0 {
@@ -411,6 +419,9 @@ func CompressionLevel(level int) option {
 // the Content-Type header to before compressing. If none
 // match, the response will be returned as-is.
 //
+// ContentTypes cannot be used with ContentTypeExceptions, the options
+// are mutually exclusive.
+//
 // Content types are compared in a case-insensitive, whitespace-ignored
 // manner.
 //
@@ -437,6 +448,39 @@ func ContentTypes(types []string) option {
 	}
 }
 
+// ContentTypeExceptions specifies a list of content types to compare
+// the Content-Type header to before compressing. If any
+// match, the response will be returned as-is.
+//
+// Content types are compared in a case-insensitive, whitespace-ignored
+// manner.
+//
+// ContentTypeExceptions cannot be used with ContentTypes, the options
+// are mutually exclusive.
+//
+// A MIME type without any other directive will match a content type
+// that has the same MIME type, regardless of that content type's other
+// directives. I.e., "text/html" will match both "text/html" and
+// "text/html; charset=utf-8".
+//
+// A MIME type with any other directive will only match a content type
+// that has the same MIME type and other directives. I.e.,
+// "text/html; charset=utf-8" will only match "text/html; charset=utf-8".
+//
+// By default, responses are gzipped regardless of
+// Content-Type.
+func ContentTypeExceptions(types []string) option {
+	return func(c *config) {
+		c.contentTypeExceptions = []parsedContentType{}
+		for _, v := range types {
+			mediaType, params, err := mime.ParseMediaType(v)
+			if err == nil {
+				c.contentTypeExceptions = append(c.contentTypeExceptions, parsedContentType{mediaType, params})
+			}
+		}
+	}
+}
+
 // GzipHandler wraps an HTTP handler, to transparently gzip the response body if
 // the client supports it (via the Accept-Encoding header). This will compress at
 // the default compression level.
@@ -453,9 +497,11 @@ func acceptsGzip(r *http.Request) bool {
 }
 
 // returns true if we've been configured to compress the specific content type.
-func handleContentType(contentTypes []parsedContentType, ct string) bool {
-	// If contentTypes is empty we handle all content types.
-	if len(contentTypes) == 0 {
+func handleContentType(whitelist, blacklist []parsedContentType, ct string) bool {
+	// If whitelist and blacklist are empty we handle all content types.
+	whiteLen := len(whitelist)
+	blackLen := len(blacklist)
+	if whiteLen == 0 && blackLen == 0 {
 		return true
 	}
 
@@ -464,13 +510,24 @@ func handleContentType(contentTypes []parsedContentType, ct string) bool {
 		return false
 	}
 
-	for _, c := range contentTypes {
+	var listToCheck []parsedContentType
+	var whitelistMode bool
+
+	if whiteLen > 0 {
+		whitelistMode = true
+		listToCheck = whitelist
+	} else {
+		listToCheck = blacklist
+	}
+
+	var isInList bool
+	for _, c := range listToCheck {
 		if c.equals(mediaType, params) {
-			return true
+			isInList = true
 		}
 	}
 
-	return false
+	return (whitelistMode && isInList) || (!whitelistMode && !isInList)
 }
 
 // parseEncodings attempts to parse a list of codings, per RFC 2616, as might
