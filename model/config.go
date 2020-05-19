@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE            = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
@@ -212,6 +213,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+
+	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -328,6 +331,8 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
 	EnableLatex                                       *bool
+	EnableLocalMode                                   *bool
+	LocalModeSocketLocation                           *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -720,6 +725,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		} else {
 			s.EnableLatex = NewBool(false)
 		}
+	}
+
+	if s.EnableLocalMode == nil {
+		s.EnableLocalMode = NewBool(false)
+	}
+
+	if s.LocalModeSocketLocation == nil {
+		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
 	}
 }
 
@@ -1889,6 +1902,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 	LoginIdAttribute   *string
+	PictureAttribute   *string
 
 	// Synchronization
 	SyncIntervalMinutes *int
@@ -1996,6 +2010,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.PositionAttribute == nil {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
+	}
+
+	if s.PictureAttribute == nil {
+		s.PictureAttribute = NewString(LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE)
 	}
 
 	// For those upgrading to the version when LoginIdAttribute was added
