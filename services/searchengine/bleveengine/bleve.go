@@ -22,9 +22,9 @@ import (
 )
 
 const (
-	ENGINE_NAME = "bleve"
-	POST_INDEX = "posts"
-	USER_INDEX = "users"
+	ENGINE_NAME   = "bleve"
+	POST_INDEX    = "posts"
+	USER_INDEX    = "users"
 	CHANNEL_INDEX = "channels"
 )
 
