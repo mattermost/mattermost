@@ -11,44 +11,52 @@ import (
 )
 
 func TestNewCache(t *testing.T) {
-	p := NewProvider()
+	t.Run("with only size option given", func(t *testing.T) {
+		p := NewProvider()
 
-	size := 1
-	c := p.NewCache(size)
+		size := 1
+		c := p.NewCache(&CacheOptions{
+			Size: size,
+		})
 
-	err := c.Set("key1", "val1")
-	require.Nil(t, err)
-	err = c.Set("key2", "val2")
-	require.Nil(t, err)
-	l, err := c.Len()
-	require.Nil(t, err)
-	require.Equal(t, size, l)
-}
+		err := c.Set("key1", "val1")
+		require.Nil(t, err)
+		err = c.Set("key2", "val2")
+		require.Nil(t, err)
+		l, err := c.Len()
+		require.Nil(t, err)
+		require.Equal(t, size, l)
+	})
 
-func TestNewCacheWithParams(t *testing.T) {
-	p := NewProvider()
+	t.Run("with all options specified", func(t *testing.T) {
+		p := NewProvider()
 
-	size := 1
-	expiry := 1
-	event := "clusterEvent"
-	c := p.NewCacheWithParams(size, "name", expiry, event)
+		size := 1
+		expiry := 1 * time.Second
+		event := "clusterEvent"
+		c := p.NewCache(&CacheOptions{
+			Size:                   size,
+			Name:                   "name",
+			DefaultExpiry:          expiry,
+			InvalidateClusterEvent: event,
+		})
 
-	require.Equal(t, event, c.GetInvalidateClusterEvent())
+		require.Equal(t, event, c.GetInvalidateClusterEvent())
 
-	err := c.SetWithDefaultExpiry("key1", "val1")
-	require.Nil(t, err)
-	err = c.SetWithDefaultExpiry("key2", "val2")
-	require.Nil(t, err)
-	l, err := c.Len()
-	require.Nil(t, err)
-	require.Equal(t, size, l)
+		err := c.SetWithDefaultExpiry("key1", "val1")
+		require.Nil(t, err)
+		err = c.SetWithDefaultExpiry("key2", "val2")
+		require.Nil(t, err)
+		l, err := c.Len()
+		require.Nil(t, err)
+		require.Equal(t, size, l)
 
-	time.Sleep(time.Duration(expiry+1) * time.Second)
+		time.Sleep(expiry + 1*time.Second)
 
-	var v string
-	err = c.Get("key1", &v)
-	require.Equal(t, ErrKeyNotFound, err)
-	err = c.Get("key2", &v)
-	require.Equal(t, ErrKeyNotFound, err)
-
+		var v string
+		err = c.Get("key1", &v)
+		require.Equal(t, ErrKeyNotFound, err)
+		err = c.Get("key2", &v)
+		require.Equal(t, ErrKeyNotFound, err)
+	})
 }

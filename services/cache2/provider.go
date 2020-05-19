@@ -5,12 +5,18 @@ package cache2
 
 import "time"
 
+// CacheOptions contains options for initializaing a cache
+type CacheOptions struct {
+	Size                   int
+	DefaultExpiry          time.Duration
+	Name                   string
+	InvalidateClusterEvent string
+}
+
 // Provider is a provider for Cache
 type Provider interface {
-	// NewCache creates a new cache with given size.
-	NewCache(size int) Cache
-	// NewCacheWithParams creates a new cache with the given parameters.
-	NewCacheWithParams(size int, name string, defaultExpiryInSecs int, invalidateClusterEvent string) Cache
+	// NewCache creates a new cache with given options.
+	NewCache(opts *CacheOptions) Cache
 	// Connect opens a new connection to the cache using specific provider parameters.
 	Connect()
 	// Close releases any resources used by the cache provider.
@@ -25,19 +31,12 @@ func NewProvider() Provider {
 	return &cacheProvider{}
 }
 
-// NewCache creates a new cache with given size.
-func (c *cacheProvider) NewCache(size int) Cache {
+// NewCache creates a new cache with given opts
+func (c *cacheProvider) NewCache(opts *CacheOptions) Cache {
 	return NewLRU(&LRUOptions{
-		Size: size,
-	})
-}
-
-// NewCacheWithParams creates a new cache with the given parameters.
-func (c *cacheProvider) NewCacheWithParams(size int, name string, defaultExpiryInSecs int, invalidateClusterEvent string) Cache {
-	return NewLRU(&LRUOptions{
-		Size:                   size,
-		DefaultExpiry:          time.Duration(defaultExpiryInSecs) * time.Second,
-		InvalidateClusterEvent: invalidateClusterEvent,
+		Size:                   opts.Size,
+		DefaultExpiry:          opts.DefaultExpiry,
+		InvalidateClusterEvent: opts.InvalidateClusterEvent,
 	})
 }
 
