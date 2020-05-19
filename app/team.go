@@ -231,7 +231,7 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 	}
 
 	team.Patch(patch)
-	if patch.AllowOpenInvite != nil && *patch.AllowOpenInvite == false {
+	if patch.AllowOpenInvite != nil && !*patch.AllowOpenInvite {
 		team.InviteId = model.NewId()
 	}
 
