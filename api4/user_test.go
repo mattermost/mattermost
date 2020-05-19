@@ -63,10 +63,10 @@ func TestCreateUser(t *testing.T) {
 	CheckErrorMessage(t, resp, "model.user.is_valid.username.app_error")
 	CheckBadRequestStatus(t, resp)
 
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
 		_, resp = client.CreateUser(user2)
 		CheckNoError(t, resp)
