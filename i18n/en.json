@@ -2068,7 +2068,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "The domain associated with your account does not have permission to perform this action. Contact your Team or System Administrator for additional details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2076,7 +2076,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "The domain associated with your account does not have permission to perform this action. Contact your Team or System Administrator for additional details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.leave.left",
