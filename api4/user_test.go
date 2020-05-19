@@ -5,8 +5,10 @@ package api4
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -93,20 +95,12 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
 		})
 
-		t.Run("ValidUser", func(t *testing.T) {
-			// These tests successully create user so we can't use TestForSystemAdminAndLocal
-			// without also invoking DeleteUser
-			t.Run("SystemAdminClient", func(t *testing.T) {
-				user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
-				_, resp := th.SystemAdminClient.CreateUser(user)
-				CheckNoError(t, resp)
-			})
-			t.Run("LocalClient", func(t *testing.T) {
-				user := &model.User{Email: "foobar+testdomainrestrictionlocalclient@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
-				_, resp := th.LocalClient.CreateUser(user)
-				CheckNoError(t, resp)
-			})
-		})
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testdomainrestriction@mattermost.com"
+			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername()}
+			_, resp := client.CreateUser(user)
+			CheckNoError(t, resp)
+		}, "ValidUser")
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername()}
@@ -150,24 +144,15 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
 		})
 
-		t.Run("InvalidRole", func(t *testing.T) {
-			t.Run("SystemAdminClient", func(t *testing.T) {
-				user := &model.User{Email: "foobar+testinvalidrole@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
-				_, resp := th.SystemAdminClient.CreateUser(user)
-				CheckNoError(t, resp)
-				ruser, err := th.App.GetUserByEmail("foobar+testinvalidrole@mattermost.com")
-				assert.Nil(t, err)
-				assert.NotEqual(t, ruser.Roles, "system_user system_admin")
-			})
-			t.Run("LocalClient", func(t *testing.T) {
-				user := &model.User{Email: "foobar+testinvalidrolelocalclient@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
-				_, resp := th.LocalClient.CreateUser(user)
-				CheckNoError(t, resp)
-				ruser, err := th.App.GetUserByEmail("foobar+testinvalidrolelocalclient@mattermost.com")
-				assert.Nil(t, err)
-				assert.NotEqual(t, ruser.Roles, "system_user system_admin")
-			})
-		})
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testinvalidrole@mattermost.com"
+			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+			_, resp := client.CreateUser(user)
+			CheckNoError(t, resp)
+			ruser, err := th.App.GetUserByEmail(emailAddr)
+			require.Nil(t, err)
+			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
+		}, "InvalidRole")
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
