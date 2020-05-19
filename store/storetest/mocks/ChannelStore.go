@@ -2104,6 +2104,22 @@ func (_m *ChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Pr
 	return r0
 }
 
+// UpdateSidebarChannelsCategoriesOnLeave provides a mock function with given fields: channel, newTeamId
+func (_m *ChannelStore) UpdateSidebarChannelsCategoriesOnLeave(channel *model.Channel, newTeamId string) *model.AppError {
+	ret := _m.Called(channel, newTeamId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Channel, string) *model.AppError); ok {
+		r0 = rf(channel, newTeamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds
 func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, channelIds)

@@ -2187,6 +2187,24 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(prefer
 	return resultVar0
 }
 
+func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsCategoriesOnLeave(channel *model.Channel, newTeamId string) *model.AppError {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarChannelsCategoriesOnLeave")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.ChannelStore.UpdateSidebarChannelsCategoriesOnLeave(channel, newTeamId)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (s *OpenTracingLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UserBelongsToChannels")
