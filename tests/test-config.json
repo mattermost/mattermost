@@ -33,6 +33,7 @@
         "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
         "AllowCookiesForSubdomains": false,
+        "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
