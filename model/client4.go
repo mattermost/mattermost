@@ -65,7 +65,7 @@ type Client4 struct {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = ioutil.ReadAll(r.Body)
+		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
@@ -351,6 +351,10 @@ func (c *Client4) GetDataRetentionRoute() string {
 
 func (c *Client4) GetElasticsearchRoute() string {
 	return "/elasticsearch"
+}
+
+func (c *Client4) GetBleveRoute() string {
+	return fmt.Sprintf("/bleve")
 }
 
 func (c *Client4) GetCommandsRoute() string {
@@ -1763,6 +1767,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
+// RestoreTeam restores a previously deleted team.
+func (c *Client4) RestoreTeam(teamId string) (*Team, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/restore", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
 // RegenerateTeamInviteId requests a new invite ID to be generated.
 func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response) {
 	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/regenerate_invite_id", "")
@@ -1792,6 +1806,18 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// UpdateTeamPrivacy modifies the team type (model.TEAM_OPEN <--> model.TEAM_INVITE) and sets
+// the corresponding AllowOpenInvite appropriately.
+func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Response) {
+	requestBody := map[string]string{"privacy": privacy}
+	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
 // GetTeamMembers returns team members based on the provided team id string.
@@ -2686,7 +2712,7 @@ func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, page int, perPage int) (*PostList, *Response) {
-	if len(teamId) == 0 || len(teamId) != 26 {
+	if !IsValidId(teamId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
@@ -2701,7 +2727,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId string, page int, perPage int) (*PostList, *Response) {
-	if len(channelId) == 0 || len(channelId) != 26 {
+	if !IsValidId(channelId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
@@ -3759,6 +3785,9 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 		opts.FilterAllowReference,
 		opts.Q,
 	)
+	if opts.Since > 0 {
+		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
+	}
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
@@ -3768,6 +3797,22 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetGroupsByUserId retrieves Mattermost Groups for a user
+func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
+	path := fmt.Sprintf(
+		"%s/%v/groups",
+		c.GetUsersRoute(),
+		userId,
+	)
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
@@ -4027,6 +4072,18 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
 	r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/purge_indexes", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// Bleve Section
+
+// PurgeBleveIndexes immediately deletes all Bleve indexes.
+func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetBleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -4981,4 +5038,24 @@ func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelMode
 	}
 	defer closeBody(r)
 	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetKnownUsers() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetUsersRoute()+"/known", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var userIds []string
+	json.NewDecoder(r.Body).Decode(&userIds)
+	return userIds, BuildResponse(r)
+}
+
+func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
 }

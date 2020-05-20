@@ -19,7 +19,6 @@ package credentials
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -29,6 +28,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // DefaultExpiryWindow - Default expiry window.
@@ -82,7 +83,7 @@ func (m *IAM) Retrieve() (Value, error) {
 	case len(os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE")) > 0:
 		if len(endpoint) == 0 {
 			if len(os.Getenv("AWS_REGION")) > 0 {
-				endpoint = "sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
+				endpoint = "https://sts." + os.Getenv("AWS_REGION") + ".amazonaws.com"
 			} else {
 				endpoint = defaultSTSRoleEndpoint
 			}
@@ -227,7 +228,7 @@ func getEcsTaskCredentials(client *http.Client, endpoint string) (ec2RoleCredRes
 	}
 
 	respCreds := ec2RoleCredRespBody{}
-	if err := json.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
+	if err := jsoniter.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
 		return ec2RoleCredRespBody{}, err
 	}
 
@@ -283,7 +284,7 @@ func getCredentials(client *http.Client, endpoint string) (ec2RoleCredRespBody, 
 	}
 
 	respCreds := ec2RoleCredRespBody{}
-	if err := json.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
+	if err := jsoniter.NewDecoder(resp.Body).Decode(&respCreds); err != nil {
 		return ec2RoleCredRespBody{}, err
 	}
 

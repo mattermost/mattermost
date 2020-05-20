@@ -7,12 +7,11 @@ import (
 	"io"
 
 	empty "github.com/golang/protobuf/ptypes/empty"
-	"github.com/hashicorp/go-hclog"
+	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin/internal/plugin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/hashicorp/go-plugin/internal/plugin"
 )
 
 // grpcStdioBuffer is the buffer size we try to fill when sending a chunk of
@@ -101,10 +100,10 @@ func newGRPCStdioClient(
 	// Connect immediately to the endpoint
 	stdioClient, err := client.StreamStdio(ctx, &empty.Empty{})
 
-	// If we get an Unavailable error, this means that the plugin isn't
+	// If we get an Unavailable or Unimplemented error, this means that the plugin isn't
 	// updated and linking to the latest version of go-plugin that supports
 	// this. We fall back to the previous behavior of just not syncing anything.
-	if status.Code(err) == codes.Unavailable {
+	if status.Code(err) == codes.Unavailable || status.Code(err) == codes.Unimplemented {
 		log.Warn("stdio service not available, stdout/stderr syncing unavailable")
 		stdioClient = nil
 		err = nil
@@ -135,6 +134,7 @@ func (c *grpcStdioClient) Run(stdout, stderr io.Writer) {
 			if err == io.EOF ||
 				status.Code(err) == codes.Unavailable ||
 				status.Code(err) == codes.Canceled ||
+				status.Code(err) == codes.Unimplemented ||
 				err == context.Canceled {
 				c.log.Warn("received EOF, stopping recv loop", "err", err)
 				return

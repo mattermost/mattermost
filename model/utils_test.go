@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"encoding/base32"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -25,8 +26,16 @@ func TestNewId(t *testing.T) {
 
 func TestRandomString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		r := NewRandomString(32)
-		require.Len(t, r, 32)
+		str := NewRandomString(i)
+		require.Len(t, str, i)
+		require.NotContains(t, str, "=")
+	}
+}
+
+func TestRandomBase32String(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		str := NewRandomBase32String(i)
+		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
 	}
 }
 

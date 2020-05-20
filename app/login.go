@@ -165,6 +165,12 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	a.SetSession(session)
 
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP && a.Ldap() != nil {
+		a.Srv().Go(func() {
+			a.Ldap().UpdateProfilePictureIfNecessary(user, session)
+		})
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
