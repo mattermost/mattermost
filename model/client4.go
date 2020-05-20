@@ -65,7 +65,7 @@ type Client4 struct {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = ioutil.ReadAll(r.Body)
+		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
@@ -351,6 +351,10 @@ func (c *Client4) GetDataRetentionRoute() string {
 
 func (c *Client4) GetElasticsearchRoute() string {
 	return "/elasticsearch"
+}
+
+func (c *Client4) GetBleveRoute() string {
+	return fmt.Sprintf("/bleve")
 }
 
 func (c *Client4) GetCommandsRoute() string {
@@ -2708,7 +2712,7 @@ func (c *Client4) GetFlaggedPostsForUser(userId string, page int, perPage int) (
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, page int, perPage int) (*PostList, *Response) {
-	if len(teamId) == 0 || len(teamId) != 26 {
+	if !IsValidId(teamId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
@@ -2723,7 +2727,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
 func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId string, page int, perPage int) (*PostList, *Response) {
-	if len(channelId) == 0 || len(channelId) != 26 {
+	if !IsValidId(channelId) {
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
@@ -3781,6 +3785,9 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 		opts.FilterAllowReference,
 		opts.Q,
 	)
+	if opts.Since > 0 {
+		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
+	}
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
@@ -3790,6 +3797,22 @@ func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetGroupsByUserId retrieves Mattermost Groups for a user
+func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
+	path := fmt.Sprintf(
+		"%s/%v/groups",
+		c.GetUsersRoute(),
+		userId,
+	)
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
@@ -4049,6 +4072,18 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
 	r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/purge_indexes", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// Bleve Section
+
+// PurgeBleveIndexes immediately deletes all Bleve indexes.
+func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetBleveRoute()+"/purge_indexes", "")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
