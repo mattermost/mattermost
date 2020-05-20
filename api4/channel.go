@@ -322,7 +322,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	patch := model.ChannelPatchFromJson(r.Body)
 	if patch == nil {
 		c.SetInvalidParam("channel")
