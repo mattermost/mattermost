@@ -38,6 +38,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -225,7 +226,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
+	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	if err := bleveEngine.Start(); err != nil {
+		return nil, err
+	}
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	s.SearchEngine = searchEngine
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -237,8 +244,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
-	err := s.RunOldAppInitialization()
-	if err != nil {
+	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
 	}
 
@@ -984,6 +990,9 @@ func (s *Server) stopSearchEngine() {
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
 	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
+	}
+	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
+		s.SearchEngine.BleveEngine.Stop()
 	}
 }
 

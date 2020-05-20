@@ -432,8 +432,8 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &channelScheme1.Id,
 	}
-	channel1, err = ss.Channel().Save(channel1, -1)
-	require.Nil(t, err)
+	channel1, nErr := ss.Channel().Save(channel1, -1)
+	require.Nil(t, nErr)
 	defer ss.Channel().Delete(channel1.Id, 0)
 
 	channel2 := &model.Channel{
@@ -443,8 +443,8 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &channelScheme2.Id,
 	}
-	channel2, err = ss.Channel().Save(channel2, -1)
-	require.Nil(t, err)
+	channel2, nErr = ss.Channel().Save(channel2, -1)
+	require.Nil(t, nErr)
 	defer ss.Channel().Delete(channel2.Id, 0)
 
 	t.Run("ChannelRolesUnderTeamRole", func(t *testing.T) {
@@ -555,8 +555,8 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &channelScheme.Id,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 	defer ss.Channel().Delete(channel.Id, 0)
 
 	channelSchemeUserRole, err := ss.Role().GetByName(channelScheme.DefaultChannelUserRole)

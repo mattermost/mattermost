@@ -127,9 +127,9 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
@@ -338,11 +338,11 @@ type UserStore interface {
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
-	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
-	Save(bot *model.Bot) (*model.Bot, *model.AppError)
-	Update(bot *model.Bot) (*model.Bot, *model.AppError)
-	PermanentDelete(userId string) *model.AppError
+	Get(userId string, includeDeleted bool) (*model.Bot, error)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	Save(bot *model.Bot) (*model.Bot, error)
+	Update(bot *model.Bot) (*model.Bot, error)
+	PermanentDelete(userId string) error
 }
 
 type SessionStore interface {
@@ -624,7 +624,7 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, *model.AppError)
 	Get(groupID string) (*model.Group, *model.AppError)
-	GetByName(name string) (*model.Group, *model.AppError)
+	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)

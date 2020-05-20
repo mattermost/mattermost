@@ -1445,8 +1445,8 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1504,8 +1504,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1545,8 +1545,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 		OwnerId:     model.NewId(),
 		UserId:      model.NewId(),
 	}
-	_, err = ss.Bot().Save(bot1)
-	require.Nil(t, err)
+	_, nErr = ss.Bot().Save(bot1)
+	require.Nil(t, nErr)
 
 	b1 := &model.Post{}
 	b1.Message = "bot message one"
@@ -2415,8 +2415,8 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.Nil(t, nErr)
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -2464,8 +2464,8 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.Nil(t, nErr)
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()

@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE            = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
@@ -179,6 +180,9 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE          = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
+
+	BLEVE_SETTINGS_DEFAULT_INDEX_DIR                         = ""
+	BLEVE_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
@@ -365,7 +369,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableLinkPreviews == nil {
-		s.EnableLinkPreviews = NewBool(false)
+		s.EnableLinkPreviews = NewBool(true)
 	}
 
 	if s.EnableTesting == nil {
@@ -982,6 +986,7 @@ type SqlSettings struct {
 	Trace                       *bool    `restricted:"true"`
 	AtRestEncryptKey            *string  `restricted:"true"`
 	QueryTimeout                *int     `restricted:"true"`
+	DisableDatabaseSearch       *bool    `restricted:"true"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1029,6 +1034,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
+	}
+
+	if s.DisableDatabaseSearch == nil {
+		s.DisableDatabaseSearch = NewBool(false)
 	}
 }
 
@@ -1450,7 +1459,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PushNotificationContents == nil {
-		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
+		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
 	}
 
 	if s.EnableEmailBatching == nil {
@@ -1896,6 +1905,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 	LoginIdAttribute   *string
+	PictureAttribute   *string
 
 	// Synchronization
 	SyncIntervalMinutes *int
@@ -2003,6 +2013,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.PositionAttribute == nil {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
+	}
+
+	if s.PictureAttribute == nil {
+		s.PictureAttribute = NewString(LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE)
 	}
 
 	// For those upgrading to the version when LoginIdAttribute was added
@@ -2391,6 +2405,36 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 }
 
+type BleveSettings struct {
+	IndexDir                      *string
+	EnableIndexing                *bool
+	EnableSearching               *bool
+	EnableAutocomplete            *bool
+	BulkIndexingTimeWindowSeconds *int
+}
+
+func (bs *BleveSettings) SetDefaults() {
+	if bs.IndexDir == nil {
+		bs.IndexDir = NewString(BLEVE_SETTINGS_DEFAULT_INDEX_DIR)
+	}
+
+	if bs.EnableIndexing == nil {
+		bs.EnableIndexing = NewBool(false)
+	}
+
+	if bs.EnableSearching == nil {
+		bs.EnableSearching = NewBool(false)
+	}
+
+	if bs.EnableAutocomplete == nil {
+		bs.EnableAutocomplete = NewBool(false)
+	}
+
+	if bs.BulkIndexingTimeWindowSeconds == nil {
+		bs.BulkIndexingTimeWindowSeconds = NewInt(BLEVE_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS)
+	}
+}
+
 type DataRetentionSettings struct {
 	EnableMessageDeletion *bool
 	EnableFileDeletion    *bool
@@ -2693,6 +2737,7 @@ type Config struct {
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
 	ElasticsearchSettings     ElasticsearchSettings
+	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
@@ -2774,6 +2819,7 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
+	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
@@ -2837,6 +2883,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ElasticsearchSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.BleveSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3218,6 +3268,26 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 	if *s.RequestTimeoutSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (bs *BleveSettings) isValid() *AppError {
+	if *bs.EnableIndexing {
+		if len(*bs.IndexDir) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
+		}
+	} else {
+		if *bs.EnableSearching {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+		}
+		if *bs.EnableAutocomplete {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	if *bs.BulkIndexingTimeWindowSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

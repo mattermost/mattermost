@@ -395,6 +395,36 @@ func TestPatchTeam(t *testing.T) {
 	require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
 	require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
 
+	t.Run("Changing AllowOpenInvite to false regenerates InviteID", func(t *testing.T) {
+		team2 := &model.Team{DisplayName: "Name2", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: true, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team2, _ = Client.CreateTeam(team2)
+
+		patch2 := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(false),
+		}
+
+		rteam2, resp2 := Client.PatchTeam(team2.Id, patch2)
+		CheckNoError(t, resp2)
+		require.Equal(t, team2.Id, rteam2.Id)
+		require.False(t, rteam2.AllowOpenInvite)
+		require.NotEqual(t, team2.InviteId, rteam2.InviteId)
+	})
+
+	t.Run("Changing AllowOpenInvite to true doesn't regenerate InviteID", func(t *testing.T) {
+		team2 := &model.Team{DisplayName: "Name3", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team2, _ = Client.CreateTeam(team2)
+
+		patch2 := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(true),
+		}
+
+		rteam2, resp2 := Client.PatchTeam(team2.Id, patch2)
+		CheckNoError(t, resp2)
+		require.Equal(t, team2.Id, rteam2.Id)
+		require.True(t, rteam2.AllowOpenInvite)
+		require.Equal(t, team2.InviteId, rteam2.InviteId)
+	})
+
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
 	rteam, resp = Client.PatchTeam(team.Id, patch)
@@ -555,19 +585,21 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 	teamPrivate2 := createTeam(model.TEAM_INVITE, false)
 
 	tests := []struct {
-		name           string
-		team           *model.Team
-		privacy        string
-		errChecker     func(t *testing.T, resp *model.Response)
-		wantType       string
-		wantOpenInvite bool
+		name                string
+		team                *model.Team
+		privacy             string
+		errChecker          func(t *testing.T, resp *model.Response)
+		wantType            string
+		wantOpenInvite      bool
+		wantInviteIdChanged bool
+		originalInviteId    string
 	}{
 		{name: "bad privacy", team: teamPublic, privacy: "blap", errChecker: CheckBadRequestStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
 		{name: "bad team", team: &model.Team{Id: model.NewId()}, privacy: model.TEAM_OPEN, errChecker: CheckForbiddenStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
-		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false, originalInviteId: teamPublic.InviteId, wantInviteIdChanged: true},
+		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPrivate.InviteId, wantInviteIdChanged: false},
+		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPublic2.InviteId, wantInviteIdChanged: false},
+		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false, originalInviteId: teamPrivate2.InviteId, wantInviteIdChanged: false},
 	}
 
 	for _, test := range tests {
@@ -582,6 +614,11 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 			}
 			require.Equal(t, test.wantType, team.Type)
 			require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
+			if test.wantInviteIdChanged {
+				require.NotEqual(t, test.originalInviteId, team.InviteId)
+			} else {
+				require.Equal(t, test.originalInviteId, team.InviteId)
+			}
 		})
 	}
 
