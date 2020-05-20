@@ -881,7 +881,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 			query = query.OrderBy(model.USERNAME)
 		}
 
-		if (teamMembersGetOptions.Term != "") {
+		if teamMembersGetOptions.Term != "" {
 			isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
 			query = generateSearchQuery(query, strings.Fields(teamMembersGetOptions.Term), USER_SEARCH_TYPE_ALL, isPostgreSQL)
 		}
