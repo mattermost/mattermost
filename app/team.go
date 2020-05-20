@@ -948,7 +948,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		return err
 	}
 
-	if err = a.Srv().Store.Channel().ClearSidebarOnTeamLeave(user.Id, teamMember.TeamId); err != nil {
+	if err := a.Srv().Store.Channel().ClearSidebarOnTeamLeave(user.Id, teamMember.TeamId); err != nil {
 		return err
 	}
 
