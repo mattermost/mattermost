@@ -948,6 +948,10 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		return err
 	}
 
+	if err = a.Srv().Store.Channel().ClearSidebarOnTeamLeave(user.Id, teamMember.TeamId); err != nil {
+		return err
+	}
+
 	// delete the preferences that set the last channel used in the team and other team specific preferences
 	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
 		return err
@@ -1000,10 +1004,6 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 				mlog.Error("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
-	}
-
-	if err = a.Srv().Store.Channel().UpdateSidebarChannelsCategoriesOnLeave(channel, team.Id); err != nil {
-		return err
 	}
 
 	if err = a.RemoveTeamMemberFromTeam(teamMember, requestorId); err != nil {

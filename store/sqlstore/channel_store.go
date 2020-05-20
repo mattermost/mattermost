@@ -3724,17 +3724,17 @@ func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Chann
 	return nil
 }
 
-func (s SqlChannelStore) UpdateSidebarChannelsCategoriesOnLeave(channel *model.Channel, leftTeamId string) *model.AppError {
+func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError {
 	// if user leaves the team, clean his team related entries in sidebar channels and categories
 	params := map[string]interface{}{
-		"ChannelId": channel.Id,
-		"TeamId":    leftTeamId,
+		"UserId": userId,
+		"TeamId": teamId,
 	}
-	if _, err := s.GetMaster().Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND ChannelId=:ChannelId", params); err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelsCategoriesOnLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND UserId=:UserId", params); err != nil {
+		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE SidebarCategories.TeamId = :TeamId", params); err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelsCategoriesOnLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE SidebarCategories.TeamId = :TeamId AND SidebarCategories.UserId = :UserId", params); err != nil {
+		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }

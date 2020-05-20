@@ -132,7 +132,7 @@ type ChannelStore interface {
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError
-	UpdateSidebarChannelsCategoriesOnLeave(channel *model.Channel, newTeamId string) *model.AppError
+	ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
