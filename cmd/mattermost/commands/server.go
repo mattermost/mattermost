@@ -58,7 +58,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 		app.ConfigStore(configStore),
 		app.RunJobs,
 		app.JoinCluster,
-		app.StartElasticsearch,
+		app.StartSearchEngine,
 		app.StartMetrics,
 	}
 	server, err := app.NewServer(options...)
@@ -75,6 +75,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	api := api4.Init(server, server.AppOptions, server.Router)
 	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
+	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {

@@ -12,13 +12,16 @@ import (
 
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		mlog.Debug("dummyWebsocketHandler")
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -77,7 +80,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
-	hub := th.App.Srv().Hubs[0]
+	hub := th.App.Srv().GetHubs()[0]
 	th.App.HubStop()
 	time.Sleep(5 * time.Second)
 
@@ -90,7 +93,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 
 		hub.UpdateActivity("userId", "sessionToken", 0)
 
-		for i := 0; i <= BROADCAST_QUEUE_SIZE; i++ {
+		for i := 0; i <= broadcastQueueSize; i++ {
 			hub.Broadcast(model.NewWebSocketEvent("", "", "", "", nil))
 		}
 
@@ -105,4 +108,32 @@ func TestHubStopRaceCondition(t *testing.T) {
 	case <-time.After(15 * time.Second):
 		require.FailNow(t, "hub call did not return within 15 seconds after stop")
 	}
+}
+
+func TestHubIsRegistered(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	th.App.HubStart()
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	defer wc1.Close()
+	defer wc2.Close()
+	defer wc3.Close()
+
+	session1 := wc1.session.Load().(*model.Session)
+
+	assert.True(t, th.App.SessionIsRegistered(*session1))
+	assert.True(t, th.App.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
+	assert.True(t, th.App.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+
+	session4, appErr := th.App.CreateSession(&model.Session{
+		UserId: th.BasicUser2.Id,
+	})
+	require.Nil(t, appErr)
+	assert.False(t, th.App.SessionIsRegistered(*session4))
 }

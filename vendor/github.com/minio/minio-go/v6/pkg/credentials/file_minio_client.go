@@ -18,12 +18,12 @@
 package credentials
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 
+	jsoniter "github.com/json-iterator/go"
 	homedir "github.com/mitchellh/go-homedir"
 )
 
@@ -38,12 +38,12 @@ type FileMinioClient struct {
 	// env value is empty will default to current user's home directory.
 	// Linux/OSX: "$HOME/.mc/config.json"
 	// Windows:   "%USERALIAS%\mc\config.json"
-	filename string
+	Filename string
 
 	// MinIO Alias to extract credentials from the shared credentials file. If empty
 	// will default to environment variable "MINIO_ALIAS" or "default" if
 	// environment variable is also not set.
-	alias string
+	Alias string
 
 	// retrieved states if the credentials have been successfully retrieved.
 	retrieved bool
@@ -53,39 +53,39 @@ type FileMinioClient struct {
 // wrapping the Alias file provider.
 func NewFileMinioClient(filename string, alias string) *Credentials {
 	return New(&FileMinioClient{
-		filename: filename,
-		alias:    alias,
+		Filename: filename,
+		Alias:    alias,
 	})
 }
 
 // Retrieve reads and extracts the shared credentials from the current
 // users home directory.
 func (p *FileMinioClient) Retrieve() (Value, error) {
-	if p.filename == "" {
+	if p.Filename == "" {
 		if value, ok := os.LookupEnv("MINIO_SHARED_CREDENTIALS_FILE"); ok {
-			p.filename = value
+			p.Filename = value
 		} else {
 			homeDir, err := homedir.Dir()
 			if err != nil {
 				return Value{}, err
 			}
-			p.filename = filepath.Join(homeDir, ".mc", "config.json")
+			p.Filename = filepath.Join(homeDir, ".mc", "config.json")
 			if runtime.GOOS == "windows" {
-				p.filename = filepath.Join(homeDir, "mc", "config.json")
+				p.Filename = filepath.Join(homeDir, "mc", "config.json")
 			}
 		}
 	}
 
-	if p.alias == "" {
-		p.alias = os.Getenv("MINIO_ALIAS")
-		if p.alias == "" {
-			p.alias = "s3"
+	if p.Alias == "" {
+		p.Alias = os.Getenv("MINIO_ALIAS")
+		if p.Alias == "" {
+			p.Alias = "s3"
 		}
 	}
 
 	p.retrieved = false
 
-	hostCfg, err := loadAlias(p.filename, p.alias)
+	hostCfg, err := loadAlias(p.Filename, p.Alias)
 	if err != nil {
 		return Value{}, err
 	}
@@ -122,6 +122,8 @@ type config struct {
 // returned if it fails to read from the file.
 func loadAlias(filename, alias string) (hostConfig, error) {
 	cfg := &config{}
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 	configBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return hostConfig{}, err

@@ -6,6 +6,8 @@ package sqlstore
 import (
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -14,7 +16,7 @@ type SqlAuditStore struct {
 	SqlStore
 }
 
-func NewSqlAuditStore(sqlStore SqlStore) store.AuditStore {
+func newSqlAuditStore(sqlStore SqlStore) store.AuditStore {
 	s := &SqlAuditStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -30,7 +32,7 @@ func NewSqlAuditStore(sqlStore SqlStore) store.AuditStore {
 	return s
 }
 
-func (s SqlAuditStore) CreateIndexesIfNotExists() {
+func (s SqlAuditStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
@@ -49,16 +51,24 @@ func (s SqlAuditStore) Get(user_id string, offset int, limit int) (model.Audits,
 		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.limit.app_error", nil, "user_id="+user_id, http.StatusBadRequest)
 	}
 
-	query := "SELECT * FROM Audits"
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Audits").
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
 	if len(user_id) != 0 {
-		query += " WHERE UserId = :user_id"
+		query = query.Where(sq.Eq{"UserId": user_id})
 	}
 
-	query += " ORDER BY CreateAt DESC LIMIT :limit OFFSET :offset"
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	var audits model.Audits
-	if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit, "offset": offset}); err != nil {
+	if _, err := s.GetReplica().Select(&audits, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.finding.app_error", nil, "user_id="+user_id, http.StatusInternalServerError)
 	}
 	return audits, nil

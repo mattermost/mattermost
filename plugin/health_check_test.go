@@ -61,6 +61,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
+	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
 	require.Nil(t, err)
@@ -107,6 +108,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
+	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
 	require.Nil(t, err)
@@ -118,39 +120,36 @@ func testPluginHealthCheckPanic(t *testing.T) {
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {
-	bundle := &model.BundleInfo{}
-	rp := newRegisteredPlugin(bundle)
-	require.NotNil(t, rp)
-
 	// No failures, don't restart
-	result := shouldDeactivatePlugin(rp)
+	ftime := []time.Time{}
+	result := shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 
 	now := time.Now()
 
 	// Failures are recent enough to restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10*2))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10*2))
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, true, result)
 
 	// Failures are too spaced out to warrant a restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*2))
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*1))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 
 	// Not enough failures are present to warrant a restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 }

@@ -265,6 +265,22 @@ func (a *App) ensureInstallationDate() error {
 	return nil
 }
 
+func (a *App) ensureFirstServerRunTimestamp() error {
+	_, err := a.getFirstServerRunTimestamp()
+	if err == nil {
+		return nil
+	}
+
+	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
+		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return s.asymmetricSigningKey
@@ -404,22 +420,6 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	}
 
 	return nil
-}
-
-func (a *App) IsESIndexingEnabled() bool {
-	return a.Elasticsearch() != nil && *a.Config().ElasticsearchSettings.EnableIndexing
-}
-
-func (a *App) IsESSearchEnabled() bool {
-	esInterface := a.Elasticsearch()
-	license := a.License()
-	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
-}
-
-func (a *App) IsESAutocompletionEnabled() bool {
-	esInterface := a.Elasticsearch()
-	license := a.License()
-	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {

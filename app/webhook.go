@@ -187,20 +187,21 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
 
-	base := *post
+	base := post.Clone()
 	base.Message = ""
-	base.Props = make(map[string]interface{})
-	for k, v := range post.Props {
+	base.SetProps(make(map[string]interface{}))
+	for k, v := range post.GetProps() {
 		if k != "attachments" {
-			base.Props[k] = v
+			base.AddProp(k, v)
 		}
 	}
-	if utf8.RuneCountInString(model.StringInterfaceToJson(base.Props)) > model.POST_PROPS_MAX_USER_RUNES {
+
+	if utf8.RuneCountInString(model.StringInterfaceToJson(base.GetProps())) > model.POST_PROPS_MAX_USER_RUNES {
 		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
-		split := base
+		split := base.Clone()
 		x := 0
 		for index := range remainingText {
 			x++
@@ -210,20 +211,20 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 				break
 			}
 		}
-		splits = append(splits, &split)
+		splits = append(splits, split)
 	}
 
-	split := base
+	split := base.Clone()
 	split.Message = remainingText
-	splits = append(splits, &split)
+	splits = append(splits, split)
 
-	attachments, _ := post.Props["attachments"].([]*model.SlackAttachment)
+	attachments, _ := post.GetProp("attachments").([]*model.SlackAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]interface{})
-			for k, v := range lastSplit.Props {
+			for k, v := range lastSplit.GetProps() {
 				newProps[k] = v
 			}
 			origAttachments, _ := newProps["attachments"].([]*model.SlackAttachment)
@@ -232,13 +233,13 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			runeCount := utf8.RuneCountInString(newPropsString)
 
 			if runeCount <= model.POST_PROPS_MAX_USER_RUNES {
-				lastSplit.Props = newProps
+				lastSplit.SetProps(newProps)
 				break
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base
-				splits = append(splits, &newSplit)
+				newSplit := base.Clone()
+				splits = append(splits, newSplit)
 				continue
 			}
 
@@ -255,7 +256,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 					break
 				}
 			}
-			lastSplit.Props = newProps
+			lastSplit.SetProps(newProps)
 			break
 		}
 	}
@@ -386,7 +387,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	if err != nil {
 		return nil, err
 	}
-	a.InvalidateCacheForWebhook(oldHook.Id)
+	a.invalidateCacheForWebhook(oldHook.Id)
 	return newWebhook, nil
 }
 
@@ -399,7 +400,7 @@ func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
 		return err
 	}
 
-	a.InvalidateCacheForWebhook(hookId)
+	a.invalidateCacheForWebhook(hookId)
 
 	return nil
 }

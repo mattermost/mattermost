@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -675,6 +674,21 @@ func TestGetUserByUsername(t *testing.T) {
 	require.NotEmpty(t, ruser.Email, "email should not be blank")
 	require.NotEmpty(t, ruser.FirstName, "first name should not be blank")
 	require.NotEmpty(t, ruser.LastName, "last name should not be blank")
+
+	t.Run("Get user with a / character in the email", func(t *testing.T) {
+		user := &model.User{
+			Email:    "email/with/slashes@example.com",
+			Username: GenerateTestUsername(),
+			Password: "Pa$$word11",
+		}
+
+		newUser, resp := th.SystemAdminClient.CreateUser(user)
+		require.Nil(t, resp.Error)
+
+		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, newUser.Id)
+	})
 }
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
@@ -1227,6 +1241,10 @@ func TestAutocompleteUsers(t *testing.T) {
 func TestGetProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	// recreate basic user
+	th.BasicUser = th.CreateUser()
+	th.LoginBasic()
 	user := th.BasicUser
 
 	data, resp := th.Client.GetProfileImage(user.Id, "")
@@ -1549,6 +1567,69 @@ func TestPatchUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUserUnicodeNames(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	t.Run("create user unicode", func(t *testing.T) {
+		user := model.User{
+			Email:     th.GenerateTestEmail(),
+			FirstName: "Andrew\u202e",
+			LastName:  "\ufeffWiggin",
+			Nickname:  "Ender\u2028 Wiggin",
+			Password:  "hello1",
+			Username:  "\ufeffwiggin77",
+			Roles:     model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		ruser, resp := Client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		_, _ = Client.Login(user.Email, user.Password)
+
+		require.Equal(t, "wiggin77", ruser.Username, "Bad Unicode not filtered from username")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "Bad Unicode not filtered from displayname")
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad Unicode not filtered from nickname")
+	})
+
+	t.Run("update user unicode", func(t *testing.T) {
+		user := th.CreateUser()
+		Client.Login(user.Email, user.Password)
+
+		user.Username = "wiggin\ufff9"
+		user.Nickname = "Ender\u0340 \ufffcWiggin"
+		user.FirstName = "Andrew\ufff9"
+		user.LastName = "Wig\u206fgin"
+
+		ruser, resp := Client.UpdateUser(user)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "wiggin", ruser.Username, "bad unicode should be filtered from username")
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "bad unicode should be filtered from nickname")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "bad unicode should be filtered from display name")
+	})
+
+	t.Run("patch user unicode", func(t *testing.T) {
+		user := th.CreateUser()
+		Client.Login(user.Email, user.Password)
+
+		patch := &model.UserPatch{}
+		patch.Nickname = model.NewString("\U000E0000Ender\u206d Wiggin\U000E007F")
+		patch.FirstName = model.NewString("\U0001d173Andrew\U0001d17a")
+		patch.LastName = model.NewString("\u2028Wiggin\u2029")
+
+		ruser, resp := Client.PatchUser(user.Id, patch)
+		CheckNoError(t, resp)
+		CheckUserSanitization(t, ruser)
+
+		require.Equal(t, "Ender Wiggin", ruser.Nickname, "Bad unicode should be filtered from nickname")
+		require.Equal(t, "Andrew", ruser.FirstName, "Bad unicode should be filtered from first name")
+		require.Equal(t, "Wiggin", ruser.LastName, "Bad unicode should be filtered from last name")
+		require.Equal(t, "Andrew Wiggin", ruser.GetDisplayName(model.SHOW_FULLNAME), "Bad unicode should be filtered from display name")
+	})
+}
+
 func TestUpdateUserAuth(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -1675,13 +1756,13 @@ func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, e
 	for {
 		select {
 		case resp, ok := <-client.EventChannel:
-			require.Truef(t, ok, "channel closed before receiving expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
-			if resp.EventType() == model.WEBSOCKET_EVENT_USER_UPDATED {
+			require.Truef(t, ok, "channel closed before receiving expected event %s", event)
+			if resp.EventType() == event {
 				test(resp)
 				return
 			}
 		case <-time.After(5 * time.Second):
-			require.Failf(t, "failed to receive expected event %s", model.WEBSOCKET_EVENT_USER_UPDATED)
+			require.Failf(t, "failed to receive expected event %s", event)
 		}
 	}
 }
@@ -2468,7 +2549,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := th.Client.RevokeSession(user.Id, session.Id)
-	require.True(t, status, "user session revoke successfuly")
+	require.True(t, status, "user session revoke successfully")
 	CheckNoError(t, resp)
 
 	th.LoginBasic()
@@ -4346,8 +4427,6 @@ func TestLoginLockout(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
 		th := Setup(t).InitBasic()
-		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
-			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -4394,15 +4473,12 @@ func TestDemoteUserToGuest(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_guest", eventUser.Roles)
 		})
-		th.App.InvalidateAllCaches()
 	})
 }
 
 func TestPromoteGuestToUser(t *testing.T) {
 	t.Run("websocket update user event", func(t *testing.T) {
 		th := Setup(t).InitBasic()
-		th.Server.Store = localcachelayer.NewLocalCacheLayer(th.Server.Store,
-			th.Server.Metrics, th.Server.Cluster, th.Server.CacheProvider)
 		defer th.TearDown()
 
 		user := th.BasicUser
@@ -4450,6 +4526,105 @@ func TestPromoteGuestToUser(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, "system_user", eventUser.Roles)
 		})
-		th.App.InvalidateAllCaches()
+	})
+}
+
+func TestGetKnownUsers(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t1, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	t2, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	t3, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err, "failed to create team")
+
+	c1, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t1.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	c2, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t2.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	c3, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      t3.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	require.Nil(t, err, "failed to create channel")
+
+	u1 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u1)
+	u2 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u2)
+	u3 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u3)
+	u4 := th.CreateUser()
+	defer th.App.PermanentDeleteUser(u4)
+
+	th.LinkUserToTeam(u1, t1)
+	th.LinkUserToTeam(u1, t2)
+	th.LinkUserToTeam(u2, t1)
+	th.LinkUserToTeam(u3, t2)
+	th.LinkUserToTeam(u4, t3)
+
+	th.App.AddUserToChannel(u1, c1)
+	th.App.AddUserToChannel(u1, c2)
+	th.App.AddUserToChannel(u2, c1)
+	th.App.AddUserToChannel(u3, c2)
+	th.App.AddUserToChannel(u4, c3)
+
+	t.Run("get know users sharing no channels", func(t *testing.T) {
+		_, _ = th.Client.Login(u4.Email, u4.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Empty(t, userIds)
+	})
+
+	t.Run("get know users sharing one channel", func(t *testing.T) {
+		_, _ = th.Client.Login(u3.Email, u3.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Len(t, userIds, 1)
+		assert.Equal(t, userIds[0], u1.Id)
+	})
+
+	t.Run("get know users sharing multiple channels", func(t *testing.T) {
+		_, _ = th.Client.Login(u1.Email, u1.Password)
+		userIds, resp := th.Client.GetKnownUsers()
+		CheckNoError(t, resp)
+		assert.Len(t, userIds, 2)
+		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
 	})
 }

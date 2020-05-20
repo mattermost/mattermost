@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -38,7 +39,7 @@ type App struct {
 	cluster          einterfaces.ClusterInterface
 	compliance       einterfaces.ComplianceInterface
 	dataRetention    einterfaces.DataRetentionInterface
-	elasticsearch    einterfaces.ElasticsearchInterface
+	searchEngine     *searchengine.Broker
 	ldap             einterfaces.LdapInterface
 	messageExport    einterfaces.MessageExportInterface
 	metrics          einterfaces.MetricsInterface
@@ -77,16 +78,16 @@ func (a *App) configOrLicenseListener() {
 func (s *Server) initJobs() {
 	s.Jobs = jobs.NewJobServer(s, s.Store)
 	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s.FakeApp())
+		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}
 	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s.FakeApp())
+		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s.FakeApp())
+		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
 	}
 	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s.FakeApp())
+		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
 	}
 	if jobsLdapSyncInterface != nil {
 		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())
@@ -97,6 +98,9 @@ func (s *Server) initJobs() {
 	if jobsPluginsInterface != nil {
 		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
 	}
+	if jobsBleveIndexerInterface != nil {
+		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
+	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
 }
@@ -106,25 +110,6 @@ func (a *App) DiagnosticId() string {
 }
 
 func (a *App) SetDiagnosticId(id string) {
-	a.Srv().diagnosticId = id
-}
-
-func (a *App) EnsureDiagnosticId() {
-	if a.Srv().diagnosticId != "" {
-		return
-	}
-	props, err := a.Srv().Store.System().Get()
-	if err != nil {
-		return
-	}
-
-	id := props[model.SYSTEM_DIAGNOSTIC_ID]
-	if len(id) == 0 {
-		id = model.NewId()
-		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		a.Srv().Store.System().Save(systemId)
-	}
-
 	a.Srv().diagnosticId = id
 }
 
@@ -156,6 +141,18 @@ func (a *App) getSystemInstallDate() (int64, *model.AppError) {
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
+}
+
+func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	if appErr != nil {
+		return 0, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return value, nil
 }
@@ -202,8 +199,8 @@ func (a *App) Compliance() einterfaces.ComplianceInterface {
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
 	return a.dataRetention
 }
-func (a *App) Elasticsearch() einterfaces.ElasticsearchInterface {
-	return a.elasticsearch
+func (a *App) SearchEngine() *searchengine.Broker {
+	return a.searchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ldap

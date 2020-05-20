@@ -12,7 +12,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -21,6 +23,7 @@ import (
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
+	SearchEngine     *searchengine.Broker
 	SQLSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
@@ -45,7 +48,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	flag.Parse()
 
 	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing.
+	// The global logger will be stomped by apps initializing but that's fine for testing.
 	// Ideally this won't happen.
 	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
@@ -57,7 +60,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	utils.TranslationsPreInit()
 
 	if options != nil {
-		if options.EnableStore {
+		if options.EnableStore && !testing.Short() {
 			mainHelper.setupStore()
 		}
 
@@ -100,11 +103,15 @@ func (h *MainHelper) setupStore() {
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
+	config := &model.Config{}
+	config.SetDefaults()
+
+	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
-	h.Store = &TestStore{
+	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLSupplier,
-	}
+	}, h.SearchEngine, config)
 }
 
 func (h *MainHelper) setupResources() {
@@ -161,8 +168,16 @@ func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
 	if h.ClusterInterface == nil {
-		panic("MainHelper not initialized with sql supplier.")
+		panic("MainHelper not initialized with cluster interface.")
 	}
 
 	return h.ClusterInterface
+}
+
+func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
+	if h.SearchEngine == nil {
+		panic("MainHelper not initialized with search engine")
+	}
+
+	return h.SearchEngine
 }

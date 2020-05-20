@@ -127,8 +127,8 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -236,11 +236,11 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
-	cDM, err := ss.Channel().CreateDirectChannel(u1, u2)
-	require.Nil(t, err)
+	cDM, nErr := ss.Channel().CreateDirectChannel(u1, u2)
+	require.Nil(t, nErr)
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
@@ -342,8 +342,8 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts twice in the public channel
 	post1 := &model.Post{
@@ -446,8 +446,8 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Private Channel",
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts twice in the private channel
 	post1 := &model.Post{
@@ -546,8 +546,8 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// as well as a DM channel between those users
-	directMessageChannel, err := ss.Channel().CreateDirectChannel(user1, user2)
-	require.Nil(t, err)
+	directMessageChannel, nErr := ss.Channel().CreateDirectChannel(user1, user2)
+	require.Nil(t, nErr)
 
 	// user1 also sends a DM to user2
 	post := &model.Post{
@@ -644,8 +644,8 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Name:   model.NewId(),
 		Type:   model.CHANNEL_GROUP,
 	}
-	groupMessageChannel, err = ss.Channel().Save(groupMessageChannel, -1)
-	require.Nil(t, err)
+	groupMessageChannel, nErr := ss.Channel().Save(groupMessageChannel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts in the GM
 	post := &model.Post{
@@ -718,8 +718,8 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
 	post1 := &model.Post{
@@ -733,7 +733,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.Message = "edit " + post1.Message
 
 	post1e, err = ss.Post().Update(post1e, post1)
@@ -811,8 +811,8 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
 	post1 := &model.Post{
@@ -845,7 +845,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	postEditTime := post1.UpdateAt + 1
 	//user 1 edits the previous post
 	post1e := &model.Post{}
-	*post1e = *post1
+	post1e = post1.Clone()
 	post1e.EditAt = postEditTime
 	post1e.Message = "edit " + post1.Message
 	post1e, err = ss.Post().Update(post1e, post1)
@@ -923,8 +923,8 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
 	post1 := &model.Post{
@@ -1008,8 +1008,8 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, err = ss.Channel().Save(channel, -1)
-	require.Nil(t, err)
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
 	post1 := &model.Post{

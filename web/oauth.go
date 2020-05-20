@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -57,6 +58,8 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("authorizeOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.App.Session().UserId, authRequest)
@@ -66,6 +69,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("")
 
 	w.Write([]byte(model.MapToJson(map[string]string{"redirect": redirectUrl})))
@@ -75,10 +79,13 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	requestData := model.MapFromJson(r.Body)
 	clientId := requestData["client_id"]
 
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.SetInvalidParam("client_id")
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	err := c.App.DeauthorizeOAuthAppForUser(c.App.Session().UserId, clientId)
 	if err != nil {
@@ -86,7 +93,9 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
 
@@ -108,7 +117,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 
 	if err := authRequest.IsValid(); err != nil {
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
+			url.Values{
+				"type":    []string{"oauth_invalid_param"},
+				"message": []string{err.Message},
+			}, c.App.AsymmetricSigningKey())
 		return
 	}
 
@@ -187,7 +200,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientId := r.FormValue("client_id")
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_id.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -200,6 +213,10 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectUri := r.FormValue("redirect_uri")
 
+	auditRec := c.MakeAuditRecord("getAccessToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("grant_type", grantType)
+	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
 	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, code, secret, refreshToken)
@@ -212,6 +229,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Pragma", "no-cache")
 
+	auditRec.Success()
 	c.LogAudit("success")
 
 	w.Write([]byte(accessRsp.ToJson()))

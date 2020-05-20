@@ -9,7 +9,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
+	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestSAMLSettings(t *testing.T) {
@@ -93,8 +95,21 @@ func TestSAMLSettings(t *testing.T) {
 				RegisterNewSamlInterface(nil)
 			}
 
-			th := SetupEnterprise(t)
+			th := SetupEnterpriseWithStoreMock(t)
 			defer th.TearDown()
+
+			mockStore := th.App.Srv().Store.(*storemocks.Store)
+			mockUserStore := storemocks.UserStore{}
+			mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+			mockPostStore := storemocks.PostStore{}
+			mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+			mockSystemStore := storemocks.SystemStore{}
+			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+			mockStore.On("User").Return(&mockUserStore)
+			mockStore.On("Post").Return(&mockPostStore)
+			mockStore.On("System").Return(&mockSystemStore)
 
 			if tc.useNewSAMLLibrary {
 				th.App.UpdateConfig(func(cfg *model.Config) {

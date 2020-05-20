@@ -27,6 +27,9 @@ func getDsn(driver string, source string) string {
 }
 
 func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byte) (string, func()) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	t.Helper()
 	os.Clearenv()
 	truncateTables(t)
@@ -112,6 +115,9 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 }
 
 func TestDatabaseStoreNew(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("no existing configuration - initialization required", func(t *testing.T) {
@@ -148,6 +154,9 @@ func TestDatabaseStoreNew(t *testing.T) {
 
 	t.Run("invalid url", func(t *testing.T) {
 		_, err := config.NewDatabaseStore("")
+		require.Error(t, err)
+
+		_, err = config.NewDatabaseStore("mysql")
 		require.Error(t, err)
 	})
 
@@ -331,6 +340,9 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 }
 
 func TestDatabaseStoreSet(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("set same pointer value", func(t *testing.T) {
@@ -540,6 +552,9 @@ func TestDatabaseStoreSet(t *testing.T) {
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("active configuration no longer exists", func(t *testing.T) {
@@ -686,7 +701,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, ds.GetEnvironmentOverrides())
 		// check that in DB config does not include overwritten variable
 		_, actualConfig := getActualDatabaseConfig(t)
-		assert.Equal(t, []string(nil), actualConfig.SqlSettings.DataSourceReplicas)
+		assert.Equal(t, []string{}, actualConfig.SqlSettings.DataSourceReplicas)
 	})
 
 	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {
@@ -979,6 +994,9 @@ func TestDatabaseRemoveFile(t *testing.T) {
 }
 
 func TestDatabaseStoreString(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()
 

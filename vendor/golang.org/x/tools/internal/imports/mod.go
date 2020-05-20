@@ -14,9 +14,9 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 	"golang.org/x/tools/internal/gopathwalk"
-	"golang.org/x/tools/internal/module"
-	"golang.org/x/tools/internal/semver"
 )
 
 // ModuleResolver implements resolver for modules using the go command as little
@@ -146,7 +146,7 @@ func (r *ModuleResolver) init() error {
 }
 
 func (r *ModuleResolver) initAllMods() error {
-	stdout, err := r.env.invokeGo("list", "-m", "-json", "...")
+	stdout, err := r.env.invokeGo(context.TODO(), "list", "-m", "-json", "...")
 	if err != nil {
 		return err
 	}
@@ -156,12 +156,14 @@ func (r *ModuleResolver) initAllMods() error {
 			return err
 		}
 		if mod.Dir == "" {
-			if r.env.Debug {
+			if r.env.Logf != nil {
 				r.env.Logf("module %v has not been downloaded and will be ignored", mod.Path)
 			}
 			// Can't do anything with a module that's not downloaded.
 			continue
 		}
+		// golang/go#36193: the go command doesn't always clean paths.
+		mod.Dir = filepath.Clean(mod.Dir)
 		r.modsByModPath = append(r.modsByModPath, mod)
 		r.modsByDir = append(r.modsByDir, mod)
 		if mod.Main {
@@ -468,7 +470,7 @@ func (r *ModuleResolver) scan(ctx context.Context, callback *scanCallback) error
 			if r.scannedRoots[root] {
 				continue
 			}
-			gopathwalk.WalkSkip([]gopathwalk.Root{root}, add, skip, gopathwalk.Options{Debug: r.env.Debug, ModulesEnabled: true})
+			gopathwalk.WalkSkip([]gopathwalk.Root{root}, add, skip, gopathwalk.Options{Logf: r.env.Logf, ModulesEnabled: true})
 			r.scannedRoots[root] = true
 		}
 		close(scanDone)
@@ -579,9 +581,9 @@ func (r *ModuleResolver) scanDirForPackage(root gopathwalk.Root, dir string) dir
 				err:    fmt.Errorf("invalid module cache path: %v", subdir),
 			}
 		}
-		modPath, err := module.DecodePath(filepath.ToSlash(matches[1]))
+		modPath, err := module.UnescapePath(filepath.ToSlash(matches[1]))
 		if err != nil {
-			if r.env.Debug {
+			if r.env.Logf != nil {
 				r.env.Logf("decoding module cache path %q: %v", subdir, err)
 			}
 			return directoryPackageInfo{
@@ -697,7 +699,7 @@ func getMainModuleAnd114(env *ProcessEnv) (*ModuleJSON, bool, error) {
 {{.GoVersion}}
 {{range context.ReleaseTags}}{{if eq . "go1.14"}}{{.}}{{end}}{{end}}
 `
-	stdout, err := env.invokeGo("list", "-m", "-f", format)
+	stdout, err := env.invokeGo(context.TODO(), "list", "-m", "-f", format)
 	if err != nil {
 		return nil, false, nil
 	}

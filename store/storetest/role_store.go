@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-func TestRoleStore(t *testing.T, ss store.Store) {
+func TestRoleStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, ss) })
 	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, ss) })
 	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, ss) })
@@ -21,6 +22,8 @@ func TestRoleStore(t *testing.T, ss store.Store) {
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
 	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, ss) })
+	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, ss) })
+	t.Run("ChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest", func(t *testing.T) { testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t, ss, s) })
 }
 
 func testRoleStoreSave(t *testing.T, ss store.Store) {
@@ -355,4 +358,240 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	roles, err = ss.Role().GetByNames([]string{r1.Name, r2.Name})
 	assert.Nil(t, err)
 	assert.Empty(t, roles)
+}
+
+func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
+	createDefaultRoles(t, ss)
+
+	teamScheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme1, err := ss.Scheme().Save(teamScheme1)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme1.Id)
+
+	teamScheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme2, err = ss.Scheme().Save(teamScheme2)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme2.Id)
+
+	channelScheme1 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme1, err = ss.Scheme().Save(channelScheme1)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme1.Id)
+
+	channelScheme2 := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme2, err = ss.Scheme().Save(channelScheme2)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme1.Id)
+
+	team1 := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme1.Id,
+	}
+	team1, err = ss.Team().Save(team1)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team1.Id)
+
+	team2 := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme2.Id,
+	}
+	team2, err = ss.Team().Save(team2)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team2.Id)
+
+	channel1 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme1.Id,
+	}
+	channel1, nErr := ss.Channel().Save(channel1, -1)
+	require.Nil(t, nErr)
+	defer ss.Channel().Delete(channel1.Id, 0)
+
+	channel2 := &model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme2.Id,
+	}
+	channel2, nErr = ss.Channel().Save(channel2, -1)
+	require.Nil(t, nErr)
+	defer ss.Channel().Delete(channel2.Id, 0)
+
+	t.Run("ChannelRolesUnderTeamRole", func(t *testing.T) {
+		t.Run("guest role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelGuestRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelGuestRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelGuestRole)
+		})
+
+		t.Run("user role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelUserRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelUserRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelUserRole)
+		})
+
+		t.Run("admin role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelAdminRole)
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelAdminRole)
+			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelAdminRole)
+		})
+	})
+
+	t.Run("AllChannelSchemeRoles", func(t *testing.T) {
+		t.Run("guest role for the right team's channels are returned", func(t *testing.T) {
+			actualRoles, err := ss.Role().AllChannelSchemeRoles()
+			require.Nil(t, err)
+
+			var actualRoleNames []string
+			for _, role := range actualRoles {
+				actualRoleNames = append(actualRoleNames, role.Name)
+			}
+
+			allRoleNames := []string{
+				channelScheme1.DefaultChannelGuestRole,
+				channelScheme2.DefaultChannelGuestRole,
+
+				channelScheme1.DefaultChannelUserRole,
+				channelScheme2.DefaultChannelUserRole,
+
+				channelScheme1.DefaultChannelAdminRole,
+				channelScheme2.DefaultChannelAdminRole,
+			}
+
+			for _, roleName := range allRoleNames {
+				require.Contains(t, actualRoleNames, roleName)
+			}
+		})
+	})
+}
+
+func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *testing.T, ss store.Store, s SqlSupplier) {
+	teamScheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_TEAM,
+	}
+	teamScheme, err := ss.Scheme().Save(teamScheme)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(teamScheme.Id)
+
+	channelScheme := &model.Scheme{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Description: model.NewId(),
+		Scope:       model.SCHEME_SCOPE_CHANNEL,
+	}
+	channelScheme, err = ss.Scheme().Save(channelScheme)
+	require.Nil(t, err)
+	defer ss.Scheme().Delete(channelScheme.Id)
+
+	team := &model.Team{
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+		SchemeId:    &teamScheme.Id,
+	}
+	team, err = ss.Team().Save(team)
+	require.Nil(t, err)
+	defer ss.Team().PermanentDelete(team.Id)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Display " + model.NewId(),
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+		SchemeId:    &channelScheme.Id,
+	}
+	channel, nErr := ss.Channel().Save(channel, -1)
+	require.Nil(t, nErr)
+	defer ss.Channel().Delete(channel.Id, 0)
+
+	channelSchemeUserRole, err := ss.Role().GetByName(channelScheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	channelSchemeUserRole.Permissions = []string{}
+	_, err = ss.Role().Save(channelSchemeUserRole)
+	require.Nil(t, err)
+
+	teamSchemeUserRole, err := ss.Role().GetByName(teamScheme.DefaultChannelUserRole)
+	require.Nil(t, err)
+	teamSchemeUserRole.Permissions = []string{model.PERMISSION_UPLOAD_FILE.Id}
+	_, err = ss.Role().Save(teamSchemeUserRole)
+	require.Nil(t, err)
+
+	// get the channel scheme user role again and ensure that it has the permission inherited from the team
+	// scheme user role
+	roleMapBefore, err := ss.Role().ChannelHigherScopedPermissions([]string{channelSchemeUserRole.Name})
+	require.Nil(t, err)
+
+	// blank-out the guest role to simulate an old team scheme, ensure it's blank
+	result, sqlErr := s.GetMaster().Exec(fmt.Sprintf("UPDATE Schemes SET DefaultChannelGuestRole = '' WHERE Id = '%s'", teamScheme.Id))
+	require.Nil(t, sqlErr)
+	rows, serr := result.RowsAffected()
+	require.Nil(t, serr)
+	require.Equal(t, int64(1), rows)
+	teamScheme, err = ss.Scheme().Get(teamScheme.Id)
+	require.Nil(t, err)
+	require.Equal(t, "", teamScheme.DefaultChannelGuestRole)
+
+	// trigger a cache clear
+	_, err = ss.Role().Save(channelSchemeUserRole)
+	require.Nil(t, err)
+
+	roleMapAfter, err := ss.Role().ChannelHigherScopedPermissions([]string{channelSchemeUserRole.Name})
+	require.Nil(t, err)
+
+	require.Equal(t, len(roleMapBefore), len(roleMapAfter))
 }

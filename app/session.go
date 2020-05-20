@@ -4,8 +4,10 @@
 package app
 
 import (
+	"math"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -73,8 +75,9 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
-		!session.IsOAuth &&
-		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
+		!session.IsOAuth && !session.IsMobileApp() &&
+		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		!*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
 		if (model.GetMillis() - session.LastActivityAt) > timeout {
@@ -284,6 +287,72 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	a.AddSessionToCache(&session)
 }
 
+// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
+// A new ExpiresAt is only written if enough time has elapsed since last update.
+// Returns true only if the session was extended.
+func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
+	if session == nil || session.IsExpired() {
+		return false
+	}
+
+	sessionLength := a.GetSessionLengthInMillis(session)
+
+	// Only extend the expiry if the lessor of 1% or 1 day has elapsed within the
+	// current session duration.
+	threshold := int64(math.Min(float64(sessionLength)*0.01, float64(24*60*60*1000)))
+	// Minimum session length is 1 day as of this writing, therefore a minimum ~14 minutes threshold.
+	// However we'll add a sanity check here in case that changes. Minimum 5 minute threshold,
+	// meaning we won't write a new expiry more than every 5 minutes.
+	if threshold < 5*60*1000 {
+		threshold = 5 * 60 * 1000
+	}
+
+	now := model.GetMillis()
+	elapsed := now - (session.ExpiresAt - sessionLength)
+	if elapsed < threshold {
+		return false
+	}
+
+	auditRec := a.MakeAuditRecord("extendSessionExpiry", audit.Fail)
+	defer a.LogAuditRec(auditRec, nil)
+	auditRec.AddMeta("session", session)
+
+	newExpiry := now + sessionLength
+	if err := a.Srv().Store.Session().UpdateExpiresAt(session.Id, newExpiry); err != nil {
+		mlog.Error("Failed to update ExpiresAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		auditRec.AddMeta("err", err.Error())
+		return false
+	}
+
+	// Update local cache. No need to invalidate cache for cluster as the session cache timeout
+	// ensures each node will get an extended expiry within the next 10 minutes.
+	// Worst case is another node may generate a redundant expiry update.
+	session.ExpiresAt = newExpiry
+	a.AddSessionToCache(session)
+
+	auditRec.Success()
+	auditRec.AddMeta("extended_session", session)
+	return true
+}
+
+// GetSessionLengthInMillis returns the session length, in milliseconds,
+// based on the type of session (Mobile, SSO, Web/LDAP).
+func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
+	if session == nil {
+		return 0
+	}
+
+	var days int
+	if session.IsMobileApp() {
+		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
+	} else if session.IsOAuth {
+		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
+	} else {
+		days = *a.Config().ServiceSettings.SessionLengthWebInDays
+	}
+	return int64(days * 24 * 60 * 60 * 1000)
+}
+
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 
 	user, err := a.Srv().Store.User().Get(token.UserId)
@@ -304,7 +373,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
-		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -21,6 +22,44 @@ type Context struct {
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
+}
+
+// LogAuditRec logs an audit record using default RestLevel.
+func (c *Context) LogAuditRec(rec *audit.Record) {
+	c.LogAuditRecWithLevel(rec, app.RestLevel)
+}
+
+// LogAuditRec logs an audit record using specified Level.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
+	if rec == nil {
+		return
+	}
+	if c.Err != nil {
+		rec.AddMeta("err", c.Err.Id)
+		rec.AddMeta("code", c.Err.StatusCode)
+		if c.Err.Id == "api.context.permissions.app_error" {
+			level = app.RestPermsLevel
+		}
+		rec.Fail()
+	}
+	c.App.Srv().Audit.LogRecord(level, *rec)
+}
+
+// MakeAuditRecord creates a audit record pre-populated with data from this context.
+func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Record {
+	rec := &audit.Record{
+		APIPath:   c.App.Path(),
+		Event:     event,
+		Status:    initialStatus,
+		UserID:    c.App.Session().UserId,
+		SessionID: c.App.Session().Id,
+		Client:    c.App.UserAgent(),
+		IPAddress: c.App.IpAddress(),
+		Meta:      audit.Meta{audit.KeyClusterID: c.App.GetClusterId()},
+	}
+	rec.AddMetaTypeConverter(model.AuditModelTypeConv)
+
+	return rec
 }
 
 func (c *Context) LogAudit(extraInfo string) {
@@ -143,6 +182,14 @@ func (c *Context) MfaRequired() {
 	}
 }
 
+// ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
+// Session cookies will be resent to the client with updated max age.
+func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.App.Session()); ok {
+		c.App.AttachSessionCookies(w, r)
+	}
+}
+
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
@@ -227,7 +274,7 @@ func (c *Context) RequireUserId() *Context {
 		c.Params.UserId = c.App.Session().UserId
 	}
 
-	if len(c.Params.UserId) != 26 {
+	if !model.IsValidId(c.Params.UserId) {
 		c.SetInvalidUrlParam("user_id")
 	}
 	return c
@@ -238,7 +285,7 @@ func (c *Context) RequireTeamId() *Context {
 		return c
 	}
 
-	if len(c.Params.TeamId) != 26 {
+	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidUrlParam("team_id")
 	}
 	return c
@@ -260,7 +307,7 @@ func (c *Context) RequireTokenId() *Context {
 		return c
 	}
 
-	if len(c.Params.TokenId) != 26 {
+	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
 	}
 	return c
@@ -271,7 +318,7 @@ func (c *Context) RequireChannelId() *Context {
 		return c
 	}
 
-	if len(c.Params.ChannelId) != 26 {
+	if !model.IsValidId(c.Params.ChannelId) {
 		c.SetInvalidUrlParam("channel_id")
 	}
 	return c
@@ -294,7 +341,7 @@ func (c *Context) RequirePostId() *Context {
 		return c
 	}
 
-	if len(c.Params.PostId) != 26 {
+	if !model.IsValidId(c.Params.PostId) {
 		c.SetInvalidUrlParam("post_id")
 	}
 	return c
@@ -305,7 +352,7 @@ func (c *Context) RequireAppId() *Context {
 		return c
 	}
 
-	if len(c.Params.AppId) != 26 {
+	if !model.IsValidId(c.Params.AppId) {
 		c.SetInvalidUrlParam("app_id")
 	}
 	return c
@@ -316,7 +363,7 @@ func (c *Context) RequireFileId() *Context {
 		return c
 	}
 
-	if len(c.Params.FileId) != 26 {
+	if !model.IsValidId(c.Params.FileId) {
 		c.SetInvalidUrlParam("file_id")
 	}
 
@@ -352,7 +399,7 @@ func (c *Context) RequireReportId() *Context {
 		return c
 	}
 
-	if len(c.Params.ReportId) != 26 {
+	if !model.IsValidId(c.Params.ReportId) {
 		c.SetInvalidUrlParam("report_id")
 	}
 	return c
@@ -363,7 +410,7 @@ func (c *Context) RequireEmojiId() *Context {
 		return c
 	}
 
-	if len(c.Params.EmojiId) != 26 {
+	if !model.IsValidId(c.Params.EmojiId) {
 		c.SetInvalidUrlParam("emoji_id")
 	}
 	return c
@@ -460,7 +507,7 @@ func (c *Context) RequireHookId() *Context {
 		return c
 	}
 
-	if len(c.Params.HookId) != 26 {
+	if !model.IsValidId(c.Params.HookId) {
 		c.SetInvalidUrlParam("hook_id")
 	}
 
@@ -472,7 +519,7 @@ func (c *Context) RequireCommandId() *Context {
 		return c
 	}
 
-	if len(c.Params.CommandId) != 26 {
+	if !model.IsValidId(c.Params.CommandId) {
 		c.SetInvalidUrlParam("command_id")
 	}
 	return c
@@ -483,7 +530,7 @@ func (c *Context) RequireJobId() *Context {
 		return c
 	}
 
-	if len(c.Params.JobId) != 26 {
+	if !model.IsValidId(c.Params.JobId) {
 		c.SetInvalidUrlParam("job_id")
 	}
 	return c
@@ -505,7 +552,7 @@ func (c *Context) RequireRoleId() *Context {
 		return c
 	}
 
-	if len(c.Params.RoleId) != 26 {
+	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidUrlParam("role_id")
 	}
 	return c
@@ -516,7 +563,7 @@ func (c *Context) RequireSchemeId() *Context {
 		return c
 	}
 
-	if len(c.Params.SchemeId) != 26 {
+	if !model.IsValidId(c.Params.SchemeId) {
 		c.SetInvalidUrlParam("scheme_id")
 	}
 	return c
@@ -539,7 +586,7 @@ func (c *Context) RequireGroupId() *Context {
 		return c
 	}
 
-	if len(c.Params.GroupId) != 26 {
+	if !model.IsValidId(c.Params.GroupId) {
 		c.SetInvalidUrlParam("group_id")
 	}
 	return c
@@ -561,7 +608,7 @@ func (c *Context) RequireSyncableId() *Context {
 		return c
 	}
 
-	if len(c.Params.SyncableId) != 26 {
+	if !model.IsValidId(c.Params.SyncableId) {
 		c.SetInvalidUrlParam("syncable_id")
 	}
 	return c
@@ -583,7 +630,7 @@ func (c *Context) RequireBotUserId() *Context {
 		return c
 	}
 
-	if len(c.Params.BotUserId) != 26 {
+	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
 	return c

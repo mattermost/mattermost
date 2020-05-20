@@ -11,62 +11,143 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"strings"
 	"text/template"
 )
 
+const (
+	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+	APP_ERROR_TYPE             = "*model.AppError"
+	ERROR_TYPE                 = "error"
+)
+
+func isError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
+}
+
 func main() {
-	code := GenerateTimerLayer()
-
-	formatedCode, err := format.Source([]byte(code))
-	if err != nil {
-		panic(err)
+	if err := buildTimerLayer(); err != nil {
+		log.Fatal(err)
 	}
-
-	err = ioutil.WriteFile(path.Join("timer_layer.go"), formatedCode, 0644)
-	if err != nil {
-		panic(err)
+	if err := buildOpenTracingLayer(); err != nil {
+		log.Fatal(err)
 	}
 }
 
-type Param struct {
+func buildTimerLayer() error {
+	code, err := generateLayer("TimerLayer", "timer_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(path.Join("timer_layer.go"), formatedCode, 0644)
+}
+
+func buildOpenTracingLayer() error {
+	code, err := generateLayer("OpenTracingLayer", "opentracing_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(path.Join("opentracing_layer.go"), formatedCode, 0644)
+}
+
+type methodParam struct {
 	Name string
 	Type string
 }
 
-type Method struct {
-	Params  []Param
-	Results []string
+type methodData struct {
+	Params        []methodParam
+	Results       []string
+	ParamsToTrace map[string]bool
 }
 
-type SubStore struct {
-	Methods map[string]Method
+type subStore struct {
+	Methods map[string]methodData
 }
 
-type StoreMetadata struct {
+type storeMetadata struct {
 	Name      string
-	SubStores map[string]SubStore
-	Methods   map[string]Method
+	SubStores map[string]subStore
+	Methods   map[string]methodData
 }
 
-func ExtractStoreMetadata() StoreMetadata {
+func extractMethodMetadata(method *ast.Field, src []byte) methodData {
+	params := []methodParam{}
+	results := []string{}
+	paramsToTrace := map[string]bool{}
+	ast.Inspect(method.Type, func(expr ast.Node) bool {
+		switch e := expr.(type) {
+		case *ast.FuncType:
+			if method.Doc != nil {
+				for _, comment := range method.Doc.List {
+					s := comment.Text
+					if idx := strings.Index(s, OPEN_TRACING_PARAMS_MARKER); idx != -1 {
+						for _, p := range strings.Split(s[idx+len(OPEN_TRACING_PARAMS_MARKER):], ",") {
+							paramsToTrace[strings.TrimSpace(p)] = true
+						}
+					}
+				}
+			}
+			if e.Params != nil {
+				for _, param := range e.Params.List {
+					for _, paramName := range param.Names {
+						params = append(params, methodParam{Name: paramName.Name, Type: string(src[param.Type.Pos()-1 : param.Type.End()-1])})
+					}
+				}
+			}
+			if e.Results != nil {
+				for _, result := range e.Results.List {
+					results = append(results, string(src[result.Type.Pos()-1:result.Type.End()-1]))
+				}
+			}
+
+			for paramName := range paramsToTrace {
+				found := false
+				for _, param := range params {
+					if param.Name == paramName {
+						found = true
+						break
+					}
+				}
+				if !found {
+					log.Fatalf("Unable to find a parameter called '%s' (method '%s') that is mentioned in the '%s' comment. Maybe it was renamed?", paramName, method.Names[0].Name, OPEN_TRACING_PARAMS_MARKER)
+				}
+			}
+		}
+		return true
+	})
+	return methodData{Params: params, Results: results, ParamsToTrace: paramsToTrace}
+}
+
+func extractStoreMetadata() (*storeMetadata, error) {
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 
 	file, err := os.Open("store.go")
 	if err != nil {
-		panic("Unable to open store/store.go file")
+		return nil, fmt.Errorf("Unable to open store/store.go file: %w", err)
 	}
 	src, err := ioutil.ReadAll(file)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	file.Close()
-	f, err := parser.ParseFile(fset, "", src, 0)
+	f, err := parser.ParseFile(fset, "", src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	topLevelFunctions := map[string]bool{
@@ -77,11 +158,12 @@ func ExtractStoreMetadata() StoreMetadata {
 		"DropAllTables":            false,
 		"TotalMasterDbConnections": true,
 		"TotalReadDbConnections":   true,
+		"SetContext":               true,
 		"TotalSearchDbConnections": true,
 		"GetCurrentSchemaVersion":  true,
 	}
 
-	metadata := StoreMetadata{Methods: map[string]Method{}, SubStores: map[string]SubStore{}}
+	metadata := storeMetadata{Methods: map[string]methodData{}, SubStores: map[string]subStore{}}
 
 	ast.Inspect(f, func(n ast.Node) bool {
 		switch x := n.(type) {
@@ -90,72 +172,31 @@ func ExtractStoreMetadata() StoreMetadata {
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name
 					if _, ok := topLevelFunctions[methodName]; ok {
-						params := []Param{}
-						results := []string{}
-
-						ast.Inspect(method.Type, func(expr ast.Node) bool {
-							switch e := expr.(type) {
-							case *ast.FuncType:
-								if e.Params != nil {
-									for _, param := range e.Params.List {
-										for _, paramName := range param.Names {
-											params = append(params, Param{Name: paramName.Name, Type: string(src[param.Type.Pos()-1 : param.Type.End()-1])})
-										}
-									}
-								}
-								if e.Results != nil {
-									for _, result := range e.Results.List {
-										results = append(results, string(src[result.Type.Pos()-1:result.Type.End()-1]))
-									}
-								}
-							}
-							return true
-						})
-						metadata.Methods[methodName] = Method{Params: params, Results: results}
+						metadata.Methods[methodName] = extractMethodMetadata(method, src)
 					}
 				}
 			} else if strings.HasSuffix(x.Name.Name, "Store") {
 				subStoreName := strings.TrimSuffix(x.Name.Name, "Store")
-				metadata.SubStores[subStoreName] = SubStore{Methods: map[string]Method{}}
+				metadata.SubStores[subStoreName] = subStore{Methods: map[string]methodData{}}
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name
-
-					params := []Param{}
-					results := []string{}
-
-					ast.Inspect(method.Type, func(expr ast.Node) bool {
-						switch e := expr.(type) {
-						case *ast.FuncType:
-							if e.Params != nil {
-								for _, param := range e.Params.List {
-									for _, paramName := range param.Names {
-										params = append(params, Param{Name: paramName.Name, Type: string(src[param.Type.Pos()-1 : param.Type.End()-1])})
-									}
-								}
-							}
-							if e.Results != nil {
-								for _, result := range e.Results.List {
-									results = append(results, string(src[result.Type.Pos()-1:result.Type.End()-1]))
-								}
-							}
-						}
-						return true
-					})
-					metadata.SubStores[subStoreName].Methods[methodName] = Method{Params: params, Results: results}
+					metadata.SubStores[subStoreName].Methods[methodName] = extractMethodMetadata(method, src)
 				}
 			}
 		}
-
 		return true
 	})
 
-	return metadata
+	return &metadata, nil
 }
 
-func GenerateTimerLayer() string {
+func generateLayer(name, templateFile string) ([]byte, error) {
 	out := bytes.NewBufferString("")
-	metadata := ExtractStoreMetadata()
-	metadata.Name = "TimerLayer"
+	metadata, err := extractStoreMetadata()
+	if err != nil {
+		return nil, err
+	}
+	metadata.Name = name
 
 	myFuncs := template.FuncMap{
 		"joinResults": func(results []string) string {
@@ -172,27 +213,43 @@ func GenerateTimerLayer() string {
 		},
 		"genResultsVars": func(results []string) string {
 			vars := []string{}
-			for idx := range results {
-				vars = append(vars, fmt.Sprintf("resultVar%d", idx))
+			for i := range results {
+				vars = append(vars, fmt.Sprintf("resultVar%d", i))
 			}
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for idx, typeName := range results {
-				if typeName == "*model.AppError" {
-					return fmt.Sprintf("resultVar%d == nil", idx)
+			for i, typeName := range results {
+				if isError(typeName) {
+					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
 			return "true"
 		},
-		"joinParams": func(params []Param) string {
-			paramsNames := []string{}
+		"errorPresent": func(results []string) bool {
+			for _, typeName := range results {
+				if isError(typeName) {
+					return true
+				}
+			}
+			return false
+		},
+		"errorVar": func(results []string) string {
+			for i, typeName := range results {
+				if isError(typeName) {
+					return fmt.Sprintf("resultVar%d", i)
+				}
+			}
+			return ""
+		},
+		"joinParams": func(params []methodParam) string {
+			paramsNames := make([]string, 0, len(params))
 			for _, param := range params {
 				paramsNames = append(paramsNames, param.Name)
 			}
 			return strings.Join(paramsNames, ", ")
 		},
-		"joinParamsWithType": func(params []Param) string {
+		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
 				paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
@@ -201,91 +258,9 @@ func GenerateTimerLayer() string {
 		},
 	}
 
-	t, err := template.New("timer-layer").Funcs(myFuncs).Parse(`
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-// Code generated by "make store-layers"
-// DO NOT EDIT
-
-package store
-
-import (
-	timemodule "time"
-
-    "github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/model"
-)
-
-type {{.Name}} struct {
-	Store
-	Metrics einterfaces.MetricsInterface
-{{range $index, $element := .SubStores}}	{{$index}}Store {{$index}}Store
-{{end}}
-}
-
-{{range $index, $element := .SubStores}}func (s *{{$.Name}}) {{$index}}() {{$index}}Store {
-	return s.{{$index}}Store
-}
-
-{{end}}
-
-{{range $index, $element := .SubStores}}type {{$.Name}}{{$index}}Store struct {
-	{{$index}}Store
-	Root *{{$.Name}}
-}
-
-{{end}}
-
-{{range $substoreName, $substore := .SubStores}}
-{{range $index, $element := $substore.Methods}}
-func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
-	start := timemodule.Now()
-	{{if $element.Results | len | eq 0}}
-	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}
-	{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	{{ end }}
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if {{$element.Results | errorToBoolean}} {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("{{$substoreName}}Store.{{$index}}", success, elapsed)
-	{{ with ($element.Results | genResultsVars) -}}
+	t := template.Must(template.New(templateFile).Funcs(myFuncs).ParseFiles("layer_generators/" + templateFile))
+	if err = t.Execute(out, metadata); err != nil {
+		return nil, err
 	}
-	return {{ . }}
-	{{- else -}}
-	}
-	{{- end }}
-}
-{{end}}
-{{end}}
-
-{{range $index, $element := .Methods}}
-func (s *{{$.Name}}) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
-	{{if $element.Results | len | eq 0}}s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ else }}return s.Store.{{$index}}({{$element.Params | joinParams}})
-	{{ end}}}
-{{end}}
-
-func New{{.Name}}(childStore Store, metrics einterfaces.MetricsInterface) *{{.Name}} {
-	newStore := {{.Name}}{
-		Store: childStore,
-		Metrics: metrics,
-	}
-	{{range $substoreName, $substore := .SubStores}}
-	newStore.{{$substoreName}}Store = &{{$.Name}}{{$substoreName}}Store{{"{"}}{{$substoreName}}Store: childStore.{{$substoreName}}(), Root: &newStore}{{end}}
-	return &newStore
-}
-`)
-	if err != nil {
-		panic(err)
-	}
-	err = t.Execute(out, metadata)
-	if err != nil {
-		panic(err)
-	}
-	return out.String()
+	return out.Bytes(), nil
 }

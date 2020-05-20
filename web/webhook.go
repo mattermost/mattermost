@@ -60,6 +60,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
+	r.ParseForm()
+
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 
@@ -67,6 +69,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.invalid_hook_id.app_error", nil, "webhookId length don't match", http.StatusBadRequest)
 		return
 	}
+
 	validIncomingHook, err := c.App.GetIncomingWebhook(id)
 	if err != nil {
 		c.Err = err
@@ -110,7 +113,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(payLoad))
 	}
-	r.ParseForm()
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {

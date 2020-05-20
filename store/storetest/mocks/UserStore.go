@@ -38,6 +38,29 @@ func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOpt
 	return r0, r1
 }
 
+// AnalyticsGetGuestCount provides a mock function with given fields:
+func (_m *UserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // AnalyticsGetInactiveUsersCount provides a mock function with given fields:
 func (_m *UserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
 	ret := _m.Called()
@@ -75,6 +98,31 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
 		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// AutocompleteUsersInChannel provides a mock function with given fields: teamId, channelId, term, options
+func (_m *UserStore) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+	ret := _m.Called(teamId, channelId, term, options)
+
+	var r0 *model.UserAutocompleteInChannel
+	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
+		r0 = rf(teamId, channelId, term, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UserAutocompleteInChannel)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(teamId, channelId, term, options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -235,6 +283,31 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *mod
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
 		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetAllNotInAuthService provides a mock function with given fields: authServices
+func (_m *UserStore) GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError) {
+	ret := _m.Called(authServices)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func([]string) []*model.User); ok {
+		r0 = rf(authServices)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(authServices)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -500,6 +573,31 @@ func (_m *UserStore) GetForLogin(loginId string, allowSignInWithUsername bool, a
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, bool, bool) *model.AppError); ok {
 		r1 = rf(loginId, allowSignInWithUsername, allowSignInWithEmail)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetKnownUsers provides a mock function with given fields: userID
+func (_m *UserStore) GetKnownUsers(userID string) ([]string, *model.AppError) {
+	ret := _m.Called(userID)
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -47,13 +47,17 @@ type PostAction struct {
 	// If the action is disabled.
 	Disabled bool `json:"disabled,omitempty"`
 
+	// Style defines a text and border style.
+	// Supported values are "default", "primary", "success", "good", "warning", "danger"
+	// and any hex color.
+	Style string `json:"style,omitempty"`
+
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".
 	DataSource string `json:"data_source,omitempty"`
 
-	// Options contains either the buttons that will be displayed on the post
-	// or the values listed in a select dropdowon on the post.
+	// Options contains the values listed in a select dropdown on the post.
 	Options []*PostActionOptions `json:"options,omitempty"`
 
 	// DefaultOption contains the option, if any, that will appear as the
@@ -174,8 +178,9 @@ type PostActionIntegrationRequest struct {
 }
 
 type PostActionIntegrationResponse struct {
-	Update        *Post  `json:"update"`
-	EphemeralText string `json:"ephemeral_text"`
+	Update           *Post  `json:"update"`
+	EphemeralText    string `json:"ephemeral_text"`
+	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
 }
 
 type PostActionAPIResponse struct {
@@ -369,8 +374,8 @@ func (r *SubmitDialogResponse) ToJson() []byte {
 
 func (o *Post) StripActionIntegrations() {
 	attachments := o.Attachments()
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = attachments
+	if o.GetProp("attachments") != nil {
+		o.AddProp("attachments", attachments)
 	}
 	for _, attachment := range attachments {
 		for _, action := range attachment.Actions {
@@ -391,10 +396,10 @@ func (o *Post) GetAction(id string) *PostAction {
 }
 
 func (o *Post) GenerateActionIds() {
-	if o.Props["attachments"] != nil {
-		o.Props["attachments"] = o.Attachments()
+	if o.GetProp("attachments") != nil {
+		o.AddProp("attachments", o.Attachments())
 	}
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action.Id == "" {
@@ -412,7 +417,7 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	retainProps := map[string]interface{}{}
 	removeProps := []string{}
 	for _, key := range PostActionRetainPropKeys {
-		value, ok := p.Props[key]
+		value, ok := p.GetProps()[key]
 		if ok {
 			retainProps[key] = value
 		} else {

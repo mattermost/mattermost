@@ -66,6 +66,31 @@ func TestConfigEmptySiteName(t *testing.T) {
 	require.Equal(t, *c1.TeamSettings.SiteName, TEAM_SETTINGS_DEFAULT_SITE_NAME)
 }
 
+func TestConfigEnableDeveloper(t *testing.T) {
+	testCases := []struct {
+		Description     string
+		EnableDeveloper *bool
+		ExpectedSiteURL string
+	}{
+		{"enable developer is true", NewBool(true), SERVICE_SETTINGS_DEFAULT_SITE_URL},
+		{"enable developer is false", NewBool(false), ""},
+		{"enable developer is nil", nil, ""},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			c1 := Config{
+				ServiceSettings: ServiceSettings{
+					EnableDeveloper: testCase.EnableDeveloper,
+				},
+			}
+			c1.SetDefaults()
+
+			require.Equal(t, testCase.ExpectedSiteURL, *c1.ServiceSettings.SiteURL)
+		})
+	}
+}
+
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -1214,6 +1239,8 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
+	assert.Equal(t, []string{FAKE_SETTING}, c.SqlSettings.DataSourceReplicas)
+	assert.Equal(t, []string{FAKE_SETTING}, c.SqlSettings.DataSourceSearchReplicas)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])

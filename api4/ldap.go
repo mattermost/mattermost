@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -38,6 +39,9 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -45,6 +49,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SyncLdap()
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
@@ -130,6 +135,10 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("linkLdapGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -140,6 +149,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
@@ -150,6 +160,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
 		c.Err = err
 		return
+	}
+	if group != nil {
+		auditRec.AddMeta("group", group)
 	}
 
 	var status int
@@ -204,6 +217,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	w.WriteHeader(status)
 	w.Write(b)
 }
@@ -213,6 +228,10 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("unlinkLdapGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
@@ -229,6 +248,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("group", group)
 
 	if group.DeleteAt == 0 {
 		_, err = c.App.DeleteGroup(group.Id)
@@ -238,5 +258,6 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }

@@ -14,7 +14,7 @@ type SqlSystemStore struct {
 	SqlStore
 }
 
-func NewSqlSystemStore(sqlStore SqlStore) store.SystemStore {
+func newSqlSystemStore(sqlStore SqlStore) store.SystemStore {
 	s := &SqlSystemStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -26,7 +26,7 @@ func NewSqlSystemStore(sqlStore SqlStore) store.SystemStore {
 	return s
 }
 
-func (s SqlSystemStore) CreateIndexesIfNotExists() {
+func (s SqlSystemStore) createIndexesIfNotExists() {
 }
 
 func (s SqlSystemStore) Save(system *model.System) *model.AppError {
@@ -37,7 +37,7 @@ func (s SqlSystemStore) Save(system *model.System) *model.AppError {
 }
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) *model.AppError {
-	if err := s.GetReplica().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
+	if err := s.GetMaster().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
 		if _, err := s.GetMaster().Update(system); err != nil {
 			return model.NewAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -71,7 +71,7 @@ func (s SqlSystemStore) Get() (model.StringMap, *model.AppError) {
 
 func (s SqlSystemStore) GetByName(name string) (*model.System, *model.AppError) {
 	var system model.System
-	if err := s.GetReplica().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+	if err := s.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		return nil, model.NewAppError("SqlSystemStore.GetByName", "store.sql_system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

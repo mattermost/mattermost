@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -15,7 +17,7 @@ type SqlLinkMetadataStore struct {
 	SqlStore
 }
 
-func NewSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
+func newSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
 	s := &SqlLinkMetadataStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -28,7 +30,7 @@ func NewSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
 	return s
 }
 
-func (s SqlLinkMetadataStore) CreateIndexesIfNotExists() {
+func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		s.CreateCompositeIndexIfNotExists("idx_link_metadata_url_timestamp", "LinkMetadata", []string{"URL(512)", "Timestamp"})
 	} else {
@@ -53,15 +55,15 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
 	var metadata *model.LinkMetadata
-
-	err := s.GetReplica().SelectOne(&metadata,
-		`SELECT
-			*
-		FROM
-			LinkMetadata
-		WHERE
-			URL = :URL
-			AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("LinkMetadata").
+		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
+		ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	err = s.GetReplica().SelectOne(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)

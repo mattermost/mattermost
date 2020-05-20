@@ -32,9 +32,7 @@ type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
 
-	failTimeStamps []time.Time
-	lastError      error
-	supervisor     *supervisor
+	supervisor *supervisor
 }
 
 // PrepackagedPlugin is a plugin prepackaged with the server and found on startup.
@@ -140,8 +138,8 @@ func (env *Environment) GetPluginState(id string) int {
 	return rp.(registeredPlugin).State
 }
 
-// SetPluginState sets the current state of a plugin (disabled, running, or error)
-func (env *Environment) SetPluginState(id string, state int) {
+// setPluginState sets the current state of a plugin (disabled, running, or error)
+func (env *Environment) setPluginState(id string, state int) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
 		p.State = state
@@ -152,7 +150,7 @@ func (env *Environment) SetPluginState(id string, state int) {
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
-	if _, ok := env.registeredPlugins.Load(id); !ok {
+	if !env.IsActive(id) {
 		return "", fmt.Errorf("plugin not found: %v", id)
 	}
 	return filepath.Join(env.pluginDir, id, "public"), nil
@@ -229,21 +227,14 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
-	value, ok := env.registeredPlugins.Load(id)
-	if !ok {
-		value = newRegisteredPlugin(pluginInfo)
-	}
-
-	rp := value.(registeredPlugin)
-	// Store latest BundleInfo in case something has changed since last activation
-	rp.BundleInfo = pluginInfo
+	rp := newRegisteredPlugin(pluginInfo)
 	env.registeredPlugins.Store(id, rp)
 
 	defer func() {
 		if reterr == nil {
-			env.SetPluginState(id, model.PluginStateRunning)
+			env.setPluginState(id, model.PluginStateRunning)
 		} else {
-			env.SetPluginState(id, model.PluginStateFailedToStart)
+			env.setPluginState(id, model.PluginStateFailedToStart)
 		}
 	}()
 
@@ -307,7 +298,7 @@ func (env *Environment) Deactivate(id string) bool {
 
 	isActive := env.IsActive(id)
 
-	env.SetPluginState(id, model.PluginStateNotRunning)
+	env.setPluginState(id, model.PluginStateNotRunning)
 
 	if !isActive {
 		return false
@@ -320,8 +311,6 @@ func (env *Environment) Deactivate(id string) bool {
 		}
 		rp.supervisor.Shutdown()
 	}
-
-	env.registeredPlugins.Delete(id)
 
 	return true
 }
@@ -483,6 +472,21 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	}
 }
 
+// performHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
+func (env *Environment) performHealthCheck(id string) error {
+	p, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		return nil
+	}
+	rp := p.(registeredPlugin)
+
+	sup := rp.supervisor
+	if sup == nil {
+		return nil
+	}
+	return sup.PerformHealthCheck()
+}
+
 // SetPrepackagedPlugins saves prepackaged plugins in the environment.
 func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 	env.prepackagedPluginsLock.Lock()
@@ -492,5 +496,30 @@ func (env *Environment) SetPrepackagedPlugins(plugins []*PrepackagedPlugin) {
 
 func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 	state := model.PluginStateNotRunning
-	return registeredPlugin{failTimeStamps: []time.Time{}, State: state, BundleInfo: bundle}
+	return registeredPlugin{State: state, BundleInfo: bundle}
+}
+
+// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
+func (env *Environment) InitPluginHealthCheckJob(enable bool) {
+	// Config is set to enable. No job exists, start a new job.
+	if enable && env.pluginHealthCheckJob == nil {
+		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HEALTH_CHECK_INTERVAL))
+
+		job := newPluginHealthCheckJob(env)
+		env.pluginHealthCheckJob = job
+		go job.run()
+	}
+
+	// Config is set to disable. Job exists, kill existing job.
+	if !enable && env.pluginHealthCheckJob != nil {
+		mlog.Debug("Disabling plugin health check job")
+
+		env.pluginHealthCheckJob.Cancel()
+		env.pluginHealthCheckJob = nil
+	}
+}
+
+// GetPluginHealthCheckJob returns the configured PluginHealthCheckJob, if any.
+func (env *Environment) GetPluginHealthCheckJob() *PluginHealthCheckJob {
+	return env.pluginHealthCheckJob
 }

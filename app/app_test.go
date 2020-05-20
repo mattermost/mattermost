@@ -9,8 +9,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 /* Temporarily comment out until MM-11108
@@ -26,9 +28,21 @@ func TestAppRace(t *testing.T) {
 }
 */
 
-func TestUpdateConfig(t *testing.T) {
-	th := Setup(t)
+func TestUnitUpdateConfig(t *testing.T) {
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
@@ -550,6 +564,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
 		model.PERMISSION_VIEW_MEMBERS.Id,
 		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expectedSystemAdmin)
 
@@ -583,6 +598,13 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		model.PERMISSION_CREATE_EMOJIS.Id,
 		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_ADD_REACTION.Id,
+		model.PERMISSION_CREATE_POST.Id,
+		model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
+		model.PERMISSION_REMOVE_REACTION.Id,
+		model.PERMISSION_USE_CHANNEL_MENTIONS.Id,
+		model.PERMISSION_USE_GROUP_MENTIONS.Id,
 	}
 	sort.Strings(expected2)
 	sort.Strings(role2.Permissions)
