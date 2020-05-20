@@ -4517,6 +4517,8 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 }
 
 func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
+	initialCount, err := ss.Group().GroupCountWithAllowReference()
+
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -4528,7 +4530,7 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 
 	count, err := ss.Group().GroupCountWithAllowReference()
 	require.Nil(t, err)
-	require.Equal(t, count, int64(0))
+	require.Equal(t, count, initialCount)
 
 	group2, err := ss.Group().Create(&model.Group{
 		Name:           model.NewId(),
@@ -4542,5 +4544,5 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 
 	countAfter, err := ss.Group().GroupCountWithAllowReference()
 	require.Nil(t, err)
-	require.Equal(t, countAfter, int64(1))
+	require.Greater(t, countAfter, count)
 }
