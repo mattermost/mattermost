@@ -38,6 +38,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -55,6 +56,10 @@ type Server struct {
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
 
+	// LocalRouter is the starting point for all the local UNIX socket
+	// requests to the server
+	LocalRouter *mux.Router
+
 	// Router is the starting point for all web, api4 and ws requests to the server. It differs
 	// from RootRouter only if the SiteURL contains a /subpath.
 	Router *mux.Router
@@ -63,6 +68,8 @@ type Server struct {
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
 	Busy        *Busy
+
+	localModeServer *http.Server
 
 	didFinishListen chan struct{}
 
@@ -154,10 +161,12 @@ type Server struct {
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
+	localRouter := mux.NewRouter()
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
+		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		clientConfig:        make(map[string]string),
 	}
@@ -217,7 +226,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
+	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	if err := bleveEngine.Start(); err != nil {
+		return nil, err
+	}
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	s.SearchEngine = searchEngine
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -229,8 +244,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
-	err := s.RunOldAppInitialization()
-	if err != nil {
+	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
 	}
 
@@ -436,6 +450,8 @@ func (s *Server) Shutdown() error {
 	}
 
 	s.StopHTTPServer()
+	s.stopLocalModeServer()
+
 	s.WaitForGoroutines()
 
 	if s.htmlTemplateWatcher != nil {
@@ -715,7 +731,42 @@ func (s *Server) Start() error {
 		close(s.didFinishListen)
 	}()
 
+	if *s.Config().ServiceSettings.EnableLocalMode {
+		if err := s.startLocalModeServer(); err != nil {
+			mlog.Critical(err.Error())
+		}
+	}
+
 	return nil
+}
+
+func (s *Server) startLocalModeServer() error {
+	s.localModeServer = &http.Server{
+		Handler: s.LocalRouter,
+	}
+
+	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	unixListener, err := net.Listen("unix", socket)
+	if err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+	if err = os.Chmod(socket, 0600); err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+
+	go func() {
+		err = s.localModeServer.Serve(unixListener)
+		if err != nil && err != http.ErrServerClosed {
+			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+		}
+	}()
+	return nil
+}
+
+func (s *Server) stopLocalModeServer() {
+	if s.localModeServer != nil {
+		s.localModeServer.Close()
+	}
 }
 
 func (a *App) OriginChecker() func(*http.Request) bool {
@@ -984,6 +1035,9 @@ func (s *Server) stopSearchEngine() {
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
 	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
+	}
+	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
+		s.SearchEngine.BleveEngine.Stop()
 	}
 }
 
