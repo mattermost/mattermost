@@ -5431,10 +5431,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.incoming_hook.white_ip_list_too_long.app_error",
-    "translation": "Too many IPs or CIDRs for the white list."
-  },
-  {
     "id": "model.job.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
