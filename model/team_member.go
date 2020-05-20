@@ -57,6 +57,8 @@ type TeamMembersGetOptions struct {
 
 	// Restrict to search in a list of teams and channels
 	ViewRestrictions *ViewUsersRestrictions
+
+	SearchTerm string
 }
 
 func (o *TeamMember) ToJson() string {
