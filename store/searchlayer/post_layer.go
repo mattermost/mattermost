@@ -79,6 +79,11 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 }
 
 func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	// All SearchParams should have same IncludeDeletedChannels value.
+	if err := model.IsSearchParamsListValid(paramsList); err != nil {
+		return nil, err
+	}
+
 	// We only allow the user to search in channels they are a member of.
 	userChannels, err := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels)
 	if err != nil {

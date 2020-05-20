@@ -1741,6 +1741,10 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
+	if err := model.IsSearchParamsListValid(paramsList); err != nil {
+		return nil, err
+	}
+
 	var wg sync.WaitGroup
 
 	pchan := make(chan store.StoreResult, len(paramsList))

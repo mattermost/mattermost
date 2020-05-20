@@ -1424,6 +1424,20 @@ func testSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestHelper) {
 		th.checkPostInSearchResults(t, p2.Id, results.Posts)
 		th.checkPostInSearchResults(t, p3.Id, results.Posts)
 	})
+
+	t.Run("All IncludeDeletedChannels params should have same value if multiple SearchParams provided", func(t *testing.T) {
+		params1 := &model.SearchParams{
+			Terms:                  "message channel",
+			IncludeDeletedChannels: true,
+		}
+		params2 := &model.SearchParams{
+			Terms:                  "#hashtag",
+			IncludeDeletedChannels: false,
+		}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params1, params2}, th.User.Id, th.Team.Id, 0, 20)
+		require.Nil(t, results)
+		require.NotNil(t, apperr)
+	})
 }
 
 func testSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
