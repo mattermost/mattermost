@@ -1424,7 +1424,7 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
 		Update("TeamMembers").
-		Set("SchemeAdmin", sq.Case().When(fmt.Sprintf("UserId IN ('%s')", strings.Join(userIDs, "', '")), "true").Else("false")).
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": userIDs}, "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
 	if err != nil {
