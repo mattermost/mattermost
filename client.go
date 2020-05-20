@@ -22,12 +22,16 @@ type Client struct {
 	Plugin        PluginService
 	Post          PostService
 	Session       SessionService
+	Store         *StoreService
 	System        SystemService
 	Team          TeamService
 	User          UserService
 }
 
 // NewClient creates a new instance of Client.
+//
+// This client must only be created once per plugin to
+// prevent reacquiring of resources, such as database connections.
 func NewClient(api plugin.API) *Client {
 	return &Client{
 		api: api,
@@ -46,6 +50,7 @@ func NewClient(api plugin.API) *Client {
 		Plugin:        PluginService{api: api},
 		Post:          PostService{api: api},
 		Session:       SessionService{api: api},
+		Store:         &StoreService{api: api},
 		System:        SystemService{api: api},
 		Team:          TeamService{api: api},
 		User:          UserService{api: api},
