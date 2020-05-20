@@ -6,6 +6,8 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -422,6 +424,10 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+	defer func() {
+		io.Copy(ioutil.Discard, res.Body)
+		res.Body.Close()
+	}()
 
 	location := res.Header.Get("Location")
 	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
