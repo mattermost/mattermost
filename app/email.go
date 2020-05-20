@@ -513,6 +513,24 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 	return nil
 }
 
+func (a *App) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+	subject := T("api.templates.remove_expired_license.subject",
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
+
+	bodyPage := a.newEmailTemplate("remove_expired_license", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
+	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
+
+	if err := a.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
 	if !*a.Config().EmailSettings.SendEmailNotifications {
 		return nil
