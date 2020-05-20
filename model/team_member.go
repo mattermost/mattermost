@@ -59,7 +59,7 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 
 	// The term which we search for on a team members email, username, nickname, or full name.
-	SearchTerm string
+	Term string
 }
 
 func (o *TeamMember) ToJson() string {

@@ -464,7 +464,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sort := r.URL.Query().Get("sort")
-	searchTerm := r.URL.Query().Get("search_term")
+	term := r.URL.Query().Get("term")
 	excludeDeletedUsers := r.URL.Query().Get("exclude_deleted_users")
 	excludeDeletedUsersBool, _ := strconv.ParseBool(excludeDeletedUsers)
 
@@ -483,7 +483,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Sort:                sort,
 		ExcludeDeletedUsers: excludeDeletedUsersBool,
 		ViewRestrictions:    restrictions,
-		SearchTerm: searchTerm,
+		Term: term,
 	}
 
 	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, teamMembersGetOptions)
