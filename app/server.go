@@ -333,6 +333,9 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
+	// Scheduler must be started before cluster.
+	s.initJobs()
+
 	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().registerAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
@@ -356,8 +359,6 @@ func NewServer(options ...Option) (*Server, error) {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
-
-	s.initJobs()
 
 	if s.runjobs {
 		s.Go(func() {
@@ -471,6 +472,7 @@ func (s *Server) Shutdown() error {
 		s.Metrics.StopServer()
 	}
 
+	// This must be done after the cluster is stopped.
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
