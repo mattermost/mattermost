@@ -869,7 +869,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 	}
 
 	if teamMembersGetOptions != nil {
-		if teamMembersGetOptions.Sort == model.USERNAME || teamMembersGetOptions.ExcludeDeletedUsers {
+		if teamMembersGetOptions.Sort == model.USERNAME || teamMembersGetOptions.ExcludeDeletedUsers || teamMembersGetOptions.SearchTerm != "" {
 			query = query.LeftJoin("Users ON TeamMembers.UserId = Users.Id")
 		}
 
