@@ -4518,6 +4518,7 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 
 func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 	initialCount, err := ss.Group().GroupCountWithAllowReference()
+	require.Nil(t, err)
 
 	group1, err := ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
