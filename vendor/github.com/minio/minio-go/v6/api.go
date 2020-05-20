@@ -43,8 +43,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 
 	"github.com/minio/minio-go/v6/pkg/credentials"
-	"github.com/minio/minio-go/v6/pkg/s3signer"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
+	"github.com/minio/minio-go/v6/pkg/signer"
 )
 
 // Client implements Amazon S3 compatible methods.
@@ -104,7 +104,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.45"
+	libraryVersion = "v6.0.55"
 )
 
 // User Agent should always following the below style.
@@ -271,7 +271,7 @@ func (c *Client) redirectHeaders(req *http.Request, via []*http.Request) error {
 		case signerType.IsV2():
 			return errors.New("signature V2 cannot support redirection")
 		case signerType.IsV4():
-			s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, getDefaultLocation(*c.endpointURL, region))
+			signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, getDefaultLocation(*c.endpointURL, region))
 		}
 	}
 	return nil
@@ -413,7 +413,7 @@ func (c *Client) SetS3TransferAccelerate(accelerateEndpoint string) {
 //  - For signature v4 request if the connection is insecure compute only sha256.
 //  - For signature v4 request if the connection is secure compute only md5.
 //  - For anonymous request compute md5.
-func (c *Client) hashMaterials() (hashAlgos map[string]hash.Hash, hashSums map[string][]byte) {
+func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]hash.Hash, hashSums map[string][]byte) {
 	hashSums = make(map[string][]byte)
 	hashAlgos = make(map[string]hash.Hash)
 	if c.overrideSignerType.IsV4() {
@@ -426,6 +426,9 @@ func (c *Client) hashMaterials() (hashAlgos map[string]hash.Hash, hashSums map[s
 		if c.overrideSignerType.IsAnonymous() {
 			hashAlgos["md5"] = md5.New()
 		}
+	}
+	if isMd5Requested {
+		hashAlgos["md5"] = md5.New()
 	}
 	return hashAlgos, hashSums
 }
@@ -588,16 +591,16 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		}
 	}
 
-	// Create a done channel to control 'newRetryTimer' go routine.
-	doneCh := make(chan struct{}, 1)
+	// Create cancel context to control 'newRetryTimer' go routine.
+	retryCtx, cancel := context.WithCancel(ctx)
 
 	// Indicate to our routine to exit cleanly upon return.
-	defer close(doneCh)
+	defer cancel()
 
 	// Blank indentifier is kept here on purpose since 'range' without
 	// blank identifiers is only supported since go1.4
 	// https://golang.org/doc/go1.4#forrange.
-	for range c.newRetryTimer(reqRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter, doneCh) {
+	for range c.newRetryTimer(retryCtx, reqRetry, DefaultRetryUnit, DefaultRetryCap, MaxJitter) {
 		// Retry executes the following function body if request has an
 		// error until maxRetries have been exhausted, retry attempts are
 		// performed after waiting for a given period of time in a
@@ -627,6 +630,9 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// Initiate the request.
 		res, err = c.do(req)
 		if err != nil {
+			if err == context.Canceled || err == context.DeadlineExceeded {
+				return nil, err
+			}
 			continue
 		}
 
@@ -669,20 +675,23 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 			case "InvalidRegion":
 				fallthrough
 			case "AccessDenied":
-				if metadata.bucketName != "" && errResponse.Region != "" {
+				if errResponse.Region == "" {
+					// Region is empty we simply return the error.
+					return res, err
+				}
+				// Region is not empty figure out a way to
+				// handle this appropriately.
+				if metadata.bucketName != "" {
 					// Gather Cached location only if bucketName is present.
 					if _, cachedOk := c.bucketLocCache.Get(metadata.bucketName); cachedOk {
 						c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 						continue // Retry.
 					}
 				} else {
-					// Most probably for ListBuckets()
+					// This is for ListBuckets() fallback.
 					if errResponse.Region != metadata.bucketLocation {
-						// Retry if the error
-						// response has a
-						// different region
-						// than the request we
-						// just made.
+						// Retry if the error response has a different region
+						// than the request we just made.
 						metadata.bucketLocation = errResponse.Region
 						continue // Retry
 					}
@@ -703,6 +712,12 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// For all other cases break out of the retry loop.
 		break
 	}
+
+	// Return an error when retry is canceled or deadlined
+	if e := retryCtx.Err(); e != nil {
+		return nil, e
+	}
+
 	return res, err
 }
 
@@ -777,10 +792,10 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		}
 		if signerType.IsV2() {
 			// Presign URL with signature v2.
-			req = s3signer.PreSignV2(*req, accessKeyID, secretAccessKey, metadata.expires, isVirtualHost)
+			req = signer.PreSignV2(*req, accessKeyID, secretAccessKey, metadata.expires, isVirtualHost)
 		} else if signerType.IsV4() {
 			// Presign URL with signature v4.
-			req = s3signer.PreSignV4(*req, accessKeyID, secretAccessKey, sessionToken, location, metadata.expires)
+			req = signer.PreSignV4(*req, accessKeyID, secretAccessKey, sessionToken, location, metadata.expires)
 		}
 		return req, nil
 	}
@@ -823,12 +838,12 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 	switch {
 	case signerType.IsV2():
 		// Add signature version '2' authorization header.
-		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
+		req = signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
 	case metadata.objectName != "" && metadata.queryValues == nil && method == "PUT" && metadata.customHeader.Get("X-Amz-Copy-Source") == "" && !c.secure:
 		// Streaming signature is used by default for a PUT object request. Additionally we also
 		// look if the initialized client is secure, if yes then we don't need to perform
 		// streaming signature.
-		req = s3signer.StreamingSignV4(req, accessKeyID,
+		req = signer.StreamingSignV4(req, accessKeyID,
 			secretAccessKey, sessionToken, location, metadata.contentLength, time.Now().UTC())
 	default:
 		// Set sha256 sum for signature calculation only with signature version '4'.
@@ -839,7 +854,7 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		req.Header.Set("X-Amz-Content-Sha256", shaHeader)
 
 		// Add signature version '4' authorization header.
-		req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, location)
+		req = signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, location)
 	}
 
 	// Return request.

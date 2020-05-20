@@ -111,7 +111,7 @@ func (h *MainHelper) setupStore() {
 	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLSupplier,
-	}, h.SearchEngine)
+	}, h.SearchEngine, config)
 }
 
 func (h *MainHelper) setupResources() {
@@ -168,8 +168,16 @@ func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
 	if h.ClusterInterface == nil {
-		panic("MainHelper not initialized with sql supplier.")
+		panic("MainHelper not initialized with cluster interface.")
 	}
 
 	return h.ClusterInterface
+}
+
+func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
+	if h.SearchEngine == nil {
+		panic("MainHelper not initialized with search engine")
+	}
+
+	return h.SearchEngine
 }

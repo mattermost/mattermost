@@ -79,7 +79,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	requestData := model.MapFromJson(r.Body)
 	clientId := requestData["client_id"]
 
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.SetInvalidParam("client_id")
 		return
 	}
@@ -117,7 +117,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 
 	if err := authRequest.IsValid(); err != nil {
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
+			url.Values{
+				"type":    []string{"oauth_invalid_param"},
+				"message": []string{err.Message},
+			}, c.App.AsymmetricSigningKey())
 		return
 	}
 
@@ -196,7 +200,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientId := r.FormValue("client_id")
-	if len(clientId) != 26 {
+	if !model.IsValidId(clientId) {
 		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_id.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

@@ -183,11 +183,11 @@ func (c Client) SetBucketObjectLockConfig(bucketName string, mode *RetentionMode
 	return nil
 }
 
-// GetBucketObjectLockConfig gets object lock configuration of given bucket.
-func (c Client) GetBucketObjectLockConfig(bucketName string) (mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
+// GetObjectLockConfig gets object lock configuration of given bucket.
+func (c Client) GetObjectLockConfig(bucketName string) (objectLock string, mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, nil, err
 	}
 
 	urlValues := make(url.Values)
@@ -201,16 +201,16 @@ func (c Client) GetBucketObjectLockConfig(bucketName string) (mode *RetentionMod
 	})
 	defer closeResponse(resp)
 	if err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, nil, err
 	}
 	if resp != nil {
 		if resp.StatusCode != http.StatusOK {
-			return nil, nil, nil, httpRespToErrorResponse(resp, bucketName, "")
+			return "", nil, nil, nil, httpRespToErrorResponse(resp, bucketName, "")
 		}
 	}
 	config := &objectLockConfig{}
 	if err = xml.NewDecoder(resp.Body).Decode(config); err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, nil, err
 	}
 
 	if config.Rule != nil {
@@ -224,9 +224,18 @@ func (c Client) GetBucketObjectLockConfig(bucketName string) (mode *RetentionMod
 			years := Years
 			unit = &years
 		}
-
-		return mode, validity, unit, nil
+		return config.ObjectLockEnabled, mode, validity, unit, nil
 	}
+	return config.ObjectLockEnabled, nil, nil, nil, nil
+}
 
-	return nil, nil, nil, nil
+// GetBucketObjectLockConfig gets object lock configuration of given bucket.
+func (c Client) GetBucketObjectLockConfig(bucketName string) (mode *RetentionMode, validity *uint, unit *ValidityUnit, err error) {
+	_, mode, validity, unit, err = c.GetObjectLockConfig(bucketName)
+	return mode, validity, unit, err
+}
+
+// SetObjectLockConfig sets object lock configuration in given bucket. mode, validity and unit are either all set or all nil.
+func (c Client) SetObjectLockConfig(bucketName string, mode *RetentionMode, validity *uint, unit *ValidityUnit) error {
+	return c.SetBucketObjectLockConfig(bucketName, mode, validity, unit)
 }

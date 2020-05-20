@@ -5,14 +5,17 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestPermanentDeleteChannel(t *testing.T) {
@@ -743,6 +746,14 @@ func TestRenameChannel(t *testing.T) {
 			"",
 		},
 		{
+			"Success on rename open channel with consecutive underscores in name",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			false,
+			"foo__bar",
+			"foo__bar",
+			"New Display Name",
+		},
+		{
 			"Fail on rename direct message channel",
 			th.CreateDmChannel(th.BasicUser2),
 			true,
@@ -811,8 +822,8 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 func TestGetChannelsForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	channel := &model.Channel{
-		DisplayName: fmt.Sprintf("Public"),
-		Name:        fmt.Sprintf("public"),
+		DisplayName: "Public",
+		Name:        "public",
 		Type:        model.CHANNEL_OPEN,
 		CreatorId:   th.BasicUser.Id,
 		TeamId:      th.BasicTeam.Id,
@@ -1647,4 +1658,76 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Handles concurrent patch requests gracefully", func(t *testing.T) {
+		addCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(false),
+					Guests:  model.NewBool(false),
+				},
+			},
+		}
+		removeCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(false),
+					Guests:  model.NewBool(false),
+				},
+			},
+		}
+
+		wg := sync.WaitGroup{}
+		wg.Add(20)
+		for i := 0; i < 10; i++ {
+			go func() {
+				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				wg.Done()
+			}()
+		}
+		for i := 0; i < 10; i++ {
+			go func() {
+				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				wg.Done()
+			}()
+		}
+		wg.Wait()
+
+		higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+		higherScopedMemberRole, _ := th.App.GetRoleByName(higherScopedMemberRoleName)
+		higherScopedGuestRole, _ := th.App.GetRoleByName(higherScopedGuestRoleName)
+		assert.Contains(t, higherScopedMemberRole.Permissions, createPosts)
+		assert.Contains(t, higherScopedGuestRole.Permissions, createPosts)
+	})
+
+}
+
+// TestMarkChannelsAsViewedPanic verifies that returning an error from a.GetUser
+// does not cause a panic.
+func TestMarkChannelsAsViewedPanic(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
+	mockChannelStore := mocks.ChannelStore{}
+	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
+	mockChannelStore.On("GetMember", "channelID", "userID").Return(&model.ChannelMember{
+		NotifyProps: model.StringMap{
+			model.PUSH_NOTIFY_PROP: model.CHANNEL_NOTIFY_DEFAULT,
+		}}, nil)
+	times := map[string]int64{
+		"userID": 1,
+	}
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id)
+	require.Nil(t, err)
 }

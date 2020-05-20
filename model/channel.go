@@ -128,6 +128,12 @@ type ChannelSearchOpts struct {
 	PerPage                *int
 }
 
+type ChannelMemberCountByGroup struct {
+	GroupId                     string `db:"-" json:"group_id"`
+	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -181,12 +187,18 @@ func ChannelModerationsPatchFromJson(data io.Reader) []*ChannelModerationPatch {
 	return o
 }
 
+func ChannelMemberCountsByGroupFromJson(data io.Reader) []*ChannelMemberCountByGroup {
+	var o []*ChannelMemberCountByGroup
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
 func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -222,6 +234,11 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	userIds := strings.Split(o.Name, "__")
+	if o.Type != CHANNEL_DIRECT && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -230,6 +247,9 @@ func (o *Channel) PreSave() {
 		o.Id = NewId()
 	}
 
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
+
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 	o.ExtraUpdateAt = 0
@@ -237,6 +257,8 @@ func (o *Channel) PreSave() {
 
 func (o *Channel) PreUpdate() {
 	o.UpdateAt = GetMillis()
+	o.Name = SanitizeUnicode(o.Name)
+	o.DisplayName = SanitizeUnicode(o.DisplayName)
 }
 
 func (o *Channel) IsGroupOrDirect() bool {

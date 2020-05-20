@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2017 MinIO, Inc.
+ * Copyright 2017-2020 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ package minio
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 )
 
@@ -89,11 +89,13 @@ type bucketMeta struct {
 
 // Notification event object metadata.
 type objectMeta struct {
-	Key       string `json:"key"`
-	Size      int64  `json:"size,omitempty"`
-	ETag      string `json:"eTag,omitempty"`
-	VersionID string `json:"versionId,omitempty"`
-	Sequencer string `json:"sequencer"`
+	Key          string            `json:"key"`
+	Size         int64             `json:"size,omitempty"`
+	ETag         string            `json:"eTag,omitempty"`
+	ContentType  string            `json:"contentType,omitempty"`
+	UserMetadata map[string]string `json:"userMetadata,omitempty"`
+	VersionID    string            `json:"versionId,omitempty"`
+	Sequencer    string            `json:"sequencer"`
 }
 
 // Notification event server specific metadata.
@@ -136,6 +138,8 @@ type NotificationInfo struct {
 // ListenBucketNotification - listen on bucket notifications.
 func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, events []string, doneCh <-chan struct{}) <-chan NotificationInfo {
 	notificationInfoCh := make(chan NotificationInfo, 1)
+	const notificationCapacity = 1024 * 1024
+	notificationEventBuffer := make([]byte, notificationCapacity)
 	// Only success, start a routine to start reading line by line.
 	go func(notificationInfoCh chan<- NotificationInfo) {
 		defer close(notificationInfoCh)
@@ -195,6 +199,11 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 
 			// Initialize a new bufio scanner, to read line by line.
 			bio := bufio.NewScanner(resp.Body)
+
+			// Use a higher buffer to support unexpected
+			// caching done by proxies
+			bio.Buffer(notificationEventBuffer, notificationCapacity)
+			var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 			// Unmarshal each line, returns marshalled values.
 			for bio.Scan() {

@@ -6,6 +6,8 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -79,27 +81,35 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Database Write/Read Check
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
-		healthCheckKey := "health_check"
+		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
 
 		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
 			Name:  healthCheckKey,
 			Value: currentTime,
 		})
 		if writeErr != nil {
-			mlog.Debug("Unable to write to database.", mlog.Err(writeErr))
+			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		} else {
 			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
 			if readErr != nil {
-				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
+				mlog.Warn("Unable to read from database.", mlog.Err(readErr))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
 			} else if healthCheck.Value != currentTime {
-				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
+				mlog.Warn("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
 				s[dbStatusKey] = model.STATUS_UNHEALTHY
 				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else {
+			}
+			_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+			if writeErr != nil {
+				mlog.Warn("Unable to remove ping health check value from database", mlog.Err(writeErr))
+				s[dbStatusKey] = model.STATUS_UNHEALTHY
+				s[model.STATUS] = model.STATUS_UNHEALTHY
+			}
+
+			if s[dbStatusKey] == model.STATUS_OK {
 				mlog.Debug("Able to write/read files to database")
 			}
 		}
@@ -183,17 +193,23 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getAudits", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(audits.ToJson()))
 }
@@ -245,6 +261,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
@@ -255,6 +274,9 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("page", c.Params.Page)
+	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
 
 	w.Write([]byte(model.ArrayToJson(lines)))
 }
@@ -412,6 +434,10 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+	defer func() {
+		io.Copy(ioutil.Discard, res.Body)
+		res.Body.Close()
+	}()
 
 	location := res.Header.Get("Location")
 	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour

@@ -13,11 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -432,6 +434,7 @@ func TestPostChannelMentions(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
+			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
 
@@ -441,6 +444,7 @@ func TestPostChannelMentions(t *testing.T) {
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
 			"display_name": "Mention Test",
+			"team_name":    th.BasicTeam.Name,
 		},
 	}, result.GetProp("channel_mentions"))
 }
@@ -456,6 +460,8 @@ func TestImageProxy(t *testing.T) {
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := storemocks.SystemStore{}
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -816,6 +822,128 @@ func TestPatchPost(t *testing.T) {
 			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
 			th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 		})
+	})
+}
+
+func TestCreatePostAsUser(t *testing.T) {
+	t.Run("marks channel as viewed for regular user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser.Id,
+		}
+
+		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		time.Sleep(1 * time.Millisecond)
+		_, appErr = th.App.CreatePostAsUser(post, "")
+		require.Nil(t, appErr)
+
+		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("does not mark channel as viewed for webhook from user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    th.BasicUser.Id,
+		}
+		post.AddProp("from_webhook", "true")
+
+		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		time.Sleep(1 * time.Millisecond)
+		_, appErr = th.App.CreatePostAsUser(post, "")
+		require.Nil(t, appErr)
+
+		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("does not mark channel as viewed for bot user in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		bot := th.CreateBot()
+
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(botUser, th.BasicTeam)
+		th.AddUserToChannel(botUser, th.BasicChannel)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    bot.UserId,
+		}
+
+		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		time.Sleep(1 * time.Millisecond)
+		_, appErr = th.App.CreatePostAsUser(post, "")
+		require.Nil(t, appErr)
+
+		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("logs warning for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user := th.CreateUser()
+		th.LinkUserToTeam(user, th.BasicTeam)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    user.Id,
+		}
+
+		_, appErr := th.App.CreatePostAsUser(post, "")
+		require.Nil(t, appErr)
+
+		testlib.AssertLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
+	})
+
+	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		bot := th.CreateBot()
+
+		botUser, appErr := th.App.GetUser(bot.UserId)
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(botUser, th.BasicTeam)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "test",
+			UserId:    bot.UserId,
+		}
+
+		_, appErr = th.App.CreatePostAsUser(post, "")
+		require.Nil(t, appErr)
+
+		testlib.AssertNoLog(t, th.LogBuffer, mlog.LevelWarn, "Failed to get membership")
 	})
 }
 
@@ -1625,5 +1753,94 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, numPosts, count)
+	})
+}
+
+func TestFillInPostProps(t *testing.T) {
+	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.SetLicense(model.NewTestLicense("ldap"))
+
+		user1 := th.BasicUser
+
+		channel := th.CreateChannel(th.BasicTeam)
+
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test123123 @group1 @group2 blah blah blah",
+		}, channel, false)
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, post1.Props, model.StringInterface{})
+	})
+
+	t.Run("should not add disable group highlight to post props for app without license", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		guest, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(guest, channel)
+
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    guest.Id,
+			ChannelId: channel.Id,
+			Message:   "test123123 @group1 @group2 blah blah blah",
+		}, channel, false)
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, post1.Props, model.StringInterface{})
+	})
+
+	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.App.SetLicense(model.NewTestLicense("ldap"))
+
+		id := model.NewId()
+		guest := &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      "Password1",
+			EmailVerified: true,
+		}
+		guest, err := th.App.CreateGuest(guest)
+		require.Nil(t, err)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(guest, channel)
+
+		post1, err := th.App.CreatePost(&model.Post{
+			UserId:    guest.Id,
+			ChannelId: channel.Id,
+			Message:   "test123123 @group1 @group2 blah blah blah",
+		}, channel, false)
+		require.Nil(t, err)
+
+		err = th.App.FillInPostProps(post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
 	})
 }
