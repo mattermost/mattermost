@@ -838,7 +838,6 @@ func doSessionCleanup(s *Server) {
 }
 
 func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
-	//check this for TE only
 	license := s.License()
 	if license != nil {
 		mlog.Debug("License is present, skip this check")
@@ -847,17 +846,17 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 
 	warnMetricId := model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS
 	data, err := s.Store.System().GetByName(warnMetricId)
-	if err == nil && data != nil && (data.Value == "true" || data.Value == "ack") {
-		mlog.Debug("This metric limit crossing has been acknowledged or detected already")
+	if err == nil && data != nil && data.Value == "ack" {
+		mlog.Debug("This metric limit crossing has been already acknowledged")
 		return
 	}
 
-	noActiveUsers, err := s.Store.User().Count(model.UserCountOptions{})
+	numberOfActiveUsers, err := s.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		mlog.Error("Error to get active registered users.", mlog.Err(err))
 	}
 
-	if noActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
+	if numberOfActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
 		if err = s.Store.System().SaveOrUpdate(&model.System{Name: warnMetricId, Value: "true"}); err != nil {
 			mlog.Error("Unable to write to database.", mlog.Err(err))
 			return
@@ -868,8 +867,7 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 		s.FakeApp().Publish(message)
 	}
 
-	warnMetricMessage := utils.T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
-	if err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage); err != nil {
+	if err = s.FakeApp().NotifyAdminsOfWarnMetricStatus(warnMetricId); err != nil {
 		mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 	}
 }

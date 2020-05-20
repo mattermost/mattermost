@@ -181,12 +181,12 @@ func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
 		Value: "ack",
 	}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
-		return model.NewAppError("SetWarnMetricStatus", "app.system.number_active_users_warn_metric.store.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SetWarnMetricStatus", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage string) *model.AppError {
+func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -200,10 +200,12 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage str
 	for {
 		sysAdminsList, err := a.GetUsers(userOptions)
 		if err != nil {
-			mlog.Error("Cannot obtain list of system admins!")
 			return err
 		}
 
+		if len(sysAdminsList) == 0 {
+			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 		sysAdmins = append(sysAdmins, sysAdminsList...)
 
 		if len(sysAdminsList) < perPage {
@@ -212,28 +214,48 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage str
 		}
 	}
 
+	T := utils.GetUserTranslations(sysAdmins[0].Locale)
+	warnMetricsBot := &model.Bot{
+		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+		DisplayName: T("app.system.warn_metric.bot_displayname"),
+		Description: T("app.system.warn_metric.bot_description"),
+		OwnerId:     sysAdmins[0].Id,
+	}
+
 	for _, sysAdmin := range sysAdmins {
-		channel, appErr := a.GetOrCreateDirectChannel(sysAdmin.Id, sysAdmin.Id)
+		bot, err := a.GetOrCreateWarnMetricsBot(warnMetricsBot)
+		if err != nil {
+			return err
+		}
+
+		T := utils.GetUserTranslations(sysAdmin.Locale)
+		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
+		bot.Description = T("app.system.warn_metric.bot_description")
+
+		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
 		if appErr != nil {
-			mlog.Error("Cannot create channel for system notifications!", mlog.String("Admin Id", sysAdmin.Id))
+			mlog.Error("Cannot create channel for system bot notification!", mlog.String("Admin Id", sysAdmin.Id))
 			return appErr
 		}
 
-		post := &model.Post{
-			UserId:    sysAdmin.Id,
+		var warnMetricMessage string
+		if warnMetricId == model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS {
+			warnMetricMessage = T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
+		}
+
+		botPost := &model.Post{
+			UserId:    bot.UserId,
 			ChannelId: channel.Id,
 			Message:   warnMetricMessage,
+			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
 			Props: model.StringInterface{
 				"warnMetricId": warnMetricId,
 			},
-			Type: model.POST_SYSTEM_WARN_METRIC_STATUS,
 		}
 
-		//create post
-		mlog.Debug("Send post warning for metric threshold", mlog.String("user id", post.UserId))
-		_, appErr = a.CreatePost(post, channel, false)
-		if appErr != nil {
-			return appErr
+		mlog.Debug("Send post warning for metric", mlog.String("user id", botPost.UserId))
+		if _, err := a.CreatePostAsUser(botPost, a.Session().Id); err != nil {
+			return err
 		}
 	}
 

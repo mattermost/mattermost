@@ -573,15 +573,27 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := c.App.GetUser(c.App.Session().UserId)
-	if err != nil {
-		c.Err = err
+	user, appErr := c.App.GetUser(c.App.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	err = c.App.SendWarnMetricAckEmail(c.Params.WarnMetricId, user.Email)
-	if err != nil {
-		c.Err = err
+	ack := model.SendWarnMetricAckFromJson(r.Body)
+	if ack == nil {
+		c.SetInvalidParam("ack")
+		return
+	}
+
+	mlog.Debug("sendWarnMetricAckEmail ", mlog.Bool("forceAck", ack.ForceAck))
+
+	// if !ack.ForceAck {
+	// 	c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.io_error", nil, "", http.StatusBadRequest)
+	// 	return
+	// }
+	appErr = c.App.SendWarnMetricAckEmail(c.Params.WarnMetricId, user, ack.ForceAck)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

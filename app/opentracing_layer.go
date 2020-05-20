@@ -6289,6 +6289,28 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserI
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateWarnMetricsBot")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetOrCreateWarnMetricsBot(warnMetricsBot)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOutgoingWebhook")
@@ -10162,7 +10184,7 @@ func (a *OpenTracingAppLayer) NewWebHub() *Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string, warnMetricMessage string) *model.AppError {
+func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAdminsOfWarnMetricStatus")
 
@@ -10174,7 +10196,7 @@ func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage)
+	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warnMetricId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12589,7 +12611,7 @@ func (a *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string,
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendWarnMetricAckEmail(warnMetricId string, email string) *model.AppError {
+func (a *OpenTracingAppLayer) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendWarnMetricAckEmail")
 
@@ -12601,7 +12623,7 @@ func (a *OpenTracingAppLayer) SendWarnMetricAckEmail(warnMetricId string, email 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendWarnMetricAckEmail(warnMetricId, email)
+	resultVar0 := a.app.SendWarnMetricAckEmail(warnMetricId, sender, forceAck)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

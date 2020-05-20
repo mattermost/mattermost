@@ -513,25 +513,23 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 	return nil
 }
 
-func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.AppError {
-	if len(*a.Config().EmailSettings.SMTPServer) == 0 {
-		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
-	}
-
-	var subject string
-	var body string
-
-	switch warnMetricId {
-	case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS:
-		subject = "Acknowledge of User Limit"
-		body = "This is a receipt of acknowledgement for the number of active users exceeding the limit for the following site.\r\n"
-
-		body += fmt.Sprintf("Contact Email: %s\r\n", email)
-		body += fmt.Sprintf("DiagnosticId: %s\r\n", a.DiagnosticId())
-		body += fmt.Sprintf("SiteURL: %s\r\n", a.GetSiteURL())
+func (a *App) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
+	if !forceAck {
+		if len(*a.Config().EmailSettings.SMTPServer) == 0 {
+			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
+		}
+		T := utils.GetUserTranslations(sender.Locale)
+		bodyPage := a.newEmailTemplate("warn_metric_ack", sender.Locale)
+		bodyPage.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
+		bodyPage.Props["ContactEmailValue"] = sender.Email
+		bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
+		bodyPage.Props["SiteURL"] = a.GetSiteURL()
+		bodyPage.Props["DiagnosticIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+		bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
 
 		if a.License() != nil {
-			body += fmt.Sprintf("License Id: %s\r\n", a.License().Id)
+			bodyPage.Props["LicenseHeader"] = T("api.templates.warn_metric_ack.license_header")
+			bodyPage.Props["LicenseValue"] = a.License().Id
 		}
 
 		//same definition as the active users count metric displayed in the SystemConsole Analytics section
@@ -539,16 +537,26 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, email string) *model.A
 		if err != nil {
 			mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
 		} else {
-			body += fmt.Sprintf("Registered Users: %v\r\n", registeredUsersCount)
+			bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
+			bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount
 		}
-		body += "If you have any additional inquiries, please contact support@mattermost.com"
-	default:
-		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
-	}
 
-	if err := mailservice.SendMailUsingConfig(model.MM_ACKNOWLEDGE_ADDRESS, subject, body, a.Config(), false, email); err != nil {
-		mlog.Error("Error while sending email", mlog.String("email", model.MM_ACKNOWLEDGE_ADDRESS), mlog.Err(err))
-		return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+		bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
+
+		var subject string
+
+		switch warnMetricId {
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS:
+			subject = T("api.templates.warn_metric_ack.subject")
+			bodyPage.Props["Title"] = T("api.templates.warn_metric_ack.title")
+		default:
+			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		if err := mailservice.SendMailUsingConfig(model.MM_ACKNOWLEDGE_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+			mlog.Error("Error while sending email", mlog.String("destination email", model.MM_ACKNOWLEDGE_ADDRESS), mlog.Err(err))
+			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
+		}
 	}
 
 	mlog.Info("Disable the monitoring of warn metric", mlog.String("metric", warnMetricId))

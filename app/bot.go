@@ -58,6 +58,43 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
+func (a *App) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, *model.AppError) {
+	var savedBot *model.Bot
+
+	botUser, appErr := a.GetUserByUsername(warnMetricsBot.Username)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound {
+			mlog.Error(appErr.Error())
+			return nil, appErr
+		}
+
+		// cannot find this bot user, save the user
+		user, err := a.Srv().Store.User().Save(model.UserFromBot(warnMetricsBot))
+		if err != nil {
+			mlog.Error(err.Error())
+			return nil, err
+		}
+		warnMetricsBot.UserId = user.Id
+
+		//save the bot
+		savedBot, err = a.Srv().Store.Bot().Save(warnMetricsBot)
+		if err != nil {
+			mlog.Error(err.Error())
+			a.Srv().Store.User().PermanentDelete(savedBot.UserId)
+			return nil, err
+		}
+	} else if botUser != nil {
+		//return the bot for this user
+		savedBot, appErr = a.GetBot(botUser.Id, false)
+		if appErr != nil {
+			mlog.Error(appErr.Error())
+			return nil, appErr
+		}
+	}
+
+	return savedBot, nil
+}
+
 // PatchBot applies the given patch to the bot and corresponding user.
 func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	bot, err := a.GetBot(botUserId, true)

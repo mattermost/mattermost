@@ -72,3 +72,18 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 	json.NewDecoder(r).Decode(&sbs)
 	return sbs
 }
+
+type SendWarnMetricAck struct {
+	ForceAck bool `json:"forceAck"`
+}
+
+func (swma *SendWarnMetricAck) ToJson() string {
+	b, _ := json.Marshal(swma)
+	return string(b)
+}
+
+func SendWarnMetricAckFromJson(r io.Reader) *SendWarnMetricAck {
+	var swma *SendWarnMetricAck
+	json.NewDecoder(r).Decode(&swma)
+	return swma
+}

@@ -582,6 +582,7 @@ type AppIface interface {
 	GetOAuthStateToken(token string) (*model.Token, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph
 	GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError)
+	GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, *model.AppError)
 	GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError)
@@ -750,7 +751,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	NotifyAdminsOfWarnMetricStatus(warnMetricId, warnMetricMessage string) *model.AppError
+	NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
@@ -859,7 +860,7 @@ type AppIface interface {
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
 	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
-	SendWarnMetricAckEmail(warnMetricId string, email string) *model.AppError
+	SendWarnMetricAckEmail(warnMetricId string, sender *model.User, forceAck bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
 	Session() *model.Session

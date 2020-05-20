@@ -103,13 +103,6 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(monthlyActiveChan)
 		}()
 
-		userRegisteredChan := make(chan store.StoreResult, 1)
-		go func() {
-			userRegisteredCount, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-			userRegisteredChan <- store.StoreResult{Data: userRegisteredCount, Err: err}
-			close(userRegisteredChan)
-		}()
-
 		r := <-openChan
 		if r.Err != nil {
 			return nil, r.Err

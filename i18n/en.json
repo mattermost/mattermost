@@ -2427,6 +2427,38 @@
     "translation": "[{{ .SiteName }}] Email Verification"
   },
   {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "Contact Email: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+    "translation": "Diagnostic Id: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Registered Users: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "Site URL: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.footer",
+    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.license_header",
+    "translation": "License"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.subject",
+    "translation": "Acknowledge of User Limit"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.title",
+    "translation": "This is a receipt of acknowledgement for the number of active users exceeding the limit for the following site."
+  },
+  {
     "id": "api.templates.welcome_body.app_download_info",
     "translation": "For the best experience, download the apps for PC, Mac, iOS and Android from:"
   },
@@ -3803,12 +3835,20 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
-    "id": "app.system.number_active_users_warn_metric.parse_int.app_error",
-    "translation": "Failed to parse number of active users metric value"
+    "id": "app.system.warn_metric.bot_description",
+    "translation": "Bot for usage warnings"
   },
   {
-    "id": "app.system.number_active_users_warn_metric.store.app_error",
-    "translation": "Failed to store number of active users metric value"
+    "id": "app.system.warn_metric.bot_displayname",
+    "translation": "Warning Bot"
+  },
+  {
+    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.system.warn_metric.store.app_error",
+    "translation": "Failed to store value for {{.WarnMetricName}}"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
