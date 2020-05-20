@@ -3730,7 +3730,7 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.A
 		"UserId": userId,
 		"TeamId": teamId,
 	}
-	if _, err := s.GetMaster().Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND UserId=:UserId", params); err != nil {
+	if _, err := s.GetMaster().Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId", params); err != nil {
 		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE SidebarCategories.TeamId = :TeamId AND SidebarCategories.UserId = :UserId", params); err != nil {
