@@ -6333,7 +6333,7 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserI
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateWarnMetricsBot")
 
@@ -6345,7 +6345,7 @@ func (a *OpenTracingAppLayer) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bo
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOrCreateWarnMetricsBot(warnMetricsBot)
+	resultVar0, resultVar1 := a.app.GetOrCreateWarnMetricsBot(botDef)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
