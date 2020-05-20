@@ -574,8 +574,8 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.send_warn_metric_ack_email.no_sysadmin.app_error", nil, "", http.StatusBadRequest)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
