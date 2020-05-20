@@ -5655,6 +5655,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "All IncludeDeletedChannels params should have the same value."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -5865,10 +5869,6 @@
   {
     "id": "model.websocket_client.connect_fail.app_error",
     "translation": "Unable to connect to the WebSocket server."
-  },
-  {
-    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
     "id": "oauth.gitlab.tos.error",
