@@ -858,7 +858,7 @@ func runStoreAndCheckNumberOfActiveUsersWarnMetricStatusJob(s *Server) {
 	doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s)
 	model.CreateRecurringTask("Store and Check Number Of Active Users Warn Metric Status", func() {
 		doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s)
-	}, time.Minute*1)
+	}, time.Hour*24)
 }
 
 func doSecurity(s *Server) {

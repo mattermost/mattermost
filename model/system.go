@@ -22,7 +22,7 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS = "warn_metric_number_of_active_users"
 )
 
-const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT = 1
+const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT = 100
 
 type System struct {
 	Name  string `json:"name"`

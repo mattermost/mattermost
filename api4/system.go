@@ -591,12 +591,6 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	mlog.Debug("sendWarnMetricAckEmail ", mlog.Bool("forceAck", ack.ForceAck))
-
-	// if !ack.ForceAck {
-	// 	c.Err = model.NewAppError("sendWarnMetricAckEmail", "api.io_error", nil, "", http.StatusBadRequest)
-	// 	return
-	// }
 	appErr = c.App.SendWarnMetricAckEmail(c.Params.WarnMetricId, user, ack.ForceAck)
 	if appErr != nil {
 		c.Err = appErr
