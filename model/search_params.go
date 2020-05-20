@@ -371,8 +371,8 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 
 func IsSearchParamsListValid(paramsList []*SearchParams) *AppError {
 	// All SearchParams should have same IncludeDeletedChannels value.
-	for i := 1; i < len(paramsList); i++ {
-		if paramsList[i].IncludeDeletedChannels != paramsList[0].IncludeDeletedChannels {
+	for _, params := range paramsList {
+		if params.IncludeDeletedChannels != paramsList[0].IncludeDeletedChannels {
 			return NewAppError("IsSearchParamsListValid", "model.search_params_list.is_valid.include_deleted_channels.app_error", nil, "", http.StatusInternalServerError)
 		}
 	}

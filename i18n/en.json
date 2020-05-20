@@ -5700,7 +5700,7 @@
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
-    "translation": "All IncludeDeletedChannels params should have same value."
+    "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
     "id": "oauth.gitlab.tos.error",
