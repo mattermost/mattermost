@@ -7,8 +7,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -194,11 +197,33 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Group has never been linked
 		//
-		// TODO: In a future phase of LDAP groups sync `Name` will be used for at-mentions and will be editable on
-		// the front-end so it will not have an initial value of `model.NewId()` but rather a slugified version of
-		// the LDAP group name with an appended duplicate-breaker.
+		// `Name` will be used for at-mentions and will be editable on the front-end so
+		// create name based on display name and make sure it is unique.
+		// Append a duplicate-breaker if necessary.
+		baseName := strings.ReplaceAll(strings.ToLower(displayName), " ", "-")
+		count := 0
+		for {
+			checkName := baseName
+			if count > 0 {
+				checkName = baseName + "-" + strconv.Itoa(count)
+			} else if count > 100 {
+				// prevent infinite loop
+				break
+			}
+			count++
+
+			appErr := c.App.ValidateGroupName(checkName)
+			if appErr != nil {
+				mlog.Debug("Group name matched existing name tag", mlog.String("err", appErr.Error()), mlog.String("name", checkName))
+				continue
+			}
+			// if here, no duplicates found
+			baseName = checkName
+			break
+		}
+
 		newGroup := &model.Group{
-			Name:        model.NewId(),
+			Name:        baseName,
 			DisplayName: displayName,
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,

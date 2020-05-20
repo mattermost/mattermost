@@ -141,25 +141,12 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			tmp := strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
 			groupPatch.Name = &tmp
 		} else {
-			if *groupPatch.Name == model.USER_NOTIFY_ALL || *groupPatch.Name == model.CHANNEL_MENTIONS_NOTIFY_PROP || *groupPatch.Name == model.USER_NOTIFY_HERE {
-				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusNotImplemented)
+			err = c.App.ValidateGroupName(*groupPatch.Name)
+			if err != nil {
+				c.Err = err
 				return
 			}
-			//check if a user already has this group name
-			user, _ := c.App.GetUserByUsername(*groupPatch.Name)
-			if user != nil {
-				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusNotImplemented)
-				return
-			}
-			//check if a mentionable group already has this name
-			searchOpts := model.GroupSearchOpts{
-				FilterAllowReference: true,
-			}
-			existingGroup, _ := c.App.GetGroupByName(*groupPatch.Name, searchOpts)
-			if existingGroup != nil {
-				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_group_name_error", nil, "", http.StatusNotImplemented)
-				return
-			}
+
 		}
 	}
 

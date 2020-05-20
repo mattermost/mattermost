@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -53,6 +55,23 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	}
 
 	return deletedGroup, err
+}
+
+// Validates the group name is unique from all other potential tag values.
+func (a *App) ValidateGroupName(groupName string) *model.AppError {
+	if groupName == model.USER_NOTIFY_ALL || groupName == model.CHANNEL_MENTIONS_NOTIFY_PROP || groupName == model.USER_NOTIFY_HERE {
+		return model.NewAppError("validateGroupName", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusNotImplemented)
+	}
+	//check if a user already has this group name
+	user, _ := a.GetUserByUsername(groupName)
+	if user != nil {
+		return model.NewAppError("validateGroupName", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusNotImplemented)
+	}
+	existingGroup, _ := a.GetGroupByName(groupName, model.GroupSearchOpts{})
+	if existingGroup != nil {
+		return model.NewAppError("validateGroupName", "api.ldap_groups.existing_group_name_error", nil, "", http.StatusNotImplemented)
+	}
+	return nil
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {

@@ -101,6 +101,40 @@ func TestDeleteGroup(t *testing.T) {
 	require.Nil(t, g)
 }
 
+func TestValidateGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Test reserved names
+	err := th.App.ValidateGroupName("all")
+	require.NotNil(t, err)
+
+	err = th.App.ValidateGroupName("here")
+	require.NotNil(t, err)
+	err = th.App.ValidateGroupName("channel")
+	require.NotNil(t, err)
+
+	// Test existing group name
+	group := th.CreateGroup()
+	err = th.App.ValidateGroupName(group.Name)
+	require.NotNil(t, err)
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
+	err = th.App.ValidateGroupName(group.Name)
+	require.NotNil(t, err)
+
+	// Test existing group name
+	user := th.CreateUser()
+	err = th.App.ValidateGroupName(user.Username)
+	require.NotNil(t, err)
+	err = th.App.PermanentDeleteUser(user)
+	require.Nil(t, err)
+
+	err = th.App.ValidateGroupName("new-group-name")
+	require.Nil(t, err)
+}
+
 func TestCreateOrRestoreGroupMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
