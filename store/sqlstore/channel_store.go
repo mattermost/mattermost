@@ -3440,26 +3440,35 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 	defer finalizeTransaction(transaction)
 
-	sql, args, _ := s.getQueryBuilder().
-		Select("MAX(SortOrder)").
-		From("SidebarCategories").
-		GroupBy("SortOrder").
-		Where(sq.And{
-			sq.Eq{"TeamId": teamId},
-			sq.Eq{"UserId": userId},
-		}).ToSql()
-	maxOrder, err := transaction.SelectInt(sql, args...)
-	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	categoriesWithOrder, appErr := s.getSidebarCategoriesT(transaction, userId, teamId)
+	if appErr != nil {
+		return nil, appErr
 	}
-	categoryId := model.NewId()
+	if len(categoriesWithOrder.Categories) < 1 {
+		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError)
+	}
+	newOrder := categoriesWithOrder.Order
+	newCategoryId := model.NewId()
+	newCategorySortOrder := 0
+	/*
+		When a new category is created, it should be placed as follows:
+		1. If the Favorites category is first, the new category should be placed after it
+		2. Otherwise, the new category should be placed first.
+	*/
+	if categoriesWithOrder.Categories[0].Type == model.SidebarCategoryFavorites {
+		newOrder = append([]string{newOrder[0], newCategoryId}, newOrder[1:]...)
+		newCategorySortOrder = model.MinimalSidebarSortDistance
+	} else {
+		newOrder = append([]string{newCategoryId}, newOrder...)
+	}
+
 	category := &model.SidebarCategory{
 		DisplayName: newCategory.DisplayName,
-		Id:          categoryId,
+		Id:          newCategoryId,
 		UserId:      userId,
 		TeamId:      teamId,
 		Sorting:     model.SidebarCategorySortDefault,
-		SortOrder:   maxOrder + model.MinimalSidebarSortDistance,
+		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
 	}
 	if err = transaction.Insert(category); err != nil {
@@ -3470,7 +3479,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	for _, channelID := range newCategory.Channels {
 		channels = append(channels, &model.SidebarChannel{
 			ChannelId:  channelID,
-			CategoryId: categoryId,
+			CategoryId: newCategoryId,
 			SortOrder:  int64(runningOrder),
 			UserId:     userId,
 		})
@@ -3484,10 +3493,18 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return &model.SidebarCategoryWithChannels{
+	// now we re-order the categories according to the new order
+	if appErr := s.UpdateSidebarCategoryOrder(userId, teamId, newOrder); appErr != nil {
+		return nil, appErr
+	}
+	// patch category to return proper sort order
+	category.SortOrder = int64(newCategorySortOrder)
+	result := &model.SidebarCategoryWithChannels{
 		SidebarCategory: *category,
 		Channels:        newCategory.Channels,
-	}, nil
+	}
+
+	return result, nil
 }
 
 func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
@@ -3514,7 +3531,7 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 
 }
 
-func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
 	oc := model.OrderedSidebarCategories{
 		Categories: make(model.SidebarCategoriesWithChannels, 0),
 		Order:      make([]string, 0),
@@ -3557,6 +3574,26 @@ func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.Ord
 	return &oc, nil
 }
 
+func (s SqlChannelStore) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetSidebarCategories", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	oc, appErr := s.getSidebarCategoriesT(transaction, userId, teamId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetSidebarCategories", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return oc, nil
+}
+
 func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
 	var ids []string
 
@@ -3575,7 +3612,8 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 	return ids, nil
 }
 
-func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transaction, userId, teamId string, categoryOrder []string) *model.AppError {
+
 	existingOrder, err := s.GetSidebarCategoryOrder(userId, teamId)
 	if err != nil {
 		return err
@@ -3595,8 +3633,27 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	if _, err := s.GetMaster().UpdateColumns(func(col *gorp.ColumnMap) bool {
 		return col.ColumnName == "SortOrder"
 	}, newOrder...); err != nil {
-		return model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	return nil
+}
+
+func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	if appErr := s.updateSidebarCategoryOrderT(transaction, userId, teamId, categoryOrder); appErr != nil {
+		return appErr
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	return nil
 }
 

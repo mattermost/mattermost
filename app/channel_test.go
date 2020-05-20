@@ -1739,7 +1739,14 @@ func TestSidebarCategory(t *testing.T) {
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
 	defer th.App.PermanentDeleteChannel(basicChannel2)
 	user := th.CreateUser()
+	th.LinkUserToTeam(user, th.BasicTeam)
+	th.AddUserToChannel(user, basicChannel2)
+
 	var createdCategory *model.SidebarCategoryWithChannels
+	t.Run("MigrateSidebarCategories", func(t *testing.T) {
+		_, err := th.App.Srv().Store.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
+		require.Nil(t, err, "Should finish initial migration")
+	})
 	t.Run("CreateSidebarCategory", func(t *testing.T) {
 		catData := model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
@@ -1775,6 +1782,7 @@ func TestSidebarCategory(t *testing.T) {
 	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
 		catOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
 		require.Nil(t, err, "Expected no error")
-		require.Len(t, catOrder, 1)
+		require.Len(t, catOrder, 4)
+		require.Equal(t, catOrder[1], createdCategory.Id, "the newly created category should be after favorites")
 	})
 }
