@@ -37,20 +37,25 @@ func (w *Web) InitStatic() {
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
-		staticHandler := brotliFilesHandler(staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir)))))
+		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		if *w.ConfigService.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			staticHandler = brotliFilesHandler(staticHandler)
+		}
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
 
 		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-			for _, ct := range brotliEncodedContent {
-				brotliContentTypes = append(brotliContentTypes, ct)
-			}
+			if *w.ConfigService.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+				for _, ct := range brotliEncodedContent {
+					brotliContentTypes = append(brotliContentTypes, ct)
+				}
 
-			everythingExceptBrotliGzipHandler, err := gziphandler.GzipHandlerWithOpts(gziphandler.ContentTypeExceptions(brotliContentTypes))
-			if err != nil {
-				mlog.Error("Failed to initialize gziphandler", mlog.Err(err))
-			}
+				everythingExceptBrotliGzipHandler, err := gziphandler.GzipHandlerWithOpts(gziphandler.ContentTypeExceptions(brotliContentTypes))
+				if err != nil {
+					mlog.Error("Failed to initialize gziphandler", mlog.Err(err))
+				}
 
-			staticHandler = everythingExceptBrotliGzipHandler(staticHandler)
+				staticHandler = everythingExceptBrotliGzipHandler(staticHandler)
+			}
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
 
