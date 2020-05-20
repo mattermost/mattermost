@@ -29,6 +29,12 @@ type webConnDirectMessage struct {
 	msg  model.WebSocketMessage
 }
 
+type webConnSessionMessage struct {
+	userId       string
+	sessionToken string
+	isRegistered chan bool
+}
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -47,20 +53,22 @@ type Hub struct {
 	activity        chan *webConnActivityMessage
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
+	checkRegistered chan *webConnSessionMessage
 }
 
 // NewWebHub creates a new Hub.
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
-		app:            a,
-		register:       make(chan *WebConn),
-		unregister:     make(chan *WebConn),
-		broadcast:      make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:           make(chan struct{}),
-		didStop:        make(chan struct{}),
-		invalidateUser: make(chan string),
-		activity:       make(chan *webConnActivityMessage),
-		directMsg:      make(chan *webConnDirectMessage),
+		app:             a,
+		register:        make(chan *WebConn),
+		unregister:      make(chan *WebConn),
+		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:            make(chan struct{}),
+		didStop:         make(chan struct{}),
+		invalidateUser:  make(chan string),
+		activity:        make(chan *webConnActivityMessage),
+		directMsg:       make(chan *webConnDirectMessage),
+		checkRegistered: make(chan *webConnSessionMessage),
 	}
 }
 
@@ -289,6 +297,15 @@ func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	}
 }
 
+// SessionIsRegistered determines if a specific session has been registered
+func (a *App) SessionIsRegistered(session model.Session) bool {
+	hub := a.GetHubForUserId(session.UserId)
+	if hub != nil {
+		return hub.IsRegistered(session.UserId, session.Token)
+	}
+	return false
+}
+
 // Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) {
 	select {
@@ -303,6 +320,21 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	case h.unregister <- webConn:
 	case <-h.stop:
 	}
+}
+
+// Determines if a user's session is registered a connection from the hub.
+func (h *Hub) IsRegistered(userId, sessionToken string) bool {
+	ws := &webConnSessionMessage{
+		userId:       userId,
+		sessionToken: sessionToken,
+		isRegistered: make(chan bool),
+	}
+	select {
+	case h.checkRegistered <- ws:
+		return <-ws.isRegistered
+	case <-h.stop:
+	}
+	return false
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -375,6 +407,15 @@ func (h *Hub) Start() {
 
 		for {
 			select {
+			case webSessionMessage := <-h.checkRegistered:
+				conns := connIndex.ForUser(webSessionMessage.userId)
+				var isRegistered bool
+				for _, item := range conns {
+					if item.sessionToken.Load().(string) == webSessionMessage.sessionToken {
+						isRegistered = true
+					}
+				}
+				webSessionMessage.isRegistered <- isRegistered
 			case webConn := <-h.register:
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))

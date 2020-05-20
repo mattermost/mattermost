@@ -160,6 +160,11 @@ func (group *Group) IsValidForUpdate() *AppError {
 	return nil
 }
 
+func (group *Group) ToJson() string {
+	b, _ := json.Marshal(group)
+	return string(b)
+}
+
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
