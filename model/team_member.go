@@ -58,6 +58,7 @@ type TeamMembersGetOptions struct {
 	// Restrict to search in a list of teams and channels
 	ViewRestrictions *ViewUsersRestrictions
 
+	// The term which we match for on a team members email, username, nickname, or full name.
 	SearchTerm string
 }
 
