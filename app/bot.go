@@ -65,10 +65,8 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
-func (a *App) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, *model.AppError) {
-	var savedBot *model.Bot
-
-	botUser, appErr := a.GetUserByUsername(warnMetricsBot.Username)
+func (a *App) GetOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
 			mlog.Error(appErr.Error())
@@ -76,27 +74,37 @@ func (a *App) GetOrCreateWarnMetricsBot(warnMetricsBot *model.Bot) (*model.Bot, 
 		}
 
 		// cannot find this bot user, save the user
-		user, err := a.Srv().Store.User().Save(model.UserFromBot(warnMetricsBot))
+		user, err := a.Srv().Store.User().Save(model.UserFromBot(botDef))
 		if err != nil {
 			mlog.Error(err.Error())
 			return nil, err
 		}
-		warnMetricsBot.UserId = user.Id
+		botDef.UserId = user.Id
 
 		//save the bot
-		savedBot, err = a.Srv().Store.Bot().Save(warnMetricsBot)
-		if err != nil {
-			mlog.Error(err.Error())
+		savedBot, nErr := a.Srv().Store.Bot().Save(botDef)
+		if nErr != nil {
 			a.Srv().Store.User().PermanentDelete(savedBot.UserId)
-			return nil, err
+			var nAppErr *model.AppError
+			switch {
+			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
+				return nil, nAppErr
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, model.NewAppError("GetOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
-	} else if botUser != nil {
-		//return the bot for this user
-		savedBot, appErr = a.GetBot(botUser.Id, false)
-		if appErr != nil {
-			mlog.Error(appErr.Error())
-			return nil, appErr
-		}
+		return savedBot, nil
+	}
+
+	if botUser == nil {
+		return nil, model.NewAppError("GetOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+	}
+
+	//return the bot for this user
+	savedBot, appErr := a.GetBot(botUser.Id, false)
+	if appErr != nil {
+		mlog.Error(appErr.Error())
+		return nil, appErr
 	}
 
 	return savedBot, nil
