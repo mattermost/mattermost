@@ -219,7 +219,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base
+				newSplit := base.Clone()
 				splits = append(splits, newSplit)
 				continue
 			}
