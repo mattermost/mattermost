@@ -126,7 +126,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
 		SetMap(sq.Eq{"DeleteAt": time, "UpdateAt": time}).
 		Where(sq.Eq{"Id": commandId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlCommandStore.Delete", "store.sql_command.save.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlCommandStore.Delete", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	_, err = s.GetMaster().Exec(sql, args...)
