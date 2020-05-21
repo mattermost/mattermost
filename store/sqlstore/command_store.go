@@ -192,7 +192,7 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.App
 
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return 0, model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	c, err := s.GetReplica().SelectInt(sql, args...)
