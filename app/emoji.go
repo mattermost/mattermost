@@ -78,7 +78,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("createEmoji", "api.emoji.create.internal_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createEmoji", "api.emoji.create.internal_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
@@ -198,11 +198,11 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, "", http.StatusNotFound)
+			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return emoji, appErr
 		default:
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, "", http.StatusInternalServerError)
+			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -224,11 +224,11 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, "", http.StatusNotFound)
+			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return emoji, appErr
 		default:
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, "", http.StatusInternalServerError)
+			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -258,11 +258,11 @@ func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &nfErr):
-			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, "", http.StatusNotFound)
+			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusNotFound)
 		case errors.As(storeErr, &appErr):
 			return nil, "", appErr
 		default:
-			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, "", http.StatusInternalServerError)
+			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -303,11 +303,11 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, "", http.StatusNotFound)
+			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return "", appErr
 		default:
-			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, "", http.StatusInternalServerError)
+			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }

@@ -1591,7 +1591,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 		case errors.As(err, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("importEmoji", "store.sql_emoji.get.app_error", nil, "", http.StatusInternalServerError)
+			return model.NewAppError("importEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1620,7 +1620,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 			case errors.As(err, &appErr):
 				return appErr
 			default:
-				return model.NewAppError("importEmoji", "api.emoji.create.internal_error", nil, "", http.StatusBadRequest)
+				return model.NewAppError("importEmoji", "api.emoji.create.internal_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		}
 	}
