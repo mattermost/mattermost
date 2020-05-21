@@ -92,16 +92,36 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		} else {
-			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
-			if readErr != nil {
-				mlog.Warn("Unable to read from database.", mlog.Err(readErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else if healthCheck.Value != currentTime {
-				mlog.Warn("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
+			// The health check timestamp value has been written to the store, but
+			// due to the nature of database replication delay, our read call to
+			// one of the read replicas may result in a failure to find the new
+			// key. To accommodate this, a simple retry loop will attempt a read
+			// check multiple times. (10 x 50 milliseconds)
+			maxDatabaseReadTries := 10
+			currentDatabaseReadAttempt := 0
+			for {
+				healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
+				if readErr != nil {
+					if currentDatabaseReadAttempt < maxDatabaseReadTries {
+						currentDatabaseReadAttempt++
+						time.Sleep(50 * time.Millisecond)
+						continue
+					} else {
+						mlog.Debug(fmt.Sprintf("Failed to read from database after %d attempts", maxDatabaseReadTries), mlog.Err(readErr))
+						s[dbStatusKey] = model.STATUS_UNHEALTHY
+						s[model.STATUS] = model.STATUS_UNHEALTHY
+						break
+					}
+				}
+				if healthCheck.Value != currentTime {
+					mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
+					s[dbStatusKey] = model.STATUS_UNHEALTHY
+					s[model.STATUS] = model.STATUS_UNHEALTHY
+				}
+
+				break
 			}
+
 			_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
 			if writeErr != nil {
 				mlog.Warn("Unable to remove ping health check value from database", mlog.Err(writeErr))
