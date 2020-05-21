@@ -87,7 +87,7 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppE
 		From("Commands").
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql_command.save.get_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if _, err := s.GetReplica().Select(&commands, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql_command.save.get_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
