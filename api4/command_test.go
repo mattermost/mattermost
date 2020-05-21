@@ -407,6 +407,96 @@ func TestListAutocompleteCommands(t *testing.T) {
 	})
 }
 
+func TestListCommandAutocompleteSuggestions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "custom_command"}
+
+	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+
+	t.Run("ListAutocompleteSuggestionsOnly", func(t *testing.T) {
+		suggestions, resp := th.SystemAdminClient.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundShrug := false
+		foundCustom := false
+		for _, command := range suggestions {
+			if command.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if command.Suggestion == "shrug" {
+				foundShrug = true
+			}
+			if command.Suggestion == "custom_command" {
+				foundCustom = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.True(t, foundShrug, "Couldn't find shrug command")
+		require.False(t, foundCustom, "Should not list the custom command")
+	})
+
+	t.Run("ListAutocompleteSuggestionsOnlyWithInput", func(t *testing.T) {
+		suggestions, resp := th.SystemAdminClient.ListCommandAutocompleteSuggestions("/e", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundShrug := false
+		for _, command := range suggestions {
+			if command.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if command.Suggestion == "shrug" {
+				foundShrug = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundShrug, "Should not list the shrug command")
+	})
+
+	t.Run("RegularUserCanListOnlySystemCommands", func(t *testing.T) {
+		suggestions, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, suggestion := range suggestions {
+			if suggestion.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if suggestion.Suggestion == "custom_command" {
+				foundCustom = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundCustom, "Should not list the custom command")
+	})
+
+	t.Run("NoMember", func(t *testing.T) {
+		Client.Logout()
+		user := th.CreateUser()
+		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
+		Client.Login(user.Email, user.Password)
+		_, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
 func TestGetCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

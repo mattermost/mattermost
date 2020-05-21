@@ -18,6 +18,11 @@ type (
 	_C_long_long int64
 )
 
+type ItimerSpec struct {
+	Interval Timespec
+	Value    Timespec
+}
+
 const (
 	TIME_OK    = 0x0
 	TIME_INS   = 0x1
