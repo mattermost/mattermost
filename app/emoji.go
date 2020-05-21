@@ -89,7 +89,15 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 }
 
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
-	return a.Srv().Store.Emoji().GetList(page*perPage, perPage, sort)
+	list, err := a.Srv().Store.Emoji().GetList(page*perPage, perPage, sort)
+	if err != nil {
+		switch {
+		default:
+			return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {

@@ -2560,7 +2560,7 @@ func (s *OpenTracingLayerEmojiStore) GetByName(name string, allowFromCache bool)
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+func (s *OpenTracingLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.GetList")
 	s.Root.Store.SetContext(newCtx)

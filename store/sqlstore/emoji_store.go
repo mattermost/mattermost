@@ -83,7 +83,7 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error
 	return emojis, nil
 }
 
-func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, error) {
 	var emoji []*model.Emoji
 
 	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
@@ -95,7 +95,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 	query += " LIMIT :Limit OFFSET :Offset"
 
 	if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, fmt.Errorf("could not get list of emojis: %w", err)
 	}
 	return emoji, nil
 }
