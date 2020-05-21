@@ -497,7 +497,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
 	Get(id string, allowFromCache bool) (*model.Emoji, error)
 	GetByName(name string, allowFromCache bool) (*model.Emoji, error)
-	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)
+	GetMultipleByName(names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
 	Delete(emoji *model.Emoji, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)

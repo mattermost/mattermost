@@ -102,7 +102,7 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 }
 
 // GetMultipleByName provides a mock function with given fields: names
-func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	ret := _m.Called(names)
 
 	var r0 []*model.Emoji
@@ -114,13 +114,11 @@ func (_m *EmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(names)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

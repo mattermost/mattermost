@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"image"
 	"image/draw"
@@ -231,7 +232,15 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Emoji().GetMultipleByName(names)
+	emoji, err := a.Srv().Store.Emoji().GetMultipleByName(names)
+	if err != nil {
+		switch {
+		default:
+			return nil, model.NewAppError("GetMultipleEmojiByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		}
+	}
+
+	return emoji, nil
 }
 
 func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {

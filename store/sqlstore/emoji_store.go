@@ -65,7 +65,7 @@ func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoj
 	return es.getBy("Name", name, allowFromCache)
 }
 
-func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	keys, params := MapStringsToQueryParams(names, "Emoji")
 
 	var emojis []*model.Emoji
@@ -78,7 +78,7 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *mode
 		WHERE
 			Name IN `+keys+`
 			AND DeleteAt = 0`, params); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		return nil, fmt.Errorf("error getting emoji by name: %w", err)
 	}
 	return emojis, nil
 }
