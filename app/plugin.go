@@ -518,11 +518,20 @@ func (a *App) getRemotePlugins(_ *model.MarketplacePluginFilter) (map[string]*mo
 		PerPage:       -1,
 		ServerVersion: model.CurrentVersion,
 	}
-	if a.License() != nil {
-		filter.LicenseSkuShortName = a.License().SkuShortName
+	license := a.License()
+	if license != nil {
+		if *license.Features.LDAP {
+			filter.LicenseType = "E20"
+		} else {
+			filter.LicenseType = "E10"
+		}
 	}
-	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 
+	if model.BuildEnterpriseReady == "true" {
+		filter.EEReady = true
+	}
+
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
