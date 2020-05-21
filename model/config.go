@@ -5,6 +5,7 @@ package model
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"math"
@@ -17,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/memberlist"
 	"github.com/mattermost/ldap"
 )
 
@@ -740,20 +742,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                      *bool   `restricted:"true"`
-	ClusterName                 *string `restricted:"true"`
-	OverrideHostname            *string `restricted:"true"`
-	NetworkInterface            *string `restricted:"true"`
-	BindAddress                 *string `restricted:"true"`
-	AdvertiseAddress            *string `restricted:"true"`
-	UseIpAddress                *bool   `restricted:"true"`
-	UseExperimentalGossip       *bool   `restricted:"true"`
-	ReadOnlyConfig              *bool   `restricted:"true"`
-	GossipPort                  *int    `restricted:"true"`
-	StreamingPort               *int    `restricted:"true"`
-	MaxIdleConns                *int    `restricted:"true"`
-	MaxIdleConnsPerHost         *int    `restricted:"true"`
-	IdleConnTimeoutMilliseconds *int    `restricted:"true"`
+	Enable                             *bool   `restricted:"true"`
+	ClusterName                        *string `restricted:"true"`
+	OverrideHostname                   *string `restricted:"true"`
+	NetworkInterface                   *string `restricted:"true"`
+	BindAddress                        *string `restricted:"true"`
+	AdvertiseAddress                   *string `restricted:"true"`
+	UseIpAddress                       *bool   `restricted:"true"`
+	UseExperimentalGossip              *bool   `restricted:"true"`
+	EnableExperimentalGossipEncryption *bool   `restricted:"true"`
+	EncryptionKey                      *string `restricted:"true"`
+	ReadOnlyConfig                     *bool   `restricted:"true"`
+	GossipPort                         *int    `restricted:"true"`
+	StreamingPort                      *int    `restricted:"true"`
+	MaxIdleConns                       *int    `restricted:"true"`
+	MaxIdleConnsPerHost                *int    `restricted:"true"`
+	IdleConnTimeoutMilliseconds        *int    `restricted:"true"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -789,6 +793,14 @@ func (s *ClusterSettings) SetDefaults() {
 		s.UseExperimentalGossip = NewBool(false)
 	}
 
+	if s.EnableExperimentalGossipEncryption == nil {
+		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EncryptionKey == nil {
+		s.EncryptionKey = NewString("")
+	}
+
 	if s.ReadOnlyConfig == nil {
 		s.ReadOnlyConfig = NewBool(true)
 	}
@@ -812,6 +824,19 @@ func (s *ClusterSettings) SetDefaults() {
 	if s.IdleConnTimeoutMilliseconds == nil {
 		s.IdleConnTimeoutMilliseconds = NewInt(90000)
 	}
+}
+
+func (s *ClusterSettings) isValid() *AppError {
+	if *s.Enable && *s.UseExperimentalGossip && *s.EnableExperimentalGossipEncryption {
+		data, err := base64.StdEncoding.DecodeString(*s.EncryptionKey)
+		if err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.gossip_encryption_key.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
+		if err := memberlist.ValidateKey(data); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.gossip_encryption_key.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
+	}
+	return nil
 }
 
 type MetricsSettings struct {
@@ -2884,6 +2909,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ServiceSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ClusterSettings.isValid(); err != nil {
 		return err
 	}
 

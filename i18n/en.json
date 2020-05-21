@@ -4879,6 +4879,10 @@
     "translation": "Allowing cookies for subdomains requires SiteURL to be set."
   },
   {
+    "id": "model.config.is_valid.gossip_encryption_key.app_error",
+    "translation": "Invalid encryption key"
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },
