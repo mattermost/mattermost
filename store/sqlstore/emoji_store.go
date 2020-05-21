@@ -118,7 +118,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	return nil
 }
 
-func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	var emojis []*model.Emoji
 
 	name = sanitizeSearchTerm(name, "\\")
@@ -140,7 +140,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 			AND DeleteAt = 0
 			ORDER BY Name
 			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+		return nil, fmt.Errorf("could not search emojis by name %s: %w", name, err)
 	}
 	return emojis, nil
 }

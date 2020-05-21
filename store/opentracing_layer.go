@@ -2614,7 +2614,7 @@ func (s *OpenTracingLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, err
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (s *OpenTracingLayerEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.Search")
 	s.Root.Store.SetContext(newCtx)

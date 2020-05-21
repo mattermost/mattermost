@@ -500,7 +500,7 @@ type EmojiStore interface {
 	GetMultipleByName(names []string) ([]*model.Emoji, error)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
 	Delete(emoji *model.Emoji, time int64) error
-	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
+	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
 }
 
 type StatusStore interface {

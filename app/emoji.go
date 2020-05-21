@@ -290,7 +290,15 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Emoji().Search(name, prefixOnly, limit)
+	list, err := a.Srv().Store.Emoji().Search(name, prefixOnly, limit)
+	if err != nil {
+		switch {
+		default:
+			return nil, model.NewAppError("SearchEmoji", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 // GetEmojiStaticUrl returns a relative static URL for system default emojis,
