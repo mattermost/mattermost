@@ -57,10 +57,10 @@ func (s *BleveEngineTestSuite) setupStore() {
 	cfg.BleveSettings.IndexDir = model.NewString(s.IndexDir)
 	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
 
-	s.SearchEngine = searchengine.NewBroker(cfg, nil)
+	s.SearchEngine = searchengine.NewBroker(cfg)
 	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLSupplier}, s.SearchEngine, cfg)
 
-	bleveEngine := NewBleveEngine(cfg, nil)
+	bleveEngine := NewBleveEngine(cfg)
 	bleveEngine.indexSync = true
 	s.SearchEngine.RegisterBleveEngine(bleveEngine)
 	if err := bleveEngine.Start(); err != nil {

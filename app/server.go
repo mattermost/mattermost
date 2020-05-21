@@ -226,8 +226,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
-	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config())
+	bleveEngine := bleveengine.NewBleveEngine(s.Config())
 	if err := bleveEngine.Start(); err != nil {
 		return nil, err
 	}

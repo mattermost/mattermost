@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
@@ -35,7 +34,6 @@ type BleveEngine struct {
 	Mutex        sync.RWMutex
 	ready        int32
 	cfg          *model.Config
-	jobServer    *jobs.JobServer
 	indexSync    bool
 }
 
@@ -97,11 +95,8 @@ func getUserIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
-func NewBleveEngine(cfg *model.Config, jobServer *jobs.JobServer) *BleveEngine {
-	return &BleveEngine{
-		cfg:       cfg,
-		jobServer: jobServer,
-	}
+func NewBleveEngine(cfg *model.Config) *BleveEngine {
+	return &BleveEngine{cfg: cfg}
 }
 
 func (b *BleveEngine) getIndexDir(indexName string) string {
