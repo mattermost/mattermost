@@ -156,7 +156,7 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 		Delete("Commands").
 		Where(sq.Eq{"CreatorId": userId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlCommandStore.DeleteByUser", "store.sql_command.save.delete_perm.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlCommandStore.DeleteByUser", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
