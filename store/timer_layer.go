@@ -2320,7 +2320,7 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.Get(id, allowFromCache)
@@ -2336,7 +2336,7 @@ func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.GetByName(name, allowFromCache)

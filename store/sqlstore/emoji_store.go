@@ -74,11 +74,11 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	return es.getBy("Id", id, allowFromCache)
 }
 
-func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	return es.getBy("Name", name, allowFromCache)
 }
 
@@ -163,7 +163,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
-func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*model.Emoji, error) {
 	var emoji *model.Emoji
 
 	err := es.GetReplica().SelectOne(&emoji,
@@ -175,13 +175,11 @@ func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*m
 			`+what+` = :Key
 			AND DeleteAt = 0`, map[string]interface{}{"Key": key})
 	if err != nil {
-		var status int
 		if err == sql.ErrNoRows {
-			status = http.StatusNotFound
-		} else {
-			status = http.StatusInternalServerError
+			return nil, store.NewErrNotFound("Emoji", "")
 		}
-		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), status)
+
+		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return emoji, nil

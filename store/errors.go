@@ -82,5 +82,8 @@ func NewErrNotFound(resource, id string) *ErrNotFound {
 }
 
 func (e *ErrNotFound) Error() string {
-	return "resource: " + e.resource + " id: " + e.Id
+	if e.Id != "" {
+		return "resource: " + e.resource + " id: " + e.Id
+	}
+	return "resource: " + e.resource
 }
