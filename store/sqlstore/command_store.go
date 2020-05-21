@@ -142,7 +142,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 		Delete("Commands").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	_, err = s.GetMaster().Exec(sql, args...)
 	if err != nil {
