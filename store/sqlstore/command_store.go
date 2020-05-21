@@ -71,7 +71,7 @@ func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 		From("Commands").
 		Where(sq.Eq{"Id": id, "DeleteAt": 0}).ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = s.GetReplica().SelectOne(&command, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
