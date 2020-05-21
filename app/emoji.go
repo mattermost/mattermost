@@ -175,7 +175,13 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 
 func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 	if err := a.Srv().Store.Emoji().Delete(emoji, model.GetMillis()); err != nil {
-		return err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	a.deleteEmojiImage(emoji.Id)

@@ -2506,7 +2506,7 @@ func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (s *OpenTracingLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.Delete")
 	s.Root.Store.SetContext(newCtx)

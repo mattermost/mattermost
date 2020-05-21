@@ -100,7 +100,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	if sqlResult, err := es.GetMaster().Exec(
 		`UPDATE
 			Emoji
@@ -110,9 +110,9 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 		WHERE
 			Id = :Id
 			AND DeleteAt = 0`, map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": emoji.Id}); err != nil {
-		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
+		return fmt.Errorf("could not delete emoji: %w", err)
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusBadRequest)
+		return store.NewErrNotFound("Emoji", emoji.Id)
 	}
 
 	return nil

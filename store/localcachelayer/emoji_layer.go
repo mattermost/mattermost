@@ -65,7 +65,7 @@ func (es LocalCacheEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 	return emoji, err
 }
 
-func (es LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (es LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	err := es.EmojiStore.Delete(emoji, time)
 
 	if err == nil {

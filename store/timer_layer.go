@@ -2304,7 +2304,7 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.EmojiStore.Delete(emoji, time)
