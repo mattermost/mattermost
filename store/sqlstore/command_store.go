@@ -110,7 +110,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		From("Commands").
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, triggerStr: trigger}).ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := s.GetReplica().SelectOne(&command, sql, args...); err != nil {
