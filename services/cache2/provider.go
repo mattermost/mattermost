@@ -18,9 +18,9 @@ type Provider interface {
 	// NewCache creates a new cache with given options.
 	NewCache(opts *CacheOptions) Cache
 	// Connect opens a new connection to the cache using specific provider parameters.
-	Connect()
+	Connect() error
 	// Close releases any resources used by the cache provider.
-	Close()
+	Close() error
 }
 
 type cacheProvider struct {
@@ -41,9 +41,11 @@ func (c *cacheProvider) NewCache(opts *CacheOptions) Cache {
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.
-func (c *cacheProvider) Connect() {
+func (c *cacheProvider) Connect() error {
+	return nil
 }
 
 // Close releases any resources used by the cache provider.
-func (c *cacheProvider) Close() {
+func (c *cacheProvider) Close() error {
+	return nil
 }

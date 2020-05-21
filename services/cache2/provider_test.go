@@ -60,3 +60,13 @@ func TestNewCache(t *testing.T) {
 		require.Equal(t, ErrKeyNotFound, err)
 	})
 }
+
+func TestConnectClose(t *testing.T) {
+	p := NewProvider()
+
+	err := p.Connect()
+	require.Nil(t, err)
+
+	err = p.Close()
+	require.Nil(t, err)
+}
