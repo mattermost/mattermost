@@ -18,6 +18,11 @@ type (
 	_C_long_long int64
 )
 
+type ItimerSpec struct {
+	Interval Timespec
+	Value    Timespec
+}
+
 const (
 	TIME_OK    = 0x0
 	TIME_INS   = 0x1
@@ -2309,3 +2314,32 @@ type FsverityEnableArg struct {
 	Sig_ptr        uint64
 	_              [11]uint64
 }
+
+type Nhmsg struct {
+	Family   uint8
+	Scope    uint8
+	Protocol uint8
+	Resvd    uint8
+	Flags    uint32
+}
+
+type NexthopGrp struct {
+	Id     uint32
+	Weight uint8
+	Resvd1 uint8
+	Resvd2 uint16
+}
+
+const (
+	NHA_UNSPEC     = 0x0
+	NHA_ID         = 0x1
+	NHA_GROUP      = 0x2
+	NHA_GROUP_TYPE = 0x3
+	NHA_BLACKHOLE  = 0x4
+	NHA_OIF        = 0x5
+	NHA_GATEWAY    = 0x6
+	NHA_ENCAP_TYPE = 0x7
+	NHA_ENCAP      = 0x8
+	NHA_GROUPS     = 0x9
+	NHA_MASTER     = 0xa
+)

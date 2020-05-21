@@ -265,6 +265,22 @@ func (a *App) ensureInstallationDate() error {
 	return nil
 }
 
+func (a *App) ensureFirstServerRunTimestamp() error {
+	_, err := a.getFirstServerRunTimestamp()
+	if err == nil {
+		return nil
+	}
+
+	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
+		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return s.asymmetricSigningKey

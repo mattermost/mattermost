@@ -2559,6 +2559,7 @@ func (s *apiRPCServer) GetGroup(args *Z_GetGroupArgs, returns *Z_GetGroupReturns
 
 type Z_GetGroupByNameArgs struct {
 	A string
+	B model.GroupSearchOpts
 }
 
 type Z_GetGroupByNameReturns struct {
@@ -2566,8 +2567,8 @@ type Z_GetGroupByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	_args := &Z_GetGroupByNameArgs{name}
+func (g *apiRPCClient) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	_args := &Z_GetGroupByNameArgs{name, opts}
 	_returns := &Z_GetGroupByNameReturns{}
 	if err := g.client.Call("Plugin.GetGroupByName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetGroupByName API failed: %s", err.Error())
@@ -2577,9 +2578,9 @@ func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppErro
 
 func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_GetGroupByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetGroupByName(name string) (*model.Group, *model.AppError)
+		GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetGroupByName(args.A)
+		returns.A, returns.B = hook.GetGroupByName(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetGroupByName called but not implemented."))
 	}

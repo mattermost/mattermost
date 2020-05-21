@@ -75,6 +75,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	api := api4.Init(server, server.AppOptions, server.Router)
 	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
+	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {

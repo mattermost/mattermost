@@ -43,6 +43,8 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.ApiSessionRequired(restoreTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/privacy", api.ApiSessionRequired(updateTeamPrivacy)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.ApiSessionRequired(regenerateTeamInviteId)).Methods("POST")
 
@@ -229,6 +231,92 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.Write([]byte(patchedTeam.ToJson()))
+}
+
+func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("restoreTeam", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	err := c.App.RestoreTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return the restored team to be consistent with RestoreChannel.
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("team", team)
+	auditRec.Success()
+
+	w.Write([]byte(team.ToJson()))
+}
+
+func updateTeamPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	props := model.StringInterfaceFromJson(r.Body)
+	privacy, ok := props["privacy"].(string)
+	if !ok {
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	var openInvite bool
+	switch privacy {
+	case model.TEAM_OPEN:
+		openInvite = true
+	case model.TEAM_INVITE:
+		openInvite = false
+	default:
+		c.SetInvalidParam("privacy")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateTeamPrivacy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("privacy", privacy)
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		auditRec.AddMeta("team_id", c.Params.TeamId)
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if err := c.App.UpdateTeamPrivacy(c.Params.TeamId, privacy, openInvite); err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return the updated team to be consistent with UpdateChannelPrivacy
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.AddMeta("team", team)
+	auditRec.Success()
+
+	w.Write([]byte(team.ToJson()))
 }
 
 func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -482,7 +570,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(member.UserId) != 26 {
+	if !model.IsValidId(member.UserId) {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -649,7 +737,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(member.UserId) != 26 {
+		if !model.IsValidId(member.UserId) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -1359,7 +1447,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || (len(*schemeID) != 26 && *schemeID != "") {
+	if schemeID == nil || (!model.IsValidId(*schemeID) && *schemeID != "") {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
@@ -1425,7 +1513,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 
 	groupIDs := []string{}
 	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
-		if len(gid) != 26 {
+		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
 		}
