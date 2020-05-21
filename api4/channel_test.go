@@ -1461,7 +1461,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	c := th.Client
 
 	type testTable []struct {
 		name            string
@@ -1481,7 +1481,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+			_, resp := c.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
 			CheckForbiddenStatus(t, resp)
 		})
 	}
@@ -1495,7 +1495,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 
 		for _, tc := range tt {
 			t.Run(tc.name, func(t *testing.T) {
-				_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+				_, resp := client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
 				CheckBadRequestStatus(t, resp)
 			})
 		}
@@ -1510,7 +1510,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 
 		for _, tc := range tt {
 			t.Run(tc.name, func(t *testing.T) {
-				updatedChannel, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+				updatedChannel, resp := c.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
 				CheckNoError(t, resp)
 				assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
 				updatedChannel, err := th.App.GetChannel(tc.channel.Id)
