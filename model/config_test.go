@@ -1239,6 +1239,8 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
+	assert.Equal(t, []string{FAKE_SETTING}, c.SqlSettings.DataSourceReplicas)
+	assert.Equal(t, []string{FAKE_SETTING}, c.SqlSettings.DataSourceSearchReplicas)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])

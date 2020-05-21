@@ -11,8 +11,8 @@ func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
 	return a.Srv().Store.Group().Get(id)
 }
 
-func (a *App) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().GetByName(name)
+func (a *App) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	return a.Srv().Store.Group().GetByName(name, opts)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
@@ -32,11 +32,27 @@ func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().Update(group)
+	updatedGroup, err := a.Srv().Store.Group().Update(group)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", updatedGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	return updatedGroup, err
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	return a.Srv().Store.Group().Delete(groupID)
+	deletedGroup, err := a.Srv().Store.Group().Delete(groupID)
+
+	if err == nil {
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP, "", "", "", nil)
+		messageWs.Add("group", deletedGroup.ToJson())
+		a.Publish(messageWs)
+	}
+
+	return deletedGroup, err
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
@@ -99,6 +115,15 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		}
 	}
 
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
+
 	return gs, nil
 }
 
@@ -148,6 +173,16 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 			}
 		}
 	}
+
+	var messageWs *model.WebSocketEvent
+	if gs.Type == model.GroupSyncableTypeTeam {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM, gs.SyncableId, "", "", nil)
+	} else {
+		messageWs = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL, "", gs.SyncableId, "", nil)
+	}
+
+	messageWs.Add("group_id", gs.GroupId)
+	a.Publish(messageWs)
 
 	return gs, nil
 }
