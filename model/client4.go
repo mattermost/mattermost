@@ -4157,6 +4157,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	return CommandListFromJson(r.Body), BuildResponse(r)
 }
 
+// ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
+func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) ([]AutocompleteSuggestion, *Response) {
+	query := fmt.Sprintf("/commands/autocomplete_suggestions?user_input=%v", userInput)
+	r, err := c.DoApiGet(c.GetTeamRoute(teamId)+query, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return AutocompleteSuggestionsFromJSON(r.Body), BuildResponse(r)
+}
+
 // GetCommandById will retrieve a command by id.
 func (c *Client4) GetCommandById(cmdId string) (*Command, *Response) {
 	url := fmt.Sprintf("%s/%s", c.GetCommandsRoute(), cmdId)
