@@ -494,7 +494,7 @@ type TokenStore interface {
 }
 
 type EmojiStore interface {
-	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
+	Save(emoji *model.Emoji) (*model.Emoji, error)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)

@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"crypto/sha1"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -1605,7 +1606,13 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	if !alreadyExists {
 		if _, err := a.Srv().Store.Emoji().Save(emoji); err != nil {
-			return err
+			var iiErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &iiErr):
+				return model.NewAppError("importEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest)
+			default:
+				return model.NewAppError("importEmoji", "api.emoji.create.internal_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 

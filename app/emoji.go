@@ -5,6 +5,8 @@ package app
 
 import (
 	"bytes"
+	"errors"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"image"
 	"image/draw"
 	"image/gif"
@@ -70,7 +72,13 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 
 	emoji, err := a.Srv().Store.Emoji().Save(emoji)
 	if err != nil {
-		return nil, err
+		var iiErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &iiErr):
+			return nil, model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("createEmoji", "api.emoji.create.internal_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)

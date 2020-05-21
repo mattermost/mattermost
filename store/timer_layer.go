@@ -2384,7 +2384,7 @@ func (s *TimerLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.Save(emoji)

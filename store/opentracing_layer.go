@@ -2596,7 +2596,7 @@ func (s *OpenTracingLayerEmojiStore) GetMultipleByName(names []string) ([]*model
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+func (s *OpenTracingLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.Save")
 	s.Root.Store.SetContext(newCtx)
