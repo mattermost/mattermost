@@ -200,17 +200,14 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		// `Name` will be used for at-mentions and will be editable on the front-end so
 		// create name based on display name and make sure it is unique.
 		// Append a duplicate-breaker if necessary.
+		// Only try a finite number of times, then give up.
 		baseName := strings.ReplaceAll(strings.ToLower(displayName), " ", "-")
-		count := 0
-		for {
+		validName := ""
+		for i := 0; i < 100; i++ {
 			checkName := baseName
-			if count > 0 {
-				checkName = baseName + "-" + strconv.Itoa(count)
-			} else if count > 100 {
-				// prevent infinite loop
-				break
+			if i > 0 {
+				checkName = baseName + "-" + strconv.Itoa(i)
 			}
-			count++
 
 			appErr := c.App.ValidateGroupName(checkName)
 			if appErr != nil {
@@ -218,12 +215,17 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			// if here, no duplicates found
-			baseName = checkName
+			validName = checkName
 			break
 		}
 
+		// if not found, default to NewId()
+		if validName == "" {
+			validName = model.NewId()
+		}
+
 		newGroup := &model.Group{
-			Name:        baseName,
+			Name:        validName,
 			DisplayName: displayName,
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
