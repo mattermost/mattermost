@@ -1242,7 +1242,7 @@ func TestSearchGroupChannels(t *testing.T) {
 func TestDeleteChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	c := th.Client
 	team := th.BasicTeam
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -1259,7 +1259,7 @@ func TestDeleteChannel(t *testing.T) {
 		require.True(t, err != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
 
 		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
-		_, resp = th.Client.CreatePost(post1)
+		_, resp = client.CreatePost(post1)
 		require.NotNil(t, resp, "expected response to not be nil")
 
 		// successful delete of private channel
@@ -1279,44 +1279,44 @@ func TestDeleteChannel(t *testing.T) {
 		pass, resp = client.DeleteChannel(defaultChannel.Id)
 		CheckBadRequestStatus(t, resp)
 		require.False(t, pass, "should have failed")
+
+		// check system admin can delete a channel without any appropriate team or channel membership.
+		sdTeam := th.CreateTeamWithClient(c)
+		sdPublicChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      sdTeam.Id,
+		}
+		sdPublicChannel, resp = c.CreateChannel(sdPublicChannel)
+		CheckNoError(t, resp)
+		_, resp = client.DeleteChannel(sdPublicChannel.Id)
+		CheckNoError(t, resp)
+
+		sdPrivateChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_PRIVATE,
+			TeamId:      sdTeam.Id,
+		}
+		sdPrivateChannel, resp = c.CreateChannel(sdPrivateChannel)
+		CheckNoError(t, resp)
+		_, resp = client.DeleteChannel(sdPrivateChannel.Id)
+		CheckNoError(t, resp)
 	})
-	// check system admin can delete a channel without any appropriate team or channel membership.
-	sdTeam := th.CreateTeamWithClient(Client)
-	sdPublicChannel := &model.Channel{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        GenerateTestChannelName(),
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      sdTeam.Id,
-	}
-	sdPublicChannel, resp := Client.CreateChannel(sdPublicChannel)
-	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.DeleteChannel(sdPublicChannel.Id)
-	CheckNoError(t, resp)
-
-	sdPrivateChannel := &model.Channel{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        GenerateTestChannelName(),
-		Type:        model.CHANNEL_PRIVATE,
-		TeamId:      sdTeam.Id,
-	}
-	sdPrivateChannel, resp = Client.CreateChannel(sdPrivateChannel)
-	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.DeleteChannel(sdPrivateChannel.Id)
-	CheckNoError(t, resp)
-
 	th.LoginBasic()
 	publicChannel5 := th.CreatePublicChannel()
-	Client.Logout()
+	c.Logout()
 
-	Client.Login(user.Id, user.Password)
-	_, resp = Client.DeleteChannel(publicChannel5.Id)
+	c.Login(user.Id, user.Password)
+	_, resp := c.DeleteChannel(publicChannel5.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.DeleteChannel("junk")
+	_, resp = c.DeleteChannel("junk")
 	CheckUnauthorizedStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.DeleteChannel(GenerateTestId())
+	c.Logout()
+	_, resp = c.DeleteChannel(GenerateTestId())
 	CheckUnauthorizedStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
