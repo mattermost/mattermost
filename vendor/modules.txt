@@ -118,6 +118,10 @@ github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
+# github.com/getsentry/sentry-go v0.6.0
+## explicit
+github.com/getsentry/sentry-go
+github.com/getsentry/sentry-go/http
 # github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a
 ## explicit
 github.com/glycerine/go-unsnap-stream
@@ -404,8 +408,6 @@ github.com/segmentio/backo-go
 ## explicit
 github.com/sirupsen/logrus
 # github.com/smartystreets/assertions v1.0.0
-## explicit
-# github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945
 ## explicit
 # github.com/spf13/afero v1.2.2
 ## explicit
