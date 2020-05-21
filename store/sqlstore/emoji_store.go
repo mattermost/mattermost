@@ -46,25 +46,8 @@ func (es SqlEmojiStore) createIndexesIfNotExists() {
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	emoji.PreSave()
 
-	// TODO check if is possible to change the return type of emoji.IsValid() so we can use it here
-	if !model.IsValidId(emoji.Id) {
-		return nil, store.NewErrInvalidInput("Emoji", "id", emoji)
-	}
-
-	if emoji.CreateAt == 0 {
-		return nil, store.NewErrInvalidInput("Emoji", "CreateAt", emoji)
-	}
-
-	if emoji.UpdateAt == 0 {
-		return nil, store.NewErrInvalidInput("Emoji", "UpdateAt", emoji)
-	}
-
-	if len(emoji.CreatorId) > 26 {
-		return nil, store.NewErrInvalidInput("Emoji", "CreatorId", emoji)
-	}
-
-	if model.IsValidEmojiName(emoji.Name) != nil {
-		return nil, store.NewErrInvalidInput("Emoji", "Name", emoji)
+	if err := emoji.IsValid(); err != nil {
+		return nil, err
 	}
 
 	if err := es.GetMaster().Insert(emoji); err != nil {

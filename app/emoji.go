@@ -72,10 +72,10 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 
 	emoji, err := a.Srv().Store.Emoji().Save(emoji)
 	if err != nil {
-		var iiErr *store.ErrInvalidInput
+		var appErr *model.AppError
 		switch {
-		case errors.As(err, &iiErr):
-			return nil, model.NewAppError("createEmoji", "api.emoji.create.parse.app_error", nil, "", http.StatusBadRequest)
+		case errors.As(err, &appErr):
+			return nil, appErr
 		default:
 			return nil, model.NewAppError("createEmoji", "api.emoji.create.internal_error", nil, "", http.StatusBadRequest)
 		}
