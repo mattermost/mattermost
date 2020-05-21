@@ -203,7 +203,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Only try a finite number of times, then give up.
 		baseName := strings.ReplaceAll(strings.ToLower(displayName), " ", "-")
 		validName := ""
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 10; i++ {
 			checkName := baseName
 			if i > 0 {
 				checkName = baseName + "-" + strconv.Itoa(i)
