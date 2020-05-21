@@ -518,13 +518,10 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 		PerPage:       -1,
 		ServerVersion: model.CurrentVersion,
 	}
+
 	license := a.License()
-	if license != nil {
-		if *license.Features.LDAP {
-			filter.LicenseType = "E20"
-		} else {
-			filter.LicenseType = "E10"
-		}
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
 	}
 
 	if model.BuildEnterpriseReady == "true" {

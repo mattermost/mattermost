@@ -556,12 +556,12 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		require.Empty(t, plugins)
 	})
 
-	t.Run("verify LicenseType is passed through for TE", func(t *testing.T) {
+	t.Run("verify EnterprisePlugins is false for TE", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			licenseType, ok := req.URL.Query()["license_type"]
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
 			require.True(t, ok)
 			require.Len(t, licenseType, 1)
-			require.Equal(t, "", licenseType[0])
+			require.Equal(t, "false", licenseType[0])
 
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
@@ -580,12 +580,12 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		require.Empty(t, plugins)
 	})
 
-	t.Run("verify LicenseType is passed through for E10", func(t *testing.T) {
+	t.Run("verify EnterprisePlugins is false for E10", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			licenseType, ok := req.URL.Query()["license_type"]
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
 			require.True(t, ok)
 			require.Len(t, licenseType, 1)
-			require.Equal(t, "E10", licenseType[0])
+			require.Equal(t, "false", licenseType[0])
 
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
@@ -601,7 +601,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 
 		l := model.NewTestLicense()
 		// model.NewTestLicense generates a E20 license
-		*l.Features.LDAP = false
+		*l.Features.EnterprisePlugins = false
 		th.App.SetLicense(l)
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
@@ -609,12 +609,12 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		require.Empty(t, plugins)
 	})
 
-	t.Run("verify LicenseSkuShortName is passed through for E20", func(t *testing.T) {
+	t.Run("verify EnterprisePlugins is false for E20", func(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			licenseType, ok := req.URL.Query()["license_type"]
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
 			require.True(t, ok)
 			require.Len(t, licenseType, 1)
-			require.Equal(t, "E20", licenseType[0])
+			require.Equal(t, "true", licenseType[0])
 
 			res.WriteHeader(http.StatusOK)
 			json, err := json.Marshal([]*model.MarketplacePlugin{})
@@ -628,7 +628,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		th.App.SetLicense(model.NewTestLicense("ldap"))
+		th.App.SetLicense(model.NewTestLicense("enterprise_plugins"))
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
