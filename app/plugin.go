@@ -428,7 +428,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
-		p, appErr := a.getRemotePlugins(filter)
+		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -497,7 +497,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(_ *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.AppError) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
