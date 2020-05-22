@@ -98,6 +98,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
 	t.Run("SidebarChannelsMigration", func(t *testing.T) { testSidebarChannelsMigration(t, ss) })
+	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -6591,5 +6592,22 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 		require.Len(t, res.Categories[0].Channels, 1)
 		require.Len(t, res.Categories[1].Channels, 1)
 		require.Len(t, res.Categories[2].Channels, 1)
+	})
+}
+
+func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
+	t.Run("should create initial favorites/channels/DMs categories", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
 }

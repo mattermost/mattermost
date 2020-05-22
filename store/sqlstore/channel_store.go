@@ -452,40 +452,8 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 		if u.Locale != nil {
 			locale = *u.Locale
 		}
-		T := utils.GetUserTranslations(locale)
-		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.favorites"),
-			Id:          model.NewId(),
-			UserId:      u.UserId,
-			TeamId:      u.TeamId,
-			Sorting:     model.SidebarCategorySortDefault,
-			SortOrder:   model.DefaultSidebarSortOrderFavorites,
-			Type:        model.SidebarCategoryFavorites,
-		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
-			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
 
-		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.channels"),
-			Id:          model.NewId(),
-			UserId:      u.UserId,
-			TeamId:      u.TeamId,
-			Sorting:     model.SidebarCategorySortDefault,
-			SortOrder:   model.DefaultSidebarSortOrderChannels,
-			Type:        model.SidebarCategoryChannels,
-		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
-			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.dm"),
-			Id:          model.NewId(),
-			UserId:      u.UserId,
-			TeamId:      u.TeamId,
-			Sorting:     model.SidebarCategorySortRecent,
-			SortOrder:   model.DefaultSidebarSortOrderDMs,
-			Type:        model.SidebarCategoryDirectMessages,
-		}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+		if err := s.createInitialSidebarCategoriesT(transaction, &model.User{Id: u.UserId, Locale: locale}, u.TeamId); err != nil {
 			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -498,6 +466,66 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	data["UserId"] = userTeamMap[len(userTeamMap)-1].UserId
 
 	return data, nil
+}
+
+func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	if err := s.createInitialSidebarCategoriesT(transaction, user, teamId); err != nil {
+		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, user *model.User, teamId string) error {
+	T := utils.GetUserTranslations(user.Locale)
+
+	if err := transaction.Insert(&model.SidebarCategory{
+		DisplayName: T("sidebar.category.favorites"),
+		Id:          model.NewId(),
+		UserId:      user.Id,
+		TeamId:      teamId,
+		Sorting:     model.SidebarCategorySortDefault,
+		SortOrder:   model.DefaultSidebarSortOrderFavorites,
+		Type:        model.SidebarCategoryFavorites,
+	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+		return err
+	}
+
+	if err := transaction.Insert(&model.SidebarCategory{
+		DisplayName: T("sidebar.category.channels"),
+		Id:          model.NewId(),
+		UserId:      user.Id,
+		TeamId:      teamId,
+		Sorting:     model.SidebarCategorySortDefault,
+		SortOrder:   model.DefaultSidebarSortOrderChannels,
+		Type:        model.SidebarCategoryChannels,
+	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+		return err
+	}
+
+	if err := transaction.Insert(&model.SidebarCategory{
+		DisplayName: T("sidebar.category.dm"),
+		Id:          model.NewId(),
+		UserId:      user.Id,
+		TeamId:      teamId,
+		Sorting:     model.SidebarCategorySortRecent,
+		SortOrder:   model.DefaultSidebarSortOrderDMs,
+		Type:        model.SidebarCategoryDirectMessages,
+	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+		return err
+	}
+
+	return nil
 }
 
 type userMembership struct {
