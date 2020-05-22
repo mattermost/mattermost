@@ -118,6 +118,11 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 				return nil, model.NewAppError("App.UpsertGroupSyncable", "group_not_associated_to_synced_team", nil, "", http.StatusBadRequest)
 			}
 		}
+
+		_, err = a.UpsertGroupSyncable(model.NewGroupTeam(groupSyncable.GroupId, team.Id, groupSyncable.AutoAdd))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if gs == nil {
