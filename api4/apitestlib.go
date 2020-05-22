@@ -163,7 +163,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
-  
+
 	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
 
 	if th.tempWorkspace == "" {
