@@ -2952,7 +2952,7 @@
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": ""
+    "translation": "Unable to delete the bot permanently."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
