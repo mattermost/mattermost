@@ -3150,6 +3150,22 @@ func (s *TimerLayerGroupStore) GroupCount() (int64, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerGroupStore) GroupCountWithAllowReference() (int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GroupCountWithAllowReference()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GroupCountWithAllowReference", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerGroupStore) GroupMemberCount() (int64, *model.AppError) {
 	start := timemodule.Now()
 

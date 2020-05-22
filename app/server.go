@@ -17,11 +17,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
+
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -201,6 +204,20 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
+
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
+		if strings.Contains(SENTRY_DSN, "placeholder") {
+			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
+		} else {
+			if err := sentry.Init(sentry.ClientOptions{
+				Dsn:              SENTRY_DSN,
+				Release:          model.BuildHash,
+				AttachStacktrace: true,
+			}); err != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
+			}
+		}
+	}
 
 	if *s.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err := tracing.New()
@@ -433,6 +450,8 @@ func (s *Server) StopHTTPServer() {
 func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
+	defer sentry.Flush(2 * time.Second)
+
 	s.RunOldAppShutdown()
 
 	if s.tracer != nil {
@@ -543,6 +562,14 @@ func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
+
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+		sentryHandler := sentryhttp.New(sentryhttp.Options{
+			Repanic: true,
+		})
+		handler = sentryHandler.Handle(handler)
+	}
+
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
 		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
 		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
