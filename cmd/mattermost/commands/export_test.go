@@ -62,3 +62,13 @@ func TestMessageExportNegativeTimeoutSeconds(t *testing.T) {
 	// should fail fast because timeout seconds must be a positive int
 	require.Error(t, th.RunCommand(t, "--format", "actiance", "--exportFrom", "0", "--timeoutSeconds", "-1", "export", "schedule"))
 }
+
+func TestMessageExportFailsWithoutLicense(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	actual, _ := th.RunCommandWithOutput(t, "export", "csv", "export.csv", "--exportFrom", "0")
+
+	// should fail fast because timeout seconds must be a positive int
+	require.Contains(t, actual, "message export feature not available")
+}
