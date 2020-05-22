@@ -15,6 +15,7 @@ const (
 	JOB_TYPE_MESSAGE_EXPORT                 = "message_export"
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
+	JOB_TYPE_BLEVE_POST_INDEXING            = "bleve_post_indexing"
 	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"
 	JOB_TYPE_MIGRATIONS                     = "migrations"
 	JOB_TYPE_PLUGINS                        = "plugins"
@@ -25,6 +26,7 @@ const (
 	JOB_STATUS_ERROR            = "error"
 	JOB_STATUS_CANCEL_REQUESTED = "cancel_requested"
 	JOB_STATUS_CANCELED         = "canceled"
+	JOB_STATUS_WARNING          = "warning"
 )
 
 type Job struct {
@@ -40,7 +42,7 @@ type Job struct {
 }
 
 func (j *Job) IsValid() *AppError {
-	if len(j.Id) != 26 {
+	if !IsValidId(j.Id) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
@@ -52,6 +54,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_DATA_RETENTION:
 	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
 	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
+	case JOB_TYPE_BLEVE_POST_INDEXING:
 	case JOB_TYPE_LDAP_SYNC:
 	case JOB_TYPE_MESSAGE_EXPORT:
 	case JOB_TYPE_MIGRATIONS:

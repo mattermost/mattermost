@@ -20,12 +20,12 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should honor channel restrictions when autocompleting users",
 		Fn:   testHonorChannelRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should honor team restrictions when autocompleting users",
 		Fn:   testHonorTeamRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name:        "Should return nothing if the user can't access the channels of a given search",
@@ -69,17 +69,17 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by Dot",
 		Fn:   testAutocompleteUserByUsernameWithDot,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by underscore",
 		Fn:   testAutocompleteUserByUsernameWithUnderscore,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by hyphen",
 		Fn:   testAutocompleteUserByUsernameWithHyphen,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should escape the percentage character",
@@ -497,6 +497,7 @@ func testAutocompleteUserByUsernameWithHyphen(t *testing.T, th *SearchTestHelper
 func testShouldEscapePercentageCharacter(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternateusername", "alternate%nickname", "firstname", "altlastname")
 	require.Nil(t, err)
+
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
@@ -641,6 +642,7 @@ func testSearchUsersShouldBeCaseInsensitive(t *testing.T, th *SearchTestHelper) 
 func testSearchOneTwoCharUsersnameAndFirstLastNames(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("ho", "alternatenickname", "zi", "k")
 	require.Nil(t, err)
+
 	defer th.deleteUser(userAlternate)
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
@@ -668,6 +670,7 @@ func testShouldSupportKoreanCharacters(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("alternate-username", "alternate-nickname", "서강준", "안신원")
 	require.Nil(t, err)
 	defer th.deleteUser(userAlternate)
+
 	err = th.addUserToTeams(userAlternate, []string{th.Team.Id})
 	require.Nil(t, err)
 	_, err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})

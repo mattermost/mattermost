@@ -63,6 +63,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 			return users, nil
 		}
 	}
+
 	mlog.Debug("Using database search because no other search engine is available")
 
 	return s.UserStore.Search(teamId, term, options)

@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -53,6 +54,7 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	RecycleDBConnections(d time.Duration)
 	GetCurrentSchemaVersion() string
 	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int
@@ -125,9 +127,9 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
@@ -336,11 +338,11 @@ type UserStore interface {
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
-	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
-	Save(bot *model.Bot) (*model.Bot, *model.AppError)
-	Update(bot *model.Bot) (*model.Bot, *model.AppError)
-	PermanentDelete(userId string) *model.AppError
+	Get(userId string, includeDeleted bool) (*model.Bot, error)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	Save(bot *model.Bot) (*model.Bot, error)
+	Update(bot *model.Bot) (*model.Bot, error)
+	PermanentDelete(userId string) error
 }
 
 type SessionStore interface {
@@ -351,6 +353,7 @@ type SessionStore interface {
 	Remove(sessionIdOrToken string) *model.AppError
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
+	UpdateExpiresAt(sessionId string, time int64) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
 	UpdateRoles(userId string, roles string) (string, *model.AppError)
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
@@ -621,7 +624,7 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, *model.AppError)
 	Get(groupID string) (*model.Group, *model.AppError)
-	GetByName(name string) (*model.Group, *model.AppError)
+	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
@@ -700,6 +703,9 @@ type GroupStore interface {
 
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
 	DistinctGroupMemberCount() (int64, *model.AppError)
+
+	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
+	GroupCountWithAllowReference() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {

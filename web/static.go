@@ -9,15 +9,22 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NYTimes/gziphandler"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/mkraft/gziphandler"
 )
 
 var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
+
+// the static content types that are Brotli encoded rather than gzipped.
+var brotliEncodedContent = map[string]string{
+	"js":  "application/javascript",
+	"css": "text/css",
+}
+
+var brotliContentTypes []string
 
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
@@ -30,11 +37,20 @@ func (w *Web) InitStatic() {
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
-		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
+		staticHandler := brotliFilesHandler(staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir)))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
 
 		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
-			staticHandler = gziphandler.GzipHandler(staticHandler)
+			for _, ct := range brotliEncodedContent {
+				brotliContentTypes = append(brotliContentTypes, ct)
+			}
+
+			everythingExceptBrotliGzipHandler, err := gziphandler.GzipHandlerWithOpts(gziphandler.ContentTypeExceptions(brotliContentTypes))
+			if err != nil {
+				mlog.Error("Failed to initialize gziphandler", mlog.Err(err))
+			}
+
+			staticHandler = everythingExceptBrotliGzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
 
@@ -72,6 +88,26 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 
+func acceptsEncodingBrotli(r *http.Request) bool {
+	directives := strings.Fields(r.Header.Get("Accept-Encoding"))
+	for _, directive := range directives {
+		if strings.ToLower(directive) == "br" {
+			return true
+		}
+	}
+	return false
+}
+
+func requestingBrotliFileExtension(r *http.Request) (bool, string) {
+	extension := r.URL.Path[strings.LastIndex(r.URL.Path, ".")+1:]
+	for bx, ct := range brotliEncodedContent {
+		if bx == extension {
+			return true, ct
+		}
+	}
+	return false, ""
+}
+
 func staticFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//wrap our ResponseWriter with our no-cache 404-handler
@@ -83,6 +119,22 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
+
+		handler.ServeHTTP(w, r)
+	})
+}
+
+func brotliFilesHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if model.BuildNumber != "dev" {
+			isRequestingBrotliFile, contentType := requestingBrotliFileExtension(r)
+			if isRequestingBrotliFile && acceptsEncodingBrotli(r) {
+				r.URL.Path = r.URL.Path + ".br"
+				w.Header().Set("Content-Encoding", "br")
+				w.Header().Set("Content-Type", contentType)
+			}
+		}
+
 		handler.ServeHTTP(w, r)
 	})
 }

@@ -236,7 +236,7 @@ func LicenseFromJson(data io.Reader) *License {
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {
-	if len(lr.Id) != 26 {
+	if !IsValidId(lr.Id) {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
