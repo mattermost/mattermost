@@ -66,6 +66,9 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
+
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
@@ -306,6 +309,7 @@ func (a *App) trackConfig() {
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
+		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
 		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,

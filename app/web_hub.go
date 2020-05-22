@@ -29,6 +29,12 @@ type webConnDirectMessage struct {
 	msg  model.WebSocketMessage
 }
 
+type webConnSessionMessage struct {
+	userId       string
+	sessionToken string
+	isRegistered chan bool
+}
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -47,20 +53,22 @@ type Hub struct {
 	activity        chan *webConnActivityMessage
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
+	checkRegistered chan *webConnSessionMessage
 }
 
 // NewWebHub creates a new Hub.
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
-		app:            a,
-		register:       make(chan *WebConn, 1),
-		unregister:     make(chan *WebConn, 1),
-		broadcast:      make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:           make(chan struct{}),
-		didStop:        make(chan struct{}),
-		invalidateUser: make(chan string),
-		activity:       make(chan *webConnActivityMessage),
-		directMsg:      make(chan *webConnDirectMessage),
+		app:             a,
+		register:        make(chan *WebConn),
+		unregister:      make(chan *WebConn),
+		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:            make(chan struct{}),
+		didStop:         make(chan struct{}),
+		invalidateUser:  make(chan string),
+		activity:        make(chan *webConnActivityMessage),
+		directMsg:       make(chan *webConnDirectMessage),
+		checkRegistered: make(chan *webConnSessionMessage),
 	}
 }
 
@@ -289,6 +297,15 @@ func (a *App) UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	}
 }
 
+// SessionIsRegistered determines if a specific session has been registered
+func (a *App) SessionIsRegistered(session model.Session) bool {
+	hub := a.GetHubForUserId(session.UserId)
+	if hub != nil {
+		return hub.IsRegistered(session.UserId, session.Token)
+	}
+	return false
+}
+
 // Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) {
 	select {
@@ -303,6 +320,21 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	case h.unregister <- webConn:
 	case <-h.stop:
 	}
+}
+
+// Determines if a user's session is registered a connection from the hub.
+func (h *Hub) IsRegistered(userId, sessionToken string) bool {
+	ws := &webConnSessionMessage{
+		userId:       userId,
+		sessionToken: sessionToken,
+		isRegistered: make(chan bool),
+	}
+	select {
+	case h.checkRegistered <- ws:
+		return <-ws.isRegistered
+	case <-h.stop:
+	}
+	return false
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -375,6 +407,15 @@ func (h *Hub) Start() {
 
 		for {
 			select {
+			case webSessionMessage := <-h.checkRegistered:
+				conns := connIndex.ForUser(webSessionMessage.userId)
+				var isRegistered bool
+				for _, item := range conns {
+					if item.sessionToken.Load().(string) == webSessionMessage.sessionToken {
+						isRegistered = true
+					}
+				}
+				webSessionMessage.isRegistered <- isRegistered
 			case webConn := <-h.register:
 				connIndex.Add(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
@@ -433,14 +474,10 @@ func (h *Hub) Start() {
 				if metrics := h.app.Metrics(); metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
-				candidates := connIndex.All()
-				if msg.GetBroadcast().UserId != "" {
-					candidates = connIndex.ForUser(msg.GetBroadcast().UserId)
-				}
 				msg = msg.PrecomputeJSON()
-				for _, webConn := range candidates {
+				broadcast := func(webConn *WebConn) {
 					if !connIndex.Has(webConn) {
-						continue
+						return
 					}
 					if webConn.shouldSendEvent(msg) {
 						select {
@@ -452,8 +489,19 @@ func (h *Hub) Start() {
 						}
 					}
 				}
+				if msg.GetBroadcast().UserId != "" {
+					candidates := connIndex.ForUser(msg.GetBroadcast().UserId)
+					for _, webConn := range candidates {
+						broadcast(webConn)
+					}
+					continue
+				}
+				candidates := connIndex.All()
+				for webConn := range candidates {
+					broadcast(webConn)
+				}
 			case <-h.stop:
-				for _, webConn := range connIndex.All() {
+				for webConn := range connIndex.All() {
 					webConn.Close()
 					h.app.SetStatusOffline(webConn.UserId, false)
 				}
@@ -488,64 +536,60 @@ func (h *Hub) Start() {
 	go doRecoverableStart()
 }
 
-type hubConnectionIndexIndexes struct {
-	connections         int
-	connectionsByUserId int
-}
-
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
+// It requires 3 functionalities which need to be very fast:
+// - check if a connection exists or not.
+// - get all connections for a given userID.
+// - get all connections.
 type hubConnectionIndex struct {
-	connections         []*WebConn
-	connectionsByUserId map[string][]*WebConn
-	connectionIndexes   map[*WebConn]*hubConnectionIndexIndexes
+	// byUserId stores the list of connections for a given userID
+	byUserId map[string][]*WebConn
+	// byConnection serves the dual purpose of storing the index of the webconn
+	// in the value of byUserId map, and also to get all connections.
+	byConnection map[*WebConn]int
 }
 
 func newHubConnectionIndex() *hubConnectionIndex {
 	return &hubConnectionIndex{
-		connections:         make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
-		connectionsByUserId: make(map[string][]*WebConn),
-		connectionIndexes:   make(map[*WebConn]*hubConnectionIndexIndexes),
+		byUserId:     make(map[string][]*WebConn),
+		byConnection: make(map[*WebConn]int),
 	}
 }
 
 func (i *hubConnectionIndex) Add(wc *WebConn) {
-	i.connections = append(i.connections, wc)
-	i.connectionsByUserId[wc.UserId] = append(i.connectionsByUserId[wc.UserId], wc)
-	i.connectionIndexes[wc] = &hubConnectionIndexIndexes{
-		connections:         len(i.connections) - 1,
-		connectionsByUserId: len(i.connectionsByUserId[wc.UserId]) - 1,
-	}
+	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
+	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	indexes, ok := i.connectionIndexes[wc]
+	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
 	}
 
-	last := i.connections[len(i.connections)-1]
-	i.connections[indexes.connections] = last
-	i.connections = i.connections[:len(i.connections)-1]
-	i.connectionIndexes[last].connections = indexes.connections
+	// get the conn slice.
+	userConnections := i.byUserId[wc.UserId]
+	// get the last connection.
+	last := userConnections[len(userConnections)-1]
+	// set the slot that we are trying to remove to be the last connection.
+	userConnections[userConnIndex] = last
+	// remove the last connection from the slice.
+	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
+	// set the index of the connection that was moved to the new index.
+	i.byConnection[last] = userConnIndex
 
-	userConnections := i.connectionsByUserId[wc.UserId]
-	last = userConnections[len(userConnections)-1]
-	userConnections[indexes.connectionsByUserId] = last
-	i.connectionsByUserId[wc.UserId] = userConnections[:len(userConnections)-1]
-	i.connectionIndexes[last].connectionsByUserId = indexes.connectionsByUserId
-
-	delete(i.connectionIndexes, wc)
+	delete(i.byConnection, wc)
 }
 
 func (i *hubConnectionIndex) Has(wc *WebConn) bool {
-	_, ok := i.connectionIndexes[wc]
+	_, ok := i.byConnection[wc]
 	return ok
 }
 
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
-	return i.connectionsByUserId[id]
+	return i.byUserId[id]
 }
 
-func (i *hubConnectionIndex) All() []*WebConn {
-	return i.connections
+func (i *hubConnectionIndex) All() map[*WebConn]int {
+	return i.byConnection
 }
