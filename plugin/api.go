@@ -156,21 +156,21 @@ type API interface {
 	//
 	// @tag User
 	// @tag Preference
- 	// Minimum server version: 5.26
+	// Minimum server version: 5.26
 	GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError)
 
 	// UpdatePreferencesForUser updates a user's preferences.
 	//
 	// @tag User
 	// @tag Preference
- 	// Minimum server version: 5.26 
+	// Minimum server version: 5.26
 	UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
 
 	// DeletePreferencesForUser deletes a user's preferences.
 	//
 	// @tag User
 	// @tag Preference
- 	// Minimum server version: 5.26 
+	// Minimum server version: 5.26
 	DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
 
 	// GetTeamIcon gets the team icon.
