@@ -111,7 +111,7 @@ func (h *MainHelper) setupStore() {
 	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLSupplier,
-	}, h.SearchEngine)
+	}, h.SearchEngine, config)
 }
 
 func (h *MainHelper) setupResources() {

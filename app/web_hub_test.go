@@ -15,11 +15,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		mlog.Debug("dummyWebsocketHandler")
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -225,4 +227,32 @@ func BenchmarkHubConnIndex(b *testing.B) {
 			connIndex.Remove(wc2)
 		}
 	})
+}
+
+func TestHubIsRegistered(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	th.App.HubStart()
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	defer wc1.Close()
+	defer wc2.Close()
+	defer wc3.Close()
+
+	session1 := wc1.session.Load().(*model.Session)
+
+	assert.True(t, th.App.SessionIsRegistered(*session1))
+	assert.True(t, th.App.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
+	assert.True(t, th.App.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+
+	session4, appErr := th.App.CreateSession(&model.Session{
+		UserId: th.BasicUser2.Id,
+	})
+	require.Nil(t, appErr)
+	assert.False(t, th.App.SessionIsRegistered(*session4))
 }
