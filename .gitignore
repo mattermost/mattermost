@@ -19,7 +19,7 @@ config/active.dat
 config/config.json
 /plugins
 
-# Enteprise imports file
+# Enterprise imports file
 imports/imports.go
 
 # Build Targets
@@ -37,6 +37,7 @@ imports/imports.go
 _obj
 _test
 .vscode
+testfiles
 
 # Architecture specific extensions/prefixes
 [568vq].out

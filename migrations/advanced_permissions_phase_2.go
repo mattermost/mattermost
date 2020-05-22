@@ -31,15 +31,15 @@ func AdvancedPermissionsPhase2ProgressFromJson(data io.Reader) *AdvancedPermissi
 }
 
 func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
-	if len(p.LastChannelId) != 26 {
+	if !model.IsValidId(p.LastChannelId) {
 		return false
 	}
 
-	if len(p.LastTeamId) != 26 {
+	if !model.IsValidId(p.LastTeamId) {
 		return false
 	}
 
-	if len(p.LastUserId) != 26 {
+	if !model.IsValidId(p.LastUserId) {
 		return false
 	}
 
