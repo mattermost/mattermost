@@ -4,11 +4,12 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 )
 
 type PluginCommand struct {
@@ -18,16 +19,36 @@ type PluginCommand struct {
 
 func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) error {
 	if command.Trigger == "" {
-		return fmt.Errorf("invalid command")
+		return errors.New("invalid command")
+	}
+	if command.AutocompleteData != nil {
+		if err := command.AutocompleteData.IsValid(); err != nil {
+			return errors.Wrap(err, "invalid autocomplete data in command")
+		}
+	}
+
+	if command.AutocompleteData == nil {
+		command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
+	} else {
+		baseURL, err := url.Parse("/plugins/" + pluginId)
+		if err != nil {
+			return errors.Wrapf(err, "Can't parse url %s", "/plugins/"+pluginId)
+		}
+		err = command.AutocompleteData.UpdateRelativeURLsForPluginCommands(baseURL)
+		if err != nil {
+			return errors.Wrap(err, "Can't update relative urls for plugin commands")
+		}
 	}
 
 	command = &model.Command{
-		Trigger:          strings.ToLower(command.Trigger),
-		TeamId:           command.TeamId,
-		AutoComplete:     command.AutoComplete,
-		AutoCompleteDesc: command.AutoCompleteDesc,
-		AutoCompleteHint: command.AutoCompleteHint,
-		DisplayName:      command.DisplayName,
+		Trigger:              strings.ToLower(command.Trigger),
+		TeamId:               command.TeamId,
+		AutoComplete:         command.AutoComplete,
+		AutoCompleteDesc:     command.AutoCompleteDesc,
+		AutoCompleteHint:     command.AutoCompleteHint,
+		DisplayName:          command.DisplayName,
+		AutocompleteData:     command.AutocompleteData,
+		AutocompleteIconData: command.AutocompleteIconData,
 	}
 
 	a.Srv().pluginCommandsLock.Lock()

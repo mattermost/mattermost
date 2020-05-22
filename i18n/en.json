@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your System Administrator for details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2080,7 +2080,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.leave.left",
@@ -4761,6 +4761,10 @@
   {
     "id": "model.cluster.is_valid.type.app_error",
     "translation": "Type must be set."
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "Invalid AutocompleteData"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
