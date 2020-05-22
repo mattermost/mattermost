@@ -525,7 +525,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 	}
 
 	if model.BuildEnterpriseReady == "true" {
-		filter.EEReady = true
+		filter.BuildEnterpriseReady = true
 	}
 
 	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
