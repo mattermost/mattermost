@@ -65,7 +65,7 @@ type Client4 struct {
 
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = ioutil.ReadAll(r.Body)
+		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
@@ -351,6 +351,10 @@ func (c *Client4) GetDataRetentionRoute() string {
 
 func (c *Client4) GetElasticsearchRoute() string {
 	return "/elasticsearch"
+}
+
+func (c *Client4) GetBleveRoute() string {
+	return fmt.Sprintf("/bleve")
 }
 
 func (c *Client4) GetCommandsRoute() string {
@@ -4075,6 +4079,18 @@ func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// Bleve Section
+
+// PurgeBleveIndexes immediately deletes all Bleve indexes.
+func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
+	r, err := c.DoApiPost(c.GetBleveRoute()+"/purge_indexes", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // Data Retention Section
 
 // GetDataRetentionPolicy will get the current server data retention policy details.
@@ -4139,6 +4155,17 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	}
 	defer closeBody(r)
 	return CommandListFromJson(r.Body), BuildResponse(r)
+}
+
+// ListCommandAutocompleteSuggestions will retrieve a list of suggestions for a userInput.
+func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) ([]AutocompleteSuggestion, *Response) {
+	query := fmt.Sprintf("/commands/autocomplete_suggestions?user_input=%v", userInput)
+	r, err := c.DoApiGet(c.GetTeamRoute(teamId)+query, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return AutocompleteSuggestionsFromJSON(r.Body), BuildResponse(r)
 }
 
 // GetCommandById will retrieve a command by id.
