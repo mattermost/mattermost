@@ -163,7 +163,7 @@ type API interface {
 	//
 	// @tag User
 	// @tag Preference
-	// Minimum server version: 5.24
+ 	// Minimum server version: 5.26 
 	UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
 
 	// DeletePreferencesForUser deletes a user's preferences.
