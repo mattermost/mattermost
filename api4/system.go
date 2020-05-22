@@ -82,7 +82,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 
-		// Database Write/Read Check
+		// Database Write Check
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
 		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
 
@@ -94,27 +94,17 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
-		} else {
-			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
-			if readErr != nil {
-				mlog.Warn("Unable to read from database.", mlog.Err(readErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else if healthCheck.Value != currentTime {
-				mlog.Warn("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			}
-			_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
-			if writeErr != nil {
-				mlog.Warn("Unable to remove ping health check value from database", mlog.Err(writeErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			}
+		}
 
-			if s[dbStatusKey] == model.STATUS_OK {
-				mlog.Debug("Able to write/read files to database")
-			}
+		_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+		if writeErr != nil {
+			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
+			s[dbStatusKey] = model.STATUS_UNHEALTHY
+			s[model.STATUS] = model.STATUS_UNHEALTHY
+		}
+
+		if s[dbStatusKey] == model.STATUS_OK {
+			mlog.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"

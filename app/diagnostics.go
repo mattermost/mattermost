@@ -66,6 +66,9 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
+
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
@@ -1015,14 +1018,20 @@ func (a *App) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
+	groupCountWithAllowReference, err := a.Srv().Store.Group().GroupCountWithAllowReference()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
 	a.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
-		"group_count":                 groupCount,
-		"group_team_count":            groupTeamCount,
-		"group_channel_count":         groupChannelCount,
-		"group_synced_team_count":     groupSyncedTeamCount,
-		"group_synced_channel_count":  groupSyncedChannelCount,
-		"group_member_count":          groupMemberCount,
-		"distinct_group_member_count": distinctGroupMemberCount,
+		"group_count":                      groupCount,
+		"group_team_count":                 groupTeamCount,
+		"group_channel_count":              groupChannelCount,
+		"group_synced_team_count":          groupSyncedTeamCount,
+		"group_synced_channel_count":       groupSyncedChannelCount,
+		"group_member_count":               groupMemberCount,
+		"distinct_group_member_count":      distinctGroupMemberCount,
+		"group_count_with_allow_reference": groupCountWithAllowReference,
 	})
 }
 

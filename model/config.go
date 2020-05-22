@@ -1052,6 +1052,7 @@ type LogSettings struct {
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
+	EnableSentry           *bool   `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1081,6 +1082,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.EnableSentry == nil {
+		s.EnableSentry = NewBool(*s.EnableDiagnostics)
 	}
 
 	if s.ConsoleJson == nil {
