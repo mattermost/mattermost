@@ -369,7 +369,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableLinkPreviews == nil {
-		s.EnableLinkPreviews = NewBool(false)
+		s.EnableLinkPreviews = NewBool(true)
 	}
 
 	if s.EnableTesting == nil {
@@ -1051,6 +1051,7 @@ type LogSettings struct {
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
+	EnableSentry           *bool   `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1080,6 +1081,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.EnableSentry == nil {
+		s.EnableSentry = NewBool(*s.EnableDiagnostics)
 	}
 
 	if s.ConsoleJson == nil {
@@ -1459,7 +1464,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PushNotificationContents == nil {
-		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
+		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
 	}
 
 	if s.EnableEmailBatching == nil {
