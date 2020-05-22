@@ -715,6 +715,9 @@ type GroupStore interface {
 
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
 	DistinctGroupMemberCount() (int64, *model.AppError)
+
+	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
+	GroupCountWithAllowReference() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {
