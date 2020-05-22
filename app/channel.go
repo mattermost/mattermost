@@ -834,6 +834,11 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if err != nil {
 			return nil, err
 		}
+		adminRole, err := a.GetRoleByName(scheme.DefaultChannelAdminRole)
+		if err != nil {
+			return nil, err
+		}
+		a.sendUpdatedRoleEvent(adminRole)
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
