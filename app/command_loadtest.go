@@ -5,6 +5,7 @@ package app
 
 import (
 	"io"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"regexp"
@@ -472,20 +473,24 @@ func (me *LoadTestProvider) UrlCommand(a *App, args *model.CommandArgs, message 
 		}
 	}
 
-	var contents io.ReadCloser
-	if r, err := http.Get(url); err != nil {
+	r, err := http.Get(url)
+	if err != nil {
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	} else if r.StatusCode > 400 {
+	}
+	defer func() {
+		io.Copy(ioutil.Discard, r.Body)
+		r.Body.Close()
+	}()
+
+	if r.StatusCode > 400 {
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("unexpected status code %d", r.StatusCode)
-	} else {
-		contents = r.Body
 	}
 
 	bytes := make([]byte, 4000)
 
 	// break contents into 4000 byte posts
 	for {
-		length, err := contents.Read(bytes)
+		length, err := r.Body.Read(bytes)
 		if err != nil && err != io.EOF {
 			return &model.CommandResponse{Text: "Encountered error reading file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 		}
@@ -522,16 +527,20 @@ func (me *LoadTestProvider) JsonCommand(a *App, args *model.CommandArgs, message
 		}
 	}
 
-	var contents io.ReadCloser
-	if r, err := http.Get(url); err != nil {
+	r, err := http.Get(url)
+	if err != nil {
 		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	} else if r.StatusCode > 400 {
-		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("unexpected status code %d", r.StatusCode)
-	} else {
-		contents = r.Body
 	}
 
-	post := model.PostFromJson(contents)
+	if r.StatusCode > 400 {
+		return &model.CommandResponse{Text: "Unable to get file", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, errors.Errorf("unexpected status code %d", r.StatusCode)
+	}
+	defer func() {
+		io.Copy(ioutil.Discard, r.Body)
+		r.Body.Close()
+	}()
+
+	post := model.PostFromJson(r.Body)
 	post.ChannelId = args.ChannelId
 	post.UserId = args.UserId
 	if post.Message == "" {

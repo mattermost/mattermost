@@ -66,6 +66,9 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
+
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
