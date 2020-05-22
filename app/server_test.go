@@ -23,6 +23,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +45,7 @@ func TestStartServerSuccess(t *testing.T) {
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	cfg := model.Config{}
 	cfg.SetDefaults()
+	cfg.SqlSettings = *storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
