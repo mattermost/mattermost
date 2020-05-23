@@ -208,15 +208,22 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 		return false, nil
 	}
 
-	deleteResult, err := ps.GetMaster().Exec(
-		`DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)`,
-		map[string]interface{}{
-			"PluginId":    kv.PluginId,
-			"Key":         kv.Key,
-			"Old":         oldValue,
-			"CurrentTime": model.GetMillis(),
-		},
-	)
+	query := ps.getQueryBuilder().
+		Delete("PluginKeyValueStore").
+		Where(sq.Eq{"PluginId": kv.PluginId}).
+		Where(sq.Eq{"PKey": kv.Key}).
+		Where(sq.Eq{"PValue": oldValue}).
+		Where(sq.Or{
+			sq.Eq{"ExpireAt": int(0)},
+			sq.Gt{"ExpireAt": model.GetMillis()},
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	deleteResult, err := ps.GetMaster().Exec(queryString, args...)
 	if err != nil {
 		return false, model.NewAppError("SqlPluginStore.CompareAndDelete", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
