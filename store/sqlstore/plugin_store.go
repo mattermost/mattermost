@@ -159,15 +159,23 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 				// this isn't a good use of CompareAndSet anyway, since there's no corresponding guarantee of
 				// atomicity. Nevertheless, let's return results consistent with Postgres and with what might
 				// be expected in this case.
-				count, err := ps.GetReplica().SelectInt(
-					"SELECT COUNT(*) FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Value AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)",
-					map[string]interface{}{
-						"PluginId":    kv.PluginId,
-						"Key":         kv.Key,
-						"Value":       kv.Value,
-						"CurrentTime": currentTime,
-					},
-				)
+				query := ps.getQueryBuilder().
+					Select("COUNT(*)").
+					From("PluginKeyValueStore").
+					Where(sq.Eq{"PluginId": kv.PluginId}).
+					Where(sq.Eq{"PKey": kv.Key}).
+					Where(sq.Eq{"PValue": kv.Value}).
+					Where(sq.Or{
+						sq.Eq{"ExpireAt": int(0)},
+						sq.Gt{"ExpireAt": currentTime},
+					})
+
+				queryString, args, err := query.ToSql()
+				if err != nil {
+					return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql.build_query.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", kv.PluginId, kv.Key, err.Error()), http.StatusInternalServerError)
+				}
+
+				count, err := ps.GetReplica().SelectInt(queryString, args...)
 				if err != nil {
 					return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.compare_and_set.mysql_select.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", kv.PluginId, kv.Key, err.Error()), http.StatusInternalServerError)
 				}
