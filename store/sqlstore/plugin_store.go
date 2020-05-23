@@ -127,17 +127,24 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 		currentTime := model.GetMillis()
 
 		// Update if oldValue is not nil
-		updateResult, err := ps.GetMaster().Exec(
-			`UPDATE PluginKeyValueStore SET PValue = :New, ExpireAt = :ExpireAt WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)`,
-			map[string]interface{}{
-				"PluginId":    kv.PluginId,
-				"Key":         kv.Key,
-				"Old":         oldValue,
-				"New":         kv.Value,
-				"ExpireAt":    kv.ExpireAt,
-				"CurrentTime": currentTime,
-			},
-		)
+		query := ps.getQueryBuilder().
+			Update("PluginKeyValueStore").
+			Set("PValue", kv.Value).
+			Set("ExpireAt", kv.ExpireAt).
+			Where(sq.Eq{"PluginId": kv.PluginId}).
+			Where(sq.Eq{"PKey": kv.Key}).
+			Where(sq.Eq{"PValue": oldValue}).
+			Where(sq.Or{
+				sq.Eq{"ExpireAt": int(0)},
+				sq.Gt{"ExpireAt": currentTime},
+			})
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		updateResult, err := ps.GetMaster().Exec(queryString, args...)
 		if err != nil {
 			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
