@@ -66,7 +66,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		}
 	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query := ps.getQueryBuilder().
-			Insert("PluginkeyValueStore").
+			Insert("PluginKeyValueStore").
 			Columns("PluginId", "PKey", "PValue", "ExpireAt").
 			Values(kv.PluginId, kv.Key, kv.Value, kv.ExpireAt).
 			SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE PValue = ?, ExpireAt = ?", kv.Value, kv.ExpireAt))
@@ -353,7 +353,7 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 
 	query := ps.getQueryBuilder().
 		Select("Pkey").
-		From("PluginkeyValueStore").
+		From("PluginKeyValueStore").
 		Where(sq.Eq{"PluginId": pluginId}).
 		Where(sq.Or{
 			sq.Eq{"ExpireAt": 0},
