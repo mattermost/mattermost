@@ -45,7 +45,11 @@ func TestStartServerSuccess(t *testing.T) {
 func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	cfg := model.Config{}
 	cfg.SetDefaults()
-	cfg.SqlSettings = *storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DATABASE_DRIVER_POSTGRES
+	}
+	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
