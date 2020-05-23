@@ -14,11 +14,16 @@ import (
 
 type SqlCommandStore struct {
 	SqlStore
+
+	commandsQuery sq.SelectBuilder
 }
 
 func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
-	s := &SqlCommandStore{sqlStore}
+	s := &SqlCommandStore{SqlStore: sqlStore}
 
+	s.commandsQuery = s.getQueryBuilder().
+		Select("*").
+		From("Commands")
 	for _, db := range sqlStore.GetAllConns() {
 		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
@@ -66,9 +71,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.Ap
 func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 	var command model.Command
 
-	sql, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Commands").
+	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"Id": id, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -82,9 +85,7 @@ func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
 
 func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
 	var commands []*model.Command
-	sql, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Commands").
+	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0}).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTeam", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -105,9 +106,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		triggerStr = "\"trigger\""
 	}
 
-	sql, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Commands").
+	sql, args, err := s.commandsQuery.
 		Where(sq.Eq{"TeamId": teamId, "DeleteAt": 0, triggerStr: trigger}).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
