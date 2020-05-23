@@ -100,7 +100,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			Delete("PluginKeyValueStore").
 			Where(sq.Eq{"PluginId": kv.PluginId}).
 			Where(sq.Eq{"PKey": kv.Key}).
-			Where(sq.NotEq{"ExpireAt": 0}).
+			Where(sq.NotEq{"ExpireAt": int(0)}).
 			Where(sq.Lt{"ExpireAt": model.GetMillis()})
 
 		queryString, args, err := query.ToSql()
@@ -135,7 +135,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			Where(sq.Eq{"PKey": kv.Key}).
 			Where(sq.Eq{"PValue": kv.Value}).
 			Where(sq.Or{
-				sq.Eq{"ExpireAt": 0},
+				sq.Eq{"ExpireAt": int(0)},
 				sq.Gt{"ExpireAt": currentTime},
 			})
 
@@ -166,7 +166,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 					Where(sq.Eq{"PKey": kv.Key}).
 					Where(sq.Eq{"PValue": kv.Value}).
 					Where(sq.Or{
-						sq.Eq{"ExpireAt": 0},
+						sq.Eq{"ExpireAt": int(0)},
 						sq.Gt{"ExpireAt": currentTime},
 					})
 
@@ -214,7 +214,7 @@ func (ps SqlPluginStore) CompareAndDelete(kv *model.PluginKeyValue, oldValue []b
 		Where(sq.Eq{"PKey": kv.Key}).
 		Where(sq.Eq{"PValue": kv.Value}).
 		Where(sq.Or{
-			sq.Eq{"ExpireAt": 0},
+			sq.Eq{"ExpireAt": int(0)},
 			sq.Gt{"ExpireAt": model.GetMillis()},
 		})
 
@@ -269,7 +269,7 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *mode
 		Where(sq.Eq{"PluginId": pluginId}).
 		Where(sq.Eq{"PKey": key}).
 		Where(sq.Or{
-			sq.Eq{"ExpireAt": 0},
+			sq.Eq{"ExpireAt": int(0)},
 			sq.Gt{"ExpireAt": currentTime},
 		})
 
@@ -356,7 +356,7 @@ func (ps SqlPluginStore) List(pluginId string, offset int, limit int) ([]string,
 		From("PluginKeyValueStore").
 		Where(sq.Eq{"PluginId": pluginId}).
 		Where(sq.Or{
-			sq.Eq{"ExpireAt": 0},
+			sq.Eq{"ExpireAt": int(0)},
 			sq.Gt{"ExpireAt": model.GetMillis()},
 		}).
 		OrderBy("PKey").
