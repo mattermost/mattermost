@@ -106,13 +106,15 @@ func TestCreateChannel(t *testing.T) {
 	_, resp = Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
-	channel.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(channel)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channel.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(channel)
+		CheckNoError(t, resp)
 
-	private.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(private)
-	CheckNoError(t, resp)
+		private.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(private)
+		CheckNoError(t, resp)
+	})
 
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
@@ -901,28 +903,30 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channels, resp := client.GetAllChannels(0, 20, "")
+		CheckNoError(t, resp)
 
-	// At least, all the not-deleted channels created during the InitBasic
-	require.True(t, len(*channels) >= 3)
-	for _, c := range *channels {
-		require.NotEqual(t, c.TeamId, "")
-	}
+		// At least, all the not-deleted channels created during the InitBasic
+		require.True(t, len(*channels) >= 3)
+		for _, c := range *channels {
+			require.NotEqual(t, c.TeamId, "")
+		}
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
-	CheckNoError(t, resp)
-	require.True(t, len(*channels) >= 3)
+		channels, resp = client.GetAllChannels(0, 10, "")
+		CheckNoError(t, resp)
+		require.True(t, len(*channels) >= 3)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, *channels, 1)
+		channels, resp = client.GetAllChannels(1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, *channels, 1)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, *channels)
+		channels, resp = client.GetAllChannels(10000, 10000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, *channels)
+	})
 
-	_, resp = Client.GetAllChannels(0, 20, "")
+	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
 }
 

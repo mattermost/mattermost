@@ -6,6 +6,8 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -77,7 +79,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 
-		// Database Write/Read Check
+		// Database Write Check
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
 		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
 
@@ -86,30 +88,20 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			Value: currentTime,
 		})
 		if writeErr != nil {
-			mlog.Debug("Unable to write to database.", mlog.Err(writeErr))
+			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
-		} else {
-			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
-			if readErr != nil {
-				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else if healthCheck.Value != currentTime {
-				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			}
-			_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
-			if writeErr != nil {
-				mlog.Debug("Unable to remove ping health check value from database", mlog.Err(writeErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			}
+		}
 
-			if s[dbStatusKey] == model.STATUS_OK {
-				mlog.Debug("Able to write/read files to database")
-			}
+		_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+		if writeErr != nil {
+			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
+			s[dbStatusKey] = model.STATUS_UNHEALTHY
+			s[model.STATUS] = model.STATUS_UNHEALTHY
+		}
+
+		if s[dbStatusKey] == model.STATUS_OK {
+			mlog.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
@@ -432,6 +424,10 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+	defer func() {
+		io.Copy(ioutil.Discard, res.Body)
+		res.Body.Close()
+	}()
 
 	location := res.Header.Get("Location")
 	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour

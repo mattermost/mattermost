@@ -47,13 +47,6 @@ func TestWebSocket(t *testing.T) {
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_action.app_error", "should have been bad action response")
 
-	req := &model.WebSocketRequest{}
-	req.Seq = 0
-	req.Action = "ping"
-	WebSocketClient.Conn.WriteJSON(req)
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_seq.app_error", "should have been bad action response")
-
 	WebSocketClient.UserTyping("", "")
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")

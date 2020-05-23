@@ -54,16 +54,16 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		wr.app.Srv().Go(func() {
-			wr.app.SetStatusOnline(session.UserId, false)
-			wr.app.UpdateLastActivityAtIfNeeded(*session)
-		})
-
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
 		wr.app.HubRegister(conn)
+
+		wr.app.Srv().Go(func() {
+			wr.app.SetStatusOnline(session.UserId, false)
+			wr.app.UpdateLastActivityAtIfNeeded(*session)
+		})
 
 		resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 		hub := wr.app.GetHubForUserId(conn.UserId)
