@@ -266,8 +266,8 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *mode
 	query := ps.getQueryBuilder().
 		Select("*").
 		From("PluginKeyValueStore").
-		Where(sq.Eq{"PluginId": kv.PluginId}).
-		Where(sq.Eq{"PKey": kv.Key}).
+		Where(sq.Eq{"PluginId": pluginId}).
+		Where(sq.Eq{"PKey": key}).
 		Where(sq.Or{
 			sq.Eq{"ExpireAt": 0},
 			sq.Gt{"ExpireAt": currentTime},
