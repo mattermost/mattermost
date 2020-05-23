@@ -96,12 +96,19 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 
 	if oldValue == nil {
 		// Delete any existing, expired value.
-		if _, err := ps.GetMaster().Exec("DELETE FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND ExpireAt != 0 AND ExpireAt < :CurrentTime",
-			map[string]interface{}{
-				"PluginId":    kv.PluginId,
-				"Key":         kv.Key,
-				"CurrentTime": model.GetMillis(),
-			}); err != nil {
+		query := ps.getQueryBuilder().
+			Delete("PluginKeyValueStore").
+			Where(sq.Eq{"PluginId": kv.PluginId}).
+			Where(sq.Eq{"PKey": kv.Key}).
+			Where(sq.NotEq{"ExpireAt": int(0)}).
+			Where(sq.Lt{"ExpireAt": model.GetMillis()})
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if _, err := ps.GetMaster().Exec(queryString, args...); err != nil {
 			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
