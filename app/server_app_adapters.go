@@ -119,7 +119,7 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
-		if s.Jobs != nil {
+		if s.Jobs != nil && s.Jobs.Schedulers != nil {
 			s.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
 		}
 	})
