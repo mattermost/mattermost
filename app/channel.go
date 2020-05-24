@@ -1287,8 +1287,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
-	if nErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
+	if nErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(nErr))
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
