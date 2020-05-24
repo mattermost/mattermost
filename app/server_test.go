@@ -49,7 +49,16 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
+	dsn := ""
+	if driverName == model.DATABASE_DRIVER_POSTGRES {
+		dsn = os.Getenv("TEST_DATABASE_POSTGRESQL_DSN")
+	} else {
+		dsn = os.Getenv("TEST_DATABASE_MYSQL_DSN")
+	}
 	cfg.SqlSettings = *storetest.MakeSqlSettings(driverName)
+	if dsn != "" {
+		cfg.SqlSettings.DataSource = &dsn
+	}
 	cfg.SqlSettings.DataSourceReplicas = []string{*cfg.SqlSettings.DataSource}
 	cfg.SqlSettings.DataSourceSearchReplicas = []string{*cfg.SqlSettings.DataSource}
 
