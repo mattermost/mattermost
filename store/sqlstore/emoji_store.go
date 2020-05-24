@@ -6,11 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 )
 
 type SqlEmojiStore struct {
@@ -51,7 +50,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	}
 
 	if err := es.GetMaster().Insert(emoji); err != nil {
-		return nil, fmt.Errorf("error saving emoji: %w", err)
+		return nil, errors.Wrap(err, "error saving emoji")
 	}
 
 	return emoji, nil
@@ -146,7 +145,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
-func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*model.Emoji, error) {
+func (es SqlEmojiStore) getBy(what, key string, addToCache bool) (*model.Emoji, error) {
 	var emoji *model.Emoji
 
 	err := es.GetReplica().SelectOne(&emoji,
@@ -156,13 +155,13 @@ func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*m
 			Emoji
 		WHERE
 			`+what+` = :Key
-			AND DeleteAt = 0`, map[string]interface{}{"Key": key})
+			AND DeleteAt = 0`, map[string]string{"Key": key})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Emoji", "")
+			return nil, store.NewErrNotFound("Emoji", fmt.Sprint("%s=%s", what, key))
 		}
 
-		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not get emoji by %s with value %s", what, key)
 	}
 
 	return emoji, nil

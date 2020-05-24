@@ -1230,7 +1230,7 @@
   },
   {
     "id": "api.emoji.create.internal_error",
-    "translation": "Unable to save emoji"
+    "translation": "Unable to save emoji."
   },
   {
     "id": "api.emoji.disabled.app_error",
