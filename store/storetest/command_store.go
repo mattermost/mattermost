@@ -209,8 +209,6 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 
 	_, err := ss.Command().Update(o1)
 	require.NotNil(t, err)
-	var invErr *store.ErrInvalidInput
-	require.True(t, errors.As(err, &invErr))
 }
 
 func testCommandCount(t *testing.T, ss store.Store) {
