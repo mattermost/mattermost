@@ -41,7 +41,6 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 
 	if err := s.GetMaster().Insert(channelMemberHistory); err != nil {
 		return errors.Wrapf(err, "LogJoinEvent userId=%s channelId=%s joinTime=%d", userId, channelId, joinTime)
-		//return model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -58,7 +57,6 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	sqlResult, err := s.GetMaster().Exec(query, params)
 	if err != nil {
 		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
-		//return model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", params, err.Error(), http.StatusInternalServerError)
 	}
 
 	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
@@ -71,7 +69,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "GetUsersInChannelDuring startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
 	}
 
 	if useChannelMemberHistory {
@@ -161,7 +159,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	return histories, nil
 }
 
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query =
