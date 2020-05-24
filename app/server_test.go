@@ -55,7 +55,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
 			server.configStore = configStore
 			return nil
 		})
@@ -67,7 +67,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
@@ -80,7 +80,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
 			server.configStore = configStore
 			return nil
 		})
@@ -92,7 +92,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: &cfg})
+			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
