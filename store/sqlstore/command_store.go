@@ -99,7 +99,7 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 	}
 
 	if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err == sql.ErrNoRows {
-		return nil, store.NewErrNotFound("Command", teamId)
+		return nil, store.NewErrNotFound("Command", trigger)
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectbytrigger: team_id=%s, trigger=%s", teamId, trigger)
 	}
