@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -77,7 +76,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 		// data from it for our export
 		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId)
 		if err2 != nil {
-			return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err2.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err2, "getFromChannelMemberHistoryTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
 		}
 		return channelMemberHistories, nil
 	}
@@ -87,7 +86,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 	// this may not always be true, but it's better than saying that somebody wasn't there when they were
 	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "GetUsersInChannelAt startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
 	}
 	return channelMemberHistories, nil
 }
@@ -181,12 +180,12 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
 	sqlResult, err := s.GetMaster().Exec(query, params)
 	if err != nil {
-		return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "PermanentDeleteBatchForChannel endTime=%d limit=%d", endTime, limit)
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "PermanentDeleteBatchForChannel endTime=%d limit=%d", endTime, limit)
 	}
 	return rowsAffected, nil
 }
