@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -66,7 +67,9 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 func (s SqlCommandStore) Get(id string) (*model.Command, error) {
 	var command model.Command
 
-	if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+	if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("Command", id)
+	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectone: command_id=%s", id)
 	}
 
@@ -93,7 +96,9 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Com
 		query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND \"trigger\" = :Trigger AND DeleteAt = 0"
 	}
 
-	if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
+	if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err == sql.ErrNoRows {
+		return nil, store.NewErrNotFound("Command", teamId)
+	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectbytrigger: team_id=%s, trigger=%s", teamId, trigger)
 	}
 
