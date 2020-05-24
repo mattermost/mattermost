@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -1356,7 +1357,15 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
-		return err
+		if err != nil {
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return appErr
+			default:
+				return model.NewAppError("PermanentDeleteTeam", "app.team.permanentdeleteteam.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
 	}
 
 	if err := a.Srv().Store.Team().PermanentDelete(team.Id); err != nil {
