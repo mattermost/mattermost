@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -244,7 +246,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		commandChan := make(chan store.StoreResult, 1)
 		go func() {
 			c, err := a.Srv().Store.Command().AnalyticsCommandCount(teamId)
-			commandChan <- store.StoreResult{Data: c, Err: err}
+			appErr := model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			commandChan <- store.StoreResult{Data: c, Err: appErr}
 			close(commandChan)
 		}()
 
