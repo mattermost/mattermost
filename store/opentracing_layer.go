@@ -2169,7 +2169,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.C
 	return resultVar0
 }
 
-func (s *OpenTracingLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.AnalyticsCommandCount")
 	s.Root.Store.SetContext(newCtx)
@@ -2187,7 +2187,7 @@ func (s *OpenTracingLayerCommandStore) AnalyticsCommandCount(teamId string) (int
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandStore) Delete(commandId string, time int64) *model.AppError {
+func (s *OpenTracingLayerCommandStore) Delete(commandId string, time int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -2205,7 +2205,7 @@ func (s *OpenTracingLayerCommandStore) Delete(commandId string, time int64) *mod
 	return resultVar0
 }
 
-func (s *OpenTracingLayerCommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) Get(id string) (*model.Command, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -2223,7 +2223,7 @@ func (s *OpenTracingLayerCommandStore) Get(id string) (*model.Command, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.GetByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -2241,7 +2241,7 @@ func (s *OpenTracingLayerCommandStore) GetByTeam(teamId string) ([]*model.Comman
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.GetByTrigger")
 	s.Root.Store.SetContext(newCtx)
@@ -2259,7 +2259,7 @@ func (s *OpenTracingLayerCommandStore) GetByTrigger(teamId string, trigger strin
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *OpenTracingLayerCommandStore) PermanentDeleteByTeam(teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.PermanentDeleteByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -2277,7 +2277,7 @@ func (s *OpenTracingLayerCommandStore) PermanentDeleteByTeam(teamId string) *mod
 	return resultVar0
 }
 
-func (s *OpenTracingLayerCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerCommandStore) PermanentDeleteByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.PermanentDeleteByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -2295,7 +2295,7 @@ func (s *OpenTracingLayerCommandStore) PermanentDeleteByUser(userId string) *mod
 	return resultVar0
 }
 
-func (s *OpenTracingLayerCommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) Save(webhook *model.Command) (*model.Command, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -2313,7 +2313,7 @@ func (s *OpenTracingLayerCommandStore) Save(webhook *model.Command) (*model.Comm
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
+func (s *OpenTracingLayerCommandStore) Update(hook *model.Command) (*model.Command, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandStore.Update")
 	s.Root.Store.SetContext(newCtx)
