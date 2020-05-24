@@ -2999,6 +2999,46 @@
     "translation": "Cluster API endpoint not found."
   },
   {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "Unable to save the command."
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "Unable to delete the command."
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "Unable to get the command."
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "Unable to list the commands."
+  },
+  {
+    "id": "app.command.listautocompletecommands.internal_error",
+    "translation": "Unable to list the autocomplete commands."
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "Unable to list the team commands."
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "Unable to move the command."
+  },
+  {
+    "id": "app.command.regencommandtoken.internal_error",
+    "translation": "Unable to regenerate the command token."
+  },
+  {
+    "id": "app.command.tryexecutecustomcommand.internal_error",
+    "translation": "Unable to execute the custom command."
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "Unable to update the command."
+  },
+  {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
   },
