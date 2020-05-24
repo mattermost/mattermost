@@ -1229,10 +1229,6 @@
     "translation": "Unable to create emoji. Image must be less than 1 MB in size."
   },
   {
-    "id": "api.emoji.create.internal_error",
-    "translation": "Unable to save emoji."
-  },
-  {
     "id": "api.emoji.disabled.app_error",
     "translation": "Custom emoji have been disabled by the system admin."
   },
@@ -3001,6 +2997,10 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "Unable to save emoji."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
