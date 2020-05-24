@@ -1304,23 +1304,28 @@ func TestDeleteChannel(t *testing.T) {
 		_, resp = client.DeleteChannel(sdPrivateChannel.Id)
 		CheckNoError(t, resp)
 	})
-	th.LoginBasic()
-	publicChannel5 := th.CreatePublicChannel()
-	c.Logout()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 
-	c.Login(user.Id, user.Password)
-	_, resp := c.DeleteChannel(publicChannel5.Id)
-	CheckUnauthorizedStatus(t, resp)
+		th.LoginBasic()
+		publicChannel5 := th.CreatePublicChannel()
+		c.Logout()
 
-	_, resp = c.DeleteChannel("junk")
-	CheckUnauthorizedStatus(t, resp)
+		c.Login(user.Id, user.Password)
+		_, resp := c.DeleteChannel(publicChannel5.Id)
+		CheckUnauthorizedStatus(t, resp)
 
-	c.Logout()
-	_, resp = c.DeleteChannel(GenerateTestId())
-	CheckUnauthorizedStatus(t, resp)
+		_, resp = c.DeleteChannel("junk")
+		CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
-	CheckNoError(t, resp)
+		c.Logout()
+		_, resp = c.DeleteChannel(GenerateTestId())
+		CheckUnauthorizedStatus(t, resp)
+
+		_, resp = client.DeleteChannel(publicChannel5.Id)
+		CheckNoError(t, resp)
+
+	})
+
 }
 
 func TestDeleteChannel2(t *testing.T) {
