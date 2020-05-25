@@ -61,7 +61,11 @@ func NewErrConflict(resource string, err error, meta string) *ErrConflict {
 }
 
 func (e *ErrConflict) Error() string {
-	return e.Resource + "exists " + e.meta + " " + e.err.Error()
+	msg := e.Resource + "exists " + e.meta
+	if e.err != nil {
+		msg += " " + e.err.Error()
+	}
+	return msg
 }
 
 func (e *ErrConflict) Unwrap() error {
