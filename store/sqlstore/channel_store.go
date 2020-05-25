@@ -3592,7 +3592,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 			}
 		}
 		if !found {
-			return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories contains unrecognized category IDs", http.StatusInternalServerError)
+			return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories contains unrecognized category IDs", http.StatusBadRequest)
 		}
 	}
 	var newOrder []interface{}
