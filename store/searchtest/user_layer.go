@@ -104,7 +104,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should ignore leading @ when searching users",
 		Fn:   testShouldIgnoreLeadingAtSymbols,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should search users in a case insensitive manner",
