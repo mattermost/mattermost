@@ -16,12 +16,18 @@ func (a *App) MakePermissionError(permission *model.Permission) *model.AppError 
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	if session.IsUnrestricted() {
+		return true
+	}
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
 	if teamId == "" {
 		return false
+	}
+	if session.IsUnrestricted() {
+		return true
 	}
 
 	teamMember := session.GetTeamByTeamId(teamId)

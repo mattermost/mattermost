@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -177,6 +178,10 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	if err != nil || res.StatusCode != 200 {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 	}
+	defer func() {
+		_, _ = io.Copy(ioutil.Discard, res.Body)
+		_ = res.Body.Close()
+	}()
 
 	return nil
 }

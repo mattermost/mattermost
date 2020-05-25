@@ -1443,15 +1443,23 @@ func (s *SqlGroupStore) GroupMemberCount() (int64, *model.AppError) {
 }
 
 func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
-	return s.countTableWithSelect("COUNT(DISTINCT UserId)", "GroupMembers")
+	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
+}
+
+func (s *SqlGroupStore) GroupCountWithAllowReference() (int64, *model.AppError) {
+	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"AllowReference": true, "DeleteAt": 0})
 }
 
 func (s *SqlGroupStore) countTable(tableName string) (int64, *model.AppError) {
-	return s.countTableWithSelect("COUNT(*)", tableName)
+	return s.countTableWithSelectAndWhere("COUNT(*)", tableName, nil)
 }
 
-func (s *SqlGroupStore) countTableWithSelect(selectStr, tableName string) (int64, *model.AppError) {
-	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(sq.Eq{"DeleteAt": 0})
+func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]interface{}) (int64, *model.AppError) {
+	if whereStmt == nil {
+		whereStmt = sq.Eq{"DeleteAt": 0}
+	}
+
+	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(whereStmt)
 
 	sql, args, err := query.ToSql()
 	if err != nil {
