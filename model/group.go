@@ -32,7 +32,7 @@ var groupSourcesRequiringRemoteID = []GroupSource{
 
 type Group struct {
 	Id             string      `json:"id"`
-	Name           string      `json:"name"`
+	Name           *string     `json:"name,omitempty"`
 	DisplayName    string      `json:"display_name"`
 	Description    string      `json:"description"`
 	Source         GroupSource `json:"source"`
@@ -90,7 +90,7 @@ type PageOpts struct {
 
 func (group *Group) Patch(patch *GroupPatch) {
 	if patch.Name != nil {
-		group.Name = *patch.Name
+		group.Name = patch.Name
 	}
 	if patch.DisplayName != nil {
 		group.DisplayName = *patch.DisplayName
@@ -168,14 +168,19 @@ func (group *Group) ToJson() string {
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
-	if l := len(group.Name); l == 0 || l > GroupNameMaxLength {
-		return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
-	}
 
-	if !validGroupnameChars.MatchString(group.Name) {
-		return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
-	}
+	if group.AllowReference {
+		if group.Name == nil {
+			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
+		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
+			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
 
+		if !validGroupnameChars.MatchString(*group.Name) {
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
 	return nil
 }
 
