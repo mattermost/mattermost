@@ -101,8 +101,8 @@ func TestPatchGroup(t *testing.T) {
 
 	assert.Equal(t, *gp.DisplayName, group.DisplayName)
 	assert.Equal(t, *gp.DisplayName, group2.DisplayName)
-	assert.Equal(t, *gp.Name, group.Name)
-	assert.Equal(t, *gp.Name, group2.Name)
+	assert.Equal(t, *gp.Name, *group.Name)
+	assert.Equal(t, *gp.Name, *group2.Name)
 	assert.Equal(t, *gp.Description, group.Description)
 	assert.Equal(t, *gp.Description, group2.Description)
 

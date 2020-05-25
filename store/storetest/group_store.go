@@ -98,7 +98,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	d1, err := ss.Group().Create(g1)
 	require.Nil(t, err)
 	require.Len(t, d1.Id, 26)
-	require.Equal(t, g1.Name, d1.Name)
+	require.Equal(t, *g1.Name, *d1.Name)
 	require.Equal(t, g1.DisplayName, d1.DisplayName)
 	require.Equal(t, g1.Description, d1.Description)
 	require.Equal(t, g1.RemoteId, d1.RemoteId)
@@ -106,21 +106,14 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	require.NotZero(t, d1.UpdateAt)
 	require.Zero(t, d1.DeleteAt)
 
-	// Requires name and display name
+	// Requires display name
 	g2 := &model.Group{
-		Name:        model.NewString(""),
-		DisplayName: model.NewId(),
+		Name:        model.NewString(model.NewId()),
+		DisplayName: "",
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	data, err := ss.Group().Create(g2)
-	require.Nil(t, data)
-	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.name.app_error")
-
-	g2.Name = model.NewString(model.NewId())
-	g2.DisplayName = ""
-	data, err = ss.Group().Create(g2)
 	require.Nil(t, data)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "model.group.display_name.app_error")
@@ -207,7 +200,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 	d2, err := ss.Group().Get(d1.Id)
 	require.Nil(t, err)
 	require.Equal(t, d1.Id, d2.Id)
-	require.Equal(t, d1.Name, d2.Name)
+	require.Equal(t, *d1.Name, *d2.Name)
 	require.Equal(t, d1.DisplayName, d2.DisplayName)
 	require.Equal(t, d1.Description, d2.Description)
 	require.Equal(t, d1.RemoteId, d2.RemoteId)
@@ -242,7 +235,7 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 	d2, err := ss.Group().GetByName(*d1.Name, g1Opts)
 	require.Nil(t, err)
 	require.Equal(t, d1.Id, d2.Id)
-	require.Equal(t, d1.Name, d2.Name)
+	require.Equal(t, *d1.Name, *d2.Name)
 	require.Equal(t, d1.DisplayName, d2.DisplayName)
 	require.Equal(t, d1.Description, d2.Description)
 	require.Equal(t, d1.RemoteId, d2.RemoteId)
@@ -306,7 +299,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	d2, err := ss.Group().GetByRemoteID(d1.RemoteId, model.GroupSourceLdap)
 	require.Nil(t, err)
 	require.Equal(t, d1.Id, d2.Id)
-	require.Equal(t, d1.Name, d2.Name)
+	require.Equal(t, *d1.Name, *d2.Name)
 	require.Equal(t, d1.DisplayName, d2.DisplayName)
 	require.Equal(t, d1.Description, d2.Description)
 	require.Equal(t, d1.RemoteId, d2.RemoteId)
@@ -456,25 +449,13 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Still zero...
 	require.Zero(t, ud1.DeleteAt)
 	// Updated...
-	require.Equal(t, g1Update.Name, ud1.Name)
+	require.Equal(t, *g1Update.Name, *ud1.Name)
 	require.Equal(t, g1Update.DisplayName, ud1.DisplayName)
 	require.Equal(t, g1Update.Description, ud1.Description)
 	require.Equal(t, g1Update.RemoteId, ud1.RemoteId)
 
-	// Requires name and display name
+	// Requires display name
 	data, err := ss.Group().Update(&model.Group{
-		Id:          d1.Id,
-		Name:        model.NewString(""),
-		DisplayName: model.NewId(),
-		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewId(),
-		Description: model.NewId(),
-	})
-	require.Nil(t, data)
-	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.name.app_error")
-
-	data, err = ss.Group().Update(&model.Group{
 		Id:          d1.Id,
 		Name:        model.NewString(model.NewId()),
 		DisplayName: "",
