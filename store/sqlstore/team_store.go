@@ -461,6 +461,7 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+// GetAll returns all teams
 func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -477,6 +478,7 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -513,6 +515,7 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.App
 	return teams, nil
 }
 
+// GetAllPrivateTeamListing returns all private teams.
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).
 		OrderBy("DisplayName").ToSql()
@@ -526,6 +529,7 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError
 	return data, nil
 }
 
+// GetAllPublicTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
 		OrderBy("DisplayName").
@@ -543,6 +547,7 @@ func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mod
 	return data, nil
 }
 
+// GetAllPrivateTeamPageListing returns private teams, up to a total limit passed as paramater and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).
 		OrderBy("DisplayName").
@@ -561,6 +566,7 @@ func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mo
 	return data, nil
 }
 
+// GetAllTeamListing returns all public teams.
 func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
 		OrderBy("DisplayName").ToSql()
@@ -577,6 +583,7 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	return data, nil
 }
 
+// GetAllTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": true}).
 		OrderBy("DisplayName").
@@ -1341,6 +1348,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *m
 	return count, nil
 }
 
+// GetAllForExportAfter returns teams for export, up to a total limit passed as paramater where Teams.Id is greater than the afterId passed as parameter.
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
 	var data []*model.TeamForExport
 	query, args, err := s.getQueryBuilder().
