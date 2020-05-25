@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const requestTrialURL = "https://portal.test.cloud.mattermost.com/api/v1/trials"
+const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
 func (a *App) LoadLicense() {
 	licenseId := ""
