@@ -5,4 +5,5 @@ package api4
 
 func (api *API) InitBotLocal() {
 	api.BaseRoutes.Bot.Handle("", api.ApiLocal(patchBot)).Methods("PUT")
+	api.BaseRoutes.Bots.Handle("", api.ApiLocal(getBots)).Methods("GET")
 }
