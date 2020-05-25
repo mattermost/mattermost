@@ -4502,7 +4502,7 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	group1, err := ss.Group().Create(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -4515,7 +4515,7 @@ func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
 	require.Equal(t, count, initialCount)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:           model.NewId(),
+		Name:           model.NewString(model.NewId()),
 		DisplayName:    model.NewId(),
 		Source:         model.GroupSourceLdap,
 		RemoteId:       model.NewId(),
