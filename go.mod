@@ -26,6 +26,7 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/francoispqt/gojay v1.2.13
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/getsentry/sentry-go v0.6.0
 	github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a // indirect
 	github.com/go-asn1-ber/asn1-ber v1.4.1 // indirect
 	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
@@ -93,7 +94,6 @@ require (
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/sirupsen/logrus v1.5.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0
