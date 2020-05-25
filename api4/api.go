@@ -283,12 +283,15 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
+	api.BaseRoutes.Bot = api.BaseRoutes.ApiRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitLicenseLocal()
 	api.InitConfigLocal()
 	api.InitCommandLocal()
 	api.InitPluginLocal()
+	api.InitBotLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

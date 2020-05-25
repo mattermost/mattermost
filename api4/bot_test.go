@@ -141,8 +141,66 @@ func TestPatchBot(t *testing.T) {
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
-		_, resp := th.SystemAdminClient.PatchBot(model.NewId(), &model.BotPatch{})
-		CheckNotFoundStatus(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.PatchBot(model.NewId(), &model.BotPatch{})
+			CheckNotFoundStatus(t, resp)
+		})
+	})
+
+	t.Run("system admin and local client can patch any bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		createdBot, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot created by a user",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			botPatch := &model.BotPatch{
+				Username:    sToP(GenerateTestUsername()),
+				DisplayName: sToP("an updated bot"),
+				Description: sToP("updated bot"),
+			}
+			patchedBot, resp := client.PatchBot(createdBot.UserId, botPatch)
+			CheckOKStatus(t, resp)
+			require.Equal(t, *botPatch.Username, patchedBot.Username)
+			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
+			require.Equal(t, *botPatch.Description, patchedBot.Description)
+			require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
+		}, "bot created by user")
+
+		createdBotSystemAdmin, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "another bot",
+			Description: "bot created by system admin user",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBotSystemAdmin.UserId)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			botPatch := &model.BotPatch{
+				Username:    sToP(GenerateTestUsername()),
+				DisplayName: sToP("an updated bot"),
+				Description: sToP("updated bot"),
+			}
+			patchedBot, resp := client.PatchBot(createdBotSystemAdmin.UserId, botPatch)
+			CheckOKStatus(t, resp)
+			require.Equal(t, *botPatch.Username, patchedBot.Username)
+			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
+			require.Equal(t, *botPatch.Description, patchedBot.Description)
+			require.Equal(t, th.SystemAdminUser.Id, patchedBot.OwnerId)
+		}, "bot created by system admin")
 	})
 
 	t.Run("patch someone else's bot without permission", func(t *testing.T) {
