@@ -1006,7 +1006,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	if err = a.RemoveTeamMemberFromTeam(teamMember, requestorId); err != nil {
+	if err := a.RemoveTeamMemberFromTeam(teamMember, requestorId); err != nil {
 		return err
 	}
 
