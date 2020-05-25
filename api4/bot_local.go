@@ -7,6 +7,7 @@ func (api *API) InitBotLocal() {
 	api.BaseRoutes.Bot.Handle("", api.ApiLocal(patchBot)).Methods("PUT")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiLocal(disableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/enable", api.ApiLocal(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiLocal(assignBot)).Methods("POST")
 
 	api.BaseRoutes.Bots.Handle("", api.ApiLocal(getBots)).Methods("GET")
 }

@@ -1047,11 +1047,13 @@ func TestAssignBot(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("claim non-existent bot", func(t *testing.T) {
-		_, resp := th.SystemAdminClient.AssignBot(model.NewId(), model.NewId())
-		CheckNotFoundStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.AssignBot(model.NewId(), model.NewId())
+			CheckNotFoundStatus(t, resp)
+		})
 	})
 
-	t.Run("system admin assign bot", func(t *testing.T) {
+	t.Run("system admin and local mode assign bot", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
@@ -1084,8 +1086,8 @@ func TestAssignBot(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.SystemAdminUser.Id, after.OwnerId)
 
-		// Assign back to user without permissions to manage
-		_, resp = th.SystemAdminClient.AssignBot(bot.UserId, th.BasicUser.Id)
+		// Assign back to user without permissions to manage, using local mode
+		_, resp = th.LocalClient.AssignBot(bot.UserId, th.BasicUser.Id)
 		CheckOKStatus(t, resp)
 
 		after, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
