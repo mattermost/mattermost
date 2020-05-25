@@ -1872,7 +1872,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.Nil(t, img)
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "Client.Timeout")
 
 		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
