@@ -100,7 +100,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	}
 	query, args, err := sql.ToSql()
 	if err != nil {
-		return false, model.NewAppError("SqlJobStore.UpdateStatus", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SqlJobStore.UpdateStatusOptimistically", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	sqlResult, err := jss.GetMaster().Exec(query, args...)
