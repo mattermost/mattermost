@@ -17,7 +17,7 @@ var (
 	}
 )
 
-func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
+func findPath(path string, baseSearchPaths []string, workingDirFirst bool, filter func(os.FileInfo) bool) string {
 	if filepath.IsAbs(path) {
 		if _, err := os.Stat(path); err == nil {
 			return path
@@ -27,9 +27,12 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 	}
 
 	searchPaths := []string{}
-	searchPaths = append(searchPaths, baseSearchPaths...)
+	if workingDirFirst {
+		searchPaths = append(searchPaths, baseSearchPaths...)
+	}
 
-	// Additionally attempt to search relative to the location of the running binary.
+	// Attempt to search relative to the location of the running binary either before
+	// or after searching relative to the working directory, depending on `workingDirFirst`.
 	var binaryDir string
 	if exe, err := os.Executable(); err == nil {
 		if exe, err = filepath.EvalSymlinks(exe); err == nil {
@@ -45,6 +48,10 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 				filepath.Join(binaryDir, baseSearchPath),
 			)
 		}
+	}
+
+	if !workingDirFirst {
+		searchPaths = append(searchPaths, baseSearchPaths...)
 	}
 
 	for _, parent := range searchPaths {
@@ -65,6 +72,10 @@ func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bo
 	return ""
 }
 
+func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
+	return findPath(path, baseSearchPaths, true, filter)
+}
+
 // FindFile looks for the given file in nearby ancestors relative to the current working
 // directory as well as the directory of the executable.
 func FindFile(path string) string {
@@ -83,5 +94,17 @@ func FindDir(dir string) (string, bool) {
 		return "./", false
 	}
 
+	return found, true
+}
+
+// FindDirRelBinary looks for the given directory in nearby ancestors relative to the
+// directory of the executable, then relative to the working directory, falling back to `./` if not found.
+func FindDirRelBinary(dir string) (string, bool) {
+	found := findPath(dir, commonBaseSearchPaths, false, func(fileInfo os.FileInfo) bool {
+		return fileInfo.IsDir()
+	})
+	if found == "" {
+		return "./", false
+	}
 	return found, true
 }

@@ -45,7 +45,7 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 	}
 }
 
-func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(channel, maxChannels)
 	if err == nil {
 		c.indexChannel(newChannel)
@@ -97,7 +97,7 @@ func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *mod
 	return err
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
 	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)

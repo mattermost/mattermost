@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -322,7 +323,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	patch := model.ChannelPatchFromJson(r.Body)
 	if patch == nil {
 		c.SetInvalidParam("channel")
@@ -960,18 +960,18 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
-		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+		IncludeDeleted:         includeDeleted,
 		Page:                   props.Page,
 		PerPage:                props.PerPage,
 	}
 
-	channels, totalCount, err := c.App.SearchAllChannels(props.Term, opts)
-	if err != nil {
-		c.Err = err
+	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1038,11 +1038,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-
-	channel, err := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
-	if err != nil {
-		c.Err = err
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	channel, appErr := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1058,9 +1057,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = c.App.FillInChannelProps(channel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1073,11 +1072,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-
-	channel, err := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
-	if err != nil {
-		c.Err = err
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	channel, appErr := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1086,9 +1084,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = c.App.FillInChannelProps(channel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
