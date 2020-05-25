@@ -17,11 +17,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
+
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -38,9 +41,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -48,10 +53,15 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
 	Store           store.Store
+	sqlStore        *sqlstore.SqlSupplier
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
+
+	// LocalRouter is the starting point for all the local UNIX socket
+	// requests to the server
+	LocalRouter *mux.Router
 
 	// Router is the starting point for all web, api4 and ws requests to the server. It differs
 	// from RootRouter only if the SiteURL contains a /subpath.
@@ -61,6 +71,8 @@ type Server struct {
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
 	Busy        *Busy
+
+	localModeServer *http.Server
 
 	didFinishListen chan struct{}
 
@@ -152,10 +164,12 @@ type Server struct {
 
 func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
+	localRouter := mux.NewRouter()
 
 	s := &Server{
 		goroutineExitSignal: make(chan struct{}, 1),
 		RootRouter:          rootRouter,
+		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		clientConfig:        make(map[string]string),
 	}
@@ -191,6 +205,20 @@ func NewServer(options ...Option) (*Server, error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
+		if strings.Contains(SENTRY_DSN, "placeholder") {
+			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
+		} else {
+			if err := sentry.Init(sentry.ClientOptions{
+				Dsn:              SENTRY_DSN,
+				Release:          model.BuildHash,
+				AttachStacktrace: true,
+			}); err != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
+			}
+		}
+	}
+
 	if *s.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err := tracing.New()
 		if err != nil {
@@ -215,7 +243,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
+	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	if err := bleveEngine.Start(); err != nil {
+		return nil, err
+	}
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	s.SearchEngine = searchEngine
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -227,8 +261,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
-	err := s.RunOldAppInitialization()
-	if err != nil {
+	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
 	}
 
@@ -276,11 +309,22 @@ func NewServer(options ...Option) (*Server, error) {
 
 	license := s.License()
 
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 1 {
-		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
+		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
 		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
+			cfg.SqlSettings.DataSourceReplicas = []string{}
 		})
+		s.Store.Close()
+		s.Store = s.newStore()
+	}
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
+		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
+		})
+		s.Store.Close()
+		s.Store = s.newStore()
 	}
 
 	if license == nil {
@@ -306,6 +350,9 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
+	// Scheduler must be started before cluster.
+	s.initJobs()
+
 	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().registerAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
@@ -330,8 +377,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	s.initJobs()
-
 	if s.runjobs {
 		s.Go(func() {
 			runSecurityJob(s)
@@ -347,6 +392,9 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
+		})
+		s.Go(func() {
+			runLicenseExpirationCheckJob(s)
 		})
 
 		if complianceI := s.Compliance; complianceI != nil {
@@ -403,6 +451,8 @@ func (s *Server) StopHTTPServer() {
 func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
+	defer sentry.Flush(2 * time.Second)
+
 	s.RunOldAppShutdown()
 
 	if s.tracer != nil {
@@ -417,6 +467,8 @@ func (s *Server) Shutdown() error {
 	}
 
 	s.StopHTTPServer()
+	s.stopLocalModeServer()
+
 	s.WaitForGoroutines()
 
 	if s.htmlTemplateWatcher != nil {
@@ -439,6 +491,7 @@ func (s *Server) Shutdown() error {
 		s.Metrics.StopServer()
 	}
 
+	// This must be done after the cluster is stopped.
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
@@ -511,6 +564,14 @@ func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
+
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+		sentryHandler := sentryhttp.New(sentryhttp.Options{
+			Repanic: true,
+		})
+		handler = sentryHandler.Handle(handler)
+	}
+
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
 		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
 		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
@@ -696,7 +757,42 @@ func (s *Server) Start() error {
 		close(s.didFinishListen)
 	}()
 
+	if *s.Config().ServiceSettings.EnableLocalMode {
+		if err := s.startLocalModeServer(); err != nil {
+			mlog.Critical(err.Error())
+		}
+	}
+
 	return nil
+}
+
+func (s *Server) startLocalModeServer() error {
+	s.localModeServer = &http.Server{
+		Handler: s.LocalRouter,
+	}
+
+	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	unixListener, err := net.Listen("unix", socket)
+	if err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+	if err = os.Chmod(socket, 0600); err != nil {
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+	}
+
+	go func() {
+		err = s.localModeServer.Serve(unixListener)
+		if err != nil && err != http.ErrServerClosed {
+			mlog.Critical("Error starting unix socket server", mlog.Err(err))
+		}
+	}()
+	return nil
+}
+
+func (s *Server) stopLocalModeServer() {
+	if s.localModeServer != nil {
+		s.localModeServer.Close()
+	}
 }
 
 func (a *App) OriginChecker() func(*http.Request) bool {
@@ -777,6 +873,13 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
+func runLicenseExpirationCheckJob(s *Server) {
+	doLicenseExpirationCheck(s)
+	model.CreateRecurringTask("License Expiration Check", func() {
+		doLicenseExpirationCheck(s)
+	}, time.Hour*24)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -802,6 +905,46 @@ const (
 
 func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+}
+
+func doLicenseExpirationCheck(s *Server) {
+	s.FakeApp().LoadLicense()
+	license := s.License()
+
+	if license == nil {
+		mlog.Debug("License cannot be found.")
+		return
+	}
+
+	if !license.IsPastGracePeriod() {
+		mlog.Debug("License is not past the grace period.")
+		return
+	}
+
+	users, err := s.Store.User().GetSystemAdminProfiles()
+	if err != nil {
+		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		return
+	}
+
+	//send email to admin(s)
+	for _, user := range users {
+		user := user
+		if user.Email == "" {
+			mlog.Error("Invalid system admin email.", mlog.String("user_email", user.Email))
+			continue
+		}
+
+		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
+		s.Go(func() {
+			if err := s.FakeApp().SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+			}
+		})
+	}
+
+	//remove the license
+	s.FakeApp().RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -876,6 +1019,9 @@ func (s *Server) stopSearchEngine() {
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
 	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
+	}
+	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
+		s.SearchEngine.BleveEngine.Stop()
 	}
 }
 

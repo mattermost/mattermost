@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -322,7 +323,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
-
 	patch := model.ChannelPatchFromJson(r.Body)
 	if patch == nil {
 		c.SetInvalidParam("channel")
@@ -428,7 +428,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, id := range userIds {
-		if len(id) != 26 {
+		if !model.IsValidId(id) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -507,7 +507,7 @@ func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	found := false
 	for _, id := range userIds {
-		if len(id) != 26 {
+		if !model.IsValidId(id) {
 			c.SetInvalidParam("user_id")
 			return
 		}
@@ -774,7 +774,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	for _, cid := range channelIds {
-		if len(cid) != 26 {
+		if !model.IsValidId(cid) {
 			c.SetInvalidParam("channel_id")
 			return
 		}
@@ -960,18 +960,18 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   props.NotAssociatedToGroup,
 		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
-		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+		IncludeDeleted:         includeDeleted,
 		Page:                   props.Page,
 		PerPage:                props.PerPage,
 	}
 
-	channels, totalCount, err := c.App.SearchAllChannels(props.Term, opts)
-	if err != nil {
-		c.Err = err
+	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1038,11 +1038,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-
-	channel, err := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
-	if err != nil {
-		c.Err = err
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	channel, appErr := c.App.GetChannelByName(c.Params.ChannelName, c.Params.TeamId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1058,9 +1057,9 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = c.App.FillInChannelProps(channel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1073,11 +1072,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-
-	channel, err := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
-	if err != nil {
-		c.Err = err
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	channel, appErr := c.App.GetChannelByNameForTeamName(c.Params.ChannelName, c.Params.TeamName, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1086,9 +1084,9 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = c.App.FillInChannelProps(channel)
-	if err != nil {
-		c.Err = err
+	appErr = c.App.FillInChannelProps(channel)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -1241,6 +1239,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
+	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	// Returning {"status": "OK", ...} for backwards compatibility
 	resp := &model.ChannelViewResponse{
@@ -1358,7 +1357,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.StringInterfaceFromJson(r.Body)
 	userId, ok := props["user_id"].(string)
-	if !ok || len(userId) != 26 {
+	if !ok || !model.IsValidId(userId) {
 		c.SetInvalidParam("user_id")
 		return
 	}
@@ -1369,7 +1368,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	postRootId, ok := props["post_root_id"].(string)
-	if ok && len(postRootId) != 0 && len(postRootId) != 26 {
+	if ok && len(postRootId) != 0 && !model.IsValidId(postRootId) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
@@ -1538,7 +1537,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	schemeID := model.SchemeIDFromJson(r.Body)
-	if schemeID == nil || len(*schemeID) != 26 {
+	if schemeID == nil || !model.IsValidId(*schemeID) {
 		c.SetInvalidParam("scheme_id")
 		return
 	}
@@ -1605,7 +1604,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 
 	groupIDs := []string{}
 	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
-		if len(gid) != 26 {
+		if !model.IsValidId(gid) {
 			c.SetInvalidParam("group_ids")
 			return
 		}
