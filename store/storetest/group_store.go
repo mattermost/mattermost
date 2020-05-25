@@ -81,6 +81,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GroupChannelCount", func(t *testing.T) { groupTestGroupChannelCount(t, ss) })
 	t.Run("GroupMemberCount", func(t *testing.T) { groupTestGroupMemberCount(t, ss) })
 	t.Run("DistinctGroupMemberCount", func(t *testing.T) { groupTestDistinctGroupMemberCount(t, ss) })
+	t.Run("GroupCountWithAllowReference", func(t *testing.T) { groupTestGroupCountWithAllowReference(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -1869,8 +1870,8 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 		DisplayName: "dn_" + model.NewId(),
 		OwnerId:     teamMember.UserId,
 	}
-	bot, err = ss.Bot().Save(bot)
-	require.Nil(t, err)
+	bot, nErr := ss.Bot().Save(bot)
+	require.Nil(t, nErr)
 
 	// verify that bot is not returned in results
 	teamMembers, err = ss.Group().TeamMembersToRemove(nil)
@@ -1878,8 +1879,8 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 2)
 
 	// delete the bot
-	err = ss.Bot().PermanentDelete(bot.UserId)
-	require.Nil(t, err)
+	nErr = ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, nErr)
 
 	// Should be back to 3 users
 	teamMembers, err = ss.Group().TeamMembersToRemove(nil)
@@ -2021,8 +2022,8 @@ func testChannelMembersToRemove(t *testing.T, ss store.Store) {
 		DisplayName: "dn_" + model.NewId(),
 		OwnerId:     channelMember.UserId,
 	}
-	bot, err = ss.Bot().Save(bot)
-	require.Nil(t, err)
+	bot, nErr := ss.Bot().Save(bot)
+	require.Nil(t, nErr)
 
 	// verify that bot is not returned in results
 	channelMembers, err = ss.Group().ChannelMembersToRemove(nil)
@@ -2030,8 +2031,8 @@ func testChannelMembersToRemove(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 2)
 
 	// delete the bot
-	err = ss.Bot().PermanentDelete(bot.UserId)
-	require.Nil(t, err)
+	nErr = ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, nErr)
 
 	// Should be back to 3 users
 	channelMembers, err = ss.Group().ChannelMembersToRemove(nil)
@@ -4513,4 +4514,36 @@ func groupTestDistinctGroupMemberCount(t *testing.T, ss store.Store) {
 	countAfter2, err := ss.Group().GroupMemberCount()
 	require.Nil(t, err)
 	require.GreaterOrEqual(t, countAfter2, countAfter1)
+}
+
+func groupTestGroupCountWithAllowReference(t *testing.T, ss store.Store) {
+	initialCount, err := ss.Group().GroupCountWithAllowReference()
+	require.Nil(t, err)
+
+	group1, err := ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	})
+	require.Nil(t, err)
+	defer ss.Group().Delete(group1.Id)
+
+	count, err := ss.Group().GroupCountWithAllowReference()
+	require.Nil(t, err)
+	require.Equal(t, count, initialCount)
+
+	group2, err := ss.Group().Create(&model.Group{
+		Name:           model.NewId(),
+		DisplayName:    model.NewId(),
+		Source:         model.GroupSourceLdap,
+		RemoteId:       model.NewId(),
+		AllowReference: true,
+	})
+	require.Nil(t, err)
+	defer ss.Group().Delete(group2.Id)
+
+	countAfter, err := ss.Group().GroupCountWithAllowReference()
+	require.Nil(t, err)
+	require.Greater(t, countAfter, count)
 }
