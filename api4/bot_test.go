@@ -172,8 +172,8 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, resp := client.PatchBot(createdBot.UserId, botPatch)
-			CheckOKStatus(t, resp)
+			patchedBot, patchResp := client.PatchBot(createdBot.UserId, botPatch)
+			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
 			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
 			require.Equal(t, *botPatch.Description, patchedBot.Description)
@@ -194,8 +194,8 @@ func TestPatchBot(t *testing.T) {
 				DisplayName: sToP("an updated bot"),
 				Description: sToP("updated bot"),
 			}
-			patchedBot, resp := client.PatchBot(createdBotSystemAdmin.UserId, botPatch)
-			CheckOKStatus(t, resp)
+			patchedBot, patchResp := client.PatchBot(createdBotSystemAdmin.UserId, botPatch)
+			CheckOKStatus(t, patchResp)
 			require.Equal(t, *botPatch.Username, patchedBot.Username)
 			require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
 			require.Equal(t, *botPatch.Description, patchedBot.Description)
