@@ -24,7 +24,7 @@ import (
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.ApiHandler(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("", api.ApiSessionRequired(getUsers)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/addfriend", api.ApiSessionRequired(addFriend)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/friend", api.ApiSessionRequired(addFriend)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiSessionRequired(getUsersByIds)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/known", api.ApiSessionRequired(getKnownUsers)).Methods("GET")
