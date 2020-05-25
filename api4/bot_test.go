@@ -841,8 +841,10 @@ func TestDisableBot(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		_, resp := th.Client.DisableBot(model.NewId())
-		CheckNotFoundStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.DisableBot(model.NewId())
+			CheckNotFoundStatus(t, resp)
+		})
 	})
 
 	t.Run("disable bot without permission", func(t *testing.T) {
@@ -906,28 +908,30 @@ func TestDisableBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		bot, resp := th.Client.CreateBot(&model.Bot{
-			Username:    GenerateTestUsername(),
-			Description: "bot",
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			bot, resp := th.Client.CreateBot(&model.Bot{
+				Username:    GenerateTestUsername(),
+				Description: "bot",
+			})
+			CheckCreatedStatus(t, resp)
+			defer th.App.PermanentDeleteBot(bot.UserId)
+
+			disabledBot, resp := client.DisableBot(bot.UserId)
+			CheckOKStatus(t, resp)
+			bot.UpdateAt = disabledBot.UpdateAt
+			bot.DeleteAt = disabledBot.DeleteAt
+			require.Equal(t, bot, disabledBot)
+
+			// Check bot disabled
+			disab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+			CheckOKStatus(t, resp)
+			require.NotZero(t, disab.DeleteAt)
+
+			// Disabling should be idempotent.
+			disabledBot2, resp := client.DisableBot(bot.UserId)
+			CheckOKStatus(t, resp)
+			require.Equal(t, bot, disabledBot2)
 		})
-		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
-
-		enabledBot1, resp := th.Client.DisableBot(bot.UserId)
-		CheckOKStatus(t, resp)
-		bot.UpdateAt = enabledBot1.UpdateAt
-		bot.DeleteAt = enabledBot1.DeleteAt
-		require.Equal(t, bot, enabledBot1)
-
-		// Check bot disabled
-		disab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
-		CheckOKStatus(t, resp)
-		require.NotZero(t, disab.DeleteAt)
-
-		// Disabling should be idempotent.
-		enabledBot2, resp := th.Client.DisableBot(bot.UserId)
-		CheckOKStatus(t, resp)
-		require.Equal(t, bot, enabledBot2)
 	})
 }
 func TestEnableBot(t *testing.T) {
@@ -935,8 +939,10 @@ func TestEnableBot(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		_, resp := th.Client.EnableBot(model.NewId())
-		CheckNotFoundStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := th.Client.EnableBot(model.NewId())
+			CheckNotFoundStatus(t, resp)
+		})
 	})
 
 	t.Run("enable bot without permission", func(t *testing.T) {
@@ -1006,31 +1012,33 @@ func TestEnableBot(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
-		bot, resp := th.Client.CreateBot(&model.Bot{
-			Username:    GenerateTestUsername(),
-			Description: "bot",
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			bot, resp := th.Client.CreateBot(&model.Bot{
+				Username:    GenerateTestUsername(),
+				Description: "bot",
+			})
+			CheckCreatedStatus(t, resp)
+			defer th.App.PermanentDeleteBot(bot.UserId)
+
+			_, resp = th.SystemAdminClient.DisableBot(bot.UserId)
+			CheckOKStatus(t, resp)
+
+			enabledBot1, resp := client.EnableBot(bot.UserId)
+			CheckOKStatus(t, resp)
+			bot.UpdateAt = enabledBot1.UpdateAt
+			bot.DeleteAt = enabledBot1.DeleteAt
+			require.Equal(t, bot, enabledBot1)
+
+			// Check bot enabled
+			enab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+			CheckOKStatus(t, resp)
+			require.Zero(t, enab.DeleteAt)
+
+			// Disabling should be idempotent.
+			enabledBot2, resp := client.EnableBot(bot.UserId)
+			CheckOKStatus(t, resp)
+			require.Equal(t, bot, enabledBot2)
 		})
-		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
-
-		_, resp = th.SystemAdminClient.DisableBot(bot.UserId)
-		CheckOKStatus(t, resp)
-
-		enabledBot1, resp := th.Client.EnableBot(bot.UserId)
-		CheckOKStatus(t, resp)
-		bot.UpdateAt = enabledBot1.UpdateAt
-		bot.DeleteAt = enabledBot1.DeleteAt
-		require.Equal(t, bot, enabledBot1)
-
-		// Check bot enabled
-		enab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
-		CheckOKStatus(t, resp)
-		require.Zero(t, enab.DeleteAt)
-
-		// Disabling should be idempotent.
-		enabledBot2, resp := th.Client.EnableBot(bot.UserId)
-		CheckOKStatus(t, resp)
-		require.Equal(t, bot, enabledBot2)
 	})
 }
 
