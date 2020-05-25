@@ -98,6 +98,9 @@ func (s *Server) initJobs() {
 	if jobsPluginsInterface != nil {
 		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
 	}
+	if jobsBleveIndexerInterface != nil {
+		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
+	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
 }
