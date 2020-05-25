@@ -3495,8 +3495,6 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 		return category, nil
 	}
 
-	var sql string
-	var args []interface{}
 	// any public/private channels that aren't in any category should be returned as part of the Channels category
 	channelTypeFilter := sq.Eq{"Channels.Type": []string{model.CHANNEL_OPEN, model.CHANNEL_PRIVATE}}
 	if category.Type == model.SidebarCategoryDirectMessages {
@@ -3504,7 +3502,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 		channelTypeFilter = sq.Eq{"Channels.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}}
 	}
 	var channels []string
-	sql, args, _ = s.getQueryBuilder().
+	sql, args, _ := s.getQueryBuilder().
 		Select("Id").
 		From("ChannelMembers").
 		LeftJoin("Channels ON Channels.Id=ChannelMembers.ChannelId").
