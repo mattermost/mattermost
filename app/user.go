@@ -268,6 +268,13 @@ func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *mod
 	return ruser, nil
 }
 
+
+func (a *App) AddFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
+	rfriend, err := a.Srv().Store.Friend().Save(friend)
+
+	return rfriend, err
+}
+
 func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 

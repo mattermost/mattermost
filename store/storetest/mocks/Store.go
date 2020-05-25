@@ -18,6 +18,10 @@ type Store struct {
 	mock.Mock
 }
 
+func (_m *Store) Friend() store.FriendStore {
+	panic("implement me")
+}
+
 // Audit provides a mock function with given fields:
 func (_m *Store) Audit() store.AuditStore {
 	ret := _m.Called()

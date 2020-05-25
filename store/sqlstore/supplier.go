@@ -99,6 +99,7 @@ type SqlSupplierStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
+	friend               store.FriendStore
 }
 
 type SqlSupplier struct {
@@ -113,6 +114,10 @@ type SqlSupplier struct {
 	settings       *model.SqlSettings
 	lockedToMaster bool
 	context        context.Context
+}
+
+func (ss *SqlSupplier) Friend() store.FriendStore {
+	return ss.stores.friend
 }
 
 type TraceOnAdapter struct{}
@@ -138,6 +143,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.channel = newSqlChannelStore(supplier, metrics)
 	supplier.stores.post = newSqlPostStore(supplier, metrics)
 	supplier.stores.user = newSqlUserStore(supplier, metrics)
+	supplier.stores.friend = newSqlFriendStore(supplier, metrics)
 	supplier.stores.bot = newSqlBotStore(supplier, metrics)
 	supplier.stores.audit = newSqlAuditStore(supplier)
 	supplier.stores.cluster = newSqlClusterDiscoveryStore(supplier)

@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"html/template"
 	"io"
 	"mime/multipart"
@@ -71,6 +72,12 @@ type OpenTracingAppLayer struct {
 
 	context context.Context
 	ctx     context.Context
+}
+
+func (a *OpenTracingAppLayer) AddFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+	return nil, nil
 }
 
 func (a *OpenTracingAppLayer) ActivateMfa(userId string, token string) *model.AppError {

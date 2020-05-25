@@ -24,6 +24,7 @@ import (
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.ApiHandler(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("", api.ApiSessionRequired(getUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/addfriend", api.ApiSessionRequired(addFriend)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiSessionRequired(getUsersByIds)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/usernames", api.ApiSessionRequired(getUsersByNames)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/known", api.ApiSessionRequired(getKnownUsers)).Methods("GET")
@@ -80,6 +81,11 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
+}
+
+func addFriend(c *Context, w http.ResponseWriter, r *http.Request) {
+	friend := model.FriendFromJson(r.Body)
+	c.App.AddFriend(friend)
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
