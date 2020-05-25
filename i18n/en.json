@@ -4983,10 +4983,6 @@
     "translation": "Invalid public link salt for file settings. Must be 32 chars or more."
   },
   {
-    "id": "model.config.is_valid.gossip_encryption_key.app_error",
-    "translation": "Invalid encryption key"
-  },
-  {
     "id": "model.config.is_valid.group_unread_channels.app_error",
     "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
@@ -7105,6 +7101,10 @@
   {
     "id": "store.sql_system.save.app_error",
     "translation": "We encountered an error saving the system property."
+  },
+  {
+    "id": "store.sql_system.save.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
   },
   {
     "id": "store.sql_system.update.app_error",
