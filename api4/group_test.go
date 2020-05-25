@@ -21,7 +21,7 @@ func TestGetGroup(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -66,7 +66,7 @@ func TestPatchGroup(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -132,7 +132,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -170,7 +170,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -209,7 +209,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -256,7 +256,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -306,7 +306,7 @@ func TestGetGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -360,7 +360,7 @@ func TestGetGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -414,7 +414,7 @@ func TestGetGroupTeams(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -463,7 +463,7 @@ func TestGetGroupChannels(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -512,7 +512,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -577,7 +577,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -651,7 +651,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -718,7 +718,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -792,7 +792,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -856,7 +856,7 @@ func TestGetGroups(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -953,7 +953,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	id := model.NewId()
 	group1, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -969,7 +969,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	id = model.NewId()
 	group2, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
