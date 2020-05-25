@@ -169,10 +169,11 @@ var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
 
-	if group.AllowReference {
-		if group.Name == nil {
+	if group.Name == nil {
+		if group.AllowReference {
 			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
+	} else {
 		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
 			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
