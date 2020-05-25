@@ -1654,6 +1654,15 @@ func TestAddTeamMember(t *testing.T) {
 	require.NotNil(t, resp.Error, "Error is nil")
 	Client.Logout()
 
+	// SystemAdmin and mode can add member to a team
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		tm, r := client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, r)
+		CheckCreatedStatus(t, r)
+		require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
+		require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
+	})
+
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
 	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
@@ -1817,8 +1826,10 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
 
 	// User is not in associated groups so shouldn't be allowed
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	})
 
 	// Associate group to team
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -1832,8 +1843,10 @@ func TestAddTeamMember(t *testing.T) {
 	_, err = th.App.UpsertGroupMember(th.Group.Id, otherUser.Id)
 	require.Nil(t, err)
 
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
@@ -2123,28 +2136,31 @@ func TestRemoveTeamMember(t *testing.T) {
 	})
 	bot := th.CreateBotWithSystemAdminClient()
 
-	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		pass, resp := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
 
-	require.True(t, pass, "should have passed")
+		require.True(t, pass, "should have passed")
 
-	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+	})
 
-	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, "junk")
-	CheckBadRequestStatus(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.RemoveTeamMember(th.BasicTeam.Id, "junk")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.RemoveTeamMember("junk", th.BasicUser2.Id)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.RemoveTeamMember("junk", th.BasicUser2.Id)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	_, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
-	CheckNotFoundStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+		CheckNotFoundStatus(t, resp)
+	})
 
 	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
@@ -2156,12 +2172,19 @@ func TestRemoveTeamMember(t *testing.T) {
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	_, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err)
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+	})
 
 	// Can remove a bot even if team is group-constrained
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
-	CheckNoError(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
+		CheckNoError(t, resp)
+		_, resp = client.AddTeamMember(th.BasicTeam.Id, bot.UserId)
+		CheckNoError(t, resp)
+	})
 
 	// Can remove self even if team is group-constrained
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
