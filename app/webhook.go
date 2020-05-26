@@ -707,7 +707,7 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 	}
 
 	cmd, cmdErr := a.Srv().Store.Command().Get(hook.CommandId)
-	if err != nil {
+	if cmdErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(cmdErr, &appErr):
