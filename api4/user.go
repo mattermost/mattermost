@@ -84,16 +84,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 }
 
-func addFriend(c *Context, w http.ResponseWriter, r *http.Request) {
-	friend := model.FriendFromJson(r.Body)
-	c.App.AddFriend(friend)
-}
-
-func acceptFriend(c *Context, w http.ResponseWriter, r *http.Request) {
-	friend := model.FriendFromJson(r.Body)
-	c.App.AcceptFriend(friend)
-}
-
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	user := model.UserFromJson(r.Body)
 	if user == nil {

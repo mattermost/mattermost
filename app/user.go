@@ -9,6 +9,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/disintegration/imaging"
+	"github.com/golang/freetype"
+	"github.com/golang/freetype/truetype"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"hash/fnv"
 	"image"
 	"image/color"
@@ -23,19 +34,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/disintegration/imaging"
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
-	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/mfa"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 const (
@@ -267,35 +265,6 @@ func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *mod
 	}
 
 	return ruser, nil
-}
-
-
-
-func (a *App) AddFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
-	friend.IsPending = true
-	friend.RequestedTime = time.Now().UnixNano() / int64(time.Millisecond)
-	rfriend, err := a.saveFriend(friend)
-
-	return rfriend, err
-}
-
-func (a *App) AcceptFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
-	friend.IsPending = false
-	friend2 := model.Friend{ UserId1: friend.UserId2, UserId2: friend.UserId1}
-	a.saveFriend(&friend2)
-	return a.updateFriend(friend)
-}
-
-func (a *App) saveFriend(friend *model.Friend) (*model.Friend, *model.AppError)  {
-	rfriend, err := a.Srv().Store.Friend().Save(friend)
-	return rfriend, err
-
-}
-
-func (a *App) updateFriend(friend *model.Friend) (*model.Friend, *model.AppError)  {
-	rfriend, err := a.Srv().Store.Friend().Update(friend)
-	return rfriend, err
-
 }
 
 func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
