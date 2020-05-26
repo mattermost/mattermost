@@ -45,7 +45,6 @@ func (es SqlEmojiStore) createIndexesIfNotExists() {
 
 func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	emoji.PreSave()
-
 	if err := emoji.IsValid(); err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error
 		WHERE
 			Name IN `+keys+`
 			AND DeleteAt = 0`, params); err != nil {
-		return nil, fmt.Errorf("error getting emoji by name: %w", err)
+		return nil, errors.Wrap(err, "error getting emoji by name")
 	}
 	return emojis, nil
 }
@@ -95,7 +94,7 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 	query += " LIMIT :Limit OFFSET :Offset"
 
 	if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-		return nil, fmt.Errorf("could not get list of emojis: %w", err)
+		return nil, errors.Wrap(err, "could not get list of emojis")
 	}
 	return emoji, nil
 }
@@ -110,7 +109,7 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 		WHERE
 			Id = :Id
 			AND DeleteAt = 0`, map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": emoji.Id}); err != nil {
-		return fmt.Errorf("could not delete emoji: %w", err)
+		return errors.Wrap(err, "could not delete emoji")
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
 		return store.NewErrNotFound("Emoji", emoji.Id)
 	}
@@ -140,7 +139,7 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 			AND DeleteAt = 0
 			ORDER BY Name
 			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
-		return nil, fmt.Errorf("could not search emojis by name %s: %w", name, err)
+		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
 	}
 	return emojis, nil
 }
