@@ -6792,7 +6792,7 @@
   },
   {
     "id": "store.sql_post.search.app_error",
-    "translation": "We encountered an error searching posts."
+    "translation": "Error searching posts"
   },
   {
     "id": "store.sql_post.update.app_error",
