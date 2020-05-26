@@ -72,13 +72,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 
 	emoji, err := a.Srv().Store.Emoji().Save(emoji)
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
@@ -197,12 +191,9 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	emoji, err := a.Srv().Store.Emoji().Get(emojiId, false)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
 			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
-		case errors.As(err, &appErr):
-			return emoji, appErr
 		default:
 			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -223,12 +214,9 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
 			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
-		case errors.As(err, &appErr):
-			return emoji, appErr
 		default:
 			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
