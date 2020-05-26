@@ -63,6 +63,7 @@ type Store interface {
 	CheckIntegrity() <-chan IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	Friend() FriendStore
 }
 
 type TeamStore interface {
@@ -761,4 +762,9 @@ type RelationalIntegrityCheckData struct {
 type IntegrityCheckResult struct {
 	Data interface{}
 	Err  error
+}
+
+type FriendStore interface {
+	Update(friend *model.Friend) (*model.Friend, *model.AppError)
+	Save(friend *model.Friend) (*model.Friend, *model.AppError)
 }

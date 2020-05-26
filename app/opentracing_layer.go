@@ -73,6 +73,14 @@ type OpenTracingAppLayer struct {
 	ctx     context.Context
 }
 
+func (a *OpenTracingAppLayer) AcceptFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
+	panic("implement me")
+}
+
+func (a *OpenTracingAppLayer) AddFriend(friend *model.Friend) (*model.Friend, *model.AppError) {
+	panic("implement me")
+}
+
 func (a *OpenTracingAppLayer) ActivateMfa(userId string, token string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ActivateMfa")
