@@ -29,7 +29,6 @@ require (
 	github.com/getsentry/sentry-go v0.6.0
 	github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a // indirect
 	github.com/go-asn1-ber/asn1-ber v1.4.1 // indirect
-	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/protobuf v1.4.2 // indirect
@@ -55,20 +54,20 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.1.0
+	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.4.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/mattermost/go-i18n v1.11.0
-	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
+	github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mattn/go-sqlite3 v1.11.0
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/miekg/dns v1.1.29 // indirect
 	github.com/minio/minio-go/v6 v6.0.55
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -83,7 +82,7 @@ require (
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
-	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/procfs v0.0.11 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
 	github.com/rs/cors v1.7.0
@@ -112,7 +111,6 @@ require (
 	github.com/wiggin77/merror v1.0.2
 	github.com/wiggin77/srslog v1.0.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
-	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1

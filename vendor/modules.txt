@@ -128,8 +128,6 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.4.1
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-gorp/gorp v2.0.0+incompatible
-## explicit
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -265,7 +263,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
+# github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.2
@@ -292,7 +290,7 @@ github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
 ## explicit
 github.com/mattn/go-runewidth
-# github.com/mattn/go-sqlite3 v1.11.0
+# github.com/mattn/go-sqlite3 v2.0.3+incompatible
 ## explicit
 github.com/mattn/go-sqlite3
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
@@ -495,8 +493,6 @@ github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
-# github.com/ziutek/mymysql v1.5.4
-## explicit
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.uber.org/atomic v1.6.0

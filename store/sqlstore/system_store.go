@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 
@@ -91,7 +92,9 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, *mode
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
 func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
-	tx, err := s.GetMaster().Begin()
+	tx, err := s.GetMaster().BeginTx(context.Background(), &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
 	if err != nil {
 		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

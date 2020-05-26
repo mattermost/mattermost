@@ -72,21 +72,21 @@ func (d MySQLDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr bool) 
 		return "datetime"
 	}
 
-	if maxsize < 1 {
-		maxsize = 255
-	}
-
 	/* == About varchar(N) ==
 	 * N is number of characters.
-	 * A varchar column can store up to 65535 bytes.
-	 * Remember that 1 character is 3 bytes in utf-8 charset.
-	 * Also remember that each row can store up to 65535 bytes,
-	 * and you have some overheads, so it's not possible for a
-	 * varchar column to have 65535/3 characters really.
-	 * So it would be better to use 'text' type in stead of
-	 * large varchar type.
+	 * According to the documentation, 0 < N <= 65535.
+	 * But one utf-8 character takes 3 bytes and each row can
+	 * be only 65535 bytes. So there is no way to know exactly
+	 * how many chars a varchar column can actually store.
+	 * Text columns contribute only up to 12 bytes to the row
+	 * size as their contents are stored off-page.
+	 * Hence, we use a conservative maximum of 512 for varchar,
+	 * after which we switch to the text type.
 	 */
-	if maxsize < 256 {
+	if maxsize == 0 {
+		// Closer match for unbounded text
+		return "longtext"
+	} else if maxsize < 256 {
 		return fmt.Sprintf("varchar(%d)", maxsize)
 	} else {
 		return "text"
