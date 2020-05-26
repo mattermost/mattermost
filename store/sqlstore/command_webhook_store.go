@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
