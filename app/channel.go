@@ -2460,6 +2460,10 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	}
 }
 
+func (a *App) createInitialSidebarCategories(user *model.User, team *model.Team) *model.AppError {
+	return a.Srv().Store.Channel().CreateInitialSidebarCategories(user, team.Id)
+}
+
 func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
 	return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
 }

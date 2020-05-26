@@ -99,6 +99,9 @@ func init() {
 	gob.Register(&model.AppError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&opengraph.OpenGraph{})
+	gob.Register(&model.AutocompleteDynamicListArg{})
+	gob.Register(&model.AutocompleteStaticListArg{})
+	gob.Register(&model.AutocompleteTextArg{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

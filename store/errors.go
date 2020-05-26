@@ -61,13 +61,30 @@ func NewErrConflict(resource string, err error, meta string) *ErrConflict {
 }
 
 func (e *ErrConflict) Error() string {
-	return e.Resource + "exists " + e.meta + " " + e.err.Error()
+	msg := e.Resource + "exists " + e.meta
+	if e.err != nil {
+		msg += " " + e.err.Error()
+	}
+	return msg
 }
 
 func (e *ErrConflict) Unwrap() error {
 	return e.err
 }
 
-// TODO:
-// type ErrNotFound struct {
-// }
+// ErrNotFound indicates that a resource was not found
+type ErrNotFound struct {
+	resource string
+	Id       string
+}
+
+func NewErrNotFound(resource, id string) *ErrNotFound {
+	return &ErrNotFound{
+		resource: resource,
+		Id:       id,
+	}
+}
+
+func (e *ErrNotFound) Error() string {
+	return "resource: " + e.resource + " id: " + e.Id
+}
