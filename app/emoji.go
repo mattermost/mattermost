@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"image"
+	"image/color/palette"
 	"image/draw"
 	"image/gif"
 	_ "image/jpeg"
@@ -18,11 +18,10 @@ import (
 	"net/http"
 	"path"
 
-	"image/color/palette"
-
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -93,7 +92,7 @@ func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *mod
 	if err != nil {
 		switch {
 		default:
-			return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetEmojiList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -178,7 +177,7 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
+			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
 		}
@@ -217,11 +216,11 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 
 func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmojiByName", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true)
@@ -230,11 +229,11 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
 		case errors.As(err, &appErr):
 			return emoji, appErr
 		default:
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

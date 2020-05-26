@@ -1584,14 +1584,14 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	emoji, err := a.Srv().Store.Emoji().GetByName(*data.Name, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &nfErr):
-			// just pass if emoji was not found
-		case errors.As(err, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("importEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		if !errors.As(err, &nfErr) {
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return appErr
+			default:
+				return model.NewAppError("importEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
