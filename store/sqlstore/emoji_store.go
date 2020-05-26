@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -158,7 +159,7 @@ func (es SqlEmojiStore) getBy(what, key string, addToCache bool) (*model.Emoji, 
 			AND DeleteAt = 0`, map[string]string{"Key": key})
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Emoji", fmt.Sprint("%s=%s", what, key))
+			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))
 		}
 
 		return nil, errors.Wrapf(err, "could not get emoji by %s with value %s", what, key)
