@@ -102,7 +102,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			case errors.As(histErr, &appErr): // in case we haven't converted to plain error.
 				return appErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return model.NewAppError("JoinDefaultChannels", "XXXX.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -264,7 +264,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			case errors.As(err, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("CreateChannel", "XXXX.internal_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -387,7 +387,7 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("CreateDirectChannel", "XXXX.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	if userId != otherUserId {
@@ -398,7 +398,7 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 			case errors.As(err, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("CreateDirectChannel", "XXXX.internal_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -523,7 +523,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			case errors.As(err, &appErr): // in case we haven't converted to plain error.
 				return nil, appErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("createGroupChannel", "XXXX.internal_error", nil, err.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -1294,7 +1294,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("AddUserToChannel", "XXXX.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -2007,7 +2007,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("removeUserFromChannel", "XXXX.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
