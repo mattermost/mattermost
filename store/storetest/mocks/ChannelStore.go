@@ -132,6 +132,22 @@ func (_m *ChannelStore) ClearCaches() {
 	_m.Called()
 }
 
+// ClearSidebarOnTeamLeave provides a mock function with given fields: userId, teamId
+func (_m *ChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) *model.AppError {
+	ret := _m.Called(userId, teamId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(userId, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // CountPostsAfter provides a mock function with given fields: channelId, timestamp, userId
 func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
 	ret := _m.Called(channelId, timestamp, userId)
