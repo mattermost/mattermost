@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -222,8 +223,8 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value []byt
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
 	currentTime := model.GetMillis()
 
-	failure := func(err error, statusCode int) (*model.PluginKeyValue, *model.AppError) {
-		return nil, model.NewAppError(
+	failure := func(err error, statusCode int) *model.AppError {
+		return model.NewAppError(
 			"SqlPluginStore.Get",
 			"store.sql_plugin_store.get.app_error",
 			nil,
@@ -238,18 +239,16 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *mode
 		Where(sq.Eq{"PKey": key}).
 		Where(sq.Or{sq.Eq{"ExpireAt": 0}, sq.Gt{"ExpireAt": currentTime}})
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
-		return failure(err, http.StatusInternalServerError)
+		return nil, failure(err, http.StatusInternalServerError)
 	}
 	row := ps.GetReplica().Db.QueryRow(queryString, args...)
-
 	var kv model.PluginKeyValue
 	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
 		if err == sql.ErrNoRows {
-			return failure(err, http.StatusNotFound)
+			return nil, failure(err, http.StatusNotFound)
 		}
-		return failure(err, http.StatusInternalServerError)
+		return nil, failure(err, http.StatusInternalServerError)
 	}
 
 	return &kv, nil
