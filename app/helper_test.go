@@ -59,6 +59,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	*config.LogSettings.EnableSentry = false // disable error reporting during tests
 	memoryStore.Set(config)
 
 	buffer := &bytes.Buffer{}
