@@ -4043,6 +4043,10 @@
     "translation": "Unable to convert metadata to json."
   },
   {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": ""
+  },
+  {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
   },

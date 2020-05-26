@@ -3684,6 +3684,18 @@ func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transacti
 	if len(existingOrder) != len(categoryOrder) {
 		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories different size than in DB", http.StatusInternalServerError)
 	}
+	for _, originalCategoryId := range existingOrder {
+		found := false
+		for _, newCategoryId := range categoryOrder {
+			if newCategoryId == originalCategoryId {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories contains unrecognized category IDs", http.StatusBadRequest)
+		}
+	}
 	var newOrder []interface{}
 	runningOrder := 0
 	for _, categoryId := range categoryOrder {
@@ -3845,7 +3857,14 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 		}
 		// if new preference is false - remove the channel from the appropriate sidebar category
 		if preference.Value == "false" {
-			if _, err := transaction.Exec("DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId", params); err != nil {
+			var deleteQuery string
+			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId"
+			} else {
+				deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.Type=:CategoryType AND cat.UserId = :UserId AND chan.UserId = :UserId AND   cat.TeamId = :TeamId AND chan.ChannelId=:ChannelId"
+			}
+
+			if _, err := transaction.Exec(deleteQuery, params); err != nil {
 				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		} else {
@@ -3866,6 +3885,28 @@ func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Chann
 	// if channel is being moved, remove it from the categories, since it's possible that there's no matching category in the new team
 	if _, err := s.GetMaster().Exec("DELETE FROM SidebarChannels WHERE ChannelId=:ChannelId", map[string]interface{}{"ChannelId": channel.Id}); err != nil {
 		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelCategoryOnMove", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError {
+	// if user leaves the team, clean his team related entries in sidebar channels and categories
+	params := map[string]interface{}{
+		"UserId": userId,
+		"TeamId": teamId,
+	}
+
+	var deleteQuery string
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId"
+	} else {
+		deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.UserId = :UserId AND   cat.TeamId = :TeamId"
+	}
+	if _, err := s.GetMaster().Exec(deleteQuery, params); err != nil {
+		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE SidebarCategories.TeamId = :TeamId AND SidebarCategories.UserId = :UserId", params); err != nil {
+		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }

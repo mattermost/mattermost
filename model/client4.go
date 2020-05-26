@@ -4760,7 +4760,7 @@ func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 // to the administrator via the system console.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetPluginStatuses() (PluginStatuses, *Response) {
-	r, err := c.DoApiGet(c.GetPluginsRoute(), "/statuses")
+	r, err := c.DoApiGet(c.GetPluginsRoute()+"/statuses", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
