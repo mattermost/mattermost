@@ -289,12 +289,9 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 		return path.Join(subPath, "/api/v4/emoji", emoji.Id, "image"), nil
 	} else {
 		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
 		switch {
 		case errors.As(err, &nfErr):
 			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
-		case errors.As(err, &appErr):
-			return "", appErr
 		default:
 			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
