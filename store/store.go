@@ -208,6 +208,7 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
 	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, *model.AppError)
+	CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError
 	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
@@ -713,6 +714,9 @@ type GroupStore interface {
 
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
 	DistinctGroupMemberCount() (int64, *model.AppError)
+
+	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
+	GroupCountWithAllowReference() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {

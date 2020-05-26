@@ -652,6 +652,15 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return err
 	}
 
+	if err := a.createInitialSidebarCategories(user, team); err != nil {
+		mlog.Error(
+			"Encountered an issue creating default sidebar categories.",
+			mlog.String("user_id", user.Id),
+			mlog.String("team_id", team.Id),
+			mlog.Err(err),
+		)
+	}
+
 	shouldBeAdmin := team.Email == user.Email
 
 	if !user.IsGuest() {
