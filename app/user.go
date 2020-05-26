@@ -2081,22 +2081,12 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 }
 
 func (a *App) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	channel, err := a.GetChannel(channelId)
-	if err != nil {
-		return err
-	}
-
 	omitUsers := make(map[string]bool, 1)
-	omitUsers[user.Id] = true
+	omitUsers[userId] = true
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channel.Id, "", omitUsers)
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
 	event.Add("parent_id", parentId)
-	event.Add("user_id", user.Id)
+	event.Add("user_id", userId)
 	a.Publish(event)
 
 	return nil
