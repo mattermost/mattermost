@@ -651,7 +651,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
