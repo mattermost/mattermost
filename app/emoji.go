@@ -90,10 +90,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
 	list, err := a.Srv().Store.Emoji().GetList(page*perPage, perPage, sort)
 	if err != nil {
-		switch {
-		default:
-			return nil, model.NewAppError("GetEmojiList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("GetEmojiList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return list, nil
@@ -247,10 +244,7 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 
 	emoji, err := a.Srv().Store.Emoji().GetMultipleByName(names)
 	if err != nil {
-		switch {
-		default:
-			return nil, model.NewAppError("GetMultipleEmojiByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("GetMultipleEmojiByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 	}
 
 	return emoji, nil
@@ -291,10 +285,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 
 	list, err := a.Srv().Store.Emoji().Search(name, prefixOnly, limit)
 	if err != nil {
-		switch {
-		default:
-			return nil, model.NewAppError("SearchEmoji", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("SearchEmoji", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return list, nil
