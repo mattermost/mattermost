@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/gziphandler"
+	"github.com/mkraft/gziphandler"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -45,6 +45,7 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 }
 
@@ -74,6 +75,7 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	IsLocal             bool
 	DisableWhenBusy     bool
 
 	cspShaDirective string
@@ -210,6 +212,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
+	if c.Err == nil && h.IsLocal {
+		// if the connection is local, RemoteAddr shouldn't have the
+		// shape IP:PORT (it will be "@" in Linux, for example)
+		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
+		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
+			c.App.SetSession(&model.Session{Local: true})
+		} else if !isLocalOrigin {
+			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
+		}
+	}
+
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
@@ -323,6 +336,7 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -342,6 +356,7 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		TrustRequester:      true,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -360,6 +375,7 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		TrustRequester:      false,
 		RequireMfa:          true,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
