@@ -6577,9 +6577,8 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err)
 		require.Len(t, res.Categories[0].Channels, 1)
-		// TODO: uncomment these tests when MM-25277 get's merged
-		// require.Len(t, res.Categories[1].Channels, 1)
-		// require.Len(t, res.Categories[2].Channels, 1)
+		require.Len(t, res.Categories[1].Channels, 1)
+		require.Len(t, res.Categories[2].Channels, 1)
 	})
 
 	t.Run("GetSidebarCategoriesWithoutNewChannel", func(t *testing.T) {
