@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
 	"github.com/pkg/errors"
 )
 
@@ -68,7 +69,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetUsersInChannelDuring startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "hasDataAtOrBefore startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
 	}
 
 	if useChannelMemberHistory {
@@ -86,7 +87,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 	// this may not always be true, but it's better than saying that somebody wasn't there when they were
 	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId)
 	if err != nil {
-		return nil, errors.Wrapf(err, "GetUsersInChannelAt startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
+		return nil, errors.Wrapf(err, "getFromChannelMembersTable startTime=%d endTime=%d channelId=%s", startTime, endTime, channelId)
 	}
 	return channelMemberHistories, nil
 }
@@ -180,12 +181,12 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
 	sqlResult, err := s.GetMaster().Exec(query, params)
 	if err != nil {
-		return 0, errors.Wrapf(err, "PermanentDeleteBatchForChannel endTime=%d limit=%d", endTime, limit)
+		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "PermanentDeleteBatchForChannel endTime=%d limit=%d", endTime, limit)
+		return 0, errors.Wrapf(err, "PermanentDeleteBatch endTime=%d limit=%d", endTime, limit)
 	}
 	return rowsAffected, nil
 }

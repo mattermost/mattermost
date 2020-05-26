@@ -97,13 +97,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		_, err = a.Srv().Store.Channel().SaveMember(cm)
 		if histErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
-			var appErr *model.AppError
-			switch {
-			case errors.As(histErr, &appErr): // in case we haven't converted to plain error.
-				return appErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
-			}
+			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -259,13 +253,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		}
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr): // in case we haven't converted to plain error.
-				return nil, appErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -382,24 +370,12 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 
 	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
 		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr): // in case we haven't converted to plain error.
-			return nil, appErr
-		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if userId != otherUserId {
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr): // in case we haven't converted to plain error.
-				return nil, appErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -518,13 +494,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		}
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr): // in case we haven't converted to plain error.
-				return nil, appErr
-			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1272,13 +1242,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 
 	if nErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
 		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(nErr))
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
-			return nil, appErr
-		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1978,13 +1942,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return err
 	}
 	if err := a.Srv().Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr): // in case we haven't converted to plain error.
-			return appErr
-		default: // last fallback in case it doesn't map to an existing app error.
-			return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if isGuest {
