@@ -85,7 +85,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.Ap
 func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
 	query := s.getQueryBuilder().
 		Update("CommandWebhooks").
-		Set("UseCount", string("UseCount + 1")).
+		Set("UseCount", sq.Expr("UseCount + 1")).
 		Where(sq.Eq{"Id": id}).
 		Where(sq.Lt{"UseCount": limit})
 
