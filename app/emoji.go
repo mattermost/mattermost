@@ -242,12 +242,9 @@ func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	_, storeErr := a.Srv().Store.Emoji().Get(emojiId, true)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
-		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &nfErr):
 			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusNotFound)
-		case errors.As(storeErr, &appErr):
-			return nil, "", appErr
 		default:
 			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 		}
