@@ -6307,19 +6307,19 @@
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
-    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "id": "app.channel_member_history.get_users_in_channel_during.internal_error",
     "translation": "Failed to get users in channel during specified time period."
   },
   {
-    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "id": "app.channel_member_history.log_join_event.internal_error",
     "translation": "Failed to record channel member history."
   },
   {
-    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
-    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
+    "id": "app.channel_member_history.permanent_delete_batch.internal_error",
     "translation": "Failed to purge records."
   },
   {
