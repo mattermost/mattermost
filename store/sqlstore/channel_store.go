@@ -3684,6 +3684,18 @@ func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transacti
 	if len(existingOrder) != len(categoryOrder) {
 		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories different size than in DB", http.StatusInternalServerError)
 	}
+	for _, originalCategoryId := range existingOrder {
+		found := false
+		for _, newCategoryId := range categoryOrder {
+			if newCategoryId == originalCategoryId {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories contains unrecognized category IDs", http.StatusBadRequest)
+		}
+	}
 	var newOrder []interface{}
 	runningOrder := 0
 	for _, categoryId := range categoryOrder {

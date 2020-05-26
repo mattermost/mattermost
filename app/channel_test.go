@@ -1777,6 +1777,15 @@ func TestSidebarCategory(t *testing.T) {
 	t.Run("UpdateSidebarCategoryOrder", func(t *testing.T) {
 		err := th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{th.BasicChannel.Id, basicChannel2.Id})
 		require.NotNil(t, err, "Should return error due to invalid order")
+
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{createdCategory.Id})
+		require.Nil(t, err, "Should update order successfully")
+
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{createdCategory.Id, "asd"})
+		require.NotNil(t, err, "Should return error due to invalid id")
+
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{"asd"})
+		require.NotNil(t, err, "Should return error due to invalid id")
 	})
 
 	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
