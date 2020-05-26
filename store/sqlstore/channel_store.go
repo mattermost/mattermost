@@ -15,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1675,38 +1676,65 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 	var deletedClause string
 	if !includeDeleted {
-		deletedClause = "Channels.DeleteAt = 0 AND"
+		deletedClause = "Channels.DeleteAt = 0"
 	}
 
-	var data allChannelMembers
-	_, err := s.GetReplica().Select(&data, `
-			SELECT
-				ChannelMembers.ChannelId, ChannelMembers.Roles,
-				ChannelMembers.SchemeGuest, ChannelMembers.SchemeUser, ChannelMembers.SchemeAdmin,
+	failure := func(err error) *model.AppError {
+		return model.NewAppError(
+			"SqlChannelStore.GetAllChannelMembersForUser",
+			"store.sql_channel.get_channels.get.app_error",
+			nil,
+			"userId="+userId+", err="+err.Error(),
+			http.StatusInternalServerError,
+		)
+	}
+
+	query := s.getQueryBuilder().
+		Select(`
+				ChannelMembers.ChannelId, ChannelMembers.Roles, ChannelMembers.SchemeGuest,
+				ChannelMembers.SchemeUser, ChannelMembers.SchemeAdmin,
 				TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
 				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
 				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
 				ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
 				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
 				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM
-				ChannelMembers
-			INNER JOIN
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				`+deletedClause+`
-				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
-
+		`).
+		From("ChannelMembers").
+		Join("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
+		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
+		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
+		Where(deletedClause).
+		Where(sq.Eq{"ChannelMembers.UserId": userId})
+	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+		return nil, failure(err)
 	}
 
+	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return nil, failure(err)
+	}
+
+	var data allChannelMembers
+	defer rows.Close()
+	for rows.Next() {
+		var cm allChannelMember
+		err = rows.Scan(
+			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
+			&cm.SchemeAdmin, &cm.TeamSchemeDefaultGuestRole, &cm.TeamSchemeDefaultUserRole,
+			&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
+			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
+		)
+		if err != nil {
+			return nil, failure(err)
+		}
+		data = append(data, cm)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, failure(err)
+	}
 	ids := data.ToMapStringString()
 
 	if allowFromCache {
