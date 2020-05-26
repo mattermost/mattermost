@@ -9,7 +9,7 @@ import (
 
 func NewBroker(cfg *model.Config) *Broker {
 	return &Broker{
-		cfg:       cfg,
+		cfg: cfg,
 	}
 }
 
