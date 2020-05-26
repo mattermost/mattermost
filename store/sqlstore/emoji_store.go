@@ -77,7 +77,7 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error
 		WHERE
 			Name IN `+keys+`
 			AND DeleteAt = 0`, params); err != nil {
-		return nil, errors.Wrap(err, "error getting emoji by name")
+		return nil, errors.Wrapf(err, "error getting emoji by names %v", names)
 	}
 	return emojis, nil
 }
