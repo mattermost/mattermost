@@ -75,7 +75,7 @@ func TestPatchGroup(t *testing.T) {
 
 	updateFmt := "%s_updated"
 
-	newName := fmt.Sprintf(updateFmt, g.Name)
+	newName := fmt.Sprintf(updateFmt, *g.Name)
 	newDisplayName := fmt.Sprintf(updateFmt, g.DisplayName)
 	newDescription := fmt.Sprintf(updateFmt, g.Description)
 
