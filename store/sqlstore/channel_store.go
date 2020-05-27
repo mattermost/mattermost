@@ -1793,41 +1793,29 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		endOfFirstKey := `LOCATE(':', Users.Timezone) + 2`
-		lengthOfFirstValue := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
-		endOfSecondKey := `LOCATE(',', Users.Timezone) + 19`
-		lengthOfSecondValue := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
-
+		distinctTimezones := `
+			DISTINCT(
+				CASE WHEN Users.Timezone->'$.useAutomaticTimezone'="true"
+				THEN
+					Users.Timezone->'$.automaticTimezone'
+				ELSE
+					Users.Timezone->'$.manualTimezone'
+				END
+			)
+		`
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			endOfFirstKey = `POSITION(':' IN Users.Timezone) + 2`
-			lengthOfFirstValue = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
-			endOfSecondKey = `POSITION(',' IN Users.Timezone) + 19`
-			lengthOfSecondValue = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
-		}
-
-		selectStr = `
-			GroupMembers.GroupId,
-			COUNT(ChannelMembers.UserId) AS ChannelMemberCount,
-			COUNT(DISTINCT
-				(
-					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}'
+			distinctTimezones = `
+				DISTINCT(
+					CASE WHEN Users.Timezone::json->>'useAutomaticTimezone' = 'true'
 					THEN
-					SUBSTRING(
-						Users.Timezone
-						FROM ` + endOfFirstKey + `
-						FOR ` + lengthOfFirstValue + `
-					)
-					WHEN Timezone like '%"useAutomaticTimezone":"false"}'
-					THEN
-						SUBSTRING(
-						Users.Timezone
-						FROM ` + endOfSecondKey + `
-						FOR ` + lengthOfSecondValue + `
-					)
+						Timezone::json->>'automaticTimezone'
+					ELSE
+						Timezone::json->>'manualTimezone'
 					END
 				)
-			) AS ChannelMemberTimezonesCount
 			`
+		}
+		selectStr = `GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT(` + distinctTimezones + `) AS ChannelMemberTimezonesCount`
 	}
 
 	query := s.getQueryBuilder().
