@@ -1743,10 +1743,6 @@ func TestSidebarCategory(t *testing.T) {
 	th.AddUserToChannel(user, basicChannel2)
 
 	var createdCategory *model.SidebarCategoryWithChannels
-	t.Run("MigrateSidebarCategories", func(t *testing.T) {
-		_, err := th.App.Srv().Store.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
-		require.Nil(t, err, "Should finish initial migration")
-	})
 	t.Run("CreateSidebarCategory", func(t *testing.T) {
 		catData := model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
@@ -1778,13 +1774,15 @@ func TestSidebarCategory(t *testing.T) {
 		err := th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{th.BasicChannel.Id, basicChannel2.Id})
 		require.NotNil(t, err, "Should return error due to invalid order")
 
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{createdCategory.Id})
+		actualOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
+		require.Nil(t, err, "Should fetch order successfully")
+
+		actualOrder[2], actualOrder[3] = actualOrder[3], actualOrder[2]
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
 		require.Nil(t, err, "Should update order successfully")
 
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{createdCategory.Id, "asd"})
-		require.NotNil(t, err, "Should return error due to invalid id")
-
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{"asd"})
+		actualOrder[2] = "asd"
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
 		require.NotNil(t, err, "Should return error due to invalid id")
 	})
 

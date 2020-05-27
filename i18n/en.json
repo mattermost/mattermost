@@ -6339,6 +6339,10 @@
     "translation": "Unable to commit transaction."
   },
   {
+    "id": "store.sql_channel.sidebar_categories.invalid_update_fields",
+    "translation": "Invalid field values during category update."
+  },
+  {
     "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
     "translation": "Failed to open the database transaction."
   },

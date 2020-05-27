@@ -3733,7 +3733,6 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 }
 
 func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -3741,12 +3740,26 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 	defer finalizeTransaction(transaction)
 	for _, categoryToUpdate := range categories {
-		var category *model.SidebarCategory
-		if err = transaction.SelectOne(&category, "SELECT * FROM SidebarCategories WHERE Id = :Id", map[string]interface{}{"Id": categoryToUpdate.Id}); err != nil {
+		categoryWithChannels, appErr := s.GetSidebarCategory(categoryToUpdate.Id)
+		if appErr != nil {
 			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		category := &categoryWithChannels.SidebarCategory
+		// we can update display name only on custom categories
+		if category.DisplayName != categoryToUpdate.DisplayName {
+			if category.Type != model.SidebarCategoryCustom {
+				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.invalid_update_fields", map[string]interface{}{"field": "DisplayName"}, err.Error(), http.StatusBadRequest)
+			}
+			category.DisplayName = categoryToUpdate.DisplayName
+		}
+		// we can update sort method only on DM category
+		if category.Sorting != categoryToUpdate.Sorting {
+			if category.Type != model.SidebarCategoryDirectMessages {
+				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.invalid_update_fields", map[string]interface{}{"field": "Sorting"}, err.Error(), http.StatusBadRequest)
+			}
+			category.Sorting = categoryToUpdate.Sorting
+		}
 
-		category.DisplayName = categoryToUpdate.DisplayName
 		if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
 			return col.ColumnName == "DisplayName" || col.ColumnName == "Sorting"
 		}, category); err != nil {
@@ -3776,7 +3789,20 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		var channels []interface{}
 		var preferences []interface{}
 		runningOrder := 0
-		for _, channelID := range categoryToUpdate.Channels {
+		// if we are updating DM category, it's order can't channel order cannot be changed.
+		if category.Type == model.SidebarCategoryDirectMessages {
+			if len(categoryToUpdate.Channels) != len(categoryWithChannels.Channels) {
+				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.invalid_update_fields", map[string]interface{}{"field": "Channels"}, err.Error(), http.StatusBadRequest)
+			}
+		}
+		for i := 0; i < len(categoryToUpdate.Channels); i++ {
+			channelID := categoryToUpdate.Channels[i]
+			// if we are updating DM category, it's order can't channel order cannot be changed.
+			if category.Type == model.SidebarCategoryDirectMessages {
+				if channelID != categoryWithChannels.Channels[i] {
+					return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.invalid_update_fields", map[string]interface{}{"field": "Channels"}, err.Error(), http.StatusBadRequest)
+				}
+			}
 			channels = append(channels, &model.SidebarChannel{
 				ChannelId:  channelID,
 				CategoryId: category.Id,
