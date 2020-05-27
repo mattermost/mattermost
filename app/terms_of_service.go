@@ -21,28 +21,47 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		return nil, err
 	}
 
-	termsOfService, err := a.Srv().Store.TermsOfService().Save(termsOfService)
-	var iErr *store.ErrInvalidInput
-	var appErr *model.AppError
-	if err != nil {
+	var sErr error
+	if termsOfService, sErr = a.Srv().Store.TermsOfService().Save(termsOfService); sErr != nil {
+		var iErr *store.ErrInvalidInput
+		var appErr *model.AppError
 		switch {
-		case errors.As(err, &iErr):
+		case errors.As(sErr, &iErr):
 			return nil, model.NewAppError("CreateTermsOfService", "store.sql_terms_of_service_store.save.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
-		case errors.As(err, &appErr):
+		case errors.As(sErr, &appErr):
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service.save.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
 		}
-
 	}
 
 	return termsOfService, nil
 }
 
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
-	return a.Srv().Store.TermsOfService().GetLatest(true)
+	termsOfService, err := a.Srv().Store.TermsOfService().GetLatest(true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return termsOfService, nil
 }
 
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
-	return a.Srv().Store.TermsOfService().Get(id, true)
+	termsOfService, err := a.Srv().Store.TermsOfService().Get(id, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		default:
+			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+		}
+	}
+	return termsOfService, nil
 }

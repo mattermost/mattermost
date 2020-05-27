@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/pkg/errors"
 
@@ -47,7 +46,7 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 	}
 
 	if err := s.GetMaster().Insert(termsOfService); err != nil {
-		return nil, errors.Wrapf(err, "could not save a new terms of service")
+		return nil, errors.Wrapf(err, "could not save a new TermsOfService")
 	}
 
 	return termsOfService, nil
@@ -59,9 +58,9 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}
-		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "could not find latest TermsOfService")
 	}
 
 	return termsOfService, nil
@@ -70,10 +69,10 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	obj, err := s.GetReplica().Get(model.TermsOfService{}, id)
 	if err != nil {
-		return nil, model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not find TermsOfService with id=%s", id)
 	}
 	if obj == nil {
-		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+		return nil, store.NewErrNotFound("TermsOfService", id)
 	}
 	return obj.(*model.TermsOfService), nil
 }
