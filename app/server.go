@@ -52,8 +52,8 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
-	Store           store.Store
 	sqlStore        *sqlstore.SqlSupplier
+	Store           store.Store
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -121,9 +121,9 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        map[string]string
-	clientConfigHash    string
-	limitedClientConfig map[string]string
+	clientConfig        atomic.Value
+	clientConfigHash    atomic.Value
+	limitedClientConfig atomic.Value
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
@@ -171,7 +171,6 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
-		clientConfig:        make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -309,24 +308,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	license := s.License()
 
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
-		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
-		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
-
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
@@ -349,6 +330,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
+
+	// Scheduler must be started before cluster.
+	s.initJobs()
 
 	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().registerAllClusterMessageHandlers()
@@ -373,8 +357,6 @@ func NewServer(options ...Option) (*Server, error) {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
-
-	s.initJobs()
 
 	if s.runjobs {
 		s.Go(func() {
@@ -490,6 +472,7 @@ func (s *Server) Shutdown() error {
 		s.Metrics.StopServer()
 	}
 
+	// This must be done after the cluster is stopped.
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
