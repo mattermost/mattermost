@@ -519,6 +519,12 @@ func (s *Server) Shutdown() error {
 		s.CacheProvider.Close()
 	}
 
+	if s.CacheProvider2 != nil {
+		if err = s.CacheProvider2.Close(); err != nil {
+			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+		}
+	}
+
 	mlog.Info("Server stopped")
 	return nil
 }
