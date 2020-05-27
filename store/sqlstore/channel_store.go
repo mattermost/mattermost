@@ -1674,11 +1674,6 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	var deletedClause string
-	if !includeDeleted {
-		deletedClause = "Channels.DeleteAt = 0"
-	}
-
 	failure := func(err error) *model.AppError {
 		return model.NewAppError(
 			"SqlChannelStore.GetAllChannelMembersForUser",
@@ -1705,8 +1700,10 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
 		LeftJoin("Teams ON Channels.TeamId = Teams.Id").
 		LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-		Where(deletedClause).
 		Where(sq.Eq{"ChannelMembers.UserId": userId})
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"Channels.DeleteAt": 0})
+	}
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, failure(err)
