@@ -3165,7 +3165,7 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
-	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
+	countBefore, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
 
 	u1 := model.User{}
@@ -3195,9 +3195,9 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 
-	result, err := ss.User().AnalyticsGetSystemAdminCount()
+	result, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
-	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
+	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
