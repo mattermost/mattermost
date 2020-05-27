@@ -182,7 +182,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			FileIds:   []string{fileInfo.Id},
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		fileInfo.PostId = post.Id
@@ -213,7 +213,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, "smile")
@@ -257,7 +257,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, emoji1.Name)
@@ -291,7 +291,7 @@ func TestPreparePostForClient(t *testing.T) {
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "Test",
-			}, th.BasicChannel, false)
+			}, th.BasicChannel, false, true)
 
 			require.Nil(t, err)
 
@@ -337,7 +337,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   fmt.Sprintf("This is ![our logo](%s/test-image2.png) and ![our icon](%s/test-image1.png)", server.URL, server.URL),
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
@@ -381,7 +381,7 @@ func TestPreparePostForClient(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message: `This is our logo: ` + server.URL + `/test-image2.png
 	And this is our icon: ` + server.URL + `/test-image1.png`,
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
@@ -416,7 +416,7 @@ func TestPreparePostForClient(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   `This is our web page: ` + server.URL,
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
@@ -459,7 +459,7 @@ func TestPreparePostForClient(t *testing.T) {
 					},
 				},
 			},
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
@@ -495,7 +495,7 @@ func TestPreparePostForClient(t *testing.T) {
 			FileIds:   []string{fileInfo.Id},
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
-		}, th.BasicChannel, false)
+		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
 		th.AddReactionToPost(post, th.BasicUser, "taco")
@@ -601,7 +601,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   `This is our web page: ` + server.URL,
-	}, th.BasicChannel, false)
+	}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	embeds := th.App.PreparePostForClient(post, false, false).Metadata.Embeds
