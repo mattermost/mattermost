@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -33,9 +35,9 @@ func newSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInt
 func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
-func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	if len(termsOfService.Id) > 0 {
-		return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service_store.save.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)
 	}
 
 	termsOfService.PreSave()
@@ -45,13 +47,13 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 	}
 
 	if err := s.GetMaster().Insert(termsOfService); err != nil {
-		return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service.save.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not save a new terms of service")
 	}
 
 	return termsOfService, nil
 }
 
-func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService *model.TermsOfService
 
 	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
@@ -65,7 +67,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 	return termsOfService, nil
 }
 
-func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	obj, err := s.GetReplica().Get(model.TermsOfService{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)

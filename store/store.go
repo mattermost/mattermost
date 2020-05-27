@@ -610,9 +610,9 @@ type SchemeStore interface {
 }
 
 type TermsOfServiceStore interface {
-	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError)
-	GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError)
-	Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError)
+	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error)
+	GetLatest(allowFromCache bool) (*model.TermsOfService, error)
+	Get(id string, allowFromCache bool) (*model.TermsOfService, error)
 }
 
 type UserTermsOfServiceStore interface {
