@@ -439,12 +439,12 @@ func (a *App) UploadFile(data []byte, channelId string, filename string) (*model
 		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
 			map[string]interface{}{"channelId": channelId}, "", http.StatusBadRequest)
 	}
-	
+
 	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
-	
+
 	if info.PreviewPath != "" || info.ThumbnailPath != "" {
 		previewPathList := []string{info.PreviewPath}
 		thumbnailPathList := []string{info.ThumbnailPath}
