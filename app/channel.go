@@ -834,7 +834,10 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 		if err != nil {
 			return nil, err
 		}
-		adminRole, err := a.GetRoleByName(scheme.DefaultChannelAdminRole)
+
+		// Send a websocket event about this new role. The other new roles—member and guest—get emitted when they're updated.
+		var adminRole *model.Role
+		adminRole, err = a.GetRoleByName(scheme.DefaultChannelAdminRole)
 		if err != nil {
 			return nil, err
 		}
