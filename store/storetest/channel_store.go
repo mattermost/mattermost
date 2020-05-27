@@ -6655,6 +6655,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 	t.Run("should correctly remove an empty category", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, ss)
+		defer ss.User().PermanentDelete(userId)
 
 		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
 		require.Nil(t, err)
@@ -6676,6 +6677,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 	t.Run("should correctly remove a category its channels", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, ss)
+		defer ss.User().PermanentDelete(userId)
 
 		user := &model.User{
 			Id: userId,
@@ -6688,16 +6690,21 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:   model.CHANNEL_OPEN,
 		}, 1000)
 		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(channel1.Id)
+
 		channel2, err := ss.Channel().Save(&model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.CHANNEL_PRIVATE,
 		}, 1000)
 		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(channel2.Id)
+
 		dmChannel1, err := ss.Channel().CreateDirectChannel(user, &model.User{
 			Id: model.NewId(),
 		})
 		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(dmChannel1.Id)
 
 		// Assign some of those channels to a custom category
 		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
@@ -6738,7 +6745,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 	t.Run("should not allow you to remove non-custom categories", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, ss)
-
+		defer ss.User().PermanentDelete(userId)
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		require.Nil(t, err)
 		require.Len(t, res.Categories, 3)
