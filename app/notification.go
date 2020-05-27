@@ -411,7 +411,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 		RootId:    post.RootId,
 		ParentId:  post.ParentId,
 		ChannelId: channel.Id,
-		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupDisplayName": group.DisplayName}),
+		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
 	a.SendEphemeralPost(post.UserId, ephemeralPost)
 }
@@ -658,7 +658,9 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 		m.GroupMentions = make(map[string]*model.Group)
 	}
 
-	m.GroupMentions[group.Name] = group
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
 
 	return true
 }
@@ -766,7 +768,9 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			return nil, err
 		}
 		for _, group := range groups {
-			groupsMap[group.Group.Name] = &group.Group
+			if group.Group.Name != nil {
+				groupsMap[*group.Group.Name] = &group.Group
+			}
 		}
 		return groupsMap, nil
 	}
@@ -776,7 +780,9 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		return nil, err
 	}
 	for _, group := range groups {
-		groupsMap[group.Name] = group
+		if group.Name != nil {
+			groupsMap[*group.Name] = group
+		}
 	}
 
 	return groupsMap, nil
