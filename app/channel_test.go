@@ -1739,6 +1739,7 @@ func TestSidebarCategory(t *testing.T) {
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
 	defer th.App.PermanentDeleteChannel(basicChannel2)
 	user := th.CreateUser()
+	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
 	th.LinkUserToTeam(user, th.BasicTeam)
 	th.AddUserToChannel(user, basicChannel2)
 

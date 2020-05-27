@@ -6569,16 +6569,8 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 		require.Len(t, res.Categories, 3)
 	})
 
-	t.Run("MigrateChannelsToSidebarChannels", func(t *testing.T) {
-		_, err = ss.Channel().MigrateChannelsToSidebarChannels(strings.Repeat("0", 26), strings.Repeat("0", 26), 0)
-		require.Nil(t, err)
-	})
 	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
 		_, err = ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
-		require.Nil(t, err)
-	})
-	t.Run("MigrateDirectGroupMessagesToSidebarChannels", func(t *testing.T) {
-		_, err = ss.Channel().MigrateDirectGroupMessagesToSidebarChannels(strings.Repeat("0", 26), strings.Repeat("0", 26), 0)
 		require.Nil(t, err)
 	})
 	t.Run("GetSidebarCategories", func(t *testing.T) {

@@ -5923,6 +5923,10 @@
     "translation": "Missing TO address."
   },
   {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
     "id": "sidebar.category.channels",
     "translation": "Channels"
   },
@@ -5933,10 +5937,6 @@
   {
     "id": "sidebar.category.favorites",
     "translation": "Favorites"
-  },
-  {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
     "id": "store.insert_error",
@@ -6177,22 +6177,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.migrate_channels_sidebar.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channels_sidebar.select.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_channel.migrate_dms.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_dms.select.app_error",
-    "translation": "Failed to build query."
   },
   {
     "id": "store.sql_channel.migrate_favorites.open_transaction.app_error",

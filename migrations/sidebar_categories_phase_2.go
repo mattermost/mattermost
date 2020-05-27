@@ -17,8 +17,6 @@ type ProgressStep string
 const (
 	StepCategories ProgressStep = "populateSidebarCategories"
 	StepFavorites  ProgressStep = "migrateFavoriteChannelToSidebarChannels"
-	StepDMs        ProgressStep = "migrateDirectMessagesToSidebarChannels"
-	StepChannels   ProgressStep = "migrateChannelsToSidebarChannels"
 	StepEnd        ProgressStep = "endMigration"
 )
 
@@ -55,7 +53,7 @@ func (p *Progress) IsValid() bool {
 	}
 
 	switch p.CurrentStep {
-	case StepCategories, StepChannels, StepDMs, StepFavorites:
+	case StepCategories, StepFavorites:
 		return true
 	default:
 		return false
@@ -89,12 +87,6 @@ func (worker *Worker) runSidebarCategoriesPhase2Migration(lastDone string) (bool
 	switch progress.CurrentStep {
 	case StepCategories:
 		result, err = worker.app.Srv().Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId)
-		nextStep = StepChannels
-	case StepChannels:
-		result, err = worker.app.Srv().Store.Channel().MigrateChannelsToSidebarChannels(progress.LastChannelId, progress.LastUserId, progress.LastSortOrder)
-		nextStep = StepDMs
-	case StepDMs:
-		result, err = worker.app.Srv().Store.Channel().MigrateDirectGroupMessagesToSidebarChannels(progress.LastChannelId, progress.LastUserId, progress.LastSortOrder)
 		nextStep = StepFavorites
 	case StepFavorites:
 		result, err = worker.app.Srv().Store.Channel().MigrateFavoritesToSidebarChannels(progress.LastUserId, progress.LastSortOrder)
