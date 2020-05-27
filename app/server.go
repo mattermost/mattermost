@@ -121,9 +121,9 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        map[string]string
-	clientConfigHash    string
-	limitedClientConfig map[string]string
+	clientConfig        atomic.Value
+	clientConfigHash    atomic.Value
+	limitedClientConfig atomic.Value
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
@@ -171,7 +171,6 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
-		clientConfig:        make(map[string]string),
 	}
 
 	for _, option := range options {
