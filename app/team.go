@@ -1041,7 +1041,7 @@ func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *mo
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1059,7 +1059,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
