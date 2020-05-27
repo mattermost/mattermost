@@ -1198,7 +1198,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        "n_" + model.NewId(),
+		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
@@ -3375,7 +3375,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        "n_" + model.NewId(),
+		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
@@ -3691,7 +3691,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        "n_" + id,
+			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
@@ -3811,7 +3811,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        "n_" + id,
+			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
