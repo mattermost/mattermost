@@ -540,7 +540,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		_, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
+		_, resp := client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 	}, "EnableUserCreationDisable")
@@ -2054,7 +2054,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
+			_, resp := client.UpdateUserActive(user.Id, true)
 			CheckNoError(t, resp)
 		})
 	})
