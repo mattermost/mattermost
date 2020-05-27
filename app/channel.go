@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -205,10 +206,31 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
-
-	sc, err := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if err != nil {
-		return nil, err
+	sc, nErr := a.Srv().Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		var cErr *store.ErrConflict
+		var ltErr *store.ErrLimitExceeded
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &invErr):
+			switch {
+			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Type":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Id":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &cErr):
+			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &ltErr):
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if addMember {
@@ -314,20 +336,44 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	}
 	otherUser := result.Data.(*model.User)
 
-	channel, err := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
-	if err != nil {
-		if err.Id == store.CHANNEL_EXISTS_ERROR {
-			return channel, err
+	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		var cErr *store.ErrConflict
+		var ltErr *store.ErrLimitExceeded
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &invErr):
+			switch {
+			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Type":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Id":
+				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &cErr):
+			switch cErr.Resource {
+			case "Channel":
+				return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
+			case "ChannelMembers":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &ltErr):
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
-		return nil, err
 	}
 
-	if err = a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
+	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
 		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
 		return nil, err
 	}
 	if userId != otherUserId {
-		if err = a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
 			return nil, err
 		}
@@ -407,12 +453,31 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	channel, err := a.Srv().Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if err != nil {
-		if err.Id == store.CHANNEL_EXISTS_ERROR {
-			return channel, err
+	channel, nErr := a.Srv().Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		var cErr *store.ErrConflict
+		var ltErr *store.ErrLimitExceeded
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &invErr):
+			switch {
+			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Type":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+			case invErr.Entity == "Channel" && invErr.Field == "Id":
+				return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
+			}
+		case errors.As(nErr, &cErr):
+			return channel, model.NewAppError("CreateChannel", store.CHANNEL_EXISTS_ERROR, nil, cErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &ltErr):
+			return nil, model.NewAppError("CreateChannel", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+			return nil, appErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
-		return nil, err
 	}
 
 	for _, user := range users {
@@ -556,7 +621,7 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -596,7 +661,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 			},
 		}
 
-		if _, err := a.CreatePost(post, channel, false); err != nil {
+		if _, err := a.CreatePost(post, channel, false, true); err != nil {
 			mlog.Error("Failed to post unarchive message", mlog.Err(err))
 		}
 	}
@@ -1093,7 +1158,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 			},
 		}
 
-		if _, err := a.CreatePost(post, channel, false); err != nil {
+		if _, err := a.CreatePost(post, channel, false, true); err != nil {
 			mlog.Error("Failed to post archive message", mlog.Err(err))
 		}
 	}
@@ -1321,7 +1386,7 @@ func (a *App) PostUpdateChannelHeaderMessage(userId string, channel *model.Chann
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("", "api.channel.post_update_channel_header_message_and_forget.post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1354,7 +1419,7 @@ func (a *App) PostUpdateChannelPurposeMessage(userId string, channel *model.Chan
 			"new_purpose": newChannelPurpose,
 		},
 	}
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("", "app.channel.post_update_channel_purpose_message.post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1381,7 +1446,7 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.create_post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1661,7 +1726,7 @@ func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1679,7 +1744,7 @@ func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *mod
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1764,7 +1829,7 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postLeaveChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1794,7 +1859,7 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1816,7 +1881,7 @@ func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, chan
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1838,7 +1903,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -2272,7 +2337,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

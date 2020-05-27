@@ -22,33 +22,35 @@ func TestGetConfig(t *testing.T) {
 	_, resp := Client.GetConfig()
 	CheckForbiddenStatus(t, resp)
 
-	cfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		cfg, resp := client.GetConfig()
+		CheckNoError(t, resp)
 
-	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
+		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
-	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
+		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
-	require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
-		require.FailNow(t, "did not sanitize properly")
-	}
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
+		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.AtRestEncryptKey, "did not sanitize properly")
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
+			require.FailNow(t, "did not sanitize properly")
+		}
+	})
 }
 
 func TestReloadConfig(t *testing.T) {
@@ -88,66 +90,68 @@ func TestUpdateConfig(t *testing.T) {
 	_, resp = Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)
 
-	SiteName := th.App.Config().TeamSettings.SiteName
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		SiteName := th.App.Config().TeamSettings.SiteName
 
-	*cfg.TeamSettings.SiteName = "MyFancyName"
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
+		*cfg.TeamSettings.SiteName = "MyFancyName"
+		cfg, resp = client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
+		require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
-	//Revert the change
-	cfg.TeamSettings.SiteName = SiteName
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-
-	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
-
-	t.Run("Should set defaults for missing fields", func(t *testing.T) {
-		_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
-		require.Nil(t, appErr)
-	})
-
-	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
 		//Revert the change
-		badcfg := cfg.Clone()
-		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
-		_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
-	})
-
-	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
-		oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
-		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
-
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		cfg.TeamSettings.SiteName = SiteName
+		cfg, resp = client.UpdateConfig(cfg)
 		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 
-		cfg.PluginSettings.EnableUploads = nil
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
-	})
+		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
-	t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
-		oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
-		cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+		t.Run("Should set defaults for missing fields", func(t *testing.T) {
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+			require.Nil(t, appErr)
+		})
 
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
-		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
+			//Revert the change
+			badcfg := cfg.Clone()
+			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+			badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+			_, resp = client.UpdateConfig(badcfg)
+			CheckBadRequestStatus(t, resp)
+			CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
+		})
 
-		cfg.PluginSettings.SignaturePublicKeyFiles = nil
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
-		assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+			oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
+			*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+			cfg, resp = client.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+
+			cfg.PluginSettings.EnableUploads = nil
+			cfg, resp = client.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+			assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
+		})
+
+		t.Run("Should not be able to modify PluginSettings.SignaturePublicKeyFiles", func(t *testing.T) {
+			oldPublicKeys := th.App.Config().PluginSettings.SignaturePublicKeyFiles
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, "new_signature")
+
+			cfg, resp = client.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+
+			cfg.PluginSettings.SignaturePublicKeyFiles = nil
+			cfg, resp = client.UpdateConfig(cfg)
+			CheckNoError(t, resp)
+			assert.Equal(t, oldPublicKeys, cfg.PluginSettings.SignaturePublicKeyFiles)
+			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
+		})
 	})
 }
 
@@ -224,23 +228,40 @@ func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
-	originalCfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+	t.Run("Restrict flag should be honored for sysadmin", func(t *testing.T) {
+		originalCfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
 
-	cfg := originalCfg.Clone()
-	*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
-	*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+		cfg := originalCfg.Clone()
+		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
 
-	returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
+		returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
-	require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
+		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+		require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
 
-	actualCfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
+		actualCfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
 
-	require.Equal(t, returnedCfg, actualCfg)
+		require.Equal(t, returnedCfg, actualCfg)
+	})
+
+	t.Run("Restrict flag should be ignored by local mode", func(t *testing.T) {
+		originalCfg, resp := th.LocalClient.GetConfig()
+		CheckNoError(t, resp)
+
+		cfg := originalCfg.Clone()
+		*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+		*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+
+		returnedCfg, resp := th.LocalClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+		require.Equal(t, "http://example.com", *returnedCfg.ServiceSettings.SiteURL)
+	})
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
@@ -360,19 +381,18 @@ func TestGetOldClientConfig(t *testing.T) {
 func TestPatchConfig(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	client := th.Client
 
 	t.Run("config is missing", func(t *testing.T) {
-		_, response := client.PatchConfig(nil)
+		_, response := th.Client.PatchConfig(nil)
 		CheckBadRequestStatus(t, response)
 	})
 
 	t.Run("user is not system admin", func(t *testing.T) {
-		_, response := client.PatchConfig(&model.Config{})
+		_, response := th.Client.PatchConfig(&model.Config{})
 		CheckForbiddenStatus(t, response)
 	})
 
-	t.Run("should not update the restricted fields when restrict toggle is on", func(t *testing.T) {
+	t.Run("should not update the restricted fields when restrict toggle is on for sysadmin", func(t *testing.T) {
 		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
 		config := model.Config{LogSettings: model.LogSettings{
@@ -384,72 +404,94 @@ func TestPatchConfig(t *testing.T) {
 		assert.Equal(t, "DEBUG", *updatedConfig.LogSettings.ConsoleLevel)
 	})
 
-	t.Run("check if config is valid", func(t *testing.T) {
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			MinimumLength: model.NewInt(4),
-		}}
+	t.Run("should not bypass the restrict toggle if local client", func(t *testing.T) {
+		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = true
 
-		_, response := th.SystemAdminClient.PatchConfig(&config)
-
-		assert.Equal(t, http.StatusBadRequest, response.StatusCode)
-		assert.NotNil(t, response.Error)
-		assert.Equal(t, "model.config.is_valid.password_length.app_error", response.Error.Id)
-	})
-
-	t.Run("should patch the config", func(t *testing.T) {
-		*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
-
-		oldConfig, _ := th.SystemAdminClient.GetConfig()
-
-		assert.False(t, *oldConfig.PasswordSettings.Lowercase)
-		assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
-		assert.Equal(t, "DEBUG", *oldConfig.LogSettings.ConsoleLevel)
-		assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
-
-		states := make(map[string]*model.PluginState)
-		states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			Lowercase:     model.NewBool(true),
-			MinimumLength: model.NewInt(15),
-		}, LogSettings: model.LogSettings{
+		config := model.Config{LogSettings: model.LogSettings{
 			ConsoleLevel: model.NewString("INFO"),
-		},
-			TeamSettings: model.TeamSettings{
-				ExperimentalDefaultChannels: []string{"another-channel"},
-			},
-			PluginSettings: model.PluginSettings{
-				PluginStates: states,
-			},
-		}
+		}}
 
-		_, response := th.SystemAdminClient.PatchConfig(&config)
+		oldConfig, _ := th.LocalClient.GetConfig()
+		updatedConfig, _ := th.LocalClient.PatchConfig(&config)
 
-		updatedConfig, _ := th.SystemAdminClient.GetConfig()
-		assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
 		assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
-		assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
-		assert.False(t, updatedConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
-		assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
+		// reset the config
+		_, resp := th.LocalClient.UpdateConfig(oldConfig)
+		CheckNoError(t, resp)
 	})
 
-	t.Run("should sanitize config", func(t *testing.T) {
-		config := model.Config{PasswordSettings: model.PasswordSettings{
-			Symbol: model.NewBool(true),
-		}}
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("check if config is valid", func(t *testing.T) {
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				MinimumLength: model.NewInt(4),
+			}}
 
-		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+			_, response := client.PatchConfig(&config)
 
-		assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
-	})
+			assert.Equal(t, http.StatusBadRequest, response.StatusCode)
+			assert.NotNil(t, response.Error)
+			assert.Equal(t, "model.config.is_valid.password_length.app_error", response.Error.Id)
+		})
 
-	t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
-		config := model.Config{PluginSettings: model.PluginSettings{
-			EnableUploads: model.NewBool(true),
-		}}
+		t.Run("should patch the config", func(t *testing.T) {
+			*th.App.Config().ExperimentalSettings.RestrictSystemAdmin = false
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalDefaultChannels = []string{"some-channel"} })
 
-		updatedConfig, _ := th.SystemAdminClient.PatchConfig(&config)
+			oldConfig, _ := client.GetConfig()
 
-		assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+			assert.False(t, *oldConfig.PasswordSettings.Lowercase)
+			assert.NotEqual(t, 15, *oldConfig.PasswordSettings.MinimumLength)
+			assert.Equal(t, "DEBUG", *oldConfig.LogSettings.ConsoleLevel)
+			assert.True(t, oldConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+
+			states := make(map[string]*model.PluginState)
+			states["com.mattermost.nps"] = &model.PluginState{Enable: *model.NewBool(false)}
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				Lowercase:     model.NewBool(true),
+				MinimumLength: model.NewInt(15),
+			}, LogSettings: model.LogSettings{
+				ConsoleLevel: model.NewString("INFO"),
+			},
+				TeamSettings: model.TeamSettings{
+					ExperimentalDefaultChannels: []string{"another-channel"},
+				},
+				PluginSettings: model.PluginSettings{
+					PluginStates: states,
+				},
+			}
+
+			_, response := client.PatchConfig(&config)
+
+			updatedConfig, _ := client.GetConfig()
+			assert.True(t, *updatedConfig.PasswordSettings.Lowercase)
+			assert.Equal(t, "INFO", *updatedConfig.LogSettings.ConsoleLevel)
+			assert.Equal(t, []string{"another-channel"}, updatedConfig.TeamSettings.ExperimentalDefaultChannels)
+			assert.False(t, updatedConfig.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+			assert.Equal(t, "no-cache, no-store, must-revalidate", response.Header.Get("Cache-Control"))
+
+			// reset the config
+			_, resp := client.UpdateConfig(oldConfig)
+			CheckNoError(t, resp)
+		})
+
+		t.Run("should sanitize config", func(t *testing.T) {
+			config := model.Config{PasswordSettings: model.PasswordSettings{
+				Symbol: model.NewBool(true),
+			}}
+
+			updatedConfig, _ := client.PatchConfig(&config)
+
+			assert.Equal(t, model.FAKE_SETTING, *updatedConfig.SqlSettings.DataSource)
+		})
+
+		t.Run("not allowing to toggle enable uploads for plugin via api", func(t *testing.T) {
+			config := model.Config{PluginSettings: model.PluginSettings{
+				EnableUploads: model.NewBool(true),
+			}}
+
+			updatedConfig, _ := client.PatchConfig(&config)
+
+			assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+		})
 	})
 }
