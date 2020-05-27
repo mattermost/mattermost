@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/internal/flags"
 	"google.golang.org/protobuf/internal/pragma"
 	"google.golang.org/protobuf/internal/set"
+	"google.golang.org/protobuf/internal/strs"
 	"google.golang.org/protobuf/proto"
 	pref "google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
@@ -339,10 +340,10 @@ func (d decoder) unmarshalScalar(fd pref.FieldDescriptor) (pref.Value, error) {
 
 	case pref.StringKind:
 		if s, ok := tok.String(); ok {
-			if utf8.ValidString(s) {
-				return pref.ValueOfString(s), nil
+			if strs.EnforceUTF8(fd) && !utf8.ValidString(s) {
+				return pref.Value{}, d.newError(tok.Pos(), "contains invalid UTF-8")
 			}
-			return pref.Value{}, d.newError(tok.Pos(), "contains invalid UTF-8")
+			return pref.ValueOfString(s), nil
 		}
 
 	case pref.BytesKind:
