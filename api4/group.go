@@ -778,7 +778,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	if parentTeam != nil && parentTeam.IsGroupConstrained() {
 		filteredGroups := []*model.Group{}
 
-		teamGroups, err := c.App.GetAllGroupsByTeam(parentTeam.Id)
+		teamGroups, err := c.App.Srv().Store.Group().GetGroupsByTeam(teamID, model.GroupSearchOpts{})
 		if err != nil {
 			c.Err = err
 			return
@@ -786,7 +786,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		for _, group := range groups {
 			for _, teamGroup := range teamGroups {
-				if teamGroup.Id == group.Id {
+				if teamGroup.Group.Id == group.Id {
 					filteredGroups = append(filteredGroups, group)
 				}
 			}
