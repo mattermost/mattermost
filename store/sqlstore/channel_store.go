@@ -1793,7 +1793,41 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		selectStr = "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT( DISTINCT Users.Timezone ) AS ChannelMemberTimezonesCount"
+		endOfFirstKey := `LOCATE(':', Users.Timezone) + 2`
+		lengthOfFirstValue := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
+		endOfSecondKey := `LOCATE(',', Users.Timezone) + 19`
+		lengthOfSecondValue := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
+
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			endOfFirstKey = `POSITION(':' IN Users.Timezone) + 2`
+			lengthOfFirstValue = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
+			endOfSecondKey = `POSITION(',' IN Users.Timezone) + 19`
+			lengthOfSecondValue = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
+		}
+
+		selectStr = `
+			GroupMembers.GroupId,
+			COUNT(ChannelMembers.UserId) AS ChannelMemberCount,
+			COUNT(DISTINCT
+				(
+					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}'
+					THEN
+					SUBSTRING(
+						Users.Timezone
+						FROM ` + endOfFirstKey + `
+						FOR ` + lengthOfFirstValue + `
+					)
+					WHEN Timezone like '%"useAutomaticTimezone":"false"}'
+					THEN
+						SUBSTRING(
+						Users.Timezone
+						FROM ` + endOfSecondKey + `
+						FOR ` + lengthOfSecondValue + `
+					)
+					END
+				)
+			) AS ChannelMemberTimezonesCount
+			`
 	}
 
 	query := s.getQueryBuilder().

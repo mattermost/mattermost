@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlSupplier interface {
@@ -4361,6 +4362,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		timeZone := timezones.DefaultUserTimezone()
 		if i == 1 {
 			timeZone["manualTimezone"] = "EDT"
+			timeZone["useAutomaticTimezone"] = "false"
 		}
 
 		u := &model.User{
@@ -4398,10 +4400,20 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	// create 10 different users with 3 different timezones for group 3
 	for i := 1; i <= 10; i++ {
 		timeZone := timezones.DefaultUserTimezone()
-		if i == 1 {
+
+		if i == 1 || i == 2 {
 			timeZone["manualTimezone"] = "EDT"
-		} else if i == 2 {
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 3 || i == 4 {
 			timeZone["manualTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 5 || i == 6 {
+			timeZone["autoTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "true"
+		} else {
+			// Give every user with auto timezone set to true a random manual timezone to ensure that manual timezone is not looked at if auto is set
+			timeZone["useAutomaticTimezone"] = "true"
+			timeZone["manualTimezone"] = "PST" + utils.RandomName(utils.Range{Begin: 5, End: 5}, utils.ALPHANUMERIC)
 		}
 
 		u := &model.User{
