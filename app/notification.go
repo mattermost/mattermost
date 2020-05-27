@@ -40,13 +40,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if a.allowGroupMentions(post) {
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
-			groups, err := a.Srv().Store.Group().GetGroups(0, 0, model.GroupSearchOpts{FilterAllowReference: true})
-			groupsMap := make(map[string]*model.Group)
-			if err == nil {
-				for _, group := range groups {
-					groupsMap[group.Name] = group
-				}
-			}
+			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
 			gchan <- store.StoreResult{Data: groupsMap, Err: err}
 			close(gchan)
 		}()
@@ -417,7 +411,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 		RootId:    post.RootId,
 		ParentId:  post.ParentId,
 		ChannelId: channel.Id,
-		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupDisplayName": group.DisplayName}),
+		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
 	a.SendEphemeralPost(post.UserId, ephemeralPost)
 }
@@ -664,7 +658,9 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 		m.GroupMentions = make(map[string]*model.Group)
 	}
 
-	m.GroupMentions[group.Name] = group
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
 
 	return true
 }
@@ -740,6 +736,10 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
+	if license := a.License(); license == nil || !*license.Features.LDAPGroups {
+		return false
+	}
+
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
 		return false
 	}
@@ -749,6 +749,43 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 	}
 
 	return true
+}
+
+// getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
+func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
+	var err *model.AppError
+	groupsMap := make(map[string]*model.Group)
+	opts := model.GroupSearchOpts{FilterAllowReference: true}
+
+	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+		var groups []*model.GroupWithSchemeAdmin
+		if channel.IsGroupConstrained() {
+			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
+		} else {
+			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups {
+			if group.Group.Name != nil {
+				groupsMap[*group.Group.Name] = &group.Group
+			}
+		}
+		return groupsMap, nil
+	}
+
+	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
+	if err != nil {
+		return nil, err
+	}
+	for _, group := range groups {
+		if group.Name != nil {
+			groupsMap[*group.Name] = group
+		}
+	}
+
+	return groupsMap, nil
 }
 
 // Given a map of user IDs to profiles, returns a list of mention

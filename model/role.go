@@ -327,7 +327,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 }
 
 func (r *Role) IsValid() bool {
-	if len(r.Id) != 26 {
+	if !IsValidId(r.Id) {
 		return false
 	}
 

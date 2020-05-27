@@ -121,6 +121,12 @@ func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchPara
 			return results, err
 		}
 	}
+
+	if *s.rootStore.config.SqlSettings.DisableDatabaseSearch {
+		mlog.Debug("Returning empty results for post SearchPostsInTeam as the database search is disabled")
+		return &model.PostSearchResults{PostList: model.NewPostList(), Matches: model.PostSearchMatches{}}, nil
+	}
+
 	mlog.Debug("Using database search because no other search engine is available")
 	return s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 }
