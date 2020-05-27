@@ -1641,44 +1641,49 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 func TestGetChannelMembers(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 
-	members, resp := Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 3, "should only be 3 users in channel")
+		members, resp := client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 3, "should only be 3 users in channel")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 2, "should only be 2 users")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 2, "should only be 2 users")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 1, "should only be 1 user")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 1, "should only be 1 user")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, *members, "should be 0 users")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, *members, "should be 0 users")
 
-	_, resp = Client.GetChannelMembers("", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMembers("junk", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelMembers("junk", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMembers("", 0, 60, "")
+		// NOTE: for some reason, while using the LocalClient, the route /channels//members is not handled
+		if client == th.LocalClient {
+			CheckNotFoundStatus(t, resp)
+		} else {
+			CheckBadRequestStatus(t, resp)
+		}
+		_, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+	})
 
-	_, resp = Client.GetChannelMembers(model.NewId(), 0, 60, "")
+	_, resp := th.Client.GetChannelMembers(model.NewId(), 0, 60, "")
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	th.Client.Logout()
+	_, resp = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	th.Client.Login(user.Email, user.Password)
+	_, resp = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
@@ -1722,42 +1727,42 @@ func TestGetChannelMembersByIds(t *testing.T) {
 func TestGetChannelMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	c := th.Client
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		member, resp := client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
+		require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
 
-	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
-	require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
+		_, resp = client.GetChannelMember("", th.BasicUser.Id, "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelMember("", th.BasicUser.Id, "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetChannelMember("junk", th.BasicUser.Id, "")
+		CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, "", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelMember("junk", th.BasicUser.Id, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, "junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelMember(model.NewId(), th.BasicUser.Id, "")
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
+
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+	})
+
+	_, resp := c.GetChannelMember(model.NewId(), th.BasicUser.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "", "")
-	CheckNotFoundStatus(t, resp)
-
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "junk", "")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
-
-	Client.Logout()
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	c.Logout()
+	_, resp = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	c.Login(user.Email, user.Password)
+	_, resp = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
 }
 
 func TestGetChannelMembersForUser(t *testing.T) {
