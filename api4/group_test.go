@@ -705,10 +705,10 @@ func TestGetGroupsByChannel(t *testing.T) {
 	_, err = th.App.UpdateGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 
-	// ensure that SchemeAdmin field is updated
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		groups, _, response := client.GetGroupsByChannel(th.BasicChannel.Id, opts)
 		assert.Nil(t, response.Error)
+		// ensure that SchemeAdmin field is updated
 		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
 		require.NotNil(t, groups[0].SchemeAdmin)
 		require.True(t, *groups[0].SchemeAdmin)
@@ -822,37 +822,45 @@ func TestGetGroupsByTeam(t *testing.T) {
 		},
 	}
 
-	_, _, response := th.SystemAdminClient.GetGroupsByTeam("asdfasdf", opts)
-	CheckBadRequestStatus(t, response)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, _, response := client.GetGroupsByTeam("asdfasdf", opts)
+		CheckBadRequestStatus(t, response)
+	})
 
 	th.App.SetLicense(nil)
 
-	_, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
-	CheckNotImplementedStatus(t, response)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, _, response := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
+		CheckNotImplementedStatus(t, response)
+	})
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
-	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
-	require.NotNil(t, groups[0].SchemeAdmin)
-	require.False(t, *groups[0].SchemeAdmin)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		groups, _, response := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
+		assert.Nil(t, response.Error)
+		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(false)}}, groups)
+		require.NotNil(t, groups[0].SchemeAdmin)
+		require.False(t, *groups[0].SchemeAdmin)
+	})
 
 	// set syncable to true
 	groupSyncable.SchemeAdmin = true
 	_, err = th.App.UpdateGroupSyncable(groupSyncable)
 	require.Nil(t, err)
 
-	// ensure that SchemeAdmin field is updated
-	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
-	assert.Nil(t, response.Error)
-	assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
-	require.NotNil(t, groups[0].SchemeAdmin)
-	require.True(t, *groups[0].SchemeAdmin)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		groups, _, response := client.GetGroupsByTeam(th.BasicTeam.Id, opts)
+		assert.Nil(t, response.Error)
+		// ensure that SchemeAdmin field is updated
+		assert.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+		require.NotNil(t, groups[0].SchemeAdmin)
+		require.True(t, *groups[0].SchemeAdmin)
 
-	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), opts)
-	assert.Nil(t, response.Error)
-	assert.Empty(t, groups)
+		groups, _, response = client.GetGroupsByTeam(model.NewId(), opts)
+		assert.Nil(t, response.Error)
+		assert.Empty(t, groups)
+	})
 }
 
 func TestGetGroups(t *testing.T) {
