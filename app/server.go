@@ -52,8 +52,8 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
-	Store           store.Store
 	sqlStore        *sqlstore.SqlSupplier
+	Store           store.Store
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -308,24 +308,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.checkPushNotificationServerUrl()
 
 	license := s.License()
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
-		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
-		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
 
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {
