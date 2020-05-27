@@ -136,8 +136,6 @@ type AppIface interface {
 	// FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 	// associated to the team excluding bots.
 	FilterNonGroupTeamMembers(userIds []string, team *model.Team) ([]string, error)
-	// GetAllGroupsByTeam iterates all pages of groups associated to the given team and returns them all.
-	GetAllGroupsByTeam(teamID string) ([]*model.Group, *model.AppError)
 	// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 	// filter.
 	GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)

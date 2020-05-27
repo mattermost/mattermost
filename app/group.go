@@ -102,14 +102,14 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 			return nil, err
 		}
 		if team.IsGroupConstrained() {
-			var teamGroups []*model.Group
-			teamGroups, err = a.GetAllGroupsByTeam(team.Id)
+			var teamGroups []*model.GroupWithSchemeAdmin
+			teamGroups, err := a.Srv().Store.Group().GetGroupsByTeam(channel.TeamId, model.GroupSearchOpts{})
 			if err != nil {
 				return nil, err
 			}
 			var permittedGroup bool
 			for _, teamGroup := range teamGroups {
-				if teamGroup.Id == groupSyncable.GroupId {
+				if teamGroup.Group.Id == groupSyncable.GroupId {
 					permittedGroup = true
 					break
 				}
@@ -123,7 +123,6 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 				return nil, err
 			}
 		}
-
 	}
 
 	if gs == nil {
@@ -395,27 +394,4 @@ func (a *App) UserIsInAdminRoleGroup(userID, syncableID string, syncableType mod
 	}
 
 	return true, nil
-}
-
-// GetAllGroupsByTeam iterates all pages of groups associated to the given team and returns them all.
-func (a *App) GetAllGroupsByTeam(teamID string) ([]*model.Group, *model.AppError) {
-	batchCount := 1
-	page := 0
-	var teamGroups []*model.Group
-
-	for batchCount > 0 {
-		batch, err := a.Srv().Store.Group().GetGroupsByTeam(teamID, model.GroupSearchOpts{PageOpts: &model.PageOpts{Page: page, PerPage: 100}})
-		if err != nil {
-			return nil, err
-		}
-
-		batchCount = len(batch)
-		page++
-
-		for _, item := range batch {
-			teamGroups = append(teamGroups, &item.Group)
-		}
-	}
-
-	return teamGroups, nil
 }
