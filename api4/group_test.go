@@ -1052,7 +1052,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
-	// team is not group-constrained but has no associated groups
+	// team is group-constrained but has no associated groups
 	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
 	require.Nil(t, response.Error)
 	require.Len(t, apiGroups, 0)
