@@ -111,9 +111,10 @@ func TestCreateUserInputFilter(t *testing.T) {
 		t.Run("ValidAuthServiceFilter", func(t *testing.T) {
 			t.Run("SystemAdminClient", func(t *testing.T) {
 				user := &model.User{
-					Email:    "foobar+testdomainrestriction@mattermost.org",
-					Username: GenerateTestUsername(), AuthService: "ldap",
-					AuthData: model.NewString("999099"),
+					Email:       "foobar+testdomainrestriction@mattermost.org",
+					Username:    GenerateTestUsername(),
+					AuthService: "ldap",
+					AuthData:    model.NewString("999099"),
 				}
 				_, resp := th.SystemAdminClient.CreateUser(user)
 				CheckNoError(t, resp)
@@ -282,11 +283,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
 	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
-		}()
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
 
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
@@ -302,7 +302,6 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, resp := client.CreateUserWithToken(&user, token.Token)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
-
 	}, "EnableUserCreationDisable")
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
@@ -532,14 +531,11 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
-		}()
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
 		inviteId := th.BasicTeam.InviteId
-
 		_, resp := client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
