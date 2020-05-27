@@ -6,7 +6,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"net/http"
 	"strings"
 	"sync"
