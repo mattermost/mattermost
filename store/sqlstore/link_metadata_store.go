@@ -6,12 +6,11 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/pkg/errors"
-
-	sq "github.com/Masterminds/squirrel"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 )
 
 type SqlLinkMetadataStore struct {
