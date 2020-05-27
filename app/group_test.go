@@ -62,7 +62,7 @@ func TestCreateGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
