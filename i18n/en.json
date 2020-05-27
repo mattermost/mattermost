@@ -3003,6 +3003,34 @@
     "translation": "Unable to save emoji."
   },
   {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete."
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Unable to delete the emoji."
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.emoji.get.no_result",
+    "translation": "We couldn’t find the emoji."
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.emoji.get_by_name.no_result",
+    "translation": "We couldn’t find the emoji."
+  },
+  {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
   },
@@ -6417,30 +6445,6 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report."
-  },
-  {
-    "id": "store.sql_emoji.delete.app_error",
-    "translation": "Unable to delete the emoji."
-  },
-  {
-    "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete."
-  },
-  {
-    "id": "store.sql_emoji.get.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.save.app_error",
-    "translation": "Unable to save the emoji."
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",

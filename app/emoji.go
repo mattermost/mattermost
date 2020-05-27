@@ -84,7 +84,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
 	list, err := a.Srv().Store.Emoji().GetList(page*perPage, perPage, sort)
 	if err != nil {
-		return nil, model.NewAppError("GetEmojiList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetEmojiList", "app.emoji.get_list.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return list, nil
@@ -168,9 +168,9 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
+			return model.NewAppError("DeleteEmoji", "app.emoji.delete.no_results", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("DeleteEmoji", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("DeleteEmoji", "app.emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -193,9 +193,9 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return emoji, model.NewAppError("GetEmoji", "app.emoji.get.no_result", nil, err.Error(), http.StatusNotFound)
 		default:
-			return emoji, model.NewAppError("GetEmoji", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return emoji, model.NewAppError("GetEmoji", "app.emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -216,9 +216,9 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return emoji, model.NewAppError("GetEmojiByName", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
 		default:
-			return emoji, model.NewAppError("GetEmojiByName", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return emoji, model.NewAppError("GetEmojiByName", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -232,7 +232,7 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 
 	emoji, err := a.Srv().Store.Emoji().GetMultipleByName(names)
 	if err != nil {
-		return nil, model.NewAppError("GetMultipleEmojiByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 	}
 
 	return emoji, nil
@@ -244,9 +244,9 @@ func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(storeErr, &nfErr):
-			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusNotFound)
+			return nil, "", model.NewAppError("GetEmojiImage", "app.emoji.get.no_result", nil, storeErr.Error(), http.StatusNotFound)
 		default:
-			return nil, "", model.NewAppError("GetEmojiImage", "store.sql_emoji.get.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+			return nil, "", model.NewAppError("GetEmojiImage", "app.emoji.get.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -270,7 +270,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 
 	list, err := a.Srv().Store.Emoji().Search(name, prefixOnly, limit)
 	if err != nil {
-		return nil, model.NewAppError("SearchEmoji", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SearchEmoji", "app.emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return list, nil
@@ -291,9 +291,9 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
 		default:
-			return "", model.NewAppError("GetEmojiStaticUrl", "store.sql_emoji.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
