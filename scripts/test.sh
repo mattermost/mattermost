@@ -5,7 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 GO=$1
 GOFLAGS=$2
-PACKAGES=$3
+PACKAGES=github.com/mattermost/mattermost-server/v5/app
 TESTS=$4
 TESTFLAGS=$5
 GOBIN=$6
