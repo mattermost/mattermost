@@ -108,7 +108,6 @@ github.com/dyatlov/go-opengraph/opengraph
 # github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4
 ## explicit
 # github.com/fatih/color v1.9.0
-## explicit
 github.com/fatih/color
 # github.com/fortytw2/leaktest v1.3.0
 ## explicit
@@ -128,6 +127,8 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.4.1
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-gorp/gorp v2.2.0+incompatible
+## explicit
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -263,7 +264,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
+# github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.2
@@ -342,6 +343,10 @@ github.com/olekukonko/tablewriter
 ## explicit
 github.com/olivere/elastic/config
 github.com/olivere/elastic/uritemplates
+# github.com/onsi/ginkgo v1.12.0
+## explicit
+# github.com/onsi/gomega v1.9.0
+## explicit
 # github.com/opentracing/opentracing-go v1.1.0
 ## explicit
 github.com/opentracing/opentracing-go
@@ -360,6 +365,8 @@ github.com/philhofer/fwd
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/poy/onpar v1.0.0
+## explicit
 # github.com/prometheus/client_golang v1.5.1
 ## explicit
 github.com/prometheus/client_golang/prometheus
@@ -493,6 +500,8 @@ github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
+# github.com/ziutek/mymysql v1.5.4
+## explicit
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.uber.org/atomic v1.6.0

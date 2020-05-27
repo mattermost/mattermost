@@ -22,13 +22,13 @@ require (
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
-	github.com/fatih/color v1.9.0 // indirect
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/francoispqt/gojay v1.2.13
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/getsentry/sentry-go v0.6.0
 	github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a // indirect
 	github.com/go-asn1-ber/asn1-ber v1.4.1 // indirect
+	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/protobuf v1.4.2 // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/mattermost/go-i18n v1.11.0
-	github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
+	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
@@ -77,10 +77,13 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/olivere/elastic v6.2.30+incompatible // indirect
+	github.com/onsi/ginkgo v1.12.0 // indirect
+	github.com/onsi/gomega v1.9.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/poy/onpar v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/procfs v0.0.11 // indirect
@@ -111,6 +114,7 @@ require (
 	github.com/wiggin77/merror v1.0.2
 	github.com/wiggin77/srslog v1.0.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
+	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
