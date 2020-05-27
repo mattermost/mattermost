@@ -1795,18 +1795,18 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	if includeTimezones {
 		distinctTimezones := `
 			DISTINCT(
-				CASE WHEN Users.Timezone->'$.useAutomaticTimezone' = 'true'
+				CASE WHEN Timezone->'$.useAutomaticTimezone' = 'true'
 				THEN
-					Users.Timezone->'$.automaticTimezone'
+					Timezone->'$.automaticTimezone'
 				ELSE
-					Users.Timezone->'$.manualTimezone'
+					Timezone->'$.manualTimezone'
 				END
 			)
 		`
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			distinctTimezones = `
 				DISTINCT(
-					CASE WHEN Users.Timezone::json->>'useAutomaticTimezone' = 'true'
+					CASE WHEN Timezone::json->>'useAutomaticTimezone' = 'true'
 					THEN
 						Timezone::json->>'automaticTimezone'
 					ELSE
