@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"image"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -402,7 +403,10 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	}
 
 	if body != nil {
-		defer body.Close()
+		defer func() {
+			io.Copy(ioutil.Discard, body)
+			body.Close()
+		}()
 	}
 
 	if err == nil {

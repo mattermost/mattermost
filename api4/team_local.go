@@ -20,6 +20,8 @@ func (api *API) InitTeamLocal() {
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
 	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
+  api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
 }
 
 func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {

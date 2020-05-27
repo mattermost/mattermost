@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -152,6 +153,16 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
+
+	// Verify handling of the supported true/false values by randomizing on each run.
+	rand.Seed(time.Now().UTC().UnixNano())
+	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
+	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
+	trueString := trueValues[rand.Intn(len(trueValues))]
+	falseString := falseValues[rand.Intn(len(falseValues))]
+	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
+	th.Client.SetBoolString(true, trueString)
+	th.Client.SetBoolString(false, falseString)
 
 	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
 
@@ -678,7 +689,7 @@ func (me *TestHelper) GenerateTestEmail() string {
 func (me *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        "n-" + id,
+		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + id,
