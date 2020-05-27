@@ -658,7 +658,9 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 		m.GroupMentions = make(map[string]*model.Group)
 	}
 
-	m.GroupMentions[group.Name] = group
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
 
 	return true
 }
@@ -766,7 +768,9 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			return nil, err
 		}
 		for _, group := range groups {
-			groupsMap[group.Group.Name] = &group.Group
+			if group.Group.Name != nil {
+				groupsMap[*group.Group.Name] = &group.Group
+			}
 		}
 		return groupsMap, nil
 	}
@@ -776,7 +780,9 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 		return nil, err
 	}
 	for _, group := range groups {
-		groupsMap[group.Name] = group
+		if group.Name != nil {
+			groupsMap[*group.Name] = group
+		}
 	}
 
 	return groupsMap, nil
