@@ -1739,14 +1739,11 @@ func TestSidebarCategory(t *testing.T) {
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
 	defer th.App.PermanentDeleteChannel(basicChannel2)
 	user := th.CreateUser()
+	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
 	th.LinkUserToTeam(user, th.BasicTeam)
 	th.AddUserToChannel(user, basicChannel2)
 
 	var createdCategory *model.SidebarCategoryWithChannels
-	t.Run("MigrateSidebarCategories", func(t *testing.T) {
-		_, err := th.App.Srv().Store.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
-		require.Nil(t, err, "Should finish initial migration")
-	})
 	t.Run("CreateSidebarCategory", func(t *testing.T) {
 		catData := model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
