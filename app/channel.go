@@ -532,7 +532,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -2332,7 +2332,13 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 
 	channel.TeamId = team.Id
 	if _, err := a.Srv().Store.Channel().Update(channel); err != nil {
-		return err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("MoveChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 	a.postChannelMoveMessage(user, channel, previousTeam)
 

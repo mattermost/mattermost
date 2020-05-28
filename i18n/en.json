@@ -2971,6 +2971,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Unable to update channel."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
