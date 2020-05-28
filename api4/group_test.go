@@ -1015,11 +1015,11 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
 	var groups []*model.Group
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 4; i++ {
 		id := model.NewId()
 		group, err := th.App.CreateGroup(&model.Group{
-			DisplayName: "dn-foo_" + id,
-			Name:        "name" + id,
+			DisplayName: fmt.Sprintf("dn-foo_%d", i),
+			Name:        model.NewString("name" + id),
 			Source:      model.GroupSourceLdap,
 			Description: "description_" + id,
 			RemoteId:    model.NewId(),
@@ -1053,21 +1053,33 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Nil(t, err)
 
 	// team is group-constrained but has no associated groups
-	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true})
 	require.Nil(t, response.Error)
 	require.Len(t, apiGroups, 0)
 
-	for _, group := range []*model.Group{groups[0], groups[2]} {
+	for _, group := range []*model.Group{groups[0], groups[2], groups[3]} {
 		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
 		require.Nil(t, err)
 	}
 
 	// set of the teams groups are returned
-	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true})
 	require.Nil(t, response.Error)
 	require.Contains(t, apiGroups, groups[0])
 	require.NotContains(t, apiGroups, groups[1])
 	require.Contains(t, apiGroups, groups[2])
+
+	// paged results function as expected
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true, PageOpts: &model.PageOpts{PerPage: 2, Page: 0}})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 2)
+	require.Equal(t, apiGroups[0].Id, groups[0].Id)
+	require.Equal(t, apiGroups[1].Id, groups[2].Id)
+
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true, PageOpts: &model.PageOpts{PerPage: 2, Page: 1}})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 1)
+	require.Equal(t, apiGroups[0].Id, groups[3].Id)
 
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(groups[0].Id, channel.Id, false))
 	require.Nil(t, err)
