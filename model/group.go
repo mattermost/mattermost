@@ -81,6 +81,12 @@ type GroupSearchOpts struct {
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
+
+	// FilterParentTeamPermitted filters the groups to the intersect of the
+	// set associated to the parent team and those returned by the query.
+	// If the parent team is not group-constrained or if NotAssociatedToChannel
+	// is not set then this option is ignored.
+	FilterParentTeamPermitted bool
 }
 
 type PageOpts struct {

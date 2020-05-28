@@ -717,9 +717,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                    c.Params.Q,
-		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		Q:                         c.Params.Q,
+		IncludeMemberCount:        c.Params.IncludeMemberCount,
+		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 	}
 
 	if teamID != "" {
@@ -732,7 +733,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.NotAssociatedToTeam = teamID
 	}
 
-	var parentTeam *model.Team
 	if channelID != "" {
 		channel, err := c.App.GetChannel(channelID)
 		if err != nil {
@@ -750,11 +750,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.NotAssociatedToChannel = channelID
-		parentTeam, err = c.App.GetTeam(channel.TeamId)
-		if err != nil {
-			c.Err = err
-			return
-		}
 	}
 
 	sinceString := r.URL.Query().Get("since")
@@ -771,28 +766,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
-	}
-
-	// if the team is group-constrained, only display the intersect of the teams
-	// groups and the groups returned by the query.
-	if parentTeam != nil && parentTeam.IsGroupConstrained() {
-		filteredGroups := []*model.Group{}
-
-		teamGroups, err := c.App.Srv().Store.Group().GetGroupsByTeam(teamID, model.GroupSearchOpts{})
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		for _, group := range groups {
-			for _, teamGroup := range teamGroups {
-				if teamGroup.Group.Id == group.Id {
-					filteredGroups = append(filteredGroups, group)
-				}
-			}
-		}
-
-		groups = filteredGroups
 	}
 
 	b, marshalErr := json.Marshal(groups)
