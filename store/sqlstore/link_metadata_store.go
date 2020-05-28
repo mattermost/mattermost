@@ -68,7 +68,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
 		}
-		return nil, errors.Wrapf(err, "could not get metadata with url=%s", url)
+		return nil, errors.Wrapf(err, "could not get metadata with selectone: url=%s", url)
 	}
 
 	err = metadata.DeserializeDataToConcreteType()
