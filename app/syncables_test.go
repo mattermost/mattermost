@@ -55,7 +55,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: "Glee Club",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -65,7 +65,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: "Science Club",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,

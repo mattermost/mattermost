@@ -1142,7 +1142,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 			UserId:    u2.Id,
 			ChannelId: c2.Id,
 			Message:   "@" + u1.Username,
-		}, c2, false)
+		}, c2, false, true)
 		require.Nil(t, err)
 		th.CreatePost(c2)
 
