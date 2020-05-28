@@ -6515,7 +6515,7 @@
     "translation": "无法保存服务条款。"
   },
   {
-    "id": "store.sql_terms_of_service_store.get.app_error",
+    "id": "app.terms_of_service.get.app_error",
     "translation": "无法获取服务条款。"
   },
   {

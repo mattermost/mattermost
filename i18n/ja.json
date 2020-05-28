@@ -6515,7 +6515,7 @@
     "translation": "利用規約を保存できませんでした。"
   },
   {
-    "id": "store.sql_terms_of_service_store.get.app_error",
+    "id": "app.terms_of_service.get.app_error",
     "translation": "利用規約を取得できませんでした。"
   },
   {
