@@ -27,7 +27,7 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		var appErr *model.AppError
 		switch {
 		case errors.As(sErr, &iErr):
-			return nil, model.NewAppError("CreateTermsOfService", "store.sql_terms_of_service_store.save.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
+			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
 		case errors.As(sErr, &appErr):
 			return nil, appErr
 		default:

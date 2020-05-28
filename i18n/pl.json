@@ -6523,7 +6523,7 @@
     "translation": "Nie znaleziono warunków korzystania z usługi."
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "id": "app.terms_of_service.create.existing.app_error",
     "translation": "Nie można wywołać zapisu dla istniejących warunków korzystania z usługi."
   },
   {

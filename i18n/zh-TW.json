@@ -6523,7 +6523,7 @@
     "translation": "找不到使用條款"
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "id": "app.terms_of_service.create.existing.app_error",
     "translation": "不能對現有的使用條款呼叫儲存"
   },
   {

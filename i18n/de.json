@@ -6523,7 +6523,7 @@
     "translation": "Keine Nutzungsbedingungen gefunden."
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "id": "app.terms_of_service.create.existing.app_error",
     "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
   },
   {

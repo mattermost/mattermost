@@ -6523,7 +6523,7 @@
     "translation": "No se encontraron los términos de servicio."
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "id": "app.terms_of_service.create.existing.app_error",
     "translation": "No se debe invocar guardar un término de servicio existente"
   },
   {

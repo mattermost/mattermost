@@ -6523,7 +6523,7 @@
     "translation": "Жодних умов служби не знайдено."
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "id": "app.terms_of_service.create.existing.app_error",
     "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
   },
   {
