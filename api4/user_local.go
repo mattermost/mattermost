@@ -5,6 +5,6 @@ package api4
 
 func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(createUserAccessToken)).Methods("POST")
-
+	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(getUserAccessTokensForUser)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiLocal(revokeUserAccessToken)).Methods("POST")
 }
