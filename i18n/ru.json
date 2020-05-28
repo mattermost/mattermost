@@ -6511,19 +6511,19 @@
     "translation": "Unable to update the date of the last team icon update"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Unable to fetch terms of service."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No terms of service found."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Must not call save for existing terms of service."
   },
   {

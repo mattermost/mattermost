@@ -6511,19 +6511,19 @@
     "translation": "Nós não conseguimos atualizar a data da última atualização do ícone da equipe"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Não foi possível salvar os termos de serviço."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Não foi possível carregar os termos de serviço."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "Nenhum termo de serviço encontrado."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Não deve chamar para salvar termos de serviços existentes."
   },
   {

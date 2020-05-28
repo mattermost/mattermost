@@ -6511,19 +6511,19 @@
     "translation": "No se puede actualizar la fecha de la última actualización del icono del equipo"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "No se puede guardar los términos de servicio."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "No se puede obtener los términos de servicio."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "No se encontraron los términos de servicio."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "No se debe invocar guardar un término de servicio existente"
   },
   {

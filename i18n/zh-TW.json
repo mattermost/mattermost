@@ -6511,19 +6511,19 @@
     "translation": "無法更新最後一次團隊圖示更新的日期"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "無法儲存使用條款"
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "無法取得使用條款"
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "找不到使用條款"
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "不能對現有的使用條款呼叫儲存"
   },
   {

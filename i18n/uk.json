@@ -6511,19 +6511,19 @@
     "translation": "Не вдалося оновити дату останнього оновлення піктограми команди"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Не вдається зберегти умови обслуговування."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Не вдається завантажити умови надання послуг."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "Жодних умов служби не знайдено."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
   },
   {

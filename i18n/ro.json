@@ -6511,19 +6511,19 @@
     "translation": "Imposibil de actualizat data ultimei actualizări a pictogramei echipei"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Imposibil de salvat termenii și condițiile."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Imposibil de preluat condițiile de serviciu."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "Nu au fost găsite condiții de serviciu."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Nu trebuie să apelați cu excepția termenilor și condițiilor existente."
   },
   {

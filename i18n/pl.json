@@ -6511,19 +6511,19 @@
     "translation": "Nie można zaktualizować daty ostatniej aktualizacji ikony zespołu"
   },
   {
-    "id": "app.terms_of_service.create.app_error",
+    "id": "store.sql_terms_of_service.save.app_error",
     "translation": "Nie można zapisać warunków korzystania z usługi."
   },
   {
-    "id": "app.terms_of_service.get.app_error",
+    "id": "store.sql_terms_of_service_store.get.app_error",
     "translation": "Nie można pobrać warunków korzystania z usługi."
   },
   {
-    "id": "app.terms_of_service.get.no_rows.app_error",
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
     "translation": "Nie znaleziono warunków korzystania z usługi."
   },
   {
-    "id": "app.terms_of_service.create.existing.app_error",
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
     "translation": "Nie można wywołać zapisu dla istniejących warunków korzystania z usługi."
   },
   {
