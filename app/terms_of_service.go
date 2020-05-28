@@ -58,9 +58,9 @@ func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppErr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-		default:
 			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.no_rows.app_error", nil, "", http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return termsOfService, nil
