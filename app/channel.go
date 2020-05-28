@@ -835,6 +835,14 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 			return nil, err
 		}
 
+		// Send a websocket event about this new role. The other new roles—member and guest—get emitted when they're updated.
+		var adminRole *model.Role
+		adminRole, err = a.GetRoleByName(scheme.DefaultChannelAdminRole)
+		if err != nil {
+			return nil, err
+		}
+		a.sendUpdatedRoleEvent(adminRole)
+
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_SCHEME_UPDATED, "", channel.Id, "", nil)
 		a.Publish(message)
 		mlog.Info("Permission scheme created.", mlog.String("channel_id", channel.Id), mlog.String("channel_name", channel.Name))
