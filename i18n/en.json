@@ -3027,6 +3027,14 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Failed to record channel member history."
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -6357,22 +6365,6 @@
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
-  },
-  {
-    "id": "app.channel_member_history.get_users_in_channel_during.internal_error",
-    "translation": "Failed to get users in channel during specified time period."
-  },
-  {
-    "id": "app.channel_member_history.log_join_event.internal_error",
-    "translation": "Failed to record channel member history."
-  },
-  {
-    "id": "app.channel_member_history.log_leave_event.internal_error",
-    "translation": "Failed to record channel member history. Failed to update existing join record"
-  },
-  {
-    "id": "app.channel_member_history.permanent_delete_batch.internal_error",
-    "translation": "Failed to purge records."
   },
   {
     "id": "store.sql_cluster_discovery.cleanup.app_error",
