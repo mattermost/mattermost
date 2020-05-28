@@ -17,18 +17,18 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		UserId: userId,
 	}
 
-	if _, err := a.GetUser(userId); err != nil {
-		return nil, err
+	if _, appErr := a.GetUser(userId); appErr != nil {
+		return nil, appErr
 	}
 
-	var sErr error
-	if termsOfService, sErr = a.Srv().Store.TermsOfService().Save(termsOfService); sErr != nil {
+	var err error
+	if termsOfService, err = a.Srv().Store.TermsOfService().Save(termsOfService); err != nil {
 		var iErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
-		case errors.As(sErr, &iErr):
+		case errors.As(err, &iErr):
 			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
-		case errors.As(sErr, &appErr):
+		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
