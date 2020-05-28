@@ -388,7 +388,7 @@ func (c *Client4) GetElasticsearchRoute() string {
 }
 
 func (c *Client4) GetBleveRoute() string {
-	return fmt.Sprintf("/bleve")
+	return "/bleve"
 }
 
 func (c *Client4) GetCommandsRoute() string {
