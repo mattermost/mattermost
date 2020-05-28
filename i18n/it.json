@@ -6519,7 +6519,7 @@
     "translation": "Impossibile recuperare i termini di servizio."
   },
   {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "Termini di servizio non trovati."
   },
   {

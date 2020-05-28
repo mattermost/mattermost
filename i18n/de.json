@@ -6519,7 +6519,7 @@
     "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
   },
   {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "Keine Nutzungsbedingungen gefunden."
   },
   {

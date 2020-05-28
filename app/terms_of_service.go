@@ -31,7 +31,7 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		case errors.As(sErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -44,9 +44,9 @@ func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetLatestTermsOfService", "app.terms_of_service.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetLatestTermsOfService", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return termsOfService, nil
@@ -58,9 +58,9 @@ func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppErr
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetTermsOfService", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		default:
-			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.no_rows.app_error", nil, "", http.StatusNotFound)
 		}
 	}
 	return termsOfService, nil
