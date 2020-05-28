@@ -6511,7 +6511,7 @@
     "translation": "Nós não conseguimos atualizar a data da última atualização do ícone da equipe"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Não foi possível salvar os termos de serviço."
   },
   {

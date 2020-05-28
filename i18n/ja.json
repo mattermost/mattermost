@@ -6511,7 +6511,7 @@
     "translation": "チームアイコン更新日を更新できませんでした"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "利用規約を保存できませんでした。"
   },
   {

@@ -6511,7 +6511,7 @@
     "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Team-Symbols nicht aktualisieren."
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Konnte die Nutzungsbedingungen nicht speichern."
   },
   {

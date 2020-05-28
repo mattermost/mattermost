@@ -6511,7 +6511,7 @@
     "translation": "Не вдалося оновити дату останнього оновлення піктограми команди"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Не вдається зберегти умови обслуговування."
   },
   {

@@ -6511,7 +6511,7 @@
     "translation": "Imposibil de actualizat data ultimei actualizări a pictogramei echipei"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Imposibil de salvat termenii și condițiile."
   },
   {

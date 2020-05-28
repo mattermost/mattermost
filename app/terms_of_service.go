@@ -31,7 +31,7 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 		case errors.As(sErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service.save.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
 		}
 	}
 

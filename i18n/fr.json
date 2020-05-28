@@ -6511,7 +6511,7 @@
     "translation": "Impossible de modifier la date de la dernière modification de l'icône d'équipe"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Impossible de sauvegarder les conditions d'utilisation."
   },
   {

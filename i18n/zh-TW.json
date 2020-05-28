@@ -6511,7 +6511,7 @@
     "translation": "無法更新最後一次團隊圖示更新的日期"
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "無法儲存使用條款"
   },
   {

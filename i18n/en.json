@@ -7303,7 +7303,7 @@
     "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
-    "id": "store.sql_terms_of_service.save.app_error",
+    "id": "app.terms_of_service.create.app_error",
     "translation": "Unable to save terms of service."
   },
   {
