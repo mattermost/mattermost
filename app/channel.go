@@ -527,7 +527,13 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	_, err := a.Srv().Store.Channel().Update(channel)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+
+		}
 	}
 
 	a.invalidateCacheForChannel(channel)
