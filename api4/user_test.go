@@ -3761,15 +3761,17 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
-		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-		CheckNoError(t, resp)
-		assertToken(t, th, token, th.BasicUser.Id)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			token, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckNoError(t, resp)
+			assertToken(t, th, token, th.BasicUser.Id)
 
-		ok, resp := th.Client.RevokeUserAccessToken(token.Id)
-		CheckNoError(t, resp)
-		assert.True(t, ok, "should have passed")
+			ok, resp := client.RevokeUserAccessToken(token.Id)
+			CheckNoError(t, resp)
+			assert.True(t, ok, "should have passed")
 
-		assertInvalidToken(t, th, token)
+			assertInvalidToken(t, th, token)
+		})
 	})
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {
