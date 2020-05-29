@@ -21,7 +21,7 @@ func TestGetGroup(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -66,7 +66,7 @@ func TestPatchGroup(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -75,7 +75,7 @@ func TestPatchGroup(t *testing.T) {
 
 	updateFmt := "%s_updated"
 
-	newName := fmt.Sprintf(updateFmt, g.Name)
+	newName := fmt.Sprintf(updateFmt, *g.Name)
 	newDisplayName := fmt.Sprintf(updateFmt, g.DisplayName)
 	newDescription := fmt.Sprintf(updateFmt, g.Description)
 
@@ -101,8 +101,8 @@ func TestPatchGroup(t *testing.T) {
 
 	assert.Equal(t, *gp.DisplayName, group.DisplayName)
 	assert.Equal(t, *gp.DisplayName, group2.DisplayName)
-	assert.Equal(t, *gp.Name, group.Name)
-	assert.Equal(t, *gp.Name, group2.Name)
+	assert.Equal(t, *gp.Name, *group.Name)
+	assert.Equal(t, *gp.Name, *group2.Name)
 	assert.Equal(t, *gp.Description, group.Description)
 	assert.Equal(t, *gp.Description, group2.Description)
 
@@ -132,7 +132,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -170,7 +170,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -209,7 +209,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -256,7 +256,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -306,7 +306,7 @@ func TestGetGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -360,7 +360,7 @@ func TestGetGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -414,7 +414,7 @@ func TestGetGroupTeams(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -463,7 +463,7 @@ func TestGetGroupChannels(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -512,7 +512,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -577,7 +577,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	id := model.NewId()
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -651,7 +651,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -718,7 +718,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -792,7 +792,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -856,7 +856,7 @@ func TestGetGroups(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -953,7 +953,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	id := model.NewId()
 	group1, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -969,7 +969,7 @@ func TestGetGroupsByUserId(t *testing.T) {
 	id = model.NewId()
 	group2, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn-foo_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -1006,4 +1006,87 @@ func TestGetGroupsByUserId(t *testing.T) {
 	require.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
 
+}
+
+func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	var groups []*model.Group
+	for i := 0; i < 4; i++ {
+		id := model.NewId()
+		group, err := th.App.CreateGroup(&model.Group{
+			DisplayName: fmt.Sprintf("dn-foo_%d", i),
+			Name:        model.NewString("name" + id),
+			Source:      model.GroupSourceLdap,
+			Description: "description_" + id,
+			RemoteId:    model.NewId(),
+		})
+		require.Nil(t, err)
+		groups = append(groups, group)
+	}
+
+	team := th.CreateTeam()
+
+	id := model.NewId()
+	channel := &model.Channel{
+		DisplayName:      "dn_" + id,
+		Name:             "name" + id,
+		Type:             model.CHANNEL_PRIVATE,
+		TeamId:           team.Id,
+		GroupConstrained: model.NewBool(true),
+	}
+	channel, err := th.App.CreateChannel(channel, false)
+	require.Nil(t, err)
+
+	// normal result of groups are returned if the team is not group-constrained
+	apiGroups, response := th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.Contains(t, apiGroups, groups[0])
+	require.Contains(t, apiGroups, groups[1])
+	require.Contains(t, apiGroups, groups[2])
+
+	team.GroupConstrained = model.NewBool(true)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	// team is group-constrained but has no associated groups
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 0)
+
+	for _, group := range []*model.Group{groups[0], groups[2], groups[3]} {
+		_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		require.Nil(t, err)
+	}
+
+	// set of the teams groups are returned
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true})
+	require.Nil(t, response.Error)
+	require.Contains(t, apiGroups, groups[0])
+	require.NotContains(t, apiGroups, groups[1])
+	require.Contains(t, apiGroups, groups[2])
+
+	// paged results function as expected
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true, PageOpts: &model.PageOpts{PerPage: 2, Page: 0}})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 2)
+	require.Equal(t, apiGroups[0].Id, groups[0].Id)
+	require.Equal(t, apiGroups[1].Id, groups[2].Id)
+
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id, FilterParentTeamPermitted: true, PageOpts: &model.PageOpts{PerPage: 2, Page: 1}})
+	require.Nil(t, response.Error)
+	require.Len(t, apiGroups, 1)
+	require.Equal(t, apiGroups[0].Id, groups[3].Id)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(groups[0].Id, channel.Id, false))
+	require.Nil(t, err)
+
+	// as usual it doesn't return groups already associated to the channel
+	apiGroups, response = th.SystemAdminClient.GetGroups(model.GroupSearchOpts{NotAssociatedToChannel: channel.Id})
+	require.Nil(t, response.Error)
+	require.NotContains(t, apiGroups, groups[0])
+	require.Contains(t, apiGroups, groups[2])
 }
