@@ -6007,7 +6007,7 @@
     "translation": "Unable to delete the channel."
   },
   {
-    "id": "store.sql_channel.get.existing.app_error",
+    "id": "app.channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {

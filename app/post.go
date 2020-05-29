@@ -97,7 +97,7 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("CreatePostMissingChannel", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("CreatePostMissingChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("CreatePostMissingChannel", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
