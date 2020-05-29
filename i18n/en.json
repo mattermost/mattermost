@@ -6003,8 +6003,12 @@
     "translation": "Unable to count messages since given date."
   },
   {
-    "id": "store.sql_channel.delete.channel.app_error",
+    "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Unable to restore the channel."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
