@@ -2596,7 +2596,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	}
 
 	likeClause = fmt.Sprintf("(%s)", strings.Join(searchFields, " OR "))
-	likeTerm += "%"
+	likeTerm = "%" + likeTerm + "%"
 	return
 }
 
