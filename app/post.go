@@ -113,14 +113,13 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	// Query the cache atomically for the given pending post id, saving a record if
 	// it hasn't previously been seen.
 	var postId string
-	errCache := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
-
-	if errCache == cache2.ErrKeyNotFound {
+	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
+	if nErr == cache2.ErrKeyNotFound {
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
 		return nil, nil
 	}
 
-	if errCache != nil {
+	if nErr != nil {
 		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError)
 	}
 
