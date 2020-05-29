@@ -47,6 +47,7 @@ func TestUploadLicenseFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.UploadLicenseFile([]byte{})
@@ -54,17 +55,24 @@ func TestUploadLicenseFile(t *testing.T) {
 		require.False(t, ok)
 	})
 
-	t.Run("as system admin user", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.UploadLicenseFile([]byte{})
 		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
-	})
+	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
+		require.False(t, ok)
+	})
+
+	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		ok, resp := LocalClient.UploadLicenseFile([]byte{})
+		CheckBadRequestStatus(t, resp)
 		require.False(t, ok)
 	})
 }
@@ -73,6 +81,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.RemoveLicenseFile()
@@ -80,11 +89,11 @@ func TestRemoveLicenseFile(t *testing.T) {
 		require.False(t, ok)
 	})
 
-	t.Run("as system admin user", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.RemoveLicenseFile()
 		CheckNoError(t, resp)
 		require.True(t, ok)
-	})
+	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
@@ -92,5 +101,13 @@ func TestRemoveLicenseFile(t *testing.T) {
 		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
 		require.False(t, ok)
+	})
+
+	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := LocalClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		require.True(t, ok)
 	})
 }
