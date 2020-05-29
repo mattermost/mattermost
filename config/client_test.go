@@ -165,6 +165,19 @@ func TestGetClientConfig(t *testing.T) {
 				"IsDefaultMarketplace": "false",
 			},
 		},
+		{
+			"enable ShowFullName prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					ShowFullName: bToP(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"ShowFullName": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

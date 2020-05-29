@@ -167,6 +167,10 @@ jobs:
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            curl -sL https://sentry.io/get-cli/ | bash
+            export VERSION=$(sentry-cli releases propose-version)
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
+            sentry-cli --log-level=debug releases set-commits --auto $VERSION
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -433,6 +437,7 @@ workflows:
           requires:
             - setup
       - build:
+          context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers

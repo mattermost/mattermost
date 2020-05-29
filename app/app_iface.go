@@ -158,6 +158,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
 	// GetKnownUsers returns the list of user ids of users with any direct
@@ -190,6 +192,8 @@ type AppIface interface {
 	// GetSessionLengthInMillis returns the session length, in milliseconds,
 	// based on the type of session (Mobile, SSO, Web/LDAP).
 	GetSessionLengthInMillis(session *model.Session) int64
+	// GetSuggestions returns suggestions for user input.
+	GetSuggestions(commands []*model.Command, userInput, roleID string) []model.AutocompleteSuggestion
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
@@ -412,8 +416,8 @@ type AppIface interface {
 	CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(userId, email string) (*model.Token, *model.AppError)
-	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError)
-	CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError)
+	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
@@ -553,7 +557,6 @@ type AppIface interface {
 	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
@@ -782,6 +785,7 @@ type AppIface interface {
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishSkipClusterSend(message *model.WebSocketEvent)
+	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection()
@@ -856,7 +860,7 @@ type AppIface interface {
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
-	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
+	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
 	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError

@@ -126,11 +126,13 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 
 func brotliFilesHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		isRequestingBrotliFile, contentType := requestingBrotliFileExtension(r)
-		if isRequestingBrotliFile && acceptsEncodingBrotli(r) {
-			r.URL.Path = r.URL.Path + ".br"
-			w.Header().Set("Content-Encoding", "br")
-			w.Header().Set("Content-Type", contentType)
+		if model.BuildNumber != "dev" {
+			isRequestingBrotliFile, contentType := requestingBrotliFileExtension(r)
+			if isRequestingBrotliFile && acceptsEncodingBrotli(r) {
+				r.URL.Path = r.URL.Path + ".br"
+				w.Header().Set("Content-Encoding", "br")
+				w.Header().Set("Content-Type", contentType)
+			}
 		}
 
 		handler.ServeHTTP(w, r)

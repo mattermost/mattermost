@@ -714,12 +714,14 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			sq.Eq{"ChannelId": options.ChannelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt " + sort).
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-24170.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
 	}
