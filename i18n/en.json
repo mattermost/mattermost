@@ -6275,8 +6275,8 @@
     "translation": "Unable to commit transaction."
   },
   {
-    "id": "store.sql_channel.update.exists.app_error",
-    "translation": "A channel with that handle already exists."
+    "id": "app.channel.update.bad_id",
+    "translation": "Unable to update the channel."
   },
   {
     "id": "store.sql_channel.update.open_transaction.app_error",

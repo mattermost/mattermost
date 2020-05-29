@@ -654,11 +654,11 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) 
 	return updatedChannel, nil
 }
 
-func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, error) {
 	channel.PreUpdate()
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
 
 	if err := channel.IsValid(); err != nil {
@@ -671,15 +671,15 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 			dupChannel := model.Channel{}
 			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
-				return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 			}
-			return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 		}
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
 
 	if count != 1 {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
+		return nil, fmt.Errorf("the expected number of channels to be updated is 1 but was %d", count)
 	}
 
 	return channel, nil

@@ -528,7 +528,10 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	_, err := a.Srv().Store.Channel().Update(channel)
 	if err != nil {
 		var appErr *model.AppError
+		var iErr *store.ErrInvalidInput
 		switch {
+		case errors.As(err, &iErr):
+			return nil, model.NewAppError("UpdateChannel", "app.channel.update.bad_id", nil, iErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
@@ -2333,7 +2336,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	channel.TeamId = team.Id
 	if _, err := a.Srv().Store.Channel().Update(channel); err != nil {
 		var appErr *model.AppError
+		var iErr *store.ErrInvalidInput
 		switch {
+		case errors.As(err, &iErr):
+			return model.NewAppError("MoveChannel", "app.channel.update.bad_id", nil, iErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &appErr):
 			return appErr
 		default:
