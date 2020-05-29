@@ -1867,10 +1867,6 @@
     "translation": "Your license does not support update permissions schemes"
   },
   {
-    "id": "api.send_warn_metric_ack_email.no_sysadmin.app_error",
-    "translation": "Acknowldgement email should be sent only for admin users."
-  },
-  {
     "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
     "translation": "Must enable Forward80To443 when using LetsEncrypt"
   },
@@ -2432,7 +2428,11 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Contact Email: "
+    "translation": "Email: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_name_header",
+    "translation": "Contact: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Registered Users: "
+    "translation": "Total Active Users: "
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -2451,16 +2451,12 @@
     "translation": "If you have any additional inquiries, please contact support@mattermost.com"
   },
   {
-    "id": "api.templates.warn_metric_ack.license_header",
-    "translation": "License"
+    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+    "translation": "Mattermost support request for {{ .AaeId }}: Team exceeds {{ .Limit }} users. Consider activating user management access controls to ensure compliance."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Acknowledge of User Limit"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.title",
-    "translation": "This is a receipt of acknowledgement for the number of active users exceeding the limit for the following site."
+    "translation": "Mattermost support request: {{ .AaeId }}"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -4071,16 +4067,8 @@
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
-    "id": "ent.cluster.json_encode.error",
-    "translation": "Error occurred while marshalling JSON request"
-  },
-  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
-  },
-  {
-    "id": "ent.cluster.timeout.error",
-    "translation": "Timed out waiting for cluster response"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",

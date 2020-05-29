@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID                      = "DiagnosticId"
-	SYSTEM_RAN_UNIT_TESTS                     = "RanUnitTests"
-	SYSTEM_LAST_SECURITY_TIME                 = "LastSecurityTime"
-	SYSTEM_ACTIVE_LICENSE_ID                  = "ActiveLicenseId"
-	SYSTEM_LAST_COMPLIANCE_TIME               = "LastComplianceTime"
-	SYSTEM_ASYMMETRIC_SIGNING_KEY             = "AsymmetricSigningKey"
-	SYSTEM_POST_ACTION_COOKIE_SECRET          = "PostActionCookieSecret"
-	SYSTEM_INSTALLATION_DATE_KEY              = "InstallationDate"
-	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY     = "FirstServerRunTimestamp"
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS = "warn_metric_number_of_active_users"
+	SYSTEM_DIAGNOSTIC_ID                          = "DiagnosticId"
+	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
+	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
+	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
+	SYSTEM_LAST_COMPLIANCE_TIME                   = "LastComplianceTime"
+	SYSTEM_ASYMMETRIC_SIGNING_KEY                 = "AsymmetricSigningKey"
+	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
+	SYSTEM_INSTALLATION_DATE_KEY                  = "InstallationDate"
+	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 )
 
-const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT = 100
+const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT_500 = 500
 
 type System struct {
 	Name  string `json:"name"`
@@ -71,6 +71,31 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 	var sbs *ServerBusyState
 	json.NewDecoder(r).Decode(&sbs)
 	return sbs
+}
+
+type WarnMetricStatus struct {
+	Id    string `json:"id"`
+	AaeId string `json:"aae_id"`
+	Limit int64  `json:"limit,omitempty"`
+}
+
+func (wms *WarnMetricStatus) ToJson() string {
+	b, _ := json.Marshal(wms)
+	return string(b)
+}
+
+func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
+	var o WarnMetricStatus
+	if err := json.NewDecoder(data).Decode(&o); err != nil {
+		return nil
+	} else {
+		return &o
+	}
+}
+
+func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 type SendWarnMetricAck struct {

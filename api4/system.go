@@ -54,7 +54,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -557,7 +557,7 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.MapBoolToJson(status)))
+	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
 }
 
 func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -574,7 +574,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = appErr
 		return
 	}
-
+	
 	ack := model.SendWarnMetricAckFromJson(r.Body)
 	if ack == nil {
 		c.SetInvalidParam("ack")

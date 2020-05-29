@@ -8,66 +8,67 @@
                 style="max-width: 660px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; background: #FFF;">
                 <tr>
                     <td style="border: 1px solid #ddd;">
-                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
-                            style="border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 20px 20px 10px; text-align:left;">
-                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" width="130px"
-                                        style="opacity: 0.5" alt="">
-                                </td>
-                            </tr>
+                        <table border="0" cellpadding="0" cellspacing="0"
+                            style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
                             <tr>
                                 <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
                                     <h2 style="font-weight: normal; margin-top: 10px;">{{.Props.Title}}</h2>
-                                    <p>{{.Html.Info}}</p>
+                                    <p>{{.Props.Info}}<br>{{.Props.Warning}}</p>
                                 </td>
                             </tr>
-                            <td>
-                                <table border="0" cellpadding="0" cellspacing="0"
-                                    style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
-                                    {{if .Props.ContactEmailValue}}
-                                    <tr>
-                                        <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                            <p style="font-weight: bold; margin-top: 0;">{{.Props.ContactEmailHeader}}
-                                                {{.Props.ContactEmailValue}}</p>
-                                        </td>
-                                    </tr>
-                                    {{end}}
-                                    {{if .Props.SiteURL}}
-                                    <tr>
-                                        <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                            <p style="font-weight: bold; margin-top: 0;">{{.Props.SiteURLHeader}}
-                                                {{.Props.SiteURL}}</p>
-                                        </td>
-                                    </tr>
-                                    {{end}}
-                                    {{if .Props.DiagnosticIdValue}}
-                                    <tr>
-                                        <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                            <p style="font-weight: bold; margin-top: 0;">{{.Props.DiagnosticIdHeader}}
-                                                {{.Props.DiagnosticIdValue}}</p>
-                                        </td>
-                                    </tr>
-                                    {{end}}
-                                    {{if .Props.LicenseValue}}
-                                    <tr>
-                                        <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                            <p style="font-weight: bold; margin-top: 0;">{{.Props.LicenseHeader}}
-                                                {{.Props.LicenseValue}}</p>
-                                        </td>
-                                    </tr>
-                                    {{end}}
-                                    {{if .Props.RegisteredUsersValue}}
-                                    <tr>
-                                        <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
-                                            <p style="font-weight: bold; margin-top: 0;">
-                                                {{.Props.RegisteredUsersHeader}}
-                                                {{.Props.RegisteredUsersValue}}</p>
-                                        </td>
-                                    </tr>
-                                    {{end}}
-                                </table>
-                            </td>
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0"
+                                        style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
+                                        <!-- {{if .Props.ContactNameValue}} -->
+                                        <tr>
+                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
+                                                <p style="font-weight: bold; margin-top: 0;">
+                                                    {{.Props.ContactNameHeader}}
+                                                    {{.Props.ContactNameValue}}</p>
+                                            </td>
+                                        </tr>
+                                        <!-- {{end}} -->
+                                        {{if .Props.ContactEmailValue}}
+                                        <tr>
+                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
+                                                <p style="font-weight: bold; margin-top: 0;">
+                                                    {{.Props.ContactEmailHeader}}
+                                                    {{.Props.ContactEmailValue}}</p>
+                                            </td>
+                                        </tr>
+                                        {{end}}
+                                        {{if .Props.RegisteredUsersValue}}
+                                        <tr>
+                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
+                                                <p style="font-weight: bold; margin-top: 0;">
+                                                    {{.Props.RegisteredUsersHeader}}
+                                                    {{.Props.RegisteredUsersValue}}</p>
+                                            </td>
+                                        </tr>
+                                        {{end}}
+                                        {{if .Props.SiteURL}}
+                                        <tr>
+                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
+                                                <p style="font-weight: bold; margin-top: 0;">{{.Props.SiteURLHeader}}
+                                                    {{.Props.SiteURL}}</p>
+                                            </td>
+                                        </tr>
+                                        {{end}}
+                                        {{if .Props.DiagnosticIdValue}}
+                                        <tr>
+                                            <td style="border: 0; padding: 0 0 0 20px; text-align: left;">
+                                                <p style="font-weight: bold; margin-top: 0;">
+                                                    {{.Props.DiagnosticIdHeader}}
+                                                    {{.Props.DiagnosticIdValue}}</p>
+                                            </td>
+                                        </tr>
+                                        {{end}}
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
                 <tr>
                     {{template "email_footer" . }}

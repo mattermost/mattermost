@@ -905,10 +905,10 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 		return
 	}
 
-	warnMetricId := model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS
+	warnMetricId := model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500
 	data, err := s.Store.System().GetByName(warnMetricId)
 	if err == nil && data != nil && data.Value == "ack" {
-		mlog.Debug("This metric limit crossing has been already acknowledged")
+		mlog.Debug("This metric warning has already been acknowledged")
 		return
 	}
 
@@ -917,14 +917,14 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 		mlog.Error("Error to get active registered users.", mlog.Err(err))
 	}
 
-	if numberOfActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT {
+	if numberOfActiveUsers > model.NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT_500 {
 		if err = s.Store.System().SaveOrUpdate(&model.System{Name: warnMetricId, Value: "true"}); err != nil {
 			mlog.Error("Unable to write to database.", mlog.Err(err))
 			return
 		}
 		mlog.Info("Number of active users is greater than limit")
 		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRICS_STATUS, "", "", "", nil)
-		message.Add(warnMetricId, "true")
+		message.Add("warnMetricStatus", s.FakeApp().getWarnMetricStatusForId(warnMetricId).ToJson())
 		s.FakeApp().Publish(message)
 	}
 

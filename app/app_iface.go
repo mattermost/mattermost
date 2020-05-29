@@ -694,7 +694,7 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
-	GetWarnMetricsStatus() (map[string]bool, *model.AppError)
+	GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTMLTemplates() *template.Template
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)

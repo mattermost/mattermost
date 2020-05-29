@@ -514,23 +514,22 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 }
 
 func (a *App) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
+	data, err := a.Srv().Store.System().GetByName(warnMetricId)
+	if err == nil && data != nil && data.Value == "ack" {
+		mlog.Debug("This metric warning has already been acknowledged")
+		return nil
+	}
+
 	if !forceAck {
 		if len(*a.Config().EmailSettings.SMTPServer) == 0 {
 			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 		}
 		T := utils.GetUserTranslations(sender.Locale)
 		bodyPage := a.newEmailTemplate("warn_metric_ack", sender.Locale)
+		bodyPage.Props["ContactNameHeader"] = T("api.templates.warn_metric_ack.body.contact_name_header")
+		bodyPage.Props["ContactNameValue"] = sender.GetFullName()
 		bodyPage.Props["ContactEmailHeader"] = T("api.templates.warn_metric_ack.body.contact_email_header")
 		bodyPage.Props["ContactEmailValue"] = sender.Email
-		bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
-		bodyPage.Props["SiteURL"] = a.GetSiteURL()
-		bodyPage.Props["DiagnosticIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
-		bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
-
-		if a.License() != nil {
-			bodyPage.Props["LicenseHeader"] = T("api.templates.warn_metric_ack.license_header")
-			bodyPage.Props["LicenseValue"] = a.License().Id
-		}
 
 		//same definition as the active users count metric displayed in the SystemConsole Analytics section
 		registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
@@ -541,26 +540,35 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, fo
 			bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount
 		}
 
+		bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
+		bodyPage.Props["SiteURL"] = a.GetSiteURL()
+		bodyPage.Props["DiagnosticIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+		bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
+
 		bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
 		var subject string
 
 		switch warnMetricId {
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS:
-			subject = T("api.templates.warn_metric_ack.subject")
-			bodyPage.Props["Title"] = T("api.templates.warn_metric_ack.title")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
+			warnMetricStatus := a.getWarnMetricStatusForId(warnMetricId)
+			if warnMetricStatus != nil {
+				subject = T("api.templates.warn_metric_ack.subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId})
+				bodyPage.Props["Title"] = T("api.templates.warn_metric_ack.number_of_active_users.body",
+					map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId})
+			}
 		default:
 			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 		}
 
-		if err := mailservice.SendMailUsingConfig(model.MM_ACKNOWLEDGE_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
-			mlog.Error("Error while sending email", mlog.String("destination email", model.MM_ACKNOWLEDGE_ADDRESS), mlog.Err(err))
+		if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+			mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
 			return model.NewAppError("SendWarnMetricAckEmail", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 		}
 	}
 
 	mlog.Info("Disable the monitoring of warn metric", mlog.String("metric", warnMetricId))
-	err := a.SetWarnMetricStatus(warnMetricId)
+	err = a.SetWarnMetricStatus(warnMetricId)
 	if err != nil {
 		return err
 	}

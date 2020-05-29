@@ -161,20 +161,35 @@ func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
 // WarnMetricPrefix represent the prefix used for any warn metric type
 const WarnMetricPrefix = "warn_metric_"
 
-func (a *App) GetWarnMetricsStatus() (map[string]bool, *model.AppError) {
+func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, appErr := a.Srv().Store.System().Get()
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	result := map[string]bool{}
+	result := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, WarnMetricPrefix) {
-			result[key] = value == "true"
+			if value == "true" {
+				result[key] = a.getWarnMetricStatusForId(key)
+			}
 		}
 	}
 
 	return result, nil
+}
+
+func (a *App) getWarnMetricStatusForId(warnMetricId string) *model.WarnMetricStatus {
+	switch warnMetricId {
+	case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
+		return &model.WarnMetricStatus{
+			Id:    model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
+			AaeId: "AAE-010-1010",
+			Limit: 500,
+		}
+	}
+
+	return nil
 }
 
 func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
@@ -242,8 +257,14 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		}
 
 		var warnMetricMessage string
-		if warnMetricId == model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS {
+		var warnMetricStatus *model.WarnMetricStatus
+
+		switch warnMetricId {
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
 			warnMetricMessage = T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
+			warnMetricStatus = a.getWarnMetricStatusForId(warnMetricId)
+		default:
+			mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
 		}
 
 		botPost := &model.Post{
@@ -252,12 +273,12 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 			Message:   warnMetricMessage,
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
 			Props: model.StringInterface{
-				"warnMetricId": warnMetricId,
+				"warnMetricStatus": warnMetricStatus,
 			},
 		}
 
 		mlog.Debug("Send post warning for metric", mlog.String("user id", botPost.UserId))
-		if _, err := a.CreatePostAsUser(botPost, a.Session().Id); err != nil {
+		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 			return err
 		}
 	}
