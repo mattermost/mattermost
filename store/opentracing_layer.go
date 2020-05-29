@@ -5755,6 +5755,24 @@ func (s *OpenTracingLayerSessionStore) GetSessions(userId string) ([]*model.Sess
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerSessionStore) GetSessionsAboutToExpire(thresholdMillis int64, mobileOnly bool) ([]*model.Session, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetSessionsAboutToExpire")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.SessionStore.GetSessionsAboutToExpire(thresholdMillis, mobileOnly)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetSessionsWithActiveDeviceIds")

@@ -92,6 +92,31 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.App
 	return r0, r1
 }
 
+// GetSessionsAboutToExpire provides a mock function with given fields: thresholdMillis, mobileOnly
+func (_m *SessionStore) GetSessionsAboutToExpire(thresholdMillis int64, mobileOnly bool) ([]*model.Session, *model.AppError) {
+	ret := _m.Called(thresholdMillis, mobileOnly)
+
+	var r0 []*model.Session
+	if rf, ok := ret.Get(0).(func(int64, bool) []*model.Session); ok {
+		r0 = rf(thresholdMillis, mobileOnly)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int64, bool) *model.AppError); ok {
+		r1 = rf(thresholdMillis, mobileOnly)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetSessionsWithActiveDeviceIds provides a mock function with given fields: userId
 func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	ret := _m.Called(userId)

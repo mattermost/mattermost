@@ -350,6 +350,7 @@ type SessionStore interface {
 	Save(session *model.Session) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
+	GetSessionsAboutToExpire(thresholdMillis int64, mobileOnly bool) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) *model.AppError
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError

@@ -1799,6 +1799,18 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+	"id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured to expire every {{.daysCount}} day(s)."
+  },
+  {
+	"id": "api.push_notifications.session.expiring_days",
+    "translation": "Session expiring in {{.daysCount}} days for {{.siteName}}."
+  },
+  {
+	"id": "api.push_notifications.session.expiring_hours",
+    "translation": "Session expiring in {{.hoursCount}} hours for {{.siteName}}."
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service."
   },

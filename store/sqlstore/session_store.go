@@ -135,6 +135,32 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsAboutToExpire(thresholdMillis int64, mobileOnly bool) ([]*model.Session, *model.AppError) {
+	query :=
+		`SELECT *
+		FROM
+			Sessions
+		WHERE
+			ExpiresAt != 0 AND
+			:Now <= ExpiresAt AND
+			:Now > ExpiresAt - :Threshold`
+
+	if mobileOnly {
+		query += " AND DeviceId != ''"
+	}
+
+	var sessions []*model.Session
+
+	_, err := me.GetReplica().Select(&sessions, query, map[string]interface{}{
+		"Now":       model.GetMillis(),
+		"Threshold": thresholdMillis,
+	})
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessionsAboutToExpire", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 	if err != nil {

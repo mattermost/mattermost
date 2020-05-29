@@ -101,6 +101,9 @@ func (s *Server) initJobs() {
 	if jobsBleveIndexerInterface != nil {
 		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
 	}
+	if jobsExpiryNotifyInterface != nil {
+		s.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(s.FakeApp())
+	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
 }

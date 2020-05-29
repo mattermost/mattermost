@@ -755,6 +755,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
+	NotifyImpendingSessionExpiry() *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)

@@ -5211,6 +5211,22 @@ func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerSessionStore) GetSessionsAboutToExpire(thresholdMillis int64, mobileOnly bool) ([]*model.Session, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.SessionStore.GetSessionsAboutToExpire(thresholdMillis, mobileOnly)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsAboutToExpire", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	start := timemodule.Now()
 
