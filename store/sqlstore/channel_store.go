@@ -645,7 +645,7 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) 
 
 	// Additionally propagate the write to the PublicChannels table.
 	if err := s.upsertPublicChannelT(transaction, updatedChannel); err != nil {
-		return nil, errors.Wrap(err, "failed to update public channels")
+		return nil, errors.Wrap(err, "upsertPublicChannelT: failed to upsert channel")
 	}
 
 	if err := transaction.Commit(); err != nil {
