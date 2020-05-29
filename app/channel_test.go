@@ -89,6 +89,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	_, err = th.App.AddUserToChannel(deacivatedUser, channel)
 	require.Nil(t, err)
 	channelMembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
+	require.Nil(t, err)
 	require.Len(t, *channelMembers, 2)
 	_, err = th.App.UpdateActive(deacivatedUser, false)
 	require.Nil(t, err)
@@ -97,6 +98,7 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	channelMembers, err = th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
+	require.Nil(t, err)
 	require.Len(t, *channelMembers, 1)
 }
 
