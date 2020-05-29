@@ -1781,12 +1781,6 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var removeDeactivatedMembers bool
-	val, ok := props["removeDeactivatedMembers"].(string)
-	if ok {
-		removeDeactivatedMembers = val == "true"
-	}
-
 	auditRec := c.MakeAuditRecord("moveChannel", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel_id", channel.Id)
@@ -1810,7 +1804,13 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.MoveChannel(team, channel, user, removeDeactivatedMembers)
+	err = c.App.RemoveAllDeactivatedMembersFromChannel(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.MoveChannel(team, channel, user)
 	if err != nil {
 		c.Err = err
 		return
