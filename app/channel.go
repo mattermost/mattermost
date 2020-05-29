@@ -1764,7 +1764,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	sc := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().Get(channelId, true)
-		sc <- store.StoreResult{Data: channel, NewErr: err}
+		sc <- store.StoreResult{Data: channel, NErr: err}
 		close(sc)
 	}()
 
@@ -1787,13 +1787,13 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		return cresult.Err
 	}
 	uresult := <-uc
-	if uresult.NewErr != nil {
+	if uresult.NErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(uresult.NewErr, &nfErr):
+		case errors.As(uresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("LeaveChannel", "store.sql_channel.get.find.app_error", nil, uresult.NewErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "store.sql_channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	ccresult := <-mcc

@@ -13,9 +13,9 @@ import (
 )
 
 type StoreResult struct {
-	Data   interface{}
-	Err    *model.AppError
-	NewErr error
+	Data interface{}
+	Err  *model.AppError
+	NErr error
 }
 
 type Store interface {
