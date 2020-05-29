@@ -37,6 +37,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
@@ -158,6 +159,8 @@ type Server struct {
 
 	CacheProvider cache.Provider
 
+	CacheProvider2 cache2.Provider
+
 	tracer                      *tracing.Tracer
 	timestampLastDiagnosticSent time.Time
 }
@@ -255,6 +258,11 @@ func NewServer(options ...Option) (*Server, error) {
 	s.CacheProvider = new(lru.CacheProvider)
 
 	s.CacheProvider.Connect()
+
+	s.CacheProvider2 = cache2.NewProvider()
+	if err := s.CacheProvider2.Connect(); err != nil {
+		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
+	}
 
 	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
@@ -484,6 +492,12 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		s.CacheProvider.Close()
+	}
+
+	if s.CacheProvider2 != nil {
+		if err = s.CacheProvider2.Close(); err != nil {
+			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+		}
 	}
 
 	mlog.Info("Server stopped")
