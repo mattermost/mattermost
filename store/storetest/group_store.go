@@ -3367,7 +3367,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		{
 			Name:    "Filter groups from group-constrained page 1",
 			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
-			Page:    0,
+			Page:    1,
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group2.Id
