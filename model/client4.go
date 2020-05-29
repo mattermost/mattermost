@@ -2433,10 +2433,9 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 }
 
 // MoveChannel moves the channel to the destination team.
-func (c *Client4) MoveChannel(channelId, teamId string, removeDeactivatedMembers bool) (*Channel, *Response) {
+func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
 	requestBody := map[string]string{
-		"team_id":                  teamId,
-		"removeDeactivatedMembers": fmt.Sprintf("%t", removeDeactivatedMembers),
+		"team_id": teamId,
 	}
 	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
 	if err != nil {
