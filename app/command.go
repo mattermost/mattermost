@@ -387,7 +387,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		case errors.As(cr.NErr, &nfErr):
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "store.sql_channel.get.find.app_error", nil, cr.NErr.Error(), http.StatusInternalServerError)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, cr.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	channel := cr.Data.(*model.Channel)

@@ -418,7 +418,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 			case errors.As(errCh, &nfErr):
 				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				return nil, model.NewAppError("CreateOutgoingWebhook", "store.sql_channel.get.find.app_error", nil, errCh.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, errCh.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -648,7 +648,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			case errors.As(err, &nfErr):
 				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				return model.NewAppError("HandleIncomingWebhook", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}

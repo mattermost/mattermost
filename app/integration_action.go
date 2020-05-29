@@ -107,7 +107,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			case errors.As(err, &nfErr):
 				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 

@@ -1469,7 +1469,7 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetChannel", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return channel, nil
@@ -1793,7 +1793,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		case errors.As(uresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("LeaveChannel", "store.sql_channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	ccresult := <-mcc

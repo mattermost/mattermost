@@ -99,7 +99,7 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 			case errors.As(nErr, &nfErr):
 				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				return nil, model.NewAppError("UpsertGroupSyncable", "store.sql_channel.get.find.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 
