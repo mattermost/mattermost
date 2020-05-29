@@ -55,7 +55,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "")
+	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -155,7 +155,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post, err := th.App.CreatePostAsUser(&interactivePost, "")
+			post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 			require.Nil(t, err)
 
 			attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
@@ -192,7 +192,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post2, err := th.App.CreatePostAsUser(&menuPost, "")
+			post2, err := th.App.CreatePostAsUser(&menuPost, "", true)
 			require.Nil(t, err)
 
 			attachments2, ok := post2.GetProp("attachments").([]*model.SlackAttachment)
@@ -250,7 +250,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "")
+			postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
 			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
@@ -291,7 +291,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "")
+			postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
 			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
@@ -333,7 +333,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "")
+			postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
 			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
@@ -408,7 +408,7 @@ func TestPostActionProps(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "")
+	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -576,7 +576,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -616,7 +616,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -656,7 +656,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -697,7 +697,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -737,7 +737,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -811,7 +811,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -851,7 +851,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -891,7 +891,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -931,7 +931,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)

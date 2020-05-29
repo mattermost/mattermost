@@ -20,12 +20,12 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should honor channel restrictions when autocompleting users",
 		Fn:   testHonorChannelRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should honor team restrictions when autocompleting users",
 		Fn:   testHonorTeamRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name:        "Should return nothing if the user can't access the channels of a given search",
@@ -69,17 +69,17 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by Dot",
 		Fn:   testAutocompleteUserByUsernameWithDot,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by underscore",
 		Fn:   testAutocompleteUserByUsernameWithUnderscore,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete a user by part of its username splitted by hyphen",
 		Fn:   testAutocompleteUserByUsernameWithHyphen,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should escape the percentage character",
@@ -104,7 +104,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should ignore leading @ when searching users",
 		Fn:   testShouldIgnoreLeadingAtSymbols,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should search users in a case insensitive manner",

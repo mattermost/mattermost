@@ -100,6 +100,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_BLEVE_POST_INDEXING {
+			if watcher.workers.BleveIndexing != nil {
+				select {
+				case watcher.workers.BleveIndexing.JobChannel() <- *job:
+				default:
+				}
+			}
 		} else if job.Type == model.JOB_TYPE_LDAP_SYNC {
 			if watcher.workers.LdapSync != nil {
 				select {
