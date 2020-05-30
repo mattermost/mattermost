@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -343,6 +343,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
+	message.Add("set_online", setOnline)
 
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")

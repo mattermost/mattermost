@@ -25,7 +25,7 @@ const (
 	PAGE_DEFAULT                = 0
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	if errCh != nil {
@@ -43,7 +43,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		return nil, err
 	}
 
-	rp, err := a.CreatePost(post, channel, true)
+	rp, err := a.CreatePost(post, channel, true, setOnline)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
@@ -97,7 +97,7 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 		return nil, err
 	}
 
-	return a.CreatePost(post, channel, triggerWebhooks)
+	return a.CreatePost(post, channel, triggerWebhooks, true)
 }
 
 // deduplicateCreatePost attempts to make posting idempotent within a caching window.
@@ -142,7 +142,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	return actualPost, nil
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError) {
 	foundPost, err := a.deduplicateCreatePost(post)
 	if err != nil {
 		return nil, err
@@ -320,7 +320,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
 
-	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
+	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
 		mlog.Error("Failed to handle post events", mlog.Err(err))
 	}
 
@@ -406,7 +406,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
-func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
+func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
 		t, err := a.Srv().Store.Team().Get(channel.TeamId)
@@ -422,7 +422,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	a.invalidateCacheForChannel(channel)
 	a.invalidateCacheForChannelPosts(channel.Id)
 
-	if _, err := a.SendNotifications(post, team, channel, user, parentPostList); err != nil {
+	if _, err := a.SendNotifications(post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
 	}
 
