@@ -62,7 +62,7 @@ func TestCreateGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
@@ -156,6 +156,33 @@ func TestUpsertGroupSyncable(t *testing.T) {
 	gs, err = th.App.UpsertGroupSyncable(gs)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), gs.DeleteAt)
+}
+
+func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	team := th.CreateTeam()
+	team.GroupConstrained = model.NewBool(true)
+	team, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
+
+	channel := th.CreateChannel(team)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "group_not_associated_to_synced_team")
+
+	gs, err := th.App.GetGroupSyncable(group2.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, gs)
+	require.NotNil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group1.Id, channel.Id, false))
+	require.Nil(t, err)
 }
 
 func TestGetGroupSyncable(t *testing.T) {
