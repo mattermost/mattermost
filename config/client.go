@@ -57,6 +57,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
 
+	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 

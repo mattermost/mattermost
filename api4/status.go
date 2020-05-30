@@ -45,6 +45,13 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userId := range userIds {
+		if len(userId) != 26 {
+			c.SetInvalidParam("user_ids")
+			return
+		}
+	}
+
 	// No permission check required
 
 	statusMap, err := c.App.GetUserStatusesByIds(userIds)

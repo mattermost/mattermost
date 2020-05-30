@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -45,6 +46,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	if err != nil {
 		panic(err)
 	}
+	// Adds the cache layer to the test store
+	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 
 	th := &TestHelper{
 		App:    s.FakeApp(),
@@ -244,10 +247,9 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 }
 
 func (me *TestHelper) TearDown() {
+	// Clean all the caches
+	me.App.InvalidateAllCaches()
 	me.Server.Shutdown()
-	if err := recover(); err != nil {
-		panic(err)
-	}
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}

@@ -17,7 +17,9 @@ import (
 
 	"github.com/icrowley/fake"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -50,15 +52,6 @@ func init() {
 	SampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	SampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 	RootCmd.AddCommand(SampleDataCmd)
-}
-
-func sliceIncludes(vs []string, t string) bool {
-	for _, v := range vs {
-		if v == t {
-			return true
-		}
-	}
-	return false
 }
 
 func randomPastTime(seconds int) int64 {
@@ -325,6 +318,11 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		user2 := allUsers[rand.Intn(len(allUsers))]
 		channelLine := createDirectChannel([]string{user1, user2})
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < directChannels; i++ {
+		user1 := allUsers[rand.Intn(len(allUsers))]
+		user2 := allUsers[rand.Intn(len(allUsers))]
 
 		dates := sortedRandomDates(postsPerDirectChannel)
 		for j := 0; j < postsPerDirectChannel; j++ {
@@ -338,12 +336,23 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !sliceIncludes(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}
 		channelLine := createDirectChannel(users)
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < groupChannels; i++ {
+		users := []string{}
+		totalUsers := 3 + rand.Intn(3)
+		for len(users) < totalUsers {
+			user := allUsers[rand.Intn(len(allUsers))]
+			if !utils.StringInSlice(user, users) {
+				users = append(users, user)
+			}
+		}
 
 		dates := sortedRandomDates(postsPerGroupChannel)
 		for j := 0; j < postsPerGroupChannel; j++ {
@@ -357,10 +366,15 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.New("Unable to read correctly the temporary file.")
 		}
+
+		var importErr *model.AppError
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
+		auditRec := a.MakeAuditRecord("sampleData", audit.Success)
+		auditRec.AddMeta("file", bulkFile.Name())
+		a.LogAuditRec(auditRec, nil)
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {

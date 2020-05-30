@@ -4,6 +4,7 @@
 package app
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 )
 
 func TestHandleNewNotifications(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	id1 := model.NewId()
@@ -115,7 +116,28 @@ func TestCheckPendingNotifications(t *testing.T) {
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
 
-	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
+	// We reset the interval to something shorter
+	err = th.App.Srv().Store.Preference().Save(&model.Preferences{{
+		UserId:   th.BasicUser.Id,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "10",
+	}})
+	require.Nil(t, err)
+
+	var wasCalled int32
+	job.checkPendingNotifications(time.Unix(10050, 0), func(string, []*batchedNotification) {
+		atomic.StoreInt32(&wasCalled, int32(1))
+	})
+
+	// A hack to check whether the handler was called.
+	// It's not straightforward to just wait for it using a channel because the test should
+	// NOT call the handler, and it will be called only if the test fails.
+	time.Sleep(1 * time.Second)
+	// We do a check outside the email handler, because otherwise, failing from
+	// inside the handler doesn't let the .Go() function exit cleanly, and it gets
+	// stuck during server shutdown, trying to wait for the goroutine to exit
+	require.Equal(t, atomic.LoadInt32(&wasCalled), int32(0), "email handler should not have been called")
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")
@@ -265,7 +287,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
  * Ensures that post contents are not included in notification email when email notification content type is set to generic
  */
 func TestRenderBatchedPostGeneric(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	var post = &model.Post{}
@@ -290,7 +312,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
  * Ensures that post contents included in notification email when email notification content type is set to full
  */
 func TestRenderBatchedPostFull(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	var post = &model.Post{}

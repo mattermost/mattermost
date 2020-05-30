@@ -133,7 +133,7 @@ func (c *Client4) ClearOAuthToken() {
 }
 
 func (c *Client4) GetUsersRoute() string {
-	return fmt.Sprintf("/users")
+	return "/users"
 }
 
 func (c *Client4) GetUserRoute(userId string) string {
@@ -157,7 +157,7 @@ func (c *Client4) GetUserByEmailRoute(email string) string {
 }
 
 func (c *Client4) GetBotsRoute() string {
-	return fmt.Sprintf("/bots")
+	return "/bots"
 }
 
 func (c *Client4) GetBotRoute(botUserId string) string {
@@ -165,7 +165,7 @@ func (c *Client4) GetBotRoute(botUserId string) string {
 }
 
 func (c *Client4) GetTeamsRoute() string {
-	return fmt.Sprintf("/teams")
+	return "/teams"
 }
 
 func (c *Client4) GetTeamRoute(teamId string) string {
@@ -197,7 +197,7 @@ func (c *Client4) GetTeamImportRoute(teamId string) string {
 }
 
 func (c *Client4) GetChannelsRoute() string {
-	return fmt.Sprintf("/channels")
+	return "/channels"
 }
 
 func (c *Client4) GetChannelsForTeamRoute(teamId string) string {
@@ -210,6 +210,15 @@ func (c *Client4) GetChannelRoute(channelId string) string {
 
 func (c *Client4) GetChannelByNameRoute(channelName, teamId string) string {
 	return fmt.Sprintf(c.GetTeamRoute(teamId)+"/channels/name/%v", channelName)
+}
+
+func (c *Client4) GetChannelsForTeamForUserRoute(teamId, userId string, includeDeleted bool) string {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	if includeDeleted {
+		query := fmt.Sprintf("?include_deleted=%v", includeDeleted)
+		return route + query
+	}
+	return route
 }
 
 func (c *Client4) GetChannelByNameForTeamNameRoute(channelName, teamName string) string {
@@ -225,19 +234,19 @@ func (c *Client4) GetChannelMemberRoute(channelId, userId string) string {
 }
 
 func (c *Client4) GetPostsRoute() string {
-	return fmt.Sprintf("/posts")
+	return "/posts"
 }
 
 func (c *Client4) GetPostsEphemeralRoute() string {
-	return fmt.Sprintf("/posts/ephemeral")
+	return "/posts/ephemeral"
 }
 
 func (c *Client4) GetConfigRoute() string {
-	return fmt.Sprintf("/config")
+	return "/config"
 }
 
 func (c *Client4) GetLicenseRoute() string {
-	return fmt.Sprintf("/license")
+	return "/license"
 }
 
 func (c *Client4) GetPostRoute(postId string) string {
@@ -245,7 +254,7 @@ func (c *Client4) GetPostRoute(postId string) string {
 }
 
 func (c *Client4) GetFilesRoute() string {
-	return fmt.Sprintf("/files")
+	return "/files"
 }
 
 func (c *Client4) GetFileRoute(fileId string) string {
@@ -253,7 +262,7 @@ func (c *Client4) GetFileRoute(fileId string) string {
 }
 
 func (c *Client4) GetPluginsRoute() string {
-	return fmt.Sprintf("/plugins")
+	return "/plugins"
 }
 
 func (c *Client4) GetPluginRoute(pluginId string) string {
@@ -261,35 +270,35 @@ func (c *Client4) GetPluginRoute(pluginId string) string {
 }
 
 func (c *Client4) GetSystemRoute() string {
-	return fmt.Sprintf("/system")
+	return "/system"
 }
 
 func (c *Client4) GetTestEmailRoute() string {
-	return fmt.Sprintf("/email/test")
+	return "/email/test"
 }
 
 func (c *Client4) GetTestSiteURLRoute() string {
-	return fmt.Sprintf("/site_url/test")
+	return "/site_url/test"
 }
 
 func (c *Client4) GetTestS3Route() string {
-	return fmt.Sprintf("/file/s3_test")
+	return "/file/s3_test"
 }
 
 func (c *Client4) GetDatabaseRoute() string {
-	return fmt.Sprintf("/database")
+	return "/database"
 }
 
 func (c *Client4) GetCacheRoute() string {
-	return fmt.Sprintf("/caches")
+	return "/caches"
 }
 
 func (c *Client4) GetClusterRoute() string {
-	return fmt.Sprintf("/cluster")
+	return "/cluster"
 }
 
 func (c *Client4) GetIncomingWebhooksRoute() string {
-	return fmt.Sprintf("/hooks/incoming")
+	return "/hooks/incoming"
 }
 
 func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
@@ -297,7 +306,7 @@ func (c *Client4) GetIncomingWebhookRoute(hookID string) string {
 }
 
 func (c *Client4) GetComplianceReportsRoute() string {
-	return fmt.Sprintf("/compliance/reports")
+	return "/compliance/reports"
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
@@ -305,7 +314,7 @@ func (c *Client4) GetComplianceReportRoute(reportId string) string {
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
-	return fmt.Sprintf("/hooks/outgoing")
+	return "/hooks/outgoing"
 }
 
 func (c *Client4) GetOutgoingWebhookRoute(hookID string) string {
@@ -325,27 +334,27 @@ func (c *Client4) GetUserStatusesRoute() string {
 }
 
 func (c *Client4) GetSamlRoute() string {
-	return fmt.Sprintf("/saml")
+	return "/saml"
 }
 
 func (c *Client4) GetLdapRoute() string {
-	return fmt.Sprintf("/ldap")
+	return "/ldap"
 }
 
 func (c *Client4) GetBrandRoute() string {
-	return fmt.Sprintf("/brand")
+	return "/brand"
 }
 
 func (c *Client4) GetDataRetentionRoute() string {
-	return fmt.Sprintf("/data_retention")
+	return "/data_retention"
 }
 
 func (c *Client4) GetElasticsearchRoute() string {
-	return fmt.Sprintf("/elasticsearch")
+	return "/elasticsearch"
 }
 
 func (c *Client4) GetCommandsRoute() string {
-	return fmt.Sprintf("/commands")
+	return "/commands"
 }
 
 func (c *Client4) GetCommandRoute(commandId string) string {
@@ -357,7 +366,7 @@ func (c *Client4) GetCommandMoveRoute(commandId string) string {
 }
 
 func (c *Client4) GetEmojisRoute() string {
-	return fmt.Sprintf("/emoji")
+	return "/emoji"
 }
 
 func (c *Client4) GetEmojiRoute(emojiId string) string {
@@ -369,11 +378,11 @@ func (c *Client4) GetEmojiByNameRoute(name string) string {
 }
 
 func (c *Client4) GetReactionsRoute() string {
-	return fmt.Sprintf("/reactions")
+	return "/reactions"
 }
 
 func (c *Client4) GetOAuthAppsRoute() string {
-	return fmt.Sprintf("/oauth/apps")
+	return "/oauth/apps"
 }
 
 func (c *Client4) GetOAuthAppRoute(appId string) string {
@@ -381,19 +390,19 @@ func (c *Client4) GetOAuthAppRoute(appId string) string {
 }
 
 func (c *Client4) GetOpenGraphRoute() string {
-	return fmt.Sprintf("/opengraph")
+	return "/opengraph"
 }
 
 func (c *Client4) GetJobsRoute() string {
-	return fmt.Sprintf("/jobs")
+	return "/jobs"
 }
 
 func (c *Client4) GetRolesRoute() string {
-	return fmt.Sprintf("/roles")
+	return "/roles"
 }
 
 func (c *Client4) GetSchemesRoute() string {
-	return fmt.Sprintf("/schemes")
+	return "/schemes"
 }
 
 func (c *Client4) GetSchemeRoute(id string) string {
@@ -401,7 +410,7 @@ func (c *Client4) GetSchemeRoute(id string) string {
 }
 
 func (c *Client4) GetAnalyticsRoute() string {
-	return fmt.Sprintf("/analytics")
+	return "/analytics"
 }
 
 func (c *Client4) GetTimezonesRoute() string {
@@ -421,7 +430,7 @@ func (c *Client4) GetTotalUsersStatsRoute() string {
 }
 
 func (c *Client4) GetRedirectLocationRoute() string {
-	return fmt.Sprintf("/redirect_location")
+	return "/redirect_location"
 }
 
 func (c *Client4) GetServerBusyRoute() string {
@@ -1754,6 +1763,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
+// RestoreTeam restores a previously deleted team.
+func (c *Client4) RestoreTeam(teamId string) (*Team, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/restore", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
 // RegenerateTeamInviteId requests a new invite ID to be generated.
 func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response) {
 	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/regenerate_invite_id", "")
@@ -1785,9 +1804,33 @@ func (c *Client4) PermanentDeleteTeam(teamId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// UpdateTeamPrivacy modifies the team type (model.TEAM_OPEN <--> model.TEAM_INVITE) and sets
+// the corresponding AllowOpenInvite appropriately.
+func (c *Client4) UpdateTeamPrivacy(teamId string, privacy string) (*Team, *Response) {
+	requestBody := map[string]string{"privacy": privacy}
+	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/privacy", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
 // GetTeamMembers returns team members based on the provided team id string.
 func (c *Client4) GetTeamMembers(teamId string, page int, perPage int, etag string) ([]*TeamMember, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamMembersFromJson(r.Body), BuildResponse(r)
+}
+
+// GetTeamMembersWithoutDeletedUsers returns team members based on the provided team id string. Additional parameters of sort and exclude_deleted_users accepted as well
+// Could not add it to above function due to it be a breaking change.
+func (c *Client4) GetTeamMembersSortAndWithoutDeletedUsers(teamId string, page int, perPage int, sort string, exclude_deleted_users bool, etag string) ([]*TeamMember, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v&exclude_deleted_users=%v", page, perPage, sort, exclude_deleted_users)
 	r, err := c.DoApiGet(c.GetTeamMembersRoute(teamId)+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2282,8 +2325,8 @@ func (c *Client4) GetPublicChannelsByIdsForTeam(teamId string, channelIds []stri
 }
 
 // GetChannelsForTeamForUser returns a list channels of on a team for a user.
-func (c *Client4) GetChannelsForTeamForUser(teamId, userId, etag string) ([]*Channel, *Response) {
-	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetTeamRoute(teamId)+"/channels", etag)
+func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool, etag string) ([]*Channel, *Response) {
+	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, includeDeleted), etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -3658,7 +3701,7 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
-	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount)
+	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
@@ -3682,7 +3725,7 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
 func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
-	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetTeamRoute(teamId), opts.Q, opts.IncludeMemberCount)
+	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.GetTeamRoute(teamId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
 	}
@@ -3704,14 +3747,38 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 	return responseData.Groups, responseData.Count, BuildResponse(r)
 }
 
+// GetGroupsAssociatedToChannelsByTeam retrieves the Mattermost Groups associated with channels in a given team
+func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupSearchOpts) (map[string][]*GroupWithSchemeAdmin, *Response) {
+	path := fmt.Sprintf("%s/groups_by_channels?q=%v&filter_allow_reference=%v", c.GetTeamRoute(teamId), opts.Q, opts.FilterAllowReference)
+	if opts.PageOpts != nil {
+		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+	}
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	responseData := struct {
+		GroupsAssociatedToChannels map[string][]*GroupWithSchemeAdmin `json:"groups"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+		appErr := NewAppError("Api4.GetGroupsAssociatedToChannelsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+
+	return responseData.GroupsAssociatedToChannels, BuildResponse(r)
+}
+
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&q=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v",
 		c.GetGroupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
 		opts.NotAssociatedToChannel,
+		opts.FilterAllowReference,
 		opts.Q,
 	)
 	if opts.PageOpts != nil {
@@ -4743,8 +4810,23 @@ func (c *Client4) ClearServerBusy() (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetServerBusy returns the current ServerBusyState including the time when a server marked busy
+// will automatically have the flag cleared.
+func (c *Client4) GetServerBusy() (*ServerBusyState, *Response) {
+	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	sbs := ServerBusyStateFromJson(r.Body)
+	return sbs, BuildResponse(r)
+}
+
 // GetServerBusyExpires returns the time when a server marked busy
 // will automatically have the flag cleared.
+//
+// Deprecated: Use GetServerBusy instead.
 func (c *Client4) GetServerBusyExpires() (*time.Time, *Response) {
 	r, err := c.DoApiGet(c.GetServerBusyRoute(), "")
 	if err != nil {
@@ -4902,4 +4984,32 @@ func (c *Client4) PatchConfig(config *Config) (*Config, *Response) {
 	}
 	defer closeBody(r)
 	return ConfigFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetChannelModerations(channelID string, etag string) ([]*ChannelModeration, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/moderations", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchChannelModerations(channelID string, patch []*ChannelModerationPatch) ([]*ChannelModeration, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, err := c.DoApiPut(c.GetChannelRoute(channelID)+"/moderations/patch", string(payload))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelModerationsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
 }

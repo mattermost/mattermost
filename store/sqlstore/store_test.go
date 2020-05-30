@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
@@ -30,7 +31,30 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store)
+		})
+	}
+}
+
+func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store, *searchtest.SearchTestEngine)) {
+	defer func() {
+		if err := recover(); err != nil {
+			tearDownStores()
+			panic(err)
+		}
+	}()
+
+	for _, st := range storeTypes {
+		st := st
+		searchTestEngine := &searchtest.SearchTestEngine{
+			Driver: *st.SqlSettings.DriverName,
+		}
+
+		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, searchTestEngine) })
 	}
 }
 
@@ -43,11 +67,19 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store, st.SqlSupplier)
+		})
 	}
 }
 
 func initStores() {
+	if testing.Short() {
+		return
+	}
 	storeTypes = append(storeTypes, &storeType{
 		Name:        "MySQL",
 		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
@@ -81,6 +113,9 @@ func initStores() {
 var tearDownStoresOnce sync.Once
 
 func tearDownStores() {
+	if testing.Short() {
+		return
+	}
 	tearDownStoresOnce.Do(func() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))

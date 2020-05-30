@@ -138,14 +138,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		// Save the original values that may need to be preserved (including selected
 		// Props, i.e. override_username, override_icon_url)
 		for _, key := range model.PostActionRetainPropKeys {
-			value, ok := post.Props[key]
+			value, ok := post.GetProps()[key]
 			if ok {
 				retain[key] = value
 			} else {
 				remove = append(remove, key)
 			}
 		}
-		originalProps = post.Props
+		originalProps = post.GetProps()
 		originalIsPinned = post.IsPinned
 		originalHasReactions = post.HasReactions
 
@@ -219,14 +219,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		response.Update.Id = postId
 
 		// Restore the post attributes and Props that need to be preserved
-		if response.Update.Props == nil {
-			response.Update.Props = originalProps
+		if response.Update.GetProps() == nil {
+			response.Update.SetProps(originalProps)
 		} else {
 			for key, value := range retain {
 				response.Update.AddProp(key, value)
 			}
 			for _, key := range remove {
-				delete(response.Update.Props, key)
+				response.Update.DelProp(key)
 			}
 		}
 		response.Update.IsPinned = originalIsPinned
@@ -239,11 +239,16 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	if response.EphemeralText != "" {
 		ephemeralPost := &model.Post{
-			Message:   model.ParseSlackLinksToMarkdown(response.EphemeralText),
+			Message:   response.EphemeralText,
 			ChannelId: upstreamRequest.ChannelId,
 			RootId:    rootPostId,
 			UserId:    userId,
 		}
+
+		if !response.SkipSlackParsing {
+			ephemeralPost.Message = model.ParseSlackLinksToMarkdown(response.EphemeralText)
+		}
+
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
