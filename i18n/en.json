@@ -4519,6 +4519,10 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
