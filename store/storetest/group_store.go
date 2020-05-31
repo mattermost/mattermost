@@ -2994,14 +2994,15 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 func testGetGroups(t *testing.T, ss store.Store) {
 	// Create Team1
 	team1 := &model.Team{
-		DisplayName:     "Team1",
-		Description:     model.NewId(),
-		CompanyName:     model.NewId(),
-		AllowOpenInvite: false,
-		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName:      "Team1",
+		Description:      model.NewId(),
+		CompanyName:      model.NewId(),
+		AllowOpenInvite:  false,
+		InviteId:         model.NewId(),
+		Name:             "zz" + model.NewId(),
+		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:             model.TEAM_OPEN,
+		GroupConstrained: model.NewBool(true),
 	}
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
@@ -3080,6 +3081,16 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_PRIVATE,
 	}
 	channel2, nErr = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, nErr)
+
+	// Create Channel3
+	channel3 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel3",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	channel3, nErr = ss.Channel().Save(channel3, 9999)
 	require.Nil(t, nErr)
 
 	// Create Group3
@@ -3333,6 +3344,33 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained teams",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 2 && groups[0].Id == group1.Id && groups[1].Id == group2.Id
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained page 0",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return groups[0].Id == group1.Id
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained page 1",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    1,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return groups[0].Id == group2.Id
 			},
 		},
 	}
