@@ -1217,6 +1217,10 @@
     "translation": "Unable to create emoji. Another emoji with the same name already exists."
   },
   {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Encountered internal server error creating the emoji."
+  },
+  {
     "id": "api.emoji.create.other_user.app_error",
     "translation": "Invalid user id."
   },
@@ -3003,16 +3007,12 @@
     "translation": "Unable to save emoji."
   },
   {
-    "id": "app.emoji.get_list.internal_error",
-    "translation": "Unable to get the emoji."
+    "id": "app.emoji.delete.app_error",
+    "translation": "Unable to delete the emoji."
   },
   {
     "id": "app.emoji.delete.no_results",
     "translation": "We couldn’t find the emoji to delete."
-  },
-  {
-    "id": "app.emoji.delete.app_error",
-    "translation": "Unable to delete the emoji."
   },
   {
     "id": "app.emoji.get.app_error",
@@ -3029,6 +3029,10 @@
   {
     "id": "app.emoji.get_by_name.no_result",
     "translation": "We couldn’t find the emoji."
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Unable to get the emoji."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
