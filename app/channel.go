@@ -1507,12 +1507,7 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetByNames(teamId, channelNames, true)
 	if err != nil {
-		if err.Id == "app.channel.get_by_name.missing.app_error" {
-			err.StatusCode = http.StatusNotFound
-			return nil, err
-		}
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		return nil, model.NewAppError("GetChannelsByNames", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return channels, nil
 }

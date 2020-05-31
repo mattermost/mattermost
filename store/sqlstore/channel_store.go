@@ -1146,7 +1146,7 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 	return s.getByName(teamId, name, false, allowFromCache)
 }
 
-func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	var channels []*model.Channel
 
 	if allowFromCache {
@@ -1185,7 +1185,10 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 
 		var dbChannels []*model.Channel
 		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
-			return nil, model.NewAppError("SqlChannelStore.GetByName", "app.channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+			if teamId != "" {
+				return nil, errors.Wrapf(err, "failed to get channels with teamId=%s and names=%v", teamId, names)
+			}
+			return nil, errors.Wrapf(err, "failed to get channels with names=%v", names)
 		}
 		for _, channel := range dbChannels {
 			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
