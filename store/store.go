@@ -139,7 +139,7 @@ type ChannelStore interface {
 	Restore(channelId string, time int64) *model.AppError
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
 	PermanentDelete(channelId string) *model.AppError
-	PermanentDeleteByTeam(teamId string) *model.AppError
+	PermanentDeleteByTeam(teamId string) error
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
