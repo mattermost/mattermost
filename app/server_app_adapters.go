@@ -96,7 +96,6 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	s.Store = s.newStore()
-	s.FakeApp().StartPushNotificationsHubWorkers()
 
 	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
