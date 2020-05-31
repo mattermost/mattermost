@@ -628,7 +628,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	}
 
 	nErr = ss.Channel().PermanentDeleteByTeam(o1.TeamId)
-	require.Nil(t, err, nErr)
+	require.Nil(t, nErr, nErr)
 }
 
 func testChannelStoreGetByName(t *testing.T, ss store.Store) {
