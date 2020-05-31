@@ -194,7 +194,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *
 	return err
 }
 
-func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (c *SearchChannelStore) PermanentDelete(channelId string) error {
 	channel, channelErr := c.ChannelStore.Get(channelId, true)
 	if channelErr != nil {
 		mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channelId), mlog.Err(channelErr))

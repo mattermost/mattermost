@@ -6147,7 +6147,7 @@
     "translation": "Failed to update the channel member."
   },
   {
-    "id": "store.sql_channel.permanent_delete.app_error",
+    "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
   },
   {
