@@ -5,12 +5,14 @@ package plugin_test
 
 import (
 	"strconv"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestKVGetJSON(t *testing.T) {
@@ -635,4 +637,70 @@ func getKeys(count int) []string {
 		ret[i] = "key" + strconv.Itoa(i)
 	}
 	return ret
+}
+
+func TestPluginAPIKVModify(t *testing.T) {
+	t.Run("got error from KVGet method", func(t *testing.T) {
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte{}, &model.AppError{})
+		p.API = api
+		modificationFunc := func(value []byte) ([]byte, error) {
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("got error from KVSet method", func(t *testing.T) {
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte("test_string"), nil)
+		api.On("KVSet", "key", []byte("TEST_STRING")).Return(&model.AppError{})
+		modificationFunc := func(value []byte) ([]byte, error) {
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("server version is not supported", func(t *testing.T) {
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.1.0")
+		p.API = api
+		modificationFunc := func(value []byte) ([]byte, error) {
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Error(t, err)
+	})
+
+	t.Run("successfully apply modification", func(t *testing.T) {
+		api := &plugintest.API{}
+		p := &plugin.HelpersImpl{API: api}
+
+		api.On("GetServerVersion").Return("5.2.0")
+		api.On("KVGet", "key").Return([]byte("test_string"), nil)
+		api.On("KVSet", "key", []byte("TEST_STRING")).Return(nil)
+		p.API = api
+		modificationFunc := func(value []byte) ([]byte, error) {
+			s := strings.ToUpper(string(value))
+			return []byte(s), nil
+		}
+		err := p.KVModify("key", modificationFunc)
+		api.AssertExpectations(t)
+		assert.Nil(t, err)
+	})
 }

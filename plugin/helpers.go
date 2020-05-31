@@ -61,6 +61,11 @@ type Helpers interface {
 	// Minimum server version: 5.6
 	KVListWithOptions(options ...KVListOption) ([]string, error)
 
+	// KVModify modifies data for a particular key.
+	//
+	// Minimum server version: 5.2
+	KVModify(key string, f func(initialValue []byte) ([]byte, error)) error
+
 	// CheckRequiredServerConfiguration checks if the server is configured according to
 	// plugin requirements.
 	//
