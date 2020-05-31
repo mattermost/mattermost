@@ -8,11 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestKVGetJSON(t *testing.T) {
@@ -639,19 +638,21 @@ func getKeys(count int) []string {
 	return ret
 }
 
-func TestPluginAPIKVModify(t *testing.T) {
+func TestPluginAPIKVUpdate(t *testing.T) {
 	t.Run("got error from KVGet method", func(t *testing.T) {
 		api := &plugintest.API{}
 		p := &plugin.HelpersImpl{API: api}
-
 		api.On("GetServerVersion").Return("5.2.0")
 		api.On("KVGet", "key").Return([]byte{}, &model.AppError{})
+		api.On("KVSetWithOptions", "key", []byte("one"), model.PluginKVSetOptions{
+			Atomic: true,
+		}).Return(true, nil)
 		p.API = api
 		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
-		err := p.KVModify("key", modificationFunc)
+		err := p.KVUpdate("key", modificationFunc)
 		api.AssertExpectations(t)
 		assert.Error(t, err)
 	})
@@ -661,13 +662,15 @@ func TestPluginAPIKVModify(t *testing.T) {
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.2.0")
-		api.On("KVGet", "key").Return([]byte("test_string"), nil)
-		api.On("KVSet", "key", []byte("TEST_STRING")).Return(&model.AppError{})
+		api.On("KVGet", "key").Return([]byte("two"), nil)
+		api.On("KVSetWithOptions", "key", []byte("TWO"), model.PluginKVSetOptions{
+			Atomic: true,
+		}).Return(false, &model.AppError{})
 		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
-		err := p.KVModify("key", modificationFunc)
+		err := p.KVUpdate("key", modificationFunc)
 		api.AssertExpectations(t)
 		assert.Error(t, err)
 	})
@@ -677,12 +680,16 @@ func TestPluginAPIKVModify(t *testing.T) {
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.1.0")
+		api.On("KVGet", "key").Return([]byte("three"), nil)
+		api.On("KVSetWithOptions", "key", []byte("three"), model.PluginKVSetOptions{
+			Atomic: true,
+		}).Return(true, nil)
 		p.API = api
 		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
-		err := p.KVModify("key", modificationFunc)
+		err := p.KVUpdate("key", modificationFunc)
 		api.AssertExpectations(t)
 		assert.Error(t, err)
 	})
@@ -692,14 +699,16 @@ func TestPluginAPIKVModify(t *testing.T) {
 		p := &plugin.HelpersImpl{API: api}
 
 		api.On("GetServerVersion").Return("5.2.0")
-		api.On("KVGet", "key").Return([]byte("test_string"), nil)
-		api.On("KVSet", "key", []byte("TEST_STRING")).Return(nil)
+		api.On("KVGet", "key").Return([]byte("four"), nil)
+		api.On("KVSetWithOptions", "key", []byte("FOUR"), model.PluginKVSetOptions{
+			Atomic: true,
+		}).Return(true, nil)
 		p.API = api
 		modificationFunc := func(value []byte) ([]byte, error) {
 			s := strings.ToUpper(string(value))
 			return []byte(s), nil
 		}
-		err := p.KVModify("key", modificationFunc)
+		err := p.KVUpdate("key", modificationFunc)
 		api.AssertExpectations(t)
 		assert.Nil(t, err)
 	})
