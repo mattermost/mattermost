@@ -6,6 +6,10 @@ package app
 import (
 	"strings"
 
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/store"
+
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -72,7 +76,8 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 
 	targetChannelId := ""
 	if channel, channelErr := a.Srv().Store.Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
-		if channelErr.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		var nfErr *store.ErrNotFound
+		if errors.As(channelErr, &nfErr) {
 			if !a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}

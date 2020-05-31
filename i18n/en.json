@@ -6027,11 +6027,11 @@
     "translation": "Unable to get all the direct channels."
   },
   {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
+    "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
+    "id": "app.channel.get_by_name.missing.app_error",
     "translation": "Channel does not exist."
   },
   {

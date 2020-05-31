@@ -532,7 +532,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
-		var err *model.AppError
+		var err error
 		if mChannel, err = a.Srv().Store.Channel().GetByName(teamId, sChannel.Name, true); err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
