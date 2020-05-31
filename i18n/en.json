@@ -2971,6 +2971,14 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "We encountered an error finding the channel."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6007,11 +6015,11 @@
     "translation": "Unable to delete the channel."
   },
   {
-    "id": "app.channel.get.existing.app_error",
+    "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
-    "id": "app.channel.get.find.app_error",
+    "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel."
   },
   {
