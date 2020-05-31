@@ -123,6 +123,10 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err = http.Post(url, "mimetype/wrong", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+
+		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {

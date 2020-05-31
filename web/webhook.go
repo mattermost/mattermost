@@ -29,8 +29,10 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	mediaType, _, mimeErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+	contentType := r.Header.Get("Content-Type")
+	mediaType, _, mimeErr := mime.ParseMediaType(contentType)
+	// Having an empty content-type is fine given that is an optional header
+	if contentType != "" && mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
 		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimeErr.Error(), http.StatusBadRequest)
 		return
 	}
