@@ -80,9 +80,9 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				err = model.NewAppError("GetChannelByName", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				err = model.NewAppError("JoinDefaultChannels", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				err = model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 			continue
 		}
@@ -312,7 +312,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			return channel, nil
 		}
-		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	return channel, nil
 }
@@ -1534,9 +1534,9 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetChannelByName", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
