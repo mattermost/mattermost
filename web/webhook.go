@@ -33,7 +33,12 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	mediaType, _, mimeErr := mime.ParseMediaType(contentType)
 	// Having an empty content-type is fine given that is an optional header
 	if contentType != "" && mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
-		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimeErr.Error(), http.StatusBadRequest)
+		c.Err = model.NewAppError("incomingWebhook",
+			"api.webhook.incoming.error",
+			nil,
+			"webhook_id="+id+" - error: "+mimeErr.Error(),
+			http.StatusBadRequest,
+		)
 		return
 	}
 
@@ -60,7 +65,12 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 
 		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("incomingWebhook",
+				"api.webhook.incoming.error",
+				nil,
+				"webhook_id="+id+" - error: "+err.Error(),
+				http.StatusBadRequest,
+			)
 			return
 		}
 	} else {
