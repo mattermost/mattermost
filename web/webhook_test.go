@@ -105,7 +105,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		require.Nil(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		assert.Nil(t, err)
@@ -122,7 +122,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 		resp, err = http.Post(url, "mimetype/wrong", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.NotEqual(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
