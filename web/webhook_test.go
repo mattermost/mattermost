@@ -40,89 +40,93 @@ func TestIncomingWebhook(t *testing.T) {
 		payload := "payload={\"text\": \"test text\"}"
 		resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		payload = "payload={\"text\": \"\"}"
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - no text to post")
+		assert.NotEqual(t, http.StatusOK, resp.StatusCode, "should have errored - no text post")
 
 		payload = "payload={\"text\": \"test text\", \"channel\": \"junk\"}"
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - bad channel")
+		assert.NotEqual(t, http.StatusOK, resp.StatusCode, "should have errored - bad channel")
 
 		payload = "payload={\"text\": \"test text\"}"
 		resp, err = http.Post(ApiClient.Url+"/hooks/abc123", "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode != http.StatusOK, "should have errored - bad hook")
+		assert.NotEqual(t, http.StatusOK, resp.StatusCode, "should have errored - bad hook")
 
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		text := `this is a \"test\"
 	that contains a newline and a tab`
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"#%s\"}", th.BasicChannel.Name)))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"@%s\"}", th.BasicUser.Username)))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("payload={\"text\":\"this is a test\"}"))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "AppLicaTion/x-www-Form-urlencoded", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded;charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded; charset=utf-8", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded wrongtext", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/json", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader("{\"text\":\""+tooLongText+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		resp, err = http.Post(url, "application/json", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
 		resp, err = http.Post(ApiClient.Url+"/hooks/"+hook.Id, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
 		require.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusOK)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		resp, err = http.Post(url, "mimetype/wrong", strings.NewReader("payload={\"text\":\""+text+"\"}"))
 		assert.Nil(t, err)
-		assert.True(t, resp.StatusCode == http.StatusBadRequest)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		resp, err = http.Post(url, "", strings.NewReader("{\"text\":\""+text+"\"}"))
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
