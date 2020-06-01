@@ -3824,7 +3824,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Takım adı değiştirilemedi, aynı adlı bir takım zaten var"
+    "translation": "Takım adı değiştirilemedi, aynı adlı bir takım zaten var."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,7 +3836,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Kod geçersiz ya da eksik"
+    "translation": "Kod geçersiz ya da eksik."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3844,55 +3844,55 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Bleve kanal dizini oluşturulurken sorun çıktı"
+    "translation": "Bleve kanal dizini oluşturulurken sorun çıktı."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Bleve ileti dizini oluşturulurken sorun çıktı"
+    "translation": "Bleve ileti dizini oluşturulurken sorun çıktı."
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Bleve kullanıcı dizini oluşturulurken sorun çıktı"
+    "translation": "Bleve kullanıcı dizini oluşturulurken sorun çıktı."
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "Kanal silinemedi"
+    "translation": "Kanal silinemedi."
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "İleti silinemedi"
+    "translation": "İleti silinemedi."
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "Kullanıcı silinemedi"
+    "translation": "Kullanıcı silinemedi."
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "Kanal dizine eklenemedi"
+    "translation": "Kanal dizine eklenemedi."
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "İleti dizine eklenemedi"
+    "translation": "İleti dizine eklenemedi."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "Kullanıcı dizine eklenemedi"
+    "translation": "Kullanıcı dizine eklenemedi."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Kanal yığını dizine eklenemedi"
+    "translation": "Kanal yığını dizine eklenemedi."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "İleti yığını dizine eklenemedi"
+    "translation": "İleti yığını dizine eklenemedi."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Kullanıcı yığını dizine eklenemedi"
+    "translation": "Kullanıcı yığını dizine eklenemedi."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı"
+    "translation": "Bleve dizine ekleme görevi yürütülemedi: İşleyici devre dışı."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -3900,11 +3900,11 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve dizine ekleme işlemi bitiş zamanını işleyemedi"
+    "translation": "Bleve dizine ekleme işlemi bitiş zamanını işleyemedi."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve dizine ekleme işlemi başlangıç zamanını işleyemedi"
+    "translation": "Bleve dizine ekleme işlemi başlangıç zamanını işleyemedi."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -3912,47 +3912,47 @@
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Kanal dizinleri boşaltılamadı"
+    "translation": "Kanal dizinleri boşaltılamadı."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "İleti dizinleri boşaltılamadı"
+    "translation": "İleti dizinleri boşaltılamadı."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Kullanıcı dizinleri boşaltılamadı"
+    "translation": "Kullanıcı dizinleri boşaltılamadı."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "Kanal araması tamamlanamadı"
+    "translation": "Kanal araması tamamlanamadı."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "İleti araması tamamlanamadı"
+    "translation": "İleti araması tamamlanamadı."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Kullanıcı araması tamamlanamadı"
+    "translation": "Kullanıcı araması tamamlanamadı."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Kullanıcı araması tamamlanamadı"
+    "translation": "Kullanıcı araması tamamlanamadı."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "Kullanıcı araması tamamlanamadı"
+    "translation": "Kullanıcı araması tamamlanamadı."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Kanal dizini kapatılamadı"
+    "translation": "Kanal dizini kapatılamadı."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "İleti dizini kapatılamadı"
+    "translation": "İleti dizini kapatılamadı."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Kullanıcı dizini kapatılamadı"
+    "translation": "Kullanıcı dizini kapatılamadı."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4477,6 +4477,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 yapılandırması yapılmamış ya da bu sunucu tarafından desteklenmiyor."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
   {
     "id": "groups.unsupported_syncable_type",

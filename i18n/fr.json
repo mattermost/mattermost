@@ -4479,6 +4479,10 @@
     "translation": "SAML 2.0 n'est pas configuré ou pris en charge sur ce serveur."
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "Type de données à synchroniser non pris en charge '{{.Value}}'."
   },

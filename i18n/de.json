@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gruppen nicht"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -4477,6 +4477,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
   {
     "id": "groups.unsupported_syncable_type",

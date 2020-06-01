@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "現在のライセンスではLDAPグループはサポートされていません"
+    "translation": "現在のライセンスではグループはサポートされていません"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
+    "translation": "このエンドポイントはローカルのリクエストオリジンである必要があります。"
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1406,7 +1406,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "要求された画像URLを解析できません。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1426,15 +1426,15 @@
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "グループメンバーは既に存在しています"
+    "translation": "グループ名は既に存在しています"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "グループ名は予約語として既に登録されています"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "グループ名はユーザー名として既に存在しています"
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -1482,7 +1482,7 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "無効化されたアカウントへ電子メールを送信できませんでした"
+    "translation": "無効化されたライセンスへの電子メールを送信できませんでした"
   },
   {
     "id": "api.marshal_error",
@@ -1618,7 +1618,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} has no members on this team"
+    "translation": "このチームに @{{.GroupName}} のメンバーがいません"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -2320,15 +2320,15 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "ライセンスを更新する"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "エンタープライズライセンスの有効期限が切れ、一部の機能が無効になることがあります。更新してください。"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Mattermostエンタープライズライセンスは無効になっています。"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2952,7 +2952,7 @@
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "Botを完全に削除できませんでした。"
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -2968,7 +2968,7 @@
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": "チャンネルを保存できませんでした。"
+    "translation": "ダイレクトチャンネルを保存できませんでした。"
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3140,7 +3140,7 @@
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": "Error importing user channels. Channel not found."
+    "translation": "ユーザーチャンネルのインポート中にエラーが発生しました。チャンネルが見つかりませんでした。"
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -3464,7 +3464,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "ユーザー認証サービスと認証データが相互排他的になっています。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3824,7 +3824,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "その名前は既に使用されているため、チーム名を変更できませんでした"
+    "translation": "その名前は既に使用されているため、チーム名を変更できませんでした。"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,63 +3836,63 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "トークンが存在しないか不正です"
+    "translation": "トークンが存在しないか不正です。"
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
+    "translation": "Bleveは既に起動しています。"
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
+    "translation": "Bleveによるチャンネルインデックスの作成中にエラーが発生しました。"
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
+    "translation": "Bleveによる投稿インデックスの作成中にエラーが発生しました。"
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
+    "translation": "Bleveによるユーザーインデックスの作成中にエラーが発生しました。"
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "チャンネルを削除できませんでした"
+    "translation": "チャンネルを削除できませんでした。"
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "投稿を削除できませんでした"
+    "translation": "投稿を削除できませんでした。"
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "ユーザーを削除できませんでした"
+    "translation": "ユーザーを削除できませんでした。"
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "チャンネルにインデックスを付与できませんでした"
+    "translation": "チャンネルにインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "投稿にインデックスを付与できませんでした"
+    "translation": "投稿にインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "ユーザーにインデックスを付与できませんでした"
+    "translation": "ユーザーにインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
+    "translation": "チャンネルバッチにインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
+    "translation": "投稿バッチにインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
+    "translation": "ユーザーバッチにインデックスを付与できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
+    "translation": "Bleveによるインデックス付与ジョブを実行できませんでした: エンジンが無効化されています。"
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -3900,11 +3900,11 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearchインデックス付与ワーカーが終了時刻を解析できませんでした"
+    "translation": "Bleveインデックス付与ワーカーが終了時刻を解析できませんでした。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearchインデックス付与ワーカーが開始時刻を解析できませんでした"
+    "translation": "Bleveインデックス付与ワーカーが開始時刻を解析できませんでした。"
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -3912,47 +3912,47 @@
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
+    "translation": "チャンネルインデックスを破棄できませんでした。"
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
+    "translation": "投稿インデックスを破棄できませんでした。"
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
+    "translation": "ユーザーインデックスを破棄できませんでした。"
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "検索を完了できませんでした"
+    "translation": "チャンネル検索を完了できませんでした。"
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "検索を完了できませんでした"
+    "translation": "投稿検索を完了できませんでした。"
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "検索を完了できませんでした"
+    "translation": "ユーザー検索を完了できませんでした。"
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "検索を完了できませんでした"
+    "translation": "ユーザー検索を完了できませんでした。"
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "検索を完了できませんでした"
+    "translation": "ユーザー検索を完了できませんでした。"
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
+    "translation": "チャンネルインデックスを閉じることができませんでした。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
+    "translation": "投稿インデックスを閉じることができませんでした。"
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
+    "translation": "ユーザーインデックスを閉じることができませんでした。"
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4032,7 +4032,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "emlファイルを作成できません。"
+    "translation": "zipファイルを作成できません"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -4040,7 +4040,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "emlファイルを作成できません。"
+    "translation": "warningファイルを作成できません。"
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4168,7 +4168,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Elasticsearchのインデックスを取得できませんでした"
+    "translation": "Elasticsearchのインデックスを更新できませんでした"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -4479,6 +4479,10 @@
     "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "サポートされている同期可能タイプ '{{.Value}}'。"
   },
@@ -4764,7 +4768,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "無効な AutocompleteData です"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4880,19 +4884,19 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearchの一括インデックス付与処理の時間は1秒以上でなければなりません。"
+    "translation": "Bleveの一括インデックス付与処理の時間は1秒以上でなければなりません。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch 自動補完が有効に設定されている場合、Elasticsearch インデックス有効化設定は有効でなければなりません。"
+    "translation": "Bleve 自動補完が有効に設定されている場合、Bleve インデックス有効化設定は有効でなければなりません。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Elasticsearch 検索有効化設定が有効に設定されている場合、Elasticsearchインデックス有効化設定は有効でなければなりません。"
+    "translation": "Bleve 検索有効化設定が有効に設定されている場合、Bleveインデックス有効化設定は有効でなければなりません。"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Elasticsearch 検索有効化設定が有効に設定されている場合、Elasticsearchインデックス有効化設定は有効でなければなりません。"
+    "translation": "Blee IndexingDir が設定されている場合、Bleve インデックス有効化設定は有効でなければなりません。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -5300,7 +5304,7 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "グループの名前属性に無効な文字が存在します"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -5908,7 +5912,7 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "Bleve インデックスの破棄中にエラーが発生しました: エンジンが無効化されています"
   },
   {
     "id": "store.insert_error",
@@ -5916,7 +5920,7 @@
   },
   {
     "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
+    "translation": "チームで許可されたチャンネルリストを取得できませんでした: チームIDが空です"
   },
   {
     "id": "store.select_error",
@@ -6776,7 +6780,7 @@
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
+    "translation": "投稿の返信数を取得できませんでした"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -7036,7 +7040,7 @@
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
-    "translation": "Unable to update expires_at."
+    "translation": "expires_at を更新できませんでした。"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
