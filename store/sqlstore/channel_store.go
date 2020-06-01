@@ -12,14 +12,14 @@ import (
 	"strings"
 
 	"github.com/mattermost/gorp"
-	"github.com/pkg/errors"
-
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -1254,7 +1254,7 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	channels := &model.ChannelList{}
 
 	query := `
@@ -1273,9 +1273,9 @@ func (s SqlChannelStore) GetDeleted(teamId string, offset int, limit int, userId
 
 	if _, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset, "UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlChannelStore.GetDeleted", "store.sql_channel.get_deleted.missing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("TeamId=%s,UserId=%s", teamId, userId))
 		}
-		return nil, model.NewAppError("SqlChannelStore.GetDeleted", "store.sql_channel.get_deleted.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get deleted channels with TeamId=%s and UserId=%s", teamId, userId)
 	}
 
 	return channels, nil

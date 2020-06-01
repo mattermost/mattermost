@@ -6067,11 +6067,11 @@
     "translation": "No channel found."
   },
   {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
+    "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
   {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
+    "id": "app.channel.get_deleted.missing.app_error",
     "translation": "No deleted channels exist."
   },
   {

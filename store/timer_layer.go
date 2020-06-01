@@ -904,7 +904,7 @@ func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeId string, offset int
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
