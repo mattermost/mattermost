@@ -283,7 +283,8 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
-			channel, err := a.createDirectChannel(userId, otherUserId)
+			var err *model.AppError
+			channel, err = a.createDirectChannel(userId, otherUserId)
 			if err != nil {
 				if err.Id == store.CHANNEL_EXISTS_ERROR {
 					return channel, nil
