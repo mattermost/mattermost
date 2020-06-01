@@ -586,7 +586,7 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	err := s.shutdownRudder()
+	err := s.shutdownDiagnostics()
 	if err != nil {
 		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
 	}
@@ -1156,7 +1156,8 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-func (s *Server) initRudder(endpoint string) {
+// initDiagnostics initialises the Rudder client for the diagnostics system.
+func (s *Server) initDiagnostics(endpoint string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1179,8 +1180,8 @@ func (s *Server) initRudder(endpoint string) {
 	}
 }
 
-// shutdownRudder closes the Rudder client.
-func (s *Server) shutdownRudder() error {
+// shutdownDiagnostics closes the diagnostics system Rudder client.
+func (s *Server) shutdownDiagnostics() error {
 	if s.rudderClient != nil {
 		return s.rudderClient.Close()
 	}

@@ -73,7 +73,7 @@ func (s *Server) SendDailyDiagnostics() {
 
 func (s *Server) sendDailyDiagnostics(override bool) {
 	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		s.initRudder(RUDDER_DATAPLANE_URL)
+		s.initDiagnostics(RUDDER_DATAPLANE_URL)
 		s.trackActivity()
 		s.trackConfig()
 		s.trackLicense()

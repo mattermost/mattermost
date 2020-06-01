@@ -106,7 +106,7 @@ func TestRudderDiagnostics(t *testing.T) {
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initRudder(server.URL)
+	th.Server.initDiagnostics(server.URL)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
