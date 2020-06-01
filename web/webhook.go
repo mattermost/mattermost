@@ -36,7 +36,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("incomingWebhook",
 			"api.webhook.incoming.error",
 			nil,
-			"webhook_id="+id+" - error: "+mimeErr.Error(),
+ 			"webhook_id="+id+", error: "+mimeErr.Error(), 
 			http.StatusBadRequest,
 		)
 		return
@@ -68,7 +68,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("incomingWebhook",
 				"api.webhook.incoming.error",
 				nil,
-				"webhook_id="+id+" - error: "+err.Error(),
+ 				"webhook_id="+id+", error: "+err.Error(), 
 				http.StatusBadRequest,
 			)
 			return
