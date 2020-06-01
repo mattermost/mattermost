@@ -428,7 +428,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
-		p, appErr := a.getRemotePlugins(filter)
+		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -497,7 +497,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.AppError) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -514,10 +514,21 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 	}
 
 	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
+	filter := &model.MarketplacePluginFilter{
 		PerPage:       -1,
 		ServerVersion: model.CurrentVersion,
-	})
+	}
+
+	license := a.License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}

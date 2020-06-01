@@ -541,6 +541,28 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(userId string, tokenId string
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AdjustImage")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.AdjustImage(file)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AllowOAuthAppAccessToUser")
@@ -1102,6 +1124,28 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 
 	defer span.Finish()
 	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) CheckValidDomains(team *model.Team) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckValidDomains")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckValidDomains(team)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1884,7 +1928,7 @@ func (a *OpenTracingAppLayer) CreatePasswordRecoveryToken(userId string, email s
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePost")
 
@@ -1896,7 +1940,7 @@ func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channe
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreatePost(post, channel, triggerWebhooks)
+	resultVar0, resultVar1 := a.app.CreatePost(post, channel, triggerWebhooks, setOnline)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1906,7 +1950,7 @@ func (a *OpenTracingAppLayer) CreatePost(post *model.Post, channel *model.Channe
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreatePostAsUser")
 
@@ -1918,7 +1962,7 @@ func (a *OpenTracingAppLayer) CreatePostAsUser(post *model.Post, currentSessionI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreatePostAsUser(post, currentSessionId)
+	resultVar0, resultVar1 := a.app.CreatePostAsUser(post, currentSessionId, setOnline)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7603,6 +7647,23 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]int
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInput string, roleID string) []model.AutocompleteSuggestion {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSuggestions")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GetSuggestions(commands, userInput, roleID)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetTeam")
@@ -10812,6 +10873,28 @@ func (a *OpenTracingAppLayer) PublishSkipClusterSend(message *model.WebSocketEve
 	a.app.PublishSkipClusterSend(message)
 }
 
+func (a *OpenTracingAppLayer) PurgeBleveIndexes() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeBleveIndexes")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.PurgeBleveIndexes()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes() *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
@@ -12435,7 +12518,7 @@ func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName stri
 	a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
 }
 
-func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifications")
 
@@ -12447,7 +12530,7 @@ func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Te
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendNotifications(post, team, channel, sender, parentPostList)
+	resultVar0, resultVar1 := a.app.SendNotifications(post, team, channel, sender, parentPostList, setOnline)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12742,6 +12825,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToUserOrBot(session model.Sess
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionToUserOrBot(session, userId)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionIsRegistered(session model.Session) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionIsRegistered")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionIsRegistered(session)
 
 	return resultVar0
 }

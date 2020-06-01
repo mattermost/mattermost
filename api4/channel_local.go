@@ -13,12 +13,15 @@ import (
 func (api *API) InitChannelLocal() {
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
-
-	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiLocal(getPublicChannelsForTeam)).Methods("GET")
-	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiLocal(getDeletedChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("", api.ApiLocal(deleteChannel)).Methods("DELETE")
 
 	api.BaseRoutes.ChannelMembers.Handle("", api.ApiLocal(localAddChannelMember)).Methods("POST")
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(localRemoveChannelMember)).Methods("DELETE")
+	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(getChannelMember)).Methods("GET")
+	api.BaseRoutes.ChannelMembers.Handle("", api.ApiLocal(getChannelMembers)).Methods("GET")
+
+	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiLocal(getPublicChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiLocal(getDeletedChannelsForTeam)).Methods("GET")
 
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
 	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.ApiLocal(getChannelByNameForTeamName)).Methods("GET")

@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your System Administrator for details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2080,7 +2080,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your team or system administrator for details."
+    "translation": "The user cannot be added as the domain associated with the account is not permitted. Contact your System Administrator for additional details."
   },
   {
     "id": "api.team.leave.left",
@@ -2931,8 +2931,32 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Unable to save the bot."
+  },
+  {
     "id": "app.bot.get_disable_bot_sysadmin_message",
     "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Unable to get the bot."
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Unable to get the bots."
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.bot.permanent_delete.internal_error",
+    "translation": "Unable to delete the bot permanently."
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Unable to delete the bot."
   },
   {
     "id": "app.channel.create_channel.internal_error",
@@ -3800,7 +3824,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "Unable to rename the team, the name is already in use."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3812,7 +3836,123 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Invalid or missing token"
+    "translation": "Invalid or missing token."
+  },
+  {
+    "id": "bleveengine.already_started.error",
+    "translation": "Bleve is already started."
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "Error creating the bleve channel index."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Error creating the bleve post index."
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Error creating the bleve user index."
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Failed to delete the channel."
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Failed to delete the post."
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Failed to index the channel."
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Failed to index the post."
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Failed to index the user."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+    "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+    "translation": "Failed to index post batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+    "translation": "Failed to index user batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Failed to run Bleve index job: engine is inactive."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "Bleve indexing worker failed to parse the end time."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "Bleve indexing worker failed to parse the start time."
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
+    "id": "bleveengine.purge_channel_index.error",
+    "translation": "Failed to purge channel indexes."
+  },
+  {
+    "id": "bleveengine.purge_post_index.error",
+    "translation": "Failed to purge post indexes."
+  },
+  {
+    "id": "bleveengine.purge_user_index.error",
+    "translation": "Failed to purge user indexes."
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Channel search failed to complete."
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Post search failed to complete."
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "User search failed to complete."
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "User search failed to complete."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "User search failed to complete."
+  },
+  {
+    "id": "bleveengine.stop_channel_index.error",
+    "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.stop_post_index.error",
+    "translation": "Failed to close post index."
+  },
+  {
+    "id": "bleveengine.stop_user_index.error",
+    "translation": "Failed to close user index."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -3859,8 +3999,16 @@
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Error occurred while marshalling JSON request"
+  },
+  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "Timed out waiting for cluster response"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -3889,6 +4037,10 @@
   {
     "id": "ent.compliance.csv.metadata.json.marshalling.appError",
     "translation": "Unable to convert metadata to json."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Unable to create the zip file"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -4000,7 +4152,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "translation": "The oldest post could not be retrieved from the database"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4012,7 +4164,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Trying to index a new batch when all the entities are completed"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4335,6 +4487,10 @@
     "translation": "SAML 2.0 is not configured or supported on this server."
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
@@ -4619,6 +4775,10 @@
     "translation": "Type must be set."
   },
   {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "Invalid AutocompleteData"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -4731,6 +4891,22 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Bleve Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableAutocomplete is set to true"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "Bleve EnableIndexing setting must be set to true when Bleve EnableSearching is set to true"
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Bleve EnableIndexing setting must be set to true when Bleve IndexingDir is set"
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -4764,11 +4940,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch AutocompleteEnabled is set to true."
+    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableAutocomplete is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Elasticsearch IndexingEnabled setting must be set to true when Elasticsearch SearchEnabled is set to true."
+    "translation": "Elasticsearch EnableIndexing setting must be set to true when Elasticsearch EnableSearching is set to true"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -5743,6 +5919,10 @@
     "translation": "Missing TO address."
   },
   {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
     "id": "store.insert_error",
     "translation": "insert error"
   },
@@ -5791,32 +5971,8 @@
     "translation": "We encountered an error saving the audit."
   },
   {
-    "id": "store.sql_bot.delete.app_error",
-    "translation": "Unable to delete the bot."
-  },
-  {
-    "id": "store.sql_bot.get.app_error",
-    "translation": "Unable to get the bot."
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist."
-  },
-  {
-    "id": "store.sql_bot.get_all.app_error",
-    "translation": "Unable to get the bots."
-  },
-  {
-    "id": "store.sql_bot.save.app_error",
-    "translation": "Unable to save the bot."
-  },
-  {
-    "id": "store.sql_bot.update.app_error",
-    "translation": "Unable to update the bot."
-  },
-  {
-    "id": "store.sql_bot.update.updating.app_error",
-    "translation": "We encountered an error updating the bot."
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",

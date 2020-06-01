@@ -29,7 +29,6 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 	if session.IsUnrestricted() {
 		return true
 	}
-
 	teamMember := session.GetTeamByTeamId(teamId)
 	if teamMember != nil {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
@@ -47,7 +46,6 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if session.IsUnrestricted() {
 		return true
 	}
-
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
