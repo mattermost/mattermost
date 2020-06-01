@@ -47,6 +47,11 @@ type PostAction struct {
 	// If the action is disabled.
 	Disabled bool `json:"disabled,omitempty"`
 
+	// Style defines a text and border style.
+	// Supported values are "default", "primary", "success", "good", "warning", "danger"
+	// and any hex color.
+	Style string `json:"style,omitempty"`
+
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".

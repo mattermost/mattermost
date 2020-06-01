@@ -17,11 +17,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
+
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -38,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -48,8 +52,8 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
-	Store           store.Store
 	sqlStore        *sqlstore.SqlSupplier
+	Store           store.Store
 	WebSocketRouter *WebSocketRouter
 
 	// RootRouter is the starting point for all HTTP requests to the server.
@@ -117,9 +121,9 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        map[string]string
-	clientConfigHash    string
-	limitedClientConfig map[string]string
+	clientConfig        atomic.Value
+	clientConfigHash    atomic.Value
+	limitedClientConfig atomic.Value
 
 	diagnosticId     string
 	diagnosticClient analytics.Client
@@ -167,7 +171,6 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
-		clientConfig:        make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -201,6 +204,20 @@ func NewServer(options ...Option) (*Server, error) {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
+		if strings.Contains(SENTRY_DSN, "placeholder") {
+			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
+		} else {
+			if err := sentry.Init(sentry.ClientOptions{
+				Dsn:              SENTRY_DSN,
+				Release:          model.BuildHash,
+				AttachStacktrace: true,
+			}); err != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
+			}
+		}
+	}
+
 	if *s.Config().ServiceSettings.EnableOpenTracing {
 		tracer, err := tracing.New()
 		if err != nil {
@@ -225,7 +242,13 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.SearchEngine = searchengine.NewBroker(s.Config(), s.Jobs)
+	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
+	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
+	if err := bleveEngine.Start(); err != nil {
+		return nil, err
+	}
+	searchEngine.RegisterBleveEngine(bleveEngine)
+	s.SearchEngine = searchEngine
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
@@ -237,8 +260,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
 	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
 
-	err := s.RunOldAppInitialization()
-	if err != nil {
+	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
 	}
 
@@ -286,24 +308,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	license := s.License()
 
-	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 0 {
-		mlog.Warn("Read replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
-
-	if license == nil && len(s.Config().SqlSettings.DataSourceSearchReplicas) > 0 {
-		mlog.Warn("Search replicas functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
-		s.UpdateConfig(func(cfg *model.Config) {
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
-		})
-		s.Store.Close()
-		s.Store = s.newStore()
-	}
-
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
@@ -326,6 +330,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := s.Store.Status().ResetAll(); err != nil {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
+
+	// Scheduler must be started before cluster.
+	s.initJobs()
 
 	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().registerAllClusterMessageHandlers()
@@ -350,8 +357,6 @@ func NewServer(options ...Option) (*Server, error) {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 		}
 	}
-
-	s.initJobs()
 
 	if s.runjobs {
 		s.Go(func() {
@@ -427,6 +432,8 @@ func (s *Server) StopHTTPServer() {
 func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
+	defer sentry.Flush(2 * time.Second)
+
 	s.RunOldAppShutdown()
 
 	if s.tracer != nil {
@@ -465,6 +472,7 @@ func (s *Server) Shutdown() error {
 		s.Metrics.StopServer()
 	}
 
+	// This must be done after the cluster is stopped.
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
 		s.Jobs.StopSchedulers()
@@ -537,6 +545,14 @@ func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
 
 	var handler http.Handler = s.RootRouter
+
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+		sentryHandler := sentryhttp.New(sentryhttp.Options{
+			Repanic: true,
+		})
+		handler = sentryHandler.Handle(handler)
+	}
+
 	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
 		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
 		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
@@ -984,6 +1000,9 @@ func (s *Server) stopSearchEngine() {
 	s.RemoveLicenseListener(s.searchLicenseListenerId)
 	if s.SearchEngine != nil && s.SearchEngine.ElasticsearchEngine != nil && s.SearchEngine.ElasticsearchEngine.IsActive() {
 		s.SearchEngine.ElasticsearchEngine.Stop()
+	}
+	if s.SearchEngine != nil && s.SearchEngine.BleveEngine != nil && s.SearchEngine.BleveEngine.IsActive() {
+		s.SearchEngine.BleveEngine.Stop()
 	}
 }
 

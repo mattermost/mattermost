@@ -15,7 +15,7 @@ type BotStore struct {
 }
 
 // Get provides a mock function with given fields: userId, includeDeleted
-func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	ret := _m.Called(userId, includeDeleted)
 
 	var r0 *model.Bot
@@ -27,20 +27,18 @@ func (_m *BotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(userId, includeDeleted)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetAll provides a mock function with given fields: options
-func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	ret := _m.Called(options)
 
 	var r0 []*model.Bot
@@ -52,36 +50,32 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.A
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: userId
-func (_m *BotStore) PermanentDelete(userId string) *model.AppError {
+func (_m *BotStore) PermanentDelete(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Save provides a mock function with given fields: bot
-func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	ret := _m.Called(bot)
 
 	var r0 *model.Bot
@@ -93,20 +87,18 @@ func (_m *BotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Update provides a mock function with given fields: bot
-func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	ret := _m.Called(bot)
 
 	var r0 *model.Bot
@@ -118,13 +110,11 @@ func (_m *BotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Bot) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Bot) error); ok {
 		r1 = rf(bot)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

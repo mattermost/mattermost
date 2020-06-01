@@ -395,6 +395,36 @@ func TestPatchTeam(t *testing.T) {
 	require.NotEqual(t, rteam.InviteId, "inviteid1", "InviteId should not update")
 	require.True(t, rteam.AllowOpenInvite, "AllowOpenInvite did not update properly")
 
+	t.Run("Changing AllowOpenInvite to false regenerates InviteID", func(t *testing.T) {
+		team2 := &model.Team{DisplayName: "Name2", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: true, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team2, _ = Client.CreateTeam(team2)
+
+		patch2 := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(false),
+		}
+
+		rteam2, resp2 := Client.PatchTeam(team2.Id, patch2)
+		CheckNoError(t, resp2)
+		require.Equal(t, team2.Id, rteam2.Id)
+		require.False(t, rteam2.AllowOpenInvite)
+		require.NotEqual(t, team2.InviteId, rteam2.InviteId)
+	})
+
+	t.Run("Changing AllowOpenInvite to true doesn't regenerate InviteID", func(t *testing.T) {
+		team2 := &model.Team{DisplayName: "Name3", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: model.NewId(), Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+		team2, _ = Client.CreateTeam(team2)
+
+		patch2 := &model.TeamPatch{
+			AllowOpenInvite: model.NewBool(true),
+		}
+
+		rteam2, resp2 := Client.PatchTeam(team2.Id, patch2)
+		CheckNoError(t, resp2)
+		require.Equal(t, team2.Id, rteam2.Id)
+		require.True(t, rteam2.AllowOpenInvite)
+		require.Equal(t, team2.InviteId, rteam2.InviteId)
+	})
+
 	// Test GroupConstrained flag
 	patch.GroupConstrained = model.NewBool(true)
 	rteam, resp = Client.PatchTeam(team.Id, patch)
@@ -555,19 +585,21 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 	teamPrivate2 := createTeam(model.TEAM_INVITE, false)
 
 	tests := []struct {
-		name           string
-		team           *model.Team
-		privacy        string
-		errChecker     func(t *testing.T, resp *model.Response)
-		wantType       string
-		wantOpenInvite bool
+		name                string
+		team                *model.Team
+		privacy             string
+		errChecker          func(t *testing.T, resp *model.Response)
+		wantType            string
+		wantOpenInvite      bool
+		wantInviteIdChanged bool
+		originalInviteId    string
 	}{
 		{name: "bad privacy", team: teamPublic, privacy: "blap", errChecker: CheckBadRequestStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
 		{name: "bad team", team: &model.Team{Id: model.NewId()}, privacy: model.TEAM_OPEN, errChecker: CheckForbiddenStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
-		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false},
+		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false, originalInviteId: teamPublic.InviteId, wantInviteIdChanged: true},
+		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPrivate.InviteId, wantInviteIdChanged: false},
+		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPublic2.InviteId, wantInviteIdChanged: false},
+		{name: "private to private", team: teamPrivate2, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false, originalInviteId: teamPrivate2.InviteId, wantInviteIdChanged: false},
 	}
 
 	for _, test := range tests {
@@ -582,6 +614,11 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 			}
 			require.Equal(t, test.wantType, team.Type)
 			require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
+			if test.wantInviteIdChanged {
+				require.NotEqual(t, test.originalInviteId, team.InviteId)
+			} else {
+				require.Equal(t, test.originalInviteId, team.InviteId)
+			}
 		})
 	}
 
@@ -1617,6 +1654,15 @@ func TestAddTeamMember(t *testing.T) {
 	require.NotNil(t, resp.Error, "Error is nil")
 	Client.Logout()
 
+	// SystemAdmin and mode can add member to a team
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		tm, r := client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, r)
+		CheckCreatedStatus(t, r)
+		require.Equal(t, tm.UserId, otherUser.Id, "user ids should have matched")
+		require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
+	})
+
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
 	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
@@ -1780,8 +1826,10 @@ func TestAddTeamMember(t *testing.T) {
 	require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
 
 	// User is not in associated groups so shouldn't be allowed
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+	})
 
 	// Associate group to team
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -1795,8 +1843,10 @@ func TestAddTeamMember(t *testing.T) {
 	_, err = th.App.UpsertGroupMember(th.Group.Id, otherUser.Id)
 	require.Nil(t, err)
 
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddTeamMember(team.Id, otherUser.Id)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
@@ -2086,28 +2136,31 @@ func TestRemoveTeamMember(t *testing.T) {
 	})
 	bot := th.CreateBotWithSystemAdminClient()
 
-	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		pass, resp := client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
 
-	require.True(t, pass, "should have passed")
+		require.True(t, pass, "should have passed")
 
-	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+		_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+	})
 
-	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, "junk")
-	CheckBadRequestStatus(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.RemoveTeamMember(th.BasicTeam.Id, "junk")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.RemoveTeamMember("junk", th.BasicUser2.Id)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.RemoveTeamMember("junk", th.BasicUser2.Id)
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
+	_, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser2.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
-	CheckNotFoundStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(model.NewId(), th.BasicUser.Id)
+		CheckNotFoundStatus(t, resp)
+	})
 
 	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
@@ -2119,12 +2172,19 @@ func TestRemoveTeamMember(t *testing.T) {
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	_, err := th.App.UpdateTeam(th.BasicTeam)
 	require.Nil(t, err)
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
-	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+		require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+	})
 
 	// Can remove a bot even if team is group-constrained
-	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
-	CheckNoError(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveTeamMember(th.BasicTeam.Id, bot.UserId)
+		CheckNoError(t, resp)
+		_, resp = client.AddTeamMember(th.BasicTeam.Id, bot.UserId)
+		CheckNoError(t, resp)
+	})
 
 	// Can remove self even if team is group-constrained
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)

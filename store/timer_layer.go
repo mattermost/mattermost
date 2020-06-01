@@ -377,7 +377,7 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
@@ -393,7 +393,7 @@ func (s *TimerLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.GetAll(options)
@@ -409,7 +409,7 @@ func (s *TimerLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) PermanentDelete(userId string) *model.AppError {
+func (s *TimerLayerBotStore) PermanentDelete(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.BotStore.PermanentDelete(userId)
@@ -425,7 +425,7 @@ func (s *TimerLayerBotStore) PermanentDelete(userId string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Save(bot)
@@ -441,7 +441,7 @@ func (s *TimerLayerBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.BotStore.Update(bot)
@@ -3146,6 +3146,22 @@ func (s *TimerLayerGroupStore) GroupCount() (int64, *model.AppError) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GroupCount", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerGroupStore) GroupCountWithAllowReference() (int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.GroupStore.GroupCountWithAllowReference()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.GroupCountWithAllowReference", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

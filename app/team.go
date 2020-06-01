@@ -103,12 +103,7 @@ func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
 	return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 }
 
-func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.GetTeam(team.Id)
-	if err != nil {
-		return nil, err
-	}
-
+func (a *App) CheckValidDomains(team *model.Team) *model.AppError {
 	validDomains := a.normalizeDomains(*a.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
@@ -120,10 +115,23 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 				}
 			}
 			if !matched {
-				err = model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
-				return nil, err
+				err := model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
+				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	oldTeam, err := a.GetTeam(team.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = a.CheckValidDomains(team); err != nil {
+		return nil, err
 	}
 
 	oldTeam.DisplayName = team.DisplayName
@@ -199,6 +207,11 @@ func (a *App) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite 
 		return err
 	}
 
+	// Force a regeneration of the invite token if changing a team to restricted.
+	if (allowOpenInvite != oldTeam.AllowOpenInvite || teamType != oldTeam.Type) && (!allowOpenInvite || teamType == model.TEAM_INVITE) {
+		oldTeam.InviteId = model.NewId()
+	}
+
 	oldTeam.Type = teamType
 	oldTeam.AllowOpenInvite = allowOpenInvite
 
@@ -218,15 +231,22 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 	}
 
 	team.Patch(patch)
+	if patch.AllowOpenInvite != nil && !*patch.AllowOpenInvite {
+		team.InviteId = model.NewId()
+	}
 
-	updatedTeam, err := a.UpdateTeam(team)
-	if err != nil {
+	if err = a.CheckValidDomains(team); err != nil {
 		return nil, err
 	}
 
-	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	team, err = a.updateTeamUnsanitized(team)
+	if err != nil {
+		return team, err
+	}
 
-	return updatedTeam, nil
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return team, nil
 }
 
 func (a *App) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
@@ -1021,7 +1041,7 @@ func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *mo
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1039,7 +1059,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
