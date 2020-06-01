@@ -905,7 +905,7 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) *mode
 	return nil
 }
 
-func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
 	query := "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
 	if includeDeleted {
 		query = "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
@@ -914,11 +914,11 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	_, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get channels with TeamId=%s and UserId=%s", teamId, userId)
 	}
 
 	if len(*channels) == 0 {
-		return nil, model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId+", userId="+userId, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "UserId", userId)
 	}
 
 	return channels, nil
@@ -1132,11 +1132,11 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mo
 	_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "app.channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(*data) == 0 {
-		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
+		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "app.channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
 	}
 
 	return data, nil
@@ -1704,7 +1704,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "app.channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	ids := data.ToMapStringString()

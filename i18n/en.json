@@ -6043,11 +6043,11 @@
     "translation": "Unable to get the channel counts."
   },
   {
-    "id": "store.sql_channel.get_channels.get.app_error",
+    "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
   {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
+    "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
   },
   {

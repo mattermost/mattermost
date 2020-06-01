@@ -1541,7 +1541,18 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 }
 
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+	if err != nil {
+		var iErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &iErr):
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, iErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
