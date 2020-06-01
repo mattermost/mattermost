@@ -35,11 +35,7 @@ func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if c.App.Session().UserId == user.Id {
-		user.Sanitize(map[string]bool{})
-	} else {
-		c.App.SanitizeProfile(user, c.IsSystemAdmin())
-	}
+	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(user.ToJson()))
 }

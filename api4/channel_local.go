@@ -136,7 +136,7 @@ func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if channel.IsGroupConstrained() && (c.Params.UserId != c.App.Session().UserId) && !user.IsBot {
+	if channel.IsGroupConstrained() && !user.IsBot {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
