@@ -5164,7 +5164,7 @@
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
-    "translation": ""
+    "translation": "Service Provider Identifier is required"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
