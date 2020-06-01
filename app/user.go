@@ -1413,6 +1413,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
+	a.InvalidateCacheForUser(userId)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
