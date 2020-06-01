@@ -41,6 +41,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelCategories.Handle("/order", api.ApiSessionRequired(updateCategoryOrderForTeamForUser)).Methods("PUT")
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getCategoryForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateCategoryForTeamForUser)).Methods("PUT")
+	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteCategoryForTeamForUser)).Methods("DELETE")
 
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
@@ -1983,4 +1984,28 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 
 	auditRec.Success()
 	w.Write(model.SidebarCategoryWithChannelsToJson(categories))
+}
+
+func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId().RequireCategoryId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToCategory(*c.App.Session(), c.Params.UserId, c.Params.TeamId, c.Params.CategoryId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	appErr := c.App.DeleteSidebarCategory(c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

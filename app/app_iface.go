@@ -457,6 +457,7 @@ type AppIface interface {
 	DeletePreferences(userId string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
+	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
 	DiagnosticId() string
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError

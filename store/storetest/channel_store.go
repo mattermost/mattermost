@@ -99,6 +99,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
 	t.Run("SidebarChannelsMigration", func(t *testing.T) { testSidebarChannelsMigration(t, ss) })
 	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
+	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -6630,5 +6631,135 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
+	})
+}
+
+func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
+	setupInitialSidebarCategories := func(t *testing.T, ss store.Store) (string, string) {
+		user, err := ss.User().Save(&model.User{
+			Email: MakeEmail(),
+		})
+		require.Nil(t, err)
+
+		teamId := model.NewId()
+
+		err = ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 3)
+
+		return user.Id, teamId
+	}
+
+	t.Run("should correctly remove an empty category", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+		defer ss.User().PermanentDelete(userId)
+
+		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
+		require.Nil(t, err)
+		require.NotNil(t, newCategory)
+
+		// Ensure that the category was created properly
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 4)
+
+		// Then delete it and confirm that was done correctly
+		err = ss.Channel().DeleteSidebarCategory(newCategory.Id)
+		assert.Nil(t, err)
+
+		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 3)
+	})
+
+	t.Run("should correctly remove a category and its channels", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+		defer ss.User().PermanentDelete(userId)
+
+		user := &model.User{
+			Id: userId,
+		}
+
+		// Create some channels
+		channel1, err := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+		}, 1000)
+		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(channel1.Id)
+
+		channel2, err := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId,
+			Type:   model.CHANNEL_PRIVATE,
+		}, 1000)
+		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(channel2.Id)
+
+		dmChannel1, err := ss.Channel().CreateDirectChannel(user, &model.User{
+			Id: model.NewId(),
+		})
+		require.Nil(t, err)
+		defer ss.Channel().PermanentDelete(dmChannel1.Id)
+
+		// Assign some of those channels to a custom category
+		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			Channels: []string{channel1.Id, channel2.Id, dmChannel1.Id},
+		})
+		require.Nil(t, err)
+		require.NotNil(t, newCategory)
+
+		// Ensure that the categories are set up correctly
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 4)
+
+		// This will have to change after category creation order is fixed
+		require.Equal(t, model.SidebarCategoryCustom, res.Categories[1].Type)
+		require.Equal(t, []string{channel1.Id, channel2.Id, dmChannel1.Id}, res.Categories[1].Channels)
+
+		// Actually delete the channel
+		err = ss.Channel().DeleteSidebarCategory(newCategory.Id)
+		assert.Nil(t, err)
+
+		// Confirm that the category was deleted...
+		res, err = ss.Channel().GetSidebarCategories(userId, teamId)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+
+		// ...and that the corresponding SidebarChannel entries were deleted
+		count, countErr := s.GetMaster().SelectInt(`
+			SELECT
+				COUNT(*)
+			FROM
+				SidebarChannels
+			WHERE
+				CategoryId = :CategoryId`, map[string]interface{}{"CategoryId": newCategory.Id})
+		require.Nil(t, countErr)
+		assert.Equal(t, int64(0), count)
+	})
+
+	t.Run("should not allow you to remove non-custom categories", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+		defer ss.User().PermanentDelete(userId)
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 3)
+		require.True(t, res.Categories[0].Type == model.SidebarCategoryFavorites)
+		require.True(t, res.Categories[1].Type == model.SidebarCategoryChannels)
+		require.True(t, res.Categories[2].Type == model.SidebarCategoryDirectMessages)
+
+		err = ss.Channel().DeleteSidebarCategory(res.Categories[0].Id)
+		assert.NotNil(t, err)
+
+		err = ss.Channel().DeleteSidebarCategory(res.Categories[1].Id)
+		assert.NotNil(t, err)
+
+		err = ss.Channel().DeleteSidebarCategory(res.Categories[2].Id)
+		assert.NotNil(t, err)
 	})
 }
