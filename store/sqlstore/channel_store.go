@@ -1139,7 +1139,6 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 }
 
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
-	var channels []*model.Channel
 	props := map[string]interface{}{}
 	var namePlaceholders []string
 	for _, name := range names {
@@ -1156,16 +1155,9 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 		query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
 	}
 
-	var dbChannels []*model.Channel
-	if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+	var channels []*model.Channel
+	if _, err := s.GetReplica().Select(&channels, query, props); err != nil && err != sql.ErrNoRows {
 		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
-	}
-	for _, channel := range dbChannels {
-		channels = append(channels, channel)
-	}
-	// Not all channels are in cache. Increment aggregate miss counter.
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("Channel By Name - Aggregate")
 	}
 
 	return channels, nil
