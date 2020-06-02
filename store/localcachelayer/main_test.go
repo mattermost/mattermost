@@ -128,6 +128,12 @@ func getMockCacheProvider() *mocks.CacheProvider {
 		mock.AnythingOfType("int64"),
 		mock.AnythingOfType("string")).Return(lru.New(128))
 
+	mockCacheProvider.On("NewCacheWithParams",
+		mock.AnythingOfType("int"),
+		"ChannelByName",
+		mock.AnythingOfType("int64"),
+		mock.AnythingOfType("string")).Return(lru.New(128))
+
 	return &mockCacheProvider
 }
 
@@ -197,6 +203,9 @@ func getMockStore() *mocks.Store {
 	mockPinnedPostsCount := int64(10)
 	mockChannelStore.On("GetPinnedPostCount", "id", true).Return(mockPinnedPostsCount, nil)
 	mockChannelStore.On("GetPinnedPostCount", "id", false).Return(mockPinnedPostsCount, nil)
+
+	mockChannelStore.On("GetByName", "team1", channelId, mock.AnythingOfType("bool")).Return(&fakeChannelId, nil)
+	mockChannelStore.On("InvalidateChannelByName", "team1", channelId)
 
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}

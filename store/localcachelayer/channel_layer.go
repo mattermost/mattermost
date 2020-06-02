@@ -225,7 +225,7 @@ func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromC
 		return nil, err
 	}
 
-	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
+	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, channel, CHANNEL_CACHE_SEC)
 	return channel, nil
 }
 

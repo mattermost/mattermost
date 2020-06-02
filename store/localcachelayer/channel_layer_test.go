@@ -4,8 +4,9 @@
 package localcachelayer
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -294,5 +295,92 @@ func TestChannelStoreChannel(t *testing.T) {
 		cachedStore.Channel().InvalidateChannel(channelId)
 		cachedStore.Channel().Get(channelId, true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 2)
+	})
+}
+
+func TestChannelStoreChannelGetByNameCacheGetByNameMethod(t *testing.T) {
+	teamId := "team1"
+	channelId := "channel1"
+	fakeChannelId := &model.Channel{Id: channelId}
+
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		channel, err := cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+	})
+
+	t.Run("first call not cached, second force not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		channel, err := cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, false)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
+	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		channel, err := cachedStore.Channel().GetByName(teamId, channelId, false)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 2)
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
+	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		channel, err := cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+		cachedStore.Channel().ClearCaches()
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 2)
+	})
+
+	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+
+		channel, err := cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 1)
+		cachedStore.Channel().InvalidateChannelByName(teamId, channelId)
+		channel, err = cachedStore.Channel().GetByName(teamId, channelId, true)
+		require.Nil(t, err)
+		assert.Equal(t, fakeChannelId, channel)
+		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "GetByName", 2)
 	})
 }
