@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -49,7 +48,7 @@ func (s SqlCommandStore) createIndexesIfNotExists() {
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
 	if len(command.Id) > 0 {
-		return nil, fmt.Errorf("cannot overwrite existing command: command_id=%s", command.Id)
+		return nil, store.NewErrInvalidInput("Command", "CommandId", command.Id)
 	}
 
 	command.PreSave()
