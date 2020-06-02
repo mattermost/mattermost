@@ -630,7 +630,7 @@ func (s *OpenTracingLayerChannelStore) Delete(channelId string, time int64) *mod
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -1026,7 +1026,7 @@ func (s *OpenTracingLayerChannelStore) GetForPost(postId string) (*model.Channel
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetFromMaster(id string) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetFromMaster")
 	s.Root.Store.SetContext(newCtx)
@@ -1863,7 +1863,7 @@ func (s *OpenTracingLayerChannelStore) SetDeleteAt(channelId string, deleteAt in
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Update")
 	s.Root.Store.SetContext(newCtx)
