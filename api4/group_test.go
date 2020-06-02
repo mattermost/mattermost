@@ -714,7 +714,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 		require.True(t, *groups[0].SchemeAdmin)
 
 		groups, _, response = client.GetGroupsByChannel(model.NewId(), opts)
-		assert.Equal(t, "store.sql_channel.get.existing.app_error", response.Error.Id)
+		assert.Equal(t, "app.channel.get.existing.app_error", response.Error.Id)
 		assert.Empty(t, groups)
 	})
 }
