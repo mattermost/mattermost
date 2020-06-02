@@ -70,6 +70,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["ShowEmailAddress"] = strconv.FormatBool(*c.PrivacySettings.ShowEmailAddress)
+	props["ShowFullName"] = strconv.FormatBool(*c.PrivacySettings.ShowFullName)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
