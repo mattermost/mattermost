@@ -1375,8 +1375,6 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 }
 
 func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
-	a.InvalidateCacheForUser(userId)
-
 	user, err := a.GetUser(userId)
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
