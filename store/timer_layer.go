@@ -600,7 +600,7 @@ func (s *TimerLayerChannelStore) Delete(channelId string, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.Get(id, allowFromCache)
@@ -952,7 +952,7 @@ func (s *TimerLayerChannelStore) GetForPost(postId string) (*model.Channel, *mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetFromMaster(id string) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetFromMaster(id)
@@ -1729,7 +1729,7 @@ func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.Update(channel)
@@ -6409,7 +6409,7 @@ func (s *TimerLayerTeamStore) UserBelongsToTeams(userId string, teamIds []string
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Get(id, allowFromCache)
@@ -6425,7 +6425,7 @@ func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.GetLatest(allowFromCache)
@@ -6441,7 +6441,7 @@ func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Save(termsOfService)
