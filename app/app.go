@@ -64,7 +64,7 @@ func New(options ...AppOption) *App {
 }
 
 func (a *App) InitServer() {
-	a.srv.AppInitialized.Do(func() {
+	a.srv.AppInitializedOnce.Do(func() {
 		a.initEnterprise()
 		a.accountMigration = a.srv.AccountMigration
 		a.ldap = a.srv.Ldap

@@ -160,11 +160,3 @@ func (s *Server) RunOldAppInitialization() error {
 
 	return nil
 }
-
-func (s *Server) RunOldAppShutdown() {
-	s.HubStop()
-	s.StopPushNotificationsHubWorkers()
-	s.ShutDownPlugins()
-	s.RemoveLicenseListener(s.licenseListenerId)
-	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
-}

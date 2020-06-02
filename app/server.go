@@ -53,10 +53,10 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
-	sqlStore        *sqlstore.SqlSupplier
-	Store           store.Store
-	WebSocketRouter *WebSocketRouter
-	AppInitialized  sync.Once
+	sqlStore           *sqlstore.SqlSupplier
+	Store              store.Store
+	WebSocketRouter    *WebSocketRouter
+	AppInitializedOnce sync.Once
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -425,7 +425,11 @@ func (s *Server) Shutdown() error {
 
 	defer sentry.Flush(2 * time.Second)
 
-	s.RunOldAppShutdown()
+	s.HubStop()
+	s.StopPushNotificationsHubWorkers()
+	s.ShutDownPlugins()
+	s.RemoveLicenseListener(s.licenseListenerId)
+	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
