@@ -1693,6 +1693,10 @@
     "translation": "Action integration error."
   },
   {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Unable to get the pending post."
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
