@@ -150,13 +150,7 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	if *a.Config().ServiceSettings.EnableCommands {
 		teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 		if err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
-				return nil, appErr
-			default:
-				return nil, model.NewAppError("ListAllCommands", "app.command.listallcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, model.NewAppError("ListAllCommands", "app.command.listallcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
