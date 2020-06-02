@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -111,15 +112,16 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 
 	// Query the cache atomically for the given pending post id, saving a record if
 	// it hasn't previously been seen.
-	value, loaded := a.Srv().seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
-
-	// If we were the first thread to save this pending post id into the cache,
-	// proceed with create post normally.
-	if !loaded {
+	var postId string
+	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
+	if nErr == cache2.ErrKeyNotFound {
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
 		return nil, nil
 	}
 
-	postId := value.(string)
+	if nErr != nil {
+		return nil, model.NewAppError("errorGetPostId", "api.post.error_get_post_id.pending", nil, "", http.StatusInternalServerError)
+	}
 
 	// If another thread saved the cache record, but hasn't yet updated it with the actual post
 	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
@@ -161,7 +163,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return
 		}
 
-		a.Srv().seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, savedPost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PENDING_POST_IDS_CACHE_TTL)
 	}()
 
 	post.SanitizeProps()
@@ -288,7 +290,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	a.Srv().seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, rpost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PENDING_POST_IDS_CACHE_TTL)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {

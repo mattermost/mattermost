@@ -1729,7 +1729,7 @@ func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.Update(channel)
