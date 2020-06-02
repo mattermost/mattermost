@@ -598,13 +598,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(cmd.TeamId)
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, existingCommand := range teamCmds {
