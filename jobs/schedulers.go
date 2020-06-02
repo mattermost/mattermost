@@ -62,10 +62,8 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
 	}
 
-	if *srv.Config().ServiceSettings.ExtendSessionLengthWithActivity {
-		if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
-			schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
-		}
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))

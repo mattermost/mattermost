@@ -67,10 +67,8 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.BleveIndexing = bleveIndexerInterface.MakeWorker()
 	}
 
-	if *srv.Config().ServiceSettings.ExtendSessionLengthWithActivity {
-		if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
-			workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
-		}
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
 	}
 	return workers
 }
