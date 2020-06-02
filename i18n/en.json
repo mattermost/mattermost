@@ -6387,42 +6387,6 @@
     "translation": "Failed to update last ping at."
   },
   {
-    "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Unable to count the commands."
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Unable to get the command."
-  },
-  {
-    "id": "store.sql_command.save.delete.app_error",
-    "translation": "Unable to delete the command."
-  },
-  {
-    "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Unable to delete the command."
-  },
-  {
-    "id": "store.sql_command.save.get.app_error",
-    "translation": "Unable to get the command."
-  },
-  {
-    "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Unable to get the commands."
-  },
-  {
-    "id": "store.sql_command.save.saving.app_error",
-    "translation": "Unable to save the Command."
-  },
-  {
-    "id": "store.sql_command.save.saving_overwrite.app_error",
-    "translation": "You cannot overwrite an existing Command."
-  },
-  {
-    "id": "store.sql_command.save.update.app_error",
-    "translation": "Unable to update the command."
-  },
-  {
     "id": "store.sql_command_webhooks.get.app_error",
     "translation": "Unable to get the webhook."
   },
