@@ -117,7 +117,7 @@ func (s SqlCommandStore) Delete(commandId string, time int64) error {
 func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
-		return store.NewErrInvalidInput("Command", "TeamId", teamId)
+		return errors.Wrapf(err, "delete: team_id=%s", teamId)
 	}
 	return nil
 }
@@ -125,7 +125,7 @@ func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) error {
 func (s SqlCommandStore) PermanentDeleteByUser(userId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {
-		return store.NewErrInvalidInput("Command", "userId", userId)
+		return errors.Wrapf(err, "delete: user_id=%s", userId)
 	}
 
 	return nil
