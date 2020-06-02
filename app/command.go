@@ -98,13 +98,7 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 	if *a.Config().ServiceSettings.EnableCommands {
 		teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 		if err != nil {
-			var appErr *model.AppError
-			switch {
-			case errors.As(err, &appErr):
-				return nil, appErr
-			default:
-				return nil, model.NewAppError("ListAutocompleteCommands", "app.command.listautocompletecommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, model.NewAppError("ListAutocompleteCommands", "app.command.listautocompletecommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		for _, cmd := range teamCmds {
