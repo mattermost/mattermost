@@ -1010,12 +1010,12 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 
 		data := PostImportData{
-			Team:      ptrStr("teamname"),
-			Channel:   ptrStr("channelname"),
-			User:      ptrStr("username"),
-			Message:   ptrStr("message"),
-			Props:     &props,
-			CreateAt:  ptrInt64(model.GetMillis()),
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			Props:    &props,
+			CreateAt: ptrInt64(model.GetMillis()),
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to long props.")
