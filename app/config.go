@@ -76,7 +76,7 @@ func (a *App) ClientConfig() map[string]string {
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.Srv().clientConfigHash.Load().(string)
+	return a.Srv().ClientConfigHash()
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
