@@ -89,6 +89,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	if err != nil {
 		return nil, err
 	}
+	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
 	a.sendUpdatedUserEvent(*ruser)
