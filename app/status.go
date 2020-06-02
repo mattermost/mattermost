@@ -9,7 +9,7 @@ import (
 )
 
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
-	a.Srv().statusCache.Add(status.UserId, status)
+	a.Srv().statusCache.Set(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
@@ -30,16 +30,15 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 		return map[string]*model.Status{}
 	}
 
-	userIds := a.Srv().statusCache.Keys()
 	statusMap := map[string]*model.Status{}
-
-	for _, userId := range userIds {
-		status := a.GetStatusFromCache(userId)
-		if status != nil {
-			statusMap[userId] = status
+	if userIds, err := a.Srv().statusCache.Keys(); err == nil {
+		for _, userId := range userIds {
+			status := a.GetStatusFromCache(userId)
+			if status != nil {
+				statusMap[userId] = status
+			}
 		}
 	}
-
 	return statusMap
 }
 
@@ -53,8 +52,9 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := a.Srv().statusCache.Get(userId); ok {
-			statusMap[userId] = result.(*model.Status).Status
+		var status *model.Status
+		if err := a.Srv().statusCache.Get(userId, &status); err == nil {
+			statusMap[userId] = status.Status
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
 			}
@@ -100,8 +100,9 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := a.Srv().statusCache.Get(userId); ok {
-			statusMap = append(statusMap, result.(*model.Status))
+		var status *model.Status
+		if err := a.Srv().statusCache.Get(userId, &status); err == nil {
+			statusMap = append(statusMap, status)
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
 			}
@@ -321,8 +322,8 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 }
 
 func (a *App) GetStatusFromCache(userId string) *model.Status {
-	if result, ok := a.Srv().statusCache.Get(userId); ok {
-		status := result.(*model.Status)
+	var status *model.Status
+	if err := a.Srv().statusCache.Get(userId, &status); err == nil {
 		statusCopy := &model.Status{}
 		*statusCopy = *status
 		return statusCopy
