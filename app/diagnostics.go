@@ -674,6 +674,7 @@ func (a *App) trackConfig() {
 		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
 		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_jitsi":                  pluginActivated(cfg.PluginSettings.PluginStates, "jitsi"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
 		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
