@@ -114,7 +114,7 @@ func (s SqlCommandWebhookStore) Cleanup() {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		mlog.Error("Failed to build query.")
+		mlog.Error("Failed to build query when trying to perform a cleanup in command webhook store.")
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
