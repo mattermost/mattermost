@@ -13,6 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	ten_minutes = 600000
+)
+
 func TestSessionStore(t *testing.T, ss store.Store) {
 	// Run serially to prevent interfering with other tests
 	testSessionCleanup(t, ss)
@@ -30,6 +34,7 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
+	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, ss store.Store) {
@@ -311,7 +316,6 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	now := model.GetMillis()
-	const ten_minutes = 600000
 
 	// Clear existing sessions.
 	err := ss.Session().RemoveAllSessions()
@@ -363,4 +367,27 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	for _, sess := range sessions {
 		require.Contains(t, expected, sess.Id)
 	}
+}
+
+func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
+	s1 := &model.Session{}
+	s1.UserId = model.NewId()
+	s1.DeviceId = model.NewId()
+	s1.ExpiresAt = model.GetMillis() + ten_minutes
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.False(t, session.ExpiredNotify)
+
+	ss.Session().UpdateExpiredNotify(session.Id, true)
+	session, err = ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.True(t, session.ExpiredNotify)
+
+	ss.Session().UpdateExpiredNotify(session.Id, false)
+	session, err = ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.False(t, session.ExpiredNotify)
 }
