@@ -79,7 +79,7 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	var commands []*model.Command
 
 	if _, err := s.GetReplica().Select(&commands, "SELECT * FROM Commands WHERE TeamId = :TeamId AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId}); err != nil {
-		return nil, errors.Wrapf(err, "selectbyteam: team_id=%s", teamId)
+		return nil, errors.Wrapf(err, "select: team_id=%s", teamId)
 	}
 
 	return commands, nil
