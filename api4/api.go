@@ -288,12 +288,15 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
+	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
+
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitLicenseLocal()
 	api.InitConfigLocal()
 	api.InitCommandLocal()
 	api.InitPluginLocal()
+	api.InitGroupLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
