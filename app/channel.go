@@ -1471,14 +1471,15 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 }
 
 func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	channel, errCh := a.Srv().Store.Channel().Get(channelId, true)
-	if errCh != nil {
-		if errCh.Id == "store.sql_channel.get.existing.app_error" {
-			errCh.StatusCode = http.StatusNotFound
-			return nil, errCh
+	channel, err := a.Srv().Store.Channel().Get(channelId, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannel", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		errCh.StatusCode = http.StatusBadRequest
-		return nil, errCh
 	}
 	return channel, nil
 }
@@ -1772,7 +1773,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	sc := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().Get(channelId, true)
-		sc <- store.StoreResult{Data: channel, Err: err}
+		sc <- store.StoreResult{Data: channel, NErr: err}
 		close(sc)
 	}()
 
@@ -1795,8 +1796,14 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		return cresult.Err
 	}
 	uresult := <-uc
-	if uresult.Err != nil {
-		return cresult.Err
+	if uresult.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(uresult.NErr, &nfErr):
+			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	ccresult := <-mcc
 	if ccresult.Err != nil {
