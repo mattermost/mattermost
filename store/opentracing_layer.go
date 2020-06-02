@@ -1863,7 +1863,7 @@ func (s *OpenTracingLayerChannelStore) SetDeleteAt(channelId string, deleteAt in
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Update")
 	s.Root.Store.SetContext(newCtx)
