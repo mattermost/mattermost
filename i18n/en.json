@@ -1803,7 +1803,7 @@
     "translation": "An error occurred building the push notification message."
   },
   {
-	"id": "api.push_notifications.session.expired",
+    "id": "api.push_notifications.session.expired",
     "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
   },
   {
@@ -4007,16 +4007,8 @@
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
-    "id": "ent.cluster.json_encode.error",
-    "translation": "Error occurred while marshalling JSON request"
-  },
-  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
-  },
-  {
-    "id": "ent.cluster.timeout.error",
-    "translation": "Timed out waiting for cluster response"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -4047,16 +4039,8 @@
     "translation": "Unable to convert metadata to json."
   },
   {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Unable to create the zip file"
-  },
-  {
     "id": "ent.compliance.csv.post.export.appError",
     "translation": "Unable to export a post."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Unable to create the warning file."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4181,10 +4165,6 @@
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Failed to delete Elasticsearch index"
-  },
-  {
-    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "Failed to refresh Elasticsearch indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
