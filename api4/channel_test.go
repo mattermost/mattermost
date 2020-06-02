@@ -930,11 +930,7 @@ func TestGetAllChannels(t *testing.T) {
 		require.Nil(t, resp.Error)
 		beforeCount := len(*channels)
 
-		var firstChannel model.Channel
-		for _, item := range *channels {
-			firstChannel = item.Channel
-			break
-		}
+		firstChannel := (*channels)[0].Channel
 
 		ok, resp := client.DeleteChannel(firstChannel.Id)
 		require.Nil(t, resp.Error)
