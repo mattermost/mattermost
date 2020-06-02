@@ -2999,6 +2999,14 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.channel.update.bad_id",
+    "translation": "Unable to update the channel."
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Unable to update channel."
+  },
+  {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -6265,38 +6273,6 @@
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
     "translation": "Unable to update the materialized public channel."
-  },
-  {
-    "id": "store.sql_channel.update.app_error",
-    "translation": "Unable to update the channel."
-  },
-  {
-    "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "You can not modify an archived channel."
-  },
-  {
-    "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.update.exists.app_error",
-    "translation": "A channel with that handle already exists."
-  },
-  {
-    "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.update.previously.app_error",
-    "translation": "A channel with that handle was previously created."
-  },
-  {
-    "id": "store.sql_channel.update.updating.app_error",
-    "translation": "We encountered an error updating the channel."
-  },
-  {
-    "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel."
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",

@@ -1691,7 +1691,7 @@ func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt i
 }
 
 // Update provides a mock function with given fields: channel
-func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	ret := _m.Called(channel)
 
 	var r0 *model.Channel
@@ -1703,13 +1703,11 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, *model.A
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
 		r1 = rf(channel)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

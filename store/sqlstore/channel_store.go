@@ -13,14 +13,14 @@ import (
 	"time"
 
 	"github.com/mattermost/gorp"
-	"github.com/pkg/errors"
-
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -638,10 +638,10 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 }
 
 // Update writes the updated channel to the database.
-func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -652,20 +652,20 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, *model.
 
 	// Additionally propagate the write to the PublicChannels table.
 	if err := s.upsertPublicChannelT(transaction, updatedChannel); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "upsertPublicChannelT: failed to upsert channel")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 	return updatedChannel, nil
 }
 
-func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, error) {
 	channel.PreUpdate()
 
 	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
 
 	if err := channel.IsValid(); err != nil {
@@ -678,15 +678,15 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 			dupChannel := model.Channel{}
 			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
-				return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+				return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 			}
-			return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
+			return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 		}
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
 
 	if count != 1 {
-		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
+		return nil, fmt.Errorf("the expected number of channels to be updated is 1 but was %d", count)
 	}
 
 	return channel, nil
