@@ -725,7 +725,7 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	return s.get(id, false, allowFromCache)
 }
 
@@ -743,11 +743,11 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, *mod
 	return pl, nil
 }
 
-func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, error) {
 	return s.get(id, true, false)
 }
 
-func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*model.Channel, error) {
 	var db *gorp.DbMap
 
 	if master {
@@ -758,11 +758,11 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 
 	obj, err := db.Get(model.Channel{}, id)
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find channel with id = %s", id)
 	}
 
 	if obj == nil {
-		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.existing.app_error", nil, "id="+id, http.StatusNotFound)
+		return nil, store.NewErrNotFound("Channel", id)
 	}
 
 	ch := obj.(*model.Channel)
