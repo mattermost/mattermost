@@ -158,6 +158,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	// GetHubForUserId returns the hub for a given user id.
 	GetHubForUserId(userId string) *Hub
 	// GetKnownUsers returns the list of user ids of users with any direct
@@ -555,7 +557,6 @@ type AppIface interface {
 	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
