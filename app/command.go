@@ -120,13 +120,7 @@ func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return teamCmds, nil
