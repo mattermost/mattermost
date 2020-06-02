@@ -160,7 +160,7 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 
 	c, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
 	if err != nil {
-		return 0, fmt.Errorf("unable to count the commands: team_id=%s", teamId)
+		return 0, errors.Wrapf(err, "unable to count the commands: team_id=%s", teamId)
 	}
 	return c, nil
 }
