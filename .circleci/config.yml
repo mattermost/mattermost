@@ -27,12 +27,13 @@ jobs:
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          export CURL_FAILED=0
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
 
-          if [ $CURL_FAILED -eq 1 ]
+          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
+          if [[ $? == 0 ]]
           then
-            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
+            mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          else
+            npm ci && make build
           fi
       - persist_to_workspace:
           root: ~/mattermost
