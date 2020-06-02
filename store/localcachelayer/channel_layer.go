@@ -187,46 +187,32 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 
 func (s LocalCacheChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	if allowFromCache {
-		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
-			}
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name); cacheItem != nil {
 			return cacheItem.(*model.Channel), nil
-		}
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
 		}
 	}
 
 	channel, err := s.ChannelStore.GetByNameIncludeDeleted(teamId, name, allowFromCache)
-	if err != nil {
-		return nil, err
-	}
 
-	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
-	return channel, nil
+	if allowFromCache && err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+	}
+	return channel, err
 }
 
 func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	if allowFromCache {
-		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
-			if s.rootStore.metrics != nil {
-				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
-			}
+		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name); cacheItem != nil {
 			return cacheItem.(*model.Channel), nil
-		}
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
 		}
 	}
 
 	channel, err := s.ChannelStore.GetByName(teamId, name, allowFromCache)
-	if err != nil {
-		return nil, err
-	}
 
-	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, channel, CHANNEL_CACHE_SEC)
-	return channel, nil
+	if allowFromCache && err == nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+	}
+	return channel, err
 }
 
 func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
@@ -240,7 +226,7 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 				continue
 			}
 			visited[name] = struct{}{}
-			if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+			if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name); cacheItem != nil {
 				channels = append(channels, cacheItem.(*model.Channel))
 			} else {
 				misses = append(misses, name)
@@ -249,28 +235,20 @@ func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowF
 		names = misses
 	}
 
+	var err *model.AppError
 	if len(names) > 0 {
-		dbChannels, err := s.ChannelStore.GetByNames(teamId, names, allowFromCache)
-		if err != nil {
-			return nil, err
-		}
+		var dbChannels []*model.Channel
+		dbChannels, err = s.ChannelStore.GetByNames(teamId, names, allowFromCache)
 
 		for _, channel := range dbChannels {
-			s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
+			if allowFromCache && err == nil {
+				s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
+			}
 			channels = append(channels, channel)
-		}
-		// Not all channels are in cache. Increment aggregate miss counter.
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name - Aggregate")
-		}
-	} else {
-		// All of the channel names are in cache. Increment aggregate hit counter.
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name - Aggregate")
 		}
 	}
 
-	return channels, nil
+	return channels, err
 }
 
 func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
