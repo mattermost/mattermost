@@ -370,13 +370,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(args.TeamId)
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, nil, appErr
-		default:
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.command.tryexecutecustomcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.command.tryexecutecustomcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	tr := <-teamChan
