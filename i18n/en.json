@@ -1887,12 +1887,8 @@
     "translation": "Error starting server, err:%v"
   },
   {
-    "id": "api.server.warn_metric.notification",
-    "translation": "It appears your active user count is over limit. Your system may be experiencing a slowdown and Mattermost Inc. can help! If you would like to know more {{.ContactLink}}"
-  },
-  {
-    "id": "api.server.warn_metric.notification.link",
-    "translation": "<contact us>"
+    "id": "api.server.warn_metric.number_of_active_users.notification",
+    "translation": "Warning: Your team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance. {{.AaeId}}\r\n<Contact Support>\r\n*Contacting support sends your contact information to Mattermost, Inc. [Learn More](https://mattermost.com/pl/default-aae-faq).*"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -3860,11 +3856,11 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "Bot for usage warnings"
+    "translation": "Sends key alerts to System Admins about their Mattermost system"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Warning Bot"
+    "translation": "Mattermost System Alerts"
   },
   {
     "id": "app.system.warn_metric.notification.empty_admin_list.app_error",

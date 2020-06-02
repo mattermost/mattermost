@@ -261,8 +261,8 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 
 		switch warnMetricId {
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			warnMetricMessage = T("api.server.warn_metric.notification", map[string]interface{}{"ContactLink": utils.T("api.server.warn_metric.notification.link")})
 			warnMetricStatus = a.getWarnMetricStatusForId(warnMetricId)
+			warnMetricMessage = T("api.server.warn_metric.number_of_active_users.notification", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId})
 		default:
 			mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
 		}
