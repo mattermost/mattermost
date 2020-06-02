@@ -3847,6 +3847,22 @@
     "translation": "Unable to rename the team, the name is already in use."
   },
   {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
   },
@@ -7293,22 +7309,6 @@
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams."
-  },
-  {
-    "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",

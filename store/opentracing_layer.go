@@ -7095,7 +7095,7 @@ func (s *OpenTracingLayerTeamStore) UserBelongsToTeams(userId string, teamIds []
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *OpenTracingLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TermsOfServiceStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -7113,7 +7113,7 @@ func (s *OpenTracingLayerTermsOfServiceStore) Get(id string, allowFromCache bool
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *OpenTracingLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TermsOfServiceStore.GetLatest")
 	s.Root.Store.SetContext(newCtx)
@@ -7131,7 +7131,7 @@ func (s *OpenTracingLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (s *OpenTracingLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TermsOfServiceStore.Save")
 	s.Root.Store.SetContext(newCtx)
