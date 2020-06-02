@@ -4,6 +4,11 @@
 package localcachelayer
 
 import (
+	"database/sql"
+	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -45,17 +50,27 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.rootStore.channelByNameCache.Purge()
+	} else {
+		s.rootStore.channelByNameCache.Remove(msg.Data)
+	}
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel By Name - Purge")
 	}
 }
 
@@ -84,6 +99,13 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel by Name - Remove by TeamId and Name")
 	}
 }
 
@@ -166,6 +188,109 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	}
 
 	return ch, err
+}
+
+func (s LocalCacheChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
+			}
+			return cacheItem.(*model.Channel), nil
+		}
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
+		}
+	}
+
+	channel, err := s.ChannelStore.GetByNameIncludeDeleted(teamId, name, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
+	return channel, nil
+}
+
+func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.IncrementMemCacheHitCounter("Channel By Name")
+			}
+			return cacheItem.(*model.Channel), nil
+		}
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.IncrementMemCacheMissCounter("Channel By Name")
+		}
+	}
+
+	channel, err := s.ChannelStore.GetByName(teamId, name, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	s.rootStore.channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
+	return channel, nil
+}
+
+func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+	var channels []*model.Channel
+
+	if allowFromCache {
+		var misses []string
+		visited := make(map[string]struct{})
+		for _, name := range names {
+			if _, ok := visited[name]; ok {
+				continue
+			}
+			visited[name] = struct{}{}
+			if cacheItem, ok := s.rootStore.channelByNameCache.Get(teamId + name); ok {
+				channels = append(channels, cacheItem.(*model.Channel))
+			} else {
+				misses = append(misses, name)
+			}
+		}
+		names = misses
+	}
+
+	if len(names) > 0 {
+		props := map[string]interface{}{}
+		var namePlaceholders []string
+		for _, name := range names {
+			key := fmt.Sprintf("Name%v", len(namePlaceholders))
+			props[key] = name
+			namePlaceholders = append(namePlaceholders, ":"+key)
+		}
+
+		var query string
+		if teamId == "" {
+			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND DeleteAt = 0`
+		} else {
+			props["TeamId"] = teamId
+			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
+		}
+
+		var dbChannels []*model.Channel
+		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		}
+		for _, channel := range dbChannels {
+			channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
+			channels = append(channels, channel)
+		}
+		// Not all channels are in cache. Increment aggregate miss counter.
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Channel By Name - Aggregate")
+		}
+	} else {
+		// All of the channel names are in cache. Increment aggregate hit counter.
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter("Channel By Name - Aggregate")
+		}
+	}
+
+	return channels, nil
 }
 
 func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
