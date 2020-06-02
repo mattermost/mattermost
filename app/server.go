@@ -106,9 +106,9 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            cache.Cache
-	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache
+	sessionCache            cache2.Cache
+	seenPendingPostIdsCache cache2.Cache
+	statusCache             cache2.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -264,9 +264,15 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider.NewCache(model.SESSION_CACHE_SIZE)
-	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(PENDING_POST_IDS_CACHE_SIZE)
-	s.statusCache = s.CacheProvider.NewCache(model.STATUS_CACHE_SIZE)
+	s.sessionCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+		Size: model.SESSION_CACHE_SIZE,
+	})
+	s.seenPendingPostIdsCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+		Size: PENDING_POST_IDS_CACHE_SIZE,
+	})
+	s.statusCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+		Size: model.STATUS_CACHE_SIZE,
+	})
 
 	if err := s.RunOldAppInitialization(); err != nil {
 		return nil, err
