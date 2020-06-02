@@ -1139,25 +1139,27 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 }
 
 func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
-	props := map[string]interface{}{}
-	var namePlaceholders []string
-	for _, name := range names {
-		key := fmt.Sprintf("Name%v", len(namePlaceholders))
-		props[key] = name
-		namePlaceholders = append(namePlaceholders, ":"+key)
-	}
-
-	var query string
-	if teamId == "" {
-		query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND DeleteAt = 0`
-	} else {
-		props["TeamId"] = teamId
-		query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
-	}
-
 	var channels []*model.Channel
-	if _, err := s.GetReplica().Select(&channels, query, props); err != nil && err != sql.ErrNoRows {
-		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+	if len(names) > 0 {
+		props := map[string]interface{}{}
+		var namePlaceholders []string
+		for _, name := range names {
+			key := fmt.Sprintf("Name%v", len(namePlaceholders))
+			props[key] = name
+			namePlaceholders = append(namePlaceholders, ":"+key)
+		}
+
+		var query string
+		if teamId == "" {
+			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND DeleteAt = 0`
+		} else {
+			props["TeamId"] = teamId
+			query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
+		}
+
+		if _, err := s.GetReplica().Select(&channels, query, props); err != nil && err != sql.ErrNoRows {
+			return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return channels, nil
