@@ -728,13 +728,7 @@ func (a *App) DeleteCommand(commandId string) *model.AppError {
 
 	err := a.Srv().Store.Command().Delete(commandId, model.GetMillis())
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return appErr
-		default:
-			return model.NewAppError("DeleteCommand", "app.command.deletecommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+		return model.NewAppError("DeleteCommand", "app.command.deletecommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
