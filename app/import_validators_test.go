@@ -916,6 +916,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.team_missing.error")
 
 		data = PostImportData{
 			Team:     ptrStr("teamname"),
@@ -925,6 +926,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err = validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.channel_missing.error")
 
 		data = PostImportData{
 			Team:     ptrStr("teamname"),
@@ -934,6 +936,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err = validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.user_missing.error")
 
 		data = PostImportData{
 			Team:     ptrStr("teamname"),
@@ -943,6 +946,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err = validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_missing.error")
 
 		data = PostImportData{
 			Team:    ptrStr("teamname"),
@@ -952,6 +956,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err = validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_missing.error")
 	})
 
 	t.Run("Test with invalid message", func(t *testing.T) {
@@ -964,6 +969,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to too long message.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_length.error")
 	})
 
 	t.Run("Test with invalid CreateAt", func(t *testing.T) {
@@ -976,6 +982,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_zero.error")
 	})
 
 	t.Run("Test with valid all optional parameters", func(t *testing.T) {
@@ -1019,6 +1026,7 @@ func TestImportValidatePostImportData(t *testing.T) {
 		}
 		err := validatePostImportData(&data, maxPostSize)
 		require.NotNil(t, err, "Should have failed due to long props.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.props_too_large.error")
 	})
 }
 
