@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	FREQ_MINUTES = 1 // TODO: 60 minutes
+	SCHED_FREQ_MINUTES = 10
 )
 
 type Scheduler struct {
@@ -36,7 +36,7 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 
-	nextTime := time.Now().Add(FREQ_MINUTES * time.Minute)
+	nextTime := time.Now().Add(SCHED_FREQ_MINUTES * time.Minute)
 	return &nextTime
 }
 

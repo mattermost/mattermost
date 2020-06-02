@@ -4,21 +4,17 @@
 package app
 
 import (
-	"time"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
-	PERCENT_THRESHOLD float64 = 0.10
+	ONE_HOUR_MILLIS = 60 * 60 * 1000
 )
 
-func (a *App) NotifyImpendingSessionExpiry() *model.AppError {
-	sessionLengthMillis := *a.Config().ServiceSettings.SessionLengthMobileInDays * 24 * 60 * 60 * 1000
-	threshold := int64(float64(sessionLengthMillis) * PERCENT_THRESHOLD)
-
+// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
+func (a *App) NotifySessionsExpired() *model.AppError {
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
 		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
@@ -27,7 +23,8 @@ func (a *App) NotifyImpendingSessionExpiry() *model.AppError {
 		}
 	}
 
-	sessions, err := a.srv.Store.Session().GetSessionsAboutToExpire(threshold, true)
+	// Get all mobile sessions that expired within the last hour.
+	sessions, err := a.srv.Store.Session().GetSessionsExpired(ONE_HOUR_MILLIS, true, true)
 	if err != nil {
 		return err
 	}
@@ -42,7 +39,7 @@ func (a *App) NotifyImpendingSessionExpiry() *model.AppError {
 		tmpMessage := msg.DeepCopy()
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
-		tmpMessage.Message = a.getSessionExpirePushMessage(session)
+		tmpMessage.Message = a.getSessionExpiredPushMessage(session)
 
 		errPush := a.sendToPushProxy(tmpMessage, session)
 		if errPush != nil {
@@ -51,7 +48,7 @@ func (a *App) NotifyImpendingSessionExpiry() *model.AppError {
 				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
 				mlog.String("deviceId", tmpMessage.DeviceId),
-				mlog.String("status", err.Error()),
+				mlog.String("status", errPush.Error()),
 			)
 			continue
 		}
@@ -67,11 +64,16 @@ func (a *App) NotifyImpendingSessionExpiry() *model.AppError {
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostSentPush()
 		}
+
+		err = a.srv.Store.Session().UpdateExpiredNotify(session.Id, true)
+		if err != nil {
+			mlog.Error("Failed to update ExpiredNotify flag", mlog.String("sessionid", session.Id), mlog.Err(err))
+		}
 	}
 	return nil
 }
 
-func (a *App) getSessionExpirePushMessage(session *model.Session) string {
+func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
 	locale := model.DEFAULT_LOCALE
 	user, err := a.GetUser(session.UserId)
 	if err == nil {
@@ -80,19 +82,7 @@ func (a *App) getSessionExpirePushMessage(session *model.Session) string {
 	T := utils.GetUserTranslations(locale)
 
 	siteName := *a.Config().TeamSettings.SiteName
-	props := map[string]interface{}{"siteName": siteName}
+	props := map[string]interface{}{"siteName": siteName, "daysCount": *a.Config().ServiceSettings.SessionLengthMobileInDays}
 
-	if session.IsExpired() {
-		props["daysCount"] = *a.Config().ServiceSettings.SessionLengthMobileInDays
-		return T("api.push_notifications.session.expired", props)
-	}
-
-	expiresIn := session.ExpiresAt - model.GetMillis()
-	dur := time.Millisecond * time.Duration(expiresIn)
-	if dur.Hours() > 48 {
-		props["daysCount"] = int(dur.Hours() / 24)
-		return T("api.push_notifications.session.expiring_days", props)
-	}
-	props["daysCount"] = int(dur.Hours())
-	return T("api.push_notifications.session.expiring_hours", props)
+	return T("api.push_notifications.session.expired", props)
 }

@@ -231,6 +231,8 @@ type AppIface interface {
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
 	// NewWebHub creates a new Hub.
 	NewWebHub() *Hub
+	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
+	NotifySessionsExpired() *model.AppError
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -755,7 +757,6 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	NotifyImpendingSessionExpiry() *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)

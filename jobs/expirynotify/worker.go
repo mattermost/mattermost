@@ -72,8 +72,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	if err := worker.app.NotifyImpendingSessionExpiry(); err != nil {
-		mlog.Error("Worker: Failed to notify clients of impending session expiry", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
+	if err := worker.app.NotifySessionsExpired(); err != nil {
+		mlog.Error("Worker: Failed to notify clients of expired session", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 		return
 	}

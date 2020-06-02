@@ -29,7 +29,7 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
-	t.Run("GetSessionsAboutToExpire", func(t *testing.T) { testGetSessionsAboutToExpire(t, ss) })
+	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, ss store.Store) {
@@ -309,7 +309,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	require.Nil(t, removeErr)
 }
 
-func testGetSessionsAboutToExpire(t *testing.T, ss store.Store) {
+func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	now := model.GetMillis()
 	const ten_minutes = 600000
 
@@ -327,29 +327,36 @@ func testGetSessionsAboutToExpire(t *testing.T, ss store.Store) {
 	s2 := &model.Session{}
 	s2.UserId = model.NewId()
 	s2.DeviceId = model.NewId()
-	s2.ExpiresAt = now + ten_minutes // expires within threshold
+	s2.ExpiresAt = now - ten_minutes // expired within threshold
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.DeviceId = model.NewId()
-	s3.ExpiresAt = now + (ten_minutes * 10000) // expires outside threshold
+	s3.ExpiresAt = now - (ten_minutes * 100) // expired outside threshold
 	s3, err = ss.Session().Save(s3)
 	require.Nil(t, err)
 
 	s4 := &model.Session{}
 	s4.UserId = model.NewId()
-	s4.ExpiresAt = now + ten_minutes // expires within threshold, but not mobile
+	s4.ExpiresAt = now - ten_minutes // expired within threshold, but not mobile
 	s4, err = ss.Session().Save(s4)
 	require.Nil(t, err)
 
-	sessions, err := ss.Session().GetSessionsAboutToExpire(ten_minutes*2, true) // mobile only
+	s5 := &model.Session{}
+	s5.UserId = model.NewId()
+	s5.DeviceId = model.NewId()
+	s5.ExpiresAt = now + (ten_minutes * 100000) // not expired
+	s5, err = ss.Session().Save(s5)
+	require.Nil(t, err)
+
+	sessions, err := ss.Session().GetSessionsExpired(ten_minutes*2, true, true) // mobile only
 	require.Nil(t, err)
 	require.Len(t, sessions, 1)
 	require.Equal(t, s2.Id, sessions[0].Id)
 
-	sessions, err = ss.Session().GetSessionsAboutToExpire(ten_minutes*2, false) // all client types
+	sessions, err = ss.Session().GetSessionsExpired(ten_minutes*2, false, true) // all client types
 	require.Nil(t, err)
 	require.Len(t, sessions, 2)
 	expected := []string{s2.Id, s4.Id}

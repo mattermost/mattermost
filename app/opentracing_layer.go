@@ -10201,9 +10201,9 @@ func (a *OpenTracingAppLayer) NewWebHub() *Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyImpendingSessionExpiry() *model.AppError {
+func (a *OpenTracingAppLayer) NotifySessionsExpired() *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyImpendingSessionExpiry")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySessionsExpired")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -10213,7 +10213,7 @@ func (a *OpenTracingAppLayer) NotifyImpendingSessionExpiry() *model.AppError {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyImpendingSessionExpiry()
+	resultVar0 := a.app.NotifySessionsExpired()
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
