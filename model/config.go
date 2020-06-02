@@ -322,6 +322,7 @@ type ServiceSettings struct {
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
 	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalDataPrefetch            							*bool
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -676,6 +677,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExperimentalChannelSidebarOrganization == nil {
 		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
+	}
+
+	if s.ExperimentalDataPrefetch == nil {
+		s.ExperimentalDataPrefetch = NewBool(false)
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
