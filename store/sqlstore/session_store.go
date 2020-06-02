@@ -160,6 +160,14 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.Ap
 	return nil
 }
 
+func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	_, err := me.GetMaster().Exec("UPDATE Sessions SET ExpiresAt = :ExpiresAt WHERE Id = :Id", map[string]interface{}{"ExpiresAt": time, "Id": sessionId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateExpiresAt", "store.sql_session.update_expires_at.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
 	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
 	if err != nil {

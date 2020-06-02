@@ -136,7 +136,6 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
 		formatter := adt.MakeJSONFormatter()
 		formatter.DisableTimestamp = false
-		formatter.Indent = "\n"
 		target, err := audit.NewFileTarget(filter, formatter, opts, maxQueueSize)
 		if err != nil {
 			mlog.Error("cannot configure File audit target", mlog.Err(err))

@@ -1068,6 +1068,93 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetPreferencesForUserArgs struct {
+	A string
+}
+
+type Z_GetPreferencesForUserReturns struct {
+	A []model.Preference
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	_args := &Z_GetPreferencesForUserArgs{userId}
+	_returns := &Z_GetPreferencesForUserReturns{}
+	if err := g.client.Call("Plugin.GetPreferencesForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPreferencesForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPreferencesForUser(args *Z_GetPreferencesForUserArgs, returns *Z_GetPreferencesForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPreferencesForUser(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetPreferencesForUser called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdatePreferencesForUserArgs struct {
+	A string
+	B []model.Preference
+}
+
+type Z_UpdatePreferencesForUserReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	_args := &Z_UpdatePreferencesForUserArgs{userId, preferences}
+	_returns := &Z_UpdatePreferencesForUserReturns{}
+	if err := g.client.Call("Plugin.UpdatePreferencesForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdatePreferencesForUser API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdatePreferencesForUser(args *Z_UpdatePreferencesForUserArgs, returns *Z_UpdatePreferencesForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
+	}); ok {
+		returns.A = hook.UpdatePreferencesForUser(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdatePreferencesForUser called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeletePreferencesForUserArgs struct {
+	A string
+	B []model.Preference
+}
+
+type Z_DeletePreferencesForUserReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	_args := &Z_DeletePreferencesForUserArgs{userId, preferences}
+	_returns := &Z_DeletePreferencesForUserReturns{}
+	if err := g.client.Call("Plugin.DeletePreferencesForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to DeletePreferencesForUser API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) DeletePreferencesForUser(args *Z_DeletePreferencesForUserArgs, returns *Z_DeletePreferencesForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
+	}); ok {
+		returns.A = hook.DeletePreferencesForUser(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeletePreferencesForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetTeamIconArgs struct {
 	A string
 }
@@ -2559,6 +2646,7 @@ func (s *apiRPCServer) GetGroup(args *Z_GetGroupArgs, returns *Z_GetGroupReturns
 
 type Z_GetGroupByNameArgs struct {
 	A string
+	B model.GroupSearchOpts
 }
 
 type Z_GetGroupByNameReturns struct {
@@ -2566,8 +2654,8 @@ type Z_GetGroupByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	_args := &Z_GetGroupByNameArgs{name}
+func (g *apiRPCClient) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	_args := &Z_GetGroupByNameArgs{name, opts}
 	_returns := &Z_GetGroupByNameReturns{}
 	if err := g.client.Call("Plugin.GetGroupByName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetGroupByName API failed: %s", err.Error())
@@ -2577,9 +2665,9 @@ func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppErro
 
 func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_GetGroupByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetGroupByName(name string) (*model.Group, *model.AppError)
+		GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetGroupByName(args.A)
+		returns.A, returns.B = hook.GetGroupByName(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetGroupByName called but not implemented."))
 	}

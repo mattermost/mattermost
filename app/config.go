@@ -72,15 +72,15 @@ func (a *App) ReloadConfig() error {
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.Srv().clientConfig
+	return a.Srv().clientConfig.Load().(map[string]string)
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.Srv().clientConfigHash
+	return a.Srv().clientConfigHash.Load().(string)
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.Srv().limitedClientConfig
+	return a.Srv().limitedClientConfig.Load().(map[string]string)
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -265,6 +265,22 @@ func (s *Server) ensureInstallationDate() error {
 	return nil
 }
 
+func (a *App) ensureFirstServerRunTimestamp() error {
+	_, err := a.getFirstServerRunTimestamp()
+	if err == nil {
+		return nil
+	}
+
+	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
+		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return s.asymmetricSigningKey
@@ -303,9 +319,9 @@ func (s *Server) regenerateClientConfig() {
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
-	s.clientConfig = clientConfig
-	s.limitedClientConfig = limitedClientConfig
-	s.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	s.clientConfig.Store(clientConfig)
+	s.limitedClientConfig.Store(limitedClientConfig)
+	s.clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
 }
 
 func (a *App) GetCookieDomain() string {

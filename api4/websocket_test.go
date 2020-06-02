@@ -32,46 +32,31 @@ func TestWebSocket(t *testing.T) {
 
 	WebSocketClient.Listen()
 
-	time.Sleep(300 * time.Millisecond)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
 	WebSocketClient.SendMessage("ping", nil)
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Data["text"].(string), "pong", "wrong response")
 
 	WebSocketClient.SendMessage("", nil)
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.web_socket_router.no_action.app_error", "should have been no action response")
 
 	WebSocketClient.SendMessage("junk", nil)
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_action.app_error", "should have been bad action response")
 
-	req := &model.WebSocketRequest{}
-	req.Seq = 0
-	req.Action = "ping"
-	WebSocketClient.Conn.WriteJSON(req)
-	time.Sleep(300 * time.Millisecond)
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_seq.app_error", "should have been bad action response")
-
 	WebSocketClient.UserTyping("", "")
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
 
 	WebSocketClient.UserTyping(th.BasicChannel.Id, "")
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Nil(t, resp.Error)
 
 	WebSocketClient.UserTyping(th.BasicPrivateChannel2.Id, "")
-	time.Sleep(300 * time.Millisecond)
 	resp = <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
 	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
@@ -96,7 +81,6 @@ func TestWebSocketEvent(t *testing.T) {
 
 	WebSocketClient.Listen()
 
-	time.Sleep(300 * time.Millisecond)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
@@ -175,7 +159,6 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
-	time.Sleep(300 * time.Millisecond)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 
@@ -272,7 +255,6 @@ func TestWebSocketStatuses(t *testing.T) {
 	defer WebSocketClient.Close()
 	WebSocketClient.Listen()
 
-	time.Sleep(300 * time.Millisecond)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
 

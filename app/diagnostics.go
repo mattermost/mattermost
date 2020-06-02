@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	rudder "github.com/rudderlabs/analytics-go"
 	"github.com/segmentio/analytics-go"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -16,13 +17,16 @@ import (
 )
 
 const (
-	SEGMENT_KEY = "placeholder_segment_key"
+	SEGMENT_KEY          = "placeholder_segment_key"
+	RUDDER_KEY           = "placeholder_rudder_key"
+	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
+	TRACK_CONFIG_AUDIT              = "config_audit"
 	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
@@ -62,6 +66,9 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
+
 func (s *Server) SendDailyDiagnostics() {
 	s.sendDailyDiagnostics(false)
 }
@@ -79,14 +86,37 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 		s.trackGroups()
 		s.trackChannelModeration()
 	}
+
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+		a.Srv().initRudder(RUDDER_DATAPLANE_URL)
+		a.trackActivity()
+		a.trackConfig()
+		a.trackLicense()
+		a.trackPlugins()
+		a.trackServer()
+		a.trackPermissions()
+		a.trackElasticsearch()
+		a.trackGroups()
+		a.trackChannelModeration()
+	}
 }
 
 func (s *Server) SendDiagnostic(event string, properties map[string]interface{}) {
-	s.diagnosticClient.Enqueue(analytics.Track{
-		Event:      event,
-		UserId:     s.diagnosticId,
-		Properties: properties,
-	})
+	if s.diagnosticClient != nil {
+		s.diagnosticClient.Enqueue(analytics.Track{
+			Event:      event,
+			UserId:     s.diagnosticId,
+			Properties: properties,
+		})
+	}
+
+	if s.rudderClient != nil {
+		s.rudderClient.Enqueue(rudder.Track{
+			Event:      event,
+			UserId:     s.diagnosticId,
+			Properties: properties,
+		})
+	}
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
@@ -279,6 +309,7 @@ func (s *Server) trackConfig() {
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
+		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
 		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
@@ -324,6 +355,7 @@ func (s *Server) trackConfig() {
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
+		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -389,6 +421,18 @@ func (s *Server) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
+	})
+
+	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
+		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
+		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
+		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
@@ -516,6 +560,7 @@ func (s *Server) trackConfig() {
 		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
 		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 		"isempty_admin_filter":                   isDefault(*cfg.LdapSettings.AdminFilter, ""),
+		"isnotempty_picture_attribute":           !isDefault(*cfg.LdapSettings.PictureAttribute, ""),
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -629,6 +674,7 @@ func (s *Server) trackConfig() {
 		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
 		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_jitsi":                  pluginActivated(cfg.PluginSettings.PluginStates, "jitsi"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
 		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
@@ -974,14 +1020,20 @@ func (s *Server) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
+	groupCountWithAllowReference, err := s.Store.Group().GroupCountWithAllowReference()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
 	s.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
-		"group_count":                 groupCount,
-		"group_team_count":            groupTeamCount,
-		"group_channel_count":         groupChannelCount,
-		"group_synced_team_count":     groupSyncedTeamCount,
-		"group_synced_channel_count":  groupSyncedChannelCount,
-		"group_member_count":          groupMemberCount,
-		"distinct_group_member_count": distinctGroupMemberCount,
+		"group_count":                      groupCount,
+		"group_team_count":                 groupTeamCount,
+		"group_channel_count":              groupChannelCount,
+		"group_synced_team_count":          groupSyncedTeamCount,
+		"group_synced_channel_count":       groupSyncedChannelCount,
+		"group_member_count":               groupMemberCount,
+		"distinct_group_member_count":      distinctGroupMemberCount,
+		"group_count_with_allow_reference": groupCountWithAllowReference,
 	})
 }
 

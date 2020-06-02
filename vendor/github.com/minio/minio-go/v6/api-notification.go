@@ -20,11 +20,11 @@ package minio
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 )
 
@@ -138,6 +138,8 @@ type NotificationInfo struct {
 // ListenBucketNotification - listen on bucket notifications.
 func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, events []string, doneCh <-chan struct{}) <-chan NotificationInfo {
 	notificationInfoCh := make(chan NotificationInfo, 1)
+	const notificationCapacity = 1024 * 1024
+	notificationEventBuffer := make([]byte, notificationCapacity)
 	// Only success, start a routine to start reading line by line.
 	go func(notificationInfoCh chan<- NotificationInfo) {
 		defer close(notificationInfoCh)
@@ -197,6 +199,11 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 
 			// Initialize a new bufio scanner, to read line by line.
 			bio := bufio.NewScanner(resp.Body)
+
+			// Use a higher buffer to support unexpected
+			// caching done by proxies
+			bio.Buffer(notificationEventBuffer, notificationCapacity)
+			var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 			// Unmarshal each line, returns marshalled values.
 			for bio.Scan() {

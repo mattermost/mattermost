@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -35,6 +35,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		cmnchan <- store.StoreResult{Data: props, Err: err}
 		close(cmnchan)
 	}()
+
+	var gchan chan store.StoreResult
+	if a.allowGroupMentions(post) {
+		gchan = make(chan store.StoreResult, 1)
+		go func() {
+			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
+			gchan <- store.StoreResult{Data: groupsMap, Err: err}
+			close(gchan)
+		}()
+	}
 
 	var fchan chan store.StoreResult
 	if len(post.FileIds) != 0 {
@@ -58,6 +68,15 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
+	groups := make(map[string]*model.Group)
+	if gchan != nil {
+		result = <-gchan
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		groups = result.Data.(map[string]*model.Group)
+	}
+
 	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
 
@@ -76,7 +95,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
 		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
-		mentions = getExplicitMentions(post, keywords)
+		mentions = getExplicitMentions(post, keywords, groups)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -84,6 +103,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
 			if ok {
 				mentions.addMention(addedUserId, KeywordMention)
+			}
+		}
+
+		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
+		for _, group := range mentions.GroupMentions {
+			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
+			if err != nil {
+				return nil, err
+			}
+
+			if !anyUsersMentionedByGroup {
+				a.sendNoUsersNotifiedByGroupInChannel(sender, post, channel, group)
 			}
 		}
 
@@ -312,6 +343,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
+	message.Add("set_online", setOnline)
 
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
@@ -373,6 +405,18 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 	return userAllowsEmails && emailNotificationsAllowedForStatus && user.DeleteAt == 0 && !autoResponderRelated
 }
 
+func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
+	T := utils.GetUserTranslations(sender.Locale)
+	ephemeralPost := &model.Post{
+		UserId:    sender.Id,
+		RootId:    post.RootId,
+		ParentId:  post.ParentId,
+		ChannelId: channel.Id,
+		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
+	}
+	a.SendEphemeralPost(post.UserId, ephemeralPost)
+}
+
 // sendOutOfChannelMentions sends an ephemeral post to the sender of a post if any of the given potential mentions
 // are outside of the post's channel. Returns whether or not an ephemeral post was sent.
 func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) (bool, error) {
@@ -388,6 +432,20 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 	a.SendEphemeralPost(post.UserId, makeOutOfChannelMentionPost(sender, post, outOfChannelUsers, outOfGroupsUsers))
 
 	return true, nil
+}
+
+func (a *App) FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError) {
+	result := []*model.User{}
+	for _, user := range otherUsers {
+		canSee, err := a.UserCanSeeOtherUser(viewer.Id, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if canSee {
+			result = append(result, user)
+		}
+	}
+	return result, nil
 }
 
 func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, potentialMentions []string) ([]*model.User, []*model.User, error) {
@@ -411,6 +469,10 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
+	allUsers, err = a.FilterUsersByVisible(sender, allUsers)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if len(allUsers) == 0 {
 		return nil, nil, nil
@@ -428,7 +490,7 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 		outOfChannelUsers = allUsers.FilterWithoutID(nonMemberIDs)
 		outOfGroupsUsers = allUsers.FilterByID(nonMemberIDs)
 	} else {
-		outOfChannelUsers = users
+		outOfChannelUsers = allUsers
 	}
 
 	return outOfChannelUsers, outOfGroupsUsers, nil
@@ -520,6 +582,9 @@ type ExplicitMentions struct {
 	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
 	Mentions map[string]MentionType
 
+	// Contains a map of groups that were mentioned
+	GroupMentions map[string]*model.Group
+
 	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
 	// a corresponding keyword.
 	OtherPotentialMentions []string
@@ -556,6 +621,9 @@ const (
 
 	// The post contains an at-mention for the user
 	KeywordMention
+
+	// The post contains a group mention for the user
+	GroupMention
 )
 
 func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
@@ -570,6 +638,34 @@ func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
 	m.Mentions[userId] = mentionType
 }
 
+func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model.Group) bool {
+	if strings.HasPrefix(word, "@") {
+		word = word[1:]
+	} else {
+		// Only allow group mentions when mentioned directly with @group-name
+		return false
+	}
+
+	group, groupFound := groups[word]
+	if !groupFound {
+		group = groups[strings.ToLower(word)]
+	}
+
+	if group == nil {
+		return false
+	}
+
+	if m.GroupMentions == nil {
+		m.GroupMentions = make(map[string]*model.Group)
+	}
+
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
+
+	return true
+}
+
 func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
 	for _, userId := range userIds {
 		m.addMention(userId, mentionType)
@@ -582,7 +678,7 @@ func (m *ExplicitMentions) removeMention(userId string) {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *ExplicitMentions {
 	ret := &ExplicitMentions{}
 
 	buf := ""
@@ -591,7 +687,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				ret.processText(buf, keywords)
+				ret.processText(buf, keywords, groups)
 				buf = ""
 				return true
 			}
@@ -599,7 +695,7 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 			return false
 		})
 	}
-	ret.processText(buf, keywords)
+	ret.processText(buf, keywords, groups)
 
 	return ret
 }
@@ -639,6 +735,60 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 	return true
 }
 
+// allowGroupMentions returns whether or not the group mentions are allowed for the given post.
+func (a *App) allowGroupMentions(post *model.Post) bool {
+	if license := a.License(); license == nil || !*license.Features.LDAPGroups {
+		return false
+	}
+
+	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
+		return false
+	}
+
+	if post.Type == model.POST_HEADER_CHANGE || post.Type == model.POST_PURPOSE_CHANGE {
+		return false
+	}
+
+	return true
+}
+
+// getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
+func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
+	var err *model.AppError
+	groupsMap := make(map[string]*model.Group)
+	opts := model.GroupSearchOpts{FilterAllowReference: true}
+
+	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+		var groups []*model.GroupWithSchemeAdmin
+		if channel.IsGroupConstrained() {
+			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
+		} else {
+			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups {
+			if group.Group.Name != nil {
+				groupsMap[*group.Group.Name] = &group.Group
+			}
+		}
+		return groupsMap, nil
+	}
+
+	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
+	if err != nil {
+		return nil, err
+	}
+	for _, group := range groups {
+		if group.Name != nil {
+			groupsMap[*group.Name] = group
+		}
+	}
+
+	return groupsMap, nil
+}
+
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
 func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allowChannelMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
@@ -655,6 +805,49 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 	}
 
 	return keywords
+}
+
+// insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
+// returns false if no group members present in the team that the channel belongs to
+func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
+	var err *model.AppError
+	var groupMembers []*model.User
+	outOfChannelGroupMembers := []*model.User{}
+	isGroupOrDirect := channel.IsGroupOrDirect()
+
+	if isGroupOrDirect {
+		groupMembers, err = a.Srv().Store.Group().GetMemberUsers(group.Id)
+	} else {
+		groupMembers, err = a.Srv().Store.Group().GetMemberUsersInTeam(group.Id, channel.TeamId)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	if mentions.Mentions == nil {
+		mentions.Mentions = make(map[string]MentionType)
+	}
+
+	for _, member := range groupMembers {
+		if _, ok := profileMap[member.Id]; ok {
+			mentions.Mentions[member.Id] = GroupMention
+		} else {
+			outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
+		}
+	}
+
+	potentialGroupMembersMentioned := []string{}
+	for _, user := range outOfChannelGroupMembers {
+		potentialGroupMembersMentioned = append(potentialGroupMembersMentioned, user.Username)
+	}
+	if mentions.OtherPotentialMentions == nil {
+		mentions.OtherPotentialMentions = potentialGroupMembersMentioned
+	} else {
+		mentions.OtherPotentialMentions = append(mentions.OtherPotentialMentions, potentialGroupMembersMentioned...)
+	}
+
+	return isGroupOrDirect || len(groupMembers) > 0, nil
 }
 
 // addMentionKeywordsForUser adds the mention keywords for a given user to the given keyword map. Returns the provided keyword map.
@@ -742,7 +935,7 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 }
 
 // checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
+func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string, groups map[string]*model.Group) bool {
 	var mentionType MentionType
 
 	switch strings.ToLower(word) {
@@ -758,6 +951,8 @@ func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 	default:
 		mentionType = KeywordMention
 	}
+
+	m.addGroupMention(word, groups)
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
 		m.addMentions(ids, mentionType)
@@ -795,7 +990,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 }
 
 // Processes text to filter mentioned users and other potential mentions
-func (m *ExplicitMentions) processText(text string, keywords map[string][]string) {
+func (m *ExplicitMentions) processText(text string, keywords map[string][]string, groups map[string]*model.Group) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
@@ -809,16 +1004,17 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if m.checkForMention(word, keywords) {
+		if m.checkForMention(word, keywords, groups) {
 			continue
 		}
 
 		foundWithoutSuffix := false
 		wordWithoutSuffix := word
+
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if m.checkForMention(wordWithoutSuffix, keywords) {
+			if m.checkForMention(wordWithoutSuffix, keywords, groups) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -844,7 +1040,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if m.checkForMention(splitWord, keywords) {
+				if m.checkForMention(splitWord, keywords, groups) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {

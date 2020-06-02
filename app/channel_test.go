@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -745,6 +746,14 @@ func TestRenameChannel(t *testing.T) {
 			"",
 		},
 		{
+			"Success on rename open channel with consecutive underscores in name",
+			th.createChannel(th.BasicTeam, model.CHANNEL_OPEN),
+			false,
+			"foo__bar",
+			"foo__bar",
+			"New Display Name",
+		},
+		{
 			"Fail on rename direct message channel",
 			th.CreateDmChannel(th.BasicUser2),
 			true,
@@ -1133,7 +1142,7 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 			UserId:    u2.Id,
 			ChannelId: c2.Id,
 			Message:   "@" + u1.Username,
-		}, c2, false)
+		}, c2, false, true)
 		require.Nil(t, err)
 		th.CreatePost(c2)
 
@@ -1649,6 +1658,52 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Handles concurrent patch requests gracefully", func(t *testing.T) {
+		addCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(false),
+					Guests:  model.NewBool(false),
+				},
+			},
+		}
+		removeCreatePosts := []*model.ChannelModerationPatch{
+			{
+				Name: &createPosts,
+				Roles: &model.ChannelModeratedRolesPatch{
+					Members: model.NewBool(false),
+					Guests:  model.NewBool(false),
+				},
+			},
+		}
+
+		wg := sync.WaitGroup{}
+		wg.Add(20)
+		for i := 0; i < 10; i++ {
+			go func() {
+				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				wg.Done()
+			}()
+		}
+		for i := 0; i < 10; i++ {
+			go func() {
+				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				wg.Done()
+			}()
+		}
+		wg.Wait()
+
+		higherScopedGuestRoleName, higherScopedMemberRoleName, _, _ := th.App.GetTeamSchemeChannelRoles(channel.TeamId)
+		higherScopedMemberRole, _ := th.App.GetRoleByName(higherScopedMemberRoleName)
+		higherScopedGuestRole, _ := th.App.GetRoleByName(higherScopedGuestRoleName)
+		assert.Contains(t, higherScopedMemberRole.Permissions, createPosts)
+		assert.Contains(t, higherScopedGuestRole.Permissions, createPosts)
+	})
+
 }
 
 // TestMarkChannelsAsViewedPanic verifies that returning an error from a.GetUser

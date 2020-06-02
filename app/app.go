@@ -154,6 +154,9 @@ func (a *App) initJobs() {
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
+	if jobsBleveIndexerInterface != nil {
+		a.srv.Jobs.BleveIndexer = jobsBleveIndexerInterface(a.srv)
+	}
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
@@ -194,6 +197,18 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
+}
+
+func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
+	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	if appErr != nil {
+		return 0, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return value, nil
 }

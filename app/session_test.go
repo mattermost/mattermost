@@ -4,12 +4,13 @@
 package app
 
 import (
+	"fmt"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCache(t *testing.T) {
@@ -28,21 +29,24 @@ func TestCache(t *testing.T) {
 		UserId: model.NewId(),
 	}
 
-	th.App.Srv().sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
-	th.App.Srv().sessionCache.AddWithExpiresInSecs(session2.Token, session2, 5*60)
+	th.App.Srv().sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
+	th.App.Srv().sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
 
-	keys := th.App.Srv().sessionCache.Keys()
+	keys, err := th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.NotEmpty(t, keys)
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
-	rkeys := th.App.Srv().sessionCache.Keys()
+	rkeys, err := th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 
 	th.App.ClearSessionCacheForAllUsers()
 
-	rkeys = th.App.Srv().sessionCache.Keys()
+	rkeys, err = th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.Empty(t, rkeys)
 }
 
@@ -58,6 +62,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("compliance"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = false })
 
 	rsession, err := th.App.GetSession(session.Token)
 	require.Nil(t, err)
@@ -176,4 +181,130 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "true", rsession.Props[model.SESSION_PROP_IS_GUEST])
 	})
+}
+
+const hourMillis int64 = 60 * 60 * 1000
+const dayMillis int64 = 24 * hourMillis
+
+func TestApp_GetSessionLengthInMillis(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+
+	t.Run("get session length mobile", func(t *testing.T) {
+		session := &model.Session{
+			UserId:   model.NewId(),
+			DeviceId: model.NewId(),
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length SSO", func(t *testing.T) {
+		session := &model.Session{
+			UserId:  model.NewId(),
+			IsOAuth: true,
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*2, sessionLength)
+	})
+
+	t.Run("get session length web/LDAP", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*1, sessionLength)
+	})
+}
+
+func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthSSOInDays = 2 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthWebInDays = 1 })
+
+	t.Run("expired session should not be extended", func(t *testing.T) {
+		expires := model.GetMillis() - hourMillis
+		session := &model.Session{
+			UserId:    model.NewId(),
+			ExpiresAt: expires,
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+
+		require.False(t, ok)
+		require.Equal(t, expires, session.ExpiresAt)
+		require.True(t, session.IsExpired())
+	})
+
+	t.Run("session within threshold should not be extended", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
+		session.ExpiresAt = expires
+
+		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+
+		require.False(t, ok)
+		require.Equal(t, expires, session.ExpiresAt)
+		require.False(t, session.IsExpired())
+	})
+
+	var tests = []struct {
+		name    string
+		session *model.Session
+	}{
+		{name: "mobile", session: &model.Session{UserId: model.NewId(), DeviceId: model.NewId(), Token: model.NewId()}},
+		{name: "SSO", session: &model.Session{UserId: model.NewId(), IsOAuth: true, Token: model.NewId()}},
+		{name: "web/LDAP", session: &model.Session{UserId: model.NewId(), Token: model.NewId()}},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%s session beyond threshold should update ExpiresAt", test.name), func(t *testing.T) {
+			session, err := th.App.CreateSession(test.session)
+			require.Nil(t, err)
+
+			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
+			session.ExpiresAt = expires
+
+			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+
+			require.True(t, ok)
+			require.Greater(t, session.ExpiresAt, expires)
+			require.False(t, session.IsExpired())
+
+			// check cache was updated
+			var cachedSession *model.Session
+			errGet := th.App.Srv().sessionCache.Get(session.Token, &cachedSession)
+			require.Nil(t, errGet)
+			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
+
+			// check database was updated.
+			storedSession, err := th.App.Srv().Store.Session().Get(session.Token)
+			require.Nil(t, err)
+			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
+		})
+	}
+
 }

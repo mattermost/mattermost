@@ -60,9 +60,9 @@ func RegisterJobsElasticsearchAggregatorInterface(f func(*Server) ejobs.Elastics
 	jobsElasticsearchAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*Server) ejobs.ElasticsearchIndexerInterface
+var jobsElasticsearchIndexerInterface func(*Server) tjobs.IndexerJobInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*Server) ejobs.ElasticsearchIndexerInterface) {
+func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
 	jobsElasticsearchIndexerInterface = f
 }
 
@@ -82,6 +82,12 @@ var jobsPluginsInterface func(*App) tjobs.PluginsJobInterface
 
 func RegisterJobsPluginsJobInterface(f func(*App) tjobs.PluginsJobInterface) {
 	jobsPluginsInterface = f
+}
+
+var jobsBleveIndexerInterface func(*Server) tjobs.IndexerJobInterface
+
+func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
+	jobsBleveIndexerInterface = f
 }
 
 var ldapInterface func(*App) einterfaces.LdapInterface

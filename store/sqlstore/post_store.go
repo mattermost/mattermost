@@ -204,13 +204,13 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
 	rootIds := []string{}
 	for _, post := range posts {
-		rootIds = append(rootIds, post.Id)
+		rootIds = append(rootIds, post.RootId)
 	}
 	countList := []struct {
 		RootId string
 		Count  int64
 	}{}
-	query := s.getQueryBuilder().Select("RootId, COUNT(Id)").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
+	query := s.getQueryBuilder().Select("RootId, COUNT(Id) AS Count").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -703,23 +703,23 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("p.RootId = '' AND RootId = p.Id AND DeleteAt = 0"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 	query := s.getQueryBuilder().Select("p.*")
-	if options.SkipFetchThreads {
-		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	query = query.From("Posts p").
 		Where(sq.And{
 			sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 			sq.Eq{"ChannelId": options.ChannelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt " + sort).
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-24170.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
 	}
@@ -740,9 +740,8 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		idQuery := sq.Or{
 			sq.Eq{"Id": rootIds},
 		}
-		if options.SkipFetchThreads {
-			rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-		} else {
+		rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
+		if !options.SkipFetchThreads {
 			idQuery = append(idQuery, sq.Eq{"RootId": rootIds}) // preserve original behaviour
 		}
 
@@ -874,7 +873,6 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	}
-	mlog.Debug(fetchQuery, mlog.Any("params", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}))
 	_, err := s.GetReplica().Select(&posts, fetchQuery, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)

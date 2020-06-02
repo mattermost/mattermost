@@ -67,14 +67,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), c.App.Session().Id)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	auditRec.Success()
-	auditRec.AddMeta("post", rp) // overwrite meta
-
 	setOnline := r.URL.Query().Get("set_online")
 	setOnlineBool := true // By default, always set online.
 	var err2 error
@@ -85,11 +77,21 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			setOnlineBool = true // Set online nevertheless.
 		}
 	}
+
+	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), c.App.Session().Id, setOnlineBool)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.Success()
+	auditRec.AddMeta("post", rp) // overwrite meta
+
 	if setOnlineBool {
 		c.App.SetStatusOnline(c.App.Session().UserId, false)
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
+	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	w.WriteHeader(http.StatusCreated)
 

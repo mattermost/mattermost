@@ -247,6 +247,18 @@ func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	return api.app.GetPreferencesForUser(userId)
+}
+
+func (api *PluginAPI) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.UpdatePreferences(userId, preferences)
+}
+
+func (api *PluginAPI) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.DeletePreferences(userId, preferences)
+}
+
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
 }
@@ -459,8 +471,8 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return api.app.GetGroup(groupId)
 }
 
-func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name)
+func (api *PluginAPI) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name, opts)
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
