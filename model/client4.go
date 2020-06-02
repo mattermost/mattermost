@@ -388,7 +388,7 @@ func (c *Client4) GetElasticsearchRoute() string {
 }
 
 func (c *Client4) GetBleveRoute() string {
-	return fmt.Sprintf("/bleve")
+	return "/bleve"
 }
 
 func (c *Client4) GetCommandsRoute() string {
@@ -3811,13 +3811,14 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(teamId string, opts GroupS
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v",
 		c.GetGroupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
 		opts.NotAssociatedToChannel,
 		opts.FilterAllowReference,
 		opts.Q,
+		opts.FilterParentTeamPermitted,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)

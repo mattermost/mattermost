@@ -1216,6 +1216,27 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		`, opts.NotAssociatedToChannel)
 	}
 
+	if opts.FilterParentTeamPermitted && len(opts.NotAssociatedToChannel) == 26 {
+		groupsQuery = groupsQuery.Where(`
+			g.Id IN (
+				SELECT
+					GroupId
+				FROM
+					GroupTeams
+				WHERE
+					GroupTeams.DeleteAt = 0
+					AND GroupTeams.TeamId = (
+						SELECT
+							TeamId
+						FROM
+							Channels
+						WHERE
+							Id = ?
+					)
+			)
+		`, opts.NotAssociatedToChannel)
+	}
+
 	queryString, args, err := groupsQuery.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
