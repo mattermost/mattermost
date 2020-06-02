@@ -27,7 +27,7 @@ type StoreService struct {
 	replicaDB *sql.DB
 }
 
-// Gets the master database handle.
+// GetMasterDB gets the master database handle.
 //
 // Minimum server version: 5.16
 func (s *StoreService) GetMasterDB() (*sql.DB, error) {
@@ -41,7 +41,7 @@ func (s *StoreService) GetMasterDB() (*sql.DB, error) {
 	return s.masterDB, nil
 }
 
-// Gets the replica database handle.
+// GetReplicaDB gets the replica database handle.
 // Returns masterDB if a replica is not configured.
 //
 // Minimum server version: 5.16
@@ -128,8 +128,7 @@ func setupConnection(dataSourceName string, settings model.SqlSettings) (*sql.DB
 		return nil, errors.Wrap(err, "failed to open SQL connection")
 	}
 
-	// Set at most 2 connections for plugins
-	db.SetMaxOpenConns(2)
+	db.SetMaxOpenConns(15)
 	db.SetMaxIdleConns(2)
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 
