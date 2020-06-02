@@ -192,7 +192,11 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 }
 
 func (s *Server) IsFirstUserAccount() bool {
-	if s.sessionCache.Len() == 0 {
+	cachedSessions, err := s.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
 		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			mlog.Error("There was a error fetching if first user account", mlog.Err(err))

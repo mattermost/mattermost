@@ -87,6 +87,9 @@ func (a *App) InitServer() {
 			}
 		}
 
+		// Scheduler must be started before cluster.
+		a.initJobs()
+
 		if a.srv.joinCluster && a.srv.Cluster != nil {
 			a.registerAllClusterMessageHandlers()
 			a.srv.Cluster.StartInterNodeCommunication()
@@ -114,7 +117,9 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		a.initJobs()
+		a.Srv().Go(func() {
+			runLicenseExpirationCheckJob(a)
+		})
 		a.srv.RunJobs()
 	})
 	a.accountMigration = a.srv.AccountMigration
@@ -201,8 +206,8 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 	return value, nil
 }
 
-func (a *App) getFirstServerRunTimestamp() (int64, *model.AppError) {
-	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
+	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
 	if appErr != nil {
 		return 0, appErr
 	}

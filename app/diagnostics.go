@@ -87,17 +87,17 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 		s.trackChannelModeration()
 	}
 
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		a.Srv().initRudder(RUDDER_DATAPLANE_URL)
-		a.trackActivity()
-		a.trackConfig()
-		a.trackLicense()
-		a.trackPlugins()
-		a.trackServer()
-		a.trackPermissions()
-		a.trackElasticsearch()
-		a.trackGroups()
-		a.trackChannelModeration()
+	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+		s.initRudder(RUDDER_DATAPLANE_URL)
+		s.trackActivity()
+		s.trackConfig()
+		s.trackLicense()
+		s.trackPlugins()
+		s.trackServer()
+		s.trackPermissions()
+		s.trackElasticsearch()
+		s.trackGroups()
+		s.trackChannelModeration()
 	}
 }
 

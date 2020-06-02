@@ -265,13 +265,13 @@ func (s *Server) ensureInstallationDate() error {
 	return nil
 }
 
-func (a *App) ensureFirstServerRunTimestamp() error {
-	_, err := a.getFirstServerRunTimestamp()
+func (s *Server) ensureFirstServerRunTimestamp() error {
+	_, err := s.getFirstServerRunTimestamp()
 	if err == nil {
 		return nil
 	}
 
-	err = a.Srv().Store.System().SaveOrUpdate(&model.System{
+	err = s.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
 		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
 	})
@@ -340,7 +340,7 @@ func (a *App) GetSiteURL() string {
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 func (s *Server) ClientConfigWithComputed() map[string]string {
 	respCfg := map[string]string{}
-	for k, v := range s.clientConfig {
+	for k, v := range s.clientConfig.Load().(map[string]string) {
 		respCfg[k] = v
 	}
 

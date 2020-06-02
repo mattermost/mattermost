@@ -346,14 +346,6 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	// Scheduler must be started before cluster.
-	s.initJobs()
-
-	if s.joinCluster && s.Cluster != nil {
-		s.FakeApp().registerAllClusterMessageHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()
 	}
@@ -382,9 +374,6 @@ func (s *Server) RunJobs() {
 		})
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
-		})
-		s.Go(func() {
-			runLicenseExpirationCheckJob(s)
 		})
 
 		if complianceI := s.Compliance; complianceI != nil {
@@ -830,10 +819,10 @@ func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
 func runDiagnosticsJob(s *Server) {
 	// Send on boot
 	doDiagnostics(s)
-	firstRun, err := s.FakeApp().getFirstServerRunTimestamp()
+	firstRun, err := s.getFirstServerRunTimestamp()
 	if err != nil {
 		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-		s.FakeApp().ensureFirstServerRunTimestamp()
+		s.ensureFirstServerRunTimestamp()
 		firstRun = utils.MillisFromTime(time.Now())
 	}
 	model.CreateRecurringTask("Diagnostics", func() {
@@ -862,10 +851,10 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-func runLicenseExpirationCheckJob(s *Server) {
-	doLicenseExpirationCheck(s)
+func runLicenseExpirationCheckJob(a *App) {
+	doLicenseExpirationCheck(a)
 	model.CreateRecurringTask("License Expiration Check", func() {
-		doLicenseExpirationCheck(s)
+		doLicenseExpirationCheck(a)
 	}, time.Hour*24)
 }
 
@@ -896,9 +885,9 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doLicenseExpirationCheck(s *Server) {
-	s.FakeApp().LoadLicense()
-	license := s.License()
+func doLicenseExpirationCheck(a *App) {
+	a.LoadLicense()
+	license := a.License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -910,7 +899,7 @@ func doLicenseExpirationCheck(s *Server) {
 		return
 	}
 
-	users, err := s.Store.User().GetSystemAdminProfiles()
+	users, err := a.Srv().Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -925,15 +914,15 @@ func doLicenseExpirationCheck(s *Server) {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		s.Go(func() {
-			if err := s.FakeApp().SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+		a.Srv().Go(func() {
+			if err := a.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	s.FakeApp().RemoveLicense()
+	a.RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -1153,5 +1142,5 @@ func (s *Server) configOrLicenseListener() {
 }
 
 func (s *Server) ClientConfigHash() string {
-	return s.clientConfigHash
+	return s.clientConfigHash.Load().(string)
 }
