@@ -53,7 +53,7 @@ func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*m
 	return newChannel, err
 }
 
-func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	updatedChannel, err := c.ChannelStore.Update(channel)
 	if err == nil {
 		c.indexChannel(updatedChannel)

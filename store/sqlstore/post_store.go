@@ -204,13 +204,13 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
 	rootIds := []string{}
 	for _, post := range posts {
-		rootIds = append(rootIds, post.Id)
+		rootIds = append(rootIds, post.RootId)
 	}
 	countList := []struct {
 		RootId string
 		Count  int64
 	}{}
-	query := s.getQueryBuilder().Select("RootId, COUNT(Id)").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
+	query := s.getQueryBuilder().Select("RootId, COUNT(Id) AS Count").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -703,11 +703,9 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("p.RootId = '' AND RootId = p.Id AND DeleteAt = 0"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 	query := s.getQueryBuilder().Select("p.*")
-	if options.SkipFetchThreads {
-		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	query = query.From("Posts p").
 		Where(sq.And{
 			sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
@@ -742,9 +740,8 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		idQuery := sq.Or{
 			sq.Eq{"Id": rootIds},
 		}
-		if options.SkipFetchThreads {
-			rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-		} else {
+		rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
+		if !options.SkipFetchThreads {
 			idQuery = append(idQuery, sq.Eq{"RootId": rootIds}) // preserve original behaviour
 		}
 

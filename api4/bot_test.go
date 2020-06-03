@@ -220,6 +220,22 @@ func TestPatchBot(t *testing.T) {
 		require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
 		require.Equal(t, *botPatch.Description, patchedBot.Description)
 		require.Equal(t, th.SystemAdminUser.Id, patchedBot.OwnerId)
+
+		// Continue through the bot update process (call UpdateUserRoles), then
+		// get the bot, to make sure the patched bot was correctly saved.
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_ROLES.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		success, resp := th.Client.UpdateUserRoles(createdBot.UserId, model.SYSTEM_USER_ROLE_ID)
+		CheckOKStatus(t, resp)
+		require.True(t, success)
+
+		bots, resp := th.Client.GetBots(0, 2, "")
+		CheckOKStatus(t, resp)
+		require.Len(t, bots, 1)
+		require.Equal(t, []*model.Bot{patchedBot}, bots)
 	})
 
 	t.Run("patch my bot without permission", func(t *testing.T) {
