@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	ten_minutes = 600000
+	TenMinutes = 600000
 )
 
 func TestSessionStore(t *testing.T, ss store.Store) {
@@ -331,36 +331,36 @@ func testGetSessionsExpired(t *testing.T, ss store.Store) {
 	s2 := &model.Session{}
 	s2.UserId = model.NewId()
 	s2.DeviceId = model.NewId()
-	s2.ExpiresAt = now - ten_minutes // expired within threshold
+	s2.ExpiresAt = now - TenMinutes // expired within threshold
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.DeviceId = model.NewId()
-	s3.ExpiresAt = now - (ten_minutes * 100) // expired outside threshold
+	s3.ExpiresAt = now - (TenMinutes * 100) // expired outside threshold
 	s3, err = ss.Session().Save(s3)
 	require.Nil(t, err)
 
 	s4 := &model.Session{}
 	s4.UserId = model.NewId()
-	s4.ExpiresAt = now - ten_minutes // expired within threshold, but not mobile
+	s4.ExpiresAt = now - TenMinutes // expired within threshold, but not mobile
 	s4, err = ss.Session().Save(s4)
 	require.Nil(t, err)
 
 	s5 := &model.Session{}
 	s5.UserId = model.NewId()
 	s5.DeviceId = model.NewId()
-	s5.ExpiresAt = now + (ten_minutes * 100000) // not expired
+	s5.ExpiresAt = now + (TenMinutes * 100000) // not expired
 	s5, err = ss.Session().Save(s5)
 	require.Nil(t, err)
 
-	sessions, err := ss.Session().GetSessionsExpired(ten_minutes*2, true, true) // mobile only
+	sessions, err := ss.Session().GetSessionsExpired(TenMinutes*2, true, true) // mobile only
 	require.Nil(t, err)
 	require.Len(t, sessions, 1)
 	require.Equal(t, s2.Id, sessions[0].Id)
 
-	sessions, err = ss.Session().GetSessionsExpired(ten_minutes*2, false, true) // all client types
+	sessions, err = ss.Session().GetSessionsExpired(TenMinutes*2, false, true) // all client types
 	require.Nil(t, err)
 	require.Len(t, sessions, 2)
 	expected := []string{s2.Id, s4.Id}
@@ -373,7 +373,7 @@ func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
 	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.DeviceId = model.NewId()
-	s1.ExpiresAt = model.GetMillis() + ten_minutes
+	s1.ExpiresAt = model.GetMillis() + TenMinutes
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 

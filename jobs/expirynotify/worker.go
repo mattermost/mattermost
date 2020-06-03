@@ -63,7 +63,7 @@ func (worker *Worker) JobChannel() chan<- model.Job {
 
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
-		mlog.Info("Worker experienced an error while trying to claim job",
+		mlog.Warn("Worker experienced an error while trying to claim job",
 			mlog.String("worker", worker.name),
 			mlog.String("job_id", job.Id),
 			mlog.String("error", err.Error()))

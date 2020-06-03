@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	SCHED_FREQ_MINUTES = 10
+	SchedFreqMinutes = 10
+	JobName          = "NotifyExpiryScheduler"
 )
 
 type Scheduler struct {
@@ -23,7 +24,7 @@ func (m *ExpiryNotifyJobInterfaceImpl) MakeScheduler() model.Scheduler {
 }
 
 func (scheduler *Scheduler) Name() string {
-	return "NotifyExpiryScheduler"
+	return JobName
 }
 
 func (scheduler *Scheduler) JobType() string {
@@ -31,12 +32,13 @@ func (scheduler *Scheduler) JobType() string {
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	return true
+	// Only enabled when ExtendSessionLengthWithActivity is enabled.
+	return *cfg.ServiceSettings.ExtendSessionLengthWithActivity
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 
-	nextTime := time.Now().Add(SCHED_FREQ_MINUTES * time.Minute)
+	nextTime := time.Now().Add(SchedFreqMinutes * time.Minute)
 	return &nextTime
 }
 

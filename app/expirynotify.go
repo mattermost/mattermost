@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	ONE_HOUR_MILLIS = 60 * 60 * 1000
+	OneHourMillis = 60 * 60 * 1000
 )
 
 // NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
@@ -24,7 +24,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 	}
 
 	// Get all mobile sessions that expired within the last hour.
-	sessions, err := a.srv.Store.Session().GetSessionsExpired(ONE_HOUR_MILLIS, true, true)
+	sessions, err := a.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
 		return err
 	}

@@ -490,7 +490,7 @@ CREATE TABLE public.sessions (
     roles character varying(64),
     isoauth boolean,
     expirednotify boolean,
-	props character varying(1000),
+    props character varying(1000),
 );
 
 
