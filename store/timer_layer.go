@@ -3550,7 +3550,7 @@ func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LinkMetadataStore.Get(url, timestamp)
@@ -3566,7 +3566,7 @@ func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LinkMetadataStore.Save(linkMetadata)
@@ -5527,6 +5527,22 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.GetByName", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.SystemStore.InsertIfExists(system)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.InsertIfExists", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

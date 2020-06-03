@@ -6583,14 +6583,6 @@
     "translation": "We encountered an error saving the license."
   },
   {
-    "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata."
-  },
-  {
-    "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata."
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
