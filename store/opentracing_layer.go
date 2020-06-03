@@ -6079,6 +6079,24 @@ func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, *mo
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.InsertIfExists")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.SystemStore.InsertIfExists(system)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.PermanentDeleteByName")
