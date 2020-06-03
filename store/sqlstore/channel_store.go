@@ -873,7 +873,7 @@ func (s SqlChannelStore) PermanentDelete(channelId string) error {
 	defer finalizeTransaction(transaction)
 
 	if err := s.permanentDeleteT(transaction, channelId); err != nil {
-		return err
+		return errors.Wrap(err, "permanentDeleteT")
 	}
 
 	// Additionally propagate the deletion to the PublicChannels table.
