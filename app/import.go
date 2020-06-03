@@ -40,7 +40,9 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
 			if len(posts) >= importMultiplePostsThreshold {
-				a.importMultiplePosts(posts, dryRun)
+				if err := a.importMultiplePosts(posts, dryRun); err != nil {
+					errors <- LineImportWorkerError{err, line.LineNumber}
+				}
 				posts = []*PostImportData{}
 			}
 		case line.LineImportData.Type == "direct_post":
@@ -49,7 +51,9 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
 			if len(directPosts) >= importMultiplePostsThreshold {
-				a.importMultipleDirectPosts(directPosts, dryRun)
+				if err := a.importMultipleDirectPosts(directPosts, dryRun); err != nil {
+					errors <- LineImportWorkerError{err, line.LineNumber}
+				}
 				directPosts = []*DirectPostImportData{}
 			}
 		default:
@@ -60,10 +64,14 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 	}
 
 	if len(posts) > 0 {
-		a.importMultiplePosts(posts, dryRun)
+		if err := a.importMultiplePosts(posts, dryRun); err != nil {
+			errors <- LineImportWorkerError{err, 0}
+		}
 	}
 	if len(directPosts) > 0 {
-		a.importMultipleDirectPosts(directPosts, dryRun)
+		if err := a.importMultipleDirectPosts(directPosts, dryRun); err != nil {
+			errors <- LineImportWorkerError{err, 0}
+		}
 	}
 	wg.Done()
 }
