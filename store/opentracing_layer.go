@@ -3900,7 +3900,7 @@ func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*mode
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (s *OpenTracingLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LinkMetadataStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -3918,7 +3918,7 @@ func (s *OpenTracingLayerLinkMetadataStore) Get(url string, timestamp int64) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LinkMetadataStore.Save")
 	s.Root.Store.SetContext(newCtx)
