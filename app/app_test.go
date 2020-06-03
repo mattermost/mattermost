@@ -40,9 +40,13 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(make(model.StringMap), nil)
+	mockLicenseStore := mocks.LicenseStore{}
+	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("License").Return(&mockLicenseStore)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
