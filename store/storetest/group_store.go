@@ -1672,8 +1672,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	_, err = ss.Channel().Update(channel)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().Update(channel)
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)

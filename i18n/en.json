@@ -1217,6 +1217,10 @@
     "translation": "Unable to create emoji. Another emoji with the same name already exists."
   },
   {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Encountered internal server error creating the emoji."
+  },
+  {
     "id": "api.emoji.create.other_user.app_error",
     "translation": "Invalid user id."
   },
@@ -1485,6 +1489,14 @@
     "translation": "Failed to send the disable license email successfully."
   },
   {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "The number of users requested is not correct."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -1691,6 +1703,10 @@
   {
     "id": "api.post.do_action.action_integration.app_error",
     "translation": "Action integration error."
+  },
+  {
+    "id": "api.post.error_get_post_id.pending",
+    "translation": "Unable to get the pending post."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2975,6 +2991,14 @@
     "translation": "Unable to delete the channel."
   },
   {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "We encountered an error finding the channel."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -3003,8 +3027,48 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.update.bad_id",
+    "translation": "Unable to update the channel."
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Unable to update channel."
+  },
+  {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "Unable to save emoji."
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Unable to delete the emoji."
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "We couldn’t find the emoji to delete."
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.emoji.get.no_result",
+    "translation": "We couldn’t find the emoji."
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "Unable to get the emoji."
+  },
+  {
+    "id": "app.emoji.get_by_name.no_result",
+    "translation": "We couldn’t find the emoji."
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Unable to get the emoji."
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
@@ -3833,6 +3897,22 @@
   {
     "id": "app.team.rename_team.name_occupied",
     "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "No terms of service found."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6255,38 +6335,6 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
-    "id": "store.sql_channel.update.app_error",
-    "translation": "Unable to update the channel."
-  },
-  {
-    "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "You can not modify an archived channel."
-  },
-  {
-    "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.update.exists.app_error",
-    "translation": "A channel with that handle already exists."
-  },
-  {
-    "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.update.previously.app_error",
-    "translation": "A channel with that handle was previously created."
-  },
-  {
-    "id": "store.sql_channel.update.updating.app_error",
-    "translation": "We encountered an error updating the channel."
-  },
-  {
-    "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel."
-  },
-  {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -6409,30 +6457,6 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report."
-  },
-  {
-    "id": "store.sql_emoji.delete.app_error",
-    "translation": "Unable to delete the emoji."
-  },
-  {
-    "id": "store.sql_emoji.delete.no_results",
-    "translation": "We couldn’t find the emoji to delete."
-  },
-  {
-    "id": "store.sql_emoji.get.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Unable to get the emoji."
-  },
-  {
-    "id": "store.sql_emoji.save.app_error",
-    "translation": "Unable to save the emoji."
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -7297,22 +7321,6 @@
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
     "translation": "Unable to determine if the user belongs to a list of teams."
-  },
-  {
-    "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
