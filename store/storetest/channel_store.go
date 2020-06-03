@@ -6511,16 +6511,16 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.False(t, channel2.IsGroupConstrained())
 	defer ss.Channel().PermanentDelete(channel2.Id)
 
-	count, err := ss.Channel().GroupSyncedChannelCount()
-	require.Nil(t, err)
+	count, appErr := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, appErr)
 	require.GreaterOrEqual(t, count, int64(1))
 
 	channel2.GroupConstrained = model.NewBool(true)
-	channel2, err = ss.Channel().Update(channel2)
+	channel2, err := ss.Channel().Update(channel2)
 	require.Nil(t, err)
 	require.True(t, channel2.IsGroupConstrained())
 
-	countAfter, err := ss.Channel().GroupSyncedChannelCount()
-	require.Nil(t, err)
+	countAfter, appErr := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, appErr)
 	require.GreaterOrEqual(t, countAfter, count+1)
 }
