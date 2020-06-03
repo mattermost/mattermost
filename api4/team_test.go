@@ -1233,6 +1233,24 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 			ExpectedTotalCount: 3,
 		},
 		{
+			Name:               "Get all teams on one page with partial word",
+			Search:             &model.TeamSearch{Term: commonRandom[11:18]},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with term upper cased",
+			Search:             &model.TeamSearch{Term: strings.ToUpper(commonRandom)},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with some of term upper and some lower",
+			Search:             &model.TeamSearch{Term: commonRandom[0:11] + strings.ToUpper(commonRandom[11:18] + commonRandom[18:])},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
 			Name:               "Get 2 teams on the first page",
 			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(2)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id},
