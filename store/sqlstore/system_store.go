@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -85,4 +87,38 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, *mode
 	}
 
 	return &system, nil
+}
+
+// InsertIfExists inserts a given system value if it does not already exist. If a value
+// already exists, it returns the old one, else returns the new one.
+func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	tx, err := s.GetMaster().BeginTx(context.Background(), &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(tx)
+
+	var origSystem model.System
+	if err := tx.SelectOne(&origSystem, `SELECT * FROM Systems
+		WHERE Name = :Name`,
+		map[string]interface{}{"Name": system.Name}); err != nil && err != sql.ErrNoRows {
+		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if origSystem.Value != "" {
+		// Already a value exists, return that.
+		return &origSystem, nil
+	}
+
+	// Key does not exist, need to insert.
+	if err := tx.Insert(system); err != nil {
+		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return system, nil
 }
