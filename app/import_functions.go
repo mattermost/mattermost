@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"crypto/sha1"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -1580,9 +1581,12 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, appError := a.Srv().Store.Emoji().GetByName(*data.Name, true)
-	if appError != nil && appError.StatusCode != http.StatusNotFound {
-		return appError
+	emoji, err := a.Srv().Store.Emoji().GetByName(*data.Name, true)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("importEmoji", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	alreadyExists := emoji != nil
@@ -1605,7 +1609,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	if !alreadyExists {
 		if _, err := a.Srv().Store.Emoji().Save(emoji); err != nil {
-			return err
+			return model.NewAppError("importEmoji", "api.emoji.create.internal_error", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 

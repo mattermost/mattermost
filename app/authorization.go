@@ -136,6 +136,11 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 		return false
 	}
 
+	// If the team member has been deleted, they don't have permission.
+	if teamMember.DeleteAt != 0 {
+		return false
+	}
+
 	roles := teamMember.GetRoles()
 
 	if a.RolesGrantPermission(roles, permission.Id) {
