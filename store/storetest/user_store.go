@@ -1056,8 +1056,10 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		var profiles map[string]*model.User
 		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
 		require.Nil(t, err)
+		expected := sanitized(u1)
+		expected.AuthData = nil
 		assert.Equal(t, map[string]*model.User{
-			u1.Id: sanitized(u1),
+			u1.Id: expected,
 		}, profiles)
 	})
 

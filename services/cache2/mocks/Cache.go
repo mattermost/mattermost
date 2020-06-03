@@ -82,6 +82,20 @@ func (_m *Cache) Len() (int, error) {
 	return r0, r1
 }
 
+// Name provides a mock function with given fields:
+func (_m *Cache) Name() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // Purge provides a mock function with given fields:
 func (_m *Cache) Purge() error {
 	ret := _m.Called()

@@ -23,8 +23,7 @@ func TestTeamStoreCache(t *testing.T) {
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		mockCacheProvider2 := getMockCacheProvider2()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, mockCacheProvider2)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
 		require.Nil(t, err)
@@ -40,8 +39,7 @@ func TestTeamStoreCache(t *testing.T) {
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		mockCacheProvider2 := getMockCacheProvider2()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, mockCacheProvider2)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
 		require.Nil(t, err)
@@ -57,8 +55,7 @@ func TestTeamStoreCache(t *testing.T) {
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		mockCacheProvider2 := getMockCacheProvider2()
-		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, mockCacheProvider2)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
 		require.Nil(t, err)

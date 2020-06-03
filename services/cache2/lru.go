@@ -13,6 +13,7 @@ import (
 
 // LRU is a thread-safe fixed size LRU cache.
 type LRU struct {
+	name                   string
 	size                   int
 	evictList              *list.List
 	items                  map[string]*list.Element
@@ -25,6 +26,7 @@ type LRU struct {
 
 // LRUOptions contains options for initializing LRU cache
 type LRUOptions struct {
+	Name                   string
 	Size                   int
 	DefaultExpiry          time.Duration
 	InvalidateClusterEvent string
@@ -41,6 +43,7 @@ type entry struct {
 // NewLRU creates an LRU of the given size.
 func NewLRU(opts *LRUOptions) Cache {
 	return &LRU{
+		name:                   opts.Name,
 		size:                   opts.Size,
 		evictList:              list.New(),
 		items:                  make(map[string]*list.Element, opts.Size),
@@ -125,6 +128,11 @@ func (l *LRU) Len() (int, error) {
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 func (l *LRU) GetInvalidateClusterEvent() string {
 	return l.invalidateClusterEvent
+}
+
+// Name returns the name of the cache
+func (l *LRU) Name() string {
+	return l.name
 }
 
 func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
