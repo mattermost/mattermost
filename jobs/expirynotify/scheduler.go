@@ -12,7 +12,6 @@ import (
 
 const (
 	SchedFreqMinutes = 10
-	JobName          = "NotifyExpiryScheduler"
 )
 
 type Scheduler struct {
@@ -24,7 +23,7 @@ func (m *ExpiryNotifyJobInterfaceImpl) MakeScheduler() model.Scheduler {
 }
 
 func (scheduler *Scheduler) Name() string {
-	return JobName
+	return JobName + "Scheduler"
 }
 
 func (scheduler *Scheduler) JobType() string {

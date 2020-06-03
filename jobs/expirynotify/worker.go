@@ -10,6 +10,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const (
+	JobName = "NotifyExpiry"
+)
+
 type Worker struct {
 	name      string
 	stop      chan bool
@@ -21,7 +25,7 @@ type Worker struct {
 
 func (m *ExpiryNotifyJobInterfaceImpl) MakeWorker() model.Worker {
 	worker := Worker{
-		name:      "ExpiryNotify",
+		name:      JobName,
 		stop:      make(chan bool, 1),
 		stopped:   make(chan bool, 1),
 		jobs:      make(chan model.Job),
