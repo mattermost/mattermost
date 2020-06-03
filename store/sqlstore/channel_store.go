@@ -791,7 +791,7 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 
 	err = s.setDeleteAtT(transaction, channelId, deleteAt, updateAt)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "setDeleteAtT")
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
