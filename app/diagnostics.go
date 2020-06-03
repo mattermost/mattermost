@@ -356,6 +356,7 @@ func (a *App) trackConfig() {
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
+		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{

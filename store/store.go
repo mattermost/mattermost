@@ -418,6 +418,7 @@ type SystemStore interface {
 	Get() (model.StringMap, *model.AppError)
 	GetByName(name string) (*model.System, *model.AppError)
 	PermanentDeleteByName(name string) (*model.System, *model.AppError)
+	InsertIfExists(system *model.System) (*model.System, *model.AppError)
 }
 
 type WebhookStore interface {

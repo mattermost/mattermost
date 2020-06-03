@@ -5499,6 +5499,22 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.SystemStore.InsertIfExists(system)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.InsertIfExists", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
 	start := timemodule.Now()
 
