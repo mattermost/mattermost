@@ -1489,6 +1489,14 @@
     "translation": "Failed to send the disable license email successfully."
   },
   {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "The number of users requested is not correct."
+  },
+  {
+    "id": "api.license.request_trial_license.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -4076,7 +4084,7 @@
   },
   {
     "id": "ent.cluster.json_encode.error",
-    "translation": ""
+    "translation": "Error occurred while marshalling JSON request"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -4084,7 +4092,7 @@
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": ""
+    "translation": "Timed out waiting for cluster response"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -4116,7 +4124,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": ""
+    "translation": "Unable to create the zip file"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -4124,7 +4132,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": ""
+    "translation": "Unable to create the warning file."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4252,7 +4260,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": ""
+    "translation": "Failed to refresh Elasticsearch indexes"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -7129,6 +7137,10 @@
   {
     "id": "store.sql_system.save.app_error",
     "translation": "We encountered an error saving the system property."
+  },
+  {
+    "id": "store.sql_system.save.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
   },
   {
     "id": "store.sql_system.update.app_error",
