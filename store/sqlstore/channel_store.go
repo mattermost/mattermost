@@ -785,7 +785,7 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return errors.Wrap(err, "SetDeleteAt: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -810,7 +810,7 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrapf(err, "commit_transaction")
+		return errors.Wrapf(err, "SetDeleteAt: commit_transaction")
 	}
 
 	return nil
