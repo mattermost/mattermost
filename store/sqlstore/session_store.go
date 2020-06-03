@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -136,30 +137,28 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 }
 
 func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
-	query :=
-		`SELECT *
-		FROM
-			Sessions
-		WHERE
-			ExpiresAt != 0 AND
-			:Now >= ExpiresAt AND
-			ExpiresAt > :Threshold`
-
+	now := model.GetMillis()
+	builder := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.NotEq{"ExpiresAt": 0}).
+		Where(sq.Lt{"ExpiresAt": now}).
+		Where(sq.Gt{"ExpiresAt": now - thresholdMillis})
 	if mobileOnly {
-		query += " AND DeviceId != ''"
+		builder = builder.Where(sq.NotEq{"DeviceId": ""})
+	}
+	if unnotifiedOnly {
+		builder = builder.Where(sq.NotEq{"ExpiredNotify": true})
 	}
 
-	if unnotifiedOnly {
-		query += " AND ExpiredNotify != true"
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var sessions []*model.Session
 
-	now := model.GetMillis()
-	_, err := me.GetReplica().Select(&sessions, query, map[string]interface{}{
-		"Now":       now,
-		"Threshold": now - thresholdMillis,
-	})
+	_, err = me.GetReplica().Select(&sessions, query, args...)
 	if err != nil {
 		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -167,7 +166,16 @@ func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly b
 }
 
 func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) *model.AppError {
-	_, err := me.GetMaster().Exec("UPDATE Sessions SET ExpiredNotify = :Notified WHERE Id = :Id", map[string]interface{}{"Notified": notified, "Id": sessionId})
+	query, args, err := me.getQueryBuilder().
+		Update("Sessions").
+		Set("ExpiredNotify", notified).
+		Where(sq.Eq{"Id": sessionId}).
+		ToSql()
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql_session.update_expired_notify.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+
+	_, err = me.GetMaster().Exec(query, args...)
 	if err != nil {
 		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql_session.update_expired_notify.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
 	}
