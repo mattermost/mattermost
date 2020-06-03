@@ -834,7 +834,7 @@ func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) error {
 	defer finalizeTransaction(transaction)
 
 	if err := s.permanentDeleteByTeamtT(transaction, teamId); err != nil {
-		return err
+		return errors.Wrap(err, "permanentDeleteByTeamtT")
 	}
 
 	// Additionally propagate the deletions to the PublicChannels table.
