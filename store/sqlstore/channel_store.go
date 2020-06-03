@@ -1805,11 +1805,11 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	if includeTimezones {
 		distinctTimezones := `
 			DISTINCT(
-				CASE WHEN Timezone->'$.useAutomaticTimezone' = 'true'
+				CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true'
 				THEN
-					Timezone->'$.automaticTimezone'
+					JSON_EXTRACT(Timezone, '$.automaticTimezone')
 				ELSE
-					Timezone->'$.manualTimezone'
+					JSON_EXTRACT(Timezone, '$.manualTimezone')
 				END
 			)
 		`
