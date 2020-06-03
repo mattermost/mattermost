@@ -5107,6 +5107,17 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
 }
 
+// RequestTrialLicense will request a trial license and install it in the server
+func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
+	b, _ := json.Marshal(map[string]int{"users": users})
+	r, err := c.DoApiPost("/trial-license", string(b))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 func (c *Client4) GetSidebarCategoriesForTeamForUser(userID, teamID, etag string) (*OrderedSidebarCategories, *Response) {
 	route := c.GetUserCategoryRoute(userID, teamID)
 	r, appErr := c.DoApiGet(route, etag)
