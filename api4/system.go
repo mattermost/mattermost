@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
@@ -26,7 +26,9 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: REDIRECT_LOCATION_CACHE_SIZE,
+})
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -405,8 +407,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if location, ok := redirectLocationDataCache.Get(url); ok {
-		m["location"] = location.(string)
+	var location string
+	if err := redirectLocationDataCache.Get(url, &location); err == nil {
+		m["location"] = location
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
@@ -419,7 +422,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.AddWithExpiresInSecs(url, "", 3600) // Expires after 1 hour
+		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJson(m)))
 		return
@@ -429,8 +432,8 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		res.Body.Close()
 	}()
 
-	location := res.Header.Get("Location")
-	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
+	location = res.Header.Get("Location")
+	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
