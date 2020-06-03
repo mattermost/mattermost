@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
+	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "app.terms_of_service.get.no_rows.app_error"
 )
 
 func (s *Server) Config() *model.Config {
@@ -72,15 +72,15 @@ func (a *App) ReloadConfig() error {
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.Srv().clientConfig
+	return a.Srv().clientConfig.Load().(map[string]string)
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.Srv().clientConfigHash
+	return a.Srv().clientConfigHash.Load().(string)
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.Srv().limitedClientConfig
+	return a.Srv().limitedClientConfig.Load().(map[string]string)
 }
 
 // Registers a function with a given listener to be called when the config is reloaded and may have changed. The function
@@ -319,9 +319,9 @@ func (a *App) regenerateClientConfig() {
 	}
 
 	clientConfigJSON, _ := json.Marshal(clientConfig)
-	a.Srv().clientConfig = clientConfig
-	a.Srv().limitedClientConfig = limitedClientConfig
-	a.Srv().clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	a.Srv().clientConfig.Store(clientConfig)
+	a.Srv().limitedClientConfig.Store(limitedClientConfig)
+	a.Srv().clientConfigHash.Store(fmt.Sprintf("%x", md5.Sum(clientConfigJSON)))
 }
 
 func (a *App) GetCookieDomain() string {

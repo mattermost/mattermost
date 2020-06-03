@@ -1198,7 +1198,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        "n_" + model.NewId(),
+		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
@@ -3165,7 +3165,7 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
-	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
+	countBefore, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
 
 	u1 := model.User{}
@@ -3195,9 +3195,9 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 
-	result, err := ss.User().AnalyticsGetSystemAdminCount()
+	result, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
-	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
+	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
@@ -3375,7 +3375,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// create a group
 	group, err := ss.Group().Create(&model.Group{
-		Name:        "n_" + model.NewId(),
+		Name:        model.NewString("n_" + model.NewId()),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
@@ -3691,7 +3691,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        "n_" + id,
+			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
@@ -3811,7 +3811,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 		id = model.NewId()
 		var group *model.Group
 		group, err = ss.Group().Create(&model.Group{
-			Name:        "n_" + id,
+			Name:        model.NewString("n_" + id),
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
@@ -3851,8 +3851,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	channel.GroupConstrained = model.NewBool(true)
-	_, err = ss.Channel().Update(channel)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().Update(channel)
+	require.Nil(t, nErr)
 
 	// still returns user (being group-constrained has no effect)
 	requireNUsers(1)

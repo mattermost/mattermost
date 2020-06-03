@@ -3203,7 +3203,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	require.Nil(t, nErr)
 
 	group := &model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -4276,7 +4276,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	var memberCounts []*model.ChannelMemberCountByGroup
 	teamId := model.NewId()
 	g1 := &model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -4348,7 +4348,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	})
 
 	g2 := &model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -4386,7 +4386,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	}
 
 	g3 := &model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -5168,7 +5168,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	group := &model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
@@ -6499,16 +6499,16 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.False(t, channel2.IsGroupConstrained())
 	defer ss.Channel().PermanentDelete(channel2.Id)
 
-	count, err := ss.Channel().GroupSyncedChannelCount()
-	require.Nil(t, err)
+	count, appErr := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, appErr)
 	require.GreaterOrEqual(t, count, int64(1))
 
 	channel2.GroupConstrained = model.NewBool(true)
-	channel2, err = ss.Channel().Update(channel2)
+	channel2, err := ss.Channel().Update(channel2)
 	require.Nil(t, err)
 	require.True(t, channel2.IsGroupConstrained())
 
-	countAfter, err := ss.Channel().GroupSyncedChannelCount()
-	require.Nil(t, err)
+	countAfter, appErr := ss.Channel().GroupSyncedChannelCount()
+	require.Nil(t, appErr)
 	require.GreaterOrEqual(t, countAfter, count+1)
 }
