@@ -84,7 +84,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	require.Nil(t, err2, "Should get new SMTP client")
 
-	l, err := net.Listen("tcp", "localhost:42356") // emulate nc -l 42356
+	l, err := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
 	require.Nil(t, err, "Should've open a network socket and listen")
 	defer l.Close()
 
@@ -114,8 +114,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		connInfo,
 	)
-
-	require.NotNil(t, err3, "Should get new SMTP client")
+	require.NotNil(t, err3, "Should get a timeout get while creating a new SMTP client")
+	assert.Equal(t, err3.Id, "utils.mail.connect_smtp.open_tls.app_error")
 
 	_, err4 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
