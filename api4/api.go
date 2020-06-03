@@ -289,6 +289,9 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
+	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
+	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitLicenseLocal()
@@ -296,6 +299,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitCommandLocal()
 	api.InitPluginLocal()
 	api.InitGroupLocal()
+	api.InitPostLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
