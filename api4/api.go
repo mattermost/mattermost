@@ -274,11 +274,15 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.BaseRoutes.Plugins = api.BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
 	api.BaseRoutes.Plugin = api.BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 
+	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
+	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitLicenseLocal()
 	api.InitConfigLocal()
 	api.InitPluginLocal()
+	api.InitPostLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
