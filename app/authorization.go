@@ -29,7 +29,6 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 	if session.IsUnrestricted() {
 		return true
 	}
-
 	teamMember := session.GetTeamByTeamId(teamId)
 	if teamMember != nil {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
@@ -134,6 +133,11 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 
 	teamMember, err := a.GetTeamMember(teamId, askingUserId)
 	if err != nil {
+		return false
+	}
+
+	// If the team member has been deleted, they don't have permission.
+	if teamMember.DeleteAt != 0 {
 		return false
 	}
 

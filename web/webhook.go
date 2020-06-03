@@ -28,11 +28,22 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	var err *model.AppError
+	var mediaType string
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	mediaType, _, mimeErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
-		c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, mimeErr.Error(), http.StatusBadRequest)
-		return
+	contentType := r.Header.Get("Content-Type")
+	// Content-Type header is optional so could be empty
+	if contentType != "" {
+		var mimeErr error
+		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
+		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+			c.Err = model.NewAppError("incomingWebhook",
+				"api.webhook.incoming.error",
+				nil,
+				"webhook_id="+id+", error: "+mimeErr.Error(),
+				http.StatusBadRequest,
+			)
+			return
+		}
 	}
 
 	defer func() {
@@ -58,7 +69,12 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 
 		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("incomingWebhook",
+				"api.webhook.incoming.error",
+				nil,
+				"webhook_id="+id+", error: "+err.Error(),
+				http.StatusBadRequest,
+			)
 			return
 		}
 	} else {

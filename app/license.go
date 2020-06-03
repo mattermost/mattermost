@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
 func (a *App) LoadLicense() {
 	licenseId := ""
@@ -213,4 +216,23 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
+}
+
+// RequestTrialLicense request a trial license from the mattermost offical license server
+func (a *App) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
+	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
+	if err != nil {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer resp.Body.Close()
+	licenseResponse := model.MapFromJson(resp.Body)
+
+	if _, err := a.SaveLicense([]byte(licenseResponse["license"])); err != nil {
+		return err
+	}
+
+	a.ReloadConfig()
+	a.InvalidateAllCaches()
+
+	return nil
 }
