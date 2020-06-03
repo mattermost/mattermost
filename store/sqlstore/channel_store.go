@@ -868,7 +868,7 @@ func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *gorp.Transaction, 
 func (s SqlChannelStore) PermanentDelete(channelId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
+		return errors.Wrap(err, "PermanentDelete: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -889,7 +889,7 @@ func (s SqlChannelStore) PermanentDelete(channelId string) error {
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+		return errors.Wrap(err, "PermanentDelete: commit_transaction")
 	}
 
 	return nil
