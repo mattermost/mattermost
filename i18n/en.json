@@ -7131,6 +7131,10 @@
     "translation": "We encountered an error saving the system property."
   },
   {
+    "id": "store.sql_system.save.commit_transaction.app_error",
+    "translation": "Failed to commit the database transaction."
+  },
+  {
     "id": "store.sql_system.update.app_error",
     "translation": "We encountered an error updating the system property."
   },
