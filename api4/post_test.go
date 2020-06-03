@@ -1860,7 +1860,7 @@ func TestGetPost(t *testing.T) {
 	Client := th.Client
 
 	var privatePost *model.Post
-	th.TestForClientAndLocal(t, func(t *testing.T, c *model.Client4) {
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
 		t.Helper()
 
 		post, resp := c.GetPost(th.BasicPost.Id, "")
@@ -1910,11 +1910,6 @@ func TestGetPost(t *testing.T) {
 
 	_, resp = th.LocalClient.GetPost(model.NewId(), "")
 	CheckNotFoundStatus(t, resp)
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		_, resp := c.GetPost(th.BasicPost.Id, "")
-		CheckNoError(t, resp)
-	})
 }
 
 func TestDeletePost(t *testing.T) {
