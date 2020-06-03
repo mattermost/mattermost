@@ -1246,7 +1246,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		},
 		{
 			Name:               "Get all teams on one page with some of term upper and some lower",
-			Search:             &model.TeamSearch{Term: commonRandom[0:11] + strings.ToUpper(commonRandom[11:18] + commonRandom[18:])},
+			Search:             &model.TeamSearch{Term: commonRandom[0:11] + strings.ToUpper(commonRandom[11:18]+commonRandom[18:])},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
