@@ -12,7 +12,14 @@ import (
 )
 
 func (api *API) InitTeamLocal() {
+	api.BaseRoutes.Teams.Handle("", api.ApiLocal(localCreateTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/search", api.ApiLocal(searchTeams)).Methods("POST")
+	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.ApiLocal(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
+	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
 	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
 
@@ -124,4 +131,30 @@ func normalizeDomains(domains string) []string {
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
 	return strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
+}
+
+func localCreateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	team := model.TeamFromJson(r.Body)
+	if team == nil {
+		c.SetInvalidParam("team")
+		return
+	}
+	team.Email = strings.ToLower(team.Email)
+
+	auditRec := c.MakeAuditRecord("localCreateTeam", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("team", team)
+
+	rteam, err := c.App.CreateTeam(team)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+
+	auditRec.Success()
+	auditRec.AddMeta("team", team) // overwrite meta
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(rteam.ToJson()))
 }
