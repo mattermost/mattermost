@@ -1935,6 +1935,7 @@ func validateUserChannels(operationName string, c *Context, teamId, userId strin
 	if err != nil {
 		return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
+
 	for _, channelId := range channelIDs {
 		found := false
 		for _, channel := range *channels {
@@ -1942,11 +1943,13 @@ func validateUserChannels(operationName string, c *Context, teamId, userId strin
 				found = true
 				break
 			}
-			if !found {
-				return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
-			}
+		}
+
+		if !found {
+			return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, "", http.StatusBadRequest)
 		}
 	}
+
 	return nil
 }
 
