@@ -19,6 +19,7 @@ const (
 	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
 	SYSTEM_INSTALLATION_DATE_KEY                  = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
+	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 )
 

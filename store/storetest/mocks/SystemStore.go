@@ -64,6 +64,31 @@ func (_m *SystemStore) GetByName(name string) (*model.System, *model.AppError) {
 	return r0, r1
 }
 
+// InsertIfExists provides a mock function with given fields: system
+func (_m *SystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	ret := _m.Called(system)
+
+	var r0 *model.System
+	if rf, ok := ret.Get(0).(func(*model.System) *model.System); ok {
+		r0 = rf(system)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.System)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.System) *model.AppError); ok {
+		r1 = rf(system)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteByName provides a mock function with given fields: name
 func (_m *SystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
 	ret := _m.Called(name)
