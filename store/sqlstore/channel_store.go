@@ -3659,13 +3659,6 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 			category.DisplayName = categoryToUpdate.DisplayName
 		}
-		// we can update sort method only on DM category
-		if category.Sorting != categoryToUpdate.Sorting {
-			if category.Type != model.SidebarCategoryDirectMessages {
-				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.invalid_update_fields", map[string]interface{}{"field": "Sorting"}, err.Error(), http.StatusBadRequest)
-			}
-			category.Sorting = categoryToUpdate.Sorting
-		}
 
 		if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
 			return col.ColumnName == "DisplayName" || col.ColumnName == "Sorting"
