@@ -1395,8 +1395,8 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 	schan := make(chan store.StoreResult, 1)
 	go func() {
-		userId, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: userId, Err: err}
+		id, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
+		schan <- store.StoreResult{Data: id, Err: err}
 		close(schan)
 	}()
 
@@ -1411,7 +1411,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(userId)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {

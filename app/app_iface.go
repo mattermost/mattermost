@@ -253,6 +253,8 @@ type AppIface interface {
 	RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
 	RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError)
+	// RequestTrialLicense request a trial license from the mattermost offical license server
+	RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
