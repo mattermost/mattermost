@@ -401,7 +401,6 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableSidebarCategories.ColMap("DisplayName").SetMaxSize(64)
 
 		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
-		tableSidebarChannels.SetUniqueTogether("CategoryId", "SortOrder")
 		tableSidebarChannels.ColMap("ChannelId").SetMaxSize(26)
 		tableSidebarChannels.ColMap("UserId").SetMaxSize(26)
 		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(26)
