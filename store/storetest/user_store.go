@@ -1056,11 +1056,12 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 		var profiles map[string]*model.User
 		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
 		require.Nil(t, err)
-		expected := sanitized(u1)
-		expected.AuthData = nil
-		assert.Equal(t, map[string]*model.User{
-			u1.Id: expected,
-		}, profiles)
+		require.Equal(t, 1, len(profiles))
+		profile, ok := profiles[u1.Id]
+		require.True(t, ok)
+		require.True(t, profile.AuthData == nil || *profile.AuthData == "")
+		profile.AuthData = model.NewString("")
+		require.Equal(t, sanitized(u1), profile)
 	})
 
 	ss.User().InvalidateProfilesInChannelCacheByUser(u1.Id)
