@@ -284,6 +284,7 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
 						"bot_user_id": bot.UserId,
+						"force_ack":   false,
 					},
 					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
 				},

@@ -584,7 +584,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr = c.App.SendWarnMetricAckEmail(c.Params.WarnMetricId, user, ack.ForceAck)
+	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck)
 	if appErr != nil {
 		c.Err = appErr
 		return

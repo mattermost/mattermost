@@ -398,12 +398,12 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
-		return model.NewAppError("DoLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	warnMetricId := filepath.Base(rawURL)
 	if warnMetricId == "" {
-		return model.NewAppError("DoLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	user, appErr := a.GetUser(a.Session().UserId)
@@ -416,16 +416,43 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		ChannelId: upstreamRequest.ChannelId,
 	}
 
-	appErr = a.SendWarnMetricAckEmail(warnMetricId, user, false)
-
-	if appErr != nil {
+	forceAck := upstreamRequest.Context["force_ack"].(bool)
+	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck); appErr != nil {
+		if forceAck {
+			return appErr
+		}
 		mailtoLink := a.buildWarnMetricMailtoLink(warnMetricId, user)
-		botPost.Message = fmt.Sprintf(utils.T("api.server.warn_metric.bot_response.notification_failure"), mailtoLink)
-	} else {
-		botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success")
-	}
+		actions := []*model.PostAction{}
+		actions = append(actions,
+			&model.PostAction{
+				Id:   "emailUs",
+				Name: utils.T("api.server.warn_metric.email_us"),
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Options: []*model.PostActionOptions{
+					{
+						Text:  "ExternalUrl",
+						Value: mailtoLink,
+					},
+				},
+				Integration: &model.PostActionIntegration{
+					Context: model.StringInterface{
+						"bot_user_id": botPost.UserId,
+						"force_ack":   true,
+					},
+					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+				},
+			},
+		)
 
-	mlog.Debug("doLocalWarnMetricsRequest", mlog.String("UserId", botPost.UserId), mlog.String("ChannelId", botPost.ChannelId), mlog.String("Message", botPost.Message))
+		attachments := []*model.SlackAttachment{{
+			AuthorName: utils.T("app.system.warn_metric.bot_displayname"),
+			Title:      "",
+			Text:       utils.T("api.server.warn_metric.bot_response.notification_failure"),
+			Actions:    actions,
+		}}
+		model.ParseSlackAttachment(botPost, attachments)
+	}
+	botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success")
 
 	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 		return err

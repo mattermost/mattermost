@@ -1932,15 +1932,23 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost support request: {{.AaeId}}"
+    "translation": "Mattermost support request: {{.AaeId}}."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure",
-    "translation": "We were unable to reach support. [Email us](%v) instead to contact support"
+    "translation": "We were unable to reach support. Email us instead to contact support."
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success",
     "translation": "Mattermost support contacted."
+  },
+  {
+    "id": "api.server.warn_metric.contact_support",
+    "translation": "Contact Support"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "Email us"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users.notification",
@@ -7901,10 +7909,6 @@
   {
     "id": "utils.mail.send_mail.to_address.app_error",
     "translation": "Error setting \"To Address\"."
-  },
-  {
-    "id": "api.server.warn_metric.contact_support",
-    "translation": "Contact Support"
   },
   {
     "id": "web.command_webhook.command.app_error",

@@ -10267,6 +10267,28 @@ func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAndSetWarnMetricAck")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, forceAck)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
@@ -12707,28 +12729,6 @@ func (a *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string,
 
 	defer span.Finish()
 	resultVar0 := a.app.SendSignInChangeEmail(email, method, locale, siteURL)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendWarnMetricAckEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendWarnMetricAckEmail(warnMetricId, sender, forceAck)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
