@@ -3469,6 +3469,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 			sq.Eq{"ChannelMembers.UserId": category.UserId},
 			channelTypeFilter,
 			sq.Eq{"Channels.DeleteAt": 0},
+			sq.Expr("NOT EXISTS(SELECT 1 FROM SidebarChannels WHERE SidebarChannels.ChannelId = ChannelMembers.ChannelId AND SidebarChannels.UserId = ChannelMembers.UserId)"),
 		}).
 		OrderBy("DisplayName ASC").ToSql()
 	if _, err := s.GetReplica().Select(&channels, sql, args...); err != nil {

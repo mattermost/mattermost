@@ -6750,6 +6750,71 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Len(t, res.Channels, 0)
 	})
 
+	t.Run("shouldn't return non-orphaned channels with the Channels category", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		// Create the initial categories and find the channels category
+		appErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, appErr)
+
+		categories, appErr := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, appErr)
+
+		favoritesCategory := categories.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		// Join some channels
+		channel1, err := ss.Channel().Save(&model.Channel{
+			Name:        "channel1",
+			DisplayName: "DEF",
+			TeamId:      teamId,
+			Type:        model.CHANNEL_PRIVATE,
+		}, 10)
+		require.Nil(t, err)
+		_, appErr = ss.Channel().SaveMember(&model.ChannelMember{
+			UserId:      user.Id,
+			ChannelId:   channel1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, appErr)
+
+		channel2, err := ss.Channel().Save(&model.Channel{
+			Name:        "channel2",
+			DisplayName: "ABC",
+			TeamId:      teamId,
+			Type:        model.CHANNEL_OPEN,
+		}, 10)
+		require.Nil(t, err)
+		_, appErr = ss.Channel().SaveMember(&model.ChannelMember{
+			UserId:      user.Id,
+			ChannelId:   channel2.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, appErr)
+
+		// And assign one to another category
+		_, appErr = ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          favoritesCategory.Id,
+					DisplayName: favoritesCategory.DisplayName,
+				},
+				Channels: []string{channel2.Id},
+			},
+		})
+		require.Nil(t, appErr)
+
+		// Ensure that the correct channel is returned in the Channels category
+		res, appErr := ss.Channel().GetSidebarCategory(channelsCategory.Id)
+		assert.Nil(t, appErr)
+		assert.Equal(t, channelsCategory.Id, res.Id)
+		assert.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+		assert.Equal(t, []string{channel1.Id}, res.Channels)
+	})
+
 	t.Run("should return any orphaned DM channels with the Direct Messages category", func(t *testing.T) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
