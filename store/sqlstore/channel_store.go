@@ -3447,12 +3447,18 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 		return category, nil
 	}
 
-	// any public/private channels that aren't in any category should be returned as part of the Channels category
-	channelTypeFilter := sq.Eq{"Channels.Type": []string{model.CHANNEL_OPEN, model.CHANNEL_PRIVATE}}
+	var channelTypeFilter sq.Sqlizer
 	if category.Type == model.SidebarCategoryDirectMessages {
 		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
 		channelTypeFilter = sq.Eq{"Channels.Type": []string{model.CHANNEL_DIRECT, model.CHANNEL_GROUP}}
+	} else if category.Type == model.SidebarCategoryChannels {
+		// any public/private channels that are on the current team and aren't in any category should be returned as part of the Channels category
+		channelTypeFilter = sq.And{
+			sq.Eq{"Channels.Type": []string{model.CHANNEL_OPEN, model.CHANNEL_PRIVATE}},
+			sq.Eq{"Channels.TeamId": category.TeamId},
+		}
 	}
+
 	var channels []string
 	sql, args, _ := s.getQueryBuilder().
 		Select("Id").
@@ -3464,9 +3470,9 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 			channelTypeFilter,
 			sq.Eq{"Channels.DeleteAt": 0},
 		}).
-		OrderBy("DisplayName DESC").ToSql()
+		OrderBy("DisplayName ASC").ToSql()
 	if _, err := s.GetReplica().Select(&channels, sql, args...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("SqlPostStore.completePopulatingCategoryChannels", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
 	}
 	category.Channels = append(channels, category.Channels...)
 	return category, nil
