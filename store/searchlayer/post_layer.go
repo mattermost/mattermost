@@ -88,6 +88,7 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 		mlog.Error("error getting channel for user", mlog.Err(nErr))
 		var nfErr *store.ErrNotFound
 		switch {
+		// TODO: This error key would go away once this store method is migrated to return plain errors
 		case errors.As(nErr, &nfErr):
 			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:

@@ -1139,10 +1139,12 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mo
 	_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
 
 	if err != nil {
+		// TODO: This error key would go away once this store method is migrated to return plain errors
 		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "app.channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(*data) == 0 {
+		// TODO: This error key would go away once this store method is migrated to return plain errors
 		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "app.channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
 	}
 
@@ -1335,6 +1337,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 		case errors.As(err, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
+			// TODO: This error key would go away once this store method is migrated to return plain errors
 			return nil, model.NewAppError("CreateDirectChannel", "app.channel.create_direct_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -1713,6 +1716,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 	if err != nil {
+		// TODO: This error key would go away once this store method is migrated to return plain errors
 		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "app.channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
