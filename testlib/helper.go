@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
@@ -107,6 +108,10 @@ func (h *MainHelper) setupStore() {
 	config.SetDefaults()
 
 	h.SearchEngine = searchengine.NewBroker(config, nil)
+	bleveEngine := bleveengine.NewBleveEngine(config, nil)
+	_ = bleveEngine.Start()
+	h.SearchEngine.RegisterBleveEngine(bleveEngine)
+
 	h.ClusterInterface = &FakeClusterInterface{}
 	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
