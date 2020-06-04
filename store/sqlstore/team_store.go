@@ -378,7 +378,12 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	term = sanitizeSearchTerm(term, "\\")
 	term = wildcardSearchTerm(term)
 
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term}); err != nil {
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -393,11 +398,17 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 
 	term = sanitizeSearchTerm(term, "\\")
 	term = wildcardSearchTerm(term)
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term ORDER BY DisplayName, Name LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Term": term, "Limit": perPage, "Offset": offset}); err != nil {
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term ORDER BY DisplayName, Name LIMIT :Limit  OFFSET :Offset", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term, "Limit": perPage, "Offset": offset}); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	totalCount, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term})
+	queryString = fmt.Sprintf("SELECT COUNT(*) FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
+	totalCount, err := s.GetReplica().SelectInt(queryString, map[string]interface{}{"Term": term})
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
@@ -410,8 +421,12 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 
 	term = sanitizeSearchTerm(term, "\\")
 	term = wildcardSearchTerm(term)
-
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term}); err != nil {
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name %[1]s :Term OR DisplayName %[1]s :Term)", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -423,14 +438,17 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 
 	term = sanitizeSearchTerm(term, "\\")
 	term = wildcardSearchTerm(term)
-
-	query :=
-		`SELECT *
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	query := fmt.Sprintf(`
+	SELECT *
 		FROM
 			Teams
 		WHERE
 			(Type != 'O' OR AllowOpenInvite = false) AND
-			(Name LIKE :Term OR DisplayName LIKE :Term)`
+			(Name %[1]s :Term OR DisplayName %[1]s :Term)`, operatorKeyword)
 	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
