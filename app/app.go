@@ -117,9 +117,11 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		a.Srv().Go(func() {
-			runLicenseExpirationCheckJob(a)
-		})
+		if a.Srv().runjobs {
+			a.Srv().Go(func() {
+				runLicenseExpirationCheckJob(a)
+			})
+		}
 		a.srv.RunJobs()
 	})
 	a.accountMigration = a.srv.AccountMigration
