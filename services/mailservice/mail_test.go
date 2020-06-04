@@ -61,9 +61,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
 	)
-	defer conn.Close()
-
 	require.Nil(t, err, "Should connect to the SMTP Server")
+	defer conn.Close()
 
 	_, err2 := NewSMTPClientAdvanced(
 		context.Background(),
@@ -81,7 +80,6 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpServerTimeout:    1,
 		},
 	)
-
 	require.Nil(t, err2, "Should get new SMTP client")
 
 	l, err := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
@@ -100,9 +98,9 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		SmtpServerTimeout:    1,
 	}
 
-	conn, err = ConnectToSMTPServerAdvanced(connInfo)
-	defer conn.Close()
+	conn2, err := ConnectToSMTPServerAdvanced(connInfo)
 	require.Nil(t, err, "Should connect to the SMTP Server")
+	defer conn2.Close()
 
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
@@ -110,7 +108,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 
 	_, err3 := NewSMTPClientAdvanced(
 		ctx,
-		conn,
+		conn2,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		connInfo,
 	)
@@ -126,7 +124,6 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             "553",
 		},
 	)
-
 	require.NotNil(t, err4, "Should not connect to the SMTP Server")
 }
 
