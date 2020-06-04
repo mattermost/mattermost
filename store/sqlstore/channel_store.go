@@ -394,7 +394,6 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
 		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
-		tableSidebarCategories.SetUniqueTogether("UserId", "TeamId", "SortOrder", "Type")
 		tableSidebarChannels.SetUniqueTogether("CategoryId", "SortOrder")
 	}
 
