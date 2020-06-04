@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -270,12 +271,32 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		botPost := &model.Post{
 			UserId:    bot.UserId,
 			ChannelId: channel.Id,
-			Message:   warnMetricMessage,
+			Message:   "",
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
-			Props: model.StringInterface{
-				"warnMetricStatus": warnMetricStatus,
-			},
 		}
+
+		actions := []*model.PostAction{}
+		actions = append(actions,
+			&model.PostAction{
+				Id:   "contactSupport",
+				Name: T("api.server.warn_metric.contact_support"),
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Integration: &model.PostActionIntegration{
+					Context: model.StringInterface{
+						"bot_user_id": bot.UserId,
+					},
+					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+				},
+			},
+		)
+
+		attachments := []*model.SlackAttachment{{
+			AuthorName: bot.DisplayName,
+			Title:      "",
+			Text:       warnMetricMessage,
+			Actions:    actions,
+		}}
+		model.ParseSlackAttachment(botPost, attachments)
 
 		mlog.Debug("Send post warning for metric", mlog.String("user id", botPost.UserId))
 		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {

@@ -573,6 +573,10 @@ func (a *App) SendWarnMetricAckEmail(warnMetricId string, sender *model.User, fo
 		return err
 	}
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
+	message.Add("warnMetricId", warnMetricId)
+	a.Publish(message)
+
 	return nil
 }
 

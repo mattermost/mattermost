@@ -26,10 +26,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -211,11 +213,20 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		return "", appErr
 	}
 
-	resp, appErr := a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-	if appErr != nil {
-		return "", appErr
+	var resp *http.Response
+	if strings.HasPrefix(upstreamURL, "/warn_metrics/") {
+		appErr = a.doLocalWarnMetricsRequest(upstreamURL, upstreamRequest)
+		if appErr != nil {
+			return "", appErr
+		}
+		return "", nil
+	} else {
+		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+		if appErr != nil {
+			return "", appErr
+		}
+		defer resp.Body.Close()
 	}
-	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -382,6 +393,78 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	}
 
 	return resp, nil
+}
+
+func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
+	_, err := url.Parse(rawURL)
+	if err != nil {
+		return model.NewAppError("DoLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	warnMetricId := filepath.Base(rawURL)
+	if warnMetricId == "" {
+		return model.NewAppError("DoLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	user, appErr := a.GetUser(a.Session().UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	botPost := &model.Post{
+		UserId:    upstreamRequest.Context["bot_user_id"].(string),
+		ChannelId: upstreamRequest.ChannelId,
+	}
+
+	appErr = a.SendWarnMetricAckEmail(warnMetricId, user, false)
+
+	if appErr != nil {
+		mailtoLink := a.buildWarnMetricMailtoLink(warnMetricId, user)
+		botPost.Message = fmt.Sprintf(utils.T("api.server.warn_metric.bot_response.notification_failure"), mailtoLink)
+	} else {
+		botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success")
+	}
+
+	mlog.Debug("doLocalWarnMetricsRequest", mlog.String("UserId", botPost.UserId), mlog.String("ChannelId", botPost.ChannelId), mlog.String("Message", botPost.Message))
+
+	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+	warnMetricStatus := a.getWarnMetricStatusForId(warnMetricId)
+
+	const mailRecipient = "support@mattermost.com"
+	mailSubject := utils.T("api.server.warn_metric.bot_response.mailto_subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId})
+	mailBody := utils.T("api.server.warn_metric.bot_response.mailto_body", map[string]interface{}{"AaeId": warnMetricStatus.AaeId, "Limit": warnMetricStatus.Limit})
+	mailBody += "\r\n"
+	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
+	mailBody += "\r\n"
+	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
+	mailBody += "\r\n"
+
+	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+	} else {
+		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
+		mailBody += "\r\n"
+	}
+
+	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
+	mailBody += "\r\n"
+
+	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.DiagnosticId()})
+	mailBody += "\r\n"
+
+	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_footer")
+
+	mailToLinkText := "mailto:" + mailRecipient + "?cc=" + user.Email + "&subject=" + url.QueryEscape(mailSubject) + "&body=" + url.QueryEscape(mailBody)
+
+	return mailToLinkText
 }
 
 func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {

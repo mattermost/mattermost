@@ -942,9 +942,11 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(s *Server) {
 			mlog.Error("Unable to write to database.", mlog.Err(err))
 			return
 		}
+		warnMetricStatus := s.FakeApp().getWarnMetricStatusForId(warnMetricId)
+
 		mlog.Info("Number of active users is greater than limit")
-		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRICS_STATUS, "", "", "", nil)
-		message.Add("warnMetricStatus", s.FakeApp().getWarnMetricStatusForId(warnMetricId).ToJson())
+		message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
+		message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 		s.FakeApp().Publish(message)
 	}
 
