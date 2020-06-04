@@ -1150,9 +1150,27 @@ func TestSearchAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	search := &model.ChannelSearch{Term: th.BasicChannel.Name[2:14]}
+	channel := &model.Channel{
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	}
+
+	foobarchannel, err := th.SystemAdminClient.CreateChannel(channel)
+	CheckNoError(t, err)
+
+	search := &model.ChannelSearch{Term: "oob"}
 
 	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
+
+	search = &model.ChannelSearch{Term: th.BasicChannel.Name[2:14]}
+
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
 	assert.Len(t, *channels, 1)

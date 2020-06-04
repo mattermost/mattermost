@@ -1220,12 +1220,26 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		teams[i] = newTeam
 	}
 
+	foobarTeam, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.TEAM_OPEN,
+		Email:       th.GenerateTestEmail(),
+	})
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name               string
 		Search             *model.TeamSearch
 		ExpectedTeams      []string
 		ExpectedTotalCount int64
 	}{
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "oob", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
 		{
 			Name:               "Get all teams on one page",
 			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
