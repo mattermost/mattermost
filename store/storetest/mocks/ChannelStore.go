@@ -195,7 +195,7 @@ func (_m *ChannelStore) Delete(channelId string, time int64) *model.AppError {
 }
 
 // Get provides a mock function with given fields: id, allowFromCache
-func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(id, allowFromCache)
 
 	var r0 *model.Channel
@@ -207,13 +207,11 @@ func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(id, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -741,7 +739,7 @@ func (_m *ChannelStore) GetForPost(postId string) (*model.Channel, *model.AppErr
 }
 
 // GetFromMaster provides a mock function with given fields: id
-func (_m *ChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetFromMaster(id string) (*model.Channel, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Channel
@@ -753,13 +751,11 @@ func (_m *ChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppErro
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1689,7 +1685,7 @@ func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt i
 }
 
 // Update provides a mock function with given fields: channel
-func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	ret := _m.Called(channel)
 
 	var r0 *model.Channel
@@ -1701,13 +1697,11 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, *model.A
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Channel) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
 		r1 = rf(channel)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

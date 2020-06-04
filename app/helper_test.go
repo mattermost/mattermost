@@ -439,6 +439,20 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
+func (me *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
+	utils.DisableDebugLogForTest()
+
+	err := me.App.RemoveUserFromTeam(team.Id, user.Id, "")
+	if err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
 func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
