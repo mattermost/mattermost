@@ -86,10 +86,10 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels)
 	if nErr != nil {
 		mlog.Error("error getting channel for user", mlog.Err(nErr))
-		var iErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(nErr, &iErr):
-			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.not_found.app_error", nil, iErr.Error(), http.StatusBadRequest)
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

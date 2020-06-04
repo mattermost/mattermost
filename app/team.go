@@ -991,8 +991,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var nErr error
 	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
-		var iErr *store.ErrInvalidInput
-		if errors.As(nErr, &iErr) {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
 		} else {
 			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)

@@ -925,7 +925,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	}
 
 	if len(*channels) == 0 {
-		return nil, store.NewErrInvalidInput("Channel", "UserId", userId)
+		return nil, store.NewErrNotFound("Channel", "userId="+userId)
 	}
 
 	return channels, nil

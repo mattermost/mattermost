@@ -622,8 +622,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
 	if assert.NotNil(t, nErr) {
-		var iErr *store.ErrInvalidInput
-		require.True(t, errors.As(nErr, &iErr))
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(nErr, &nfErr))
 	} else {
 		require.Equal(t, &model.ChannelList{}, list)
 	}

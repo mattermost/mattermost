@@ -1553,10 +1553,10 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
 	if err != nil {
-		var iErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(err, &iErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, iErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
