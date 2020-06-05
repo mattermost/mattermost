@@ -17,7 +17,7 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 
 ## Demo
 
-[![Runme](https://svc.runme.io/static/button.svg)](https://runme.io/run?app_id=1919b7b7-0ecc-4965-a6c3-a9c35ee7775a)
+[![Runme](https://runme.io/static/button.svg)](https://runme.io/run?app_id=a13ff44f-4f75-4372-95ae-a5aacaa305e9)
 
 ## Deploy on Heroku
 
