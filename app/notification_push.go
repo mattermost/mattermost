@@ -31,7 +31,7 @@ type PushNotificationsHub struct {
 	notificationsChan chan PushNotification
 	app               *App // XXX: This will go away once push notifications move to their own package.
 	sema              chan struct{}
-	wg                sync.WaitGroup
+	wg                *sync.WaitGroup
 }
 
 type PushNotification struct {
@@ -249,6 +249,7 @@ func (a *App) createPushNotificationsHub() {
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, pushNotificationHubBuffer),
 		app:               a,
+		wg:                new(sync.WaitGroup),
 	}
 	go hub.start()
 	a.Srv().PushNotificationsHub = hub
@@ -262,7 +263,7 @@ func (hub *PushNotificationsHub) start() {
 		hub.wg.Add(1)
 		// Get token.
 		hub.sema <- struct{}{}
-		go func() {
+		go func(notification PushNotification) {
 			defer func() {
 				// Release token.
 				<-hub.sema
@@ -294,7 +295,7 @@ func (hub *PushNotificationsHub) start() {
 			if err != nil {
 				mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
 			}
-		}()
+		}(notification)
 	}
 }
 

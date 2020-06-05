@@ -13574,21 +13574,6 @@ func (a *OpenTracingAppLayer) SoftDeleteTeam(teamId string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) StartPushNotificationsHubWorkers() {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartPushNotificationsHubWorkers")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.StartPushNotificationsHubWorkers()
-}
-
 func (a *OpenTracingAppLayer) StopPushNotificationsHubWorkers() {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StopPushNotificationsHubWorkers")
