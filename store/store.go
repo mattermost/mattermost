@@ -225,10 +225,10 @@ type ChannelStore interface {
 }
 
 type ChannelMemberHistoryStore interface {
-	LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError
-	LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError
-	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError)
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	LogJoinEvent(userId string, channelId string, joinTime int64) error
+	LogLeaveEvent(userId string, channelId string, leaveTime int64) error
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 
 type PostStore interface {
