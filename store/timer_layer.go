@@ -584,7 +584,7 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) Delete(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Delete(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Delete(channelId, time)
@@ -1537,7 +1537,7 @@ func (s *TimerLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Restore(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Restore(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Restore(channelId, time)
@@ -1713,7 +1713,7 @@ func (s *TimerLayerChannelStore) SearchMore(userId string, teamId string, term s
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
+func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)

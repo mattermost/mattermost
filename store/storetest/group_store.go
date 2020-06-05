@@ -1664,8 +1664,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// No result if Channel deleted
-	err = ss.Channel().Delete(channel.Id, model.GetMillis())
-	require.Nil(t, err)
+	nErr = ss.Channel().Delete(channel.Id, model.GetMillis())
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, channelMembers)
@@ -3163,6 +3163,29 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	endCreateTime := u2Update.New.UpdateAt + 1
 
+	// Create Team3
+	team3 := &model.Team{
+		DisplayName:     "Team3",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            "zz" + model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_INVITE,
+	}
+	team3, err = ss.Team().Save(team3)
+	require.Nil(t, err)
+
+	channel4 := &model.Channel{
+		TeamId:      team3.Id,
+		DisplayName: "Channel4",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	channel4, nErr = ss.Channel().Save(channel4, 9999)
+	require.Nil(t, nErr)
+
 	testCases := []struct {
 		Name    string
 		Page    int
@@ -3371,6 +3394,15 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
 				return groups[0].Id == group2.Id
+			},
+		},
+		{
+			Name:    "Non-group constrained team with no associated groups still returns groups for the child channel",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel4.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) > 0
 			},
 		},
 	}
