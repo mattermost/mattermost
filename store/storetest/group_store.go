@@ -1664,8 +1664,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// No result if Channel deleted
-	err = ss.Channel().Delete(channel.Id, model.GetMillis())
-	require.Nil(t, err)
+	nErr = ss.Channel().Delete(channel.Id, model.GetMillis())
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, channelMembers)

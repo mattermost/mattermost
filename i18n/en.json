@@ -2987,6 +2987,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.delete.app_error",
+    "translation": "Unable to delete the channel."
+  },
+  {
     "id": "app.channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -3017,6 +3021,10 @@
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
     "translation": "%s updated the channel purpose to: %s"
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Unable to restore the channel."
   },
   {
     "id": "app.channel.update.bad_id",
@@ -6099,10 +6107,6 @@
     "translation": "Unable to count messages since given date."
   },
   {
-    "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Unable to delete the channel."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -6345,18 +6349,6 @@
   {
     "id": "store.sql_channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel."
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",

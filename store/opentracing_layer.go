@@ -612,7 +612,7 @@ func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, o
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) Delete(channelId string, time int64) *model.AppError {
+func (s *OpenTracingLayerChannelStore) Delete(channelId string, time int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -1647,7 +1647,7 @@ func (s *OpenTracingLayerChannelStore) ResetAllChannelSchemes() *model.AppError 
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) Restore(channelId string, time int64) *model.AppError {
+func (s *OpenTracingLayerChannelStore) Restore(channelId string, time int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Restore")
 	s.Root.Store.SetContext(newCtx)
@@ -1845,7 +1845,7 @@ func (s *OpenTracingLayerChannelStore) SearchMore(userId string, teamId string, 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
+func (s *OpenTracingLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.SetDeleteAt")
 	s.Root.Store.SetContext(newCtx)
