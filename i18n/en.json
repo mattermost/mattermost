@@ -1116,7 +1116,7 @@
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
-    "translation": "Can't clear Site URL."
+    "translation": "Site URL cannot be cleared."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
