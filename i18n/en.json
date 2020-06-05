@@ -2491,6 +2491,10 @@
     "translation": "Unsupported OAuth service provider."
   },
   {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Team id parameter is required to autocomplete by channel."
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
