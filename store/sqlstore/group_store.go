@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -480,7 +481,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
 		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("CreateGroupSyncable", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateGroupSyncable", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
@@ -1218,7 +1225,16 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 
 	if opts.FilterParentTeamPermitted && len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
-			g.Id IN (
+			CASE
+			WHEN (
+				SELECT
+					Teams.GroupConstrained
+				FROM
+					Teams
+					JOIN Channels ON Channels.TeamId = Teams.Id
+				WHERE
+					Channels.Id = ?
+			) THEN g.Id IN (
 				SELECT
 					GroupId
 				FROM
@@ -1234,7 +1250,9 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 							Id = ?
 					)
 			)
-		`, opts.NotAssociatedToChannel)
+			ELSE TRUE
+		END
+		`, opts.NotAssociatedToChannel, opts.NotAssociatedToChannel)
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
