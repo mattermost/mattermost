@@ -309,6 +309,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitCommandLocal()
 	api.InitLicenseLocal()
 	api.InitGroupLocal()
+	api.InitSystemLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
