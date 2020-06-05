@@ -1011,7 +1011,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("LeaveTeam", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("LeaveTeam", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("LeaveTeam", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

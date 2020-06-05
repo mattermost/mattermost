@@ -80,7 +80,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(err, &nfErr):
-				err = model.NewAppError("JoinDefaultChannels", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
 				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1506,7 +1506,7 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelByName", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -1545,7 +1545,7 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("GetChannelByNameForTeamName", store.MISSING_CHANNEL_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
