@@ -1193,10 +1193,11 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 
 		var dbChannels []*model.Channel
 		if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+			msg := fmt.Sprintf("failed to get channels with names=%v", names)
 			if teamId != "" {
-				return nil, errors.Wrapf(err, "failed to get channels with teamId=%s and names=%v", teamId, names)
+				msg += fmt.Sprintf("teamId=%s", teamId)
 			}
-			return nil, errors.Wrapf(err, "failed to get channels with names=%v", names)
+			return nil, errors.Wrap(err, msg)
 		}
 		for _, channel := range dbChannels {
 			channelByNameCache.SetWithExpiry(teamId+channel.Name, channel, CHANNEL_CACHE_DURATION)
