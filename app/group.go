@@ -4,7 +4,11 @@
 package app
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
@@ -86,6 +90,48 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		return nil, err
 	}
 
+	// reject the syncable creation if the group isn't already associated to the parent team
+	if groupSyncable.Type == model.GroupSyncableTypeChannel {
+		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+		}
+
+		var team *model.Team
+		team, err = a.Srv().Store.Team().Get(channel.TeamId)
+		if err != nil {
+			return nil, err
+		}
+		if team.IsGroupConstrained() {
+			var teamGroups []*model.GroupWithSchemeAdmin
+			teamGroups, err = a.Srv().Store.Group().GetGroupsByTeam(channel.TeamId, model.GroupSearchOpts{})
+			if err != nil {
+				return nil, err
+			}
+			var permittedGroup bool
+			for _, teamGroup := range teamGroups {
+				if teamGroup.Group.Id == groupSyncable.GroupId {
+					permittedGroup = true
+					break
+				}
+			}
+			if !permittedGroup {
+				return nil, model.NewAppError("App.UpsertGroupSyncable", "group_not_associated_to_synced_team", nil, "", http.StatusBadRequest)
+			}
+		} else {
+			_, err = a.UpsertGroupSyncable(model.NewGroupTeam(groupSyncable.GroupId, team.Id, groupSyncable.AutoAdd))
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	if gs == nil {
 		gs, err = a.Srv().Store.Group().CreateGroupSyncable(groupSyncable)
 		if err != nil {
@@ -93,23 +139,6 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		}
 	} else {
 		gs, err = a.Srv().Store.Group().UpdateGroupSyncable(groupSyncable)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// if the type is channel, then upsert the associated GroupTeam [MM-14675]
-	if gs.Type == model.GroupSyncableTypeChannel {
-		channel, err := a.Srv().Store.Channel().Get(gs.SyncableId, true)
-		if err != nil {
-			return nil, err
-		}
-		_, err = a.UpsertGroupSyncable(&model.GroupSyncable{
-			GroupId:    gs.GroupId,
-			SyncableId: channel.TeamId,
-			Type:       model.GroupSyncableTypeTeam,
-			AutoAdd:    gs.AutoAdd,
-		})
 		if err != nil {
 			return nil, err
 		}
@@ -217,6 +246,7 @@ func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) (
 	return groups, int(count), nil
 }
 
+// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
 	groups, err := a.Srv().Store.Group().GetGroupsByTeam(teamId, opts)
 	if err != nil {

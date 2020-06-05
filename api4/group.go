@@ -717,9 +717,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                    c.Params.Q,
-		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		Q:                         c.Params.Q,
+		IncludeMemberCount:        c.Params.IncludeMemberCount,
+		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 	}
 
 	if teamID != "" {
