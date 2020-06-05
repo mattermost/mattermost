@@ -1,0 +1,8 @@
+version: 1.0
+publish: app
+services:
+  app:
+    image: mattermost/mattermost-preview:latest
+    ports:
+    - container: 8065
+      public: 80

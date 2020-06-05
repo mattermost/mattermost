@@ -15,6 +15,10 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 - [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
 - [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) to try out Mattermost and explore sample use cases
 
+## Demo
+
+[![Runme](https://svc.runme.io/static/button.svg)](https://runme.io/run?app_id=1919b7b7-0ecc-4965-a6c3-a9c35ee7775a)
+
 ## Deploy on Heroku
 
 [![Deploy a Preview](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/mattermost/mattermost-heroku)
