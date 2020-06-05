@@ -5,6 +5,8 @@ package app
 
 import (
 	"hash/fnv"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -363,14 +365,18 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return err
 	}
 
-	resp, err := a.HTTPService().MakeClient(true).Do(request)
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	// Reading the body to completion.
+	_, err = io.Copy(ioutil.Discard, resp.Body)
 	if err != nil {
 		return err
 	}
 
-	resp.Body.Close()
 	return nil
-
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
