@@ -50,13 +50,13 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	cws.Cleanup()
 
 	_, nErr = cws.Get(h1.Id)
-	require.Nil(t, err, "Should have no error getting unexpired webhook")
+	require.Nil(t, nErr, "Should have no error getting unexpired webhook")
 
 	_, nErr = cws.Get(h2.Id)
 	assert.Equal(t, nErr, http.StatusNotFound, "Should have set the status as not found for expired webhook")
 
-	err = cws.TryUse(h1.Id, 1)
-	require.Nil(t, err, "Should be able to use webhook once")
+	nErr = cws.TryUse(h1.Id, 1)
+	require.Nil(t, nErr, "Should be able to use webhook once")
 
 	nErr = cws.TryUse(h1.Id, 1)
 	require.NotNil(t, nErr, "Should be able to use webhook once")
