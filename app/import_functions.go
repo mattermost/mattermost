@@ -1184,15 +1184,15 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 	}
 
 	usernames := []string{}
-	teamNames := []string{}
-	postsData := []*PostImportData{}
-	for _, line := range lines {
+	teamNames := make([]string, len(lines))
+	postsData := make([]*PostImportData, len(lines))
+	for i, line := range lines {
 		usernames = append(usernames, *line.Post.User)
 		if line.Post.FlaggedBy != nil {
 			usernames = append(usernames, *line.Post.FlaggedBy...)
 		}
-		teamNames = append(teamNames, *line.Post.Team)
-		postsData = append(postsData, line.Post)
+		teamNames[i] = *line.Post.Team
+		postsData[i] = line.Post
 	}
 
 	users, err := a.getUsersByUsernames(usernames)
