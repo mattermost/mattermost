@@ -141,7 +141,6 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) *model.AppError
 	Restore(channelId string, time int64) *model.AppError
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
-	PermanentDelete(channelId string) error
 	Delete(channelId string, time int64) error
 	Restore(channelId string, time int64) error
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error
