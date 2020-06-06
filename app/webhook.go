@@ -734,7 +734,7 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		case errors.As(nErr, &invErr):
 			return model.NewAppError("HandleCommandWebhook.TryUse", "app.command_webhook.try_use.invalid.internal_error", nil, "hook.Id="+hook.Id, http.StatusBadRequest)
 		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "err="+err.Message, err.StatusCode)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "err="+nErr.Error(), err.StatusCode)
 		}
 	}
 
