@@ -31,8 +31,8 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 	allChannels, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nilf(t, err, "error cleaning all test channels: %v", err)
 	for _, channel := range *allChannels {
-		err = ss.Channel().PermanentDelete(channel.Id)
-		require.Nil(t, err, "failed cleaning up test channel %s", channel.Id)
+		nErr := ss.Channel().PermanentDelete(channel.Id)
+		require.Nil(t, nErr, "failed cleaning up test channel %s", channel.Id)
 	}
 
 	//remove existing teams

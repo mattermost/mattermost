@@ -1503,7 +1503,7 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
