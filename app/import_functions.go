@@ -1167,20 +1167,22 @@ func getPostStrID(post *model.Post) string {
 	return fmt.Sprintf("%d%s%s", post.CreateAt, post.ChannelId, post.Message)
 }
 
-func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool) (*model.AppError, int) {
+// importMultiplePostLines will return an error and the line that
+// caused it whenever possible
+func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
-		return nil, 0
+		return 0, nil
 	}
 
 	for _, line := range lines {
 		if err := validatePostImportData(line.Post, a.MaxPostSize()); err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 	}
 
 	// If this is a Dry Run, do not continue any further.
 	if dryRun {
-		return nil, 0
+		return 0, nil
 	}
 
 	usernames := []string{}
@@ -1197,17 +1199,17 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 
 	users, err := a.getUsersByUsernames(usernames)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 
 	teams, err := a.getTeamsByNames(teamNames)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 
 	channels, err := a.getChannelsForPosts(teams, postsData)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 	postsWithData := []postAndData{}
 	postsForCreateList := []*model.Post{}
@@ -1223,7 +1225,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		// Check if this post already exists.
 		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
 		if err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 
 		var post *model.Post
@@ -1250,7 +1252,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 
 		fileIds, err := a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
 		if err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIds[fileID]; !ok {
@@ -1277,10 +1279,10 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			if idx != -1 && idx < len(postsForCreateList) {
 				post := postsForCreateList[idx]
 				if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
-					return err, lineNumber
+					return lineNumber, err
 				}
 			}
-			return err, 0
+			return 0, err
 		}
 	}
 
@@ -1288,10 +1290,10 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
-				return err, lineNumber
+				return lineNumber, err
 			}
 		}
-		return err, 0
+		return 0, err
 	}
 
 	for _, postWithData := range postsWithData {
@@ -1312,7 +1314,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 
 			if len(preferences) > 0 {
 				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
-					return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError), postWithData.lineNumber
+					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
 		}
@@ -1321,7 +1323,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			for _, reaction := range *postWithData.postData.Reactions {
 				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
-					return err, postWithData.lineNumber
+					return postWithData.lineNumber, err
 				}
 			}
 		}
@@ -1329,12 +1331,12 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
 			err := a.importReplies(*postWithData.postData.Replies, postWithData.post, postWithData.team.Id, dryRun)
 			if err != nil {
-				return err, postWithData.lineNumber
+				return postWithData.lineNumber, err
 			}
 		}
 		a.updateFileInfoWithPostId(postWithData.post)
 	}
-	return nil, 0
+	return 0, nil
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
@@ -1434,20 +1436,22 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	return nil
 }
 
-func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun bool) (*model.AppError, int) {
+// importMultipleDirectPostLines will return an error and the line
+// that caused it whenever possible
+func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun bool) (int, *model.AppError) {
 	if len(lines) == 0 {
-		return nil, 0
+		return 0, nil
 	}
 
 	for _, line := range lines {
 		if err := validateDirectPostImportData(line.DirectPost, a.MaxPostSize()); err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 	}
 
 	// If this is a Dry Run, do not continue any further.
 	if dryRun {
-		return nil, 0
+		return 0, nil
 	}
 
 	usernames := []string{}
@@ -1461,7 +1465,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 
 	users, err := a.getUsersByUsernames(usernames)
 	if err != nil {
-		return err, 0
+		return 0, err
 	}
 
 	postsWithData := []postAndData{}
@@ -1483,13 +1487,13 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		if len(userIds) == 2 {
 			ch, err = a.GetOrCreateDirectChannel(userIds[0], userIds[1])
 			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-				return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest), line.LineNumber
+				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch
 		} else {
 			ch, err = a.createGroupChannel(userIds, userIds[0])
 			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-				return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest), line.LineNumber
+				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch
 		}
@@ -1499,7 +1503,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		// Check if this post already exists.
 		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
 		if err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 
 		var post *model.Post
@@ -1526,7 +1530,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 
 		fileIds, err := a.uploadAttachments(line.DirectPost.Attachments, post, "noteam", dryRun)
 		if err != nil {
-			return err, line.LineNumber
+			return line.LineNumber, err
 		}
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIds[fileID]; !ok {
@@ -1553,20 +1557,20 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			if idx != -1 && idx < len(postsForCreateList) {
 				post := postsForCreateList[idx]
 				if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
-					return err, lineNumber
+					return lineNumber, err
 				}
 			}
-			return err, 0
+			return 0, err
 		}
 	}
 	if _, idx, err := a.Srv().Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
-				return err, lineNumber
+				return lineNumber, err
 			}
 		}
-		return err, 0
+		return 0, err
 	}
 
 	for _, postWithData := range postsWithData {
@@ -1586,7 +1590,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 
 			if len(preferences) > 0 {
 				if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
-					return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError), postWithData.lineNumber
+					return postWithData.lineNumber, model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
 		}
@@ -1595,20 +1599,20 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			for _, reaction := range *postWithData.directPostData.Reactions {
 				reaction := reaction
 				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
-					return err, postWithData.lineNumber
+					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.directPostData.Replies != nil {
 			if err := a.importReplies(*postWithData.directPostData.Replies, postWithData.post, "noteam", dryRun); err != nil {
-				return err, postWithData.lineNumber
+				return postWithData.lineNumber, err
 			}
 		}
 
 		a.updateFileInfoWithPostId(postWithData.post)
 	}
-	return nil, 0
+	return 0, nil
 }
 
 func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
