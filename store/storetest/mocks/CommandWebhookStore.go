@@ -20,7 +20,7 @@ func (_m *CommandWebhookStore) Cleanup() {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.CommandWebhook
@@ -32,12 +32,12 @@ func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.App
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+			r1 = ret.Get(1).(error)
 		}
 	}
 
@@ -45,7 +45,7 @@ func (_m *CommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.App
 }
 
 // Save provides a mock function with given fields: webhook
-func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	ret := _m.Called(webhook)
 
 	var r0 *model.CommandWebhook
@@ -57,12 +57,12 @@ func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comma
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.CommandWebhook) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.CommandWebhook) error); ok {
 		r1 = rf(webhook)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+			r1 = ret.Get(1).(error)
 		}
 	}
 
@@ -70,15 +70,15 @@ func (_m *CommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comma
 }
 
 // TryUse provides a mock function with given fields: id, limit
-func (_m *CommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (_m *CommandWebhookStore) TryUse(id string, limit int) error {
 	ret := _m.Called(id, limit)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(id, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
+			r0 = ret.Get(0).(error)
 		}
 	}
 

@@ -6387,7 +6387,7 @@
     "translation": "Unable to update the command."
   },
   {
-    "id": "store.sql_command_webhooks.get.app_error",
+    "id": "app.command_webhook.get.internal_error",
     "translation": "Unable to get the webhook."
   },
   {
@@ -6399,11 +6399,11 @@
     "translation": "You cannot update an existing CommandWebhook."
   },
   {
-    "id": "store.sql_command_webhooks.try_use.app_error",
+    "id": "app.command_webhook.try_use.internal_error",
     "translation": "Unable to use the webhook."
   },
   {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "id": "app.command_webhook.try_use.invalid.internal_error",
     "translation": "Invalid webhook."
   },
   {
