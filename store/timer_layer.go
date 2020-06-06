@@ -584,7 +584,7 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) Delete(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Delete(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Delete(channelId, time)
@@ -1409,7 +1409,7 @@ func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDelete(channelId)
@@ -1537,7 +1537,7 @@ func (s *TimerLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Restore(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Restore(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Restore(channelId, time)
@@ -1713,7 +1713,7 @@ func (s *TimerLayerChannelStore) SearchMore(userId string, teamId string, term s
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
+func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
@@ -1841,7 +1841,7 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError) {
+func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
@@ -1857,7 +1857,7 @@ func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError {
+func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
@@ -1873,7 +1873,7 @@ func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 	return resultVar0
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError {
+func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
@@ -1889,7 +1889,7 @@ func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 	return resultVar0
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
