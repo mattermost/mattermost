@@ -1409,7 +1409,7 @@ func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDelete(channelId)

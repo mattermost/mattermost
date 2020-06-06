@@ -865,15 +865,15 @@ func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *gorp.Transaction, 
 }
 
 // PermanentDelete removes the given channel from the database.
-func (s SqlChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s SqlChannelStore) PermanentDelete(channelId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "PermanentDelete: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	if err := s.permanentDeleteT(transaction, channelId); err != nil {
-		return err
+		return errors.Wrap(err, "permanentDeleteT")
 	}
 
 	// Additionally propagate the deletion to the PublicChannels table.
@@ -885,19 +885,19 @@ func (s SqlChannelStore) PermanentDelete(channelId string) *model.AppError {
 		`, map[string]interface{}{
 		"ChannelId": channelId,
 	}); err != nil {
-		return model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.delete_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete public channels with id=%s", channelId)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "PermanentDelete: commit_transaction")
 	}
 
 	return nil
 }
 
-func (s SqlChannelStore) permanentDeleteT(transaction *gorp.Transaction, channelId string) *model.AppError {
+func (s SqlChannelStore) permanentDeleteT(transaction *gorp.Transaction, channelId string) error {
 	if _, err := transaction.Exec("DELETE FROM Channels WHERE Id = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
-		return model.NewAppError("SqlChannelStore.PermanentDelete", "store.sql_channel.permanent_delete.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete channel with id=%s", channelId)
 	}
 
 	return nil
