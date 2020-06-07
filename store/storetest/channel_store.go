@@ -6519,6 +6519,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 
 func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
+
 	channel1, err := ss.Channel().Save(&model.Channel{
 		DisplayName:      model.NewId(),
 		Name:             model.NewId(),
@@ -6533,6 +6534,20 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 		ss.Channel().PermanentDelete(channel1.Id)
 	}()
 
+	channel2, err := ss.Channel().Save(&model.Channel{
+		DisplayName:      model.NewId(),
+		Name:             model.NewId(),
+		TeamId:           teamId,
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+	}, 10)
+	require.Nil(t, err)
+	defer func() {
+		ss.Channel().PermanentDeleteMembersByChannel(channel2.Id)
+		ss.Channel().PermanentDeleteByTeam(teamId)
+		ss.Channel().PermanentDelete(channel2.Id)
+	}()
+
 	var users []*model.User
 	for i := 0; i < 3; i++ {
 		u := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
@@ -6545,6 +6560,13 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel1.Id,
+		UserId:      users[0].Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel2.Id,
 		UserId:      users[0].Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
