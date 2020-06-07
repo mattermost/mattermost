@@ -62,7 +62,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
-		return nil, errors.Wrapf(err, "SelectOne %s", id)
+		return nil, errors.Wrapf(err, "SelectOne id=%s", id)
 	}
 
 	return &webhook, nil
