@@ -3686,8 +3686,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			// clean previous preference favorites (to support bi-directional sync)
 			sql, args, _ = s.getQueryBuilder().Delete("Preferences").Where(
 				sq.Eq{
-					"ChannelId":            categoryToUpdate.Channels,
-					"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					"Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					"Name":     categoryToUpdate.Channels,
 				},
 			).ToSql()
 
