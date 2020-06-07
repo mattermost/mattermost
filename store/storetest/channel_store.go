@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"database/sql"
 	"errors"
 	"sort"
 	"strconv"
@@ -101,6 +102,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
+	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 }
 
@@ -6945,6 +6947,68 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, newCategory.Channels, res.Categories[1].Channels)
 		assert.Equal(t, gotCategory.Channels, res.Categories[1].Channels)
 		assert.Equal(t, channelIds, res.Categories[1].Channels)
+	})
+}
+
+func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
+	t.Run("should add and remove favorites preferences based on the Favorites category", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		// Create the initial categories and find the favorites category
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory := categories.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
+
+		// Join a channel
+		channel, nErr := ss.Channel().Save(&model.Channel{
+			Name:   "channel",
+			Type:   model.CHANNEL_OPEN,
+			TeamId: teamId,
+		}, 10)
+		require.Nil(t, nErr)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			UserId:      user.Id,
+			ChannelId:   channel.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		// Assign it to favorites
+		_, err = ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
+		})
+		require.Nil(t, err)
+
+		res, err := ss.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		// And then remove it
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		_, err = ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: channelsCategory.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
+		})
+		require.Nil(t, err)
+
+		res, err = ss.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.NotNil(t, err)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
 	})
 }
 
