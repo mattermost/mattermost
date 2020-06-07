@@ -643,7 +643,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 
 	if err := a.Srv().Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
-		return nil, err
+		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	channel.DeleteAt = 0
 	a.invalidateCacheForChannel(channel)
@@ -1197,7 +1197,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	deleteAt := model.GetMillis()
 
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
-		return err
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	a.invalidateCacheForChannel(channel)
 
@@ -2296,8 +2296,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if err := a.Srv().Store.Channel().PermanentDelete(channel.Id); err != nil {
-		return err
+	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
