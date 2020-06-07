@@ -997,7 +997,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		Username        string
 		ExpectedResults int
 		MoreThan        bool
-		Exception bool
+		Exception       bool
 	}{
 		{
 			"Autocomplete in channel for specific username",
