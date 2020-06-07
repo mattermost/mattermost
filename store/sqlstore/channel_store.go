@@ -3516,7 +3516,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 			sq.Eq{"SidebarCategories.UserId": userId},
 			sq.Eq{"SidebarCategories.TeamId": teamId},
 		}).
-		OrderBy("SidebarCategories.SortOrder ASC").ToSql()
+		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC").ToSql()
 
 	if _, err := s.GetReplica().Select(&categories, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetSidebarCategories", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)

@@ -100,6 +100,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SidebarChannelsMigration", func(t *testing.T) { testSidebarChannelsMigration(t, ss) })
 	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
+	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 }
 
@@ -6820,11 +6821,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		// And assign one to another category
 		_, err = ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
 			{
-				SidebarCategory: model.SidebarCategory{
-					Id:          favoritesCategory.Id,
-					DisplayName: favoritesCategory.DisplayName,
-				},
-				Channels: []string{channel2.Id},
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{channel2.Id},
 			},
 		})
 		require.Nil(t, err)
@@ -6911,6 +6909,42 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Equal(t, dmsCategory.Id, res.Id)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Type)
 		assert.Equal(t, []string{gmChannel.Id}, res.Channels)
+	})
+}
+
+func testGetSidebarCategories(t *testing.T, ss store.Store) {
+	t.Run("should return channels in the same order between different ways of getting categories", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		channelIds := []string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		}
+
+		newCategory, err := ss.Channel().CreateSidebarCategory(user.Id, teamId, &model.SidebarCategoryWithChannels{
+			Channels: channelIds,
+		})
+		require.Nil(t, err)
+		require.NotNil(t, newCategory)
+
+		gotCategory, err := ss.Channel().GetSidebarCategory(newCategory.Id)
+		require.Nil(t, err)
+
+		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+		require.Len(t, res.Categories, 4)
+
+		require.Equal(t, model.SidebarCategoryCustom, res.Categories[1].Type)
+
+		// This looks unnecessary, but I was getting different results from some of these before
+		assert.Equal(t, newCategory.Channels, res.Categories[1].Channels)
+		assert.Equal(t, gotCategory.Channels, res.Categories[1].Channels)
+		assert.Equal(t, channelIds, res.Categories[1].Channels)
 	})
 }
 
@@ -7015,7 +7049,6 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		require.Nil(t, err)
 		require.Len(t, res.Categories, 4)
 
-		// This will have to change after category creation order is fixed
 		require.Equal(t, model.SidebarCategoryCustom, res.Categories[1].Type)
 		require.Equal(t, []string{channel1.Id, channel2.Id, dmChannel1.Id}, res.Categories[1].Channels)
 
