@@ -6123,8 +6123,12 @@
     "translation": "Unable to get all the channels."
   },
   {
-    "id": "store.sql_channel.get_all_channels.get.app_error",
+    "id": "app.channel.get_all_channels.app_error",
     "translation": "Unable to get all the channels."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Unable to count all the channels."
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
