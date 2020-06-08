@@ -6,6 +6,7 @@ package config
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -150,6 +151,11 @@ func parseDSN(dsn string) (string, string, error) {
 
 	case "postgres":
 		// No changes required
+
+	case "postgresql":
+		// This scheme is commonly used, but lib/pq registers itself as "postgres".
+		scheme = "postgres"
+		dsn = fmt.Sprintf("postgres://%s", s[1])
 
 	default:
 		return "", "", errors.Errorf("unsupported scheme %s", scheme)
