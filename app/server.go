@@ -1141,6 +1141,10 @@ func (s *Server) TotalWebsocketConnections() int {
 	return int(count)
 }
 
+func (s *Server) ClusterHealthScore() int {
+	return s.FakeApp().Cluster().HealthScore()
+}
+
 func (s *Server) ensureDiagnosticId() {
 	if s.diagnosticId != "" {
 		return
