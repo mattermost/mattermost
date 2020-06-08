@@ -372,6 +372,8 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+// SearchAll returns from the database a list of teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -416,6 +418,8 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	return teams, totalCount, nil
 }
 
+// SearchOpen returns from the database a list of public teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -433,6 +437,8 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
