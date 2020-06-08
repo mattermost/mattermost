@@ -141,7 +141,7 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	return strings.Join(result, ", ")
 }
 
-func FieldListDestructErrors(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+func FieldListToRecordError(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return ""
 	}
@@ -452,7 +452,7 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
 		"destructErrors": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListDestructErrors(structPrefix, fields, info.FileSet)
+			return FieldListToRecordError(structPrefix, fields, info.FileSet)
 		},
 		"obscure": func(name string) string {
 			return "Z_" + name
@@ -501,7 +501,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
 		"destructErrors": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListDestructErrors(structPrefix, fields, info.FileSet)
+			return FieldListToRecordError(structPrefix, fields, info.FileSet)
 		},
 	}
 
