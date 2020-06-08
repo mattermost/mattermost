@@ -523,6 +523,7 @@ func (a *App) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
 	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
+	bodyPage.Props["Message"] = T("api.templates.remove_expired_license.body.message")
 
 	if err := a.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)

@@ -878,7 +878,7 @@ func runLicenseExpirationCheckJob(s *Server) {
 	doLicenseExpirationCheck(s)
 	model.CreateRecurringTask("License Expiration Check", func() {
 		doLicenseExpirationCheck(s)
-	}, time.Hour*24)
+	}, time.Hour*24*7)
 }
 
 func doSecurity(s *Server) {
