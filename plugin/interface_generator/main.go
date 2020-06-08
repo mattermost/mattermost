@@ -141,7 +141,7 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	return strings.Join(result, ", ")
 }
 
-func FieldListToRecordError(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return ""
 	}
@@ -380,7 +380,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, succes
 func (api *apiTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} api.apiImpl.{{.Name}}({{valuesOnly .Params}})
-	api.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ destructErrors "_returns" .Return }} {{ else }} true {{ end }})
+	api.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ shouldRecordSuccess "_returns" .Return }} {{ else }} true {{ end }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{ end -}}
 }
 
@@ -422,7 +422,7 @@ func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, su
 func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} hooks.hooksImpl.{{.Name}}({{valuesOnly .Params}})
-	hooks.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ destructErrors "_returns" .Return }} {{ else }} true {{ end }})
+	hooks.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ shouldRecordSuccess "_returns" .Return }} {{ else }} true {{ end }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{end -}}
 }
 
@@ -451,8 +451,8 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
-		"destructErrors": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListToRecordError(structPrefix, fields, info.FileSet)
+		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
 		},
 		"obscure": func(name string) string {
 			return "Z_" + name
@@ -500,8 +500,8 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
 		},
-		"destructErrors": func(structPrefix string, fields *ast.FieldList) string {
-			return FieldListToRecordError(structPrefix, fields, info.FileSet)
+		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
 		},
 	}
 
