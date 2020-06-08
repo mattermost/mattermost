@@ -32,10 +32,6 @@ func (o *CommandWebhook) PreSave() {
 	}
 }
 
-func MakeCommandWebhookNotFoundError(hookId string) *AppError {
-	return NewAppError("HandleCommandWebhook.Get", "app.command_webhook.get.missing.app_error", map[string]interface{}{"hook_id": hookId}, "", http.StatusNotFound)
-}
-
 func (o *CommandWebhook) IsValid() *AppError {
 	if !IsValidId(o.Id) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.id.app_error", nil, "", http.StatusBadRequest)

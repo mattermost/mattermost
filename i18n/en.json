@@ -6391,11 +6391,15 @@
     "translation": "Unable to get the webhook."
   },
   {
-    "id": "store.sql_command_webhooks.save.app_error",
+    "id": "app.command_webhook.get.missing",
+    "translation": "Unable to find the webhook."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
     "translation": "Unable to save the CommandWebhook."
   },
   {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "id": "app.command_webhook.create_command_webhook.existing",
     "translation": "You cannot update an existing CommandWebhook."
   },
   {
@@ -6403,7 +6407,7 @@
     "translation": "Unable to use the webhook."
   },
   {
-    "id": "app.command_webhook.try_use.invalid.internal_error",
+    "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook."
   },
   {
@@ -7811,7 +7815,7 @@
     "translation": "Invalid webhook."
   },
   {
-    "id": "web.command_webhook.parse.app_error",
+    "id": "app.command_webhook.handle_command_webhook.parse",
     "translation": "Unable to parse incoming data."
   },
   {
