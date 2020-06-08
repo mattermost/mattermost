@@ -62,8 +62,41 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		o1.UserId = model.NewId()
 		o1.Message = "zz" + model.NewId() + "b"
 
-		_, err := ss.Post().Save(&o1)
+		p, err := ss.Post().Save(&o1)
 		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(0), p.ReplyCount)
+	})
+
+	t.Run("Save replies", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.RootId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = o1.RootId
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = model.NewId()
+		o3.Message = "zz" + model.NewId() + "b"
+
+		p1, err := ss.Post().Save(&o1)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(1), p1.ReplyCount)
+
+		p2, err := ss.Post().Save(&o2)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(2), p2.ReplyCount)
+
+		p3, err := ss.Post().Save(&o3)
+		require.Nil(t, err, "couldn't save item")
+		assert.Equal(t, int64(1), p3.ReplyCount)
 	})
 
 	t.Run("Try to save existing post", func(t *testing.T) {
@@ -185,8 +218,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	p4.Message = "zz" + model.NewId() + "b"
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
 			storedPost, err := ss.Post().GetSingle(post.Id)
 			assert.Nil(t, err)
@@ -196,9 +230,44 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		}
 	})
 
+	t.Run("Save replies", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.RootId = model.NewId()
+		o1.Message = "zz" + model.NewId() + "b"
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = o1.RootId
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = model.NewId()
+		o3.Message = "zz" + model.NewId() + "b"
+
+		o4 := model.Post{}
+		o4.ChannelId = model.NewId()
+		o4.UserId = model.NewId()
+		o4.Message = "zz" + model.NewId() + "b"
+
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		require.Nil(t, err, "couldn't save item")
+		require.Equal(t, -1, errIdx)
+		assert.Len(t, newPosts, 4)
+		assert.Equal(t, int64(2), newPosts[0].ReplyCount)
+		assert.Equal(t, int64(2), newPosts[1].ReplyCount)
+		assert.Equal(t, int64(1), newPosts[2].ReplyCount)
+		assert.Equal(t, int64(0), newPosts[3].ReplyCount)
+	})
+
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
 		require.NotNil(t, err)
+		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
 		storedPost, err := ss.Post().GetSingle(p3.Id)
 		assert.Nil(t, err)
@@ -223,7 +292,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost.Message = "zz" + model.NewId() + "b"
 		replyPost.RootId = rootPost.Id
 
-		_, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.Nil(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
@@ -242,7 +311,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost3.Message = "zz" + model.NewId() + "b"
 		replyPost3.RootId = rootPost.Id
 
-		_, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.Nil(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rootPost.Id)
@@ -275,7 +344,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = "zz" + model.NewId() + "b"
 
-		_, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
 		require.Nil(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -906,6 +975,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			UserId:    userId,
 			Message:   "message",
 		})
+		post1.ReplyCount = 1
 		require.Nil(t, err)
 		time.Sleep(time.Millisecond)
 
@@ -915,6 +985,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			Message:   "message",
 		})
 		require.Nil(t, err)
+		post2.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
 		post3, err := ss.Post().Save(&model.Post{
@@ -925,6 +996,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			Message:   "message",
 		})
 		require.Nil(t, err)
+		post3.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
 		post4, err := ss.Post().Save(&model.Post{
@@ -935,6 +1007,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			Message:   "message",
 		})
 		require.Nil(t, err)
+		post4.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
 		post5, err := ss.Post().Save(&model.Post{
@@ -952,6 +1025,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			RootId:    post2.Id,
 			Message:   "message",
 		})
+		post6.ReplyCount = 2
 		require.Nil(t, err)
 
 		// Adding a post to a thread changes the UpdateAt timestamp of the parent post
@@ -1023,6 +1097,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			Message:   "post3",
 		})
 		require.Nil(t, err)
+		post3.ReplyCount = 1
 		time.Sleep(time.Millisecond)
 
 		post4, err := ss.Post().Save(&model.Post{
@@ -1033,6 +1108,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			Message:   "post4",
 		})
 		require.Nil(t, err)
+		post4.ReplyCount = 2
 		time.Sleep(time.Millisecond)
 
 		post5, err := ss.Post().Save(&model.Post{
@@ -1050,6 +1126,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			RootId:    post2.Id,
 			Message:   "post6",
 		})
+		post6.ReplyCount = 2
 		require.Nil(t, err)
 
 		// Adding a post to a thread changes the UpdateAt timestamp of the parent post
@@ -1445,8 +1522,8 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1504,8 +1581,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	c1, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1545,8 +1622,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 		OwnerId:     model.NewId(),
 		UserId:      model.NewId(),
 	}
-	_, err = ss.Bot().Save(bot1)
-	require.Nil(t, err)
+	_, nErr = ss.Bot().Save(bot1)
+	require.Nil(t, nErr)
 
 	b1 := &model.Post{}
 	b1.Message = "bot message one"
@@ -2069,8 +2146,9 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, err = ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 
 		r1, err = ss.Post().Get(o1.Id, false)
 		require.Nil(t, err)
@@ -2098,8 +2176,9 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, err = ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 
 		r4, err = ss.Post().Get(o4.Id, false)
 		require.Nil(t, err)
@@ -2415,8 +2494,8 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.Nil(t, nErr)
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -2464,8 +2543,8 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	_, err = ss.Channel().Save(&c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(&c1, -1)
+	require.Nil(t, nErr)
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
@@ -2612,8 +2691,8 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	err = ss.Channel().SetDeleteAt(o1.Id, 1, 1)
-	assert.Nil(t, err)
+	nErr := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	assert.Nil(t, nErr)
 
 	p1 := &model.Post{}
 	p1.ChannelId = o1.Id

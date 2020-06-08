@@ -5,9 +5,11 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -130,15 +132,20 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
+
+			auditRec := a.MakeAuditRecord("scheduleExport", audit.Success)
+			auditRec.AddMeta("format", format)
+			auditRec.AddMeta("start", startTime)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
+		license := a.License()
 		if err != nil {
 			return err
 		}
@@ -152,15 +159,24 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
-		if a.MessageExport() == nil {
+		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
-		err2 := a.MessageExport().RunExport(format, startTime)
-		if err2 != nil {
-			return err2
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
+		if appErr != nil {
+			return appErr
 		}
-		CommandPrettyPrintln("SUCCESS: Your data was exported.")
+		if warningsCount == 0 {
+			CommandPrettyPrintln("SUCCESS: Your data was exported.")
+		} else {
+			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
+		}
+
+		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
+		auditRec.AddMeta("format", format)
+		auditRec.AddMeta("start", startTime)
+		a.LogAuditRec(auditRec, nil)
 
 		return nil
 	}
@@ -198,6 +214,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
+
+	auditRec := a.MakeAuditRecord("bulkExport", audit.Success)
+	auditRec.AddMeta("all_teams", allTeams)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

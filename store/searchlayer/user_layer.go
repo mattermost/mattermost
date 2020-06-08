@@ -45,7 +45,9 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 				return []*model.User{}, nil
 			}
 
-			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
+			sanitizedTerm := sanitizeSearchTerm(term)
+
+			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
 			if err != nil {
 				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
@@ -61,6 +63,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 			return users, nil
 		}
 	}
+
 	mlog.Debug("Using database search because no other search engine is available")
 
 	return s.UserStore.Search(teamId, term, options)
@@ -100,10 +103,11 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
+	sanitizedTerm := sanitizeSearchTerm(term)
 	if options.ListOfAllowedChannels != nil && !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
-		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, term, options)
+		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, sanitizedTerm, options)
 	} else {
-		uchanIds, nuchanIds, err = engine.SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, term, options)
+		uchanIds, nuchanIds, err = engine.SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, sanitizedTerm, options)
 	}
 	if err != nil {
 		return nil, err

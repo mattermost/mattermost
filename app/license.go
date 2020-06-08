@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
+
 func (a *App) LoadLicense() {
 	licenseId := ""
 	props, err := a.Srv().Store.System().Get()
@@ -19,7 +22,7 @@ func (a *App) LoadLicense() {
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
 
-	if len(licenseId) != 26 {
+	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*a.Config().ServiceSettings.LicenseFileLocation)
 
@@ -158,6 +161,8 @@ func (a *App) RemoveLicense() *model.AppError {
 		return nil
 	}
 
+	mlog.Info("Remove license.", mlog.String("id", model.SYSTEM_ACTIVE_LICENSE_ID))
+
 	sysVar := &model.System{}
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
@@ -204,7 +209,6 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "Id")
 	delete(sanitizedLicense, "Name")
 	delete(sanitizedLicense, "Email")
-	delete(sanitizedLicense, "PhoneNumber")
 	delete(sanitizedLicense, "IssuedAt")
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")
@@ -212,4 +216,23 @@ func (a *App) GetSanitizedClientLicense() map[string]string {
 	delete(sanitizedLicense, "SkuShortName")
 
 	return sanitizedLicense
+}
+
+// RequestTrialLicense request a trial license from the mattermost offical license server
+func (a *App) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
+	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
+	if err != nil {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer resp.Body.Close()
+	licenseResponse := model.MapFromJson(resp.Body)
+
+	if _, err := a.SaveLicense([]byte(licenseResponse["license"])); err != nil {
+		return err
+	}
+
+	a.ReloadConfig()
+	a.InvalidateAllCaches()
+
+	return nil
 }

@@ -25,6 +25,7 @@ import (
 const (
 	ME                                 = "me"
 	USER_NOTIFY_ALL                    = "all"
+	USER_NOTIFY_HERE                   = "here"
 	USER_NOTIFY_MENTION                = "mention"
 	USER_NOTIFY_NONE                   = "none"
 	DESKTOP_NOTIFY_PROP                = "desktop"
@@ -237,7 +238,7 @@ func (u *User) DeepCopy() *User {
 // correctly.
 func (u *User) IsValid() *AppError {
 
-	if len(u.Id) != 26 {
+	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
 
@@ -329,6 +330,11 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
@@ -362,9 +368,20 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
+
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
 
 	if u.AuthData != nil && *u.AuthData == "" {
 		u.AuthData = nil

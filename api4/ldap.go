@@ -149,8 +149,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("ldap_group_id", ldapGroup.Id)
-	auditRec.AddMeta("ldap_group_desc", ldapGroup.Description)
+	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
@@ -163,8 +162,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if group != nil {
-		auditRec.AddMeta("group_id", group.Id)
-		auditRec.AddMeta("group_name", group.Name)
+		auditRec.AddMeta("group", group)
 	}
 
 	var status int
@@ -177,7 +175,6 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		displayName = ldapGroup.DisplayName
 	}
-	auditRec.AddMeta("ldap_group_display", displayName)
 
 	// Group has been previously linked
 	if group != nil {
@@ -197,11 +194,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Group has never been linked
 		//
-		// TODO: In a future phase of LDAP groups sync `Name` will be used for at-mentions and will be editable on
-		// the front-end so it will not have an initial value of `model.NewId()` but rather a slugified version of
-		// the LDAP group name with an appended duplicate-breaker.
+		// For group mentions implementation, the Name column will no longer be set by default.
+		// Instead it will be set and saved in the web app when Group Mentions is enabled.
 		newGroup := &model.Group{
-			Name:        model.NewId(),
 			DisplayName: displayName,
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
@@ -251,8 +246,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("group_id", group.Id)
-	auditRec.AddMeta("group_name", group.Name)
+	auditRec.AddMeta("group", group)
 
 	if group.DeleteAt == 0 {
 		_, err = c.App.DeleteGroup(group.Id)

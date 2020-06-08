@@ -204,6 +204,10 @@ func PermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
 	var result []string
 
+	if role == nil {
+		return result
+	}
+
 	if patch.Permissions == nil {
 		return result
 	}
@@ -323,7 +327,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 }
 
 func (r *Role) IsValid() bool {
-	if len(r.Id) != 26 {
+	if !IsValidId(r.Id) {
 		return false
 	}
 

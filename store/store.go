@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -14,6 +15,9 @@ import (
 type StoreResult struct {
 	Data interface{}
 	Err  *model.AppError
+
+	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
+	NErr error
 }
 
 type Store interface {
@@ -53,7 +57,9 @@ type Store interface {
 	LockToMaster()
 	UnlockFromMaster()
 	DropAllTables()
+	RecycleDBConnections(d time.Duration)
 	GetCurrentSchemaVersion() string
+	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -124,18 +130,18 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
-	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, *model.AppError)
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
-	Update(channel *model.Channel) (*model.Channel, *model.AppError)
-	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error)
+	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
+	Update(channel *model.Channel) (*model.Channel, error)
+	Get(id string, allowFromCache bool) (*model.Channel, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
-	GetFromMaster(id string) (*model.Channel, *model.AppError)
-	Delete(channelId string, time int64) *model.AppError
-	Restore(channelId string, time int64) *model.AppError
-	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
-	PermanentDelete(channelId string) *model.AppError
+	GetFromMaster(id string) (*model.Channel, error)
+	Delete(channelId string, time int64) error
+	Restore(channelId string, time int64) error
+	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error
+	PermanentDelete(channelId string) error
 	PermanentDeleteByTeam(teamId string) *model.AppError
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
@@ -169,6 +175,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	InvalidatePinnedPostCount(channelId string)
 	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	InvalidateGuestCount(channelId string)
@@ -218,14 +225,14 @@ type ChannelStore interface {
 }
 
 type ChannelMemberHistoryStore interface {
-	LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError
-	LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError
-	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError)
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	LogJoinEvent(userId string, channelId string, joinTime int64) error
+	LogLeaveEvent(userId string, channelId string, leaveTime int64) error
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 }
 
 type PostStore interface {
-	SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
+	SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
 	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
@@ -253,7 +260,7 @@ type PostStore interface {
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
-	OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError)
+	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
@@ -294,6 +301,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
+	GetAllNotInAuthService(authServices []string) ([]*model.User, *model.AppError)
 	GetByUsername(username string) (*model.User, *model.AppError)
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError)
 	VerifyEmail(userId, email string) (string, *model.AppError)
@@ -315,6 +323,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
+	AnalyticsGetGuestCount() (int64, *model.AppError)
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetEtagForProfilesNotInTeam(teamId string) string
 	ClearAllCustomRoleAssignments() *model.AppError
@@ -328,14 +337,15 @@ type UserStore interface {
 	DemoteUserToGuest(userID string) *model.AppError
 	DeactivateGuests() ([]string, *model.AppError)
 	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError)
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
-	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
-	Save(bot *model.Bot) (*model.Bot, *model.AppError)
-	Update(bot *model.Bot) (*model.Bot, *model.AppError)
-	PermanentDelete(userId string) *model.AppError
+	Get(userId string, includeDeleted bool) (*model.Bot, error)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
+	Save(bot *model.Bot) (*model.Bot, error)
+	Update(bot *model.Bot) (*model.Bot, error)
+	PermanentDelete(userId string) error
 }
 
 type SessionStore interface {
@@ -346,6 +356,7 @@ type SessionStore interface {
 	Remove(sessionIdOrToken string) *model.AppError
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
+	UpdateExpiresAt(sessionId string, time int64) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
 	UpdateRoles(userId string, roles string) (string, *model.AppError)
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
@@ -407,6 +418,7 @@ type SystemStore interface {
 	Get() (model.StringMap, *model.AppError)
 	GetByName(name string) (*model.System, *model.AppError)
 	PermanentDeleteByName(name string) (*model.System, *model.AppError)
+	InsertIfExists(system *model.System) (*model.System, *model.AppError)
 }
 
 type WebhookStore interface {
@@ -486,13 +498,13 @@ type TokenStore interface {
 }
 
 type EmojiStore interface {
-	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
-	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
-	GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError)
-	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)
-	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
-	Delete(emoji *model.Emoji, time int64) *model.AppError
-	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
+	Save(emoji *model.Emoji) (*model.Emoji, error)
+	Get(id string, allowFromCache bool) (*model.Emoji, error)
+	GetByName(name string, allowFromCache bool) (*model.Emoji, error)
+	GetMultipleByName(names []string) ([]*model.Emoji, error)
+	GetList(offset, limit int, sort string) ([]*model.Emoji, error)
+	Delete(emoji *model.Emoji, time int64) error
+	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error)
 }
 
 type StatusStore interface {
@@ -602,9 +614,9 @@ type SchemeStore interface {
 }
 
 type TermsOfServiceStore interface {
-	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError)
-	GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError)
-	Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError)
+	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error)
+	GetLatest(allowFromCache bool) (*model.TermsOfService, error)
+	Get(id string, allowFromCache bool) (*model.TermsOfService, error)
 }
 
 type UserTermsOfServiceStore interface {
@@ -616,7 +628,7 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) (*model.Group, *model.AppError)
 	Get(groupID string) (*model.Group, *model.AppError)
-	GetByName(name string) (*model.Group, *model.AppError)
+	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
@@ -627,6 +639,10 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
 	GetMemberCount(groupID string) (int64, *model.AppError)
+
+	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError)
+	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError)
+
 	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	PermanentDeleteMembersByUser(userId string) *model.AppError
@@ -659,6 +675,7 @@ type GroupStore interface {
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
+	GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError)
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
@@ -690,11 +707,14 @@ type GroupStore interface {
 
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
 	DistinctGroupMemberCount() (int64, *model.AppError)
+
+	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
+	GroupCountWithAllowReference() (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {
-	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError)
-	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
+	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error)
+	Get(url string, timestamp int64) (*model.LinkMetadata, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

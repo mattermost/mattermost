@@ -12,6 +12,8 @@ import (
 const (
 	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
+	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
+	LICENSE_RENEWAL_LINK  = "https://licensing.mattermost.com/renew"
 )
 
 type LicenseRecord struct {
@@ -32,11 +34,24 @@ type License struct {
 }
 
 type Customer struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Company     string `json:"company"`
-	PhoneNumber string `json:"phone_number"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Company string `json:"company"`
+}
+
+type TrialLicenseRequest struct {
+	ServerID string `json:"server_id"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	SiteURL  string `json:"site_url"`
+	SiteName string `json:"site_name"`
+	Users    int    `json:"users"`
+}
+
+func (tlr *TrialLicenseRequest) ToJson() string {
+	b, _ := json.Marshal(tlr)
+	return string(b)
 }
 
 type Features struct {
@@ -63,6 +78,7 @@ type Features struct {
 	GuestAccountsPermissions  *bool `json:"guest_accounts_permissions"`
 	IDLoadedPushNotifications *bool `json:"id_loaded"`
 	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display"`
+	EnterprisePlugins         *bool `json:"enterprise_plugins"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -89,6 +105,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"guest_accounts_permissions":  *f.GuestAccountsPermissions,
 		"id_loaded":                   *f.IDLoadedPushNotifications,
 		"lock_teammate_name_display":  *f.LockTeammateNameDisplay,
+		"enterprise_plugins":          *f.EnterprisePlugins,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -189,10 +206,19 @@ func (f *Features) SetDefaults() {
 	if f.LockTeammateNameDisplay == nil {
 		f.LockTeammateNameDisplay = NewBool(*f.FutureFeatures)
 	}
+
+	if f.EnterprisePlugins == nil {
+		f.EnterprisePlugins = NewBool(*f.FutureFeatures)
+	}
 }
 
 func (l *License) IsExpired() bool {
 	return l.ExpiresAt < GetMillis()
+}
+
+func (l *License) IsPastGracePeriod() bool {
+	timeDiff := GetMillis() - l.ExpiresAt
+	return timeDiff > LICENSE_GRACE_PERIOD
 }
 
 func (l *License) IsStarted() bool {
@@ -230,7 +256,7 @@ func LicenseFromJson(data io.Reader) *License {
 }
 
 func (lr *LicenseRecord) IsValid() *AppError {
-	if len(lr.Id) != 26 {
+	if !IsValidId(lr.Id) {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

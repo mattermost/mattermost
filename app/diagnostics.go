@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	rudder "github.com/rudderlabs/analytics-go"
 	"github.com/segmentio/analytics-go"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -16,13 +17,16 @@ import (
 )
 
 const (
-	SEGMENT_KEY = "placeholder_segment_key"
+	SEGMENT_KEY          = "placeholder_segment_key"
+	RUDDER_KEY           = "placeholder_rudder_key"
+	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
+	TRACK_CONFIG_AUDIT              = "config_audit"
 	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
@@ -62,6 +66,9 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
+
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
@@ -79,14 +86,37 @@ func (a *App) sendDailyDiagnostics(override bool) {
 		a.trackGroups()
 		a.trackChannelModeration()
 	}
+
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+		a.Srv().initRudder(RUDDER_DATAPLANE_URL)
+		a.trackActivity()
+		a.trackConfig()
+		a.trackLicense()
+		a.trackPlugins()
+		a.trackServer()
+		a.trackPermissions()
+		a.trackElasticsearch()
+		a.trackGroups()
+		a.trackChannelModeration()
+	}
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	a.Srv().diagnosticClient.Enqueue(analytics.Track{
-		Event:      event,
-		UserId:     a.DiagnosticId(),
-		Properties: properties,
-	})
+	if a.Srv().diagnosticClient != nil {
+		a.Srv().diagnosticClient.Enqueue(analytics.Track{
+			Event:      event,
+			UserId:     a.DiagnosticId(),
+			Properties: properties,
+		})
+	}
+
+	if a.Srv().rudderClient != nil {
+		a.Srv().rudderClient.Enqueue(rudder.Track{
+			Event:      event,
+			UserId:     a.DiagnosticId(),
+			Properties: properties,
+		})
+	}
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
@@ -123,6 +153,7 @@ func pluginVersion(pluginsAvailable []*model.BundleInfo, pluginId string) string
 
 func (a *App) trackActivity() {
 	var userCount int64
+	var guestAccountsCount int64
 	var botAccountsCount int64
 	var inactiveUserCount int64
 	var publicChannelCount int64
@@ -153,6 +184,10 @@ func (a *App) trackActivity() {
 
 	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
+	}
+
+	if count, err := a.Srv().Store.User().AnalyticsGetGuestCount(); err == nil {
+		guestAccountsCount = count
 	}
 
 	if count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
@@ -225,6 +260,7 @@ func (a *App) trackActivity() {
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
+		"guest_accounts":               guestAccountsCount,
 		"active_users_daily":           activeUsersDailyCount,
 		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
@@ -273,6 +309,7 @@ func (a *App) trackConfig() {
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
+		"extend_session_length_with_activity":                     *cfg.ServiceSettings.ExtendSessionLengthWithActivity,
 		"session_length_web_in_days":                              *cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                           *cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                              *cfg.ServiceSettings.SessionLengthSSOInDays,
@@ -283,6 +320,7 @@ func (a *App) trackConfig() {
 		"isdefault_tls_key_file":                                  isDefault(*cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
 		"isdefault_read_timeout":                                  isDefault(*cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
 		"isdefault_write_timeout":                                 isDefault(*cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
+		"isdefault_idle_timeout":                                  isDefault(*cfg.ServiceSettings.IdleTimeout, model.SERVICE_SETTINGS_DEFAULT_IDLE_TIMEOUT),
 		"isdefault_google_developer_key":                          isDefault(cfg.ServiceSettings.GoogleDeveloperKey, ""),
 		"isdefault_allow_cors_from":                               isDefault(*cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
 		"isdefault_cors_exposed_headers":                          isDefault(cfg.ServiceSettings.CorsExposedHeaders, ""),
@@ -317,6 +355,8 @@ func (a *App) trackConfig() {
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
+		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
+		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -384,6 +424,18 @@ func (a *App) trackConfig() {
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
+	a.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
+		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
+		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
+		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
+		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+	})
+
 	a.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
 		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
 		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
@@ -441,6 +493,7 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
 		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
+		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
@@ -508,6 +561,7 @@ func (a *App) trackConfig() {
 		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
 		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 		"isempty_admin_filter":                   isDefault(*cfg.LdapSettings.AdminFilter, ""),
+		"isnotempty_picture_attribute":           !isDefault(*cfg.LdapSettings.PictureAttribute, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -621,6 +675,7 @@ func (a *App) trackConfig() {
 		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
 		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_jitsi":                  pluginActivated(cfg.PluginSettings.PluginStates, "jitsi"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
 		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
@@ -796,6 +851,10 @@ func (a *App) trackServer() {
 		data["system_admins"] = scr
 	}
 
+	if scr, err := a.Srv().Store.GetDbVersion(); err == nil {
+		data["database_version"] = scr
+	}
+
 	a.SendDiagnostic(TRACK_SERVER, data)
 }
 
@@ -962,14 +1021,20 @@ func (a *App) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
+	groupCountWithAllowReference, err := a.Srv().Store.Group().GroupCountWithAllowReference()
+	if err != nil {
+		mlog.Error(err.Error())
+	}
+
 	a.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
-		"group_count":                 groupCount,
-		"group_team_count":            groupTeamCount,
-		"group_channel_count":         groupChannelCount,
-		"group_synced_team_count":     groupSyncedTeamCount,
-		"group_synced_channel_count":  groupSyncedChannelCount,
-		"group_member_count":          groupMemberCount,
-		"distinct_group_member_count": distinctGroupMemberCount,
+		"group_count":                      groupCount,
+		"group_team_count":                 groupTeamCount,
+		"group_channel_count":              groupChannelCount,
+		"group_synced_team_count":          groupSyncedTeamCount,
+		"group_synced_channel_count":       groupSyncedChannelCount,
+		"group_member_count":               groupMemberCount,
+		"distinct_group_member_count":      distinctGroupMemberCount,
+		"group_count_with_allow_reference": groupCountWithAllowReference,
 	})
 }
 

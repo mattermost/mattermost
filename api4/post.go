@@ -46,7 +46,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("channel_id", post.ChannelId)
+	auditRec.AddMeta("post", post)
 
 	hasPermission := false
 	if c.App.SessionHasPermissionToChannel(*c.App.Session(), post.ChannelId, model.PERMISSION_CREATE_POST) {
@@ -67,14 +67,6 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), c.App.Session().Id)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	auditRec.Success()
-	auditRec.AddMeta("post_id", rp.Id)
-
 	setOnline := r.URL.Query().Get("set_online")
 	setOnlineBool := true // By default, always set online.
 	var err2 error
@@ -85,11 +77,21 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			setOnlineBool = true // Set online nevertheless.
 		}
 	}
+
+	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), c.App.Session().Id, setOnlineBool)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.Success()
+	auditRec.AddMeta("post", rp) // overwrite meta
+
 	if setOnlineBool {
 		c.App.SetStatusOnline(c.App.Session().UserId, false)
 	}
 
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
+	c.ExtendSessionExpiryIfNeeded(w, r)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -378,8 +380,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
-	auditRec.AddMeta("channel_id", post.ChannelId)
-	auditRec.AddMeta("creator_user_id", post.UserId)
+	auditRec.AddMeta("post", post)
 
 	if c.App.Session().UserId == post.UserId {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), post.ChannelId, model.PERMISSION_DELETE_POST) {
@@ -532,9 +533,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("post_id", post.Id)
-	auditRec.AddMeta("channel_id", post.ChannelId)
-	auditRec.AddMeta("creator_user_id", post.UserId)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
 	if post.Id != c.Params.PostId {
@@ -552,6 +550,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
+	auditRec.AddMeta("post", originalPost)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = originalPost.FileIds
@@ -572,6 +571,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("update", rpost)
 
 	w.Write([]byte(rpost.ToJson()))
 }
@@ -591,7 +591,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
@@ -606,8 +605,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
-	auditRec.AddMeta("channel_id", originalPost.ChannelId)
-	auditRec.AddMeta("creator_user_id", originalPost.UserId)
+	auditRec.AddMeta("post", originalPost)
 
 	if c.App.Session().UserId != originalPost.UserId {
 		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
@@ -623,6 +621,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	auditRec.AddMeta("patch", patchedPost)
 
 	w.Write([]byte(patchedPost.ToJson()))
 }
@@ -657,7 +656,6 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
 	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
-	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -676,8 +674,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("channel_id", post.ChannelId)
-	auditRec.AddMeta("creator_user_id", post.UserId)
+	auditRec.AddMeta("post", post)
 
 	channel, err := c.App.GetChannel(post.ChannelId)
 	if err != nil {
@@ -696,11 +693,12 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
 
-	_, err = c.App.PatchPost(c.Params.PostId, patch)
+	patchedPost, err := c.App.PatchPost(c.Params.PostId, patch)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("patch", patchedPost)
 
 	auditRec.Success()
 	ReturnStatusOK(w)

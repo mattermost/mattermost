@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,7 +62,7 @@ func TestCreateGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
@@ -157,6 +158,33 @@ func TestUpsertGroupSyncable(t *testing.T) {
 	require.Equal(t, int64(0), gs.DeleteAt)
 }
 
+func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	team := th.CreateTeam()
+	team.GroupConstrained = model.NewBool(true)
+	team, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
+
+	channel := th.CreateChannel(team)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "group_not_associated_to_synced_team")
+
+	gs, err := th.App.GetGroupSyncable(group2.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, gs)
+	require.NotNil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group1.Id, channel.Id, false))
+	require.Nil(t, err)
+}
+
 func TestGetGroupSyncable(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -239,6 +267,45 @@ func TestGetGroupsByChannel(t *testing.T) {
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
+	require.Nil(t, err)
+	require.Empty(t, groups)
+}
+
+func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	group := th.CreateGroup()
+
+	// Create a group channel
+	groupSyncable := &model.GroupSyncable{
+		GroupId:    group.Id,
+		AutoAdd:    false,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	}
+
+	gs, err := th.App.UpsertGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, err := th.App.GetGroupsAssociatedToChannelsByTeam(th.BasicTeam.Id, opts)
+	require.Nil(t, err)
+
+	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
+		th.BasicChannel.Id: {
+			{Group: *group, SchemeAdmin: model.NewBool(false)},
+		},
+	}, groups)
+	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
+
+	groups, err = th.App.GetGroupsAssociatedToChannelsByTeam(model.NewId(), opts)
 	require.Nil(t, err)
 	require.Empty(t, groups)
 }
