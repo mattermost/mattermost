@@ -3727,7 +3727,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 
 			// And then add the new ones
-			var preferences []interface{} // TODO can I fix the type
+			var preferences []interface{}
 
 			for _, channelID := range categoryToUpdate.Channels {
 				preferences = append(preferences, &model.Preference{
