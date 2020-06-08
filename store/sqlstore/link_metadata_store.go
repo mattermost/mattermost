@@ -5,12 +5,12 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
-
-	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 )
 
 type SqlLinkMetadataStore struct {
@@ -38,7 +38,7 @@ func (s SqlLinkMetadataStore) createIndexesIfNotExists() {
 	}
 }
 
-func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	if err := metadata.IsValid(); err != nil {
 		return nil, err
 	}
@@ -47,13 +47,13 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 
 	err := s.GetMaster().Insert(metadata)
 	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
-		return nil, model.NewAppError("SqlLinkMetadataStore.Save", "store.sql_link_metadata.save.app_error", nil, "url="+metadata.URL+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "could not save link metadata")
 	}
 
 	return metadata, nil
 }
 
-func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	var metadata *model.LinkMetadata
 	query, args, err := s.getQueryBuilder().
 		Select("*").
@@ -61,19 +61,19 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 		Where(sq.Eq{"URL": url, "Timestamp": timestamp}).
 		ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "could not create query with querybuilder")
 	}
 	err = s.GetReplica().SelectOne(&metadata, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("LinkMetadata", "url="+url)
 		}
-		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not get metadata with selectone: url=%s", url)
 	}
 
 	err = metadata.DeserializeDataToConcreteType()
 	if err != nil {
-		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not deserialize metadata to concrete type for url=%s", url)
 	}
 
 	return metadata, nil

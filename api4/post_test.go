@@ -602,9 +602,8 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.Nil(t, err)
 	defer func() {
-		wsClient.Close()
 		wg.Wait()
-
+		wsClient.Close()
 	}()
 
 	wsClient.Listen()
@@ -612,15 +611,23 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		timeout := time.After(2 * time.Second)
+		cnt := true
 		i := 0
-		for ev := range wsClient.EventChannel {
-			if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
-				if i == 0 {
-					assert.False(t, ev.GetData()["set_online"].(bool))
-				} else {
-					assert.True(t, ev.GetData()["set_online"].(bool))
+		for cnt {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
+					if i == 0 {
+						assert.False(t, ev.GetData()["set_online"].(bool))
+					} else {
+						assert.True(t, ev.GetData()["set_online"].(bool))
+					}
+					i++
 				}
-				i++
+				cnt = i != 2
+			case <-timeout:
+				cnt = false
 			}
 		}
 		assert.Equal(t, 2, i, "unexpected number of posted events")
