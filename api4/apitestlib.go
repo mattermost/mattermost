@@ -704,22 +704,6 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	return group
 }
 
-// TestForClientAndLocal runs a test function for the normal client and as a local client.
-func (me *TestHelper) TestForClientAndLocal(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
-	var testName string
-	if len(name) > 0 {
-		testName = name[0] + "/"
-	}
-
-	t.Run(testName+"Client", func(t *testing.T) {
-		f(t, me.Client)
-	})
-
-	t.Run(testName+"LocalClient", func(t *testing.T) {
-		f(t, me.LocalClient)
-	})
-}
-
 // TestForSystemAdminAndLocal runs a test function for both
 // SystemAdmin and Local clients. Several endpoints work in the same
 // way when used by a fully privileged user and through the local
