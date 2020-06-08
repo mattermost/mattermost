@@ -218,8 +218,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	p4.Message = "zz" + model.NewId() + "b"
 
 	t.Run("Save correctly a new set of posts", func(t *testing.T) {
-		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p1, &p2, &p3})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 		for _, post := range newPosts {
 			storedPost, err := ss.Post().GetSingle(post.Id)
 			assert.Nil(t, err)
@@ -253,8 +254,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		o4.UserId = model.NewId()
 		o4.Message = "zz" + model.NewId() + "b"
 
-		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&o1, &o2, &o3, &o4})
 		require.Nil(t, err, "couldn't save item")
+		require.Equal(t, -1, errIdx)
 		assert.Len(t, newPosts, 4)
 		assert.Equal(t, int64(2), newPosts[0].ReplyCount)
 		assert.Equal(t, int64(2), newPosts[1].ReplyCount)
@@ -263,8 +265,9 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
-		newPosts, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
+		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
 		require.NotNil(t, err)
+		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
 		storedPost, err := ss.Post().GetSingle(p3.Id)
 		assert.Nil(t, err)
@@ -289,7 +292,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost.Message = "zz" + model.NewId() + "b"
 		replyPost.RootId = rootPost.Id
 
-		_, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		_, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
 		require.Nil(t, err)
 
 		rrootPost, err := ss.Post().GetSingle(rootPost.Id)
@@ -308,7 +311,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		replyPost3.Message = "zz" + model.NewId() + "b"
 		replyPost3.RootId = rootPost.Id
 
-		_, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
+		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost2, &replyPost3})
 		require.Nil(t, err)
 
 		rrootPost2, err := ss.Post().GetSingle(rootPost.Id)
@@ -341,7 +344,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		post3.UserId = model.NewId()
 		post3.Message = "zz" + model.NewId() + "b"
 
-		_, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
+		_, _, err = ss.Post().SaveMultiple([]*model.Post{&post1, &post2, &post3})
 		require.Nil(t, err)
 
 		rchannel, err := ss.Channel().Get(channel.Id, false)
@@ -2143,8 +2146,9 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		o3a := ro3.Clone()
 		o3a.Message = ro3.Message + "WWWWWWW"
 
-		_, err = ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
+		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o1a, o2a, o3a})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 
 		r1, err = ss.Post().Get(o1.Id, false)
 		require.Nil(t, err)
@@ -2172,8 +2176,9 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 		o5a.Filenames = []string{}
 		o5a.FileIds = []string{}
 
-		_, err = ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
+		_, errIdx, err := ss.Post().OverwriteMultiple([]*model.Post{o4a, o5a})
 		require.Nil(t, err)
+		require.Equal(t, -1, errIdx)
 
 		r4, err = ss.Post().Get(o4.Id, false)
 		require.Nil(t, err)
