@@ -232,8 +232,8 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	q := model.Team{}
-	q.DisplayName = "FOOBAR"
-	q.Name = "whatever"
+	q.DisplayName = "CHOCOLATE"
+	q.Name = "ilovecake"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
 	q.AllowOpenInvite = false
@@ -248,32 +248,32 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 		ExpectedFirstId string
 	}{
 		{
-			"Search FooBar by display name",
-			"oob",
+			"Search chocolate by display name",
+			"ocola",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
-			"foo",
+			"Search chocolate by display name",
+			"choc",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
-			"bar",
+			"Search chocolate by display name",
+			"late",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
-			"what",
+			"Search chocolate by  name",
+			"ilov",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
-			"ever",
+			"Search chocolate by  name",
+			"ecake",
 			1,
 			q.Id,
 		},
@@ -317,13 +317,6 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
 			}
-
-			r2, rnum2, err := ss.Team().SearchAllPaged(tc.Term, 100, 50)
-			require.Nil(t, err)
-			require.Equal(t, tc.ExpectedLenth, rnum2)
-			if tc.ExpectedFirstId != "" {
-				assert.Equal(t, tc.ExpectedFirstId, r2[0].Id)
-			}
 		})
 	}
 }
@@ -350,11 +343,11 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	q := model.Team{}
-	q.DisplayName = "FOOBAR"
-	q.Name = "whatever"
+	q.DisplayName = "PINEAPPLEPIE"
+	q.Name = "ihadsomepineapplepiewithstrawberry"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
-	q.AllowOpenInvite = false
+	q.AllowOpenInvite = true
 
 	_, err = ss.Team().Save(&q)
 	require.Nil(t, err)
@@ -367,31 +360,31 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	}{
 		{
 			"Search FooBar by display name",
-			"oob",
+			"neapplep",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by display name",
-			"foo",
+			"pine",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by display name",
-			"bar",
+			"epie",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by  name",
-			"what",
+			"ihadsome",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by  name",
-			"ever",
+			"pineapplepiewithstrawberry",
 			1,
 			q.Id,
 		},

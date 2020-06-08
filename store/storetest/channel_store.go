@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"errors"
 	"sort"
 	"strconv"
@@ -5239,6 +5240,15 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().Delete(o13.Id, o13.DeleteAt)
 	require.Nil(t, nErr, "channel should have been deleted")
 
+	o14 := model.Channel{
+		TeamId:      t2.Id,
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, nErr = ss.Channel().Save(&o14, -1)
+	require.Nil(t, nErr)
+	fmt.Printf("%s %s %s %s %s %s %s %s %s %s %s %s",o1.Id, o2.Id, o3.Id, o4.Id, o5.Id, o12.Id, o11.Id, o8.Id, o7.Id, o6.Id, o10.Id, o9.Id)
 	testCases := []struct {
 		Description     string
 		Term            string
@@ -5246,9 +5256,14 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		ExpectedResults *model.ChannelList
 		TotalCount      int
 	}{
+		{"Search FooBar by display name", "oob", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name2", "foo", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name3", "bar", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by name", "what", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}, 0},
 		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, &model.ChannelList{&o1, &o2, &o3, &o13}, 0},
-		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o11, &o8, &o7, &o6, &o10, &o9}, 0},
+		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o14, &o11, &o8, &o7, &o6, &o10, &o9}, 0},
 		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{}, 0},
 		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o8, &o7, &o6}, 0},
 		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}, 0},
