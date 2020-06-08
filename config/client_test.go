@@ -223,6 +223,27 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"WebsocketSecurePort":              "443",
 			},
 		},
+		{
+			"password settings",
+			&model.Config{
+				PasswordSettings: model.PasswordSettings{
+					MinimumLength: iToP(15),
+					Lowercase:     bToP(true),
+					Uppercase:     bToP(true),
+					Number:        bToP(true),
+					Symbol:        bToP(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"PasswordMinimumLength":    "15",
+				"PasswordRequireLowercase": "true",
+				"PasswordRequireUppercase": "true",
+				"PasswordRequireNumber":    "true",
+				"PasswordRequireSymbol":    "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
