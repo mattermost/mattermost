@@ -231,12 +231,52 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBAR"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLenth   int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name",
+			"oob",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"foo",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"bar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -277,6 +317,13 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
 			}
+
+			r2, rnum2, err := ss.Team().SearchAllPaged(tc.Term, 100, 50)
+			require.Nil(t, err)
+			require.Equal(t, tc.ExpectedLenth, rnum2)
+			if tc.ExpectedFirstId != "" {
+				assert.Equal(t, tc.ExpectedFirstId, r2[0].Id)
+			}
 		})
 	}
 }
@@ -302,12 +349,52 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBAR"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name",
+			"oob",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"foo",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"bar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -368,12 +455,52 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBAR"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name",
+			"oob",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"foo",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name",
+			"bar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for private team name",
 			p.Name,
