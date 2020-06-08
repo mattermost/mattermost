@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
