@@ -168,11 +168,28 @@ func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 		AllowFullNames: true,
 		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 	}
-	users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
-	require.Nil(t, err)
-	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
-	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
+	t.Run("Return all users in team", func(t *testing.T) {
+		users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
+		require.Nil(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
+	})
+	t.Run("Return all users in team even though some of them don't have a team associated", func(t *testing.T) {
+		userAlternate, err := th.createUser("user-alternate", "user-alternate", "user", "alternate")
+		require.Nil(t, err)
+		defer th.deleteUser(userAlternate)
+		userGuest, err := th.createGuest("user-guest", "user-guest", "user", "guest")
+		require.Nil(t, err)
+		defer th.deleteUser(userGuest)
+
+		users, err := th.Store.User().AutocompleteUsersInChannel("", "", "", options)
+		require.Nil(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2, th.UserAnotherTeam,
+			userAlternate, userGuest}, users.OutOfChannel)
+	})
 }
+
 func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTestHelper) {
 	userAlternate, err := th.createUser("user-alternate", "user-alternate", "user", "alternate")
 	require.Nil(t, err)
@@ -205,15 +222,30 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
+	t.Run("Autocomplete users with all channels restricted but with empty team", func(t *testing.T) {
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{}}
+		users, apperr := th.Store.User().AutocompleteUsersInChannel("", th.ChannelBasic.Id, "", options)
+		require.Nil(t, apperr)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
+	t.Run("Autocomplete users with empty team and channels restricted", func(t *testing.T) {
+		guest, err := th.createGuest("guest", "guest", "guest", "one")
+		require.Nil(t, err)
+		err = th.addUserToTeams(guest, []string{th.Team.Id})
+		require.Nil(t, err)
+		_, err = th.addUserToChannels(guest, []string{th.ChannelBasic.Id})
+		defer th.deleteUser(guest)
+
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{th.ChannelBasic.Id}}
+		users, err := th.Store.User().AutocompleteUsersInChannel("", "", "", options)
+		require.Nil(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{guest, th.User}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
 }
+
 func testHonorTeamRestrictionsAutocompletingUsers(t *testing.T, th *SearchTestHelper) {
-	userAlternate, err := th.createUser("user-alternate", "user-alternate", "user", "alternate")
-	defer th.deleteUser(userAlternate)
-	require.Nil(t, err)
-	err = th.addUserToTeams(userAlternate, []string{th.AnotherTeam.Id})
-	require.Nil(t, err)
-	_, err = th.addUserToChannels(userAlternate, []string{th.ChannelAnotherTeam.Id})
-	require.Nil(t, err)
 	options := &model.UserSearchOptions{
 		AllowFullNames:   true,
 		Limit:            model.USER_SEARCH_DEFAULT_LIMIT,
@@ -231,6 +263,18 @@ func testHonorTeamRestrictionsAutocompletingUsers(t *testing.T, th *SearchTestHe
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+	})
+	t.Run("Should return empty when searching in one team and filtering by another", func(t *testing.T) {
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{th.AnotherTeam.Id}}
+
+		users, err := th.Store.User().Search(th.Team.Id, "", options)
+		require.Nil(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users)
+
+		acusers, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
+		require.Nil(t, err)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, acusers.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, acusers.OutOfChannel)
 	})
 }
 func testShouldReturnNothingWithoutProperAccess(t *testing.T, th *SearchTestHelper) {

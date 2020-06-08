@@ -196,6 +196,23 @@ func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName s
 	return user, nil
 }
 
+func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName string) (*model.User, error) {
+	user, appError := th.Store.User().Save(&model.User{
+		Username:  username,
+		Password:  username,
+		Nickname:  nickname,
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     th.makeEmail(),
+		Roles:     model.SYSTEM_GUEST_ROLE_ID,
+	})
+	if appError != nil {
+		return nil, errors.New(appError.Error())
+	}
+
+	return user, nil
+}
+
 func (th *SearchTestHelper) deleteUser(user *model.User) error {
 	appError := th.Store.User().PermanentDelete(user.Id)
 	if appError != nil {
