@@ -6039,10 +6039,6 @@
     "translation": "insert error"
   },
   {
-    "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
-  },
-  {
     "id": "store.select_error",
     "translation": "select error"
   },
