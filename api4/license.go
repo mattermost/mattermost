@@ -5,7 +5,9 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -13,6 +15,7 @@ import (
 )
 
 func (api *API) InitLicense() {
+	api.BaseRoutes.ApiRoot.Handle("/trial-license", api.ApiSessionRequired(requestTrialLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.ApiRoot.Handle("/license/client", api.ApiHandler(getClientLicense)).Methods("GET")
@@ -129,6 +132,62 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.RemoveLicense(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("success")
+
+	ReturnStatusOK(w)
+}
+
+func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("requestTrialLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("removeLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	var usersNumber struct {
+		Users int `json:"users"`
+	}
+
+	b, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		c.Err = model.NewAppError("removeLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+		return
+	}
+	json.Unmarshal(b, &usersNumber)
+	if usersNumber.Users == 0 {
+		c.Err = model.NewAppError("removeLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	currentUser, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID: c.App.DiagnosticId(),
+		Name:     currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:    currentUser.Email,
+		SiteName: *c.App.Config().TeamSettings.SiteName,
+		SiteURL:  *c.App.Config().ServiceSettings.SiteURL,
+		Users:    usersNumber.Users,
+	}
+
+	if err := c.App.RequestTrialLicense(trialLicenseRequest); err != nil {
 		c.Err = err
 		return
 	}

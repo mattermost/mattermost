@@ -53,7 +53,7 @@ func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*m
 	return newChannel, err
 }
 
-func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	updatedChannel, err := c.ChannelStore.Update(channel)
 	if err == nil {
 		c.indexChannel(updatedChannel)
@@ -194,7 +194,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *
 	return err
 }
 
-func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (c *SearchChannelStore) PermanentDelete(channelId string) error {
 	channel, channelErr := c.ChannelStore.Get(channelId, true)
 	if channelErr != nil {
 		mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channelId), mlog.Err(channelErr))
