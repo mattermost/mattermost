@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "授權不支援 LDAP 群組"
+    "translation": "授權不支援群組"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
+    "translation": "此端點需要要求來源為本地。"
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1406,7 +1406,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "無法解析要求圖片的 URL。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1426,15 +1426,15 @@
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "群組成員已存在"
+    "translation": "群組已存在"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "群組名稱已被用於保留名稱"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "群組名稱已被用於使用者名稱"
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -1618,7 +1618,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} has no members on this team"
+    "translation": "@{{.GroupName}} 在此團隊沒有成員"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -2320,15 +2320,15 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "更新授權"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "企業授權已過期，部份功能已被停用。請更新授權。"
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Mattermost 企業授權已被停用。"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2932,7 +2932,7 @@
   },
   {
     "id": "app.bot.createbot.internal_error",
-    "translation": "無法儲存機器人"
+    "translation": "無法儲存機器人。"
   },
   {
     "id": "app.bot.get_disable_bot_sysadmin_message",
@@ -2940,27 +2940,27 @@
   },
   {
     "id": "app.bot.getbot.internal_error",
-    "translation": "無法取得機器人"
+    "translation": "無法取得機器人。"
   },
   {
     "id": "app.bot.getbots.internal_error",
-    "translation": "無法取得機器人"
+    "translation": "無法取得機器人。"
   },
   {
     "id": "app.bot.patchbot.internal_error",
-    "translation": "無法更新機器人"
+    "translation": "無法更新機器人。"
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "無法永久刪除機器人。"
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
-    "translation": "無法刪除機器人"
+    "translation": "無法刪除機器人。"
   },
   {
     "id": "app.channel.create_channel.internal_error",
-    "translation": "無法儲存頻道"
+    "translation": "無法儲存頻道。"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
@@ -2968,7 +2968,7 @@
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": "無法儲存頻道"
+    "translation": "無法儲存直接通訊頻道。"
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3140,7 +3140,7 @@
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": "Error importing user channels. Channel not found."
+    "translation": "匯入使用者頻道時發生錯誤。找不到頻道。"
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -3285,6 +3285,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "缺少必要的訊息屬性：訊息。"
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -3464,7 +3468,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "使用者認證服務與認證資料為互斥的。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3836,63 +3840,63 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "無效或缺少 Token"
+    "translation": "無效或缺少 Token。"
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
+    "translation": "Bleve 已啟動。"
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
+    "translation": "建立 Bleve 頻道索引時錯誤。"
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
+    "translation": "建立 Bleve 訊息索引時錯誤。"
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
+    "translation": "建立 Bleve 使用者索引時錯誤。"
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "刪除頻道時失敗"
+    "translation": "刪除頻道時失敗。"
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "刪除訊息時失敗"
+    "translation": "刪除訊息時失敗。"
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "刪除使用者時失敗"
+    "translation": "刪除使用者時失敗。"
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "索引頻道時失敗"
+    "translation": "索引頻道時失敗。"
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "索引訊息時失敗"
+    "translation": "索引訊息時失敗。"
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "索引使用者時失敗"
+    "translation": "索引使用者時失敗。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
+    "translation": "對頻道批次建立索引失敗。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
+    "translation": "對訊息批次建立索引失敗。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
+    "translation": "對使用者批次建立索引失敗。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
+    "translation": "執行 Bleve 索引工作失敗：引擎尚未啟動。"
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -3900,59 +3904,59 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch 彙總工作者解析中止時間時失敗"
+    "translation": "Bleve 索引工作者解析中止時間時失敗。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch 彙總工作者解析開始時間時失敗"
+    "translation": "Bleve 索引工作者工作者解析開始時間時失敗。"
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "在全部實體已完成時嘗試索引新批次。"
+    "translation": "在全部項目已完成時嘗試索引新批次。"
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
+    "translation": "清除頻道索引失敗。"
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
+    "translation": "清除訊息索引失敗。"
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
+    "translation": "清除使用者索引失敗。"
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "無法完成搜尋"
+    "translation": "無法完成搜尋頻道。"
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "無法完成搜尋"
+    "translation": "無法完成搜尋訊息。"
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "無法完成搜尋"
+    "translation": "無法完成搜尋使用者。"
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "無法完成搜尋"
+    "translation": "無法完成搜尋使用者。"
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "無法完成搜尋"
+    "translation": "無法完成搜尋使用者。"
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
+    "translation": "關閉頻道索引失敗。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
+    "translation": "關閉訊息索引失敗。"
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
+    "translation": "關閉使用者索引失敗。"
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4032,7 +4036,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "無法建立 eml 檔案。"
+    "translation": "無法建立 zip 檔案。"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -4040,7 +4044,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "無法建立 eml 檔案。"
+    "translation": "無法建立警告檔案。"
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4144,7 +4148,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "無法從資料庫取得最老的訊息。"
+    "translation": "無法從資料庫取得最老的訊息"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4156,7 +4160,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "在全部實體已完成時嘗試索引新批次。"
+    "translation": "在全部項目已完成時嘗試索引新批次。"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4168,7 +4172,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "取得 Elasticsearch 索引時失敗"
+    "translation": "更新 Elasticsearch 索引時失敗"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -4479,6 +4483,10 @@
     "translation": "本機不支援或未設定 SAML 2.0"
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "在與父群組同步的團隊連結之前，群組不能跟頻道連結。"
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "不支援的同步資料類別 '{{.Value}}'。"
   },
@@ -4764,7 +4772,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "無效的 AutocompleteData"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4880,19 +4888,19 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch 批次索引的時間範圍必須至少為 1 秒。"
+    "translation": "Bleve 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "當啟用 ElasticSearch AutocompleteEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 Bleve EnableAutocomplete 時必須設定 Bleve EnableIndexing 為啟用。"
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "當啟用 ElasticSearch SearchEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 Bleve EnableSearching 時必須設定 Bleve EnableIndexing 為啟用。"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "當啟用 ElasticSearch SearchEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 Bleve IndexingDir 時必須設定 Bleve EnableIndexing 為啟用。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4928,11 +4936,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "當啟用 ElasticSearch AutocompleteEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 ElasticSearch EnableAutocomplete 時必須設定 ElasticSearch EnableIndexing 為啟用。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "當啟用 ElasticSearch SearchEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 ElasticSearch EnableSearching 時必須設定 ElasticSearch EnableIndexing 為啟用。"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -5300,7 +5308,7 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "群組名稱屬性有無效字元"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -5908,7 +5916,7 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "清除 Bleve 索引錯誤：引擎已被停用。"
   },
   {
     "id": "store.insert_error",
@@ -5916,7 +5924,7 @@
   },
   {
     "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
+    "translation": "取得團隊許可頻道清單失敗：teamId 為空值"
   },
   {
     "id": "store.select_error",
@@ -5940,7 +5948,7 @@
   },
   {
     "id": "store.sql_audit.app_error",
-    "translation": "建立查詢時失敗"
+    "translation": "建立查詢時失敗。"
   },
   {
     "id": "store.sql_audit.get.finding.app_error",
@@ -6776,7 +6784,7 @@
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
+    "translation": "無法取得訊息回應數量"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -7036,7 +7044,7 @@
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
-    "translation": "Unable to update expires_at."
+    "translation": "無法更新 expires_at 。"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",

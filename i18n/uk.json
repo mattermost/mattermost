@@ -3287,6 +3287,10 @@
     "translation": "Відсутнє необхідне поле для Post: Message."
   },
   {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Відсутній необхідний ресурс каналу: команда "
   },
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 не налаштований та не підтримується на цьому сервері."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
   {
     "id": "groups.unsupported_syncable_type",

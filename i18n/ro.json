@@ -2952,7 +2952,7 @@
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "Imposibil de șters botul permanent."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -3285,6 +3285,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "Lipsesc necesare Post proprietate: mesaj."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -3824,7 +3828,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Imposibil de redenumit echipa, numele este deja folosit"
+    "translation": "Imposibil de redenumit echipa, numele este deja folosit."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,7 +3840,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Semn invalid sau lipsește"
+    "translation": "Jetonul invalid sau lipsește."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3844,115 +3848,115 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Eroare la crearea indexului canalului bleve"
+    "translation": "Eroare la crearea indexului canalului bleve."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Eroare la crearea indexului post bleve"
+    "translation": "Eroare la crearea indexului bleve post."
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Eroare la crearea indexului user bleve"
+    "translation": "Eroare la crearea indexului utilizatorului."
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "Nu sa reușit eliminarea canalul"
+    "translation": "Nu a reușit să ștergi canalul."
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "Nu sa reușit ștergerea postării"
+    "translation": "Nu a reușit să ștergi postarea."
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "Nu sa reușit ștergerea utilizatorului"
+    "translation": "Nu a reușit ștergerea utilizatorului."
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "Nu a fost indexat canalul"
+    "translation": "Eroare la indexarea canalului."
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "Nu a reuşit să-l indexaţi post"
+    "translation": "Eroare la indexarea postării."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "Nu a reușit să indexeze utilizatorul"
+    "translation": "Eroare la indexarea utilizatorului."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Eroare la indexarea lotului de canale"
+    "translation": "Eroare la indexarea lotului de canale."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Eroare la indexarea lotului post"
+    "translation": "Eroare la indexarea lotului post."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Eroare la indexarea lotului de utilizatori"
+    "translation": "Eroare la indexarea lotului de utilizator."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Nu a reușit să execute jobul de index Bleve: motorul este inactiv"
+    "translation": "Nu a reușit să execute jobul de index Bleve: motorul este inactiv."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date"
+    "translation": "Cea mai veche postare nu a putut fi preluată din baza de date."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit"
+    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de sfârșit."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de început"
+    "translation": "Lucrătorul de indexare Bleve nu a reușit să analizeze ora de început."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Încercați să indexați un lot nou când toate entitățile sunt finalizate"
+    "translation": "Încercați să indexați un lot nou când toate entitățile sunt finalizate."
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Eroare la purjarea indexurilor canalului"
+    "translation": "Eroare la purjarea indexurilor canalului."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Nu a reușit să elimine indexurile postării"
+    "translation": "Nu a reușit să elimine indexurile postării."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Nu a reușit să elimine indexurile utilizatorilor"
+    "translation": "Nu a reușit să elimine indexurile utilizatorilor."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "Căutarea pe canal nu sa finalizat"
+    "translation": "Căutarea pe canal nu a finalizat."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "Căutarea postării nu a fost finalizată"
+    "translation": "Căutarea postării nu a fost finalizată."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit"
+    "translation": "Căutarea utilizatorului nu a reușit."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Căutarea utilizatorului nu a reușit"
+    "translation": "Căutarea utilizatorului nu a reușit."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "Căutarea utilizatorului nu a reușit"
+    "translation": "Căutarea utilizatorului nu a reușit."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Eroare la închiderea indexului canalului"
+    "translation": "Eroare la închiderea indexului canalului."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Eroare la închiderea indexului postării"
+    "translation": "Eroare la închiderea indexului postării."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Eroare la închiderea indexului utilizatorului"
+    "translation": "Eroare la închiderea indexului utilizatorului."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 nu este configurat sau acceptat pe acest server."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Grupul nu poate fi asociat canalului până când nu este asociat prima dată cu echipa sincronizată de grupul părinte."
   },
   {
     "id": "groups.unsupported_syncable_type",

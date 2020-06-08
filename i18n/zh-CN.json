@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
+    "translation": "此接口需要本地请求来源。"
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1406,7 +1406,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "无法解析请求的图片网址。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -3287,6 +3287,10 @@
     "translation": "缺少消息必须属性：Message。"
   },
   {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "缺少消息必须属性：Team。"
   },
@@ -3464,7 +3468,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "AuthService 与 AuthData 同时只能使用一个。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3836,7 +3840,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "无效或缺少令牌"
+    "translation": "无效或缺少令牌。"
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3844,55 +3848,55 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "创建 bleve 频道索引错误"
+    "translation": "创建 bleve 频道索引错误。"
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "创建 bleve 消息索引错误"
+    "translation": "创建 bleve 消息索引错误。"
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "创建 bleve 用户索引错误"
+    "translation": "创建 bleve 用户索引错误。"
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "删除频道失败"
+    "translation": "删除频道失败。"
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "删除消息失败"
+    "translation": "删除消息失败。"
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "删除用户失败"
+    "translation": "删除用户失败。"
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "索引频道失败"
+    "translation": "索引频道失败。"
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "索引消息失败"
+    "translation": "索引消息失败。"
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "索引用户失败"
+    "translation": "索引用户失败。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "批量索引频道失败"
+    "translation": "批量索引频道失败。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "批量索引消息失败"
+    "translation": "批量索引消息失败。"
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "批量索引用户失败"
+    "translation": "批量索引用户失败。"
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "运行 Bleve 索引任务失败：引擎未启用"
+    "translation": "运行 Bleve 索引任务失败：引擎未启用。"
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -3900,11 +3904,11 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve 索引工作者解析中止时间失败"
+    "translation": "Bleve 索引工作者解析中止时间失败。"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Bleve 索引工作者解析开始时间失败"
+    "translation": "Bleve 索引工作者解析开始时间失败。"
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -3912,47 +3916,47 @@
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "清除频道索引失败"
+    "translation": "清除频道索引失败。"
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "清除消息索引失败"
+    "translation": "清除消息索引失败。"
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "清除用户索引失败"
+    "translation": "清除用户索引失败。"
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "频道搜索无法完成"
+    "translation": "频道搜索无法完成。"
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "消息搜索无法完成"
+    "translation": "消息搜索无法完成。"
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "用户搜索无法完成"
+    "translation": "用户搜索无法完成。"
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "用户搜索无法完成"
+    "translation": "用户搜索无法完成。"
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "用户搜索无法完成"
+    "translation": "用户搜索无法完成。"
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "关闭频道索引失败"
+    "translation": "关闭频道索引失败。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "关闭消息索引失败"
+    "translation": "关闭消息索引失败。"
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "关闭用户索引失败"
+    "translation": "关闭用户索引失败。"
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "此服务器没有正确配置或者不支持 SAML 2.0。"
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "组在关联到父组同步的团队前不能关联到频道。"
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -5300,7 +5308,7 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "组中的名称属性有无效的字符"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -5916,7 +5924,7 @@
   },
   {
     "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
+    "translation": "获取团队允许的频道列表失败：空 teamId"
   },
   {
     "id": "store.select_error",

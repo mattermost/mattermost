@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제하지 못하였습니다."
+    "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제 할 수 없습니다."
   },
   {
     "id": "api.admin.file_read_error",
@@ -293,7 +293,7 @@
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
-    "translation": "채널이 보존 처리 혹은 삭제되었습니다"
+    "translation": "채널이 보존 처리 혹은 삭제되었습니다."
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
@@ -433,7 +433,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "잘못된 채널 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할수 없습니다."
+    "translation": "잘못된 채널 멤버 수정 : 손님 역할을 수동으로 추가하거나 삭제 할 수 없습니다."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -2004,7 +2004,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "파일 설정을 위한 잘못된 드라이버 입니다. ~ ~는 '로컬' 혹은 'amazons3'여야 합니다"
+    "translation": "파일 설정을 위한 잘못된 드라이버입니다. ~ ~는 'local' 혹은 'amazons3'여야 합니다."
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -2228,7 +2228,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}], 새로운 전자우편 주소를 확인하세요."
+    "translation": "[{{ .SiteName }}], 새로운 전자우편 주소를 확인하세요"
   },
   {
     "id": "api.templates.email_footer",
@@ -3285,6 +3285,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "게시물 필수 속성 누락 : Message"
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 이 설정되지 않았거나 서버에서 지원하지 않습니다"
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
   {
     "id": "groups.unsupported_syncable_type",

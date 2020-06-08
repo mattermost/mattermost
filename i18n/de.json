@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
+    "translation": "Ihre Lizenz unterstützt Gruppen nicht"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -3287,6 +3287,10 @@
     "translation": "Fehlende erforderliche Nachrichteigenschaft: Message."
   },
   {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Fehlende erforderliche Nachrichteigenschaft: Team."
   },
@@ -3836,7 +3840,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Ungültiger oder fehlender Token"
+    "translation": "Ungültiger oder fehlender Token."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3860,7 +3864,7 @@
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "Fehler beim Löschen der Nachricht"
+    "translation": "Fehler beim Löschen der Nachricht."
   },
   {
     "id": "bleveengine.delete_user.error",
@@ -3872,11 +3876,11 @@
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "Fehler beim Indizieren der Nachricht"
+    "translation": "Fehler beim Indizieren der Nachricht."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "Fehler beim Indizieren der Benutzer."
+    "translation": "Fehler beim Indizieren des Benutzers."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
   {
     "id": "groups.unsupported_syncable_type",
