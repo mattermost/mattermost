@@ -236,16 +236,14 @@ func (_m *ChannelStore) CreateSidebarCategory(userId string, teamId string, newC
 }
 
 // Delete provides a mock function with given fields: channelId, time
-func (_m *ChannelStore) Delete(channelId string, time int64) *model.AppError {
+func (_m *ChannelStore) Delete(channelId string, time int64) error {
 	ret := _m.Called(channelId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(channelId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1472,16 +1470,14 @@ func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId s
 }
 
 // PermanentDelete provides a mock function with given fields: channelId
-func (_m *ChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (_m *ChannelStore) PermanentDelete(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1600,16 +1596,14 @@ func (_m *ChannelStore) ResetAllChannelSchemes() *model.AppError {
 }
 
 // Restore provides a mock function with given fields: channelId, time
-func (_m *ChannelStore) Restore(channelId string, time int64) *model.AppError {
+func (_m *ChannelStore) Restore(channelId string, time int64) error {
 	ret := _m.Called(channelId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(channelId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -1869,16 +1863,14 @@ func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) (*
 }
 
 // SetDeleteAt provides a mock function with given fields: channelId, deleteAt, updateAt
-func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
+func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	ret := _m.Called(channelId, deleteAt, updateAt)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64, int64) error); ok {
 		r0 = rf(channelId, deleteAt, updateAt)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
