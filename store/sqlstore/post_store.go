@@ -99,19 +99,19 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	channelNewPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
-	for _, post := range posts {
+	for idx, post := range posts {
 		if len(post.Id) > 0 {
-			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+			return nil, idx, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
 		if err := post.IsValid(maxPostSize); err != nil {
-			return nil, err
+			return nil, idx, err
 		}
 
 		currentChannelCount, ok := channelNewPosts[post.ChannelId]
@@ -153,11 +153,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for channelId, count := range channelNewPosts {
@@ -190,11 +190,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		}
 	}
 
-	return posts, nil
+	return posts, -1, nil
 }
 
 func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
-	posts, err := s.SaveMultiple([]*model.Post{post})
+	posts, _, err := s.SaveMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -270,40 +270,40 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
-	for _, post := range posts {
+	for idx, post := range posts {
 		post.UpdateAt = updateAt
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
-			return nil, appErr
+			return nil, idx, appErr
 		}
 	}
 
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	for _, post := range posts {
+	for idx, post := range posts {
 		if _, err = tx.Update(post); err != nil {
 			txErr := tx.Rollback()
 			if txErr != nil {
-				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
+				return nil, idx, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
 			}
 
-			return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+			return nil, idx, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return posts, nil
+	return posts, -1, nil
 }
 
 func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
-	posts, err := s.OverwriteMultiple([]*model.Post{post})
+	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
