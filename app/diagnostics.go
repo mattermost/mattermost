@@ -670,7 +670,7 @@ func (a *App) trackConfig() {
 		"enable_antivirus":              pluginActivated(cfg.PluginSettings.PluginStates, "antivirus"),
 		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
 		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
-		"enable_confluence":             pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-plugin-com.mattermost.confluence"),
+		"enable_confluence":             pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.confluence"),
 		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
 		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
 		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
