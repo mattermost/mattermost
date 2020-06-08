@@ -2296,8 +2296,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if err := a.Srv().Store.Channel().PermanentDelete(channel.Id); err != nil {
-		return err
+	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
