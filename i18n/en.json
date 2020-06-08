@@ -3371,6 +3371,10 @@
     "translation": "Missing required Post property: Message."
   },
   {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Missing required Post property: Team."
   },
