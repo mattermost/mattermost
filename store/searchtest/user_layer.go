@@ -182,9 +182,9 @@ func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 
 		users, err := th.Store.User().AutocompleteUsersInChannel("", "", "", options)
 		require.Nil(t, err)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2, th.UserAnotherTeam,
-			userAlternate, userGuest}, users.OutOfChannel)
+			userAlternate, userGuest}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
 }
 

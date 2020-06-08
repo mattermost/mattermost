@@ -197,7 +197,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
-			if len(listOfAllowedChannels) == 0 {
+			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 				return &model.UserAutocompleteInChannel{}, nil
 			}
 			options.ListOfAllowedChannels = listOfAllowedChannels
