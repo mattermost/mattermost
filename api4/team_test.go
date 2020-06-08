@@ -1241,6 +1241,30 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 			ExpectedTotalCount: 1,
 		},
 		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "foo", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "bar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "what", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
 			Name:               "Get all teams on one page",
 			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},

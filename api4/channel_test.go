@@ -1157,6 +1157,9 @@ func TestSearchAllChannels(t *testing.T) {
 		TeamId:      th.BasicTeam.Id,
 	}
 
+	// Testing Mixed Case (Ensure we get results for partial word searches)
+
+	// Search by using display name
 	foobarchannel, err := th.SystemAdminClient.CreateChannel(channel)
 	CheckNoError(t, err)
 
@@ -1165,6 +1168,40 @@ func TestSearchAllChannels(t *testing.T) {
 	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
+
+	search = &model.ChannelSearch{Term: "foo"}
+
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
+
+	search = &model.ChannelSearch{Term: "bar"}
+
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
+
+	// Search by using Name
+	search = &model.ChannelSearch{Term: "what"}
+
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
+
+	search = &model.ChannelSearch{Term: "ever"}
+
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	// Seach by partial word search and testing case sensitivty 
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
@@ -1192,6 +1229,7 @@ func TestSearchAllChannels(t *testing.T) {
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
 
+	// Testing Non-Mixed Case test cases
 	search = &model.ChannelSearch{Term: th.BasicChannel.Name}
 
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
