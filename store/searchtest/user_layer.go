@@ -201,6 +201,7 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 	err = th.addUserToTeams(guest, []string{th.Team.Id})
 	require.Nil(t, err)
 	_, err = th.addUserToChannels(guest, []string{th.ChannelBasic.Id})
+	require.Nil(t, err)
 	defer th.deleteUser(guest)
 	t.Run("Autocomplete users with channel restrictions", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
