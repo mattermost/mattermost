@@ -997,7 +997,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		Username        string
 		ExpectedResults int
 		MoreThan        bool
-		Exception       bool
+		ShouldFail      bool
 	}{
 		{
 			"Autocomplete in channel for specific username",
@@ -1041,7 +1041,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			th.LoginBasic()
 			rusers, resp := th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.USER_SEARCH_DEFAULT_LIMIT, "")
-			if tc.Exception {
+			if tc.ShouldFail {
 				CheckErrorMessage(t, resp, "api.user.autocomplete_users.missing_team_id.app_error")
 			} else {
 				CheckNoError(t, resp)
