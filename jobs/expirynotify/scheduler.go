@@ -36,7 +36,6 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-
 	nextTime := time.Now().Add(SchedFreqMinutes * time.Minute)
 	return &nextTime
 }

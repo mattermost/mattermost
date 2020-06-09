@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	JobName = "NotifyExpiry"
+	JobName = "ExpiryNotify"
 )
 
 type Worker struct {
