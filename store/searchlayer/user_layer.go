@@ -103,7 +103,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 	uchanIds := []string{}
 	nuchanIds := []string{}
 	sanitizedTerm := sanitizeSearchTerm(term)
-	if options.ListOfAllowedChannels != nil && !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
+	if channelId != "" && options.ListOfAllowedChannels != nil && !strings.Contains(strings.Join(options.ListOfAllowedChannels, "."), channelId) {
 		nuchanIds, err = engine.SearchUsersInTeam(teamId, options.ListOfAllowedChannels, sanitizedTerm, options)
 	} else {
 		uchanIds, nuchanIds, err = engine.SearchUsersInChannel(teamId, channelId, options.ListOfAllowedChannels, sanitizedTerm, options)
